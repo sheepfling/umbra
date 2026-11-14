@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair provides bounded §9.1.3.2 evidence that non-default region realizations supplied to Subscribe Object Class Attributes With Regions control regional callback eligibility as committed overlap changes, that the explicit subscription region specifies which analogous instance-attribute reflections are accepted (p. 220 l. 113-118), that unsubscribing one exact class/region/attribute triple stops that route while a still-subscribed receiver remains a positive control, and that empty regional Subscribe/Unsubscribe calls leave the existing subscription unchanged. For §9.8 p. 233 l. 72-74, a fresh active receiver makes only an empty regional Subscribe call; it receives neither discovery nor reflection for a source region checked to fit inside the default region, while non-empty regional receivers provide positive controls. These same overlap/disjoint callback controls demonstrate §9.8 p. 233 l. 42-47, where overlap between relevant subscription and update region sets affects subsequent reflection operations. Each existing-subscription empty Subscribe/Unsubscribe call is separated by positive, disjoint, and restored-overlap observations and is distinct from the fresh-receiver no-default check. It rejects a valid FOM region using TckUnrelatedDimension for TckObject.Value with InvalidRegionContext and proves the valid X/Y subscription continues to work. That same test maps both pinned candidate records at p. 220 l. 89-95 and l. 89-97, which are two source-derived formulations of the same dimension-subset rule, not distinct behaviors. The pair further covers the Register Object Instance With Regions source-region rule, removal of a previously associated update region, and empty-region-set no-op behavior for Associate/Unassociate. It does not cover a non-empty Associate Regions For Updates setup, all regional service combinations, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-220-l86-28",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l86-28",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 86-91",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Invoking the Subscribe Object Class Attributes With Regions service or the Unsubscribe Object Class Attributes With Regions service with an empty set of regions shall make no changes to the set of subscriptions with region of the class attribute. The TCK invokes each service with an empty region set around observable overlap, disjoint, and restored-overlap updates, and retains another receiver as a positive delivery control.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l92-30",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 89-95",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Any region specifications used to generate region realizations associated with a class attribute for subscription shall contain only dimensions that are a subset of the available dimensions of that class attribute. The TCK creates and commits a region using TckUnrelatedDimension, verifies that it is not among TckObject's available dimensions, and requires InvalidRegionContext when subscribing TckObject.Value with that region. The existing valid X/Y subscription and callbacks provide the positive control.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l95-31",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 89-97",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Region realizations generated for subscription of a class attribute shall contain only dimensions available to that class attribute. The same invalid TckUnrelatedDimension subscription-region case and valid X/Y positive control exercise this source-derived formulation; it is not a separate behavior from l. 92-30.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l113-37",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l113-37",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 113-118",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "A joined federate shall use a region for subscription of a class attribute to specify requirements for reflecting values of that class attribute’s analogous instance attributes. The TCK supplies a non-default receiver region to Subscribe Object Class Attributes With Regions and checks reflection eligibility as source-region overlap changes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l42-11",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l42-11",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 42-47",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "This service shall provide additional functionality in that the overlap of the relevant subscription and update region sets affects the subsequent RTI operations, as described in 9.1.5. The TCK changes committed region overlap and verifies the corresponding reflection eligibility change.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l65-21",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l65-21",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 65-75",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "A region realization other than the default region shall be used for subscription of a class attribute if the joined federate has used the class attribute and a given object class and the region specification from which the region realization was derived as arguments in the Subscribe Object Class Attributes With Regions service. The TCK pair supplies each receiver's non-default region realization in that service and verifies that committed overlap changes the regional update callback eligibility; it does not cover every subscription configuration.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l77-25",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l77-25",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 77-81",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Subsequently invoking the Unsubscribe Object Class Attributes With Regions service for the same (object class, region, attribute) triple shall cause the region not to be used for subscription of that class attribute. The TCK unsubscribes one receiver's exact triple and checks that its next update is suppressed while a still-subscribed receiver receives the same update as a positive control.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-219-l122-39",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l122-39",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 219, lines 122-133",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "A region realization other than the default region shall be used for update of an instance attribute if the joined federate owns the instance attribute and has used the instance attribute and region specification from which the region realization was derived as arguments either in the Register Object Instance With Regions service or in the Associate Regions For Updates service. The TCK pair covers only the Register Object Instance With Regions arm: it registers an owned attribute with a non-default source region, performs an update, and verifies the reflected callback carries a queryable copy with the exact source dimensions and bounds.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-219-l152-49",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l152-49",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 219, lines 149-154",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Subsequently invoking the Unassociate Regions For Updates service for the same (object instance, region, attribute) triple shall cause that region not to be used for update of that instance attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-219-l158-51",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l158-51",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 219, lines 155-163",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "Invoking the Associate Regions For Updates service or the Unassociate Regions For Updates service with an empty set of regions shall make no changes to the set of associations of the instance attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l72-21",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l72-21",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 72-74",
+      "source_symbol": "scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+      "statement": "An active regional subscription containing the attribute and an empty region set is issued by a fresh receiver with no other subscription. A source-region object verified to overlap the default region produces no discovery or reflection at that receiver, while the existing non-empty regional subscriptions deliver as positive controls.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+      ]
+    }
+  ]
+}

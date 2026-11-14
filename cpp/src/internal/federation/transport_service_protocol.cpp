@@ -172,6 +172,8 @@ bool isTransportServiceOperation(TransportServiceOperation operation) noexcept {
     case TransportServiceOperation::claim_attribute_ownership_release:
     case TransportServiceOperation::list_federation_execution_members:
     case TransportServiceOperation::list_federation_executions:
+    case TransportServiceOperation::federate_resigned:
+    case TransportServiceOperation::get_non_regulated_grant_switch:
       return true;
     case TransportServiceOperation::destroy_federation_execution:
     case TransportServiceOperation::unpublish_object_class_attributes:
@@ -195,6 +197,7 @@ bool isTransportServiceStatus(TransportServiceStatus status) noexcept {
     case TransportServiceStatus::internal_error:
     case TransportServiceStatus::service_reporting_interlock:
     case TransportServiceStatus::invalid_logical_time:
+    case TransportServiceStatus::federation_execution_already_exists:
       return true;
   }
   return false;

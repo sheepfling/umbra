@@ -11,6 +11,70 @@ std::filesystem::path const& requiredFom(Options const& options,
   return found->second;
 }
 
+void requireLogicalTimeEncodingVector(
+    rti::LogicalTimeFactory& factory,
+    rti::LogicalTime const& value,
+    std::vector<std::uint8_t> const& expected,
+    std::string const& description) {
+  requireDirectTimeEncoding(value, description);
+  require(encodeTime(value) == expected,
+          description + " did not use its standardized byte representation");
+  auto const decoded = decodeTime(factory, expected);
+  require(decoded != nullptr,
+          description + " factory could not decode the standardized bytes");
+  requireTimeEquals(*decoded, value,
+                    description + " factory decoded the wrong logical time");
+}
+
+void requireLogicalTimeIntervalEncodingVector(
+    rti::LogicalTimeFactory& factory,
+    rti::LogicalTimeInterval const& value,
+    std::vector<std::uint8_t> const& expected,
+    std::string const& description) {
+  require(copyBytes(value.encode()) == expected,
+          description + " did not use its standardized byte representation");
+  auto const decoded = factory.decodeLogicalTimeInterval(
+      expected.data(), expected.size());
+  require(decoded != nullptr,
+          description + " factory could not decode the standardized bytes");
+  require(*decoded == value,
+          description + " factory decoded the wrong logical-time interval");
+}
+
+void verifyStandardTimeEncodingVectors(rti::LogicalTimeFactory& factory,
+                                       std::string const& federateRole) {
+  if (factory.getName() == L"HLAinteger64Time") {
+    constexpr rti::Integer64 value = 0x0102030405060708LL;
+    auto const expected = std::vector<std::uint8_t>{
+        0x01U, 0x02U, 0x03U, 0x04U, 0x05U, 0x06U, 0x07U, 0x08U};
+    rti::HLAinteger64Time logicalTime(value);
+    rti::HLAinteger64Interval lookahead(value);
+    requireLogicalTimeEncodingVector(
+        factory, logicalTime, expected,
+        federateRole + " HLAinteger64Time");
+    requireLogicalTimeIntervalEncodingVector(
+        factory, lookahead, expected,
+        federateRole + " HLAinteger64Time lookahead");
+    return;
+  }
+
+  if (factory.getName() == L"HLAfloat64Time") {
+    auto const expected = std::vector<std::uint8_t>{
+        0x3fU, 0xf0U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U, 0x00U};
+    rti::HLAfloat64Time logicalTime(1.0);
+    rti::HLAfloat64Interval lookahead(1.0);
+    requireLogicalTimeEncodingVector(
+        factory, logicalTime, expected,
+        federateRole + " HLAfloat64Time");
+    requireLogicalTimeIntervalEncodingVector(
+        factory, lookahead, expected,
+        federateRole + " HLAfloat64Time lookahead");
+    return;
+  }
+
+  require(false, federateRole + " received an unsupported time representation");
+}
+
 void runTimeRepresentation(Options const& options, rti::CallbackModel model,
                            bool rejectInvalid) {
   require(!options.logicalTimeImplementationName.empty(),
@@ -32,18 +96,48 @@ void runTimeRepresentation(Options const& options, rti::CallbackModel model,
                             std::wstring const& implementationName) {
       create(module, implementationName);
       creator.join(options.ownerFederateName, options.federateType, federation);
-      auto const factory = creator.rtiAmbassador().getTimeFactory();
-      require(factory != nullptr,
-              "Join returned no factory for the federation logical-time representation");
-      require(factory->getName() == implementationName,
-              "Joined factory did not preserve the representation selected at Create");
-
       auto const time = makeTimeContext(creator);
+      require(time.factory->getName() == implementationName,
+              "Joined factory did not preserve the representation selected at Create");
+      verifyStandardTimeEncodingVectors(*time.factory, "Creator");
+
+      Session member(options, model, "member");
+      member.connect();
+      member.join(options.memberFederateName, options.federateType, federation);
+      auto const memberTime = makeTimeContext(member);
+      require(memberTime.factory->getName() == implementationName,
+              "Joining federate did not receive the federation logical-time representation");
+      verifyStandardTimeEncodingVectors(*memberTime.factory, "Joining federate");
+
       auto const oneStep = timeAfter(
           *time.factory, *time.initial, *time.epsilon, 1U);
+      auto const memberOneStep = timeAfter(
+          *memberTime.factory,
+          *memberTime.initial,
+          *memberTime.epsilon,
+          1U);
+      auto const encodedOneStep = encodeTime(*oneStep);
+      auto const encodedMemberOneStep = encodeTime(*memberOneStep);
+      require(encodedMemberOneStep == encodedOneStep,
+              "Joined federates did not produce the same logical-time encoding");
+      auto const decodedByMember = decodeTime(*memberTime.factory, encodedOneStep);
+      require(decodedByMember != nullptr,
+              "Joining federate could not decode the creator's logical time");
+      requireTimeEquals(
+          *decodedByMember,
+          *memberOneStep,
+          "Joining federate decoded the creator's logical time differently");
+      auto const decodedByCreator =
+          decodeTime(*time.factory, encodedMemberOneStep);
+      require(decodedByCreator != nullptr,
+              "Creator could not decode the joining federate's logical time");
+      requireTimeEquals(
+          *decodedByCreator,
+          *oneStep,
+          "Creator decoded the joining federate's logical time differently");
       require(!oneStep->isInitial(),
               "Standard logical-time representation did not advance by epsilon");
-      auto const decodedTime = decodeTime(*time.factory, encodeTime(*oneStep));
+      auto const decodedTime = decodeTime(*time.factory, encodedOneStep);
       require(decodedTime != nullptr,
               "Standard logical-time representation could not decode its encoded time");
       requireTimeEquals(
@@ -64,6 +158,8 @@ void runTimeRepresentation(Options const& options, rti::CallbackModel model,
       require(*decodedEpsilon == *time.epsilon,
               "Standard logical-time representation interval round trip changed epsilon");
 
+      member.resign(rti::NO_ACTION);
+      member.disconnect();
       creator.resign(rti::NO_ACTION);
       creator.rtiAmbassador().destroyFederationExecution(federation);
     };

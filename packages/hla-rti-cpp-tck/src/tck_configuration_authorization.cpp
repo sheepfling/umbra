@@ -1,6 +1,19 @@
 #include "tck_configuration_authorization.hpp"
 
+#include <RTI/VariableLengthData.h>
+#include <RTI/auth/Credentials.h>
+#include <RTI/libauth/AuthorizerFactoryFactory.h>
+
+#include <array>
+#include <cstdint>
+#include <string>
+#include <type_traits>
+
 namespace hla_rti_cpp_tck::detail {
+
+static_assert(
+    std::is_base_of_v<rti::Credentials, rti::HLAplainTextPassword>,
+    "HLAplainTextPassword must derive from Credentials");
 
 void verifyStandardConfigurationAndAuthorizationContract() {
   class PortableAuthorizer final : public rti::Authorizer {
@@ -204,6 +217,7 @@ void verifyStandardConfigurationAndAuthorizationContract() {
   rti::HLAplainTextPassword decodedPassword(password.getData());
   require(
       password.getType() == rti::HLAplainTextPasswordType &&
+          password.getType() == L"HLAplainTextPassword" &&
           password.decode() == L"portable-password" &&
           copiedPassword.decode() == L"portable-password" &&
           assignedPassword.decode() == L"portable-password" &&
@@ -265,6 +279,21 @@ void verifyStandardConfigurationAndAuthorizationContract() {
 
 
 void verifyStandardAuthorizerFactoryFactoryContract() {
+  auto libraryFactory = rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+      rti::HLAauthorizerName);
+  require(
+      libraryFactory != nullptr &&
+          libraryFactory->getName() == rti::HLAauthorizerName,
+      "standard authorizer library factory-factory did not forward the HLAauthorizer factory");
+  auto libraryAuthorizer = libraryFactory->getAuthorizer();
+  require(
+      libraryAuthorizer != nullptr &&
+          libraryAuthorizer->getName() == rti::HLAauthorizerName,
+      "standard authorizer library factory-factory did not create the HLAauthorizer");
+  require(
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(L"unknown") == nullptr,
+      "standard authorizer library factory-factory accepted an unsupported name");
+
   auto factory = rti::HLAauthorizerFactoryFactory::getAuthorizerFactory(
       rti::HLAauthorizerName);
   require(
@@ -277,6 +306,433 @@ void verifyStandardAuthorizerFactoryFactoryContract() {
   require(
       rti::HLAauthorizerFactoryFactory::getAuthorizerFactory(L"unknown") == nullptr,
       "standard HLAauthorizerFactoryFactory accepted an unsupported authorizer name");
+}
+
+void scenarioAuthorizerConnectServiceDecision(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(L"tck-authorizer");
+
+  rti::RTIambassadorFactory factory;
+  rti::NullFederateAmbassador federate;
+  rti::HLAnoCredentials noCredentials;
+  auto noCredentialsAmbassador = factory.createRTIambassador();
+  bool noCredentialsWereSupported = false;
+  try {
+    static_cast<void>(noCredentialsAmbassador->connect(
+        federate, callbackModel, configuration, noCredentials));
+  } catch (rti::Unauthorized const&) {
+    noCredentialsWereSupported = true;
+  }
+  require(noCredentialsWereSupported,
+          "HLAauthorizer did not recognize HLAnoCredentials before applying its password policy");
+
+  rti::HLAplainTextPassword wrongPassword(L"wrong-tck-authorizer-password");
+  auto deniedAmbassador = factory.createRTIambassador();
+  bool unauthorized = false;
+  try {
+    deniedAmbassador->connect(
+        federate, callbackModel, configuration, wrongPassword);
+  } catch (rti::Unauthorized const&) {
+    unauthorized = true;
+  }
+  require(
+      unauthorized,
+      "Connect did not reject credentials denied by the configured Authorizer");
+
+  rti::HLAplainTextPassword matchingPassword(L"tck-authorizer-password");
+  auto acceptedAmbassador = factory.createRTIambassador();
+  acceptedAmbassador->connect(
+      federate, callbackModel, configuration, matchingPassword);
+  acceptedAmbassador->disconnect();
+}
+
+void scenarioAuthorizerUnrecognizedCredentialsUnauthorized(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(L"tck-authorizer");
+
+  rti::Credentials unknown(
+      L"TckUnknownCredentialType", rti::VariableLengthData{});
+  rti::NullFederateAmbassador federate;
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  bool unauthorized = false;
+  try {
+    static_cast<void>(ambassador->connect(
+        federate, callbackModel, configuration, unknown));
+  } catch (rti::Unauthorized const&) {
+    unauthorized = true;
+  }
+  require(unauthorized,
+          "HLAauthorizer did not treat an unrecognized credential type as unauthorized");
+}
+
+void scenarioAuthorizerDisabledServiceRejectsCredentials(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(
+      L"tck-authorizer-disabled-credentials");
+
+  rti::HLAplainTextPassword credentials(
+      L"tck-disabled-authorization-password");
+  rti::NullFederateAmbassador federate;
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  bool unauthorized = false;
+  try {
+    static_cast<void>(ambassador->connect(
+        federate, callbackModel, configuration, credentials));
+  } catch (rti::Unauthorized const&) {
+    unauthorized = true;
+  }
+  require(unauthorized,
+          "Connect accepted supplied credentials while RID authorization was disabled");
+}
+
+void scenarioAuthorizerFederationServiceDecision(
+    Options const& options,
+    rti::CallbackModel callbackModel) {
+  require(!options.fom.empty(),
+          "Federation authorization TCK requires the adapter's FOM module");
+  constexpr wchar_t customAuthorizerName[] = L"TckFederationGate";
+  auto customFactory =
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+          customAuthorizerName);
+  require(customFactory != nullptr &&
+              customFactory->getName() == customAuthorizerName,
+          "the public AuthorizerFactoryFactory did not select the configured custom factory");
+  auto customAuthorizer = customFactory->getAuthorizer();
+  require(customAuthorizer != nullptr &&
+              customAuthorizer->getName() == customAuthorizerName,
+          "the public custom AuthorizerFactory did not create its named Authorizer");
+  require(
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+          L"UnsupportedTckAuthorizer") == nullptr,
+      "the public AuthorizerFactoryFactory did not delegate unsupported custom names");
+
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(L"tck-authorizer-federation");
+
+  rti::RTIambassadorFactory factory;
+  rti::HLAnoCredentials noCredentials;
+  rti::NullFederateAmbassador noCredentialsFederate;
+  auto noCredentialsAmbassador = factory.createRTIambassador();
+  noCredentialsAmbassador->connect(
+      noCredentialsFederate,
+      callbackModel,
+      configuration,
+      noCredentials);
+
+  std::wstring const credentialDeniedFederation =
+      L"tck-authorizer-missing-create-credentials";
+  bool missingCredentialsRejected = false;
+  try {
+    noCredentialsAmbassador->createFederationExecution(
+        credentialDeniedFederation,
+        options.fom.wstring(),
+        options.logicalTimeImplementationName);
+  } catch (rti::Unauthorized const&) {
+    missingCredentialsRejected = true;
+  }
+  require(
+      missingCredentialsRejected,
+      "Create Federation Execution accepted Connect credentials that do not authorize federation creation");
+
+  bool missingCredentialCreationLeftNoFederation = false;
+  try {
+    noCredentialsAmbassador->joinFederationExecution(
+        L"tck-authorizer-missing-credential-join",
+        options.federateType,
+        credentialDeniedFederation);
+  } catch (rti::FederationExecutionDoesNotExist const&) {
+    missingCredentialCreationLeftNoFederation = true;
+  }
+  require(
+      missingCredentialCreationLeftNoFederation,
+      "credential-denied Create Federation Execution left a federation that could be joined");
+  noCredentialsAmbassador->disconnect();
+
+  constexpr wchar_t createCredentialType[] =
+      L"TckFederationCreateCredential";
+  constexpr std::array<std::uint8_t, 6> createCredentialBytes{
+      0x43U, 0x52U, 0x45U, 0x41U, 0x54U, 0x45U};
+  rti::VariableLengthData createCredentialData(
+      createCredentialBytes.data(), createCredentialBytes.size());
+  rti::Credentials createCredentials(
+      createCredentialType, createCredentialData);
+  rti::NullFederateAmbassador federate;
+  auto ambassador = factory.createRTIambassador();
+  ambassador->connect(
+      federate,
+      callbackModel,
+      configuration,
+      createCredentials);
+
+  std::wstring const deniedFederation =
+      L"tck-authorizer-denied-federation";
+  bool unauthorized = false;
+  try {
+    ambassador->createFederationExecution(
+        deniedFederation,
+        options.fom.wstring(),
+        options.logicalTimeImplementationName);
+  } catch (rti::Unauthorized const&) {
+    unauthorized = true;
+  }
+  require(unauthorized,
+          "Create Federation Execution did not apply the configured custom Authorizer decision");
+
+  bool deniedCreationLeftNoFederation = false;
+  try {
+    ambassador->joinFederationExecution(
+        L"tck-authorizer-denied-join",
+        options.federateType,
+        deniedFederation);
+  } catch (rti::FederationExecutionDoesNotExist const&) {
+    deniedCreationLeftNoFederation = true;
+  }
+  require(deniedCreationLeftNoFederation,
+          "denied Create Federation Execution left a federation that could be joined");
+
+  auto const allowedFederation =
+      federationName(options, "authorizer-allowed-federation");
+  ambassador->createFederationExecution(
+      allowedFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  ambassador->destroyFederationExecution(allowedFederation);
+  ambassador->disconnect();
+}
+
+void scenarioAuthorizerDestroyServiceDecision(
+    Options const& options,
+    rti::CallbackModel callbackModel) {
+  require(!options.fom.empty(),
+          "Destroy authorization TCK requires the adapter's FOM module");
+  constexpr wchar_t customAuthorizerName[] = L"TckDestroyGate";
+  auto customFactory =
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+          customAuthorizerName);
+  require(customFactory != nullptr &&
+              customFactory->getName() == customAuthorizerName,
+          "the public AuthorizerFactoryFactory did not select the Destroy test factory");
+  auto customAuthorizer = customFactory->getAuthorizer();
+  require(customAuthorizer != nullptr &&
+              customAuthorizer->getName() == customAuthorizerName,
+          "the public Destroy test factory did not create its named Authorizer");
+
+  constexpr wchar_t credentialType[] = L"TckDestroyCredential";
+  constexpr std::array<std::uint8_t, 6> credentialBytes{
+      0x44U, 0x45U, 0x53U, 0x54U, 0x52U, 0x59U};
+  rti::VariableLengthData credentialData(
+      credentialBytes.data(), credentialBytes.size());
+  rti::Credentials destroyCredentials(credentialType, credentialData);
+  rti::HLAnoCredentials noCredentials;
+
+  auto ownerConfiguration = rti::RtiConfiguration::createConfiguration();
+  ownerConfiguration.withConfigurationName(L"tck-authorizer-destroy");
+  auto challengerConfiguration = rti::RtiConfiguration::createConfiguration();
+  challengerConfiguration.withConfigurationName(L"tck-authorizer-destroy");
+  rti::RTIambassadorFactory factory;
+  rti::NullFederateAmbassador ownerFederate;
+  rti::NullFederateAmbassador challengerFederate;
+  auto owner = factory.createRTIambassador();
+  auto challenger = factory.createRTIambassador();
+  owner->connect(
+      ownerFederate, callbackModel, ownerConfiguration, destroyCredentials);
+  challenger->connect(
+      challengerFederate, callbackModel, challengerConfiguration, noCredentials);
+
+  auto const federation =
+      federationName(options, "authorizer-destroy-connect-credentials");
+  owner->createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+
+  bool destroyDenied = false;
+  try {
+    challenger->destroyFederationExecution(federation);
+  } catch (rti::Unauthorized const&) {
+    destroyDenied = true;
+  }
+  require(destroyDenied,
+          "Destroy Federation Execution accepted a Connect without credentials that authorize destruction");
+
+  auto const verifier = owner->joinFederationExecution(
+      L"tck-authorizer-destroy-verifier",
+      options.federateType,
+      federation);
+  require(verifier.isValid(),
+          "the federation did not remain available after unauthorized Destroy");
+  owner->resignFederationExecution(rti::NO_ACTION);
+
+  owner->destroyFederationExecution(federation);
+  challenger->disconnect();
+  owner->disconnect();
+}
+
+void scenarioAuthorizerJoinServiceDecision(
+    Options const& options,
+    rti::CallbackModel callbackModel) {
+  require(!options.fom.empty(),
+          "Join authorization TCK requires the adapter's FOM module");
+  constexpr wchar_t customAuthorizerName[] = L"TckJoinGate";
+  auto customFactory =
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+          customAuthorizerName);
+  require(customFactory != nullptr &&
+              customFactory->getName() == customAuthorizerName,
+          "the public AuthorizerFactoryFactory did not select the Join test factory");
+  auto customAuthorizer = customFactory->getAuthorizer();
+  require(customAuthorizer != nullptr &&
+              customAuthorizer->getName() == customAuthorizerName,
+          "the public Join test factory did not create its named Authorizer");
+
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(L"tck-authorizer-join");
+
+  constexpr wchar_t authorizedFederateName[] =
+      L"tck-authorizer-join-retry";
+  constexpr wchar_t authorizedFederateType[] =
+      L"TckAuthorizedFederateType";
+  auto const federation =
+      federationName(options, "authorizer-join-denial-and-retry");
+  auto const otherFederation = federation + L"-other-target";
+  std::wstring const authorizedScope =
+      federation + L"\n" + authorizedFederateName + L"\n" +
+      authorizedFederateType;
+  rti::VariableLengthData const credentialData(
+      authorizedScope.data(), authorizedScope.size() * sizeof(wchar_t));
+  rti::Credentials const credentials(L"TckJoinCredential", credentialData);
+
+  rti::RTIambassadorFactory factory;
+  rti::NullFederateAmbassador federate;
+  auto ambassador = factory.createRTIambassador();
+  ambassador->connect(federate, callbackModel, configuration, credentials);
+
+  ambassador->createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  ambassador->createFederationExecution(
+      otherFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+
+  auto const joinDenied = [&](
+                             std::wstring const& targetFederation,
+                             std::wstring const& federateName,
+                             std::wstring const& federateType) {
+    try {
+      static_cast<void>(ambassador->joinFederationExecution(
+          federateName, federateType, targetFederation));
+    } catch (rti::Unauthorized const&) {
+      return true;
+    }
+    return false;
+  };
+  require(
+      joinDenied(federation, L"tck-authorizer-wrong-name", authorizedFederateType),
+      "Join authorization ignored the federate name bound to Connect credentials");
+  require(
+      joinDenied(federation, authorizedFederateName, L"TckWrongFederateType"),
+      "Join authorization ignored the federate type bound to Connect credentials");
+  require(
+      joinDenied(otherFederation, authorizedFederateName, authorizedFederateType),
+      "Join authorization ignored the federation name bound to Connect credentials");
+
+  auto const joinedFederate = ambassador->joinFederationExecution(
+      authorizedFederateName, authorizedFederateType, federation);
+  require(joinedFederate.isValid(),
+          "Join authorization rejected credentials matching the federation, federate name, and federate type");
+  ambassador->resignFederationExecution(rti::NO_ACTION);
+  ambassador->destroyFederationExecution(otherFederation);
+  ambassador->destroyFederationExecution(federation);
+  ambassador->disconnect();
+}
+
+void scenarioAuthorizerNoCredentialsConnect(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  constexpr wchar_t customAuthorizerName[] = L"TckNoCredentialsGate";
+  auto customFactory =
+      rti::AuthorizerFactoryFactory::getAuthorizerFactory(
+          customAuthorizerName);
+  require(customFactory != nullptr &&
+              customFactory->getName() == customAuthorizerName,
+          "the public AuthorizerFactoryFactory did not select the no-credentials test factory");
+  auto customAuthorizer = customFactory->getAuthorizer();
+  require(customAuthorizer != nullptr &&
+              customAuthorizer->getName() == customAuthorizerName,
+          "the public no-credentials test factory did not create its named Authorizer");
+
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(L"tck-authorizer-no-credentials");
+  rti::HLAnoCredentials credentials;
+  rti::NullFederateAmbassador federate;
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+  static_cast<void>(ambassador->connect(
+      federate, callbackModel, configuration, credentials));
+  ambassador->disconnect();
+}
+
+void scenarioAuthorizerRidConfigurationDecision(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  rti::RTIambassadorFactory factory;
+  rti::HLAnoCredentials credentials;
+  auto connectWithProfile = [&](std::wstring const& profile) {
+    auto configuration = rti::RtiConfiguration::createConfiguration();
+    configuration.withConfigurationName(profile);
+    rti::NullFederateAmbassador federate;
+    auto ambassador = factory.createRTIambassador();
+    try {
+      static_cast<void>(ambassador->connect(
+          federate, callbackModel, configuration, credentials));
+    } catch (rti::Unauthorized const&) {
+      return false;
+    }
+    ambassador->disconnect();
+    return true;
+  };
+
+  require(!connectWithProfile(L"tck-authorizer-rid-denied"),
+          "the RID-selected denying service did not reject Connect");
+  require(connectWithProfile(L"tck-authorizer-rid-allowed"),
+          "the RID-selected allowing service did not authorize Connect");
+  require(connectWithProfile(L"tck-authorizer-rid-disabled"),
+          "the RID disabled profile did not allow no-credentials Connect");
+}
+
+void scenarioAuthorizerSingleServicePerRidProfile(
+    Options const&,
+    rti::CallbackModel callbackModel) {
+  auto configuration = rti::RtiConfiguration::createConfiguration();
+  configuration.withConfigurationName(
+      L"tck-authorizer-rid-multiple-services");
+  rti::HLAnoCredentials credentials;
+  rti::NullFederateAmbassador federate;
+  rti::RTIambassadorFactory factory;
+  auto ambassador = factory.createRTIambassador();
+
+  bool connectRejected = false;
+  try {
+    static_cast<void>(ambassador->connect(
+        federate, callbackModel, configuration, credentials));
+  } catch (rti::Exception const&) {
+    connectRejected = true;
+  }
+  if (!connectRejected) {
+    ambassador->disconnect();
+  }
+  require(connectRejected,
+          "Connect accepted a RID profile with two authorization services");
 }
 
 

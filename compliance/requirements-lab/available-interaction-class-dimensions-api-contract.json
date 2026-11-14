@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java port uses the pinned official IEEE 1516.1-2025 Java API to resolve the adapter-selected interaction class and dimensions and to query the available-dimension set. It does not test object-class dimensions, every inheritance combination, or independent-provider behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-get-available-dimensions-for-interaction-class",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signature": "DimensionHandleSet getAvailableDimensionsForInteractionClass(InteractionClassHandle interactionClass)",
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getAvailableDimensionsForInteractionClass",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/AvailableInteractionClassDimensionsTck.java#run"
+      ]
+    }
+  ]
+}

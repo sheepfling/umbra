@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK evidence for IEEE 1516.1-2025 §12.12.4.2 p. 380 l. 45-14. Under both HLA_EVOKED and HLA_IMMEDIATE, the case exercises the value operator= and implicit conversion on each of the 25 basic data-element helper classes declared by the pinned Table 26 API, assigns two values per helper, and checks each retrieved value. This does not claim exhaustive Annex C conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-table-26-basic-data-element-value-operations",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l45-14",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_value_operations.cpp",
+      "source_symbol": "scenarioBasicDataElementValueOperationsContract",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_value_operations.cpp::scenarioBasicDataElementValueOperationsContract"
+      ]
+    }
+  ]
+}

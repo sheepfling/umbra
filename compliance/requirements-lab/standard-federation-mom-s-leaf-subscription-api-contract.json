@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, the standard library, and adapter-supplied FOM, standard MIM, provider package, endpoint, callback model, and logical-time implementation. It resolves every Table 7 S-designated leaf from the pinned 2025 MIM, observes service-identified reports for the parameter-bearing and parameterless federation requests, and checks that these scoped RTI-originated report interactions have empty user tags and are not timestamped. This is partial evidence for the broader §11.4.1 no-metadata rule, not a test of every RTI-originated interaction, attribute update, or object deletion. It uses no provider-specific names, headers, registries, or internal state and makes no conformance claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-mom-table7-s-leaf-subscription",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join, interaction-class and parameter lookup, subscription, receive-order interaction invocation, synchronization-point registration, callback service, and lifecycle; FederateAmbassador.receiveInteraction report observation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::getFederateHandle, RTIambassador::getTransportationTypeHandle, RTIambassador::subscribeInteractionClass, RTIambassador::sendInteraction, RTIambassador::registerFederationSynchronizationPoint, RTIambassador::evokeCallback, FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomSLeafSubscription",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomSLeafSubscriptionContract"
+      ]
+    }
+  ]
+}

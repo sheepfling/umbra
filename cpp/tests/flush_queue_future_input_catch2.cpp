@@ -367,7 +367,8 @@ TEST_CASE(
     "[integration][development-profile][interaction-management][time-management]"
     "[flush-queue-request][flush-queue-future-input][future-input][tso]"
     "[rti.service.flush-queue-request][rti.service.send-interaction]"
-    "[federate.callback.receive-interaction][federate.callback.flush-queue-grant]") {
+    "[federate.callback.receive-interaction][federate.callback.flush-queue-grant]"
+    "[2025]") {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -410,11 +411,13 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Interval(5)));
   drainCallbacks(*publisher);
 
-  // This deliberately tests producer input accepted after FQR submission,
-  // which is distinct from the standard's requirement to flush TSO already
-  // queued when FQR is invoked. The late-arrival boundary is implementation
-  // policy, not a normative snapshot rule. A later message is retracted before
-  // callback entry so only the surviving timestamp contributes to OLT.
+  // FQR requires flushing the TSO messages queued at invocation; it does not
+  // require waiting for later arrivals. This case records Umbra's optional
+  // policy of admitting a later message before the HLA_EVOKED callback begins.
+  // Once timestamp 9 is delivered in response to FQR, the grant and OLT
+  // formulas in IEEE 1516.1-2025 §§8.12, 8.13, and E.8.1.1 include it. Timestamp
+  // 12 is retracted before callback entry and therefore is not in the delivered
+  // set.
   REQUIRE_NOTHROW(receiver->flushQueueRequest(
       rti1516_2025::HLAinteger64Time(10)));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());

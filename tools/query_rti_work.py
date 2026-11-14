@@ -17,6 +17,9 @@ implementation status.
 id or method shorthand),
 requirement, standard subsection, or lane becomes one row per mapped test with
 source, status, and requirement/section counts.
+``requirement`` and ``matrix`` also expose portable C++ TCK catalog mappings
+as a separate evidence class; catalog traceability is never reported as an
+execution or pass/fail result.
 Use ``matrix --group-by requirement`` or ``matrix --group-by section`` when a
 standards review needs one row per Lab requirement or canonical 2025 subsection;
 each aggregate retains exact pair/test/assertion counts and bounded case ids.
@@ -143,6 +146,8 @@ class RequirementGapGroup(TypedDict):
     promoted_requirement_count: int
     candidate_only_requirement_count: int
     uncovered_requirement_count: int
+    dispositioned_requirement_count: int
+    actionable_uncovered_requirement_count: int
     uncovered_requirement_ids: list[str]
 
 
@@ -357,12 +362,18 @@ def text_gap_preview(option: JsonObject, prefix: str = "  ") -> list[str]:
             ):
                 coverage_text += (
                     f" ({previewable} IEEE 1516.1-2025 previewable; "
-                    f"{out_of_scope} other-document gaps excluded; "
+                    f"{out_of_scope} out-of-scope gaps excluded; "
                     f"{inventory_only} inventory-only excluded)"
                 )
         lines = [f"{prefix}gap_scope={coverage_text}"]
     else:
         lines = []
+    if preview.get("family") == "portable-cpp-tck-2025":
+        lines.append(
+            f"{prefix}direct_tck_gap_query=python tools/query_rti_work.py tck-gaps "
+            "--document hla-1516.1-2025 --summary --compact; the family gaps above "
+            "are Catch2-plan inventory, not direct C++ TCK coverage"
+        )
     requirement = preview.get("requirement")
     if not isinstance(requirement, dict):
         inventory_only = preview.get("inventory_only_gap_count", 0)
@@ -1399,6 +1410,23 @@ def load_standard_requirements(
     return requirements
 
 
+def test_lab_requirement_ids(test: JsonObject) -> list[str]:
+    """Return Lab requirement ids from current and legacy plan-row shapes."""
+
+    identifiers = [
+        *strings(test.get("selected_requirements_lab_requirement_ids")),
+        *strings(test.get("lab_requirement_ids")),
+        *(
+            requirement_id
+            for requirement in json_object_rows(test.get("requirements"))
+            if isinstance(
+                requirement_id := requirement.get("lab_requirement_id"), str
+            )
+        ),
+    ]
+    return list(dict.fromkeys(identifiers))
+
+
 def requirement_gap_inventory(
     standard_requirements: Mapping[str, JsonObject],
     tests: Sequence[JsonObject],
@@ -1442,7 +1470,7 @@ def requirement_gap_inventory(
     covered_ids = {
         requirement_id
         for test in scoped_tests
-        for requirement_id in strings(test.get("lab_requirement_ids"))
+        for requirement_id in test_lab_requirement_ids(test)
         if requirement_id in standard_requirements
     }
 
@@ -1508,7 +1536,7 @@ def requirement_gap_inventory(
     globally_covered_ids = {
         requirement_id
         for test in tests
-        for requirement_id in strings(test.get("lab_requirement_ids"))
+        for requirement_id in test_lab_requirement_ids(test)
         if requirement_id in standard_requirements
     }
 
@@ -1651,10 +1679,12 @@ def cpp_tck_requirement_gap_inventory(
 
     This is intentionally separate from ``gaps``: that command measures the
     Catch2 plan, while this view measures only explicit Lab requirement IDs
-    in ``cpp-tck-scenario-catalog.json``. Candidate catalog rows count as
-    represented, but are reported separately from promoted rows. Catalog
-    subsection disagreements are surfaced separately because a catalog may
-    carry a source-backed crosswalk beyond the exported clause field.
+    in ``cpp-tck-scenario-catalog.json``. A scenario participates when its
+    catalog row points to C++ source, even if its runner ID preserves a Java
+    parity prefix. Candidate catalog rows count as represented, but are
+    reported separately from promoted rows. Catalog subsection disagreements
+    are surfaced separately because a catalog may carry a source-backed
+    crosswalk beyond the exported clause field.
     """
 
     if catalog.get("kind") != "portable-cpp-tck-catalog":
@@ -1671,8 +1701,11 @@ def cpp_tck_requirement_gap_inventory(
         if not isinstance(row, dict):
             continue
         scenario = cast(JsonObject, row)
-        scenario_id = scenario.get("id")
-        if isinstance(scenario_id, str) and scenario_id.startswith("cpp-tck."):
+        cpp_test = scenario.get("cpp_test")
+        if isinstance(cpp_test, str) and cpp_test.strip():
+            # Some C++ TCK cases keep their Java parity ID. The catalog is
+            # language-specific, so the C++ source pointer—not the parity
+            # prefix in the runner ID—determines whether a case is C++ evidence.
             scenarios.append(scenario)
     mapped_promoted: set[str] = set()
     mapped_candidate: set[str] = set()
@@ -1755,6 +1788,82 @@ def cpp_tck_requirement_gap_inventory(
                 mapped_candidate.add(requirement_id)
             else:
                 mapped_other.add(requirement_id)
+
+    mapped_ids_from_catalog = mapped_promoted | mapped_candidate | mapped_other
+    raw_dispositions = catalog.get("requirement_dispositions", [])
+    if not isinstance(raw_dispositions, list):
+        raise TypeError("portable C++ TCK requirement_dispositions must be an array")
+    valid_dispositions: dict[str, JsonObject] = {}
+    invalid_dispositions: list[JsonObject] = []
+    invalid_disposition_count = 0
+    seen_disposition_ids: set[str] = set()
+    for raw_disposition in raw_dispositions:
+        if not isinstance(raw_disposition, dict):
+            invalid_disposition_count += 1
+            if len(invalid_dispositions) < 20:
+                invalid_dispositions.append(
+                    {"requirement_id": None, "issue": "entry must be an object"}
+                )
+            continue
+        disposition = cast(JsonObject, raw_disposition)
+        requirement_id = disposition.get("requirement_id")
+        standard_section = disposition.get("standard_section")
+        status = disposition.get("status")
+        owner_role = disposition.get("owner_role")
+        rationale = disposition.get("rationale")
+        evidence_boundary = disposition.get("evidence_boundary")
+        issues: list[str] = []
+        if not isinstance(requirement_id, str) or not requirement_id:
+            issues.append("missing requirement_id")
+        else:
+            if requirement_id in seen_disposition_ids:
+                issues.append("duplicate requirement disposition")
+            seen_disposition_ids.add(requirement_id)
+            standard = standard_requirements.get(requirement_id)
+            if standard is None:
+                issues.append("requirement_id is absent from the supplied Requirements Lab")
+            else:
+                expected_section = (
+                    f"{standard.get('document_id')}:{standard.get('clause_id')}"
+                )
+                if standard_section != expected_section:
+                    issues.append("standard_section does not match the Lab requirement")
+            if requirement_id in mapped_ids_from_catalog:
+                issues.append("requirement is both directly mapped and dispositioned")
+        if status not in {
+            "external-responsibility",
+            "no-public-cpp-api-trigger",
+            "not-applicable",
+            "permissive-standard-behavior",
+            "requirements-lab-extraction-defect",
+        }:
+            issues.append("unsupported disposition status")
+        if not isinstance(owner_role, str) or not owner_role.strip():
+            issues.append("missing owner_role")
+        if not isinstance(rationale, str) or not rationale.strip():
+            issues.append("missing rationale")
+        if not isinstance(evidence_boundary, str) or not evidence_boundary.strip():
+            issues.append("missing evidence_boundary")
+        if issues:
+            invalid_disposition_count += 1
+            if len(invalid_dispositions) < 20:
+                invalid_dispositions.append(
+                    {
+                        "requirement_id": requirement_id,
+                        "standard_section": standard_section,
+                        "issues": issues,
+                    }
+                )
+            continue
+        assert isinstance(requirement_id, str)
+        valid_dispositions[requirement_id] = {
+            "requirement_id": requirement_id,
+            "standard_section": standard_section,
+            "status": status,
+            "owner_role": owner_role,
+            "rationale": rationale,
+            "evidence_boundary": evidence_boundary,
+        }
 
     def requirement_identifier(requirement: JsonObject) -> str | None:
         value = requirement.get("id")
@@ -1840,6 +1949,15 @@ def cpp_tck_requirement_gap_inventory(
         for requirement in filtered
         if requirement_identifier(requirement) not in mapped_ids
     ]
+    dispositioned_requirement_ids = {
+        requirement_id
+        for requirement_id in filtered_ids
+        if requirement_id not in mapped_ids and requirement_id in valid_dispositions
+    }
+    disposition_records = [
+        valid_dispositions[requirement_id]
+        for requirement_id in sorted(dispositioned_requirement_ids)
+    ]
 
     catch2_cases: defaultdict[str, list[JsonObject]] = defaultdict(list)
     for test in tests:
@@ -1863,6 +1981,8 @@ def cpp_tck_requirement_gap_inventory(
             "promoted_requirement_count": 0,
             "candidate_only_requirement_count": 0,
             "uncovered_requirement_count": 0,
+            "dispositioned_requirement_count": 0,
+            "actionable_uncovered_requirement_count": 0,
             "uncovered_requirement_ids": [],
         }
     )
@@ -1880,6 +2000,10 @@ def cpp_tck_requirement_gap_inventory(
             group["mapped_requirement_count"] += 1
         else:
             group["uncovered_requirement_count"] += 1
+            if requirement_id in dispositioned_requirement_ids:
+                group["dispositioned_requirement_count"] += 1
+            else:
+                group["actionable_uncovered_requirement_count"] += 1
             if (
                 requirement_id is not None
                 and len(group["uncovered_requirement_ids"]) < 8
@@ -1913,7 +2037,16 @@ def cpp_tck_requirement_gap_inventory(
         requirement_records.append(
             {
                 "id": requirement_id,
-                "coverage": "unmapped-in-cpp-tck-catalog",
+                "coverage": (
+                    "unmapped-but-externally-dispositioned"
+                    if requirement_id in dispositioned_requirement_ids
+                    else "unmapped-in-cpp-tck-catalog"
+                ),
+                "disposition": (
+                    valid_dispositions.get(requirement_id)
+                    if requirement_id in dispositioned_requirement_ids
+                    else None
+                ),
                 "document_id": document_id,
                 "clause": requirement.get("clause"),
                 "clause_id": clause_id,
@@ -1955,12 +2088,21 @@ def cpp_tck_requirement_gap_inventory(
             for requirement in filtered
         ),
         "uncovered_requirement_count": len(uncovered),
+        "dispositioned_requirement_count": len(dispositioned_requirement_ids),
+        "actionable_uncovered_requirement_count": (
+            len(uncovered) - len(dispositioned_requirement_ids)
+        ),
+        "dispositions": disposition_records[:20],
+        "shown_disposition_count": min(len(disposition_records), 20),
+        "remaining_disposition_count": max(len(disposition_records) - 20, 0),
         "coverage_percent": round((mapped_count / total_count) * 100, 2)
         if total_count
         else 0.0,
         "non_lab_mapping_count": non_lab_mapping_count,
         "invalid_mapping_count": invalid_mapping_count,
         "invalid_mappings": invalid_mappings,
+        "invalid_disposition_count": invalid_disposition_count,
+        "invalid_dispositions": invalid_dispositions,
         "section_disagreement_count": sum(
             section_disagreement_count_by_requirement.get(requirement_id, 0)
             for requirement_id in filtered_ids
@@ -1993,14 +2135,216 @@ def requirement_gap_summary_data(result: JsonObject) -> JsonObject:
 
 
 def cpp_tck_requirement_gap_summary_data(result: JsonObject) -> JsonObject:
-    """Return TCK subsection aggregates without expanding requirement records."""
+    """Return bounded TCK aggregates and a short disposition preview."""
 
     summary = dict(result)
     summary["requirements"] = []
     summary["invalid_mappings"] = []
+    summary["invalid_dispositions"] = []
     summary["section_disagreements"] = []
     summary["shown_requirement_count"] = 0
+    dispositions = json_object_rows(result.get("dispositions"))
+    disposition_preview_limit = 5
+    summary["dispositions"] = [
+        {
+            key: disposition[key]
+            for key in ("requirement_id", "standard_section", "status", "owner_role")
+            if key in disposition
+        }
+        for disposition in dispositions[:disposition_preview_limit]
+    ]
+    summary["shown_disposition_count"] = len(summary["dispositions"])
+    summary["disposition_preview_truncated"] = (
+        len(dispositions) > disposition_preview_limit
+    )
     return summary
+
+
+def cpp_tck_requirement_ids_for_query(
+    standard_requirements: Mapping[str, JsonObject],
+    query: str | None,
+    *,
+    match_kind: str | None = None,
+) -> list[str]:
+    """Resolve pinned Lab requirement IDs for a bounded TCK evidence lookup."""
+
+    if not isinstance(query, str) or not query.strip():
+        return []
+    folded = query.casefold().strip()
+    section_query = match_kind == "section" or bool(
+        re.match(r"^hla-[^:]+:clause[-_ ]", query.strip(), re.IGNORECASE)
+        or re.fullmatch(
+            r"(?:clause[-_ ]*)?[0-9]+(?:\.[0-9]+)*",
+            query.strip(),
+            re.IGNORECASE,
+        )
+    )
+    matches: list[str] = []
+    for requirement_id, requirement in standard_requirements.items():
+        document_id = str(requirement.get("document_id") or "")
+        clause_id = str(requirement.get("clause_id") or "")
+        section = f"{document_id}:{clause_id}" if document_id and clause_id else ""
+        if section_query:
+            if section and trace_section_match(section, query):
+                matches.append(requirement_id)
+            continue
+        if match_kind is None and requirement_id.casefold() != folded:
+            continue
+        if match_kind not in {None, "requirement"}:
+            continue
+        source = requirement.get("source")
+        source_path = source.get("path") if isinstance(source, dict) else None
+        values = (
+            requirement_id,
+            requirement.get("title"),
+            requirement.get("statement"),
+            requirement.get("machine_statement"),
+            document_id,
+            requirement.get("clause"),
+            clause_id,
+            section,
+            requirement.get("kind"),
+            requirement.get("coverage_kind"),
+            requirement.get("semantic_group_id"),
+            *strings(requirement.get("transition_ids")),
+            source_path,
+        )
+        if any(
+            isinstance(value, str) and folded in value.casefold() for value in values
+        ):
+            matches.append(requirement_id)
+    return sorted(set(matches))
+
+
+def cpp_tck_requirement_mapping_evidence(
+    catalog: JsonObject,
+    requirement_ids: Iterable[str],
+    *,
+    limit: int = 5,
+    include_scenarios: bool = True,
+    scenario_ids: Iterable[str] | None = None,
+) -> JsonObject:
+    """Return catalog mappings as a distinct, explicitly non-execution class."""
+
+    if catalog.get("kind") != "portable-cpp-tck-catalog":
+        raise ValueError("catalog is not a portable C++ TCK scenario catalog")
+    raw_scenarios = catalog.get("scenarios")
+    if not isinstance(raw_scenarios, list):
+        raise TypeError("portable C++ TCK scenario catalog scenarios must be an array")
+
+    selected_ids = {identifier for identifier in requirement_ids if identifier}
+    selected_scenario_ids = (
+        {identifier for identifier in scenario_ids if identifier}
+        if scenario_ids is not None
+        else None
+    )
+    scenario_rows: list[JsonObject] = []
+    mapping_count = 0
+    promotion_counts: Counter[str] = Counter()
+    for raw_scenario in raw_scenarios:
+        if not isinstance(raw_scenario, dict):
+            continue
+        scenario = cast(JsonObject, raw_scenario)
+        scenario_id = scenario.get("id")
+        if not isinstance(scenario_id, str) or not scenario_id.startswith("cpp-tck."):
+            continue
+        if selected_scenario_ids is not None and scenario_id not in selected_scenario_ids:
+            continue
+        explicitly_selected_scenario = (
+            selected_scenario_ids is not None and scenario_id in selected_scenario_ids
+        )
+        raw_mappings = scenario.get("requirement_mappings")
+        mappings = raw_mappings if isinstance(raw_mappings, list) else []
+        matched_mappings: list[JsonObject] = []
+        for raw_mapping in mappings:
+            if not isinstance(raw_mapping, dict):
+                continue
+            mapping = cast(JsonObject, raw_mapping)
+            requirement_id = mapping.get("requirement_id") or mapping.get(
+                "lab_requirement_id"
+            )
+            if isinstance(requirement_id, str) and (
+                requirement_id in selected_ids or explicitly_selected_scenario
+            ):
+                matched_mappings.append(
+                    {
+                        "requirement_id": requirement_id,
+                        "standard_section": mapping.get("standard_section"),
+                    }
+                )
+        if not matched_mappings:
+            continue
+        promotion = str(scenario.get("promotion") or "unspecified").casefold()
+        promotion_counts[promotion] += 1
+        mapping_count += len(matched_mappings)
+        scenario_rows.append(
+            {
+                "id": scenario_id,
+                "title": scenario.get("title"),
+                "category": scenario.get("category"),
+                "promotion": promotion,
+                "runner_id": scenario.get("runner_id"),
+                "cpp_test": scenario.get("cpp_test"),
+                "matching_mapping_count": len(matched_mappings),
+                "requirement_mappings": matched_mappings[:8],
+                "remaining_requirement_mapping_count": max(
+                    len(matched_mappings) - 8, 0
+                ),
+            }
+        )
+
+    shown_rows = scenario_rows
+    if limit:
+        shown_rows = scenario_rows[: max(limit, 0)]
+    if not include_scenarios:
+        shown_rows = []
+    return {
+        "evidence_class": "portable-cpp-tck-catalog-mapping",
+        "interpretation": "Catalog traceability only; this is not an execution or pass/fail result.",
+        "requirement_ids": sorted(selected_ids)[:20],
+        "remaining_requirement_id_count": max(len(selected_ids) - 20, 0),
+        "scenario_count": len(scenario_rows),
+        "shown_scenario_count": len(shown_rows),
+        "mapping_count": mapping_count,
+        "promotion_counts": dict(sorted(promotion_counts.items())),
+        "scenarios": shown_rows,
+    }
+
+
+def cpp_tck_scenario_mappings_for_query(
+    catalog: JsonObject,
+    query: str | None,
+) -> tuple[list[str], list[str]]:
+    """Resolve one exact portable-TCK scenario/runner handle and its mappings."""
+
+    if not isinstance(query, str) or not query.strip():
+        return [], []
+    folded = query.strip().casefold()
+    if catalog.get("kind") != "portable-cpp-tck-catalog":
+        raise ValueError("catalog is not a portable C++ TCK scenario catalog")
+    raw_scenarios = catalog.get("scenarios")
+    if not isinstance(raw_scenarios, list):
+        raise TypeError("portable C++ TCK scenario catalog scenarios must be an array")
+    matches: list[JsonObject] = []
+    for raw_scenario in raw_scenarios:
+        if not isinstance(raw_scenario, dict):
+            continue
+        scenario = cast(JsonObject, raw_scenario)
+        handles = (scenario.get("id"), scenario.get("runner_id"))
+        if any(isinstance(handle, str) and handle.casefold() == folded for handle in handles):
+            matches.append(scenario)
+    scenario_ids = [
+        scenario["id"]
+        for scenario in matches
+        if isinstance(scenario.get("id"), str)
+    ]
+    requirement_ids = {
+        str(mapping.get("requirement_id") or mapping.get("lab_requirement_id"))
+        for scenario in matches
+        for mapping in json_object_rows(scenario.get("requirement_mappings"))
+        if mapping.get("requirement_id") or mapping.get("lab_requirement_id")
+    }
+    return sorted(set(scenario_ids)), sorted(requirement_ids)
 
 
 def requirement_gap_lookup_summary_data(
@@ -2036,6 +2380,20 @@ def requirement_gap_lookup_summary_data(
     summary["requirement_preview_limit"] = bounded_limit
     summary["requirement_preview_truncated"] = len(records) > len(selected)
     return summary
+
+
+def is_java_api_specific_requirement(record: JsonObject) -> bool:
+    """Return whether a requirement explicitly applies only to the Java API."""
+
+    statement = " ".join(
+        str(record.get(field) or "")
+        for field in ("title", "statement", "machine_statement")
+    ).casefold()
+    return (
+        "java api" in statement
+        and "c++" not in statement
+        and "cpp" not in statement
+    )
 
 
 def family_gap_preview(
@@ -2128,19 +2486,20 @@ def family_gap_preview(
         and record.get("id") in globally_uncovered_ids
         and record.get("standard_section") in family_sections
     ]
-    # This RTI roadmap family needs callable 1516.1 requirements. The shared
-    # corpus also contains 1516.2 OMT requirements; they remain visible in the
-    # inventory, but must not be promoted as the next RTI implementation
-    # handoff merely because an FOM-related case represents that subsection.
+    # These C++ roadmap families need applicable 1516.1 requirements. The
+    # shared corpus also contains 1516.2 OMT and explicit Java API requirements;
+    # they remain in the inventory but are not C++ implementation candidates.
     out_of_scope_candidates = [
         candidate
         for candidate in global_candidates
         if str(candidate.get("document_id") or "").casefold() != "hla-1516.1-2025"
+        or is_java_api_specific_requirement(candidate)
     ]
     implementation_candidates = [
         candidate
         for candidate in global_candidates
         if str(candidate.get("document_id") or "").casefold() == "hla-1516.1-2025"
+        and not is_java_api_specific_requirement(candidate)
     ]
     # The pinned corpus explicitly labels these table-shape entries as
     # cross-cutting and says the table structure is not a callable API
@@ -7508,7 +7867,7 @@ def indexed_active_handoff_record(
                     )
                 )
             )
-            requirement_rows: dict[str, ActiveHandoffRequirementRow] = {}
+            contract_requirement_rows: dict[str, ActiveHandoffRequirementRow] = {}
             api_surfaces: set[str] = set()
             for reference in contract_refs:
                 contract_path = DEFAULT_CONTRACT_DIRECTORY / reference
@@ -7535,7 +7894,7 @@ def indexed_active_handoff_record(
                         ):
                             continue
                         section = f"{document_id}:{clause_id}"
-                        requirement_rows.setdefault(
+                        contract_requirement_rows.setdefault(
                             lab_id,
                             {
                                 "lab_requirement_id": lab_id,
@@ -7556,11 +7915,19 @@ def indexed_active_handoff_record(
                         api_id = api_surface.get("requirements_lab_api_surface_id")
                         if isinstance(api_id, str) and api_id:
                             api_surfaces.add(api_id)
-            # Portable-TCK catalog rows carry their own explicit Lab ID to
-            # canonical-section pairs.  A referenced API contract may contain
-            # only API-surface data, so relying on requirement-reference
-            # contracts alone drops valid, catalog-declared mappings and makes
-            # the indexed active handoff appear unavailable.
+            # Portable-TCK catalog rows carry their own explicit requirement
+            # ID to canonical-section pairs. Older cpp-1516 umbrella IDs can
+            # legitimately appear against multiple precise sections; retain
+            # each pair instead of treating that as a contradictory mapping.
+            # Exact requirement-candidate IDs remain unique to one section.
+            # A referenced API contract may contain only API-surface data, so
+            # relying on requirement-reference contracts alone drops valid,
+            # catalog-declared mappings and makes the indexed handoff appear
+            # unavailable.
+            catalog_requirement_rows: dict[
+                tuple[str, str], ActiveHandoffRequirementRow
+            ] = {}
+            catalog_requirement_sections: dict[str, str] = {}
             for source in (scenario, companion):
                 if not isinstance(source, dict):
                     continue
@@ -7581,7 +7948,7 @@ def indexed_active_handoff_record(
                     document_id, clause_id = section.split(":", 1)
                     if not document_id or not clause_id:
                         continue
-                    previous = requirement_rows.get(lab_id)
+                    previous = contract_requirement_rows.get(lab_id)
                     if (
                         isinstance(previous, dict)
                         and previous.get("standard_section") != section
@@ -7595,8 +7962,26 @@ def indexed_active_handoff_record(
                             ),
                             "active_handoff_id": card.get("id"),
                         }
-                    requirement_rows.setdefault(
-                        lab_id,
+                    catalog_previous_section = catalog_requirement_sections.get(
+                        lab_id
+                    )
+                    if (
+                        not lab_id.startswith("cpp-1516.")
+                        and catalog_previous_section is not None
+                        and catalog_previous_section != section
+                    ):
+                        return {
+                            "found": False,
+                            "state": "unavailable",
+                            "reason": (
+                                "portable C++ TCK scenarios disagree for "
+                                f"{lab_id}"
+                            ),
+                            "active_handoff_id": card.get("id"),
+                        }
+                    catalog_requirement_sections.setdefault(lab_id, section)
+                    catalog_requirement_rows.setdefault(
+                        (lab_id, section),
                         {
                             "lab_requirement_id": lab_id,
                             "standard_section": section,
@@ -7606,13 +7991,21 @@ def indexed_active_handoff_record(
                             "unresolved": False,
                         },
                     )
+            # Contract references describe relevant API and behavior surfaces,
+            # not every requirement directly asserted by this TCK scenario.
+            # Publish only the explicit scenario/companion catalog mappings as
+            # direct test coverage; use requirement contracts above solely as
+            # a section-consistency check.
             pairs = sorted(
-                requirement_rows.values(),
+                catalog_requirement_rows.values(),
                 key=lambda row: (row["lab_requirement_id"], row["standard_section"]),
             )
             requirement_ids = sorted({row["lab_requirement_id"] for row in pairs})
             standard_sections = sorted({row["standard_section"] for row in pairs})
             if pairs:
+                quoted_scenario_id = json.dumps(
+                    str(plan_id), ensure_ascii=False
+                )
                 raw_commands = card.get("commands")
                 commands = (
                     {
@@ -7622,12 +8015,6 @@ def indexed_active_handoff_record(
                     }
                     if isinstance(raw_commands, dict)
                     else {}
-                )
-                quoted_requirement_id = json.dumps(
-                    requirement_ids[0], ensure_ascii=False
-                )
-                quoted_standard_section = json.dumps(
-                    standard_sections[0], ensure_ascii=False
                 )
                 return cast(
                     JsonObject,
@@ -7661,11 +8048,11 @@ def indexed_active_handoff_record(
                         "requirement_section_pair_count": len(pairs),
                         "matrix_requirement_command": (
                             "python tools/query_rti_work.py matrix "
-                            f"{quoted_requirement_id} --group-by requirement --summary --compact"
+                            f"{quoted_scenario_id} --group-by requirement --summary --compact"
                         ),
                         "matrix_section_command": (
                             "python tools/query_rti_work.py matrix "
-                            f"{quoted_standard_section} --group-by section --summary --compact"
+                            f"{quoted_scenario_id} --group-by section --summary --compact"
                         ),
                         "next_action": card.get("objective"),
                         "acceptance": card.get("acceptance", []),
@@ -7676,7 +8063,7 @@ def indexed_active_handoff_record(
             return {
                 "found": False,
                 "state": "unavailable",
-                "reason": "portable C++ TCK handoff has no direct requirement-contract mappings",
+                "reason": "portable C++ TCK handoff has no direct catalog requirement mappings",
                 "active_handoff_id": card.get("id"),
             }
 
@@ -8389,16 +8776,17 @@ def ready_slice(
         else None
     )
     if record.get("family_id") == "portable-cpp-tck-2025":
-        record["check_command"] = (
-            f"python tools/cpp_tck.py --scenario {record['plan_id']}"
-            if record.get("plan_id")
-            else None
-        )
         if record.get("lane_pending"):
             # Portable TCK cases are cataloged independently of Catch2 lanes.
-            # Their post-mapping validation must check the C++ TCK catalog,
-            # not issue a misleading Catch2 focus/check command.
+            # A proposed scenario ID is not yet in that catalog, so expose
+            # only the post-mapping check instead of a runnable-looking command.
             record["post_mapping_check_command"] = (
+                f"python tools/cpp_tck.py --scenario {record['plan_id']}"
+                if record.get("plan_id")
+                else None
+            )
+        else:
+            record["check_command"] = (
                 f"python tools/cpp_tck.py --scenario {record['plan_id']}"
                 if record.get("plan_id")
                 else None
@@ -9725,7 +10113,14 @@ def select_tests(
         return selected
     if mode == "requirement":
         selected: list[JsonObject] = []
+        folded_query = query.casefold()
         for test in tests:
+            if any(
+                requirement_id.casefold() == folded_query
+                for requirement_id in test_lab_requirement_ids(test)
+            ):
+                selected.append(test)
+                continue
             for requirement in json_object_rows(test.get("requirements")):
                 standard_value = requirement.get("standard")
                 standard = standard_value if isinstance(standard_value, dict) else {}

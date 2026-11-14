@@ -32,10 +32,16 @@ void scenarioFomReferenceClassResolution(Options const& options,
   createResolved();
   creator.join(options.ownerFederateName, options.federateType, federation);
   auto& rti = creator.rtiAmbassador();
+  auto const objectRootName = std::wstring{L"HLAobjectRoot"};
   auto const className = std::wstring{L"HLAobjectRoot.TckReferenceFixtureClass"};
+  auto const objectRoot = rti.getObjectClassHandle(objectRootName);
   auto const objectClass = rti.getObjectClassHandle(className);
-  require(objectClass.isValid() && rti.getObjectClassName(objectClass) == className,
-          "Later FOM module did not supply the referenced class");
+  require(objectRoot.isValid() && objectClass.isValid() &&
+              objectRoot != objectClass &&
+              rti.getObjectClassName(objectRoot) == objectRootName &&
+              rti.getObjectClassName(objectClass) == className &&
+              className.rfind(L"HLAobjectRoot.", 0U) == 0U,
+          "referenced class was not present beneath the public object-class root");
   creator.resign(rti::NO_ACTION);
   rti.destroyFederationExecution(federation);
 

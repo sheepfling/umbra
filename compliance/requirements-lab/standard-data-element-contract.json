@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 DataElement base surface. It verifies dynamic clone/type identity, encoded length and octet boundary, hash stability, complete append encoding, direct decode, and offset decode. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "notes": "This contract records provider- and FOM-independent API checks for the official IEEE 1516.1 DataElement base surface in C++ and Java. The C++ check covers dynamic clone/type identity, encoded length and octet boundary, hash stability, complete append encoding, direct decode, and offset decode. The Java check covers ByteWrapper encoding and cursor position, byte-array conversion, encoded length and octet boundary, direct and current-position decode, and truncated-input failure. These are API contract checks only; they do not claim provider behavior or cross-RTI interoperability. No direct canonical requirement mapping is recorded without a pinned normative requirement for this base contract.",
   "api_surfaces": [
     {
       "id": "standard-cpp-data-element-base",
@@ -14,6 +14,18 @@
       "source_symbol": "IEEE 1516.1 DataElement declarations",
       "tests": [
         "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardDataElementContract"
+      ]
+    },
+    {
+      "id": "standard-java-data-element-base",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "DataElement encode, byte-array conversion, encoded length/boundary, and decode operations",
+      "source": "out/java-tck/hla-rti1516-2025-api.jar",
+      "source_symbol": "hla.rti1516_2025.encoding.DataElement",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DataElementBaseTck.java::run",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java::dataElementBaseContract"
       ]
     }
   ]

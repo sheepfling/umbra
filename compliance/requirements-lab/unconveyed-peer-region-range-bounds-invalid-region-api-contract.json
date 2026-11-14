@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java case has one joined federate create and commit a region with configured bounds, then has a peer that neither created the region nor received its designator call Get Range Bounds. It checks only the InvalidRegion outcome at this ownership/conveyance boundary.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-unconveyed-peer-region-range-bounds",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "DimensionHandle getDimensionHandle(String name)",
+        "DimensionHandleSetFactory getDimensionHandleSetFactory()",
+        "DimensionHandleSet DimensionHandleSetFactory.create()",
+        "boolean DimensionHandleSet.add(DimensionHandle dimension)",
+        "RegionHandle createRegion(DimensionHandleSet dimensions)",
+        "void setRangeBounds(RegionHandle region, DimensionHandle dimension, RangeBounds rangeBounds)",
+        "RegionHandleSetFactory getRegionHandleSetFactory()",
+        "RegionHandleSet RegionHandleSetFactory.create()",
+        "boolean RegionHandleSet.add(RegionHandle region)",
+        "void commitRegionModifications(RegionHandleSet regions)",
+        "RangeBounds getRangeBounds(RegionHandle region, DimensionHandle dimension) throws InvalidRegion",
+        "void deleteRegion(RegionHandle region)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getRangeBounds",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/UnconveyedPeerRegionRangeBoundsInvalidRegionTck.java#run"
+      ]
+    }
+  ]
+}

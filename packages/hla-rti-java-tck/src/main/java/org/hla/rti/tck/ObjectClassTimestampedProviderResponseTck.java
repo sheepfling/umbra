@@ -131,8 +131,8 @@ final class ObjectClassTimestampedProviderResponseTck {
                && requesterCallbacks.sentOrder == OrderType.TIMESTAMP
                && requesterCallbacks.receivedOrder == OrderType.TIMESTAMP
                && response.handle.equals(requesterCallbacks.reflectedRetraction)
-               && requesterCallbacks.regions != null
-               && requesterCallbacks.regions.isEmpty()
+               && (requesterCallbacks.regions == null
+                  || requesterCallbacks.regions.isEmpty())
                && requesterCallbacks.transportation.equals(
                   owner.getTransportationTypeHandle("HLAreliable")),
             "timestamped class-request reflection lost standard callback metadata");

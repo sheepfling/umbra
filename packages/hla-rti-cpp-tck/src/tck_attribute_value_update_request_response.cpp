@@ -293,12 +293,16 @@ void scenarioAttributeValueUpdateResponse(
   rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
   rti::AttributeHandleSet const memberAttributes{memberAttribute};
 
+  owner.rtiAmbassador().setAttributeRelevanceAdvisorySwitch(true);
+  member.rtiAmbassador().setAttributeRelevanceAdvisorySwitch(true);
   owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
   member.rtiAmbassador().subscribeObjectClassAttributes(
       memberClass,
       memberAttributes,
       true,
       L"");
+  owner.recorder().clearAdvisories();
+  member.recorder().clearAdvisories();
   auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
   require(object.isValid(), "Attribute-value response registration returned an invalid object handle");
   waitFor(
@@ -311,8 +315,42 @@ void scenarioAttributeValueUpdateResponse(
       knownObject == object,
       "Attribute-value response discovery returned the wrong object handle");
 
+  waitFor(
+      owner,
+      member,
+      [&] { return !owner.recorder().updatesOn().empty(); },
+      options,
+      "attribute-value response owner turn-updates-on advisory");
+  auto const updatesOn = owner.recorder().updatesOn();
+  require(
+      updatesOn.size() == 1U && updatesOn.front().object == object &&
+          updatesOn.front().attributes == ownerAttributes &&
+          !updatesOn.front().updateRateDesignator.has_value() &&
+          member.recorder().updatesOn().empty(),
+      "attribute-value response turn-updates-on advisory was not limited to the owner");
+
   owner.recorder().clearProvidedUpdates();
   member.recorder().clearReflection();
+  std::vector<std::uint8_t> const unauthorizedValueBytes{0xFAU};
+  rti::AttributeHandleValueMap unauthorizedValues;
+  unauthorizedValues.emplace(
+      memberAttribute,
+      rti::VariableLengthData(
+          unauthorizedValueBytes.data(),
+          unauthorizedValueBytes.size()));
+  requireException(
+      [&] {
+        member.rtiAmbassador().updateAttributeValues(
+            knownObject,
+            unauthorizedValues,
+            rti::VariableLengthData{});
+      },
+      L"AttributeNotOwned",
+      "a non-owner updating the instance attribute");
+  require(
+      member.recorder().reflectionCount() == 0U,
+      "a rejected non-owner update produced an attribute reflection");
+
   std::vector<std::uint8_t> const requestTagBytes{0x52U, 0x45U, 0x51U};
   std::vector<std::uint8_t> const responseValueBytes{0x5AU, 0x25U, 0x07U};
   std::vector<std::uint8_t> const responseTagBytes{0x52U, 0x45U, 0x53U};
@@ -326,6 +364,7 @@ void scenarioAttributeValueUpdateResponse(
 
   waitFor(
       owner,
+      member,
       [&] { return !owner.recorder().providedUpdates().empty(); },
       options,
       "attribute-value response provider callback");
@@ -336,8 +375,9 @@ void scenarioAttributeValueUpdateResponse(
   require(
       requests.size() == 1U && requests.front().object == object &&
           requests.front().attributes == ownerAttributes &&
-          requests.front().tag == requestTagBytes,
-      "Attribute-value response provider callback returned the wrong object, attributes, or tag");
+          requests.front().tag == requestTagBytes &&
+          member.recorder().providedUpdates().empty(),
+      "Attribute-value response provider callback was not limited to the owner or returned the wrong data");
 
   rti::AttributeHandleValueMap responseValues;
   responseValues.emplace(
@@ -367,6 +407,18 @@ void scenarioAttributeValueUpdateResponse(
       "Attribute-value response reflection returned the wrong standard delivery metadata");
 
   member.rtiAmbassador().unsubscribeObjectClassAttributes(memberClass, memberAttributes);
+  waitFor(
+      owner,
+      member,
+      [&] { return !owner.recorder().updatesOff().empty(); },
+      options,
+      "attribute-value response owner turn-updates-off advisory");
+  auto const updatesOff = owner.recorder().updatesOff();
+  require(
+      updatesOff.size() == 1U && updatesOff.front().object == object &&
+          updatesOff.front().attributes == ownerAttributes &&
+          member.recorder().updatesOff().empty(),
+      "attribute-value response turn-updates-off advisory was not limited to the owner");
   owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
   member.resign(rti::NO_ACTION);
   owner.resign(rti::DELETE_OBJECTS);

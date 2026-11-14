@@ -167,6 +167,19 @@ final class CallbackControlsFlushQueueGrantTck {
                && grantTime.equals(receiver.queryLogicalTime()),
             "Flush Queue grant returned incomplete or out-of-bounds logical-time metadata");
 
+         LogicalTime<?, ?> belowOptimisticRequest = offset(receiverInitial, epsilon, 8);
+         JavaTckSupport.check(compareTime(grantTime, belowOptimisticRequest) < 0
+               && compareTime(belowOptimisticRequest, optimisticTime) < 0,
+            "Flush Queue request oracle did not fall between actual and optimistic time");
+         JavaTckSupport.expectFailure(
+            () -> receiver.flushQueueRequest(belowOptimisticRequest),
+            "LogicalTimeAlreadyPassed",
+            "Flush Queue request below the preceding optimistic time");
+         JavaTckSupport.check(receiverRecorder.flushQueueGrantTimes.size() == 1,
+            "rejected below-optimistic Flush Queue request generated another grant");
+         JavaTckSupport.check(grantTime.equals(receiver.queryLogicalTime()),
+            "rejected below-optimistic Flush Queue request changed logical time");
+
          receiver.disableTimeConstrained();
          receiverConstrained = false;
          publisher.disableTimeRegulation();

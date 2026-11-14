@@ -1,5 +1,6 @@
 package org.hla.rti.tck;
 
+import hla.rti1516_2025.encoding.ByteWrapper;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAfixedArray;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
@@ -123,6 +124,27 @@ final class BasicDataElementsTck {
       HLAinteger64LE decodedSigned64LE = encoder.createHLAinteger64LE();
       decodedSigned64LE.decode(signed64LE.toByteArray());
       check(decodedSigned64LE.getValue() == -2L, "signed 64-bit little-endian value changed");
+
+      ByteWrapper signed64LeWithFollowingOctet = new ByteWrapper(1 + Long.BYTES + 1);
+      signed64LeWithFollowingOctet.put(0x7e);
+      signed64LE.encode(signed64LeWithFollowingOctet);
+      HLAoctet followingSigned64LeOctet = encoder.createHLAoctet((byte) 0xa5);
+      followingSigned64LeOctet.encode(signed64LeWithFollowingOctet);
+      byte[] signed64LeBuffer = signed64LeWithFollowingOctet.array();
+      ByteWrapper signed64LeInput = new ByteWrapper(signed64LeBuffer);
+      signed64LeInput.advance(1);
+      HLAinteger64LE rawDecodedSigned64LE = encoder.createHLAinteger64LE();
+      rawDecodedSigned64LE.decode(signed64LeInput);
+      int signed64LeCursor = signed64LeInput.getPos();
+      check(rawDecodedSigned64LE.getValue() == -2L
+            && signed64LeCursor == 1 + Long.BYTES
+            && (signed64LeBuffer[signed64LeCursor] & 0xff) == 0xa5,
+         "HLAinteger64LE decode(ByteWrapper) did not stop before the following octet");
+      HLAoctet decodedFollowingSigned64LeOctet = encoder.createHLAoctet();
+      decodedFollowingSigned64LeOctet.decode(signed64LeInput);
+      check((decodedFollowingSigned64LeOctet.getValue() & 0xff) == 0xa5
+            && signed64LeInput.getPos() == signed64LeBuffer.length,
+         "following HLAoctet did not decode from the integer cursor");
 
       long unsigned64Value = 0x0123456789abcdefL;
       HLAunsignedInteger64BE unsigned64BE = encoder.createHLAunsignedInteger64BE(unsigned64Value);
@@ -515,6 +537,21 @@ final class BasicDataElementsTck {
             && alignedFixedArray.getEncodedLength() == 8,
          "HLAfixedArray metadata did not reflect its element type and count");
 
+      HLAfixedRecord firstArrayRecord = encoder.createHLAfixedRecord();
+      firstArrayRecord.add(encoder.createHLAinteger32BE(0x10203040));
+      firstArrayRecord.add(encoder.createHLAoctet((byte) 0xa5));
+      HLAfixedRecord secondArrayRecord = encoder.createHLAfixedRecord();
+      secondArrayRecord.add(encoder.createHLAinteger32BE(-2));
+      secondArrayRecord.add(encoder.createHLAoctet((byte) 0x5a));
+      HLAfixedArray<HLAfixedRecord> alignedRecordArray =
+         encoder.createHLAfixedArray(firstArrayRecord, secondArrayRecord);
+      checkBytes(alignedRecordArray.toByteArray(),
+         0x10, 0x20, 0x30, 0x40, 0xa5, 0, 0, 0,
+         0xff, 0xff, 0xff, 0xfe, 0x5a);
+      check(alignedRecordArray.getOctetBoundary() == 4
+            && alignedRecordArray.getEncodedLength() == 13,
+         "HLAfixedArray omitted inter-record padding or added trailing padding");
+
       HLAvariableArray<HLAbyte> variableArray = encoder.createHLAvariableArray(
          index -> encoder.createHLAbyte());
       variableArray.addElement(encoder.createHLAbyte((byte) 0x44));
@@ -528,12 +565,23 @@ final class BasicDataElementsTck {
          "HLAvariableArray did not round-trip its elements");
       HLAvariableArray<HLAinteger16BE> signedVariableArray = encoder.createHLAvariableArray(
          index -> encoder.createHLAinteger16BE());
-      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 1));
-      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 2));
-      checkBytes(signedVariableArray.toByteArray(), 0, 0, 0, 2, 0, 1, 0, 2);
+      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 0x1234));
+      signedVariableArray.addElement(encoder.createHLAinteger16BE((short) 0x5678));
+      checkBytes(signedVariableArray.toByteArray(),
+         0, 0, 0, 2, 0x12, 0x34, 0x56, 0x78);
+      check(signedVariableArray.size() == 2 && signedVariableArray.getEncodedLength() == 8,
+         "HLAvariableArray count or encoded length did not match its elements");
       expectFailure(() -> signedVariableArray.decode(
             new byte[] {(byte) 0x80, 0, 0, 0}),
          "DecoderException", "HLAvariableArray accepted a negative element count");
+      HLAvariableArray<HLAfloat64BE> firstAlignedVariableArray =
+         encoder.createHLAvariableArray(index -> encoder.createHLAfloat64BE());
+      firstAlignedVariableArray.addElement(encoder.createHLAfloat64BE(-2.5));
+      checkBytes(firstAlignedVariableArray.toByteArray(),
+         0, 0, 0, 1, 0, 0, 0, 0, 0xc0, 0x04, 0, 0, 0, 0, 0, 0);
+      check(firstAlignedVariableArray.getOctetBoundary() == 8
+            && firstAlignedVariableArray.getEncodedLength() == 16,
+         "HLAvariableArray did not align its first element after the count");
       HLAvariableArray<HLAinteger16BE> emptyVariableArray = encoder.createHLAvariableArray(
          index -> encoder.createHLAinteger16BE());
       checkBytes(emptyVariableArray.toByteArray(), 0, 0, 0, 0);
@@ -602,6 +650,9 @@ final class BasicDataElementsTck {
          0, 0, 0, 2, 0, 0, 0, 1, 0x11, 0, 0, 0, 0, 0, 0, 2, 0x22};
       checkBytes(nestedRecords.toByteArray(),
          0, 0, 0, 2, 0, 0, 0, 1, 0x11, 0, 0, 0, 0, 0, 0, 2, 0x22);
+      check(nestedRecords.getOctetBoundary() == 4 && nestedRecords.size() == 2
+            && nestedRecords.getEncodedLength() == 17,
+         "HLAvariableArray size did not include inter-record padding");
       byte[] invalidNestedPadding = expectedNestedRecords.clone();
       invalidNestedPadding[9] = 1;
       expectFailure(() -> nestedRecords.decode(invalidNestedPadding),
@@ -636,6 +687,9 @@ final class BasicDataElementsTck {
          1, 0, 0, 0, 0, 0, 0, 0, 0x10, 0x20, 0x30, 0x40};
       checkBytes(alignedVariant.toByteArray(),
          1, 0, 0, 0, 0, 0, 0, 0, 0x10, 0x20, 0x30, 0x40);
+      check(alignedVariant.getOctetBoundary() == 8
+            && alignedVariant.getEncodedLength() == expectedAlignedVariant.length,
+         "HLAvariantRecord alignment or encoded length was incorrect");
       HLAvariantRecord<HLAbyte> decodedAlignedVariant = encoder.createHLAvariantRecord(
          encoder.createHLAbyte());
       decodedAlignedVariant.setVariant(encoder.createHLAbyte((byte) 1),
@@ -650,9 +704,17 @@ final class BasicDataElementsTck {
       invalidVariantPadding[1] = 1;
       expectFailure(() -> decodedAlignedVariant.decode(invalidVariantPadding),
          "DecoderException", "HLAvariantRecord accepted nonzero alignment padding");
-      alignedVariant.setDiscriminant(encoder.createHLAbyte((byte) 0x7f));
-      checkBytes(alignedVariant.toByteArray(), 0x7f);
-
+      HLAvariantRecord<HLAbyte> unmappedVariant = encoder.createHLAvariantRecord(
+         encoder.createHLAbyte());
+      unmappedVariant.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAinteger32BE());
+      unmappedVariant.setVariant(encoder.createHLAbyte((byte) 2),
+         encoder.createHLAfloat64BE());
+      unmappedVariant.setDiscriminant(encoder.createHLAbyte((byte) 0x7f));
+      checkBytes(unmappedVariant.toByteArray(), 0x7f);
+      check(unmappedVariant.getOctetBoundary() == 8
+            && unmappedVariant.getEncodedLength() == 1,
+         "HLAvariantRecord added padding after an unmapped discriminant");
       HLAfloat64BE selectedDiscriminant = encoder.createHLAfloat64BE(1.5);
       HLAextendableVariantRecord<HLAfloat64BE> extendable =
          encoder.createHLAextendableVariantRecord(encoder.createHLAfloat64BE());
@@ -670,6 +732,23 @@ final class BasicDataElementsTck {
       check(decodedExtendable.getDiscriminant().getValue() == 1.5
             && ((HLAinteger32BE) decodedExtendable.getValue()).getValue() == 0x10203040,
          "HLAextendableVariantRecord did not round-trip its discriminant and alternative");
+      HLAextendableVariantRecord<HLAbyte> byteDiscriminantExtendable =
+         encoder.createHLAextendableVariantRecord(encoder.createHLAbyte());
+      byteDiscriminantExtendable.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAfloat32LE());
+      byteDiscriminantExtendable.setDiscriminant(encoder.createHLAbyte((byte) 1));
+      byteDiscriminantExtendable.setVariant(encoder.createHLAbyte((byte) 1),
+         encoder.createHLAfloat32LE(1.0f));
+      checkBytes(byteDiscriminantExtendable.toByteArray(),
+         1, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0x80, 0x3f);
+      check(byteDiscriminantExtendable.getEncodedLength() == 12,
+         "HLAextendableVariantRecord encoded length omitted discriminant padding");
+      HLAextendableVariantRecord<HLAbyte> overLimitBoundaryExtendable =
+         encoder.createHLAextendableVariantRecord(encoder.createHLAbyte());
+      expectFailure(() -> overLimitBoundaryExtendable.setVariant(
+            encoder.createHLAbyte((byte) 1), DataElementBaseTck.createBoundary16Element()),
+         "EncoderException",
+         "HLAextendableVariantRecord accepted an alternative with a 16-octet boundary");
       byte[] shortAlternativeLength = extendable.toByteArray();
       shortAlternativeLength[11] = 3;
       expectFailure(() -> decodedExtendable.decode(shortAlternativeLength),
@@ -678,8 +757,6 @@ final class BasicDataElementsTck {
          extendable.getEncodedLength() + 1);
       expectFailure(() -> decodedExtendable.decode(trailingExtendable),
          "DecoderException", "HLAextendableVariantRecord accepted trailing data");
-      expectFailure(() -> alignedVariant.getValue(), "EncoderException",
-         "HLAvariantRecord exposed an unregistered alternative");
    }
 
    private static void checkBytes(byte[] actual, int... expected) {

@@ -12,6 +12,7 @@ import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.TimeQueryReturn;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
@@ -40,6 +41,192 @@ final class TimestampedInteractionMixedAdvancesTck {
          throws Exception {
       run(factory, fom, timeImplementation, interactionClassName, parameterName,
          callbackModel, BoundaryMode.TAR_EQUAL);
+      runTarInclusiveTargetDelivery(factory, fom, timeImplementation,
+         interactionClassName, parameterName, callbackModel);
+   }
+
+   private static void runTarInclusiveTargetDelivery(RtiFactory factory, String fom,
+         String timeImplementation, String interactionClassName, String parameterName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder publisherRecorder = new Recorder();
+      Recorder receiverRecorder = new Recorder();
+      String federation = "java-tck-tar-inclusive-target-" + java.util.UUID.randomUUID();
+      boolean publisherConnected = false;
+      boolean receiverConnected = false;
+      boolean created = false;
+      boolean publisherJoined = false;
+      boolean receiverJoined = false;
+      boolean interactionPublished = false;
+      boolean interactionSubscribed = false;
+      boolean timeRegulationEnabled = false;
+      boolean timeConstrainedEnabled = false;
+      InteractionClassHandle publisherClass = null;
+      InteractionClassHandle receiverClass = null;
+      try {
+         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisherConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         receiverConnected = true;
+         publisher.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-tar-inclusive-publisher", federation);
+         publisherJoined = true;
+         receiver.joinFederationExecution("java-tck-tar-inclusive-receiver", federation);
+         receiverJoined = true;
+
+         publisherClass = publisher.getInteractionClassHandle(interactionClassName);
+         receiverClass = receiver.getInteractionClassHandle(interactionClassName);
+         ParameterHandle publisherParameter =
+            publisher.getParameterHandle(publisherClass, parameterName);
+         ParameterHandle receiverParameter =
+            receiver.getParameterHandle(receiverClass, parameterName);
+         JavaTckSupport.check(publisherClass != null && receiverClass != null
+               && publisherParameter != null && receiverParameter != null
+               && publisherClass.equals(receiverClass)
+               && publisherParameter.equals(receiverParameter),
+            "inclusive TAR members resolved different interaction or parameter handles");
+         publisher.publishInteractionClass(publisherClass);
+         interactionPublished = true;
+         publisher.changeInteractionOrderType(publisherClass, OrderType.TIMESTAMP);
+         receiver.subscribeInteractionClass(receiverClass);
+         interactionSubscribed = true;
+
+         LogicalTimeFactory<?, ?> publisherTimeFactory = publisher.getTimeFactory();
+         LogicalTimeFactory<?, ?> receiverTimeFactory = receiver.getTimeFactory();
+         JavaTckSupport.check(publisherTimeFactory.getName().equals(receiverTimeFactory.getName()),
+            "inclusive TAR members selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) publisherTimeFactory.makeEpsilon();
+         receiver.enableTimeConstrained();
+         JavaTckSupport.drain(receiver);
+         timeConstrainedEnabled = true;
+         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabled,
+            "inclusive TAR receiver did not report timeConstrainedEnabled");
+         publisher.enableTimeRegulation(epsilon);
+         JavaTckSupport.drain(publisher);
+         timeRegulationEnabled = true;
+         JavaTckSupport.check(publisherRecorder.timeRegulationEnabled,
+            "inclusive TAR publisher did not report timeRegulationEnabled");
+         publisherRecorder.callbackOrder.clear();
+         receiverRecorder.callbackOrder.clear();
+
+         LogicalTime earlierTime = offset(publisher.queryLogicalTime(), epsilon, 5);
+         LogicalTime targetTime = offset(receiver.queryLogicalTime(), epsilon, 6);
+         LogicalTime publisherTarget = offset(publisher.queryLogicalTime(), epsilon, 6);
+         JavaTckSupport.check(targetTime.equals(publisherTarget)
+               && compareTime(earlierTime, targetTime) < 0,
+            "inclusive TAR endpoints derived different timestamps or target boundaries");
+         byte[] earlierPayload = new byte[] {0x54, 0x41, 0x52, 0x35};
+         byte[] targetPayload = new byte[] {0x54, 0x41, 0x52, 0x36};
+         byte[] earlierTag = new byte[] {'t', 'a', 'r', '-', '5'};
+         byte[] targetTag = new byte[] {'t', 'a', 'r', '-', '6'};
+         ParameterHandleValueMap earlierParameters =
+            publisher.getParameterHandleValueMapFactory().create(1);
+         earlierParameters.put(publisherParameter, earlierPayload);
+         ParameterHandleValueMap targetParameters =
+            publisher.getParameterHandleValueMapFactory().create(1);
+         targetParameters.put(publisherParameter, targetPayload);
+         MessageRetractionReturn earlierRetraction = publisher.sendInteraction(
+            publisherClass, earlierParameters, earlierTag, earlierTime);
+         MessageRetractionReturn targetRetraction = publisher.sendInteraction(
+            publisherClass, targetParameters, targetTag, targetTime);
+         JavaTckSupport.check(earlierRetraction != null && earlierRetraction.retractionHandleIsValid
+               && earlierRetraction.handle != null
+               && targetRetraction != null && targetRetraction.retractionHandleIsValid
+               && targetRetraction.handle != null,
+            "inclusive TAR timestamped sends returned invalid retraction handles");
+         JavaTckSupport.check(receiverRecorder.timedInteractions.isEmpty()
+               && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
+            "inclusive TAR delivered an interaction before the advance request");
+
+         receiver.timeAdvanceRequest(targetTime);
+         publisher.timeAdvanceRequest(publisherTarget);
+         long deadline = System.nanoTime() + 10_000_000_000L;
+         while (publisherRecorder.timeAdvanceGrantTimes.isEmpty()
+               || receiverRecorder.timedInteractions.size() < 2
+               || receiverRecorder.timeAdvanceGrantTimes.isEmpty()) {
+            if (System.nanoTime() >= deadline) {
+               throw new AssertionError("inclusive TAR delivery/grant callbacks timed out");
+            }
+            JavaTckSupport.drain(publisher);
+            JavaTckSupport.drain(receiver);
+            Thread.yield();
+         }
+
+         JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
+               && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
+            "inclusive TAR publisher received the wrong grant");
+         JavaTckSupport.check(receiverRecorder.timedInteractions.size() == 2
+               && receiverRecorder.timeAdvanceGrantTimes.size() == 1
+               && targetTime.equals(receiverRecorder.timeAdvanceGrantTimes.get(0))
+               && receiverRecorder.callbackOrder.equals(Arrays.asList(
+                  "receiveInteraction", "receiveInteraction", "timeAdvanceGrant")),
+            "TAR did not deliver both at-or-before-target interactions before its grant");
+         assertInclusiveTarDelivery(receiver, receiverRecorder.timedInteractions.get(0),
+            receiverClass, receiverParameter, earlierPayload, earlierTag, producer,
+            earlierTime, earlierRetraction);
+         assertInclusiveTarDelivery(receiver, receiverRecorder.timedInteractions.get(1),
+            receiverClass, receiverParameter, targetPayload, targetTag, producer,
+            targetTime, targetRetraction);
+         JavaTckSupport.check(targetTime.equals(receiver.queryLogicalTime())
+               && publisherTarget.equals(publisher.queryLogicalTime()),
+            "inclusive TAR endpoint queries did not return their granted target times");
+      } finally {
+         if (timeConstrainedEnabled) {
+            try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }
+         }
+         if (timeRegulationEnabled) {
+            try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (interactionSubscribed && receiverJoined && receiverClass != null) {
+            try { receiver.unsubscribeInteractionClass(receiverClass); }
+            catch (Exception ignored) { }
+         }
+         if (interactionPublished && publisherJoined && publisherClass != null) {
+            try { publisher.unpublishInteractionClass(publisherClass); }
+            catch (Exception ignored) { }
+         }
+         if (receiverJoined) {
+            try { receiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined) {
+            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (receiverConnected) {
+            try { receiver.disconnect(); } catch (Exception ignored) { }
+         }
+         if (publisherConnected) {
+            try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   private static void assertInclusiveTarDelivery(RTIambassador receiver,
+         InteractionDelivery delivery,
+         InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
+         byte[] expectedPayload, byte[] expectedTag, FederateHandle expectedProducer,
+         LogicalTime<?, ?> expectedTime, MessageRetractionReturn expectedRetraction)
+         throws Exception {
+      JavaTckSupport.check(expectedClass.equals(delivery.interactionClass)
+            && delivery.parameters != null && delivery.parameters.size() == 1
+            && Arrays.equals(expectedPayload, delivery.parameters.get(expectedParameter))
+            && Arrays.equals(expectedTag, delivery.tag)
+            && expectedProducer.equals(delivery.producer)
+            && expectedTime.equals(delivery.time)
+            && delivery.sentOrder == OrderType.TIMESTAMP
+            && delivery.receivedOrder == OrderType.TIMESTAMP
+            && expectedRetraction.handle.equals(delivery.retractionHandle)
+            && delivery.transportation != null
+            && !receiver.getTransportationTypeName(delivery.transportation).isEmpty(),
+         "inclusive TAR changed an interaction's class, payload, tag, timestamp, order, producer, or retraction handle");
    }
 
    static void runTaraEqualBoundary(RtiFactory factory, String fom, String timeImplementation,
@@ -169,11 +356,12 @@ final class TimestampedInteractionMixedAdvancesTck {
             "timeConstrainedEnabled did not cross every receiver callback interface");
 
          LogicalTime initial = publisher.queryLogicalTime();
-         // The equality modes park the publisher one epsilon before the message;
-         // the baseline advances to the message, leaving its lookahead ahead of the TARA target.
+         // TARA equality parks the publisher one epsilon before the message so
+         // TARA(5) is granted before the equal-time message is sent. TAR equality
+         // advances the publisher to 5, keeping GALT beyond the receiver's TAR(5).
          LogicalTime messageTime = offset(initial, epsilon, 5);
-         boolean equalBoundary = boundaryMode != BoundaryMode.TARA_STRICTLY_AFTER;
-         LogicalTime publisherTarget = offset(initial, epsilon, equalBoundary ? 4 : 5);
+         boolean equalTaraBoundary = boundaryMode == BoundaryMode.TARA_EQUAL;
+         LogicalTime publisherTarget = offset(initial, epsilon, equalTaraBoundary ? 4 : 5);
          LogicalTime taraBoundary = offset(initial, epsilon,
             boundaryMode == BoundaryMode.TARA_STRICTLY_AFTER ? 6 : 5);
          LogicalTime taraFollowupBoundary = offset(initial, epsilon, 6);
@@ -189,6 +377,10 @@ final class TimestampedInteractionMixedAdvancesTck {
             JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() == 1
                   && publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
                "producer did not reach the pre-message frontier before TARA");
+            TimeQueryReturn reportedGalt = taraReceiver.queryGALT();
+            JavaTckSupport.check(reportedGalt.timeIsValid
+                  && taraBoundary.equals(reportedGalt.time),
+               "equal-time TARA request did not observe GALT at its boundary");
             taraReceiver.timeAdvanceRequestAvailable(taraBoundary);
             JavaTckSupport.drain(taraReceiver);
             JavaTckSupport.check(taraRecorder.timeAdvanceGrantTimes.size() == 1
@@ -276,22 +468,24 @@ final class TimestampedInteractionMixedAdvancesTck {
                && nmraRecorder.callbackOrder.equals(
                   Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
             "NMRA did not deliver the interaction before its sole grant");
-         JavaTckSupport.check(taraBoundary.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
+         JavaTckSupport.check(messageTime.equals(taraRecorder.timeAdvanceGrantTimes.get(0))
                && (boundaryMode != BoundaryMode.TARA_EQUAL
                   || messageTime.equals(taraRecorder.timeAdvanceGrantTimes.get(1)))
                && messageTime.equals(nmraRecorder.timeAdvanceGrantTimes.get(0)),
             "TAR/TARA or NMRA reported the wrong grant time");
+         TimeQueryReturn reportedFlushGalt = flushReceiver.queryGALT();
          JavaTckSupport.check(flushRecorder.flushQueueGrantTime != null
                && flushRecorder.flushQueueOptimisticTime != null
                && messageTime.equals(flushRecorder.flushQueueOptimisticTime)
+               && reportedFlushGalt != null && reportedFlushGalt.timeIsValid
                && compareTime(flushRecorder.flushQueueGrantTime, initial) >= 0
                && compareTime(flushRecorder.flushQueueGrantTime, requestBoundary) <= 0
+               && compareTime(flushRecorder.flushQueueGrantTime, reportedFlushGalt.time) <= 0
                && compareTime(flushRecorder.flushQueueOptimisticTime,
                   flushRecorder.flushQueueGrantTime) >= 0
                && flushRecorder.flushQueueGrantTime.equals(flushReceiver.queryLogicalTime()),
-            "Flush Queue Grant/query returned inconsistent actual or optimistic time");
-         JavaTckSupport.check((boundaryMode == BoundaryMode.TARA_EQUAL
-               ? messageTime : taraBoundary).equals(taraReceiver.queryLogicalTime())
+            "Flush Queue Grant actual time exceeded GALT or returned inconsistent actual/optimistic time");
+         JavaTckSupport.check(messageTime.equals(taraReceiver.queryLogicalTime())
                && messageTime.equals(nmraReceiver.queryLogicalTime())
                && (boundaryMode == BoundaryMode.TARA_EQUAL
                   ? messageTime : publisherTarget).equals(publisher.queryLogicalTime()),
@@ -389,6 +583,34 @@ final class TimestampedInteractionMixedAdvancesTck {
          "adapter FOM receiver interaction, parameter, or custom transportation name did not round-trip");
    }
 
+   private static final class InteractionDelivery {
+      private final InteractionClassHandle interactionClass;
+      private final ParameterHandleValueMap parameters;
+      private final byte[] tag;
+      private final TransportationTypeHandle transportation;
+      private final FederateHandle producer;
+      private final LogicalTime<?, ?> time;
+      private final OrderType sentOrder;
+      private final OrderType receivedOrder;
+      private final MessageRetractionHandle retractionHandle;
+
+      private InteractionDelivery(InteractionClassHandle interactionClass,
+            ParameterHandleValueMap parameters, byte[] tag,
+            TransportationTypeHandle transportation, FederateHandle producer,
+            LogicalTime<?, ?> time, OrderType sentOrder, OrderType receivedOrder,
+            MessageRetractionHandle retractionHandle) {
+         this.interactionClass = interactionClass;
+         this.parameters = parameters.clone();
+         this.tag = tag.clone();
+         this.transportation = transportation;
+         this.producer = producer;
+         this.time = time;
+         this.sentOrder = sentOrder;
+         this.receivedOrder = receivedOrder;
+         this.retractionHandle = retractionHandle;
+      }
+   }
+
    private static final class Recorder {
       private boolean timeRegulationEnabled;
       private boolean timeConstrainedEnabled;
@@ -406,6 +628,7 @@ final class TimestampedInteractionMixedAdvancesTck {
       private LogicalTime<?, ?> flushQueueOptimisticTime;
       private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
       private final List<String> callbackOrder = new ArrayList<>();
+      private final List<InteractionDelivery> timedInteractions = new ArrayList<>();
 
       private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new ArrayList<>();
 
@@ -431,6 +654,9 @@ final class TimestampedInteractionMixedAdvancesTck {
                   sentOrder = (OrderType) arguments[7];
                   receivedOrder = (OrderType) arguments[8];
                   retractionHandle = (MessageRetractionHandle) arguments[9];
+                  timedInteractions.add(new InteractionDelivery(interactionClass,
+                     parameters, tag, transportation, producer, interactionTime,
+                     sentOrder, receivedOrder, retractionHandle));
                   callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name)
                      && arguments != null && arguments.length == 1) {

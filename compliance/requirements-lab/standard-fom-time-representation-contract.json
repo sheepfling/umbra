@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Focused public-API evidence for IEEE 1516.2-2025 clause 6.2.8 and the IEEE 1516.1-2025 Table 21 standardized-time-representation requirement (Requirements Lab maps that statement only to clause 8). The valid C++ scenario now creates schema-valid FDDs selecting both HLAinteger64Time and HLAfloat64Time, checks each joined factory name, initial/final/zero/epsilon values, epsilon advancement, interval difference, and logical-time/interval encoding round trips. Rejection cases continue to cover raw basic and reference types as InconsistentFOM and valid federation-name reuse. The catalog's added clause-8 relationship is focused support evidence, not exhaustive Table 21 or conformance validation. Existing Java parity runs cover only the prior integer64 acceptance behavior and rejection cases; Java float64 acceptance has not been added. Other Java providers, private composition APIs, diagnostic-text, interoperability, and conformance are not claimed.",
+  "notes": "Focused public-API evidence for IEEE 1516.2-2025 clause 6.2.8 and the IEEE 1516.1-2025 Table 21 standardized-time-representation requirement (Requirements Lab maps that statement only to clause 8). The valid C++ scenario now creates schema-valid FDDs selecting both HLAinteger64Time and HLAfloat64Time, checks each joined factory name, initial/final/zero/epsilon values, epsilon advancement, interval difference, and logical-time/interval encoding round trips. Rejection cases continue to cover raw basic and reference types as InconsistentFOM and valid federation-name reuse. A separate official-API TCK case rejects negative construction and mutation for the standard integer64 and float64 interval types; this is bounded evidence for §6.2.8 p. 93 l. 42 because the FDD schema identifies logicalTimeInterval's dataType as the lookahead type, but it does not validate arbitrary user-defined FOM data-type ranges or Create-time classification. The catalog's added clause-8 relationship is focused support evidence, not exhaustive Table 21 or conformance validation. Existing Java parity runs cover only the prior integer64 acceptance behavior and rejection cases; Java float64 acceptance has not been added. Other Java providers, private composition APIs, diagnostic-text, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-time-representation-valid",
@@ -22,6 +22,27 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and destruction services",
       "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_time_representation.cpp::scenarioFomTimeRepresentationRejectionsContract"]
+    },
+    {
+      "id": "standard-cpp-lookahead-interval-nonnegative-domain",
+      "owner": "IEEE 1516.1 C++ logical-time API and IEEE 1516.2 OMT time representation",
+      "language": "cpp",
+      "signature": "HLAinteger64Interval and HLAfloat64Interval constructors and setInterval",
+      "source": "third_party/ieee1516.1-2025/include/RTI/time",
+      "source_symbol": "Standard logical-time interval classes",
+      "tests": ["packages/hla-rti-cpp-tck/src/tck_logical_time.cpp::scenarioLogicalTimeIntervalNonnegativeContract"]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l42-8",
+      "standard_section": "hla-1516.2-2025:clause-6.2.8",
+      "note": "The official interval TCK case rejects negative construction and mutation for standard integer64 and float64 lookahead interval classes only; it does not classify arbitrary FOM data-type ranges or test Create-time validation of custom types."
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l46-9",
+      "standard_section": "hla-1516.2-2025:clause-6.2.8",
+      "note": "FOM Create scenarios cover selected valid logical-time representation data types and rejection of raw basic/reference types for the time table. They do not exhaust every allowed data-type category."
     }
   ]
 }

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-sections-semantic-clauses-5-6-page-092-l62-12"
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l62-12",
+      "standard_section": "hla-1516.2-2025:clause-6.2.5"
+    }
+  ],
+  "mapping_note": "Direct fixture-bounded evidence for the attribute-table Update enumeration: an attribute uses the unlisted value OnDemand, which the pinned IEEE 1516.2-2025 DIF schema rejects, and the official Create Federation Execution call rejects the module. This does not claim exhaustive FOM schema or update-condition validation.",
+  "notes": "The TCK submits the well-formed XML through the standard C++ Create Federation Execution API. The sole intentional defect is an Update value outside Static, Periodic, Conditional, and NA. The case verifies failed creation followed by valid reuse of the same federation name; it is local Umbra adapter evidence, not independent-provider validation, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-attribute-update-type-validation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "Create Federation Execution",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInvalidCreateAtomicity",
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInvalidCreateAtomicityContract"
+      ]
+    }
+  ]
+}

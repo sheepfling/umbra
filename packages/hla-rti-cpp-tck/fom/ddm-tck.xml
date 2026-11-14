@@ -12,7 +12,7 @@
         <releaseRestriction>NA</releaseRestriction>
         <purpose>Portable IEEE 1516.1-2025 data distribution management conformance tests</purpose>
         <applicationDomain>Conformance testing</applicationDomain>
-        <description>This FOM contains generic two-dimensional object and interaction declarations for portable DDM tests.</description>
+        <description>This FOM contains two-dimensional object and interaction declarations, including an inherited attribute hierarchy for portable DDM tests.</description>
     </modelIdentification>
     <objects>
         <objectClass>
@@ -42,6 +42,42 @@
                     <semantics>Portable regional object attribute.</semantics>
                 </attribute>
             </objectClass>
+            <objectClass>
+                <name>TckKnownClassObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                    <dimension>TckDimensionY</dimension>
+                </dimensions>
+                <attribute>
+                    <name>Name</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Static</updateType>
+                    <updateCondition>At registration.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable DDM base-class availability attribute.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>TckKnownClassDerivedObject</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <attribute>
+                        <name>Efficiency</name>
+                        <dataType>HLAbyte</dataType>
+                        <updateType>Static</updateType>
+                        <updateCondition>At registration.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Portable derived-only DDM attribute.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
         </objectClass>
     </objects>
     <interactions>
@@ -62,6 +98,24 @@
                     <dataType>HLAbyte</dataType>
                     <semantics>Portable regional interaction parameter.</semantics>
                 </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>TckDimensionBaseInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                </dimensions>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <interactionClass>
+                    <name>TckDimensionDerivedInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <dimensions>
+                        <dimension>TckDimensionY</dimension>
+                    </dimensions>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                </interactionClass>
             </interactionClass>
         </interactionClass>
     </interactions>
@@ -97,7 +151,6 @@
             <upperBound>10</upperBound>
             <normalization>Portable unrelated-dimension normalization.</normalization>
             <outputDataSemantics>Portable unrelated dimension.</outputDataSemantics>
-            <value>[0..10)</value>
         </dimension>
     </dimensions>
     <switches>

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the bounded portable C++ TCK check for unfinished object and interaction class scaffolds in Create and Join FOM-module unions. The test uses only standard RTIambassador services and standard-library paths; adapter-supplied schema-valid modules control the incomplete/complete union. It checks service failure, failed Join atomicity, and successful retry with a completing module. It does not establish exhaustive class/member completeness or provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-full-class-definition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Create/Join FOM-module union and class lookup declarations",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador FOM-module composition and class lookup declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioFomIncompleteClassDefinitionContract"
+      ]
+    }
+  ]
+}

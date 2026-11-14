@@ -130,6 +130,16 @@ void scenarioTimeConstrainedEnableAtGaltEquality(
       *requesterTime.initial,
       *requesterTime.epsilon,
       8U);
+  auto const seven = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      7U);
+  auto const regulatorSix = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      6U);
   auto const regulatorEight = timeAfter(
       *regulatorTime.factory,
       *regulatorTime.initial,
@@ -140,26 +150,79 @@ void scenarioTimeConstrainedEnableAtGaltEquality(
       observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
       "Regulator-constrained advance had no GALT before the request");
   requireTimeEquals(*observedGalt, *six, "Regulator-constrained pre-request GALT");
+  requester.rtiAmbassador().timeAdvanceRequest(*six);
+  auto const equalGaltDeadline = Clock::now() + std::chrono::milliseconds(50);
+  while (Clock::now() < equalGaltDeadline) {
+    regulator.pump();
+    requester.pump();
+    require(
+        requester.recorder().timeAdvanceGrants().size() == 1U,
+        "Time Advance Request at GALT equality was granted before the regulator advanced");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto equalGaltHeldTime = requesterTime.factory->makeInitial();
+  requester.rtiAmbassador().queryLogicalTime(*equalGaltHeldTime);
+  requireTimeEquals(
+      *equalGaltHeldTime,
+      *five,
+      "TAR at GALT equality changed the logical time before peer advance");
+  observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
+      "TAR at GALT equality lost its bound while pending");
+  requireTimeEquals(
+      *observedGalt,
+      *six,
+      "TAR at GALT equality changed GALT before peer advance");
+
+  regulator.rtiAmbassador().timeAdvanceRequest(*regulatorSix);
+  waitFor(
+      regulator,
+      requester,
+      [&] {
+        return regulator.recorder().timeAdvanceGrants().size() == 3U &&
+            requester.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "TAR at GALT equality released after regulator advance");
+  require(
+      requester.recorder().timeAdvanceGrants().back().encoded == encodeTime(*six),
+      "TAR at GALT equality was released at the wrong logical time");
+  auto const releasedEqualGalt = requesterTime.factory->makeInitial();
+  requester.rtiAmbassador().queryLogicalTime(*releasedEqualGalt);
+  requireTimeEquals(
+      *releasedEqualGalt,
+      *six,
+      "TAR at GALT equality did not advance after the peer raised GALT");
+  observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
+      "TAR at GALT equality release left GALT undefined");
+  requireTimeEquals(
+      *observedGalt,
+      *seven,
+      "TAR at GALT equality release did not observe the raised GALT");
+
   requester.rtiAmbassador().timeAdvanceRequest(*eight);
   auto const heldDeadline = Clock::now() + std::chrono::milliseconds(50);
   while (Clock::now() < heldDeadline) {
     regulator.pump();
     requester.pump();
     require(
-        requester.recorder().timeAdvanceGrants().size() == 1U,
+        requester.recorder().timeAdvanceGrants().size() == 2U,
         "Time-constrained requester advanced beyond the regulating peer's GALT");
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   auto heldTime = requesterTime.factory->makeInitial();
   requester.rtiAmbassador().queryLogicalTime(*heldTime);
-  requireTimeEquals(*heldTime, *five, "Regulator-constrained held logical time");
+  requireTimeEquals(*heldTime, *six, "Regulator-constrained held logical time");
   observedGalt = requesterTime.factory->makeInitial();
   require(
       observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
       "Regulator-constrained advance lost GALT while TAR was pending");
   requireTimeEquals(
       *observedGalt,
-      *six,
+      *seven,
       "Regulator-constrained GALT while TAR was pending");
 
   regulator.rtiAmbassador().timeAdvanceRequest(*regulatorEight);
@@ -167,8 +230,8 @@ void scenarioTimeConstrainedEnableAtGaltEquality(
       regulator,
       requester,
       [&] {
-        return regulator.recorder().timeAdvanceGrants().size() == 3U &&
-            requester.recorder().timeAdvanceGrants().size() == 2U;
+        return regulator.recorder().timeAdvanceGrants().size() == 4U &&
+            requester.recorder().timeAdvanceGrants().size() == 3U;
       },
       options,
       "Regulator-constrained requester grant after peer advance");
@@ -1729,6 +1792,10 @@ void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder(
   require(
       queuedObject.isValid() && laterObject.isValid() && queuedObject != laterObject,
       "Time Constrained deletion disable did not register two distinct objects");
+  auto const queuedObjectName =
+      publisher.rtiAmbassador().getObjectInstanceName(queuedObject);
+  require(!queuedObjectName.empty(),
+          "Time Constrained deletion disable returned an empty queued-object name");
   waitFor(
       receiver,
       [&] {
@@ -1780,6 +1847,20 @@ void scenarioTimeConstrainedDisableQueuedDeletionToReceiveOrder(
       "Future object removal escaped before Time Constrained was disabled");
 
   receiver.rtiAmbassador().disableTimeConstrained();
+  requireException(
+      [&] {
+        static_cast<void>(
+            receiver.rtiAmbassador().getObjectInstanceHandle(queuedObjectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "queued object name lookup immediately after disabling Time Constrained");
+  requireException(
+      [&] {
+        static_cast<void>(
+            receiver.rtiAmbassador().getKnownObjectClassHandle(queuedObject));
+      },
+      L"ObjectInstanceNotKnown",
+      "queued object class lookup immediately after disabling Time Constrained");
   waitFor(
       receiver,
       [&] { return receiver.recorder().removals().size() == 1U; },

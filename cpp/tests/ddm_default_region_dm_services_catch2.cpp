@@ -8,6 +8,7 @@
 #include <atomic>
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The default-region DM services test requires the Umbra source directory."
@@ -74,6 +75,35 @@ class RoutingReceiver final : public NullFederateAmbassador {
   std::size_t interactions = 0U;
 };
 
+class ClassIsolationReceiver final : public NullFederateAmbassador {
+ public:
+  struct Reflection final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleValueMap values;
+  };
+
+  void discoverObjectInstance(
+      ObjectInstanceHandle const& objectInstance,
+      ObjectClassHandle const& objectClass,
+      std::wstring const&,
+      FederateHandle const&) override {
+    discoveries.emplace_back(objectInstance, objectClass);
+  }
+
+  void reflectAttributeValues(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleValueMap const& values,
+      VariableLengthData const&,
+      TransportationTypeHandle const&,
+      FederateHandle const&,
+      RegionHandleSet const*) override {
+    reflections.push_back({objectInstance, values});
+  }
+
+  std::vector<std::pair<ObjectInstanceHandle, ObjectClassHandle>> discoveries;
+  std::vector<Reflection> reflections;
+};
+
 std::unique_ptr<RTIambassador> makeRti() {
   RTIambassadorFactory factory;
   return factory.createRTIambassador();
@@ -82,6 +112,11 @@ std::unique_ptr<RTIambassador> makeRti() {
 std::filesystem::path regionalFom() {
   return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
       "data" / "two-dimensional-regional-interaction-fom.xml";
+}
+
+std::filesystem::path classIsolationFom() {
+  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "two-dimensional-regional-class-isolation-fom.xml";
 }
 
 std::wstring nextFederationName() {
@@ -222,9 +257,14 @@ TEST_CASE(
       subscriberInteractionClass,
       RegionHandleSet{subscriptionRegion}));
 
-  // §9.1.5 (continued on p. 223) says DM and DDM subscription effects do not
-  // interact. The four DM operations use the default region independently of
-  // the disjoint explicit regional declarations.
+  // §9.1.5 p. 222 l. 17 calls for expanded DM interpretations when used with
+  // DDM services. This case is one concrete subscription/routing example, not
+  // evidence for every Clause 6 definition, constraint, or service.
+  // §9.1.5 p. 222 l. 89 says a DDM service cannot substitute for the
+  // corresponding DM service through the default region. These no-region DM
+  // calls remain distinct from the disjoint explicit regional declarations;
+  // removing the DM subscriptions below leaves those declarations ineffective
+  // until their ranges explicitly overlap the source.
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
       subscriberObjectClass,
       AttributeHandleSet{subscriberAttribute},
@@ -297,6 +337,390 @@ TEST_CASE(
   REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
       subscriberInteractionClass,
       RegionHandleSet{subscriptionRegion}));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded regional unsubscribe for one class-region-attribute triple preserves another triple",
+    "[integration][development-profile][object-management][ddm]"
+    "[ddm-region-triple-non-interference][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.unsubscribe-object-class-attributes-with-regions]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.update-attribute-values]"
+    "[federate.callback.reflect-attribute-values]") {
+  ClassIsolationReceiver publisherCallbacks;
+  ClassIsolationReceiver subscriberCallbacks;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = classIsolationFom().wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"ddm-triple-isolation-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"ddm-triple-isolation-subscriber", L"subscriber", federationName));
+
+  auto const publisherObjectClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObjectPeer");
+  auto const subscriberObjectClass = subscriber->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObjectPeer");
+  auto const publisherValue = publisher->getAttributeHandle(
+      publisherObjectClass, L"Value");
+  auto const publisherAuxiliaryValue = publisher->getAttributeHandle(
+      publisherObjectClass, L"AuxiliaryValue");
+  auto const subscriberValue = subscriber->getAttributeHandle(
+      subscriberObjectClass, L"Value");
+  auto const subscriberAuxiliaryValue = subscriber->getAttributeHandle(
+      subscriberObjectClass, L"AuxiliaryValue");
+  auto const publisherX = publisher->getDimensionHandle(L"UmbraRegionX");
+  auto const publisherY = publisher->getDimensionHandle(L"UmbraRegionY");
+  auto const subscriberX = subscriber->getDimensionHandle(L"UmbraRegionX");
+  auto const subscriberY = subscriber->getDimensionHandle(L"UmbraRegionY");
+  REQUIRE(publisherObjectClass.isValid());
+  REQUIRE(subscriberObjectClass.isValid());
+  REQUIRE(publisherValue.isValid());
+  REQUIRE(publisherAuxiliaryValue.isValid());
+  REQUIRE(subscriberValue.isValid());
+  REQUIRE(subscriberAuxiliaryValue.isValid());
+  REQUIRE(publisherX.isValid());
+  REQUIRE(publisherY.isValid());
+  REQUIRE(subscriberX.isValid());
+  REQUIRE(subscriberY.isValid());
+
+  AttributeHandleSet const publishedAttributes{
+      publisherValue,
+      publisherAuxiliaryValue,
+  };
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      publisherObjectClass,
+      publishedAttributes));
+
+  auto const sourceRegion = publisher->createRegion(
+      DimensionHandleSet{publisherX, publisherY});
+  auto const subscriptionRegion = subscriber->createRegion(
+      DimensionHandleSet{subscriberX, subscriberY});
+  REQUIRE(sourceRegion.isValid());
+  REQUIRE(subscriptionRegion.isValid());
+  setBounds(
+      *publisher,
+      sourceRegion,
+      publisherX,
+      publisherY,
+      RangeBounds(1UL, 3UL),
+      RangeBounds(1UL, 3UL));
+  setBounds(
+      *subscriber,
+      subscriptionRegion,
+      subscriberX,
+      subscriberY,
+      RangeBounds(1UL, 3UL),
+      RangeBounds(1UL, 3UL));
+
+  auto const sourcePair = AttributeHandleSetRegionHandleSetPairVector{
+      {AttributeHandleSet{publisherValue}, RegionHandleSet{sourceRegion}},
+      {AttributeHandleSet{publisherAuxiliaryValue}, RegionHandleSet{sourceRegion}},
+  };
+  auto const subscriptionPair = AttributeHandleSetRegionHandleSetPairVector{
+      {AttributeHandleSet{subscriberValue}, RegionHandleSet{subscriptionRegion}},
+      {AttributeHandleSet{subscriberAuxiliaryValue}, RegionHandleSet{subscriptionRegion}},
+  };
+  auto const auxiliaryPair = AttributeHandleSetRegionHandleSetPairVector{{
+      AttributeHandleSet{subscriberAuxiliaryValue},
+      RegionHandleSet{subscriptionRegion},
+  }};
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      subscriberObjectClass,
+      subscriptionPair,
+      true));
+
+  ObjectInstanceHandle const objectInstance =
+      publisher->registerObjectInstanceWithRegions(publisherObjectClass, sourcePair);
+  REQUIRE(objectInstance.isValid());
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberCallbacks.discoveries.size() == 1U);
+  REQUIRE(subscriberCallbacks.discoveries.front().first == objectInstance);
+  REQUIRE(subscriberCallbacks.discoveries.front().second == subscriberObjectClass);
+
+  unsigned char const valueBytes[] = {0xC3, 0x01};
+  unsigned char const auxiliaryBytes[] = {0xD4, 0x02};
+  auto updateBothAttributes = [&] {
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        objectInstance,
+        AttributeHandleValueMap{
+            {publisherValue, VariableLengthData(valueBytes, sizeof(valueBytes))},
+            {publisherAuxiliaryValue, VariableLengthData(auxiliaryBytes, sizeof(auxiliaryBytes))},
+        },
+        VariableLengthData{}));
+    drainCallbacks(*subscriber);
+  };
+  auto hasReflection = [](
+      std::vector<ClassIsolationReceiver::Reflection> const& reports,
+      ObjectInstanceHandle const& reflectedObject,
+      AttributeHandle const& attribute) {
+    for (auto const& report : reports) {
+      if (report.objectInstance == reflectedObject &&
+          report.values.contains(attribute)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  updateBothAttributes();
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, objectInstance, subscriberValue));
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, objectInstance, subscriberAuxiliaryValue));
+
+  subscriberCallbacks.reflections.clear();
+  // §9.1.5 p. 223 l. 76: removing the (class, region, Value) triple must not
+  // alter the distinct (class, region, AuxiliaryValue) subscription.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+      subscriberObjectClass,
+      AttributeHandleSetRegionHandleSetPairVector{{
+          AttributeHandleSet{subscriberValue},
+          RegionHandleSet{subscriptionRegion},
+      }}));
+  updateBothAttributes();
+  REQUIRE_FALSE(hasReflection(
+      subscriberCallbacks.reflections, objectInstance, subscriberValue));
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, objectInstance, subscriberAuxiliaryValue));
+
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(objectInstance, sourcePair));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+      subscriberObjectClass,
+      auxiliaryPair));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(
+      publisherObjectClass,
+      publishedAttributes));
+  REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded DDM unsubscribe for one object class preserves another class regional subscription",
+    "[integration][development-profile][object-management][ddm]"
+    "[ddm-unsubscribe-object-class-isolation][2025]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.unsubscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes-with-regions]"
+    "[rti.service.register-object-instance]"
+    "[rti.service.register-object-instance-with-regions]"
+    "[rti.service.update-attribute-values]"
+    "[rti.service.reflect-attribute-values]") {
+  ClassIsolationReceiver publisherCallbacks;
+  ClassIsolationReceiver subscriberCallbacks;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = classIsolationFom().wstring();
+
+  REQUIRE_NOTHROW(publisher->connect(publisherCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"ddm-class-isolation-publisher", L"publisher", federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"ddm-class-isolation-subscriber", L"subscriber", federationName));
+
+  auto const publisherDmClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObject");
+  auto const publisherDdmClass = publisher->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObjectPeer");
+  auto const subscriberDmClass = subscriber->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObject");
+  auto const subscriberDdmClass = subscriber->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraTwoDimensionalRegionObjectPeer");
+  auto const publisherDmAttribute = publisher->getAttributeHandle(
+      publisherDmClass, L"Value");
+  auto const publisherDdmAttribute = publisher->getAttributeHandle(
+      publisherDdmClass, L"Value");
+  auto const subscriberDmAttribute = subscriber->getAttributeHandle(
+      subscriberDmClass, L"Value");
+  auto const subscriberDdmAttribute = subscriber->getAttributeHandle(
+      subscriberDdmClass, L"Value");
+  auto const publisherX = publisher->getDimensionHandle(L"UmbraRegionX");
+  auto const publisherY = publisher->getDimensionHandle(L"UmbraRegionY");
+  auto const subscriberX = subscriber->getDimensionHandle(L"UmbraRegionX");
+  auto const subscriberY = subscriber->getDimensionHandle(L"UmbraRegionY");
+  REQUIRE(publisherDmClass.isValid());
+  REQUIRE(publisherDdmClass.isValid());
+  REQUIRE(subscriberDmClass.isValid());
+  REQUIRE(subscriberDdmClass.isValid());
+  REQUIRE(publisherDmAttribute.isValid());
+  REQUIRE(publisherDdmAttribute.isValid());
+  REQUIRE(subscriberDmAttribute.isValid());
+  REQUIRE(subscriberDdmAttribute.isValid());
+  REQUIRE(publisherX.isValid());
+  REQUIRE(publisherY.isValid());
+  REQUIRE(subscriberX.isValid());
+  REQUIRE(subscriberY.isValid());
+
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      publisherDmClass,
+      AttributeHandleSet{publisherDmAttribute}));
+  REQUIRE_NOTHROW(publisher->publishObjectClassAttributes(
+      publisherDdmClass,
+      AttributeHandleSet{publisherDdmAttribute}));
+
+  auto const sourceRegion = publisher->createRegion(
+      DimensionHandleSet{publisherX, publisherY});
+  auto const subscriptionRegion = subscriber->createRegion(
+      DimensionHandleSet{subscriberX, subscriberY});
+  REQUIRE(sourceRegion.isValid());
+  REQUIRE(subscriptionRegion.isValid());
+  setBounds(
+      *publisher,
+      sourceRegion,
+      publisherX,
+      publisherY,
+      RangeBounds(1UL, 3UL),
+      RangeBounds(1UL, 3UL));
+  setBounds(
+      *subscriber,
+      subscriptionRegion,
+      subscriberX,
+      subscriberY,
+      RangeBounds(1UL, 3UL),
+      RangeBounds(1UL, 3UL));
+
+  AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
+      AttributeHandleSet{publisherDdmAttribute},
+      RegionHandleSet{sourceRegion},
+  }};
+  AttributeHandleSetRegionHandleSetPairVector const subscriptionPair{{
+      AttributeHandleSet{subscriberDdmAttribute},
+      RegionHandleSet{subscriptionRegion},
+  }};
+
+  ObjectInstanceHandle const dmObject =
+      publisher->registerObjectInstance(publisherDmClass);
+  ObjectInstanceHandle const ddmObject =
+      publisher->registerObjectInstanceWithRegions(publisherDdmClass, sourcePair);
+  REQUIRE(dmObject.isValid());
+  REQUIRE(ddmObject.isValid());
+  REQUIRE(dmObject != ddmObject);
+  drainCallbacks(*subscriber);
+  // §9.1.5 p. 223 l. 118: neither class is subscribed until at least one of
+  // its attributes is subscribed, whether the declaration will be ordinary
+  // or regional.
+  REQUIRE(subscriberCallbacks.discoveries.empty());
+
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
+      subscriberDmClass,
+      AttributeHandleSet{subscriberDmAttribute},
+      true));
+  REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributesWithRegions(
+      subscriberDdmClass,
+      subscriptionPair,
+      true));
+  drainCallbacks(*subscriber);
+  REQUIRE(subscriberCallbacks.discoveries.size() == 2U);
+  auto hasDiscoveryFor = [&](ObjectInstanceHandle const& instance,
+                             ObjectClassHandle const& objectClass) {
+    for (auto const& discovery : subscriberCallbacks.discoveries) {
+      if (discovery.first == instance && discovery.second == objectClass) {
+        return true;
+      }
+    }
+    return false;
+  };
+  // §9.1.5 p. 223 l. 145: discovery preserves the class supplied to each
+  // registration form, including Register Object Instance With Regions.
+  REQUIRE(hasDiscoveryFor(dmObject, subscriberDmClass));
+  REQUIRE(hasDiscoveryFor(ddmObject, subscriberDdmClass));
+
+  unsigned char const dmBytes[] = {0xA1, 0x01};
+  unsigned char const ddmBytes[] = {0xB2, 0x02};
+  VariableLengthData const tag;
+  auto sendBoth = [&] {
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        dmObject,
+        AttributeHandleValueMap{{
+            publisherDmAttribute,
+            VariableLengthData(dmBytes, sizeof(dmBytes)),
+        }},
+        tag));
+    // The object was registered with the DDM region association, so this
+    // ordinary update follows that association while using the public DM API.
+    REQUIRE_NOTHROW(publisher->updateAttributeValues(
+        ddmObject,
+        AttributeHandleValueMap{{
+            publisherDdmAttribute,
+            VariableLengthData(ddmBytes, sizeof(ddmBytes)),
+        }},
+        tag));
+    drainCallbacks(*subscriber);
+  };
+  auto hasReflection = [](
+      std::vector<ClassIsolationReceiver::Reflection> const& reports,
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandle const& attribute) {
+    for (auto const& report : reports) {
+      if (report.objectInstance == objectInstance &&
+          report.values.contains(attribute)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  sendBoth();
+  REQUIRE(subscriberCallbacks.reflections.size() == 2U);
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, dmObject, subscriberDmAttribute));
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, ddmObject, subscriberDdmAttribute));
+
+  subscriberCallbacks.reflections.clear();
+  // §9.1.5 p. 223 l. 52: unsubscribing the ordinary DM class removes only
+  // that class's attribute subscription; the other class's regional DDM
+  // subscription continues to receive its matching update.
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributes(
+      subscriberDmClass,
+      AttributeHandleSet{subscriberDmAttribute}));
+  sendBoth();
+  REQUIRE(subscriberCallbacks.reflections.size() == 1U);
+  REQUIRE_FALSE(hasReflection(
+      subscriberCallbacks.reflections, dmObject, subscriberDmAttribute));
+  REQUIRE(hasReflection(
+      subscriberCallbacks.reflections, ddmObject, subscriberDdmAttribute));
+
+  REQUIRE_NOTHROW(publisher->unassociateRegionsForUpdates(ddmObject, sourcePair));
+  REQUIRE_NOTHROW(subscriber->unsubscribeObjectClassAttributesWithRegions(
+      subscriberDdmClass,
+      subscriptionPair));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(
+      publisherDmClass,
+      AttributeHandleSet{publisherDmAttribute}));
+  REQUIRE_NOTHROW(publisher->unpublishObjectClassAttributes(
+      publisherDdmClass,
+      AttributeHandleSet{publisherDdmAttribute}));
   REQUIRE_NOTHROW(publisher->deleteRegion(sourceRegion));
   REQUIRE_NOTHROW(subscriber->deleteRegion(subscriptionRegion));
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));

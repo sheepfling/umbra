@@ -22,6 +22,11 @@ final class NativeFederateHandle implements FederateHandle {
    }
 
    @Override
+   public String toString() {
+      return NativeHandleText.format("FederateHandle", encoded);
+   }
+
+   @Override
    public boolean equals(Object other) {
       return other instanceof FederateHandle && sameEncoding((FederateHandle) other);
    }

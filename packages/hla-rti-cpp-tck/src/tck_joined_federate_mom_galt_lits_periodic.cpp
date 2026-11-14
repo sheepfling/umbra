@@ -142,6 +142,18 @@ void scenarioJoinedFederateMomGaltLitsPeriodic(
       "Joined-federate MOM GALT/LITS discovery returned the wrong standard object");
   auto const subjectMomObject = subjectMomReflection->object;
 
+  auto matchesBoundsReflection = [&](ReflectionRecord const& reflection,
+                                     bool undefined) {
+    if (!reflection.present || reflection.object != subjectMomObject ||
+        reflection.values.count(galtAttribute) != 1U ||
+        reflection.values.count(litsAttribute) != 1U) {
+      return false;
+    }
+    auto const galt = copyBytes(reflection.values.at(galtAttribute));
+    auto const lits = copyBytes(reflection.values.at(litsAttribute));
+    return undefined ? galt.empty() && lits.empty()
+                     : !galt.empty() && !lits.empty();
+  };
   auto findBoundsReflection = [&](std::size_t before,
                                   bool undefined) -> std::optional<ReflectionRecord> {
     auto const reflections = observer.recorder().reflections();
@@ -151,20 +163,23 @@ void scenarioJoinedFederateMomGaltLitsPeriodic(
         begin,
         reflections.end(),
         [&](ReflectionRecord const& reflection) {
-          if (!reflection.present || reflection.object != subjectMomObject ||
-              reflection.values.count(galtAttribute) != 1U ||
-              reflection.values.count(litsAttribute) != 1U) {
-            return false;
-          }
-          auto const galt = copyBytes(reflection.values.at(galtAttribute));
-          auto const lits = copyBytes(reflection.values.at(litsAttribute));
-          return undefined ? galt.empty() && lits.empty()
-                           : !galt.empty() && !lits.empty();
+          return matchesBoundsReflection(reflection, undefined);
         });
     if (iterator == reflections.end()) {
       return std::nullopt;
     }
     return *iterator;
+  };
+  auto countBoundsReflections = [&](std::size_t before, bool undefined) {
+    auto const reflections = observer.recorder().reflections();
+    auto const begin = reflections.begin() +
+        static_cast<std::vector<ReflectionRecord>::difference_type>(before);
+    return static_cast<std::size_t>(std::count_if(
+        begin,
+        reflections.end(),
+        [&](ReflectionRecord const& reflection) {
+          return matchesBoundsReflection(reflection, undefined);
+        }));
   };
   auto verifyBoundsReflection = [&](ReflectionRecord const& reflection,
                                     bool undefined,
@@ -247,14 +262,29 @@ void scenarioJoinedFederateMomGaltLitsPeriodic(
       rti::VariableLengthData{});
   waitFor(
       observer,
-      [&] { return findBoundsReflection(beforePeriodic, false).has_value(); },
+      [&] { return countBoundsReflections(beforePeriodic, false) >= 2U; },
       options,
-      "joined-federate MOM GALT/LITS periodic reflection");
-  auto const periodicReflection = findBoundsReflection(beforePeriodic, false);
-  require(periodicReflection.has_value(),
-          "Joined-federate MOM GALT/LITS periodic report was missing");
-  verifyBoundsReflection(*periodicReflection, false,
-                         "joined-federate MOM GALT/LITS periodic report");
+      "two joined-federate MOM GALT/LITS periodic reflections after HLAsetTiming");
+  auto const periodicReflections = observer.recorder().reflections();
+  auto const periodicBegin = periodicReflections.begin() +
+      static_cast<std::vector<ReflectionRecord>::difference_type>(beforePeriodic);
+  std::size_t verifiedPeriodicReports = 0U;
+  for (auto iterator = periodicBegin;
+       iterator != periodicReflections.end() && verifiedPeriodicReports < 2U;
+       ++iterator) {
+    if (!matchesBoundsReflection(*iterator, false)) {
+      continue;
+    }
+    verifyBoundsReflection(
+        *iterator,
+        false,
+        "joined-federate MOM GALT/LITS periodic report " +
+            std::to_string(verifiedPeriodicReports + 1U));
+    ++verifiedPeriodicReports;
+  }
+  require(
+      verifiedPeriodicReports == 2U,
+      "Joined-federate MOM GALT/LITS did not verify two periodic reports");
 
   observer.rtiAmbassador().sendInteraction(
       setTiming,

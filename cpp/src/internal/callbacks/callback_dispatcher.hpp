@@ -2,10 +2,13 @@
 
 #include "internal/observability/runtime_instrumentation_fwd.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
+#include <cstdint>
 #include <deque>
+#include <exception>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -32,6 +35,28 @@ inline constexpr std::string_view execute_evoked = "execute.evoked";
 // selected immediate/evoked model without changing the public callback API.
 [[nodiscard]] std::optional<CallbackDispatchModel>
 currentCallbackDispatchModel() noexcept;
+
+using CallbackCompletionHandler = std::function<void(std::exception_ptr)>;
+
+// Associates the next callback submitted synchronously in this thread with a
+// transport-level completion action. The dispatcher consumes the handler at
+// submission and invokes it only after the user callback returns or throws.
+class CallbackCompletionScope final {
+ public:
+  explicit CallbackCompletionScope(CallbackCompletionHandler handler);
+  CallbackCompletionScope(CallbackCompletionScope const&) = delete;
+  CallbackCompletionScope& operator=(CallbackCompletionScope const&) = delete;
+  ~CallbackCompletionScope();
+
+ private:
+  friend class CallbackDispatcher;
+
+  [[nodiscard]] static CallbackCompletionHandler consumeCurrent();
+
+  CallbackCompletionHandler handler_;
+  CallbackCompletionScope* previous_ = nullptr;
+  static thread_local CallbackCompletionScope* current_;
+};
 
 // Private implementation of the two HLA callback models. Service adapters
 // own conversion to the public CallbackModel enum and must never hold their
@@ -71,6 +96,7 @@ class CallbackDispatcher final {
  private:
   struct QueuedCallback final {
     CallbackTask callback;
+    CallbackCompletionHandler completionHandler;
     std::chrono::steady_clock::time_point submittedAt;
   };
 
@@ -85,6 +111,7 @@ class CallbackDispatcher final {
 
   QueuedCallback takeNextLocked();
   std::deque<QueuedCallback> takeAllLocked();
+  void notifyCallbackAvailable() noexcept;
 
   mutable std::mutex mutex_;
   std::condition_variable callbackAvailable_;
@@ -98,6 +125,7 @@ class CallbackDispatcher final {
   std::thread::id immediateDrainer_;
   std::size_t immediateDrainDepth_ = 0;
   std::deque<QueuedCallback> pending_;
+  std::atomic<std::uint64_t> notificationGeneration_{0U};
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   std::recursive_mutex dispatchMutex_;
 };

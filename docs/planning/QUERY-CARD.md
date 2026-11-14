@@ -21,14 +21,22 @@ Use `resume` once, then `ready`, `case <handle>`, and `matrix <handle>` for the 
 | Which plan rows need a mapping or explicit disposition? | `python tools/query_rti_work.py unmapped --summary --compact --limit 5` |
 | What is the direct requirement crosswalk? | `python tools/query_rti_work.py matrix <case-or-lane> --group-by requirement --summary --compact --limit 5` |
 | What is the subsection crosswalk? | `python tools/query_rti_work.py matrix <case-or-lane> --group-by section --summary --compact --limit 5` |
+| What 2025 requirements are mapped, by section, across Catch2 and the C++ TCK? | `python tools/export_2025_requirement_coverage.py` |
 | Which plan heading discusses a topic? | `python tools/query_rti_work.py plan <topic> --summary --compact` |
 | I know a topic, not its identifier | `python tools/query_rti_work.py search <terms> --summary --compact --limit 5` |
 | Did my lane's mappings drift? | `python tools/query_rti_work.py check --lane <tag> --summary --compact` |
 | Is the saved roadmap/traceability snapshot current? | `python tools/query_rti_work.py dashboard --summary --compact` |
 
-Replace placeholders; quote multi-word titles. Topic lookups are count-only: `roadmap <topic> --summary --compact` finds a family; `item <family-id> --summary --compact` previews five cases. Don't expand a family to trace one test. Case cards show C++ source, direct 2025 subsection pairs, APIs, and focused handles; use their case-specific CTest selector. `focus`/`check --lane` take lane tags. `unplanned` finds tests missing plan rows; `unmapped` finds rows needing mapping or disposition. Keep family tags tied to real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `gaps --family <id>` is family-local: a requirement can be uncovered in that family while already mapped by another family's test; the result reports both scopes. Omit `--family` for global uncovered requirements. `check` validates the live plan; `check --historical` audits history. Mark replaced history `superseded_by`; don't rewrite it. Use exact case/matrix handles for direct mappings and `--verbose` only when needed.
+Replace placeholders; quote multi-word titles. Topic lookups are count-only: `roadmap <topic> --summary --compact` finds a family; `item <family-id> --summary --compact` previews five cases. Don't expand a family to trace one test. Case cards show C++ source, direct 2025 subsection pairs, APIs, and focused handles; use their case-specific CTest selector. `focus`/`check --lane` take lane tags. `unplanned` finds tests missing plan rows; `unmapped` finds rows needing mapping or disposition. Keep family tags tied to real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `gaps --family <id>` is family-local: a requirement can be uncovered in that family while already mapped by another family's test; the result reports both scopes. Omit `--family` for global uncovered requirements. `check` validates the live plan; `check --historical` audits history. Mark replaced history `superseded_by`; don't rewrite it. Use exact case/matrix handles for direct mappings and `--verbose` only when needed. `requirement` and `matrix` also show portable C++ TCK catalog mappings separately; these are traceability pointers, not execution or pass/fail evidence.
 
 The parallel-lane query defaults to active work; use `--state ready` to find unclaimed lanes or `--state all` for completed history too.
+
+The full 2025 requirement export reads the pinned `.compliance/corpus-bundle.json`
+and current Catch2 plan/C++ TCK catalog without syncing the Requirements Lab. It
+writes `out/reports/ieee-1516-2025-requirement-coverage.csv` (one row per
+requirement) and `out/reports/ieee-1516-2025-requirement-coverage-by-section.csv`
+(section mapping totals). Mapping and TCK catalog promotion are traceability
+metadata, not current test-run or conformance results.
 
 For a source-verified Requirements Lab subsection-attribution defect, preserve
 the stable Lab requirement ID, record exported and source-backed clauses in

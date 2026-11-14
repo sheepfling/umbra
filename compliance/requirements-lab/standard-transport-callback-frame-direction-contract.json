@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This adapter-backed public C++ TCK scenario exercises object discovery through the official RTIambassador and FederateAmbassador APIs while a transparent loopback observer checks the IEEE 1516.1-2025 federate-protocol frame direction. It requires at least one HLA_CALL_RESPONSE and one HLA_CALLBACK_REQUEST and verifies that every observed frame of either type travels from RTI to federate, directly witnessing §12.13.4.6 page 408 lines 113-114. Evidence is bounded to the tested provider and this object-discovery service path; it does not establish direction for unobserved message types, independent-provider interoperability, or complete conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-rti-originated-call-callback-frames",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "The public object-discovery TCK case runs through a process-backed C++ provider; an external loopback observer verifies that observed HLA_CALL_RESPONSE and HLA_CALLBACK_REQUEST frames are sent by the RTI",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::registerObjectInstance, RTIambassador::subscribeObjectClassAttributes, FederateAmbassador::discoverObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_callback_controls_object_ownership.cpp::scenarioCallbackControlsObjectDiscovery"
+      ]
+    }
+  ]
+}

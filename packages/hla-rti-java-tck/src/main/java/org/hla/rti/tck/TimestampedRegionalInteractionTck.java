@@ -784,6 +784,7 @@ final class TimestampedRegionalInteractionTck {
          LogicalTime secondTarget = addSteps(secondInitial, epsilon, 10);
          LogicalTime clockTarget = addSteps(clockInitial,
             clockEpsilon, 2);
+         LogicalTime clockSafeTarget = addSteps(clockInitial, clockEpsilon, 3);
          byte[] value = new byte[] {0x44, 0x45, 0x46, 0x2D, 0x46};
          byte[] tag = new byte[] {0x44, 0x45, 0x46, 0x2D, 0x52, 0x53};
          ParameterHandleValueMap parameters = owner.getParameterHandleValueMapFactory().create(1);
@@ -805,17 +806,22 @@ final class TimestampedRegionalInteractionTck {
             "source resignation released queued interactions too early");
 
          clock.timeAdvanceRequest(clockTarget);
+         await(callbackModel, clock, () -> clockRecorder.grants.size() >= 1,
+            "source-resignation clock frontier");
+         clock.timeAdvanceRequest(clockSafeTarget);
+         await(callbackModel, clock, () -> clockRecorder.grants.size() >= 2,
+            "source-resignation safe clock frontier");
          long deadline = System.nanoTime() + 10_000_000_000L;
          while (System.nanoTime() < deadline) {
             pump(clock, callbackModel);
             pump(first, callbackModel);
             pump(second, callbackModel);
-            if (clockRecorder.grants.size() == 1 && firstRecorder.interactions.size() == 1
+            if (clockRecorder.grants.size() == 2 && firstRecorder.interactions.size() == 1
                   && firstRecorder.grants.size() == 1 && secondRecorder.interactions.size() == 1
                   && secondRecorder.grants.size() == 1) break;
             Thread.sleep(1L);
          }
-         check(clockRecorder.grants.size() == 1 && firstRecorder.interactions.size() == 1
+         check(clockRecorder.grants.size() == 2 && firstRecorder.interactions.size() == 1
                && firstRecorder.grants.size() == 1 && secondRecorder.interactions.size() == 1
                && secondRecorder.grants.size() == 1,
             "source-resignation clock frontier or queued recipient delivery timed out");
@@ -845,6 +851,7 @@ final class TimestampedRegionalInteractionTck {
                "source resignation returned invalid transport or delivery/grant order");
          }
          check(clockTarget.equals(clockRecorder.grants.get(0))
+               && clockSafeTarget.equals(clockRecorder.grants.get(1))
                && firstTarget.equals(firstRecorder.grants.get(0))
                && messageTime.equals(secondRecorder.grants.get(0)),
             "source resignation returned incorrect clock or recipient grant times");
@@ -1055,6 +1062,7 @@ final class TimestampedRegionalInteractionTck {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder(), receiverRecorder = new Recorder();
+      receiverRecorder.inspectRegionDesignatorsWith(receiver);
       String federation = "java-tck-regional-regulation-reenable-" + UUID.randomUUID();
       boolean ownerConnected = false, receiverConnected = false, created = false;
       boolean ownerJoined = false, receiverJoined = false, published = false, subscribed = false;
@@ -1099,7 +1107,7 @@ final class TimestampedRegionalInteractionTck {
          check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
             "regional regulation-reenable members selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
-         LogicalTimeInterval initialLookahead = intervalSteps(epsilon, 5);
+         LogicalTimeInterval initialLookahead = epsilon;
          LogicalTimeInterval changedLookahead = intervalSteps(epsilon, 3);
          receiver.enableTimeConstrained(); constrained = true;
          await(callbackModel, receiver, () -> receiverRecorder.timeConstrainedEnabled,
@@ -1114,6 +1122,7 @@ final class TimestampedRegionalInteractionTck {
             "regional regulation-reenable members began at different logical times");
          LogicalTime messageTime = addSteps(initial, epsilon, 5);
          LogicalTime ownerTarget = addSteps(initial, epsilon, 2);
+         LogicalTime changedLookaheadTime = addSteps(initial, epsilon, 3);
          byte[] value = new byte[] {(byte) 0xC7, 0x19};
          byte[] tag = new byte[] {0x52, 0x47, 0x43, 0x48};
          MessageRetractionReturn retraction = send(owner, ownerInteraction, ownerParameter,
@@ -1143,30 +1152,54 @@ final class TimestampedRegionalInteractionTck {
          owner.timeAdvanceRequest(ownerTarget);
          long deadline = System.nanoTime() + 10_000_000_000L;
          while (System.nanoTime() < deadline
-               && (ownerRecorder.grants.size() != 1 || receiverRecorder.grants.size() != 1
-                  || receiverRecorder.interactions.size() != 1)) {
+                && (ownerRecorder.grants.size() != 1
+                   || receiverRecorder.interactions.size() != 1)) {
             pump(owner, callbackModel); pump(receiver, callbackModel); Thread.sleep(1L);
          }
-         check(ownerRecorder.grants.size() == 1 && receiverRecorder.grants.size() == 1
-               && receiverRecorder.interactions.size() == 1
-               && ownerRecorder.timeRegulationEnabledCount == 2,
-            "regional regulation-reenabled interaction delivery or grants timed out");
-         check(receiverRecorder.callbackOrder.equals(
-               Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
-            "regional regulation-reenabled interaction was delivered after its grant");
+          check(ownerRecorder.grants.size() == 1 && receiverRecorder.interactions.size() == 1
+                && receiverRecorder.grants.isEmpty()
+                && receiverRecorder.callbackOrder.equals(Arrays.asList("receiveInteraction")),
+             "regional interaction TAR granted at the strict GALT boundary");
+          owner.timeAdvanceRequest(changedLookaheadTime);
+          deadline = System.nanoTime() + 10_000_000_000L;
+          while (System.nanoTime() < deadline
+                && (ownerRecorder.grants.size() != 2 || receiverRecorder.grants.size() != 1)) {
+             pump(owner, callbackModel); pump(receiver, callbackModel); Thread.sleep(1L);
+          }
+          check(ownerRecorder.grants.size() == 2 && receiverRecorder.grants.size() == 1
+                && receiverRecorder.interactions.size() == 1
+                && ownerRecorder.timeRegulationEnabledCount == 2,
+             "advancing GALT beyond the regional interaction did not complete both grants");
+          check(receiverRecorder.callbackOrder.equals(Arrays.asList(
+                "receiveInteraction", "timeAdvanceGrant")),
+             "regional regulation-reenabled interaction was delivered after its grant");
          Interaction actual = receiverRecorder.interactions.get(0);
-         check(actual.interaction.equals(receiverInteraction) && actual.parameters.size() == 1
-               && Arrays.equals(value, actual.parameters.get(receiverParameter))
-               && Arrays.equals(tag, actual.tag) && producer.equals(actual.producer)
-               && messageTime.equals(actual.time) && actual.sentOrder == OrderType.TIMESTAMP
-               && actual.receivedOrder == OrderType.TIMESTAMP
-               && retraction.handle.equals(actual.retraction)
-               && actual.regions != null && actual.regions.size() == 1
-               && actual.regions.contains(sourceRegion) && actual.transportation != null,
-            "regional regulation-reenabled callback lost payload or invocation-time region metadata");
+          check(actual.interaction.equals(receiverInteraction) && actual.parameters.size() == 1
+                && Arrays.equals(value, actual.parameters.get(receiverParameter)),
+             "regional regulation-reenabled callback returned the wrong interaction or parameter");
+          check(Arrays.equals(tag, actual.tag) && producer.equals(actual.producer)
+                && messageTime.equals(actual.time) && actual.sentOrder == OrderType.TIMESTAMP
+                && actual.receivedOrder == OrderType.TIMESTAMP
+                && retraction.handle.equals(actual.retraction),
+             "regional regulation-reenabled callback lost its tag, producer, time, order, or retraction handle");
+          check(actual.regions != null,
+             "regional regulation-reenabled callback omitted its source-region set");
+          check(actual.regions.size() == 1,
+             "regional regulation-reenabled callback returned the wrong source-region count");
+          check(actual.regionDesignators != null && actual.regionDesignators.size() == 1,
+             "regional regulation-reenabled callback did not expose its region snapshot during callback");
+          RegionDesignatorSnapshot regionSnapshot = actual.regionDesignators.get(0);
+          check(regionSnapshot.dimensions.equals(new HashSet<>(Arrays.asList(
+                  receiverFirst, receiverSecond)))
+                && new RangeBounds(1, 5).equals(regionSnapshot.ranges.get(receiverFirst))
+                && new RangeBounds(1, 5).equals(regionSnapshot.ranges.get(receiverSecond)),
+             "regional regulation-reenabled callback did not retain the invocation-time source-region bounds");
+          check(actual.transportation != null,
+             "regional regulation-reenabled callback omitted its transportation type");
          check(!receiver.getTransportationTypeName(actual.transportation).isEmpty()
                && ownerTarget.equals(ownerRecorder.grants.get(0))
-               && messageTime.equals(receiverRecorder.grants.get(0)),
+                && changedLookaheadTime.equals(ownerRecorder.grants.get(1))
+                && messageTime.equals(receiverRecorder.grants.get(0)),
             "regional regulation-reenabled interaction returned unresolved transport or wrong grants");
          JavaTckSupport.expectFailure(() -> owner.retract(retraction.handle),
             "MessageCanNoLongerBeRetracted",
@@ -1642,6 +1675,147 @@ final class TimestampedRegionalInteractionTck {
       }
    }
 
+   static void runRegionalNmrMessageSet(RtiFactory factory, String fom,
+         String timeImplementation, String interactionName, String parameterName,
+         String dimensionName, CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador receiver = factory.getRtiAmbassador();
+      Recorder ownerRecorder = new Recorder(), receiverRecorder = new Recorder();
+      String federation = "java-tck-regional-nmr-message-set-" + UUID.randomUUID();
+      boolean ownerConnected = false, receiverConnected = false, created = false;
+      boolean ownerJoined = false, receiverJoined = false, published = false, subscribed = false;
+      boolean ownerRegulating = false, receiverConstrained = false;
+      InteractionClassHandle ownerInteraction = null, receiverInteraction = null;
+      RegionHandle sourceRegion = null, receiverRegion = null;
+      RegionHandleSet sourceRegions = null, receiverRegions = null;
+      try {
+         owner.connect(ownerRecorder.proxy(), callbackModel); ownerConnected = true;
+         receiver.connect(receiverRecorder.proxy(), callbackModel); receiverConnected = true;
+         owner.createFederationExecution(federation, fom, timeImplementation); created = true;
+         FederateHandle producer = owner.joinFederationExecution(
+            "java-tck-regional-nmr-owner", federation); ownerJoined = true;
+         receiver.joinFederationExecution("java-tck-regional-nmr-member", federation);
+         receiverJoined = true;
+
+         ownerInteraction = owner.getInteractionClassHandle(interactionName);
+         receiverInteraction = receiver.getInteractionClassHandle(interactionName);
+         ParameterHandle ownerParameter = owner.getParameterHandle(ownerInteraction, parameterName);
+         ParameterHandle receiverParameter = receiver.getParameterHandle(
+            receiverInteraction, parameterName);
+         DimensionHandle ownerDimension = owner.getDimensionHandle(dimensionName);
+         DimensionHandle receiverDimension = receiver.getDimensionHandle(dimensionName);
+         check(ownerInteraction.equals(receiverInteraction)
+               && ownerParameter.equals(receiverParameter)
+               && ownerDimension.equals(receiverDimension),
+            "adapter DDM FOM returned inconsistent regional NMR handles");
+
+         owner.publishInteractionClass(ownerInteraction); published = true;
+         owner.changeInteractionOrderType(ownerInteraction, OrderType.TIMESTAMP);
+         DimensionHandleSet ownerDimensions = owner.getDimensionHandleSetFactory().create();
+         ownerDimensions.add(ownerDimension);
+         sourceRegion = owner.createRegion(ownerDimensions);
+         owner.setRangeBounds(sourceRegion, ownerDimension, new RangeBounds(0L, 6L));
+         owner.commitRegionModifications(regionSet(owner, sourceRegion));
+         DimensionHandleSet receiverDimensions = receiver.getDimensionHandleSetFactory().create();
+         receiverDimensions.add(receiverDimension);
+         receiverRegion = receiver.createRegion(receiverDimensions);
+         receiver.setRangeBounds(receiverRegion, receiverDimension, new RangeBounds(5L, 10L));
+         receiver.commitRegionModifications(regionSet(receiver, receiverRegion));
+         sourceRegions = regionSet(owner, sourceRegion);
+         receiverRegions = regionSet(receiver, receiverRegion);
+         receiver.subscribeInteractionClassWithRegions(receiverInteraction, receiverRegions);
+         subscribed = true;
+
+         LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
+         check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
+            "regional NMR participants selected different logical-time factories");
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTimeInterval lookahead = intervalSteps(epsilon, 5);
+         receiver.enableTimeConstrained(); receiverConstrained = true;
+         await(callbackModel, receiver, () -> receiverRecorder.timeConstrainedEnabled,
+            "regional NMR receiver Time Constrained callback");
+         owner.enableTimeRegulation(lookahead); ownerRegulating = true;
+         await(callbackModel, owner, () -> ownerRecorder.timeRegulationEnabledCount == 1,
+            "regional NMR publisher Time Regulation callback");
+
+         LogicalTime initial = owner.queryLogicalTime();
+         LogicalTime receiverInitial = receiver.queryLogicalTime();
+         check(initial.equals(receiverInitial),
+            "regional NMR participants began at different logical times");
+         LogicalTime publisherTarget = addSteps(initial, epsilon, 2);
+         LogicalTime messageTime = addSteps(initial, epsilon, 7);
+         LogicalTime receiverTarget = addSteps(receiverInitial,
+            (LogicalTimeInterval) receiver.getTimeFactory().makeEpsilon(), 10);
+         owner.timeAdvanceRequest(publisherTarget);
+         await(callbackModel, owner,
+            () -> ownerRecorder.grants.size() == 1, "regional NMR publisher frontier grant");
+         check(publisherTarget.equals(ownerRecorder.grants.get(0)),
+            "regional NMR publisher did not reach its requested lookahead frontier");
+
+         byte[] value = new byte[] {0x52, 0x4E, 0x4D};
+         byte[] tag = new byte[] {0x52, 0x54, 0x53};
+         MessageRetractionReturn retraction = send(owner, ownerInteraction, ownerParameter,
+            sourceRegions, value, tag, messageTime);
+         requireRetraction(retraction, "regional NMR timestamped interaction");
+         check(receiverRecorder.interactions.isEmpty(),
+            "regional NMR timestamped interaction arrived before its request");
+
+         receiverRecorder.callbackOrder.clear();
+         receiver.nextMessageRequest(receiverTarget);
+         long deadline = System.nanoTime() + 10_000_000_000L;
+         while (System.nanoTime() < deadline
+               && (receiverRecorder.interactions.size() < 1 || receiverRecorder.grants.size() < 1)) {
+            pump(owner, callbackModel);
+            pump(receiver, callbackModel);
+            Thread.sleep(1L);
+         }
+         check(receiverRecorder.interactions.size() == 1 && receiverRecorder.grants.size() == 1,
+            "regional NMR did not deliver exactly one interaction and grant");
+         Interaction actual = receiverRecorder.interactions.get(0);
+         check(actual.interaction.equals(receiverInteraction)
+               && actual.parameters.size() == 1
+               && Arrays.equals(value, actual.parameters.get(receiverParameter))
+               && Arrays.equals(tag, actual.tag)
+               && producer.equals(actual.producer)
+               && messageTime.equals(actual.time)
+               && actual.sentOrder == OrderType.TIMESTAMP
+               && actual.receivedOrder == OrderType.TIMESTAMP
+               && retraction.handle.equals(actual.retraction),
+            "regional NMR did not preserve the selected timestamped interaction");
+         check(messageTime.equals(receiverRecorder.grants.get(0))
+               && receiverRecorder.callbackOrder.equals(
+                  Arrays.asList("receiveInteraction", "timeAdvanceGrant"))
+               && messageTime.equals(receiver.queryLogicalTime()),
+            "regional NMR did not grant at the selected message time after delivery");
+
+         receiver.disableTimeConstrained(); receiverConstrained = false;
+         owner.disableTimeRegulation(); ownerRegulating = false;
+         receiver.unsubscribeInteractionClassWithRegions(receiverInteraction, receiverRegions);
+         subscribed = false;
+         owner.unpublishInteractionClass(ownerInteraction); published = false;
+         receiver.deleteRegion(receiverRegion); receiverRegion = null;
+         owner.deleteRegion(sourceRegion); sourceRegion = null;
+      } finally {
+         if (receiverConstrained && receiverJoined) try { receiver.disableTimeConstrained(); }
+            catch (Exception ignored) { }
+         if (ownerRegulating && ownerJoined) try { owner.disableTimeRegulation(); }
+            catch (Exception ignored) { }
+         if (subscribed && receiverJoined) try {
+            receiver.unsubscribeInteractionClassWithRegions(receiverInteraction, receiverRegions);
+         } catch (Exception ignored) { }
+         if (published && ownerJoined) try { owner.unpublishInteractionClass(ownerInteraction); }
+            catch (Exception ignored) { }
+         deleteRegion(receiver, receiverRegion, receiverJoined);
+         deleteRegion(owner, sourceRegion, ownerJoined);
+         if (receiverJoined) resign(receiver);
+         if (ownerJoined) resign(owner);
+         if (created) try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (receiverConnected) disconnect(receiver);
+         if (ownerConnected) disconnect(owner);
+      }
+   }
+
    static void runCustomTransportationRegional(RtiFactory factory, String fom,
          String timeImplementation, String interactionName, String parameterName,
          String transportationName, String firstDimensionName, String secondDimensionName,
@@ -1854,7 +2028,7 @@ final class TimestampedRegionalInteractionTck {
          LogicalTime ownerInitial = owner.queryLogicalTime();
          LogicalTime receiverInitial = receiver.queryLogicalTime();
          LogicalTime messageTime = addSteps(ownerInitial, epsilon, 6);
-         LogicalTime publisherTarget = addSteps(ownerInitial, epsilon, 2);
+         LogicalTime publisherTarget = messageTime;
          check(messageTime.equals(addSteps(receiverInitial,
                (LogicalTimeInterval) receiver.getTimeFactory().makeEpsilon(), 6)),
             "publisher and constrained receiver derived different message times");
@@ -1868,10 +2042,22 @@ final class TimestampedRegionalInteractionTck {
          check(receiverRecorder.interactions.isEmpty(),
             "default-region interaction delivered before the constrained frontier");
 
+         receiverRecorder.captureReceiveOrderInteractions = true;
          receiver.disableTimeConstrained(); constrained = false;
          for (int i = 0; i < 8; ++i) pump(receiver, callbackModel);
-         check(receiverRecorder.interactions.isEmpty(),
-            "queued default-region interaction delivered while Time Constrained was disabled");
+         check(receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.receiveOrderInteractions.size() == 1,
+            "disabling Time Constrained did not convert the queued default-region interaction to receive order");
+         ReceiveOrderInteraction receiveOrder = receiverRecorder.receiveOrderInteractions.get(0);
+         check(receiveOrder.interaction.equals(receiverInteraction)
+               && receiveOrder.parameters.size() == 1
+               && Arrays.equals(value, receiveOrder.parameters.get(receiverParameter))
+               && Arrays.equals(tag, receiveOrder.tag)
+               && producer.equals(receiveOrder.producer)
+               && receiveOrder.regions != null && receiveOrder.regions.isEmpty()
+               && receiveOrder.transportation != null
+               && !receiver.getTransportationTypeName(receiveOrder.transportation).isEmpty(),
+            "Time Constrained disable changed the queued default-region interaction metadata");
          receiver.enableTimeConstrained(); constrained = true;
          await(callbackModel, receiver,
             () -> receiverRecorder.timeConstrainedEnabledCount >= 2,
@@ -1882,36 +2068,22 @@ final class TimestampedRegionalInteractionTck {
          owner.timeAdvanceRequest(publisherTarget);
          long deadline = System.nanoTime() + 10_000_000_000L;
          while (System.nanoTime() < deadline
-               && (ownerRecorder.grants.size() != 1 || receiverRecorder.grants.size() != 1
-                  || receiverRecorder.interactions.size() != 1)) {
+                && (ownerRecorder.grants.size() != 1 || receiverRecorder.grants.size() != 1)) {
             pump(owner, callbackModel);
             pump(receiver, callbackModel);
             Thread.sleep(1L);
          }
          check(ownerRecorder.grants.size() == 1 && receiverRecorder.grants.size() == 1
-               && receiverRecorder.interactions.size() == 1,
-            "re-enabled constrained interaction delivery or grant timed out");
+                && receiverRecorder.interactions.isEmpty(),
+             "re-enabled constrained grants timed out or redelivered the converted interaction");
          check(receiverRecorder.timeConstrainedEnabledCount == 2
-               && receiverRecorder.callbackOrder.equals(
-                  Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
-            "re-enable returned wrong callback count or delivered after the grant");
-         Interaction actual = receiverRecorder.interactions.get(0);
-         check(actual.interaction.equals(receiverInteraction)
-               && actual.parameters.size() == 1
-               && Arrays.equals(value, actual.parameters.get(receiverParameter))
-               && Arrays.equals(tag, actual.tag)
-               && producer.equals(actual.producer)
-               && messageTime.equals(actual.time)
-               && actual.sentOrder == OrderType.TIMESTAMP
-               && actual.receivedOrder == OrderType.TIMESTAMP
-               && retraction.handle.equals(actual.retraction)
-               && actual.regions != null && actual.regions.isEmpty()
-               && actual.transportation != null,
-            "re-enabled default-region interaction returned incorrect callback metadata");
-         check(!receiver.getTransportationTypeName(actual.transportation).isEmpty()
-               && publisherTarget.equals(ownerRecorder.grants.get(0))
+               && receiverRecorder.receiveOrderInteractions.size() == 1
+               && receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.callbackOrder.equals(Arrays.asList("timeAdvanceGrant")),
+            "re-enable returned the wrong callbacks or redelivered the receive-order interaction");
+         check(publisherTarget.equals(ownerRecorder.grants.get(0))
                && messageTime.equals(receiverRecorder.grants.get(0)),
-            "re-enabled interaction returned unresolved transport or incorrect grant times");
+            "re-enabled interaction returned incorrect grant times");
          JavaTckSupport.expectFailure(() -> owner.retract(retraction.handle),
             "MessageCanNoLongerBeRetracted", "retracting delivered interaction after re-enable");
 
@@ -2016,6 +2188,7 @@ final class TimestampedRegionalInteractionTck {
             "regulation-reenable members began at different logical times");
          LogicalTime messageTime = addSteps(ownerInitial, epsilon, 5);
          LogicalTime publisherTarget = addSteps(ownerInitial, epsilon, 2);
+          LogicalTime changedLookaheadTime = addSteps(ownerInitial, epsilon, 3);
          byte[] value = new byte[] {0x52, 0x45, 0x47, 0x44};
          byte[] tag = new byte[] {0x44, 0x45, 0x46, 0x52};
          ParameterHandleValueMap parameters = owner.getParameterHandleValueMapFactory().create(1);
@@ -2043,18 +2216,30 @@ final class TimestampedRegionalInteractionTck {
          owner.timeAdvanceRequest(publisherTarget);
          long deadline = System.nanoTime() + 10_000_000_000L;
          while (System.nanoTime() < deadline
-               && (ownerRecorder.grants.size() != 1 || receiverRecorder.grants.size() != 1
-                  || receiverRecorder.interactions.size() != 1)) {
+                && (ownerRecorder.grants.size() != 1
+                   || receiverRecorder.interactions.size() != 1)) {
             pump(owner, callbackModel);
             pump(receiver, callbackModel);
             Thread.sleep(1L);
          }
-         check(ownerRecorder.grants.size() == 1 && receiverRecorder.grants.size() == 1
-               && receiverRecorder.interactions.size() == 1,
-            "regulation-reenabled interaction delivery or grants timed out");
+          check(ownerRecorder.grants.size() == 1 && receiverRecorder.interactions.size() == 1
+                && receiverRecorder.grants.isEmpty()
+                && receiverRecorder.callbackOrder.equals(Arrays.asList("receiveInteraction")),
+             "TAR at the strict GALT boundary granted before the queued interaction");
+          owner.timeAdvanceRequest(changedLookaheadTime);
+          deadline = System.nanoTime() + 10_000_000_000L;
+          while (System.nanoTime() < deadline
+                && (ownerRecorder.grants.size() != 2 || receiverRecorder.grants.size() != 1)) {
+             pump(owner, callbackModel);
+             pump(receiver, callbackModel);
+             Thread.sleep(1L);
+          }
+          check(ownerRecorder.grants.size() == 2 && receiverRecorder.grants.size() == 1
+                && receiverRecorder.interactions.size() == 1,
+             "advancing GALT beyond the message timestamp did not complete both grants");
          check(ownerRecorder.timeRegulationEnabledCount == 2
-               && receiverRecorder.callbackOrder.equals(
-                  Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
+                && receiverRecorder.callbackOrder.equals(Arrays.asList(
+                   "receiveInteraction", "timeAdvanceGrant")),
             "regulation re-enable returned wrong callback count or delivery/grant order");
          Interaction actual = receiverRecorder.interactions.get(0);
          check(actual.interaction.equals(receiverInteraction)
@@ -2071,7 +2256,8 @@ final class TimestampedRegionalInteractionTck {
             "regulation-reenabled interaction returned incorrect callback metadata");
          check(!receiver.getTransportationTypeName(actual.transportation).isEmpty()
                && publisherTarget.equals(ownerRecorder.grants.get(0))
-               && messageTime.equals(receiverRecorder.grants.get(0)),
+                && changedLookaheadTime.equals(ownerRecorder.grants.get(1))
+                && messageTime.equals(receiverRecorder.grants.get(0)),
             "regulation-reenabled interaction returned unresolved transport or wrong grant times");
          JavaTckSupport.expectFailure(() -> owner.retract(retraction.handle),
             "MessageCanNoLongerBeRetracted",
@@ -2135,6 +2321,11 @@ final class TimestampedRegionalInteractionTck {
       RegionHandleSet sourceRegionSet = null;
       RegionHandle[] regions = new RegionHandle[receivers.length];
       RegionHandleSet[] regionSets = new RegionHandleSet[receivers.length];
+      if (regionalSource) {
+         for (int i = 0; i < receivers.length; ++i) {
+            receiverRecorders[i].inspectRegionDesignatorsWith(receivers[i]);
+         }
+      }
       try {
          owner.connect(ownerRecorder.proxy(), callbackModel); ownerConnected = true;
          flushReceiver.connect(flushRecorder.proxy(), callbackModel); flushConnected = true;
@@ -2224,7 +2415,7 @@ final class TimestampedRegionalInteractionTck {
                "timestamped interaction alternate members began at different times");
          }
          LogicalTime messageTime = addSteps(initial, epsilon, regionalSource ? 7 : 3);
-         LogicalTime publisherTarget = addSteps(initial, epsilon, 2);
+         LogicalTime publisherTarget = addSteps(initial, epsilon, regionalSource ? 3 : 2);
          LogicalTime requestBoundary = addSteps(initial, epsilon, regionalSource ? 10 : 5);
          byte[] value = new byte[] {0x41, 0x56, 0x41, 0x2D, 0x52};
          byte[] tag = new byte[] {0x41, 0x56, 0x41, 0x2D, 0x44};
@@ -2256,7 +2447,19 @@ final class TimestampedRegionalInteractionTck {
             LogicalTimeInterval receiverLookahead = flushReceiver.queryLookahead();
             check(epsilon.equals(receiverLookahead),
                "regional Flush Queue receiver returned the wrong lookahead");
-            LogicalTime postGrantTime = (LogicalTime) flushGrant.add(receiverLookahead);
+
+            owner.timeAdvanceRequest(publisherTarget);
+            await(callbackModel, owner, () -> ownerRecorder.grants.size() == 1,
+               "regional alternate publisher TAR grant");
+            flushReceiver.timeAdvanceRequest(messageTime);
+            await(callbackModel, flushReceiver, () -> flushRecorder.grants.size() == 1,
+               "regional Flush Queue TAR catch-up to optimistic frontier");
+            check(messageTime.equals(flushRecorder.grants.get(0))
+                  && messageTime.equals(flushReceiver.queryLogicalTime()),
+               "regional Flush Queue did not catch actual time up to its optimistic frontier");
+
+            LogicalTime flushQueryBeforeSend = flushReceiver.queryLogicalTime();
+            LogicalTime postGrantTime = addSteps(flushQueryBeforeSend, receiverLookahead, 1);
             DimensionHandle flushFirst = flushReceiver.getDimensionHandle(firstDimensionName);
             DimensionHandle flushSecond = flushReceiver.getDimensionHandle(secondDimensionName);
             RegionHandle postGrantRegion = createRegion(
@@ -2270,14 +2473,14 @@ final class TimestampedRegionalInteractionTck {
             MessageRetractionReturn postGrantRetraction = flushReceiver.sendInteractionWithRegions(
                receiverInteractions[0], postGrantValues, postGrantRegions, tag.clone(), postGrantTime);
             requireRetraction(postGrantRetraction,
-               "regional post-grant send at actual time plus lookahead");
-            check(flushGrant.equals(flushReceiver.queryLogicalTime()),
+               "regional post-grant send at actual Flush Queue time plus lookahead");
+            check(flushQueryBeforeSend.equals(flushReceiver.queryLogicalTime()),
                "regional post-grant send changed the Flush Queue receiver logical time");
             flushReceiver.deleteRegion(postGrantRegion);
          }
          taraReceiver.timeAdvanceRequestAvailable(messageTime);
          nmraReceiver.nextMessageRequestAvailable(requestBoundary);
-         owner.timeAdvanceRequest(publisherTarget);
+         if (!regionalSource) owner.timeAdvanceRequest(publisherTarget);
          long deadline = System.nanoTime() + 10_000_000_000L;
          while (System.nanoTime() < deadline) {
             for (RTIambassador ambassador : new RTIambassador[] {
@@ -2294,13 +2497,24 @@ final class TimestampedRegionalInteractionTck {
                && flushRecorder.flushQueueGrantTimes.size() == 1
                && taraRecorder.interactions.size() == 1 && taraRecorder.grants.size() == 1
                && nmraRecorder.interactions.size() == 1 && nmraRecorder.grants.size() == 1,
-            "timestamped interaction alternate deliveries or grants timed out");
+            "timestamped interaction alternate deliveries or grants timed out (owner grants="
+               + ownerRecorder.grants.size() + ", FQR interactions="
+               + flushRecorder.interactions.size() + ", FQR grants="
+               + flushRecorder.flushQueueGrantTimes.size() + ", TARA interactions="
+               + taraRecorder.interactions.size() + ", TARA grants=" + taraRecorder.grants.size()
+               + ", NMRA interactions=" + nmraRecorder.interactions.size() + ", NMRA grants="
+               + nmraRecorder.grants.size() + ")");
 
-         check(flushRecorder.grants.isEmpty() && taraRecorder.flushQueueGrantTimes.isEmpty()
+         check((regionalSource
+                  ? flushRecorder.grants.size() == 1
+                     && messageTime.equals(flushRecorder.grants.get(0))
+                  : flushRecorder.grants.isEmpty())
+               && taraRecorder.flushQueueGrantTimes.isEmpty()
                && nmraRecorder.flushQueueGrantTimes.isEmpty(),
             "timestamped interaction alternate advances mixed grant types");
-         check(flushRecorder.callbackOrder.equals(Arrays.asList(
-                  "receiveInteraction", "flushQueueGrant"))
+         check(flushRecorder.callbackOrder.equals(regionalSource
+                  ? Arrays.asList("receiveInteraction", "flushQueueGrant", "timeAdvanceGrant")
+                  : Arrays.asList("receiveInteraction", "flushQueueGrant"))
                && taraRecorder.callbackOrder.equals(Arrays.asList(
                   "receiveInteraction", "timeAdvanceGrant"))
                && nmraRecorder.callbackOrder.equals(Arrays.asList(
@@ -2321,10 +2535,21 @@ final class TimestampedRegionalInteractionTck {
                   && retraction.handle.equals(actual.retraction)
                   && actual.regions != null
                   && (regionalSource
-                     ? actual.regions.size() == 1 && actual.regions.contains(sourceRegion)
+                     ? actual.regions.size() == 1
                      : actual.regions.isEmpty())
                   && actual.transportation != null,
                "timestamped interaction alternate returned incorrect interaction metadata");
+            if (regionalSource) {
+               check(actual.regionDesignators != null && actual.regionDesignators.size() == 1,
+                  "timestamped regional interaction alternate omitted its callback-time region designator snapshot");
+               RegionDesignatorSnapshot regionSnapshot = actual.regionDesignators.get(0);
+               DimensionHandle first = receivers[i].getDimensionHandle(firstDimensionName);
+               DimensionHandle second = receivers[i].getDimensionHandle(secondDimensionName);
+               check(regionSnapshot.dimensions.equals(new HashSet<>(Arrays.asList(first, second)))
+                     && new RangeBounds(1, 5).equals(regionSnapshot.ranges.get(first))
+                     && new RangeBounds(1, 5).equals(regionSnapshot.ranges.get(second)),
+                  "timestamped regional interaction alternate did not retain the source region's send-time bounds");
+            }
             check(!receivers[i].getTransportationTypeName(actual.transportation).isEmpty(),
                "timestamped interaction alternate returned an unresolved transportation");
          }
@@ -2339,7 +2564,9 @@ final class TimestampedRegionalInteractionTck {
                && compareTimes(flushGrant, initial) >= 0
                && compareTimes(flushGrant, requestBoundary) <= 0
                && compareTimes(flushOptimistic, flushGrant) >= 0
-               && flushGrant.equals(flushReceiver.queryLogicalTime()),
+               && (regionalSource
+                  ? messageTime.equals(flushReceiver.queryLogicalTime())
+                  : flushGrant.equals(flushReceiver.queryLogicalTime())),
             "Flush Queue Grant/query returned inconsistent actual or optimistic time");
          check(messageTime.equals(taraReceiver.queryLogicalTime())
                && messageTime.equals(nmraReceiver.queryLogicalTime())
@@ -2354,7 +2581,8 @@ final class TimestampedRegionalInteractionTck {
          JavaTckSupport.expectFailure(() -> nmraReceiver.nextMessageRequestAvailable(past),
             "LogicalTimeAlreadyPassed", "interaction alternate NMRA past-time request");
          JavaTckSupport.expectFailure(() -> owner.retract(retraction.handle),
-            "MessageCanNoLongerBeRetracted", "retracting delivered default-region interaction");
+            "MessageCanNoLongerBeRetracted",
+            "retracting delivered " + (regionalSource ? "regional" : "default-region") + " interaction");
 
          for (int i = 0; i < receivers.length; ++i) {
             receivers[i].disableTimeConstrained(); constrained[i] = false;
@@ -2547,19 +2775,15 @@ final class TimestampedRegionalInteractionTck {
       if (!condition) throw new AssertionError(message);
    }
 
-   private static final class Interaction {
+   private static final class ReceiveOrderInteraction {
       private final InteractionClassHandle interaction;
       private final Map<ParameterHandle, byte[]> parameters = new HashMap<>();
       private final byte[] tag;
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
       private final Set<RegionHandle> regions;
-      private final LogicalTime<?, ?> time;
-      private final OrderType sentOrder;
-      private final OrderType receivedOrder;
-      private final MessageRetractionHandle retraction;
 
-      private Interaction(Object[] args) {
+      private ReceiveOrderInteraction(Object[] args) {
          interaction = (InteractionClassHandle) args[0];
          ParameterHandleValueMap values = (ParameterHandleValueMap) args[1];
          values.forEach((handle, value) -> parameters.put(handle, value.clone()));
@@ -2567,6 +2791,31 @@ final class TimestampedRegionalInteractionTck {
          transportation = (TransportationTypeHandle) args[3];
          producer = (FederateHandle) args[4];
          regions = args[5] == null ? null : new HashSet<>((RegionHandleSet) args[5]);
+      }
+   }
+
+   private static final class Interaction {
+      private final InteractionClassHandle interaction;
+      private final Map<ParameterHandle, byte[]> parameters = new HashMap<>();
+      private final byte[] tag;
+      private final TransportationTypeHandle transportation;
+      private final FederateHandle producer;
+      private final Set<RegionHandle> regions;
+      private final List<RegionDesignatorSnapshot> regionDesignators;
+      private final LogicalTime<?, ?> time;
+      private final OrderType sentOrder;
+      private final OrderType receivedOrder;
+      private final MessageRetractionHandle retraction;
+
+      private Interaction(Object[] args, List<RegionDesignatorSnapshot> regionDesignators) {
+         interaction = (InteractionClassHandle) args[0];
+         ParameterHandleValueMap values = (ParameterHandleValueMap) args[1];
+         values.forEach((handle, value) -> parameters.put(handle, value.clone()));
+         tag = ((byte[]) args[2]).clone();
+         transportation = (TransportationTypeHandle) args[3];
+         producer = (FederateHandle) args[4];
+         regions = args[5] == null ? null : new HashSet<>((RegionHandleSet) args[5]);
+         this.regionDesignators = regionDesignators;
          time = (LogicalTime<?, ?>) args[6];
          sentOrder = (OrderType) args[7];
          receivedOrder = (OrderType) args[8];
@@ -2574,18 +2823,52 @@ final class TimestampedRegionalInteractionTck {
       }
    }
 
+   private static final class RegionDesignatorSnapshot {
+      private final Set<DimensionHandle> dimensions;
+      private final Map<DimensionHandle, RangeBounds> ranges;
+
+      private RegionDesignatorSnapshot(Set<DimensionHandle> dimensions,
+            Map<DimensionHandle, RangeBounds> ranges) {
+         this.dimensions = dimensions;
+         this.ranges = ranges;
+      }
+   }
+
+   private static List<RegionDesignatorSnapshot> snapshotRegionDesignators(
+         RTIambassador ambassador, RegionHandleSet regions) throws Exception {
+      List<RegionDesignatorSnapshot> result = new ArrayList<>();
+      if (regions == null) return result;
+      for (RegionHandle region : regions) {
+         Set<DimensionHandle> dimensions = new HashSet<>(ambassador.getDimensionHandleSet(region));
+         Map<DimensionHandle, RangeBounds> ranges = new HashMap<>();
+         for (DimensionHandle dimension : dimensions) {
+            ranges.put(dimension, ambassador.getRangeBounds(region, dimension));
+         }
+         result.add(new RegionDesignatorSnapshot(dimensions, ranges));
+      }
+      return result;
+   }
+
    private static final class Recorder {
       private volatile boolean timeRegulationEnabled;
       private volatile int timeRegulationEnabledCount;
       private volatile boolean timeConstrainedEnabled;
       private volatile int timeConstrainedEnabledCount;
+      private volatile boolean captureReceiveOrderInteractions;
+      private volatile RTIambassador regionInspector;
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<ReceiveOrderInteraction> receiveOrderInteractions =
+         new CopyOnWriteArrayList<>();
       private final List<MessageRetractionHandle> retractions = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new CopyOnWriteArrayList<>();
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
       private volatile LogicalTime<?, ?> flushQueueGrantTime;
       private volatile LogicalTime<?, ?> flushQueueOptimisticTime;
+
+      private void inspectRegionDesignatorsWith(RTIambassador ambassador) {
+         regionInspector = ambassador;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -2599,8 +2882,16 @@ final class TimestampedRegionalInteractionTck {
                   timeConstrainedEnabled = true;
                   timeConstrainedEnabledCount++;
                } else if ("receiveInteraction".equals(name)
+                     && captureReceiveOrderInteractions
+                     && args != null && args.length == 6) {
+                  receiveOrderInteractions.add(new ReceiveOrderInteraction(args));
+                  callbackOrder.add(name);
+               } else if ("receiveInteraction".equals(name)
                      && args != null && args.length == 10) {
-                  interactions.add(new Interaction(args));
+                  List<RegionDesignatorSnapshot> regionDesignators = regionInspector == null
+                     ? null
+                     : snapshotRegionDesignators(regionInspector, (RegionHandleSet) args[5]);
+                  interactions.add(new Interaction(args, regionDesignators));
                   callbackOrder.add(name);
                } else if ("requestRetraction".equals(name) && args != null
                      && args.length == 1) {

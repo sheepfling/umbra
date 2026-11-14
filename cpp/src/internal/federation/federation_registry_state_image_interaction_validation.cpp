@@ -486,6 +486,104 @@ bool isOneQueuedTsoInteractionIdentityRebindingImage(
       temporalMemberIds == savedMemberIds;
 }
 
+// A fresh-registry identity-rebinding slice for one ordinary queued
+// receive-order interaction. The saved callback and matching publisher /
+// subscriber declarations form one inseparable ledger; unrelated queued
+// messages, regions, and federation transactions remain outside this slice.
+bool isOneQueuedReceiveOrderInteractionIdentityRebindingImage(
+    FederationStateImage const& image) {
+  if (image.members.size() != 2U ||
+      image.interactionDeclarationCount != 2U ||
+      image.interactionDeclarations.size() != 2U ||
+      image.objectInstanceCount != 0U || !image.objects.empty() ||
+      image.objectClassDeclarationCount != 0U ||
+      !image.objectClassAttributeDeclarations.empty() ||
+      image.regionCount != 0U || !image.regions.empty() ||
+      image.synchronizationPointCount != 0U ||
+      !image.synchronizationPoints.empty() ||
+      image.tsoInteractionMessageCount != 0U ||
+      image.tsoAttributeUpdateMessageCount != 0U ||
+      image.tsoObjectDeletionMessageCount != 0U ||
+      image.tsoDirectedInteractionMessageCount != 0U ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoRequestRetractionRecords.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      !image.tsoQueueEntries.empty() ||
+      !image.queuedReceiveOrderInteractionsPresent ||
+      image.queuedReceiveOrderInteractions.size() != 1U ||
+      !image.queuedReceiveOrderAttributeUpdates.empty() ||
+      !image.deferredUpdateRegionAssociations.empty() ||
+      !image.pendingAttributeOwnershipQueries.empty() ||
+      !image.pendingAttributeOwnershipAssumptions.empty() ||
+      !image.reservedObjectInstanceNames.empty()) {
+    return false;
+  }
+
+  std::set<std::uint64_t> savedMemberIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedMemberIds.insert(member.id).second) {
+      return false;
+    }
+  }
+
+  FederationStateImageReceiveOrderInteraction const& interaction =
+      image.queuedReceiveOrderInteractions.front();
+  if (interaction.sequence == 0U ||
+      !savedMemberIds.contains(interaction.producingFederateId) ||
+      !savedMemberIds.contains(interaction.receivingFederateId) ||
+      interaction.producingFederateId == interaction.receivingFederateId ||
+      interaction.interactionClassHandle == 0U ||
+      interaction.transportationName.empty()) {
+    return false;
+  }
+  std::set<std::uint64_t> parameterHandles;
+  for (std::uint64_t const handle : interaction.parameterHandles) {
+    if (handle == 0U || !parameterHandles.insert(handle).second) {
+      return false;
+    }
+  }
+
+  std::set<std::uint64_t> declarationMemberIds;
+  bool publisherDeclarationFound = false;
+  bool receiverDeclarationFound = false;
+  for (FederationStateImageInteractionDeclaration const& declaration :
+       image.interactionDeclarations) {
+    if (!savedMemberIds.contains(declaration.federateId) ||
+        !declarationMemberIds.insert(declaration.federateId).second ||
+        !declaration.regionalSubscribedInteractionClasses.empty() ||
+        !declaration.publishedObjectClassDirectedInteractions.empty() ||
+        !declaration.subscribedObjectClassDirectedInteractions.empty() ||
+        !declaration.interactionTransportationTypes.empty() ||
+        !declaration.interactionOrderTypes.empty() ||
+        !declaration.pendingInteractionTransportationTypeChanges.empty()) {
+      return false;
+    }
+    if (declaration.federateId == interaction.producingFederateId) {
+      if (declaration.publishedInteractionClasses !=
+              std::vector<std::uint64_t>{interaction.interactionClassHandle} ||
+          !declaration.subscribedInteractionClasses.empty()) {
+        return false;
+      }
+      publisherDeclarationFound = true;
+    } else if (declaration.federateId == interaction.receivingFederateId) {
+      if (!declaration.publishedInteractionClasses.empty() ||
+          declaration.subscribedInteractionClasses.size() != 1U ||
+          declaration.subscribedInteractionClasses.front().interactionClassHandle !=
+              interaction.interactionClassHandle ||
+          !declaration.subscribedInteractionClasses.front().active) {
+        return false;
+      }
+      receiverDeclarationFound = true;
+    } else {
+      return false;
+    }
+  }
+  return publisherDeclarationFound && receiverDeclarationFound &&
+      declarationMemberIds == savedMemberIds;
+}
+
 // The next mixed declaration slice keeps one publication and ordinary
 // subscriptions on separate joined federates. The publisher may carry one
 // committed transportation override or one pending transportation change;

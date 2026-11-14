@@ -27,6 +27,123 @@ EmbeddedFederationRegistry::planAttributeOwnershipAcquisition(
   if (!federation->second.members.contains(requestingFederateId)) {
     return {AttributeOwnershipAcquisitionStatus::requesting_federate_not_member};
   }
+  auto momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(requestingFederateId)) {
+      return {AttributeOwnershipAcquisitionStatus::object_instance_not_known};
+    }
+    if (!federation->second.definition.catalog ||
+        !federation->second.objectClassHandles ||
+        !federation->second.attributeHandles) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+    auto const objectClassName = federation->second.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    if (!objectClassName ||
+        federation->second.definition.catalog->objectClass(*objectClassName) == nullptr) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+    for (std::uint64_t const attributeHandle : desiredAttributeHandles) {
+      if (!momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+          !federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *objectClassName,
+              attributeHandle)) {
+        return {AttributeOwnershipAcquisitionStatus::attribute_not_defined};
+      }
+      if (momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle)) {
+        return {AttributeOwnershipAcquisitionStatus::attribute_owned_by_rti};
+      }
+      auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner != momObject->second.attributeOwnersByHandle.end()) {
+        return owner->second == requestingFederateId
+            ? AttributeOwnershipAcquisitionPlan{
+                  AttributeOwnershipAcquisitionStatus::federate_owns_attributes}
+            : AttributeOwnershipAcquisitionPlan{
+                  AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+      }
+    }
+    if (desiredAttributeHandles.empty()) {
+      return {};
+    }
+    auto const publishedAttributes = publishedObjectClassAttributes(
+        federation->second,
+        requestingFederateId,
+        momObject->second.objectClassHandle);
+    if (!publishedAttributes) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+    if (publishedAttributes->empty()) {
+      return {AttributeOwnershipAcquisitionStatus::object_class_not_published};
+    }
+    for (std::uint64_t const attributeHandle : desiredAttributeHandles) {
+      if (!publishedAttributes->contains(attributeHandle)) {
+        return {AttributeOwnershipAcquisitionStatus::attribute_not_published};
+      }
+    }
+
+    std::set<std::uint64_t> newlyRequestedAttributeHandles = desiredAttributeHandles;
+    for (auto const& [requestId, pending] :
+         momObject->second.pendingAttributeOwnershipAcquisitionRequests) {
+      static_cast<void>(requestId);
+      if (pending.requestingFederateId != requestingFederateId) {
+        continue;
+      }
+      for (std::uint64_t const attributeHandle : pending.desiredAttributeHandles) {
+        newlyRequestedAttributeHandles.erase(attributeHandle);
+      }
+    }
+    if (newlyRequestedAttributeHandles.empty()) {
+      return {};
+    }
+    if (federation->second.nextAttributeOwnershipAcquisitionRequestId == 0U ||
+        federation->second.nextAttributeOwnershipAcquisitionRequestId ==
+            std::numeric_limits<std::uint64_t>::max() ||
+        federation->second.nextAttributeOwnershipAcquisitionRequestSequence == 0U ||
+        federation->second.nextAttributeOwnershipAcquisitionRequestSequence ==
+            std::numeric_limits<std::uint64_t>::max()) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+    auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
+        requestingFederateId);
+    if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+        !callbackRoute->second) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+
+    std::uint64_t const requestId =
+        federation->second.nextAttributeOwnershipAcquisitionRequestId++;
+    std::uint64_t const requestSequence =
+        federation->second.nextAttributeOwnershipAcquisitionRequestSequence++;
+    auto const [pending, inserted] =
+        momObject->second.pendingAttributeOwnershipAcquisitionRequests.emplace(
+            requestId,
+            PendingJoinedFederateMomAttributeOwnershipAcquisition{
+                requestingFederateId,
+                requestSequence,
+                newlyRequestedAttributeHandles,
+                std::move(userSuppliedTag),
+            });
+    static_cast<void>(pending);
+    if (!inserted) {
+      return {AttributeOwnershipAcquisitionStatus::inconsistent_catalog};
+    }
+    AttributeOwnershipAcquisitionPlan result;
+    result.workItems.push_back({
+        AttributeOwnershipAcquisitionWorkKind::acquisition_notification,
+        requestingFederateId,
+        requestingFederateId,
+        objectInstanceHandle,
+        requestId,
+        std::move(newlyRequestedAttributeHandles),
+        momObject->second.pendingAttributeOwnershipAcquisitionRequests.at(requestId)
+            .userSuppliedTag,
+        false,
+        callbackRoute->second,
+    });
+    return result;
+  }
   // IEEE 1516.1-2025 11.4.2(k) prohibits ownership transfer of predefined
   // RTI-owned MOM attributes. Keep the MOM ledger separate from application
   // objectInstances so this boundary cannot be misreported as unknown.
@@ -220,6 +337,80 @@ EmbeddedFederationRegistry::beginAttributeOwnershipAcquisitionNotification(
   auto federation = federations_.find(federationName);
   if (federation == federations_.end()) {
     return std::nullopt;
+  }
+  auto momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    auto pending = momObject->second.pendingAttributeOwnershipAcquisitionRequests.find(
+        requestId);
+    if (pending == momObject->second.pendingAttributeOwnershipAcquisitionRequests.end() ||
+        pending->second.requestingFederateId != requestingFederateId ||
+        !federation->second.members.contains(requestingFederateId) ||
+        !momObject->second.knownFederateIds.contains(requestingFederateId) ||
+        !federation->second.definition.catalog ||
+        !federation->second.objectClassHandles ||
+        !federation->second.attributeHandles) {
+      return std::nullopt;
+    }
+    auto const objectClassName = federation->second.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    auto const publishedAttributes = publishedObjectClassAttributes(
+        federation->second,
+        requestingFederateId,
+        momObject->second.objectClassHandle);
+    if (!objectClassName ||
+        federation->second.definition.catalog->objectClass(*objectClassName) == nullptr ||
+        !publishedAttributes) {
+      momObject->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
+      return std::nullopt;
+    }
+
+    std::set<std::uint64_t> securedAttributeHandles;
+    for (std::uint64_t const attributeHandle : scheduledAttributeHandles) {
+      if (!pending->second.desiredAttributeHandles.contains(attributeHandle) ||
+          momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle) ||
+          !publishedAttributes->contains(attributeHandle) ||
+          !federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *objectClassName,
+              attributeHandle)) {
+        continue;
+      }
+      bool const earlierRequestPending = std::any_of(
+          momObject->second.pendingAttributeOwnershipAcquisitionRequests.begin(),
+          momObject->second.pendingAttributeOwnershipAcquisitionRequests.end(),
+          [&](auto const& candidate) {
+            return candidate.first != requestId &&
+                candidate.second.requestSequence < pending->second.requestSequence &&
+                candidate.second.desiredAttributeHandles.contains(attributeHandle);
+          });
+      if (earlierRequestPending) {
+        continue;
+      }
+      auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner != momObject->second.attributeOwnersByHandle.end() &&
+          owner->second != requestingFederateId) {
+        continue;
+      }
+      if (owner == momObject->second.attributeOwnersByHandle.end()) {
+        momObject->second.attributeOwnersByHandle.emplace(
+            attributeHandle,
+            requestingFederateId);
+      }
+      pending->second.desiredAttributeHandles.erase(attributeHandle);
+      securedAttributeHandles.insert(attributeHandle);
+    }
+    if (pending->second.desiredAttributeHandles.empty()) {
+      momObject->second.pendingAttributeOwnershipAcquisitionRequests.erase(pending);
+    }
+    if (securedAttributeHandles.empty()) {
+      return std::nullopt;
+    }
+    return AttributeOwnershipAcquisitionNotificationDelivery{
+        objectInstanceHandle,
+        std::move(securedAttributeHandles),
+        {},
+    };
   }
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end()) {

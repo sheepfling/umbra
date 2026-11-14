@@ -107,12 +107,14 @@ final class TimestampedDirectedZeroLookaheadAtGrantTck {
 
          LogicalTime<?, ?> grantedTime = offset(initial, epsilon, 5);
          LogicalTime<?, ?> nextTime = offset(initial, epsilon, 6);
-         publisher.timeAdvanceRequest(grantedTime);
+         publisher.nextMessageRequestAvailable(grantedTime);
          await(publisher, callbackModel, () -> publisherEvents.grants.size() == 1,
             "directed sender initial grant");
          JavaTckSupport.check(grantedTime.equals(publisherEvents.grants.get(0))
                && grantedTime.equals(publisher.queryLogicalTime()),
             "Directed sender did not reach requested time");
+         JavaTckSupport.check(zero.equals(publisher.queryLookahead()),
+            "Directed sender lost zero lookahead after grant");
 
          byte[] payload = {(byte) 0xd7, 0x15};
          byte[] tag = {(byte) 0xd7, 0x16};
@@ -157,7 +159,7 @@ final class TimestampedDirectedZeroLookaheadAtGrantTck {
                && retraction.handle.equals(event.retraction)
                && grantedTime.equals(ownerEvents.grants.get(0)),
             "Directed zero-lookahead callback changed target, payload, metadata, or order");
-         if (callbackModel == CallbackModel.HLA_EVOKED) publisher.evokeCallback(0.0);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(publisher);
          JavaTckSupport.check(publisherEvents.receiveOrderOverloadCount == 0
                && publisherEvents.interactions.isEmpty(),
             "Directed zero-lookahead sender received its own interaction");

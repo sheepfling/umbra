@@ -79,9 +79,9 @@ final class TimestampedDirectedInteractionRetractionFanoutTck {
          second.subscribeObjectClassAttributes(secondClass, secondAttributeSet); secondAttributes = true;
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction)); directedPublished = true;
-         first.subscribeObjectClassDirectedInteractions(firstClass,
+         first.subscribeObjectClassDirectedInteractionsUniversally(firstClass,
             JavaTckSupport.interactionSet(first, firstInteraction)); firstDirected = true;
-         second.subscribeObjectClassDirectedInteractions(secondClass,
+         second.subscribeObjectClassDirectedInteractionsUniversally(secondClass,
             JavaTckSupport.interactionSet(second, secondInteraction)); secondDirected = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
 

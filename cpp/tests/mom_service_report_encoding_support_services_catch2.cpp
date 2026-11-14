@@ -77,7 +77,7 @@ TEST_CASE(
               {objectClassSupplied},
               dimensionSetReturned) ==
       L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":11,"
-      L"\"HLAargumentName\":\"A set of dimension handles\",\"HLAargumentValue\":["
+      L"\"HLAargumentValue\":["
       L"\"DimensionHandle(12)\",\"DimensionHandle(47)\"]}],"
       L"\"HLAservice\":\"GetAvailableDimensionsForObjectClass\","
       L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":36,"
@@ -91,7 +91,7 @@ TEST_CASE(
               {interactionClassSupplied},
               dimensionSetReturned) ==
       L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":11,"
-      L"\"HLAargumentName\":\"A set of dimension handles\",\"HLAargumentValue\":["
+      L"\"HLAargumentValue\":["
       L"\"DimensionHandle(12)\",\"DimensionHandle(47)\"]}],"
       L"\"HLAservice\":\"GetAvailableDimensionsForInteractionClass\","
       L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":27,"
@@ -105,7 +105,7 @@ TEST_CASE(
               {dimensionNameSupplied},
               dimensionSupplied) ==
       L"{\"HLAserialNumber\":2,\"HLAreturnedArgument\":[{\"HLAargumentType\":10,"
-      L"\"HLAargumentName\":\"Dimension handle\",\"HLAargumentValue\":"
+      L"\"HLAargumentValue\":"
       L"\"DimensionHandle(47)\"}],\"HLAservice\":\"GetDimensionHandle\","
       L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":53,"
       L"\"HLAargumentName\":\"Dimension name\",\"HLAargumentValue\":\"BarQuantity\"}],"
@@ -122,7 +122,7 @@ TEST_CASE(
               {dimensionSupplied},
               dimensionNameReturned) ==
       L"{\"HLAserialNumber\":3,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-      L"\"HLAargumentName\":\"Dimension name\",\"HLAargumentValue\":\"BarQuantity\"}],"
+      L"\"HLAargumentValue\":\"BarQuantity\"}],"
       L"\"HLAservice\":\"GetDimensionName\",\"HLAsuppliedArguments\":[{"
       L"\"HLAargumentType\":10,\"HLAargumentName\":\"Dimension handle\","
       L"\"HLAargumentValue\":\"DimensionHandle(47)\"}],"
@@ -139,7 +139,7 @@ TEST_CASE(
               {dimensionSupplied},
               upperBoundReturned) ==
       L"{\"HLAserialNumber\":4,\"HLAreturnedArgument\":[{\"HLAargumentType\":35,"
-      L"\"HLAargumentName\":\"Dimension upper bound\",\"HLAargumentValue\":25}],"
+      L"\"HLAargumentValue\":25}],"
       L"\"HLAservice\":\"GetDimensionUpperBound\",\"HLAsuppliedArguments\":[{"
       L"\"HLAargumentType\":10,\"HLAargumentName\":\"Dimension handle\","
       L"\"HLAargumentValue\":\"DimensionHandle(47)\"}],"
@@ -156,7 +156,7 @@ TEST_CASE(
               {regionSupplied},
               dimensionsReturned) ==
       L"{\"HLAserialNumber\":5,\"HLAreturnedArgument\":[{\"HLAargumentType\":11,"
-      L"\"HLAargumentName\":\"A set of dimensions\",\"HLAargumentValue\":["
+      L"\"HLAargumentValue\":["
       L"\"DimensionHandle(12)\",\"DimensionHandle(47)\"]}],"
       L"\"HLAservice\":\"GetDimensionHandleSet\",\"HLAsuppliedArguments\":[{"
       L"\"HLAargumentType\":42,\"HLAargumentName\":\"Region handle\","
@@ -202,7 +202,7 @@ TEST_CASE(
                L"Order type",
                formatMomOrderType(timestamp)}) ==
       L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":38,"
-      L"\"HLAargumentName\":\"Order type\",\"HLAargumentValue\":\"TIMESTAMP\"}],"
+      L"\"HLAargumentValue\":\"TIMESTAMP\"}],"
       L"\"HLAservice\":\"GetOrderType\",\"HLAsuppliedArguments\":[{"
       L"\"HLAargumentType\":53,\"HLAargumentName\":\"Order name\","
       L"\"HLAargumentValue\":\"TimeStamp\"}],\"HLAsuccessIndicator\":true,"
@@ -216,7 +216,7 @@ TEST_CASE(
                L"Order name",
                formatMomString(L"Receive")}) ==
       L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-      L"\"HLAargumentName\":\"Order name\",\"HLAargumentValue\":\"Receive\"}],"
+      L"\"HLAargumentValue\":\"Receive\"}],"
       L"\"HLAservice\":\"GetOrderName\",\"HLAsuppliedArguments\":[{"
       L"\"HLAargumentType\":38,\"HLAargumentName\":\"Order type\","
       L"\"HLAargumentValue\":\"RECEIVE\"}],\"HLAsuccessIndicator\":true,"
@@ -230,7 +230,6 @@ TEST_CASE(
                L"Transportation type handle",
                formatMomTransportationTypeHandle(reliable)}) ==
       L"{\"HLAserialNumber\":2,\"HLAreturnedArgument\":[{\"HLAargumentType\":59,"
-      L"\"HLAargumentName\":\"Transportation type handle\","
       L"\"HLAargumentValue\":\"TransportationTypeHandle(1)\"}],"
       L"\"HLAservice\":\"GetTransportationTypeHandle\","
       L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":53,"
@@ -246,7 +245,6 @@ TEST_CASE(
                L"Transportation type name",
                formatMomString(L"HLAreliable")}) ==
       L"{\"HLAserialNumber\":3,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-      L"\"HLAargumentName\":\"Transportation type name\","
       L"\"HLAargumentValue\":\"HLAreliable\"}],"
       L"\"HLAservice\":\"GetTransportationTypeName\","
       L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":59,"
@@ -275,7 +273,7 @@ TEST_CASE(
                L"Federate handle",
                formatMomFederateHandle(federate)}) ==
           L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":15,"
-          L"\"HLAargumentName\":\"Federate handle\",\"HLAargumentValue\":\"FederateHandle(12)\"}],"
+          L"\"HLAargumentValue\":\"FederateHandle(12)\"}],"
           L"\"HLAservice\":\"GetFederateHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":53,\"HLAargumentName\":\"Federate name\","
           L"\"HLAargumentValue\":\"owner\"}],\"HLAsuccessIndicator\":true,"
@@ -290,7 +288,7 @@ TEST_CASE(
                L"Federate name",
                formatMomString(L"owner")}) ==
           L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Federate name\",\"HLAargumentValue\":\"owner\"}],"
+          L"\"HLAargumentValue\":\"owner\"}],"
           L"\"HLAservice\":\"GetFederateName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":15,\"HLAargumentName\":\"Federate handle\","
           L"\"HLAargumentValue\":\"FederateHandle(12)\"}],\"HLAsuccessIndicator\":true,"
@@ -305,7 +303,7 @@ TEST_CASE(
                L"Object class handle",
                formatMomObjectClassHandle(objectClass)}) ==
           L"{\"HLAserialNumber\":2,\"HLAreturnedArgument\":[{\"HLAargumentType\":36,"
-          L"\"HLAargumentName\":\"Object class handle\",\"HLAargumentValue\":\"ObjectClassHandle(21)\"}],"
+          L"\"HLAargumentValue\":\"ObjectClassHandle(21)\"}],"
           L"\"HLAservice\":\"GetObjectClassHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":53,\"HLAargumentName\":\"Object class name\","
           L"\"HLAargumentValue\":\"HLAobjectRoot.Employee.Server\"}],"
@@ -320,7 +318,7 @@ TEST_CASE(
                L"Object class name",
                formatMomString(L"HLAobjectRoot.Employee.Server")}) ==
           L"{\"HLAserialNumber\":3,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Object class name\",\"HLAargumentValue\":\"HLAobjectRoot.Employee.Server\"}],"
+          L"\"HLAargumentValue\":\"HLAobjectRoot.Employee.Server\"}],"
           L"\"HLAservice\":\"GetObjectClassName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":36,\"HLAargumentName\":\"Object class handle\","
           L"\"HLAargumentValue\":\"ObjectClassHandle(21)\"}],\"HLAsuccessIndicator\":true,"
@@ -354,7 +352,7 @@ TEST_CASE(
                L"Normalized value",
                formatMomNumber(L"6")}) ==
           L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":35,"
-          L"\"HLAargumentName\":\"Normalized value\",\"HLAargumentValue\":6}],"
+          L"\"HLAargumentValue\":6}],"
           L"\"HLAservice\":\"NormalizeServiceGroup\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":50,\"HLAargumentName\":\"Service group indicator\","
           L"\"HLAargumentValue\":\"SUPPORT_SERVICES\"}],\"HLAsuccessIndicator\":true,"
@@ -390,7 +388,7 @@ TEST_CASE(
         {{suppliedType, suppliedName, suppliedValue}},
         {MomArgumentType::number, L"Normalized value", formatMomNumber(L"7")});
     REQUIRE(record.find(L"\"HLAargumentType\":35") != std::wstring::npos);
-    REQUIRE(record.find(L"\"HLAargumentName\":\"Normalized value\"") !=
+    REQUIRE(record.find(L"\"HLAargumentName\":\"Normalized value\"") ==
             std::wstring::npos);
     REQUIRE(record.find(L"\"HLAargumentName\":\"" + suppliedName + L"\"") !=
             std::wstring::npos);
@@ -419,7 +417,7 @@ TEST_CASE(
                L"Interaction class handle",
                formatMomInteractionClassHandle(interactionClass)}) ==
           L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":27,"
-          L"\"HLAargumentName\":\"Interaction class handle\",\"HLAargumentValue\":\"InteractionClassHandle(21)\"}],"
+          L"\"HLAargumentValue\":\"InteractionClassHandle(21)\"}],"
           L"\"HLAservice\":\"GetInteractionClassHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":53,\"HLAargumentName\":\"Interaction class name\","
           L"\"HLAargumentValue\":\"HLAinteractionRoot.ServerAction.TakeOrder\"}],"
@@ -434,7 +432,7 @@ TEST_CASE(
                L"Interaction class name",
                formatMomString(L"HLAinteractionRoot.ServerAction.TakeOrder")}) ==
           L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Interaction class name\",\"HLAargumentValue\":\"HLAinteractionRoot.ServerAction.TakeOrder\"}],"
+          L"\"HLAargumentValue\":\"HLAinteractionRoot.ServerAction.TakeOrder\"}],"
           L"\"HLAservice\":\"GetInteractionClassName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":27,\"HLAargumentName\":\"Interaction class handle\","
           L"\"HLAargumentValue\":\"InteractionClassHandle(21)\"}],"
@@ -452,7 +450,7 @@ TEST_CASE(
                L"Parameter handle",
                formatMomParameterHandle(parameter)}) ==
           L"{\"HLAserialNumber\":2,\"HLAreturnedArgument\":[{\"HLAargumentType\":39,"
-          L"\"HLAargumentName\":\"Parameter handle\",\"HLAargumentValue\":\"ParameterHandle(17)\"}],"
+          L"\"HLAargumentValue\":\"ParameterHandle(17)\"}],"
           L"\"HLAservice\":\"GetParameterHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":27,\"HLAargumentName\":\"Interaction class handle\","
           L"\"HLAargumentValue\":\"InteractionClassHandle(21)\"},{\"HLAargumentType\":53,"
@@ -471,7 +469,7 @@ TEST_CASE(
                L"Parameter name",
                formatMomString(L"orderId")}) ==
           L"{\"HLAserialNumber\":3,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Parameter name\",\"HLAargumentValue\":\"orderId\"}],"
+          L"\"HLAargumentValue\":\"orderId\"}],"
           L"\"HLAservice\":\"GetParameterName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":27,\"HLAargumentName\":\"Interaction class handle\","
           L"\"HLAargumentValue\":\"InteractionClassHandle(21)\"},{\"HLAargumentType\":39,"
@@ -502,7 +500,7 @@ TEST_CASE(
                L"Object class handle",
                formatMomObjectClassHandle(objectClass)}) ==
           L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":36,"
-          L"\"HLAargumentName\":\"Object class handle\",\"HLAargumentValue\":\"ObjectClassHandle(21)\"}],"
+          L"\"HLAargumentValue\":\"ObjectClassHandle(21)\"}],"
           L"\"HLAservice\":\"GetKnownObjectClassHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":37,\"HLAargumentName\":\"Object instance handle\","
           L"\"HLAargumentValue\":\"ObjectInstanceHandle(23)\"}],"
@@ -517,7 +515,7 @@ TEST_CASE(
                L"Object instance handle",
                formatMomObjectInstanceHandle(objectInstance)}) ==
           L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":37,"
-          L"\"HLAargumentName\":\"Object instance handle\",\"HLAargumentValue\":\"ObjectInstanceHandle(23)\"}],"
+          L"\"HLAargumentValue\":\"ObjectInstanceHandle(23)\"}],"
           L"\"HLAservice\":\"GetObjectInstanceHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":53,\"HLAargumentName\":\"Object instance name\","
           L"\"HLAargumentValue\":\"lookup-service-object\"}],"
@@ -532,7 +530,7 @@ TEST_CASE(
                L"Object instance name",
                formatMomString(L"lookup-service-object")}) ==
           L"{\"HLAserialNumber\":2,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Object instance name\",\"HLAargumentValue\":\"lookup-service-object\"}],"
+          L"\"HLAargumentValue\":\"lookup-service-object\"}],"
           L"\"HLAservice\":\"GetObjectInstanceName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":37,\"HLAargumentName\":\"Object instance handle\","
           L"\"HLAargumentValue\":\"ObjectInstanceHandle(23)\"}],"
@@ -550,7 +548,7 @@ TEST_CASE(
                L"Class attribute handle",
                formatMomAttributeHandle(attribute)}) ==
           L"{\"HLAserialNumber\":3,\"HLAreturnedArgument\":[{\"HLAargumentType\":0,"
-          L"\"HLAargumentName\":\"Class attribute handle\",\"HLAargumentValue\":\"AttributeHandle(7)\"}],"
+          L"\"HLAargumentValue\":\"AttributeHandle(7)\"}],"
           L"\"HLAservice\":\"GetAttributeHandle\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":36,\"HLAargumentName\":\"Object class handle\","
           L"\"HLAargumentValue\":\"ObjectClassHandle(21)\"},{\"HLAargumentType\":53,"
@@ -569,7 +567,7 @@ TEST_CASE(
                L"Class attribute name",
                formatMomString(L"Efficiency")}) ==
           L"{\"HLAserialNumber\":4,\"HLAreturnedArgument\":[{\"HLAargumentType\":53,"
-          L"\"HLAargumentName\":\"Class attribute name\",\"HLAargumentValue\":\"Efficiency\"}],"
+          L"\"HLAargumentValue\":\"Efficiency\"}],"
           L"\"HLAservice\":\"GetAttributeName\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":36,\"HLAargumentName\":\"Object class handle\","
           L"\"HLAargumentValue\":\"ObjectClassHandle(21)\"},{\"HLAargumentType\":0,"
@@ -585,7 +583,7 @@ TEST_CASE(
                L"Maximum update rate value",
                maximumRate}) ==
           L"{\"HLAserialNumber\":5,\"HLAreturnedArgument\":[{\"HLAargumentType\":35,"
-          L"\"HLAargumentName\":\"Maximum update rate value\",\"HLAargumentValue\":" +
+          L"\"HLAargumentValue\":" +
               maximumRate +
           L"}],\"HLAservice\":\"GetUpdateRateValue\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":53,\"HLAargumentName\":\"Update rate name\","
@@ -603,7 +601,7 @@ TEST_CASE(
                L"Maximum update rate value",
                maximumRate}) ==
           L"{\"HLAserialNumber\":6,\"HLAreturnedArgument\":[{\"HLAargumentType\":35,"
-          L"\"HLAargumentName\":\"Maximum update rate value\",\"HLAargumentValue\":" +
+          L"\"HLAargumentValue\":" +
               maximumRate +
           L"}],\"HLAservice\":\"GetUpdateRateValueForAttribute\",\"HLAsuppliedArguments\":[{"
           L"\"HLAargumentType\":37,\"HLAargumentName\":\"Object instance handle\","

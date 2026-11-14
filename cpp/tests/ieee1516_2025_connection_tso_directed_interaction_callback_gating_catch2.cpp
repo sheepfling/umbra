@@ -677,9 +677,25 @@ void verifyProcessDirectedTsoPendingNextMessageAdvance(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = useImmediateCallbacks;
+      serviceOptions.createFomPreparation =
+          [](std::vector<std::wstring> const& fomModules,
+             std::optional<std::wstring> const& mimModule,
+             std::wstring const& logicalTimeImplementationName)
+          -> std::optional<umbra::detail::FederationDefinition> {
+        if (fomModules != std::vector<std::wstring>{
+                              L"server-owned-directed-callback-fom.xml"} ||
+            mimModule || (!logicalTimeImplementationName.empty() &&
+                          logicalTimeImplementationName !=
+                              L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedDirectedProcessDefinition();
+      };
       ProcessFederationService service(
           registry, composedDirectedProcessDefinition(),
-          ProcessFederationServiceOptions{useImmediateCallbacks});
+          std::move(serviceOptions));
       auto senderConnection = listener->accept(
           nullptr,
           {"process-tso-directed-callback-gating-server", 0xA321U},

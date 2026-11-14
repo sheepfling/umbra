@@ -9,8 +9,8 @@ paths; they are not normative authority or evidence of complete conformance.
 
 ## Scope and authority
 
-- **Edition:** IEEE 1516.1-2025 C++ API only. The 2010 API and implementation
-  remain a separate compatibility stream; this guide does not infer parity.
+- **Edition:** IEEE 1516.1-2025 C++ API only. Other edition-specific APIs and
+  implementations remain outside this guide; no parity is inferred.
 - **Implementation boundary:** public 2025 `DataElement` codecs and focused
   unit tests. No federation-management profile, process message framing, or
   2010 API behavior is inferred.
@@ -25,12 +25,10 @@ paths; they are not normative authority or evidence of complete conformance.
   and [basic element declarations](../../third_party/ieee1516.1-2025/include/RTI/encoding/BasicDataElements.h)
   make the C++ operations navigable. Source describes current Umbra behavior;
   focused tests show only the concrete cases they exercise.
-- **Shared primitive boundary:** both edition-specific basic-element sources
-  call the small [explicit-byte-order primitive](../../cpp/src/internal/encoding/byte_order.hpp#L15).
-  This shared helper only appends/reads unsigned octets in a requested order.
-  The 2010 and 2025 type wrappers, time encoders, composite helpers, and tests
-  remain separate; in particular, [2025 composite rules](../../cpp/src/internal/encoding/composite_2025.hpp)
-  are not the [2010 composite rules](../../cpp/src/internal/encoding/composite_2010.hpp).
+- **Implementation detail:** 2025 basic codecs use the
+  [explicit-byte-order helper](../../cpp/src/internal/encoding/byte_order.hpp#L15)
+  to append or read unsigned octets in a requested order. This private helper
+  does not define the public value format or transport framing.
 
 ## One value, from API call to octets
 
@@ -380,9 +378,45 @@ The test also checks a too-short positive length
 ([assertion](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L1038));
 the source rejects negative lengths
 ([guard](../../cpp/src/ieee1516_2025_extendable_variant_record.cpp#L343)).
-Neither that test nor the source review here covers a parent decode continuing
-after an unknown alternative. These are source/test observations for the 2025
-path, not a claim of 2010 equivalence.
+The focused test decodes its unknown value by itself. The source trace below
+follows the returned cursor into a fixed-record parent; no focused test covers
+that combined continuation. These are source/test observations for the 2025
+path.
+
+### A parent composite can continue after skipping an unknown alternative
+
+`HLAextendableVariantRecord::decodeFrom` computes the end of the alternative
+from the encoded length. If the discriminant has no local mapping, it returns
+that end without materializing or retaining the alternative bytes. The
+`HLAfixedRecord` parent accepts the returned cursor as the end of that field,
+checks its record-relative padding for the next field, and continues decoding.
+An application can therefore decode a later known field while leaving the
+unknown alternative uninterpreted; `getVariant()` on the child still throws.
+
+```mermaid
+flowchart TD
+  Input["Fixed-record cursor reaches an extendable variant"] --> Child["HLAextendableVariantRecord::decodeFrom"]
+  Child --> Parse["Read discriminant, encoded length,<br/>and prefix padding"]
+  Parse --> End["Compute alternativeEnd from payload start + length"]
+  End --> Mapping{"Discriminant has a local mapping?"}
+  Mapping -->|Yes| Decode["Decode mapped alternative<br/>and require exact length"]
+  Mapping -->|No| Skip["Skip declared payload bytes;<br/>do not retain the unknown value"]
+  Decode --> Return["Return alternativeEnd to parent"]
+  Skip --> Return
+  Return --> Parent["HLAfixedRecord accepts the child cursor"]
+  Parent --> Align["Check record-relative padding<br/>to the next field boundary"]
+  Align --> Next["Decode the next field"]
+```
+
+The child returns `alternativeEnd` for an unmapped discriminant in the
+[extendable decoder](../../cpp/src/ieee1516_2025_extendable_variant_record.cpp#L322).
+The [fixed-record decoder](../../cpp/src/ieee1516_2025_fixed_record.cpp#L165)
+passes that cursor through its ordered child loop and validates padding before
+the next field. The focused [unknown-payload test](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L1081)
+tests direct decoding, but does not place the extendable variant inside a
+record followed by another field. The parent-continuation diagram is therefore
+source-derived, not a combined test result or a normative interoperability
+claim.
 
 Keep this codec step separate from model composition: a runtime
 `HLAextendableVariantRecord` has an explicit discriminant/alternative map
@@ -422,7 +456,7 @@ Umbra's bundled 2025 reference time types currently encode their 64-bit value
 representations in big-endian order: the [integer and floating encoder
 helpers](../../cpp/src/ieee1516_2025_time.cpp#L108) explicitly select
 `ByteOrder::big`, and the [integer64](../../cpp/src/ieee1516_2025_time.cpp#L307)
-and [float64](../../cpp/src/ieee1516_2025_time.cpp#L577) value implementations
+and [float64](../../cpp/src/ieee1516_2025_time.cpp#L578) value implementations
 use those helpers. This is a statement about those concrete reference
 implementations, not a rule inferred from names such as
 `HLAinteger64Time` or a universal format for arbitrary factories. The logical-
@@ -479,65 +513,17 @@ documents that state machine.
 
 ## Edition boundary and what this guide does not claim
 
-The 2010 and 2025 API implementations each have their own basic-element and
-composite translation units. They happen to use the same stateless
-`ByteOrder` octet primitive, but that one shared helper does not make the
-surrounding codec implementations interchangeable. The 2025 aggregate code
-uses [`composite_2025.hpp`](../../cpp/src/internal/encoding/composite_2025.hpp);
-the 2010 aggregate code uses
-[`composite_2010.hpp`](../../cpp/src/internal/encoding/composite_2010.hpp).
-Those version-specific adapters also import the same type-free checked-size,
-range, and padding operations from the shared
-[`composite_primitives.hpp`](../../cpp/src/internal/encoding/composite_primitives.hpp);
-the codecs reach them through separate 2010 and 2025 namespaces. This is a
-limited internal reuse statement, not evidence that the public composite
-formats, wrappers, or edge cases are equivalent. The following ownership
-sketch isolates only the byte-order primitive; it does not assert that the
-edition-specific wrappers or composite formats are equivalent.
-The separate [2010 encoding companion](HLA-2010-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md)
-documents its own source and smoke-test observations. No 2010 behavior is
-inferred from a 2025 test, and no change to either stream is proposed by this
-guide.
-
-The public C++ method signatures also differ even where the operation names
-look familiar. The pinned [2010 `DataElement` declaration](../../third_party/ieee1516.1-2010/include/RTI/encoding/DataElement.h#L36)
-returns `std::auto_ptr<DataElement>` from `clone()` and `void` from full-buffer
-`decode`; the pinned [2025 declaration](../../third_party/ieee1516.1-2025/include/RTI/encoding/DataElement.h#L31)
-uses `std::unique_ptr<DataElement>` and returns `DataElement&`, respectively.
-Both headers separately declare the value-encoding operations such as
-`encode()`, `encodeInto()`, and cursor-based `decodeFrom()`. These are C++ API
-signature differences, not evidence by themselves of a different encoded
-octet format. The format claims above remain tied to each edition's own
-implementation and test evidence.
-
-The pinned `RTI/encoding` header inventories also differ in named element
-surfaces. Both contain `HLAvariantRecord`, but the 2025 package additionally
-declares [`HLAextendableVariantRecord`](../../third_party/ieee1516.1-2025/include/RTI/encoding/HLAextendableVariantRecord.h),
-[`HLAlogicalTime`](../../third_party/ieee1516.1-2025/include/RTI/encoding/HLAlogicalTime.h),
-and [`HLAlogicalTimeInterval`](../../third_party/ieee1516.1-2025/include/RTI/encoding/HLAlogicalTimeInterval.h);
-there are no corresponding headers in the pinned 2010 `RTI/encoding`
-inventory ([2010 `DataElement`](../../third_party/ieee1516.1-2010/include/RTI/encoding/DataElement.h),
-[2010 `HLAvariantRecord`](../../third_party/ieee1516.1-2010/include/RTI/encoding/HLAvariantRecord.h)).
-This is a narrow package-surface observation, not a claim that 2010 lacks
-logical-time APIs: its separate [`LogicalTime`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTime.h),
-[`LogicalTimeInterval`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTimeInterval.h),
-and [`LogicalTimeFactory`](../../third_party/ieee1516.1-2010/include/RTI/LogicalTimeFactory.h)
-interfaces are outside `RTI/encoding`. Nor does the shared `HLAvariantRecord`
-name guarantee equivalent behavior. The 2025 logical-time element delegates
-to its selected factory representation, as described above.
+All API declarations, encoders, and focused test observations here are for
+IEEE 1516.1-2025. Similar names or shared low-level helpers do not establish
+equivalent public formats or behavior in another edition.
 
 ```mermaid
 flowchart LR
-  subgraph E2025[2025 implementation stream]
+  subgraph E2025[IEEE 1516.1-2025 C++ encoding]
     A[2025 scalar element wrappers] --> B[2025 basic and composite codecs]
     B --> C[2025 composite rules]
   end
-  subgraph E2010[2010 implementation stream]
-    D[2010 scalar element wrappers] --> F[2010 basic and composite codecs]
-    F --> G[2010 composite rules]
-  end
-  B --> H[Shared unsigned-octet ByteOrder primitive]
-  F --> H
+  B --> D[Unsigned-octet byte-order helper]
 ```
 
 This is not an exhaustive element-by-element conformance inventory, a claim
@@ -550,6 +536,4 @@ vectors, alignment, malformed-input rejection, and ownership behavior.
 - [2025 C++ encoding API declarations](../../third_party/ieee1516.1-2025/include/RTI/encoding/DataElement.h)
 - [2025 basic and composite implementation sources](../../CMakeLists.txt#L208)
 - [2025 encoder-focused Catch2 cases](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp)
-- [Shared byte-order primitive](../../cpp/src/internal/encoding/byte_order.hpp)
-- [Separate 2010 basic element source](../../cpp/src/ieee1516_2010_basic_data_elements.cpp#L88)
-- [Separate 2010 composite primitive rules](../../cpp/src/internal/encoding/composite_2010.hpp)
+- [2025 byte-order helper](../../cpp/src/internal/encoding/byte_order.hpp)

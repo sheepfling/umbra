@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-public-api-not-conformance-evidence",
-  "notes": "This portable scenario invokes the eight writable standard Boolean support-switch setters while joined, passing each setter the value returned by its matching standard getter so no provider default is assumed and no switch state is intentionally changed. It then checks FederateNotExecutionMember after resignation while connected and NotConnected after federation destruction and disconnect. The five read-only support-switch getters are covered separately. The scenario uses only the official IEEE 1516.1-2025 C++ API and standard library. The adapter must not subscribe the federate to service-report interactions for the Set Service Reporting case, whose API also declares ReportServiceInvocationsAreSubscribed.",
+  "notes": "This portable C++ scenario invokes all eight writable standard Boolean support-switch setters while joined. For each switch it explicitly sets FALSE and TRUE, verifies the matching getter after each value, and restores the initially observed value, so no provider default is assumed. It then checks FederateNotExecutionMember after resignation while connected and NotConnected after federation destruction and disconnect. The five read-only support-switch getters are covered separately. The scenario uses only the official IEEE 1516.1-2025 C++ API and standard library. The adapter must not subscribe the federate to service-report interactions for the Set Service Reporting case, whose API also declares ReportServiceInvocationsAreSubscribed.",
   "api_surfaces": [
     {
       "id": "portable-object-class-relevance-advisory-switch-setter",

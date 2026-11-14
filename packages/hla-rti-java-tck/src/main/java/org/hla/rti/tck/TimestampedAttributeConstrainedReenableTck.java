@@ -16,10 +16,9 @@ import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.RTIambassador;
-import hla.rti1516_2025.RegionHandleSet;
-import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.time.LogicalTime;
@@ -154,7 +153,6 @@ final class TimestampedAttributeConstrainedReenableTck {
          JavaTckSupport.check(initial.equals(receiver.queryLogicalTime()),
             "publisher and receiver began at different logical times");
          LogicalTime updateTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 4);
          byte[] value = new byte[] {0x41, 0x54, 0x54, 0x52};
          byte[] tag = new byte[] {0x52, 0x45, 0x45, 0x4e, 0x2d, 0x41};
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -164,14 +162,19 @@ final class TimestampedAttributeConstrainedReenableTck {
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
             "timestamped Update Attribute Values returned no valid retraction handle");
          JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
-            "timestamped reflection arrived before its constrained grant");
+         JavaTckSupport.check(receiverRecorder.reflections.isEmpty()
+               && receiverRecorder.receiveOrderReflections.isEmpty(),
+            "attribute reflection arrived before Time Constrained was disabled");
 
          receiver.disableTimeConstrained();
          constrained = false;
          JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
-            "queued reflection was delivered while Time Constrained was disabled");
+            "timestamped reflection was delivered while Time Constrained was disabled");
+         JavaTckSupport.check(receiverRecorder.receiveOrderReflections.size() == 1,
+            "disabling Time Constrained did not deliver the queued update as receive order");
+         checkReceiveOrderReflection(receiverRecorder.receiveOrderReflections.get(0),
+            object, receiverAttribute, value, tag, producer, defaultRegion);
          receiver.enableTimeConstrained();
          constrained = true;
          JavaTckSupport.drain(receiver);
@@ -179,29 +182,31 @@ final class TimestampedAttributeConstrainedReenableTck {
             "receiver did not report its second Time Constrained enable callback");
          JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
             "queued reflection was delivered during Time Constrained re-enable");
+         JavaTckSupport.check(receiverRecorder.receiveOrderReflections.size() == 1,
+            "Time Constrained re-enable changed the already delivered receive-order update");
 
          receiverRecorder.callbackOrder.clear();
          publisherRecorder.callbackOrder.clear();
          receiver.timeAdvanceRequest(updateTime);
-         publisher.timeAdvanceRequest(publisherTarget);
+         publisher.timeAdvanceRequest(updateTime);
          JavaTckSupport.drain(receiver);
          JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(receiverRecorder.reflections.size() == 1
+         JavaTckSupport.check(receiverRecorder.receiveOrderReflections.size() == 1
+               && receiverRecorder.reflections.isEmpty()
                && receiverRecorder.timeConstrainedEnabledCount == 2,
-            "re-enabled receiver did not get exactly one timestamped reflection");
+            "re-enabled receiver changed the receive-order update callback counts");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(
-               Arrays.asList("reflectAttributeValues", "timeAdvanceGrant")),
-            "queued reflection was delivered after its grant");
+               Arrays.asList("timeAdvanceGrant")),
+            "attribute update was redelivered after Time Constrained re-enable: "
+               + receiverRecorder.callbackOrder);
          JavaTckSupport.check(updateTime.equals(receiverRecorder.timeAdvanceGrant)
-               && publisherTarget.equals(publisherRecorder.timeAdvanceGrant)
+               && updateTime.equals(publisherRecorder.timeAdvanceGrant)
                && updateTime.equals(receiver.queryLogicalTime())
-               && publisherTarget.equals(publisher.queryLogicalTime()),
+               && updateTime.equals(publisher.queryLogicalTime()),
             "time-advance grants or logical-time queries returned the wrong times");
-         checkReflection(receiver, receiverRecorder.reflections.get(0), object,
-            receiverAttribute, value, tag, producer, updateTime, sent.handle, defaultRegion);
          JavaTckSupport.expectFailure(() -> publisher.retract(sent.handle),
             "MessageCanNoLongerBeRetracted",
-            "retracting the attribute update after its delivery grant");
+            "retracting the attribute update after receive-order delivery");
 
          receiver.disableTimeConstrained();
          constrained = false;
@@ -252,34 +257,23 @@ final class TimestampedAttributeConstrainedReenableTck {
       }
    }
 
-   private static void checkReflection(RTIambassador receiver, Reflection reflection,
+   private static void checkReceiveOrderReflection(ReceiveOrderReflection reflection,
          ObjectInstanceHandle expectedObject, AttributeHandle expectedAttribute,
          byte[] expectedValue, byte[] expectedTag, FederateHandle expectedProducer,
-         LogicalTime<?, ?> expectedTime, MessageRetractionHandle expectedRetraction,
-         boolean defaultRegion)
-         throws Exception {
+         boolean defaultRegion) {
       JavaTckSupport.check(expectedObject.equals(reflection.object)
             && reflection.values != null && reflection.values.size() == 1
             && Arrays.equals(expectedValue, reflection.values.get(expectedAttribute)),
-         "timestamped re-enabled reflection returned the wrong object or value");
+         "Time Constrained disable changed the receive-order update object or value");
       JavaTckSupport.check(Arrays.equals(expectedTag, reflection.tag)
-            && expectedTime.equals(reflection.time),
-         "timestamped re-enabled reflection did not preserve tag or timestamp");
-      JavaTckSupport.check(expectedProducer.equals(reflection.producer)
-            && reflection.sentOrder == OrderType.TIMESTAMP
-            && reflection.receivedOrder == OrderType.TIMESTAMP,
-         "timestamped re-enabled reflection returned the wrong producer or order");
-      JavaTckSupport.check(reflection.transportation != null
-            && !receiver.getTransportationTypeName(reflection.transportation).isEmpty(),
-         "timestamped re-enabled reflection returned an unresolvable transportation handle");
+            && expectedProducer.equals(reflection.producer),
+         "Time Constrained disable changed the receive-order update tag or producer");
       JavaTckSupport.check(defaultRegion
             ? reflection.regions != null && reflection.regions.isEmpty()
             : reflection.regions == null || reflection.regions.isEmpty(),
          defaultRegion
-            ? "default-region timestamped update did not report supplied-empty source metadata"
-            : "ordinary timestamped update unexpectedly included region metadata");
-      JavaTckSupport.check(expectedRetraction.equals(reflection.retraction),
-         "timestamped re-enabled reflection returned the wrong retraction handle");
+            ? "default-region receive-order update did not report supplied-empty source metadata"
+            : "ordinary receive-order update unexpectedly included region metadata");
    }
 
    private static LogicalTime offset(LogicalTime start, LogicalTimeInterval interval,
@@ -302,11 +296,21 @@ final class TimestampedAttributeConstrainedReenableTck {
       private MessageRetractionHandle retraction;
    }
 
+   private static final class ReceiveOrderReflection {
+      private ObjectInstanceHandle object;
+      private AttributeHandleValueMap values;
+      private byte[] tag;
+      private FederateHandle producer;
+      private RegionHandleSet regions;
+   }
+
    private static final class Recorder {
       private volatile boolean timeRegulationEnabled;
       private volatile int timeConstrainedEnabledCount;
       private volatile ObjectInstanceHandle discoveredObject;
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<ReceiveOrderReflection> receiveOrderReflections =
+         new CopyOnWriteArrayList<>();
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
       private volatile LogicalTime<?, ?> timeAdvanceGrant;
 
@@ -322,6 +326,16 @@ final class TimestampedAttributeConstrainedReenableTck {
                } else if ("discoverObjectInstance".equals(name)
                      && arguments != null && arguments.length >= 1) {
                   discoveredObject = (ObjectInstanceHandle) arguments[0];
+               } else if ("reflectAttributeValues".equals(name)
+                     && arguments != null && arguments.length == 6) {
+                  ReceiveOrderReflection reflection = new ReceiveOrderReflection();
+                  reflection.object = (ObjectInstanceHandle) arguments[0];
+                  reflection.values = ((AttributeHandleValueMap) arguments[1]).clone();
+                  reflection.tag = ((byte[]) arguments[2]).clone();
+                  reflection.producer = (FederateHandle) arguments[4];
+                  reflection.regions = (RegionHandleSet) arguments[5];
+                  receiveOrderReflections.add(reflection);
+                  callbackOrder.add(name);
                } else if ("reflectAttributeValues".equals(name)
                      && arguments != null && arguments.length == 10) {
                   Reflection reflection = new Reflection();

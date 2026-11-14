@@ -43,11 +43,32 @@ void runUpdateRateDuplicate(Options const& options,
         L"InconsistentFOM", "different note references on one update rate");
     create(creator, federation, options, {base.wstring()});
     creator.rtiAmbassador().destroyFederationExecution(federation);
+    auto const& rateConflict = requiredFom(
+        options, "update-rate-duplicate-rate-conflict");
+    create(creator, federation, options, {rateConflict.wstring()});
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+    requireException(
+        [&] { create(creator, federation, options,
+                     {base.wstring(), rateConflict.wstring()}); },
+        L"InconsistentFOM",
+        "different maximum rates on one same-named update rate");
+    create(creator, federation, options, {base.wstring()});
+    creator.rtiAmbassador().destroyFederationExecution(federation);
   } else {
     create(creator, federation, options, {base.wstring(), second.wstring()});
     member.join(options.memberFederateName, options.federateType, federation);
     require(member.rtiAmbassador().getUpdateRateValue(L"TckMergeRate") == 30.0,
             "Equivalent update-rate declaration was not exposed by public lookup");
+    member.resign(rti::NO_ACTION);
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+
+    auto const& unique = requiredFom(options, "update-rate-unique-merge");
+    create(creator, federation, options, {base.wstring(), unique.wstring()});
+    member.join(options.memberFederateName, options.federateType, federation);
+    require(member.rtiAmbassador().getUpdateRateValue(L"TckMergeRate") == 30.0 &&
+                member.rtiAmbassador().getUpdateRateValue(L"TckUniqueRate") ==
+                    45.0,
+            "FOM composition did not retain the base and unique update-rate names");
     member.resign(rti::NO_ACTION);
     creator.rtiAmbassador().destroyFederationExecution(federation);
   }
@@ -82,6 +103,8 @@ void scenarioFomPositiveUpdateRate(Options const& options,
   require(!options.mimFom.empty() &&
               !options.logicalTimeImplementationName.empty(),
           "Positive update rate requires adapter-supplied MIM and logical time");
+  auto const& invalidName = requiredFom(
+      options, "update-rate-invalid-name-preflight");
   auto const& zero = requiredFom(options, "update-rate-zero-preflight");
   auto const& positive = requiredFom(options, "update-rate-positive-preflight");
   Session creator(options, model, "positive-update-rate-creator");
@@ -94,6 +117,8 @@ void scenarioFomPositiveUpdateRate(Options const& options,
         federation, std::vector<std::wstring>{module.wstring()},
         options.mimFom.wstring(), options.logicalTimeImplementationName);
   };
+  requireException([&] { createWithMim(invalidName); }, L"InconsistentFOM",
+                   "an update-rate name that violates HLA naming conventions");
   requireException([&] { createWithMim(zero); }, L"InconsistentFOM",
                    "a zero update-rate value");
 

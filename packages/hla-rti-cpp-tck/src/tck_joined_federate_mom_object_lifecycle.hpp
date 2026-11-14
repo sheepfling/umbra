@@ -10,5 +10,11 @@ void scenarioJoinedFederateMomObjectLifecycle(
 void scenarioJoinedFederateMomObjectLifecycleContract(
     Options const& options,
     rti::CallbackModel model);
+void scenarioJoinedFederateMomAddedAttributeSameRtiInstance(
+    Options const& options,
+    rti::CallbackModel model);
+void scenarioJoinedFederateMomAddedAttributeSameRtiInstanceContract(
+    Options const& options,
+    rti::CallbackModel model);
 
 }  // namespace hla_rti_cpp_tck::detail

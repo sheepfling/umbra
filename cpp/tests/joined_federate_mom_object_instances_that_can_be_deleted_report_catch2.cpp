@@ -28,6 +28,7 @@ namespace standard_hla = umbra::detail::hla::wide;
 using rti1516_2025::AttributeHandleSet;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
+using rti1516_2025::HLA_IMMEDIATE;
 using rti1516_2025::HLAfixedRecord;
 using rti1516_2025::HLAinteger32BE;
 using rti1516_2025::HLAoctet;
@@ -132,29 +133,16 @@ std::vector<DecodedObjectClassCount> decodeObjectClassCounts(
   return decoded;
 }
 
-}  // namespace
-
-TEST_CASE(
-    "Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts",
-    "[integration][development-profile][federation-management][mom]"
-    "[mom-request-report][object-management][interaction-management]"
-    "[ownership-management][callback-model]"
-    "[joined-federate-mom-object-instances-that-can-be-deleted-report]"
-    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
-    "[rti.service.get-transportation-type-handle]"
-    "[rti.service.publish-object-class-attributes]"
-    "[rti.service.register-object-instance][rti.service.delete-object-instance]"
-    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
-    "[rti.service.evoke-callback][federate.callback.receive-interaction]") {
+void verifyObjectInstancesThatCanBeDeletedReport(bool immediate) {
   ReportingFederateAmbassador requesterReports;
   ReportingFederateAmbassador ownerReports;
   auto requester = makeRti();
   auto owner = makeRti();
   auto const federationName = nextFederationName();
 
-  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  auto const callbackModel = immediate ? HLA_IMMEDIATE : HLA_EVOKED;
+  REQUIRE_NOTHROW(requester->connect(requesterReports, callbackModel));
+  REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
   REQUIRE_NOTHROW(owner->createFederationExecution(
       federationName, restaurantFom().wstring(), standard_hla::mom::integer64_time));
 
@@ -210,11 +198,17 @@ TEST_CASE(
         requestClass,
         ParameterHandleValueMap{{requestFederate, ownerFederate.encode()}},
         VariableLengthData{}));
-    // The report is RTI-originated and remains behind the requester's
-    // HLA_EVOKED callback boundary until the explicit drain.
-    REQUIRE(requesterReports.interactionReports.size() == before);
-    drainCallbacks(*requester);
-    REQUIRE(requesterReports.interactionReports.size() == before + 1U);
+    if (immediate) {
+      // HLA_IMMEDIATE delivers the RTI-originated response before the public
+      // Send Interaction service returns.
+      REQUIRE(requesterReports.interactionReports.size() == before + 1U);
+    } else {
+      // HLA_EVOKED keeps the RTI-originated report behind the callback
+      // boundary until the explicit drain.
+      REQUIRE(requesterReports.interactionReports.size() == before);
+      drainCallbacks(*requester);
+      REQUIRE(requesterReports.interactionReports.size() == before + 1U);
+    }
     auto const& report = requesterReports.interactionReports.back();
     REQUIRE(report.interactionClass == reportClass);
     REQUIRE(report.parameterValues.size() == 1U);
@@ -256,4 +250,38 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
+}
+
+}  // namespace
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[ownership-management][callback-model]"
+    "[joined-federate-mom-object-instances-that-can-be-deleted-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.delete-object-instance]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.evoke-callback][federate.callback.receive-interaction]") {
+  verifyObjectInstancesThatCanBeDeletedReport(false);
+}
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstancesThatCanBeDeleted reports live owner counts immediately",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[ownership-management][callback-immediate]"
+    "[joined-federate-mom-object-instances-that-can-be-deleted-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-transportation-type-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.delete-object-instance]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
+  verifyObjectInstancesThatCanBeDeletedReport(true);
 }

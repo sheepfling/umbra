@@ -41,6 +41,8 @@ inline constexpr wchar_t parameter_fixture_base[] =
     L"HLAinteractionRoot.UmbraParameterFixtureBase";
 inline constexpr wchar_t tck_parameter_merge_interaction[] =
     L"HLAinteractionRoot.TckParameterMergeInteraction";
+inline constexpr wchar_t tck_nrg_interaction[] =
+    L"HLAinteractionRoot.TckInteraction";
 inline constexpr wchar_t fdd_preferred_receive_interaction[] =
     L"HLAinteractionRoot.UmbraFddPreferredReceiveInteraction";
 inline constexpr wchar_t fdd_preferred_timestamped_interaction[] =
@@ -139,6 +141,7 @@ inline constexpr wchar_t missing_parameter[] = L"MissingParameter";
 inline constexpr wchar_t name[] = L"Name";
 inline constexpr wchar_t organic[] = L"Organic";
 inline constexpr wchar_t pay_rate[] = L"PayRate";
+inline constexpr wchar_t payload[] = L"Payload";
 inline constexpr wchar_t provider_a_value[] = L"ProviderAValue";
 inline constexpr wchar_t provider_b_value[] = L"ProviderBValue";
 inline constexpr wchar_t regional_value[] = L"RegionalValue";

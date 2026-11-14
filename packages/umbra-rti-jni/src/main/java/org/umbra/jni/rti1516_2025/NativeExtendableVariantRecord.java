@@ -2,6 +2,7 @@ package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.encoding.ByteWrapper;
 import hla.rti1516_2025.encoding.DataElement;
+import hla.rti1516_2025.encoding.EncoderException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -75,7 +76,10 @@ final class NativeExtendableVariantRecord implements InvocationHandler {
 
    private DataElement value() {
       DataElement prototype = variants.get(key(discriminant()));
-      if (prototype == null) return null;
+      if (prototype == null) {
+         throw new EncoderException(
+            "HLAextendableVariantRecord discriminant is not mapped to an alternative");
+      }
       return NativeDataElementEncoding.decode(
          prototype,
          NativeBridge.nativeHLAextendableVariantRecordValueEncoding(nativeHandle.require()));

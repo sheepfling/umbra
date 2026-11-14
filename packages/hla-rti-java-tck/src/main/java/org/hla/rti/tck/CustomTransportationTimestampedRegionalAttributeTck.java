@@ -15,6 +15,7 @@ import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -98,8 +99,8 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
          immediateAttribute = immediate.getAttributeHandle(immediateClass, attributeName);
          constrainedAttribute = constrained.getAttributeHandle(constrainedClass, attributeName);
          disjointAttribute = disjoint.getAttributeHandle(disjointClass, attributeName);
-         TransportationTypeHandle expectedTransportation =
-            publisher.getTransportationTypeHandle(transportationName);
+         TransportationTypeHandle expectedTransportation = transportationName == null
+            ? null : publisher.getTransportationTypeHandle(transportationName);
          check(objectClassName.equals(publisher.getObjectClassName(publisherClass))
                && objectClassName.equals(immediate.getObjectClassName(immediateClass))
                && objectClassName.equals(constrained.getObjectClassName(constrainedClass))
@@ -109,7 +110,8 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
                && attributeName.equals(constrained.getAttributeName(
                   constrainedClass, constrainedAttribute))
                && attributeName.equals(disjoint.getAttributeName(disjointClass, disjointAttribute))
-               && transportationName.equals(publisher.getTransportationTypeName(expectedTransportation)),
+               && (transportationName == null || transportationName.equals(
+                  publisher.getTransportationTypeName(expectedTransportation))),
             "adapter FOM object, attribute, or custom transportation names did not round-trip");
 
          DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
@@ -154,6 +156,12 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
          immediatePair = association(immediate, immediateAttributes, immediateRegions);
          constrainedPair = association(constrained, constrainedAttributes, constrainedRegions);
          disjointPair = association(disjoint, disjointAttributes, disjointRegions);
+         if (transportationName == null) {
+            immediateCallbacks.regionHook = regions -> checkCallbackRegion(
+               immediate, regions, immediateFirst, immediateSecond);
+            constrainedCallbacks.regionHook = regions -> checkCallbackRegion(
+               constrained, regions, constrainedFirst, constrainedSecond);
+         }
          immediate.setConveyRegionDesignatorSetsSwitch(true);
          constrained.setConveyRegionDesignatorSetsSwitch(true);
          disjoint.setConveyRegionDesignatorSetsSwitch(true);
@@ -207,7 +215,7 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
             () -> immediateCallbacks.reflections.size() == 1, "immediate first reflection");
          assertReflection(immediate, immediateCallbacks.reflections.get(0), object,
             immediateAttribute, producer, firstValue, firstTag, firstTime, OrderType.RECEIVE,
-            first.handle, sourceRegion, transportationName);
+            first.handle, transportationName);
          check(constrainedCallbacks.reflections.isEmpty(),
             "constrained receiver received a regional update before advancing");
          pump(disjoint, callbackModel);
@@ -246,7 +254,7 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
             () -> immediateCallbacks.reflections.size() == 2, "immediate second reflection");
          assertReflection(immediate, immediateCallbacks.reflections.get(1), object,
             immediateAttribute, producer, secondValue, secondTag, secondTime, OrderType.RECEIVE,
-            second.handle, sourceRegion, transportationName);
+            second.handle, transportationName);
          check(constrainedCallbacks.reflections.isEmpty(),
             "second update reached constrained receiver before its advance");
          constrainedCallbacks.callbackOrder.clear();
@@ -258,7 +266,7 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
             "second timestamped reflection and grants");
          assertReflection(constrained, constrainedCallbacks.reflections.get(0), object,
             constrainedAttribute, producer, secondValue, secondTag, secondTime,
-            OrderType.TIMESTAMP, second.handle, sourceRegion, transportationName);
+            OrderType.TIMESTAMP, second.handle, transportationName);
          check(constrainedCallbacks.callbackOrder.equals(Arrays.asList("reflect", "grant")),
             "timestamped regional reflection did not precede its matching time-advance grant");
          expectException(() -> publisher.retract(second.handle), "MessageCanNoLongerBeRetracted",
@@ -369,16 +377,21 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
    private static void assertReflection(RTIambassador receiver, Reflection actual,
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
          byte[] value, byte[] tag, LogicalTime<?, ?> time, OrderType receivedOrder,
-         MessageRetractionHandle retraction, RegionHandle sourceRegion,
-         String transportationName) throws Exception {
+         MessageRetractionHandle retraction, String transportationName) throws Exception {
       check(actual.object.equals(object) && actual.values.size() == 1
-            && Arrays.equals(value, actual.values.get(attribute))
-            && Arrays.equals(tag, actual.tag) && producer.equals(actual.producer)
-            && time.equals(actual.time) && actual.sentOrder == OrderType.TIMESTAMP
-            && actual.receivedOrder == receivedOrder && retraction.equals(actual.retraction)
-            && actual.regions != null && actual.regions.size() == 1
-            && actual.regions.contains(sourceRegion),
-         "timestamped regional attribute callback returned incorrect value or metadata");
+            && actual.values.containsKey(attribute),
+         "timestamped regional attribute callback returned the wrong object or attribute set");
+      check(Arrays.equals(value, actual.values.get(attribute)) && Arrays.equals(tag, actual.tag),
+         "timestamped regional attribute callback changed the value or tag");
+      check(producer.equals(actual.producer),
+         "timestamped regional attribute callback returned the wrong producer");
+      check(time.equals(actual.time) && actual.sentOrder == OrderType.TIMESTAMP
+            && actual.receivedOrder == receivedOrder,
+         "timestamped regional attribute callback returned the wrong time or order metadata");
+      check(retraction.equals(actual.retraction),
+         "timestamped regional attribute callback returned the wrong retraction handle");
+      check(actual.regions != null && actual.regions.size() == 1,
+         "timestamped regional attribute callback omitted its source region designator set");
       check(actual.time.toString() != null && !actual.time.toString().isEmpty(),
          "timestamped regional attribute callback omitted its logical-time text");
       check(actual.transportation != null,
@@ -387,6 +400,22 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
       check(actualTransportationName != null && !actualTransportationName.isEmpty()
             && (transportationName == null || transportationName.equals(actualTransportationName)),
          "timestamped regional attribute callback returned an invalid or unexpected transport");
+   }
+
+   private static void checkCallbackRegion(RTIambassador receiver, RegionHandleSet regions,
+         DimensionHandle firstDimension, DimensionHandle secondDimension) throws Exception {
+      check(regions != null && regions.size() == 1,
+         "timestamped regional reflection callback omitted its source region designator set");
+      RegionHandle conveyedRegion = regions.iterator().next();
+      DimensionHandleSet dimensions = receiver.getDimensionHandleSet(conveyedRegion);
+      check(dimensions.size() == 2 && dimensions.contains(firstDimension)
+            && dimensions.contains(secondDimension),
+         "timestamped regional reflection callback returned the wrong dimensions");
+      RangeBounds firstBounds = receiver.getRangeBounds(conveyedRegion, firstDimension);
+      RangeBounds secondBounds = receiver.getRangeBounds(conveyedRegion, secondDimension);
+      check(firstBounds.lower == 1 && firstBounds.upper == 5
+            && secondBounds.lower == 1 && secondBounds.upper == 5,
+         "timestamped regional reflection callback returned the wrong source region bounds");
    }
 
    private static LogicalTime addSteps(LogicalTime start, LogicalTimeInterval interval,
@@ -478,6 +507,7 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
       private volatile boolean timeRegulationEnabled;
       private volatile int timeConstrainedEnabledCount;
+      private volatile RegionHook regionHook;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -492,10 +522,12 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
                   ++timeConstrainedEnabledCount;
                } else if ("reflectAttributeValues".equals(name) && arguments != null
                      && arguments.length == 10) {
+                  RegionHandleSet callbackRegions = (RegionHandleSet) arguments[5];
+                  if (regionHook != null) regionHook.check(callbackRegions);
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
-                     (RegionHandleSet) arguments[5], (LogicalTime<?, ?>) arguments[6],
+                     callbackRegions, (LogicalTime<?, ?>) arguments[6],
                      (OrderType) arguments[7], (OrderType) arguments[8],
                      (MessageRetractionHandle) arguments[9]));
                   callbackOrder.add("reflect");
@@ -513,5 +545,10 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

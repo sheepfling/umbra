@@ -6,6 +6,7 @@
         <name>TckNaInvalidTransportation</name><dataType>NA</dataType>
         <updateType>NA</updateType><updateCondition>NA</updateCondition>
         <transportation>NA</transportation><order>Receive</order>
+        <semantics>Invalid fixture with a not-applicable transportation type.</semantics>
     </attribute></objectClass></objects>
     <transportations><transportation><name>NA</name><reliable>Yes</reliable>
     </transportation></transportations>

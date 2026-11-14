@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable Service-Invocation Report Extension Parameter TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Verify the standard service-report parameter boundary for FOM extensions.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds one parameter to HLAreportServiceInvocation so the standard API can check that the RTI omits FOM-added parameters from its service reports.</description>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>HLAmanager</name>
+                <interactionClass>
+                    <name>HLAfederate</name>
+                    <interactionClass>
+                        <name>HLAreport</name>
+                        <interactionClass>
+                            <name>HLAreportServiceInvocation</name>
+                            <parameter>
+                                <name>TckServiceInvocationExtensionPayload</name>
+                                <dataType>HLAopaqueData</dataType>
+                                <semantics>Test-only FOM-added parameter that RTI-originated service-invocation reports shall omit.</semantics>
+                            </parameter>
+                        </interactionClass>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

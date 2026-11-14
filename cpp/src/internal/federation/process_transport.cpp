@@ -5,8 +5,11 @@
 #include "internal/platform/socket_operations.hpp"
 
 #include <array>
+#include <atomic>
 #include <exception>
 #include <limits>
+#include <new>
+#include <optional>
 #include <span>
 #include <utility>
 #include <vector>
@@ -15,6 +18,27 @@ namespace umbra::detail {
 namespace {
 
 constexpr std::uintptr_t kInvalidSocket = std::numeric_limits<std::uintptr_t>::max();
+std::atomic_uint64_t kNextTransportSessionId{1U};
+
+[[nodiscard]] std::uint64_t nextTransportSessionId() {
+  auto const sessionId = kNextTransportSessionId.fetch_add(
+      1U, std::memory_order_relaxed);
+  if (sessionId == 0U) {
+    throw ProcessTransportError(
+        "The process transport session ID space is exhausted.");
+  }
+  return sessionId;
+}
+
+[[nodiscard]] std::shared_ptr<ProcessTransportSessionState>
+requireSessionState(
+    std::shared_ptr<ProcessTransportSessionState> sessionState) {
+  if (!sessionState) {
+    throw ProcessTransportError(
+        "A process transport connection requires session reliability state.");
+  }
+  return sessionState;
+}
 
 [[noreturn]] void throwTransportError(char const* message) {
   throw ProcessTransportError(message);
@@ -40,6 +64,16 @@ void closeSocket(std::uintptr_t socket) noexcept {
   }
 }
 
+[[nodiscard]] std::uintptr_t connectSocket(
+    ProcessTransportAddress const& address,
+    std::chrono::steady_clock::time_point deadline) {
+  try {
+    return platform::connectSocket(address.host, address.port, deadline);
+  } catch (std::exception const& error) {
+    throw ProcessTransportError(error.what());
+  }
+}
+
 [[nodiscard]] std::uintptr_t listenSocket(ProcessTransportAddress& address) {
   try {
     return platform::listenSocket(address.host, address.port, address.port);
@@ -56,9 +90,27 @@ void closeSocket(std::uintptr_t socket) noexcept {
   }
 }
 
-void sendAll(std::uintptr_t socket, std::span<std::uint8_t const> bytes) {
+[[nodiscard]] std::string socketPeerAddress(std::uintptr_t socket) {
   try {
-    platform::sendAll(socket, bytes);
+    return platform::peerAddress(socket);
+  } catch (std::exception const& error) {
+    throw ProcessTransportError(error.what());
+  }
+}
+
+void sendAll(
+    std::uintptr_t socket,
+    platform::TlsSocket* tlsSocket,
+    platform::WebSocketSocket* websocketSocket,
+    std::span<std::uint8_t const> bytes) {
+  try {
+    if (websocketSocket != nullptr) {
+      websocketSocket->sendAll(bytes);
+    } else if (tlsSocket != nullptr) {
+      tlsSocket->sendAll(bytes);
+    } else {
+      platform::sendAll(socket, bytes);
+    }
   } catch (std::exception const& error) {
     throw ProcessTransportError(error.what());
   }
@@ -68,9 +120,18 @@ enum class ReceiveResult { complete, end_of_stream };
 
 [[nodiscard]] ReceiveResult receiveExact(
     std::uintptr_t socket,
-    std::span<std::uint8_t> bytes) {
+    platform::TlsSocket* tlsSocket,
+    platform::WebSocketSocket* websocketSocket,
+    std::span<std::uint8_t> bytes,
+    std::optional<std::chrono::steady_clock::time_point> deadline = std::nullopt) {
   try {
-    auto const result = platform::receiveExact(socket, bytes);
+    auto const result = websocketSocket != nullptr
+        ? websocketSocket->receiveExact(bytes, deadline)
+        : tlsSocket != nullptr
+        ? (deadline ? tlsSocket->receiveExact(bytes, deadline)
+                    : tlsSocket->receiveExact(bytes))
+        : (deadline ? platform::receiveExact(socket, bytes, *deadline)
+                    : platform::receiveExact(socket, bytes));
     return result == platform::ReceiveExactResult::complete
         ? ReceiveResult::complete
         : ReceiveResult::end_of_stream;
@@ -79,29 +140,43 @@ enum class ReceiveResult { complete, end_of_stream };
   }
 }
 
-void sendFrameOnSocket(std::uintptr_t socket, TransportFrame const& frame) {
+void sendFrameOnSocket(
+    std::uintptr_t socket,
+    TransportFrame const& frame,
+    platform::TlsSocket* tlsSocket = nullptr,
+    platform::WebSocketSocket* websocketSocket = nullptr) {
   auto const encoded = encodeTransportFrame(frame);
-  sendAll(socket, encoded);
+  sendAll(socket, tlsSocket, websocketSocket, encoded);
 }
 
 [[nodiscard]] ReceiveResult receiveFrameOnSocket(
     std::uintptr_t socket,
-    TransportFrame& frame) {
+    TransportFrame& frame,
+    std::optional<std::chrono::steady_clock::time_point> deadline = std::nullopt,
+    platform::TlsSocket* tlsSocket = nullptr,
+    platform::WebSocketSocket* websocketSocket = nullptr) {
+  auto receive = [socket, deadline, tlsSocket, websocketSocket](
+                     std::span<std::uint8_t> bytes) {
+    return receiveExact(socket, tlsSocket, websocketSocket, bytes, deadline);
+  };
   std::array<std::uint8_t, kTransportFrameHeaderSize> header{};
-  if (receiveExact(socket, header) == ReceiveResult::end_of_stream) {
+  if (receive(header) == ReceiveResult::end_of_stream) {
     return ReceiveResult::end_of_stream;
   }
-  auto const payloadSize = transport_wire::readBigEndian32(header, 8U);
+  auto const packetSize = transport_wire::readBigEndian32(header, 0U);
+  if (packetSize < kTransportFrameHeaderSize) {
+    throwTransportError("The process transport peer announced a short packet.");
+  }
+  auto const payloadSize = packetSize - kTransportFrameHeaderSize;
   if (payloadSize > kTransportMaximumPayloadBytes) {
     throwTransportError("The process transport peer announced an oversized frame.");
   }
   std::vector<std::uint8_t> encoded(
       header.begin(),
       header.end());
-  encoded.resize(kTransportFrameHeaderSize + payloadSize);
+  encoded.resize(packetSize);
   if (payloadSize != 0U &&
-      receiveExact(
-          socket,
+      receive(
           std::span<std::uint8_t>(
               encoded.data() + kTransportFrameHeaderSize,
               payloadSize)) == ReceiveResult::end_of_stream) {
@@ -120,7 +195,11 @@ ProcessTransportConnection::ProcessTransportConnection(
     TransportEndpointIdentity peerIdentity,
     FailureHandler failureHandler,
     ForcedResignationHandler forcedResignationHandler,
-    std::shared_ptr<RuntimeInstrumentation> instrumentation)
+    std::shared_ptr<RuntimeInstrumentation> instrumentation,
+    std::shared_ptr<ProcessTransportSessionState> sessionState,
+    std::optional<TransportFrame> initialFrame,
+    std::shared_ptr<platform::TlsSocket> tlsSocket,
+    std::shared_ptr<platform::WebSocketSocket> websocketSocket)
     : nativeSocket_(nativeSocket),
       owner_(owner),
       localIdentity_(std::move(localIdentity)),
@@ -128,11 +207,20 @@ ProcessTransportConnection::ProcessTransportConnection(
       failureHandler_(std::move(failureHandler)),
       forcedResignationHandler_(std::move(forcedResignationHandler)),
       instrumentation_(std::move(instrumentation)),
+      sessionState_(requireSessionState(std::move(sessionState))),
+      tlsSocket_(std::move(tlsSocket)),
+      websocketSocket_(std::move(websocketSocket)),
+      initialFrame_(std::move(initialFrame)),
       open_(validSocket(nativeSocket)) {}
 
 ProcessTransportConnection::ProcessTransportConnection(
-    TestSendFrameHandler sendFrameHandler)
-    : testSendFrameHandler_(std::move(sendFrameHandler)),
+    TestSendFrameHandler sendFrameHandler,
+    std::shared_ptr<ProcessTransportSessionState> sessionState)
+    : localIdentity_{
+          "test-process-transport",
+          sessionState ? sessionState->sessionId() : 0U},
+      testSendFrameHandler_(std::move(sendFrameHandler)),
+      sessionState_(requireSessionState(std::move(sessionState))),
       open_(static_cast<bool>(testSendFrameHandler_)) {}
 
 ProcessTransportConnection::~ProcessTransportConnection() {
@@ -146,49 +234,198 @@ ProcessTransportConnection::connectClient(
     TransportEndpointIdentity localIdentity,
     FailureHandler failureHandler,
     ForcedResignationHandler forcedResignationHandler,
-    std::shared_ptr<RuntimeInstrumentation> instrumentation) {
-  auto const connectedSocket = connectSocket(address);
+    std::shared_ptr<RuntimeInstrumentation> instrumentation,
+    std::shared_ptr<ProcessTransportSessionState> sessionState,
+    ConnectedHandler connectedHandler,
+    std::optional<std::chrono::steady_clock::time_point> deadline) {
+  auto const connectedSocket = deadline
+      ? connectSocket(address, *deadline)
+      : connectSocket(address);
+  std::shared_ptr<ProcessTransportConnection> connection;
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
+  bool tlsOwnsSocket = false;
 
   try {
-    sendFrameOnSocket(connectedSocket, makeTransportHello(localIdentity));
-    TransportFrame acknowledgement;
-    if (receiveFrameOnSocket(connectedSocket, acknowledgement) ==
-        ReceiveResult::end_of_stream ||
-        acknowledgement.kind != TransportFrameKind::hello_ack) {
-      throwTransportError("The process transport peer did not acknowledge the hello frame.");
+    if (address.security == ProcessTransportAddress::Security::tls13) {
+      tlsOwnsSocket = true;
+      try {
+        tlsSocket = std::make_shared<platform::TlsSocket>(
+            platform::TlsSocket::connect(
+                connectedSocket,
+                platform::TlsClientConfiguration{
+                    address.tlsTrustStoreFile,
+                    address.host,
+                    address.tlsCertificateValidationMode},
+                deadline));
+      } catch (std::exception const& error) {
+        throw ProcessTransportError(error.what());
+      }
     }
-    auto peerIdentity = decodeTransportHandshake(acknowledgement);
-    return std::shared_ptr<ProcessTransportConnection>(new ProcessTransportConnection(
-        connectedSocket,
-        owner,
-        std::move(localIdentity),
-        std::move(peerIdentity),
-        std::move(failureHandler),
-        std::move(forcedResignationHandler),
-        std::move(instrumentation)));
+    if (address.framing == ProcessTransportAddress::Framing::websocket) {
+      auto websocketIo = platform::WebSocketIo{
+          [connectedSocket, tlsSocket](
+              std::span<std::uint8_t const> bytes) {
+            if (tlsSocket) {
+              tlsSocket->sendAll(bytes);
+            } else {
+              platform::sendAll(connectedSocket, bytes);
+            }
+          },
+          [connectedSocket, tlsSocket](
+              std::span<std::uint8_t> bytes,
+              std::optional<std::chrono::steady_clock::time_point> receiveDeadline) {
+            if (tlsSocket) {
+              return tlsSocket->receiveExact(bytes, receiveDeadline);
+            }
+            return receiveDeadline
+                ? platform::receiveExact(connectedSocket, bytes, *receiveDeadline)
+                : platform::receiveExact(connectedSocket, bytes);
+          }};
+      auto hostHeader = address.websocketHostHeader;
+      if (hostHeader.empty()) {
+        hostHeader = address.host + ":" + std::to_string(address.port);
+      }
+      try {
+        websocketSocket = platform::WebSocketSocket::connect(
+            std::move(websocketIo),
+            platform::WebSocketClientConfiguration{
+                std::move(hostHeader),
+                address.websocketResource,
+                static_cast<std::size_t>(
+                    kTransportMaximumPayloadBytes + kTransportFrameHeaderSize)},
+            deadline);
+      } catch (std::exception const& error) {
+        throw ProcessTransportError(error.what());
+      }
+    }
+    if (!sessionState) {
+      sessionState = std::make_shared<ProcessTransportSessionState>();
+    }
+    localIdentity.sessionId = sessionState->sessionId();
+    connection = std::shared_ptr<ProcessTransportConnection>(
+        new ProcessTransportConnection(
+            connectedSocket,
+            owner,
+            localIdentity,
+            {},
+            std::move(failureHandler),
+            std::move(forcedResignationHandler),
+            std::move(instrumentation),
+            sessionState,
+            std::nullopt,
+            tlsSocket,
+            websocketSocket));
+    if (connectedHandler) {
+      connectedHandler(connection);
+    }
+    if (!connection->open()) {
+      throwTransportError("The process transport connection was closed during startup.");
+    }
+
+    if (sessionState->sessionId() == 0U) {
+      sendFrameOnSocket(
+          connectedSocket,
+          makeTransportNewSessionRequest(),
+          tlsSocket.get(),
+          websocketSocket.get());
+      TransportFrame statusFrame;
+      if (receiveFrameOnSocket(
+              connectedSocket,
+              statusFrame,
+              deadline,
+              tlsSocket.get(),
+              websocketSocket.get()) ==
+              ReceiveResult::end_of_stream ||
+          statusFrame.kind != TransportFrameKind::new_session_status) {
+        throwTransportError(
+            "The process transport peer did not return New Session Status.");
+      }
+      auto const status = decodeTransportNewSessionStatus(statusFrame);
+      if (!sessionState->sequenceState().acceptIncomingMessageNumber(
+              statusFrame.sequenceNumber)) {
+        throwTransportError(
+            "The process transport peer returned a stale New Session Status sequence number.");
+      }
+      if (status.status != TransportNewSessionStatusCode::success) {
+        throw ProcessTransportError(
+            "The process transport peer rejected New Session with status " +
+            std::to_string(static_cast<std::uint32_t>(status.status)) + ".");
+      }
+      sessionState->assignSessionId(status.sessionId);
+    }
+
+    auto peerIdentity = TransportEndpointIdentity{
+        socketPeerAddress(connectedSocket),
+        sessionState->sessionId()};
+    sessionState->bindPeerEndpointId(peerIdentity.endpointId);
+    localIdentity.sessionId = sessionState->sessionId();
+    connection->localIdentity_ = std::move(localIdentity);
+    connection->peerIdentity_ = std::move(peerIdentity);
+    return connection;
   } catch (...) {
-    closeSocket(connectedSocket);
+    if (connection) {
+      connection->close();
+    } else if (websocketSocket) {
+      websocketSocket->close();
+      if (tlsSocket) {
+        tlsSocket->close();
+      } else {
+        closeSocket(connectedSocket);
+      }
+    } else if (tlsSocket) {
+      tlsSocket->close();
+    } else if (!tlsOwnsSocket) {
+      closeSocket(connectedSocket);
+    }
     throw;
   }
 }
 
 std::shared_ptr<ProcessTransportConnection>
 ProcessTransportConnection::createForTesting(
-    TestSendFrameHandler sendFrameHandler) {
+    TestSendFrameHandler sendFrameHandler,
+    std::uint64_t sessionId) {
   if (!sendFrameHandler) {
     throw ProcessTransportError(
         "A socketless process transport test connection requires a send callback.");
   }
+  if (sessionId == 0U) {
+    throw ProcessTransportError(
+        "A socketless process transport test connection requires a session ID.");
+  }
   return std::shared_ptr<ProcessTransportConnection>(
-      new ProcessTransportConnection(std::move(sendFrameHandler)));
+      new ProcessTransportConnection(
+          std::move(sendFrameHandler),
+          std::make_shared<ProcessTransportSessionState>(sessionId)));
 }
 
 bool ProcessTransportConnection::sendFrame(TransportFrame const& frame) {
+  std::scoped_lock sendLock(sendMutex_);
+  return sendFrameUnderSendLock(frame);
+}
+
+bool ProcessTransportConnection::sendSequencedFrame(
+    std::function<TransportFrame(std::uint32_t)> const& makeFrame) {
+  if (!makeFrame) {
+    throw std::invalid_argument(
+        "A sequenced process transport send requires a frame factory.");
+  }
+  std::scoped_lock sendLock(sendMutex_);
+  auto const sequenceNumber =
+      sessionState_->sequenceState().nextOutgoingMessageNumber();
+  auto const frame = makeFrame(sequenceNumber);
+  return sendFrameUnderSendLock(frame);
+}
+
+bool ProcessTransportConnection::sendFrameUnderSendLock(
+    TransportFrame const& frame) {
   auto instrumentationScope = instrumentation_
       ? instrumentation_->begin(InstrumentationLayer::transport, "send_frame")
       : RuntimeInstrumentation::Scope{};
-  std::scoped_lock sendLock(sendMutex_);
   std::uintptr_t socket = kInvalidSocket;
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
   TestSendFrameHandler testSendFrameHandler;
   {
     std::scoped_lock stateLock(stateMutex_);
@@ -197,6 +434,8 @@ bool ProcessTransportConnection::sendFrame(TransportFrame const& frame) {
       return false;
     }
     socket = nativeSocket_;
+    tlsSocket = tlsSocket_;
+    websocketSocket = websocketSocket_;
     testSendFrameHandler = testSendFrameHandler_;
   }
   if (testSendFrameHandler) {
@@ -207,7 +446,8 @@ bool ProcessTransportConnection::sendFrame(TransportFrame const& frame) {
     return sent;
   }
   try {
-    sendFrameOnSocket(socket, frame);
+    sendFrameOnSocket(
+        socket, frame, tlsSocket.get(), websocketSocket.get());
     return true;
   } catch (ProcessTransportError const& error) {
     fail(wideAscii(error.what()));
@@ -221,6 +461,9 @@ bool ProcessTransportConnection::receiveFrame(TransportFrame& frame) {
       ? instrumentation_->begin(InstrumentationLayer::transport, "receive_frame")
       : RuntimeInstrumentation::Scope{};
   std::uintptr_t socket = kInvalidSocket;
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
+  bool hasInitialFrame = false;
   {
     std::scoped_lock stateLock(stateMutex_);
     if (!open_) {
@@ -231,14 +474,32 @@ bool ProcessTransportConnection::receiveFrame(TransportFrame& frame) {
       instrumentationScope.complete(InstrumentationOutcome::failure);
       return false;
     }
-    socket = nativeSocket_;
+    if (initialFrame_) {
+      frame = std::move(*initialFrame_);
+      initialFrame_.reset();
+      hasInitialFrame = true;
+    } else {
+      socket = nativeSocket_;
+      tlsSocket = tlsSocket_;
+      websocketSocket = websocketSocket_;
+    }
+  }
+  if (hasInitialFrame) {
+    sessionState_->recordPeerActivity();
+    return true;
   }
   try {
-    if (receiveFrameOnSocket(socket, frame) == ReceiveResult::end_of_stream) {
+    if (receiveFrameOnSocket(
+            socket,
+            frame,
+            std::nullopt,
+            tlsSocket.get(),
+            websocketSocket.get()) == ReceiveResult::end_of_stream) {
       fail(L"The process transport peer closed the connection.");
       instrumentationScope.complete(InstrumentationOutcome::failure);
       return false;
     }
+    sessionState_->recordPeerActivity();
     return true;
   } catch (ProcessTransportError const& error) {
     fail(wideAscii(error.what()));
@@ -249,6 +510,8 @@ bool ProcessTransportConnection::receiveFrame(TransportFrame& frame) {
 
 void ProcessTransportConnection::close() noexcept {
   std::uintptr_t socket = kInvalidSocket;
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
   {
     std::scoped_lock stateLock(stateMutex_);
     if (!open_) {
@@ -257,11 +520,18 @@ void ProcessTransportConnection::close() noexcept {
     open_ = false;
     socket = nativeSocket_;
     nativeSocket_ = kInvalidSocket;
+    tlsSocket = std::move(tlsSocket_);
+    websocketSocket = std::move(websocketSocket_);
     failureHandler_ = {};
     forcedResignationHandler_ = {};
     testSendFrameHandler_ = {};
   }
-  if (socket != kInvalidSocket) {
+  if (websocketSocket) {
+    websocketSocket->close();
+  }
+  if (tlsSocket) {
+    tlsSocket->close();
+  } else if (socket != kInvalidSocket) {
     closeSocket(socket);
   }
 }
@@ -272,6 +542,8 @@ void ProcessTransportConnection::fail(std::wstring faultDescription) {
       : RuntimeInstrumentation::Scope{};
   FailureHandler failureHandler;
   std::uintptr_t socket = kInvalidSocket;
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
   {
     std::scoped_lock stateLock(stateMutex_);
     if (!open_) {
@@ -281,12 +553,19 @@ void ProcessTransportConnection::fail(std::wstring faultDescription) {
     open_ = false;
     socket = nativeSocket_;
     nativeSocket_ = kInvalidSocket;
+    tlsSocket = std::move(tlsSocket_);
+    websocketSocket = std::move(websocketSocket_);
     failureHandler = std::move(failureHandler_);
     failureHandler_ = {};
     forcedResignationHandler_ = {};
     testSendFrameHandler_ = {};
   }
-  if (socket != kInvalidSocket) {
+  if (websocketSocket) {
+    websocketSocket->close();
+  }
+  if (tlsSocket) {
+    tlsSocket->close();
+  } else if (socket != kInvalidSocket) {
     closeSocket(socket);
   }
   if (failureHandler) {
@@ -339,20 +618,52 @@ TransportEndpointIdentity const& ProcessTransportConnection::peerIdentity() cons
   return peerIdentity_;
 }
 
+std::uint64_t ProcessTransportConnection::sessionId() const noexcept {
+  return sessionState_->sessionId();
+}
+
+std::shared_ptr<ProcessTransportSessionState>
+ProcessTransportConnection::sessionState() const noexcept {
+  return sessionState_;
+}
+
+ProcessTransportMessageHistory& ProcessTransportConnection::messageHistory() noexcept {
+  return sessionState_->messageHistory();
+}
+
+ProcessTransportSequenceState& ProcessTransportConnection::sequenceState() noexcept {
+  return sessionState_->sequenceState();
+}
+
 ProcessTransportListener::ProcessTransportListener(
     std::uintptr_t nativeSocket,
-    ProcessTransportAddress address)
-    : nativeSocket_(nativeSocket), address_(std::move(address)) {}
+    ProcessTransportAddress address,
+    std::optional<platform::TlsServerConfiguration> tlsServerConfiguration)
+    : nativeSocket_(nativeSocket),
+      address_(std::move(address)),
+      tlsServerConfiguration_(std::move(tlsServerConfiguration)) {}
 
 ProcessTransportListener::~ProcessTransportListener() {
   close();
 }
 
 std::unique_ptr<ProcessTransportListener> ProcessTransportListener::listen(
-    ProcessTransportAddress address) {
+    ProcessTransportAddress address,
+    std::optional<platform::TlsServerConfiguration> tlsServerConfiguration) {
+  if ((address.security == ProcessTransportAddress::Security::tls13) !=
+      tlsServerConfiguration.has_value()) {
+    throw std::invalid_argument(
+        "TLS 1.3 listeners require server credentials, and TCP listeners do not accept TLS credentials.");
+  }
+  if (tlsServerConfiguration) {
+    platform::TlsSocket::validateServerConfiguration(*tlsServerConfiguration);
+  }
   auto const listeningSocket = listenSocket(address);
   return std::unique_ptr<ProcessTransportListener>(
-      new ProcessTransportListener(listeningSocket, std::move(address)));
+      new ProcessTransportListener(
+          listeningSocket,
+          std::move(address),
+          std::move(tlsServerConfiguration)));
 }
 
 std::shared_ptr<ProcessTransportConnection> ProcessTransportListener::accept(
@@ -360,7 +671,9 @@ std::shared_ptr<ProcessTransportConnection> ProcessTransportListener::accept(
     TransportEndpointIdentity localIdentity,
     ProcessTransportConnection::FailureHandler failureHandler,
     ProcessTransportConnection::ForcedResignationHandler forcedResignationHandler,
-    std::shared_ptr<RuntimeInstrumentation> instrumentation) {
+    std::shared_ptr<RuntimeInstrumentation> instrumentation,
+    std::shared_ptr<ProcessTransportSessionState> sessionState,
+    SessionStateResolver resolveSessionState) {
   std::uintptr_t listeningSocket = kInvalidSocket;
   {
     std::scoped_lock lock(mutex_);
@@ -370,6 +683,8 @@ std::shared_ptr<ProcessTransportConnection> ProcessTransportListener::accept(
     throw ProcessTransportError("The process transport listener is closed.");
   }
   auto const acceptedSocket = acceptSocket(listeningSocket);
+  bool tlsOwnsSocket =
+      address_.security == ProcessTransportAddress::Security::tls13;
   {
     std::scoped_lock lock(mutex_);
     if (nativeSocket_ != listeningSocket) {
@@ -383,18 +698,167 @@ std::shared_ptr<ProcessTransportConnection> ProcessTransportListener::accept(
       throw;
     }
   }
-  try {
-    TransportFrame hello;
-    if (receiveFrameOnSocket(acceptedSocket, hello) == ReceiveResult::end_of_stream ||
-        hello.kind != TransportFrameKind::hello) {
-      throwTransportError("The process transport peer did not send a hello frame.");
+  auto closePendingSocket = [this, acceptedSocket, &tlsOwnsSocket] {
+    std::scoped_lock lock(mutex_);
+    if (pendingSockets_.erase(acceptedSocket) != 0U && !tlsOwnsSocket) {
+      closeSocket(acceptedSocket);
     }
-    auto peerIdentity = decodeTransportHandshake(hello);
-    sendFrameOnSocket(acceptedSocket, makeTransportHelloAck(localIdentity));
+  };
+  std::shared_ptr<platform::TlsSocket> tlsSocket;
+  std::shared_ptr<platform::WebSocketSocket> websocketSocket;
+  auto const handshakeDeadline = std::chrono::steady_clock::now() +
+      std::chrono::seconds(30);
+  try {
+    if (tlsOwnsSocket) {
+      try {
+        tlsSocket = std::make_shared<platform::TlsSocket>(
+            platform::TlsSocket::accept(
+                acceptedSocket,
+                *tlsServerConfiguration_,
+                handshakeDeadline));
+      } catch (std::exception const&) {
+        closePendingSocket();
+        return {};
+      }
+    }
+    if (address_.framing == ProcessTransportAddress::Framing::websocket) {
+      auto websocketIo = platform::WebSocketIo{
+          [acceptedSocket, tlsSocket](
+              std::span<std::uint8_t const> bytes) {
+            if (tlsSocket) {
+              tlsSocket->sendAll(bytes);
+            } else {
+              platform::sendAll(acceptedSocket, bytes);
+            }
+          },
+          [acceptedSocket, tlsSocket](
+              std::span<std::uint8_t> bytes,
+              std::optional<std::chrono::steady_clock::time_point> receiveDeadline) {
+            if (tlsSocket) {
+              return tlsSocket->receiveExact(bytes, receiveDeadline);
+            }
+            return receiveDeadline
+                ? platform::receiveExact(acceptedSocket, bytes, *receiveDeadline)
+                : platform::receiveExact(acceptedSocket, bytes);
+          }};
+      try {
+        websocketSocket = platform::WebSocketSocket::accept(
+            std::move(websocketIo),
+            platform::WebSocketServerConfiguration{
+                address_.websocketResource,
+                static_cast<std::size_t>(
+                    kTransportMaximumPayloadBytes + kTransportFrameHeaderSize)},
+            handshakeDeadline);
+      } catch (std::exception const&) {
+        closePendingSocket();
+        return {};
+      }
+    }
+    TransportFrame initialFrame;
+    if (receiveFrameOnSocket(
+            acceptedSocket,
+            initialFrame,
+            std::nullopt,
+            tlsSocket.get(),
+            websocketSocket.get()) ==
+        ReceiveResult::end_of_stream) {
+      closePendingSocket();
+      return {};
+    }
+
+    std::optional<TransportFrame> cachedInitialFrame;
+    auto peerIdentity = TransportEndpointIdentity{
+        socketPeerAddress(acceptedSocket), 0U};
+    if (initialFrame.kind == TransportFrameKind::new_session) {
+      std::uint32_t protocolVersion = 0U;
+      try {
+        protocolVersion = decodeTransportNewSessionRequest(initialFrame);
+      } catch (TransportProtocolError const&) {
+        closePendingSocket();
+        return {};
+      }
+      if (protocolVersion != kTransportHla4ProtocolVersion) {
+        sendFrameOnSocket(
+            acceptedSocket,
+            makeTransportNewSessionStatus({
+                0U,
+                TransportNewSessionStatusCode::unsupported_protocol_version},
+                0U),
+            tlsSocket.get(),
+            websocketSocket.get());
+        closePendingSocket();
+        return {};
+      }
+      try {
+        if (!sessionState) {
+          sessionState = std::make_shared<ProcessTransportSessionState>();
+        }
+        auto const sessionId = nextTransportSessionId();
+        sessionState->assignSessionId(sessionId);
+        peerIdentity.sessionId = sessionId;
+        localIdentity.sessionId = sessionId;
+        sessionState->bindPeerEndpointId(peerIdentity.endpointId);
+        auto const sequenceNumber =
+            sessionState->sequenceState().nextOutgoingMessageNumber();
+        sendFrameOnSocket(
+            acceptedSocket,
+            makeTransportNewSessionStatus({
+                sessionId,
+                TransportNewSessionStatusCode::success},
+                sequenceNumber),
+            tlsSocket.get(),
+            websocketSocket.get());
+      } catch (std::bad_alloc const&) {
+        sendFrameOnSocket(
+            acceptedSocket,
+            makeTransportNewSessionStatus({
+                0U,
+                TransportNewSessionStatusCode::out_of_resources},
+                0U),
+            tlsSocket.get(),
+            websocketSocket.get());
+        closePendingSocket();
+        return {};
+      } catch (std::exception const&) {
+        sendFrameOnSocket(
+            acceptedSocket,
+            makeTransportNewSessionStatus({
+                0U,
+                TransportNewSessionStatusCode::other_error},
+                0U),
+            tlsSocket.get(),
+            websocketSocket.get());
+        closePendingSocket();
+        return {};
+      }
+    } else if (initialFrame.kind == TransportFrameKind::resume_request) {
+      try {
+        static_cast<void>(decodeTransportResumeRequest(initialFrame));
+      } catch (TransportProtocolError const&) {
+        closePendingSocket();
+        return {};
+      }
+      if (!sessionState && resolveSessionState) {
+        sessionState = resolveSessionState(initialFrame.sessionId);
+      }
+      if (!sessionState ||
+          sessionState->sessionId() != initialFrame.sessionId) {
+        closePendingSocket();
+        return {};
+      }
+      peerIdentity.sessionId = initialFrame.sessionId;
+      localIdentity.sessionId = initialFrame.sessionId;
+      sessionState->bindPeerEndpointId(peerIdentity.endpointId);
+      cachedInitialFrame = std::move(initialFrame);
+    } else {
+      closePendingSocket();
+      return {};
+    }
+
     std::scoped_lock lock(mutex_);
     if (!pendingSockets_.contains(acceptedSocket)) {
       throw ProcessTransportError(
-          "The process transport listener closed during its hello handshake.");
+          "The process transport listener closed during session startup.");
     }
     auto connection = std::shared_ptr<ProcessTransportConnection>(
         new ProcessTransportConnection(
@@ -404,12 +868,16 @@ std::shared_ptr<ProcessTransportConnection> ProcessTransportListener::accept(
             std::move(peerIdentity),
             std::move(failureHandler),
             std::move(forcedResignationHandler),
-            std::move(instrumentation)));
+            std::move(instrumentation),
+            std::move(sessionState),
+            std::move(cachedInitialFrame),
+            tlsSocket,
+            websocketSocket));
     pendingSockets_.erase(acceptedSocket);
     return connection;
   } catch (...) {
     std::scoped_lock lock(mutex_);
-    if (pendingSockets_.erase(acceptedSocket) != 0U) {
+    if (pendingSockets_.erase(acceptedSocket) != 0U && !tlsOwnsSocket) {
       closeSocket(acceptedSocket);
     }
     throw;
@@ -426,7 +894,11 @@ void ProcessTransportListener::close() noexcept {
   nativeSocket_ = kInvalidSocket;
   closeSocket(listeningSocket);
   for (auto const pendingSocket : pendingSockets_) {
-    closeSocket(pendingSocket);
+    if (address_.security == ProcessTransportAddress::Security::tls13) {
+      platform::interruptSocket(pendingSocket);
+    } else {
+      closeSocket(pendingSocket);
+    }
   }
   pendingSockets_.clear();
 }

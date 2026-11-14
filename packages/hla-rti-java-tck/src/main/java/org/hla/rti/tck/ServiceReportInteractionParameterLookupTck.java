@@ -1,14 +1,20 @@
 package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.AttributeHandle;
+import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.ObjectClassHandle;
+import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
@@ -19,14 +25,22 @@ import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Verifies interaction-class and parameter lookup results through standard MOM reports. */
 final class ServiceReportInteractionParameterLookupTck {
+   private static final String FEDERATE_MOM_CLASS =
+      "HLAobjectRoot.HLAmanager.HLAfederate";
+   private static final String REPORT_DIRECTORY_SETTING = "serviceReportDirectory=";
    private static final String REPORT_CLASS =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
    private static final String[] REPORT_PARAMETERS = {
@@ -38,8 +52,9 @@ final class ServiceReportInteractionParameterLookupTck {
    private ServiceReportInteractionParameterLookupTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String interactionName,
-         String parameterName, String timeImplementation, CallbackModel callbackModel)
-         throws Exception {
+         String parameterName, String timeImplementation, CallbackModel callbackModel,
+         RtiConfiguration subjectConfiguration, String additionalSettings,
+         String serviceReportDirectory) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
@@ -47,9 +62,24 @@ final class ServiceReportInteractionParameterLookupTck {
       String federation = "java-tck-service-report-interaction-parameter-" + UUID.randomUUID();
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean fileReportingRequested =
+         serviceReportDirectoryRequested(additionalSettings, serviceReportDirectory);
       InteractionClassHandle reportClass = null;
+      ObjectClassHandle federateMomClass = null;
+      AttributeHandleSet federateMomAttributes = null;
+      boolean federateMomSubscribed = false;
+      Path reportFile = null;
+      String subjectName = "java-tck-interaction-parameter-subject-" + UUID.randomUUID();
+      if (fileReportingRequested) {
+         validateServiceReportDirectory(
+            subjectConfiguration, additionalSettings, serviceReportDirectory);
+      }
       try {
-         subject.connect(emptyCallbacks(), callbackModel);
+         if (fileReportingRequested) {
+            subject.connect(emptyCallbacks(), callbackModel, subjectConfiguration);
+         } else {
+            subject.connect(emptyCallbacks(), callbackModel);
+         }
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
@@ -57,11 +87,48 @@ final class ServiceReportInteractionParameterLookupTck {
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
-            "java-tck-interaction-parameter-subject", "java-tck", federation);
+            subjectName, "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution("java-tck-interaction-parameter-observer", "java-tck",
             federation);
          observerJoined = true;
+
+         if (fileReportingRequested) {
+            federateMomClass = observer.getObjectClassHandle(FEDERATE_MOM_CLASS);
+            AttributeHandle federateNameAttribute = observer.getAttributeHandle(
+               federateMomClass, "HLAfederateName");
+            AttributeHandle reportFileAttribute = observer.getAttributeHandle(
+               federateMomClass, "HLAreportServiceFile");
+            JavaTckSupport.check(FEDERATE_MOM_CLASS.equals(
+                  observer.getObjectClassName(federateMomClass))
+                  && "HLAfederateName".equals(
+                     observer.getAttributeName(federateMomClass, federateNameAttribute))
+                  && "HLAreportServiceFile".equals(
+                     observer.getAttributeName(federateMomClass, reportFileAttribute)),
+               "Federate MOM report-file handles did not round-trip by public name");
+            federateMomAttributes = JavaTckSupport.attributeSet(
+               observer, federateNameAttribute, reportFileAttribute);
+            observer.subscribeObjectClassAttributes(
+               federateMomClass, federateMomAttributes, "");
+            federateMomSubscribed = true;
+            byte[] encodedSubjectName =
+               encoder.createHLAunicodeString(subjectName).toByteArray();
+            AttributeHandle finalReportFileAttribute = reportFileAttribute;
+            await(observer, recorder, callbackModel,
+               () -> recorder.hasAttributeForFederate(
+                  federateNameAttribute, encodedSubjectName, finalReportFileAttribute),
+               "subject HLAreportServiceFile MOM reflection");
+            ObjectInstanceHandle subjectMomObject = recorder.objectForFederate(
+               federateNameAttribute, encodedSubjectName);
+            String reportFileName = decode(encoder,
+               recorder.valuesForObject(subjectMomObject).get(reportFileAttribute));
+            JavaTckSupport.check(reportFileName != null && !reportFileName.trim().isEmpty(),
+               "subject HLAreportServiceFile reflection did not contain a file name");
+            reportFile = Path.of(reportFileName);
+            JavaTckSupport.check(Files.isRegularFile(reportFile)
+                  && !Files.readString(reportFile, StandardCharsets.UTF_8).isEmpty(),
+               "subject HLAreportServiceFile did not identify a file with its initial record");
+         }
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -130,8 +197,43 @@ final class ServiceReportInteractionParameterLookupTck {
             },
             new Argument(53, "Parameter name", quoted(parameterResolvedName)), 3);
 
+         if (reportFile != null) {
+            observer.unsubscribeInteractionClass(reportClass);
+            reportSubscribed = false;
+            subject.setServiceReportingSwitch(false);
+            subject.setSendServiceReportsToFileSwitch(true);
+            subject.setServiceReportingSwitch(true);
+            String previousContents = Files.readString(reportFile, StandardCharsets.UTF_8);
+            InteractionClassHandle fileReportedInteraction =
+               subject.getInteractionClassHandle(interactionName);
+            String afterContents = Files.readString(reportFile, StandardCharsets.UTF_8);
+            JavaTckSupport.check(interactionByName.equals(fileReportedInteraction),
+               "File-backed interaction-class lookup returned a different handle");
+            int servicePosition = afterContents.indexOf(
+               "\"HLAservice\":\"GetInteractionClassHandle\"", previousContents.length());
+            int recordLineBreak = afterContents.lastIndexOf('\n', servicePosition);
+            int recordStart = recordLineBreak < 0 ? 0 : recordLineBreak + 1;
+            int recordEnd = servicePosition < 0 ? -1 : afterContents.indexOf('\n', servicePosition);
+            String record = servicePosition < 0 ? ""
+               : afterContents.substring(recordStart, recordEnd < 0 ? afterContents.length()
+                  : recordEnd);
+            String handleText = fileReportedInteraction.toString();
+            String expectedHandleArgument = "\"HLAargumentType\":27,"
+               + "\"HLAargumentValue\":\"" + handleText + "\"";
+            JavaTckSupport.check(servicePosition >= previousContents.length()
+                  && record.contains(expectedHandleArgument),
+               "GetInteractionClassHandle file report omitted its Table 5 type-27 value");
+            subject.setServiceReportingSwitch(false);
+            subject.setSendServiceReportsToFileSwitch(false);
+         }
+
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
+         if (federateMomSubscribed) {
+            observer.unsubscribeObjectClassAttributes(
+               federateMomClass, federateMomAttributes);
+            federateMomSubscribed = false;
+         }
          subject.setServiceReportingSwitch(false);
          observer.resignFederationExecution(ResignAction.NO_ACTION);
          observerJoined = false;
@@ -144,7 +246,16 @@ final class ServiceReportInteractionParameterLookupTck {
             try { observer.unsubscribeInteractionClass(reportClass); }
             catch (Exception ignored) { }
          }
+         if (federateMomSubscribed && observerJoined && federateMomClass != null
+               && federateMomAttributes != null) {
+            try {
+               observer.unsubscribeObjectClassAttributes(
+                  federateMomClass, federateMomAttributes);
+            } catch (Exception ignored) { }
+         }
          try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
+         try { subject.setSendServiceReportsToFileSwitch(false); }
+         catch (Exception ignored) { }
          if (observerJoined) resign(observer);
          if (subjectJoined) resign(subject);
          if (created) {
@@ -154,6 +265,36 @@ final class ServiceReportInteractionParameterLookupTck {
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
       }
+   }
+
+   private static boolean serviceReportDirectoryRequested(
+         String additionalSettings, String serviceReportDirectory) {
+      return serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+         || additionalSettings != null
+            && additionalSettings.contains(REPORT_DIRECTORY_SETTING);
+   }
+
+   private static void validateServiceReportDirectory(
+         RtiConfiguration subjectConfiguration, String additionalSettings,
+         String serviceReportDirectory) {
+      JavaTckSupport.check(subjectConfiguration != null,
+         "service-report directory configuration is required");
+      JavaTckSupport.check(serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+            && Files.isDirectory(Path.of(serviceReportDirectory)),
+         "adapter-supplied service-report directory must exist");
+      String expectedDirectorySetting = REPORT_DIRECTORY_SETTING
+         + Path.of(serviceReportDirectory);
+      JavaTckSupport.check(additionalSettings != null
+            && Arrays.asList(additionalSettings.split(";")).contains(expectedDirectorySetting),
+         "adapter did not configure the expected serviceReportDirectory setting");
+   }
+
+   private static String decode(EncoderFactory encoder, byte[] bytes) throws Exception {
+      JavaTckSupport.check(bytes != null,
+         "HLAreportServiceFile reflection omitted the report-file value");
+      HLAunicodeString value = encoder.createHLAunicodeString();
+      value.decode(bytes);
+      return value.getValue();
    }
 
    private static void verifyReport(RTIambassador observer, FederateHandle expectedFederate,
@@ -225,13 +366,18 @@ final class ServiceReportInteractionParameterLookupTck {
 
    private static void await(RTIambassador observer, Recorder recorder, CallbackModel model)
          throws Exception {
+      await(observer, recorder, model, () -> recorder.events.size() >= 4,
+         "interaction/parameter lookup service reports");
+   }
+
+   private static void await(RTIambassador observer, Recorder recorder, CallbackModel model,
+         BooleanSupplier condition, String description) throws Exception {
       long deadline = System.nanoTime() + TIMEOUT_NANOS;
-      while (recorder.events.size() < 4 && System.nanoTime() < deadline) {
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
          if (model == CallbackModel.HLA_EVOKED) observer.evokeCallback(0.01);
-         else Thread.yield();
+         else Thread.sleep(1L);
       }
-      JavaTckSupport.check(recorder.events.size() >= 4,
-         "timed out waiting for interaction/parameter lookup service reports");
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
    private static FederateAmbassador emptyCallbacks() {
@@ -287,8 +433,46 @@ final class ServiceReportInteractionParameterLookupTck {
       }
    }
 
+   private static final class Reflection {
+      private final ObjectInstanceHandle object;
+      private final Map<AttributeHandle, byte[]> values;
+
+      private Reflection(ObjectInstanceHandle object, AttributeHandleValueMap source) {
+         this.object = object;
+         this.values = new LinkedHashMap<>();
+         for (AttributeHandle attribute : source.keySet()) {
+            values.put(attribute, source.get(attribute).clone());
+         }
+      }
+   }
+
    private static final class Recorder {
       private final List<Interaction> events = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+
+      private ObjectInstanceHandle objectForFederate(AttributeHandle nameAttribute, byte[] name) {
+         for (Reflection reflection : reflections) {
+            byte[] value = reflection.values.get(nameAttribute);
+            if (value != null && Arrays.equals(name, value)) return reflection.object;
+         }
+         return null;
+      }
+
+      private boolean hasAttributeForFederate(AttributeHandle nameAttribute, byte[] name,
+            AttributeHandle attribute) {
+         ObjectInstanceHandle object = objectForFederate(nameAttribute, name);
+         return object != null && valuesForObject(object).containsKey(attribute);
+      }
+
+      private Map<AttributeHandle, byte[]> valuesForObject(ObjectInstanceHandle object) {
+         Map<AttributeHandle, byte[]> values = new LinkedHashMap<>();
+         if (object == null) return values;
+         for (Reflection reflection : reflections) {
+            if (object.equals(reflection.object)) values.putAll(reflection.values);
+         }
+         return values;
+      }
+
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -304,6 +488,13 @@ final class ServiceReportInteractionParameterLookupTck {
                   events.add(new Interaction((InteractionClassHandle) arguments[0], values,
                      ((byte[]) arguments[2]).clone(), (TransportationTypeHandle) arguments[3],
                      (FederateHandle) arguments[4], regions == null || regions.isEmpty()));
+               }
+               if ("reflectAttributeValues".equals(method.getName()) && arguments != null
+                     && arguments.length >= 2
+                     && arguments[0] instanceof ObjectInstanceHandle
+                     && arguments[1] instanceof AttributeHandleValueMap) {
+                  reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleValueMap) arguments[1]));
                }
                return objectMethod(proxy, method.getName(), arguments);
             });

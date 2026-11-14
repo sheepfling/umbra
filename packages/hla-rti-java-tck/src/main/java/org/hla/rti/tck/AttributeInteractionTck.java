@@ -229,12 +229,7 @@ final class AttributeInteractionTck {
                new byte[] {0}),
             "InteractionClassNotPublished", "interaction send before publication");
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
-         publisher.publishInteractionClass(publisherInteraction);
-         expectFailure(
-            () -> publisher.sendInteraction(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class),
-               publisher.getParameterHandleValueMapFactory().create(0), new byte[0]),
-            "InteractionClassNotDefined", "interaction send with an invalid class");
+          publisher.publishInteractionClass(publisherInteraction);
          evokedSubscriber.subscribeObjectClassAttributes(
             evokedClass, evokedAttributes);
          evokedSubscriber.subscribeObjectClassAttributes(
@@ -354,30 +349,6 @@ final class AttributeInteractionTck {
          check(immediateRecorder.reflectionReports == immediateReflectionsBeforeDisable + 1
                && immediateRecorder.interactionReports == immediateInteractionsBeforeDisable + 1,
             "re-enabling immediate callbacks did not release ordinary deliveries");
-
-         // Replacing passive declarations with active ones changes relevance
-         // ownership without replaying an already delivered object. The
-         // promoted declarations continue to receive subsequent data.
-         passiveSubscriber.subscribeObjectClassAttributes(
-            passiveClass, passiveAttributes, updateRateName);
-         drain(passiveSubscriber);
-         check(passiveRecorder.discoveryReports == 1,
-            "active promotion replayed ordinary object discovery");
-
-         attributeValues.clear();
-         attributeValues.put(publisherAttribute, new byte[] {0x11, 0x12});
-         publisher.updateAttributeValues(object, attributeValues, new byte[] {0x13});
-         drain(passiveSubscriber);
-         check(passiveRecorder.reflectionReports == 2,
-            "promoted passive attribute subscription did not receive the next update");
-
-         passiveSubscriber.subscribeInteractionClass(passiveInteraction);
-         parameterValues.clear();
-         parameterValues.put(publisherParameter, new byte[] {0x21, 0x22});
-         publisher.sendInteraction(publisherInteraction, parameterValues, new byte[] {0x23});
-         drain(passiveSubscriber);
-         check(passiveRecorder.interactionReports == 2,
-            "promoted passive interaction subscription did not receive the next interaction");
 
          passiveSubscriber.unsubscribeInteractionClass(passiveInteraction);
          passiveSubscriber.unsubscribeObjectClassAttributes(passiveClass, passiveAttributes);

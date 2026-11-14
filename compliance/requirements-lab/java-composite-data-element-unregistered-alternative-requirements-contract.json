@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "focused-java-api-contract-current-source-wrapper-passes",
+  "notes": "Focused Java public-API case for the HLAvariantRecord discriminant-selection behavior in IEEE 1516.1-2025 §12.12.4.2. It verifies registered alternative selection for encoding and value access. It also checks unknown HLAvariantRecord and HLAextendableVariantRecord discriminants, including minimal extendable encoding, unknown-discriminant decoding, and the pinned Java API's declared EncoderException from getValue(). Both source-compiled Java wrapper overlays pass against the current-source native DLL. The requirement mapping covers registered HLAvariantRecord selection only; the unregistered-alternative exception assertions have no separate Requirements Lab candidate and are not independently mapped.",
+  "requirements": [
+    {
+      "id": "umbra-java-variant-record-discriminant-selection",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l22-7",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/CompositeDataElementUnregisteredAlternativeTck.java",
+      "source_symbol": "CompositeDataElementUnregisteredAlternativeTck.run",
+      "tests": [
+        "org.hla.rti.tck.RtiTckMain#compositeDataElementUnregisteredAlternative"
+      ]
+    }
+  ]
+}

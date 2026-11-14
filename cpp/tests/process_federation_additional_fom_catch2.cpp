@@ -11,10 +11,14 @@
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
 
+#include <algorithm>
+#include <chrono>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -56,6 +60,35 @@ std::filesystem::path testDataPath(std::filesystem::path const& relative) {
   return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
       "data" / relative;
 }
+
+class ScopedTemporaryDirectory final {
+ public:
+  explicit ScopedTemporaryDirectory(std::string name) {
+    auto const clockId = std::chrono::steady_clock::now().time_since_epoch().count();
+    auto const threadId =
+        std::hash<std::thread::id>{}(std::this_thread::get_id());
+    path_ = std::filesystem::temp_directory_path() /
+        (std::move(name) + "-" + std::to_string(clockId) + "-" +
+         std::to_string(threadId));
+    std::error_code error;
+    if (!std::filesystem::create_directory(path_, error) || error) {
+      throw std::runtime_error(
+          "The process FOM URL test could not create its unique temporary directory.");
+    }
+  }
+
+  ~ScopedTemporaryDirectory() {
+    std::error_code ignored;
+    std::filesystem::remove_all(path_, ignored);
+  }
+
+  [[nodiscard]] std::filesystem::path const& path() const noexcept {
+    return path_;
+  }
+
+ private:
+  std::filesystem::path path_;
+};
 
 TransportServiceMessage request(
     TransportServiceOperation operation,
@@ -217,13 +250,22 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "RTIambassador carries additional FOM modules through a configured process Join",
+    "RTIambassador carries additional FOM modules as file URLs through a configured process Join",
     "[integration][development-profile][federation-management][fom][fom-module-management]"
     "[transport][process-boundary][public-endpoint][summary-rule-3]"
+    "[fom-module-protocol-url][hla-1516.1-2025.clause-12.13.3.3]"
     "[rti.service.join-federation-execution][rti.service.get-object-class-handle]"
     "[rti.service.get-object-class-name][2025]") {
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   REQUIRE(listener != nullptr);
+  ScopedTemporaryDirectory fomDirectory("umbra process FOM URL");
+  auto const baseFomPath = fomDirectory.path() / "Restaurant FOM module 2025.xml";
+  auto const extensionFomPath =
+      fomDirectory.path() / "Reference data class provider.xml";
+  std::filesystem::copy_file(
+      resourcePath("examples/RestaurantFOMmodule-2025.xml"), baseFomPath);
+  std::filesystem::copy_file(
+      testDataPath("reference-data-class-provider-fom.xml"), extensionFomPath);
 
   LibXml2FomValidator validator;
   LibXml2FomModuleComposer composer(
@@ -238,20 +280,29 @@ TEST_CASE(
           resourcePath("schemas/IEEE1516-DIF-2025.xsd"),
           std::nullopt});
   auto basePreparation = coordinator.prepareCreate(
-      {resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring()},
+      {baseFomPath.wstring()},
       std::nullopt,
       L"HLAinteger64Time");
   CAPTURE(basePreparation.diagnostics);
   REQUIRE(basePreparation.status == FederationPreparationStatus::applied);
   REQUIRE(basePreparation.definition);
   auto const baseModuleCount = basePreparation.definition->fomModules.size();
+  bool createFomArgumentsWereFileUrls = false;
+  bool joinFomArgumentsWereFileUrls = false;
 
   umbra::detail::ProcessFederationServiceOptions options;
   options.createFomPreparation =
-      [&coordinator](std::vector<std::wstring> const& fomModules,
-                     std::optional<std::wstring> const& mimModule,
-                     std::wstring const& logicalTimeImplementationName)
+      [&coordinator, &createFomArgumentsWereFileUrls](
+          std::vector<std::wstring> const& fomModules,
+          std::optional<std::wstring> const& mimModule,
+          std::wstring const& logicalTimeImplementationName)
       -> std::optional<FederationDefinition> {
+    createFomArgumentsWereFileUrls = !fomModules.empty() &&
+        std::all_of(
+            fomModules.begin(), fomModules.end(), [](std::wstring const& module) {
+              return module.starts_with(L"file:") &&
+                  module.find(L"%20") != std::wstring::npos;
+            });
     auto prepared = coordinator.prepareCreate(
         fomModules,
         mimModule,
@@ -262,9 +313,18 @@ TEST_CASE(
     return std::move(prepared.definition);
   };
   options.additionalFomPreparation =
-      [&coordinator](FederationDefinition const& existing,
-                     std::vector<std::wstring> const& additionalModules)
+      [&coordinator, &joinFomArgumentsWereFileUrls](
+          FederationDefinition const& existing,
+          std::vector<std::wstring> const& additionalModules)
       -> std::optional<FederationDefinition> {
+    joinFomArgumentsWereFileUrls = !additionalModules.empty() &&
+        std::all_of(
+            additionalModules.begin(),
+            additionalModules.end(),
+            [](std::wstring const& module) {
+              return module.starts_with(L"file:") &&
+                  module.find(L"%20") != std::wstring::npos;
+            });
     auto prepared = coordinator.prepareAdditionalModules(existing, additionalModules);
     if (!prepared.accepted()) {
       return std::nullopt;
@@ -362,8 +422,7 @@ TEST_CASE(
         rti1516_2025::RTIinternalError);
     REQUIRE_NOTHROW(rti->createFederationExecution(
         L"process-public-additional-fom-execution",
-        std::vector<std::wstring>{
-            resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring()},
+        std::vector<std::wstring>{baseFomPath.wstring()},
         L"HLAinteger64Time"));
 
     auto const invalidExtension =
@@ -375,8 +434,7 @@ TEST_CASE(
             std::vector<std::wstring>{invalidExtension}),
         rti1516_2025::RTIinternalError);
 
-    auto const extension =
-        testDataPath("reference-data-class-provider-fom.xml").wstring();
+    auto const extension = extensionFomPath.wstring();
     auto const joined = rti->joinFederationExecution(
         L"process-public-additional-fom-type",
         L"process-public-additional-fom-execution",
@@ -402,6 +460,8 @@ TEST_CASE(
     std::rethrow_exception(clientFailure);
   }
   REQUIRE_FALSE(serverFailure);
+  REQUIRE(createFomArgumentsWereFileUrls);
+  REQUIRE(joinFomArgumentsWereFileUrls);
 }
 
 TEST_CASE(

@@ -285,7 +285,7 @@ TEST_CASE(
         response));
     REQUIRE(response.status == TransportServiceStatus::ok);
 
-    rti1516_2025::HLAinteger64Interval lookahead(0);
+    rti1516_2025::HLAinteger64Interval lookahead(1);
     auto const encodedLookahead = lookahead.encode();
     std::vector<std::uint8_t> lookaheadBytes;
     if (encodedLookahead.size() != 0U) {
@@ -322,6 +322,10 @@ TEST_CASE(
         umbra::detail::decodeProcessFederationEnableTimeConstrainedResult(
             response.payload)
             .status == ProcessFederationTimeEnableStatus::applied);
+    REQUIRE_FALSE(
+        umbra::detail::decodeProcessFederationEnableTimeConstrainedResult(
+            response.payload)
+            .awaitingGalt);
 
     REQUIRE(sender.request(
         request(
@@ -451,30 +455,41 @@ TEST_CASE(
     REQUIRE(received.event->timestamp.has_value());
     REQUIRE(received.event->retractionMessageId == updateResult.messageId);
 
-    TransportServiceMessage receiverGrant;
-    REQUIRE(receiver.receive(receiverGrant));
-    REQUIRE(receiverGrant.kind == TransportServiceMessageKind::event);
-    REQUIRE(receiverGrant.operation == TransportServiceOperation::time_advance_grant);
-    auto const grant = umbra::detail::decodeProcessFederationTimeAdvanceResult(
-        receiverGrant.payload);
-    REQUIRE(grant.status == umbra::detail::ProcessFederationTimeAdvanceStatus::applied);
-    REQUIRE(grant.grantedTime.has_value());
-
-    REQUIRE(receiver.request(
-        request(
-            TransportServiceOperation::acknowledge_tso_delivery,
-            6U,
-            umbra::detail::encodeProcessFederationAcknowledgeTsoDeliveryRequest(
-                ProcessFederationAcknowledgeTsoDeliveryRequest{
-                    L"process-execution",
-                    receiverResult.federateId,
-                    updateResult.messageId})),
-        response));
-    REQUIRE(response.status == TransportServiceStatus::ok);
-    REQUIRE(
-        umbra::detail::decodeProcessFederationTsoDeliveryAcknowledgementResult(
-            response.payload)
-            .status == ProcessFederationTsoDeliveryAcknowledgementStatus::applied);
+    REQUIRE(receiver.send(request(
+        TransportServiceOperation::acknowledge_tso_delivery,
+        6U,
+        umbra::detail::encodeProcessFederationAcknowledgeTsoDeliveryRequest(
+            ProcessFederationAcknowledgeTsoDeliveryRequest{
+                L"process-execution",
+                receiverResult.federateId,
+                updateResult.messageId}))));
+    bool acknowledgementReceived = false;
+    bool grantReceived = false;
+    while (!acknowledgementReceived || !grantReceived) {
+      TransportServiceMessage receiverMessage;
+      REQUIRE(receiver.receive(receiverMessage));
+      if (receiverMessage.kind == TransportServiceMessageKind::response &&
+          receiverMessage.requestId == 6U &&
+          receiverMessage.operation ==
+              TransportServiceOperation::acknowledge_tso_delivery) {
+        REQUIRE(receiverMessage.status == TransportServiceStatus::ok);
+        REQUIRE(
+            umbra::detail::decodeProcessFederationTsoDeliveryAcknowledgementResult(
+                receiverMessage.payload)
+                .status == ProcessFederationTsoDeliveryAcknowledgementStatus::applied);
+        acknowledgementReceived = true;
+        continue;
+      }
+      REQUIRE(receiverMessage.kind == TransportServiceMessageKind::event);
+      REQUIRE(receiverMessage.operation ==
+              TransportServiceOperation::time_advance_grant);
+      auto const grant = umbra::detail::decodeProcessFederationTimeAdvanceResult(
+          receiverMessage.payload);
+      REQUIRE(grant.status ==
+              umbra::detail::ProcessFederationTimeAdvanceStatus::applied);
+      REQUIRE(grant.grantedTime.has_value());
+      grantReceived = true;
+    }
 
     REQUIRE(registry.memberById(
                 L"process-execution", senderResult.federateId)

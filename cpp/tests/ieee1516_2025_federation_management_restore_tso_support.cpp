@@ -13,6 +13,11 @@ void runTimedMultiRecipientRegionalResignationAfterRestore(
   ReportingFederateAmbassador firstReceiverReports;
   ReportingFederateAmbassador secondReceiverReports;
   ReportingFederateAmbassador clockReports;
+  auto const saveDirectory = temporaryFederationSaveDirectory();
+  auto configuration = RtiConfiguration::createConfiguration();
+  configuration.withRtiAddress(L"in-process");
+  configuration.withAdditionalSettings(
+      L"federationSaveDirectory=" + saveDirectory.path().wstring());
   auto publisher = makeRti();
   auto firstReceiver = makeRti();
   auto secondReceiver = makeRti();
@@ -29,10 +34,10 @@ void runTimedMultiRecipientRegionalResignationAfterRestore(
     }
   };
 
-  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(firstReceiver->connect(firstReceiverReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(secondReceiver->connect(secondReceiverReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(clock->connect(clockReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->connect(publisherReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(firstReceiver->connect(firstReceiverReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(secondReceiver->connect(secondReceiverReports, HLA_EVOKED, configuration));
+  REQUIRE_NOTHROW(clock->connect(clockReports, HLA_EVOKED, configuration));
   REQUIRE_NOTHROW(publisher->createFederationExecution(
       federationName,
       fomModule,
@@ -176,6 +181,15 @@ void runTimedMultiRecipientRegionalResignationAfterRestore(
   REQUIRE(firstReceiverReports.federationSavedReportCount == 1U);
   REQUIRE(secondReceiverReports.federationSavedReportCount == 1U);
   REQUIRE(clockReports.federationSavedReportCount == 1U);
+  REQUIRE(publisherReports.federationNotSavedReasons.empty());
+  REQUIRE(firstReceiverReports.federationNotSavedReasons.empty());
+  REQUIRE(secondReceiverReports.federationNotSavedReasons.empty());
+  REQUIRE(clockReports.federationNotSavedReasons.empty());
+  umbra::detail::FilesystemFederationSaveCommitStore durableStore(saveDirectory.path());
+  auto const durableCommit = durableStore.load(federationName, saveLabel);
+  REQUIRE(durableCommit.has_value());
+  REQUIRE(durableCommit->memberFederateIds.size() == 4U);
+  REQUIRE_FALSE(durableCommit->stateImage.empty());
 
   // The source mutation is deliberately outside the saved image. Restore must
   // recover the original source-region realization before the resignation action.
@@ -190,10 +204,54 @@ void runTimedMultiRecipientRegionalResignationAfterRestore(
   drain(*firstReceiver);
   drain(*secondReceiver);
   drain(*clock);
-  REQUIRE_NOTHROW(publisher->federateRestoreComplete());
-  REQUIRE_NOTHROW(firstReceiver->federateRestoreComplete());
-  REQUIRE_NOTHROW(secondReceiver->federateRestoreComplete());
-  REQUIRE_NOTHROW(clock->federateRestoreComplete());
+  INFO("publisher restore callbacks: succeeded="
+       << publisherReports.requestFederationRestoreSucceededReports.size()
+       << ", failed=" << publisherReports.requestFederationRestoreFailedReports.size()
+       << ", begun=" << publisherReports.federationRestoreBegunReportCount
+       << ", initiate=" << publisherReports.initiateFederateRestoreReports.size());
+  INFO("other restore callbacks: first="
+       << firstReceiverReports.requestFederationRestoreSucceededReports.size() << "/"
+       << firstReceiverReports.requestFederationRestoreFailedReports.size() << "/"
+       << firstReceiverReports.federationRestoreBegunReportCount << "/"
+       << firstReceiverReports.initiateFederateRestoreReports.size()
+       << ", second="
+       << secondReceiverReports.requestFederationRestoreSucceededReports.size() << "/"
+       << secondReceiverReports.requestFederationRestoreFailedReports.size() << "/"
+       << secondReceiverReports.federationRestoreBegunReportCount << "/"
+       << secondReceiverReports.initiateFederateRestoreReports.size()
+       << ", clock=" << clockReports.requestFederationRestoreSucceededReports.size() << "/"
+       << clockReports.requestFederationRestoreFailedReports.size() << "/"
+       << clockReports.federationRestoreBegunReportCount << "/"
+       << clockReports.initiateFederateRestoreReports.size());
+  REQUIRE(publisherReports.requestFederationRestoreFailedReports.empty());
+  REQUIRE(publisherReports.requestFederationRestoreSucceededReports ==
+      std::vector<std::wstring>{saveLabel});
+  auto requireRestoreBegun = [](ReportingFederateAmbassador const& reports) {
+    REQUIRE(reports.requestFederationRestoreFailedReports.empty());
+    REQUIRE(reports.federationRestoreBegunReportCount == 1U);
+    REQUIRE(reports.initiateFederateRestoreReports.size() == 1U);
+  };
+  requireRestoreBegun(publisherReports);
+  requireRestoreBegun(firstReceiverReports);
+  requireRestoreBegun(secondReceiverReports);
+  requireRestoreBegun(clockReports);
+  REQUIRE(firstReceiverReports.requestFederationRestoreSucceededReports.empty());
+  REQUIRE(secondReceiverReports.requestFederationRestoreSucceededReports.empty());
+  REQUIRE(clockReports.requestFederationRestoreSucceededReports.empty());
+  auto completeRestore = [](RTIambassador& ambassador) {
+    try {
+      ambassador.federateRestoreComplete();
+    } catch (rti1516_2025::Exception const& error) {
+      auto const name = umbra::detail::utf8FromWide(error.name());
+      auto const message = umbra::detail::utf8FromWide(error.what());
+      FAIL("federateRestoreComplete raised " + name.value_or("unknown RTI exception") +
+           ": " + message.value_or("unreadable exception message"));
+    }
+  };
+  completeRestore(*publisher);
+  completeRestore(*firstReceiver);
+  completeRestore(*secondReceiver);
+  completeRestore(*clock);
   drain(*publisher);
   drain(*firstReceiver);
   drain(*secondReceiver);

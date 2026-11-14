@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(MessageRetraction, messageRetraction)
+UMBRA_2025_DEFINE_HANDLE(MessageRetraction, messageRetraction, MessageRetraction)
 
 }  // namespace rti1516_2025

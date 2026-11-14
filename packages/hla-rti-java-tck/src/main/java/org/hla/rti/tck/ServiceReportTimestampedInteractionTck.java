@@ -165,7 +165,14 @@ final class ServiceReportTimestampedInteractionTck {
                && report.parameters.size() == REPORT_PARAMETER_NAMES.length
                && report.tag.length == 0 && report.producer == null && report.regionsEmpty
                && reliable.equals(report.transportation),
-            "timestamped service report returned invalid callback metadata");
+            "timestamped service report returned invalid callback metadata: class="
+               + reportClass.equals(report.interaction) + ", parameters="
+               + report.parameters.size() + ", emptyTag=" + (report.tag.length == 0)
+               + ", noProducer=" + (report.producer == null)
+               + ", regionsEmpty=" + report.regionsEmpty
+               + ", producerLength="
+               + (report.producer == null ? -1 : report.producer.encodedLength())
+               + ", reliable=" + reliable.equals(report.transportation));
          for (String name : REPORT_PARAMETER_NAMES) {
             JavaTckSupport.check(report.parameters.containsKey(reportParameters.get(name)),
                "timestamped service report omitted standard parameter " + name);
@@ -177,12 +184,20 @@ final class ServiceReportTimestampedInteractionTck {
          publisher.setSendServiceReportsToFileSwitch(false);
          LogicalTime receiverTarget = (LogicalTime) receiverInitial.add(lookahead).add(epsilon);
          LogicalTime publisherTarget = (LogicalTime) publisherInitial.add(epsilon);
+         LogicalTime publisherSafeTarget = (LogicalTime) publisherTarget.add(epsilon);
          receiver.timeAdvanceRequest(receiverTarget);
          publisher.timeAdvanceRequest(publisherTarget);
          awaitPair(publisher, receiver, callbackModel,
-            () -> !receiverRecorder.interactions.isEmpty()
-               && !receiverRecorder.grants.isEmpty() && !publisherRecorder.grants.isEmpty(),
-            "timestamped interaction delivery and time grants");
+            () -> !publisherRecorder.grants.isEmpty()
+               && receiverRecorder.interactions.size() == 1
+               && receiverRecorder.grants.isEmpty(),
+            "timestamped interaction delivery at the strict GALT boundary");
+         JavaTckSupport.check(publisherTarget.equals(publisherRecorder.grants.get(0)),
+            "publisher did not receive the expected boundary time advance grant");
+         publisher.timeAdvanceRequest(publisherSafeTarget);
+         awaitPair(publisher, receiver, callbackModel,
+            () -> publisherRecorder.grants.size() >= 2 && !receiverRecorder.grants.isEmpty(),
+            "timestamped interaction safe grant");
 
          Interaction delivered = receiverRecorder.interactions.get(0);
          JavaTckSupport.check(receiverRecorder.interactions.size() == 1
@@ -197,7 +212,7 @@ final class ServiceReportTimestampedInteractionTck {
                && reliable.equals(delivered.transportation)
                && delivered.retraction != null && retraction.handle.equals(delivered.retraction)
                && receiverTarget.equals(receiverRecorder.grants.get(0))
-               && publisherTarget.equals(publisherRecorder.grants.get(0)),
+               && publisherSafeTarget.equals(publisherRecorder.grants.get(1)),
             "timestamped interaction delivery or grant returned incorrect standard metadata");
          JavaTckSupport.check(receiverRecorder.callbackOrder.size() >= 2
                && "receiveInteraction".equals(receiverRecorder.callbackOrder.get(0))

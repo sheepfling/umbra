@@ -90,9 +90,9 @@ final class FederateMomPassiveInteractionActivationTck {
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+         requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
 
          ObjectClassHandle subjectObjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle requesterObjectClass = requester.getObjectClassHandle(objectClassName);

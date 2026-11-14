@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025">
+  <modelIdentification>
+    <name>IEEE 1516.2-2025 basicData Big Endian TCK FDD</name>
+  </modelIdentification>
+  <objects>
+    <objectClass>
+      <name>HLAobjectRoot</name>
+    </objectClass>
+  </objects>
+  <interactions>
+    <interactionClass>
+      <name>HLAinteractionRoot</name>
+      <sharing>Neither</sharing>
+      <transportation>HLAreliable</transportation>
+      <order>TimeStamp</order>
+    </interactionClass>
+  </interactions>
+  <dimensions/>
+  <transportations>
+    <transportation>
+      <name>HLAreliable</name>
+      <reliable>Yes</reliable>
+    </transportation>
+  </transportations>
+  <dataTypes>
+    <basicDataRepresentations>
+      <basicData>
+        <name>TckBasicDataRepresentationBig</name>
+        <size>32</size>
+        <endian>Big</endian>
+        <encoding>32-bit big-endian integer representation.</encoding>
+      </basicData>
+    </basicDataRepresentations>
+  </dataTypes>
+</objectModel>

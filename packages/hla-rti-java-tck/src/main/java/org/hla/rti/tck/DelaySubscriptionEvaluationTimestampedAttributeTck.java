@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Re-evaluate timestamped attribute subscriptions at the time-grant boundary. */
 final class DelaySubscriptionEvaluationTimestampedAttributeTck {
@@ -111,6 +112,10 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          JavaTckSupport.check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "regional delay-subscription receiver did not enable region designators");
+         receiverEvents.regionHook = regions -> {
+            checkCallbackRegion(receiver, regions, receiverFirst, receiverSecond);
+            receiverEvents.inspectedCallbackRegionCount.incrementAndGet();
+         };
          sourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 1, 5);
          receiverRegion = createRegion(receiver, receiverFirst, receiverSecond, 2, 6);
          publisherPair = association(publisher, publisherAttributes, sourceRegion);
@@ -175,8 +180,9 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
             JavaTckSupport.check(firstRetraction != null && firstRetraction.handle != null,
                "delivered regional reflection has no retraction designator");
             verifyRegional(receiverEvents.reflections.get(0), object, receiverAttribute,
-               firstValue, producer, firstTime, firstRetraction.handle, sourceRegion,
-               receiver, "first regional grant");
+               firstValue, producer, firstTime, firstRetraction.handle,
+               receiverEvents.inspectedCallbackRegionCount.get(), receiver,
+               "first regional grant");
          }
 
          LogicalTime secondTime = add(firstTime, epsilon);
@@ -449,7 +455,7 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
 
    private static void verifyRegional(Reflection reflection, ObjectInstanceHandle object,
          AttributeHandle attribute, byte[] payload, FederateHandle producer, LogicalTime time,
-         MessageRetractionHandle retraction, RegionHandle sourceRegion,
+         MessageRetractionHandle retraction, int inspectedCallbackRegionCount,
          RTIambassador receiver, String phase) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object)
             && reflection.values.size() == 1 && reflection.values.containsKey(attribute)
@@ -461,8 +467,19 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
             && reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty()
             && reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+            && inspectedCallbackRegionCount == 1,
          phase + " regional timestamped reflection lost standard metadata or source designator");
+   }
+
+   private static void checkCallbackRegion(RTIambassador receiver, RegionHandleSet regions,
+         DimensionHandle firstDimension, DimensionHandle secondDimension) throws Exception {
+      JavaTckSupport.check(regions != null && regions.size() == 1,
+         "timestamped regional reflection callback omitted its single source designator");
+      RegionHandle callbackRegion = regions.iterator().next();
+      DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+      JavaTckSupport.check(dimensions.size() == 2 && dimensions.contains(firstDimension)
+            && dimensions.contains(secondDimension),
+         "timestamped regional reflection callback returned the wrong copied region dimensions");
    }
 
    private static void deleteRegion(RTIambassador ambassador, RegionHandle region,
@@ -538,6 +555,8 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
       LogicalTime<?, ?> timeConstrainedEnabled;
       final List<Reflection> reflections = new ArrayList<>();
       final List<LogicalTime<?, ?>> grants = new ArrayList<>();
+      final AtomicInteger inspectedCallbackRegionCount = new AtomicInteger();
+      RegionHook regionHook;
 
       FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -552,6 +571,7 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
                } else if ("timeConstrainedEnabled".equals(name) && a.length == 1) {
                   timeConstrainedEnabled = (LogicalTime<?, ?>) a[0];
                } else if ("reflectAttributeValues".equals(name) && a.length == 10) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) a[5]);
                   Reflection reflection = new Reflection();
                   reflection.object = (ObjectInstanceHandle) a[0];
                   reflection.values = ((AttributeHandleValueMap) a[1]).clone();
@@ -576,5 +596,10 @@ final class DelaySubscriptionEvaluationTimestampedAttributeTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

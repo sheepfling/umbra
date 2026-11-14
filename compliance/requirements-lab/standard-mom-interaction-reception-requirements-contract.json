@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Four portable public-API cases exercise one standard MIM subclass beneath each interaction category named by §11.3.1 p. 290 l. 18-5: federate adjust, federate request, federate service, and federation adjust. This is representative branch evidence, not an exhaustive test of arbitrary FOM-added subclasses or complete MOM semantics.",
+  "requirements": [
+    {
+      "id": "cpp-tck-mom-interaction-reception-category-samples",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l18-5",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "MOM interaction reception beneath federate/federation adjust, request, and service classes",
+      "statement": "The RTI shall receive interaction classes that are subclasses of HLAmanager.HLAfederate.HLAadjust, HLAmanager.HLAfederate.HLArequest, HLAmanager.HLAfederate.HLAservice, and HLAmanager.HLAfederation.HLAadjust.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_mom_set_switches_extra_parameter.cpp::scenarioFederateMomSetSwitchesExtraParameter",
+        "packages/hla-rti-cpp-tck/src/tck_portable_mom_declaration_queries.cpp::scenarioFederateMomPublicationQuery",
+        "packages/hla-rti-cpp-tck/src/tck_mom_service_optional_attribute_list_unsubscribe.cpp::scenarioMomServiceOptionalAttributeListUnsubscribe",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationAutoProvideMomSwitch"
+      ]
+    }
+  ]
+}

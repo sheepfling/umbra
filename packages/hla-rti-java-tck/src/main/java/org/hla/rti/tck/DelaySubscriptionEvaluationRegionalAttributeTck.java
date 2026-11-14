@@ -101,6 +101,8 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          JavaTckSupport.check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "receiver did not enable source-region designator callbacks");
+         receiverEvents.regionHook = regions -> checkCallbackRegion(
+            receiver, regions, receiverFirst, receiverSecond);
          sourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 1, 5);
          receiverRegion = createRegion(receiver, receiverFirst, receiverSecond, 2, 6);
          publisherPair = association(publisher, publisherAttributes, sourceRegion);
@@ -133,11 +135,11 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
             pump(receiver, model);
          }
          List<Reflection> first = List.copyOf(receiverEvents.reflections);
-         JavaTckSupport.check(delayEnabled ? first.size() == 1 : first.size() <= 1,
+         JavaTckSupport.check(first.size() == (delayEnabled ? 1 : 0),
             "regional late subscription produced an unexpected reflection count");
          if (!first.isEmpty()) {
             verify(first.get(0), object, receiverAttribute, (byte) 0xD1, producer,
-               sourceRegion, receiver, "late regional reflection");
+               receiver, "late regional reflection");
          }
          receiverEvents.reflections.clear();
 
@@ -156,7 +158,7 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
          JavaTckSupport.check(afterRangeChange.size() == 1,
             "disjoint regional passel escaped callback-boundary re-evaluation");
          verify(afterRangeChange.get(0), object, receiverAttribute, (byte) 0xD3, producer,
-            sourceRegion, receiver, "matching successor reflection");
+            receiver, "matching successor reflection");
 
          receiver.unsubscribeObjectClassAttributesWithRegions(receiverClass, receiverPair);
          subscribed = false;
@@ -246,7 +248,7 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
    }
 
    private static void verify(Reflection reflection, ObjectInstanceHandle object,
-         AttributeHandle attribute, byte marker, FederateHandle producer, RegionHandle sourceRegion,
+         AttributeHandle attribute, byte marker, FederateHandle producer,
          RTIambassador receiver, String phase) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object)
             && reflection.values.size() == 1 && reflection.values.containsKey(attribute)
@@ -254,9 +256,19 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
             && Arrays.equals(new byte[] {marker}, reflection.tag)
             && producer.equals(reflection.producer) && reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty()
-            && reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+            && reflection.regions != null && reflection.regions.size() == 1,
          phase + " lost standard reflection metadata or source region designator");
+   }
+
+   private static void checkCallbackRegion(RTIambassador receiver, RegionHandleSet regions,
+         DimensionHandle firstDimension, DimensionHandle secondDimension) throws Exception {
+      JavaTckSupport.check(regions != null && regions.size() == 1,
+         "regional reflection callback omitted its single source region designator");
+      RegionHandle callbackRegion = regions.iterator().next();
+      DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+      JavaTckSupport.check(dimensions.size() == 2 && dimensions.contains(firstDimension)
+            && dimensions.contains(secondDimension),
+         "regional reflection callback returned the wrong copied region dimensions");
    }
 
    private static void callbackGate(RTIambassador receiver, CallbackModel model, boolean open)
@@ -316,6 +328,7 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
    private static final class Recorder {
       final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      RegionHook regionHook;
       FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -324,6 +337,7 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
                if ("discoverObjectInstance".equals(method.getName()) && a.length >= 1) {
                   discoveries.add((ObjectInstanceHandle) a[0]);
                } else if ("reflectAttributeValues".equals(method.getName()) && a.length == 6) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) a[5]);
                   reflections.add(new Reflection(a));
                }
                if (method.getDeclaringClass() == Object.class) {
@@ -334,5 +348,10 @@ final class DelaySubscriptionEvaluationRegionalAttributeTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

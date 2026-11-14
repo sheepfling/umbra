@@ -122,7 +122,8 @@ TEST_CASE(
   auto const encodedFederateHandle = initialAttribute("HLAfederateHandle");
   auto const decodedFederateHandle =
       rti1516_2025::umbra_binding_detail::decodeUmbraHandleVariableArray(
-          encodedFederateHandle);
+          encodedFederateHandle,
+          rti1516_2025::umbra_binding_detail::HlaHandleType::Federate);
   REQUIRE(decodedFederateHandle);
   REQUIRE(*decodedFederateHandle == joined.membership->id);
   REQUIRE(decodeUnicodeAttribute("HLAfederateName") == L"mom-object-subject");

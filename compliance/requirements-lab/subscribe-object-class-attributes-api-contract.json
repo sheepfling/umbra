@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract pins Umbra's bounded Subscribe Object Class Attributes implementation to the exact official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. It verifies the signature, declared exception set, adapter symbol, and real Catch2 selectors. The baseline declaration case verifies lifecycle/FOM-handle and active/passive boundaries; the focused filesystem-report case verifies that an undefined class appends nothing, then proves explicit High-rate and omitted/default-rate Table 5 argument representations. Discovery/scope/relevance/advisory matrices, generic return/failure forms, MOM interaction delivery, timestamped behavior, save/restore, DDM, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
+  "notes": "This contract pins Umbra's bounded Subscribe Object Class Attributes implementation to the exact official IEEE 1516.1-2025 C++ RTIambassador declaration exported by the Requirements Lab. It verifies the signature, declared exception set, adapter symbol, and real Catch2 selectors. The baseline declaration case verifies lifecycle/FOM-handle and active/passive boundaries; the focused filesystem-report case verifies that an undefined class appends nothing, then proves explicit High-rate and omitted/default-rate Table 5 argument representations. The portable C++ TCK additionally omits the defaulted active/update-rate arguments and observes the default-active subscription through reflection; this does not inspect private message encoding. Discovery/scope/relevance/advisory matrices, generic return/failure forms, MOM interaction delivery, timestamped behavior, save/restore, DDM, remote transport, packaging, catalog evidence, validation, and conformance remain outside this slice.",
   "api_surfaces": [
     {
       "id": "umbra-embedded-subscribe-object-class-attributes-service-report",
@@ -25,7 +25,8 @@
       "tests": [
         "cpp/tests/fom_declaration_management_catch2.cpp::Embedded object class attribute declarations retain 2025 FOM and lifecycle boundaries",
         "cpp/tests/ieee1516_2025_subscribe_object_class_attributes_service_report_file_catch2.cpp::Embedded service reporting preserves Subscribe Object Class Attributes arguments",
-        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry"
+        "cpp/tests/ieee1516_2025_federation_registry_object_class_declarations_filesystem_restart_catch2.cpp::Filesystem state image restores object-class attribute declarations in a fresh registry",
+        "packages/hla-rti-cpp-tck/src/tck_attribute_subscription_mode_exclusivity.cpp::scenarioAttributeSubscriptionModeExclusivity"
       ]
     }
   ]

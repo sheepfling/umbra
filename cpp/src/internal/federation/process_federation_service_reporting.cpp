@@ -147,6 +147,10 @@ ProcessFederationService::handleReportServiceException(
       event.payload = payload;
       event.transportationName = hla::utf8::mom::reliable;
       event.rtiOwnedMomInteraction = true;
+      if (recipient.conveyRegionDesignatorSets) {
+        event.sentRegionHandles = recipient.sentRegionHandles;
+        event.sentRegionSnapshots = recipient.sentRegionSnapshots;
+      }
       event.exceptionReportFederateId = reportRequest.federateId;
       if (options_.pushReceiveOrderEvents) {
         pushedEvents.emplace_back(receivingSession->second, std::move(event));
@@ -422,6 +426,13 @@ ProcessFederationService::handleRecheckExceptionReport(
       !registry_.memberById(recheck.federationName, recheck.receivingFederateId)) {
     return rejected(request);
   }
+  if (!state->second.activeCallbackRegionDesignatorCopies.empty()) {
+    registry_.releaseCallbackScopedRegionDesignatorCopies(
+        recheck.federationName,
+        recheck.receivingFederateId,
+        state->second.activeCallbackRegionDesignatorCopies);
+    state->second.activeCallbackRegionDesignatorCopies.clear();
+  }
   ProcessFederationReceiveInteractionResult result;
   auto const projection = registry_.exceptionReportRecipientFor(
       recheck.federationName,
@@ -434,6 +445,30 @@ ProcessFederationService::handleRecheckExceptionReport(
     event.parameterHandles = parameterVector(projection->receivedParameterHandles);
     event.transportationName = hla::utf8::mom::reliable;
     event.rtiOwnedMomInteraction = true;
+    if (projection->conveyRegionDesignatorSets) {
+      if (projection->sentRegionHandles.empty() ||
+          projection->sentRegionSnapshots.empty()) {
+        return internalError(request);
+      }
+      std::map<std::uint64_t, std::uint64_t> copiedRegionHandles;
+      auto const copyStatus = registry_.createCallbackScopedRegionDesignatorCopies(
+          recheck.federationName,
+          recheck.receivingFederateId,
+          projection->sentRegionHandles,
+          projection->sentRegionSnapshots,
+          copiedRegionHandles);
+      if (copyStatus != RegionServiceStatus::applied) {
+        return internalError(request);
+      }
+      std::set<std::uint64_t> conveyedCopyHandles;
+      for (auto const& [sourceRegionHandle, copiedRegionHandle] : copiedRegionHandles) {
+        static_cast<void>(sourceRegionHandle);
+        conveyedCopyHandles.insert(copiedRegionHandle);
+      }
+      event.sentRegionHandles = std::move(conveyedCopyHandles);
+      state->second.activeCallbackRegionDesignatorCopies =
+          std::move(copiedRegionHandles);
+    }
     event.exceptionReportFederateId = recheck.reportedFederateId;
     result.event = std::move(event);
   }

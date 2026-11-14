@@ -42,14 +42,29 @@ void scenarioTransportationTypeChange(
   auto const reliable = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
   auto const bestEffort = owner.rtiAmbassador().getTransportationTypeHandle(L"HLAbestEffort");
   require(
-      reliable.isValid() && bestEffort.isValid() && reliable != bestEffort,
+      reliable.isValid() && bestEffort.isValid() && reliable != bestEffort &&
+          owner.rtiAmbassador().getTransportationTypeName(reliable) == L"HLAreliable" &&
+          owner.rtiAmbassador().getTransportationTypeName(bestEffort) == L"HLAbestEffort",
       "transportation-type change lookup did not return distinct standard transports");
+  auto const observerReliable =
+      observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
+  auto const observerBestEffort =
+      observer.rtiAmbassador().getTransportationTypeHandle(L"HLAbestEffort");
+  require(
+      observerReliable.isValid() && observerBestEffort.isValid() &&
+          observerReliable != observerBestEffort &&
+          observer.rtiAmbassador().getTransportationTypeName(observerReliable) ==
+              L"HLAreliable" &&
+          observer.rtiAmbassador().getTransportationTypeName(observerBestEffort) ==
+              L"HLAbestEffort",
+      "observer could not resolve and round-trip both standard transportation types");
 
   rti::AttributeHandleSet ownerAttributes;
   ownerAttributes.insert(ownerAttribute);
   rti::AttributeHandleSet observerAttributes;
   observerAttributes.insert(observerAttribute);
   owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.rtiAmbassador().publishObjectClassAttributes(observerClass, observerAttributes);
   observer.rtiAmbassador().subscribeObjectClassAttributes(
       observerClass,
       observerAttributes,
@@ -200,6 +215,119 @@ void scenarioTransportationTypeChange(
                         L"HLAbestEffort"),
       "committed attribute transportation query did not report best effort");
 
+  rti::VariableLengthData const ownershipTag;
+  owner.recorder().clearOwnershipRecords();
+  observer.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object, ownerAttributes, ownershipTag);
+  observer.rtiAmbassador().attributeOwnershipAcquisition(
+      object, observerAttributes, ownershipTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "transportation-type ownership divestiture to the observer");
+  owner.rtiAmbassador().confirmDivestiture(object, ownerAttributes, ownershipTag);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "transportation-type ownership acquisition by the observer");
+  auto const observerAcquisition = observer.recorder().ownershipAcquisition();
+  require(
+      observerAcquisition->object == object &&
+          observerAcquisition->attributes == observerAttributes &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          observer.rtiAmbassador().isAttributeOwnedByFederate(object, observerAttribute),
+      "transportation-type ownership did not transfer to the observer");
+
+  observer.recorder().clearTransportationRecords();
+  observer.rtiAmbassador().queryAttributeTransportationType(object, observerAttribute);
+  waitFor(
+      observer,
+      [&] { return !observer.recorder().attributeTransportationReports().empty(); },
+      options,
+      "observer's default transportation query after ownership acquisition");
+  auto const observerDefaultReports = observer.recorder().attributeTransportationReports();
+  auto const observerDefaultReport = std::find_if(
+      observerDefaultReports.begin(),
+      observerDefaultReports.end(),
+      [&](auto const& report) {
+        return report.object == object && report.attribute == observerAttribute;
+      });
+  require(
+      observerDefaultReport != observerDefaultReports.end() &&
+          sameTransport(observer.rtiAmbassador(), observerDefaultReport->transportation,
+                        L"HLAreliable"),
+      "new owner did not receive the class attribute's default transportation type");
+
+  observer.recorder().clearTransportationRecords();
+  observer.rtiAmbassador().requestAttributeTransportationTypeChange(
+      object, observerAttributes, bestEffort);
+  waitFor(
+      observer,
+      [&] {
+        return !observer.recorder().attributeTransportationConfirmations().empty();
+      },
+      options,
+      "new owner's transportation-type change before return transfer");
+  auto const observerChangeConfirmations =
+      observer.recorder().attributeTransportationConfirmations();
+  require(
+      observerChangeConfirmations.size() == 1U &&
+          observerChangeConfirmations.front().object == object &&
+          observerChangeConfirmations.front().attributes == observerAttributes &&
+          sameTransport(
+              observer.rtiAmbassador(),
+              observerChangeConfirmations.front().transportation,
+              L"HLAbestEffort"),
+      "new owner's transportation-type change did not confirm best effort");
+
+  owner.recorder().clearOwnershipRecords();
+  observer.recorder().clearOwnershipRecords();
+  observer.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object, observerAttributes, ownershipTag);
+  owner.rtiAmbassador().attributeOwnershipAcquisition(
+      object, ownerAttributes, ownershipTag);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "transportation-type ownership divestiture back to the original owner");
+  observer.rtiAmbassador().confirmDivestiture(object, observerAttributes, ownershipTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "transportation-type ownership reacquisition by the original owner");
+  auto const ownerReacquisition = owner.recorder().ownershipAcquisition();
+  require(
+      ownerReacquisition->object == object &&
+          ownerReacquisition->attributes == ownerAttributes &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !observer.rtiAmbassador().isAttributeOwnedByFederate(object, observerAttribute),
+      "original federate did not reacquire the instance attribute");
+
+  owner.recorder().clearTransportationRecords();
+  owner.rtiAmbassador().queryAttributeTransportationType(object, ownerAttribute);
+  waitFor(
+      owner,
+      [&] { return !owner.recorder().attributeTransportationReports().empty(); },
+      options,
+      "original owner's transportation query after reacquisition");
+  auto const reacquiredReports = owner.recorder().attributeTransportationReports();
+  auto const reacquiredReport = std::find_if(
+      reacquiredReports.begin(),
+      reacquiredReports.end(),
+      [&](auto const& report) {
+        return report.object == object && report.attribute == ownerAttribute;
+      });
+  require(
+      reacquiredReport != reacquiredReports.end() &&
+          sameTransport(owner.rtiAmbassador(), reacquiredReport->transportation,
+                        L"HLAreliable"),
+      "reacquired attribute did not reset to the class attribute's default transportation type");
+
   auto sendInteraction = [&](std::uint8_t tagByte) {
     std::vector<std::uint8_t> tagBytes{tagByte};
     rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
@@ -328,6 +456,8 @@ void scenarioTransportationTypeChange(
 
   observer.rtiAmbassador().unsubscribeInteractionClass(observerInteraction);
   observer.rtiAmbassador().unsubscribeObjectClassAttributes(observerClass, observerAttributes);
+  observer.rtiAmbassador().unpublishObjectClassAttributes(observerClass, observerAttributes);
+  observer.rtiAmbassador().unpublishObjectClass(observerClass);
   owner.rtiAmbassador().unpublishInteractionClass(ownerInteraction);
   owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
   owner.rtiAmbassador().unpublishObjectClass(ownerClass);

@@ -261,6 +261,11 @@ void scenarioServiceReportTimestampedAttributeUpdateFailure(
     require(
         serial.get() == expectedSerial,
         description + " report returned the wrong serial number");
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) ==
+            publisher.federateHandle(),
+        description + " report identified the wrong publisher federate");
     observer.recorder().clearInteraction();
   };
 
@@ -580,6 +585,11 @@ void scenarioServiceReportTimestampedInteractionFailure(
     require(
         serial.get() == expectedSerial,
         description + " report returned the wrong serial number");
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) ==
+            publisher.federateHandle(),
+        description + " report identified the wrong publisher federate");
     observer.recorder().clearInteraction();
   };
 

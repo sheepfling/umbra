@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(ObjectInstance, objectInstance)
+UMBRA_2025_DEFINE_HANDLE(ObjectInstance, objectInstance, ObjectInstance)
 
 }  // namespace rti1516_2025

@@ -107,7 +107,7 @@ final class TimeRegulationImplicitAdvanceTck {
             () -> producerCallbacks.timeRegulationEnabled != null,
             "implicit-advance producer Time Regulation callback");
 
-         LogicalTime<?, ?> messageTime = offset(producerInitial, producerEpsilon, 5);
+         LogicalTime<?, ?> messageTime = offset(producerInitial, producerEpsilon, 8);
          LogicalTime<?, ?> producerTarget = offset(producerInitial, producerEpsilon, 10);
          LogicalTime<?, ?> peerTarget = offset(peerInitial, peerEpsilon, 10);
          LogicalTime<?, ?> expectedEnableTime = offset(enablingInitial, enablingEpsilon, 8);

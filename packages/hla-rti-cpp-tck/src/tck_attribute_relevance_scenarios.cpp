@@ -3,8 +3,15 @@
 #include <cstddef>
 #include <filesystem>
 #include <string>
+#include <type_traits>
 
 namespace hla_rti_cpp_tck::detail {
+
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getAdvisoriesUseKnownClassSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Advisories Use Known Class Switch returns bool");
 
 void runKnownClassAttributeRelevance(
     Options const& options,
@@ -43,6 +50,10 @@ void runKnownClassAttributeRelevance(
       owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch() &&
           subscriber.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
       "adapter known-class FOM did not enable attribute relevance advisories");
+  owner.rtiAmbassador().setAttributeRelevanceAdvisorySwitch(true);
+  require(
+      owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
+      "setting Attribute Relevance Advisory to TRUE did not enable the switch");
 
   auto const ownerBaseClass = owner.rtiAmbassador().getObjectClassHandle(
       options.knownClassObjectClassName);
@@ -183,20 +194,33 @@ void runKnownClassAttributeRelevance(
     owner.recorder().clearAdvisories();
   }
 
+  owner.rtiAmbassador().setAttributeRelevanceAdvisorySwitch(false);
+  require(
+      !owner.rtiAmbassador().getAttributeRelevanceAdvisorySwitch(),
+      "setting Attribute Relevance Advisory to FALSE did not disable the switch");
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberBaseClass,
       subscriberKnownAttributes);
-  waitFor(
-      owner,
-      [&] { return owner.recorder().updatesOff().size() >= 1U; },
-      options,
-      "known-class attribute relevance turn-updates-off advisory");
-  auto const updatesOff = owner.recorder().updatesOff();
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
   require(
-      updatesOff.size() == 1U &&
-      updatesOff.front().object == object &&
-          updatesOff.front().attributes == ownerKnownAttributes,
-      "known-class policy did not preserve the base attribute advisory");
+      owner.recorder().updatesOff().empty(),
+      "FALSE still generated Turn Updates Off for the withdrawn base attribute");
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberBaseClass,
+      subscriberKnownAttributes,
+      true,
+      L"");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+  }
+  require(
+      owner.recorder().updatesOn().empty(),
+      "disabled Attribute Relevance Advisory switch generated Turn Updates On");
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberBaseClass,
+      subscriberKnownAttributes);
 
   subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberBaseClass);
   owner.rtiAmbassador().unpublishObjectClassAttributes(
@@ -746,6 +770,33 @@ void scenarioRelevanceAdvisories(Options const& options, rti::CallbackModel mode
           options,
           "active object subscription demotion");
   subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberClass);
+
+  // The joined-federate switch gates both interaction-relevance directions.
+  // Exercise a complete active subscription lifecycle while disabled, then
+  // start a fresh lifecycle after re-enabling so the test does not assume
+  // that enabling the switch replays an already-active relationship.
+  publisher.rtiAmbassador().setInteractionRelevanceAdvisorySwitch(false);
+  require(!publisher.rtiAmbassador().getInteractionRelevanceAdvisorySwitch(),
+          "interaction relevance advisory switch did not disable");
+  subscriber.rtiAmbassador().subscribeInteractionClass(subscriberInteraction, true);
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
+  require(publisher.recorder().interactionsOn().empty() &&
+              publisher.recorder().interactionsOff().empty(),
+          "disabled interaction relevance advisory switch did not suppress turn-on");
+  subscriber.rtiAmbassador().unsubscribeInteractionClass(subscriberInteraction);
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
+  require(publisher.recorder().interactionsOn().empty() &&
+              publisher.recorder().interactionsOff().empty(),
+          "disabled interaction relevance advisory switch did not suppress turn-off");
+  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
+  publisher.rtiAmbassador().setInteractionRelevanceAdvisorySwitch(true);
+  require(publisher.rtiAmbassador().getInteractionRelevanceAdvisorySwitch(),
+          "interaction relevance advisory switch did not re-enable");
 
   subscriber.rtiAmbassador().subscribeInteractionClass(subscriberInteraction, true);
   publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);

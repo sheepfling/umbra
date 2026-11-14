@@ -6,6 +6,8 @@ TEST_CASE(
     "Embedded transport loss DDM-filters HLAreportFederateLost regional subscriptions",
     "[integration][development-profile][federation-management][transport][mom][ddm]"
     "[rti.service.connection-lost][rti.service.subscribe-interaction-class-with-regions]"
+    "[mom-ddm-service-prohibition]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm]"
     "[federate.callback.receive-interaction]") {
   ReportingFederateAmbassador lostReports;
   ReportingFederateAmbassador matchingReports;

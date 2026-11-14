@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers the single pinned Requirements Lab candidate for optional parameters of HLAmanager.HLAfederate.HLAservice interactions. The portable C++ TCK primary/contract pair omits HLAattributeList from HLAunsubscribeObjectClassAttributes and observes that subsequent attribute reflection stops. Other optional HLAservice arguments and complete service semantics remain outside this slice; no conformance claim is made.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l113-37",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, lines 113-136",
+      "source_symbol": "Optional arguments of HLAmanager.HLAfederate.HLAservice interactions",
+      "statement": "A federate shall not be required to supply parameters of an HLAmanager.HLAfederate.HLAservice interaction that correspond to optional arguments of the HLA service that the interaction is intended to invoke on behalf of another federate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mom_service_optional_attribute_list_unsubscribe.cpp::scenarioMomServiceOptionalAttributeListUnsubscribe",
+        "packages/hla-rti-cpp-tck/src/tck_mom_service_optional_attribute_list_unsubscribe.cpp::scenarioMomServiceOptionalAttributeListUnsubscribeContract",
+        "cpp/tests/ieee1516_2025_unsubscribe_object_class_attributes_service_report_file_catch2.cpp::HLAservice unsubscribe accepts an omitted optional attribute list"
+      ]
+    }
+  ]
+}

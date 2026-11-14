@@ -515,7 +515,9 @@ def run_lane_search(inputs: LaneSearchInputs) -> int:
     )
     if not isinstance(region_lane, dict):
         raise AssertionError("region-lifecycle lane was absent from family inventory")
-    if region_lane.get("resolved_requirement_section_pair_count") != 38:
+    # Two exact §9.1.1 region-specification requirements now map to the
+    # standalone two-dimension/range-set case.
+    if region_lane.get("resolved_requirement_section_pair_count") != 40:
         raise AssertionError("region-lifecycle direct mapping count drifted")
     region_handles = region_focus.get("lane_handles")
     if (

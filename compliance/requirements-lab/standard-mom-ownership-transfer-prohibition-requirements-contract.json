@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers the pinned IEEE 1516.1-2025 §11.4.1 prohibition on RTI ownership transfer of MOM instance attributes and a bounded §11.2.1 observation that the RTI retains ownership of one predefined HLAfederate attribute. The portable C++ TCK queries ownership before and after acquisition-if-available and negotiated acquisition, checks for no acquisition notification or release request, and requires attributeIsOwnedByRTI on every query. It does not require a particular exception response, establish indefinite retention for every MOM attribute, or claim conformance.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, lines 77-85",
+      "source_symbol": "RTI ownership transfer of MOM instance attributes",
+      "statement": "An RTI shall never engage in ownership transfer of MOM instance attributes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibition",
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibitionContract",
+        "cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l75-24",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1; pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 75",
+      "source_symbol": "RTIambassador::queryAttributeOwnership; FederateAmbassador::attributeIsOwnedByRTI",
+      "statement": "The portable public C++ TCK observes the predefined HLAfederateName attribute on one RTI-registered HLAfederate MOM instance as RTI-owned before and after both ownership-acquisition attempts. This is bounded evidence that the RTI does not divest that attribute during the exercised interval, not proof of indefinite retention for all MOM attributes.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibition",
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibitionContract"
+      ]
+    }
+  ]
+}

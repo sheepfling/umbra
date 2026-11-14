@@ -2,8 +2,8 @@
   "schema_version": 1,
   "kind": "requirements-reference",
   "document_id": "hla-1516.2-2025",
-  "status": "private-preflight-not-public-evidence",
-  "notes": "The portable FOM model TCK verifies that repeated local object-class names are uniquely identifiable through superclass-qualified dot notation. This traceability reference is not public validation or a conformance claim.",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "The promoted portable C++ FOM model TCK verifies that repeated local object-class names are uniquely identifiable through superclass-qualified dot notation. Fresh installed-package MinGW/Ninja CTest passed 2/2 across HLA_EVOKED/HLA_IMMEDIATE. For §5.2 p. 88 l. 50, this is a selected direct public-API witness for fully qualified dot-name identity only; it does not establish complete FOM/SOM object-class tables, Table 46 layout, semantics prose, or conformance.",
   "requirements": [
     {
       "id": "portable-fom-qualified-object-class-name-identity",
@@ -14,6 +14,27 @@
         "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomQualifiedClassNameIdentity",
         "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RichFomModelTck.java::runQualifiedClassNameIdentity"
       ]
+    },
+    {
+      "id": "portable-omt-object-class-dot-name-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-088-l50-4",
+      "clause_id": "clause-5.2",
+      "standard_section": "hla-1516.2-2025:clause-5.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomQualifiedClassNameIdentity"
+      ],
+      "note": "A focused C++ TCK case resolves repeated local names through distinct dot-qualified object-class paths and verifies handle/name round trips; only this selected name-identity behavior is claimed."
+    },
+    {
+      "id": "portable-omt-object-class-name-and-qualified-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-091-l74-11",
+      "clause_id": "clause-6.2.2",
+      "standard_section": "hla-1516.2-2025:clause-6.2.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomObjectClassNameConventions",
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomQualifiedClassNameIdentity"
+      ],
+      "note": "Split bounded witness: the name-conventions case checks selected §3.3 local-name constraints, while the qualified-identity case proves repeated local names under distinct superclass paths resolve to distinct public handles. This does not exhaust all §3.3 rules or assess the complete object-class structure table."
     }
   ]
 }

@@ -176,6 +176,135 @@ final class SynchronizationTck {
       }
    }
 
+   static void runIndependentTracking(RtiFactory factory, String fom,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
+      RTIambassador registrar = factory.getRtiAmbassador();
+      RTIambassador participant = factory.getRtiAmbassador();
+      Recorder registrarRecorder = new Recorder();
+      Recorder participantRecorder = new Recorder();
+      String federation = "java-tck-sync-independent-" + UUID.randomUUID();
+      boolean registrarConnected = false;
+      boolean participantConnected = false;
+      boolean created = false;
+      boolean registrarJoined = false;
+      boolean participantJoined = false;
+      try {
+         registrar.connect(registrarRecorder.proxy(), callbackModel);
+         registrarConnected = true;
+         participant.connect(participantRecorder.proxy(), callbackModel);
+         participantConnected = true;
+         registrar.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         registrar.joinFederationExecution("java-tck-sync-independent-registrar", federation);
+         registrarJoined = true;
+         participant.joinFederationExecution("java-tck-sync-independent-participant", federation);
+         participantJoined = true;
+
+         String firstLabel = "java-tck-sync-independent-alpha-" + UUID.randomUUID();
+         String secondLabel = "java-tck-sync-independent-beta-" + UUID.randomUUID();
+         byte[] firstTag = new byte[] {0x41, 0x31};
+         byte[] secondTag = new byte[] {0x42, 0x32};
+         Announcement firstAnnouncement = new Announcement(firstLabel, firstTag);
+         Announcement secondAnnouncement = new Announcement(secondLabel, secondTag);
+         registrar.registerFederationSynchronizationPoint(firstLabel, firstTag);
+         registrar.registerFederationSynchronizationPoint(secondLabel, secondTag);
+
+         awaitCallbacks(callbackModel,
+            () -> registrarRecorder.registrations.size() >= 2
+               && registrarRecorder.announcements.contains(firstAnnouncement)
+               && registrarRecorder.announcements.contains(secondAnnouncement)
+               && participantRecorder.announcements.contains(firstAnnouncement)
+               && participantRecorder.announcements.contains(secondAnnouncement),
+            registrar, participant);
+         JavaTckSupport.check(registrarRecorder.registrations.size() == 2
+               && registrarRecorder.registrations.contains(firstLabel)
+               && registrarRecorder.registrations.contains(secondLabel)
+               && registrarRecorder.failures.isEmpty()
+               && participantRecorder.failures.isEmpty()
+               && participantRecorder.registrations.isEmpty(),
+            "registration results were not associated with the two independent labels");
+         checkIndependentAnnouncements(registrarRecorder, firstAnnouncement,
+            secondAnnouncement, "registrar");
+         checkIndependentAnnouncements(participantRecorder, firstAnnouncement,
+            secondAnnouncement, "participant");
+
+         registrar.synchronizationPointAchieved(firstLabel, true);
+         participant.synchronizationPointAchieved(firstLabel, true);
+         awaitCallbacks(callbackModel,
+            () -> hasSynchronization(registrarRecorder, firstLabel, emptySet(registrar))
+               && hasSynchronization(participantRecorder, firstLabel, emptySet(participant)),
+            registrar, participant);
+         JavaTckSupport.check(registrarRecorder.synchronizations.size() == 1
+               && hasSynchronization(registrarRecorder, firstLabel, emptySet(registrar))
+               && !hasSynchronizationLabel(registrarRecorder, secondLabel)
+               && participantRecorder.synchronizations.size() == 1
+               && hasSynchronization(participantRecorder, firstLabel, emptySet(participant))
+               && !hasSynchronizationLabel(participantRecorder, secondLabel),
+            "completing the first label also completed or corrupted the second point");
+
+         long quietDeadline = System.nanoTime() + 250_000_000L;
+         while (System.nanoTime() < quietDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               registrar.evokeCallback(0.0);
+               participant.evokeCallback(0.0);
+            }
+            Thread.yield();
+         }
+         JavaTckSupport.check(registrarRecorder.synchronizations.size() == 1
+               && participantRecorder.synchronizations.size() == 1,
+            "the unachieved second synchronization point completed with the first");
+
+         registrar.synchronizationPointAchieved(secondLabel, true);
+         participant.synchronizationPointAchieved(secondLabel, true);
+         awaitCallbacks(callbackModel,
+            () -> registrarRecorder.synchronizations.size() >= 2
+               && participantRecorder.synchronizations.size() >= 2,
+            registrar, participant);
+         checkIndependentCompletions(registrarRecorder, registrar,
+            firstLabel, secondLabel, "registrar");
+         checkIndependentCompletions(participantRecorder, participant,
+            firstLabel, secondLabel, "participant");
+      } finally {
+         if (participantJoined) resign(participant);
+         if (registrarJoined) resign(registrar);
+         if (created) {
+            try {
+               registrar.destroyFederationExecution(federation);
+            } catch (Exception ignored) {
+            }
+         }
+         if (participantConnected) disconnect(participant);
+         if (registrarConnected) disconnect(registrar);
+      }
+   }
+
+   private static void checkIndependentAnnouncements(Recorder recorder,
+         Announcement first, Announcement second, String member) {
+      JavaTckSupport.check(recorder.announcements.size() == 2
+            && recorder.announcements.contains(first)
+            && recorder.announcements.contains(second),
+         member + " did not receive exactly the two matching synchronization labels and tags");
+   }
+
+   private static void checkIndependentCompletions(Recorder recorder,
+         RTIambassador ambassador, String firstLabel, String secondLabel, String member)
+         throws Exception {
+      JavaTckSupport.check(recorder.synchronizations.size() == 2
+            && countSynchronizations(recorder, firstLabel) == 1
+            && countSynchronizations(recorder, secondLabel) == 1
+            && hasSynchronization(recorder, firstLabel, emptySet(ambassador))
+            && hasSynchronization(recorder, secondLabel, emptySet(ambassador)),
+         member + " did not receive exactly one successful completion for each label");
+   }
+
+   private static int countSynchronizations(Recorder recorder, String label) {
+      int count = 0;
+      for (SynchronizationResult result : recorder.synchronizations) {
+         if (label.equals(result.label)) count++;
+      }
+      return count;
+   }
+
    private static FederateHandleSet set(RTIambassador ambassador, FederateHandle failed)
          throws Exception {
       FederateHandleSet result = ambassador.getFederateHandleSetFactory().create();

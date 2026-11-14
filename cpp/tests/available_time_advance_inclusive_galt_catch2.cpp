@@ -10,9 +10,11 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -419,6 +421,13 @@ TEST_CASE(
   REQUIRE(receiverReports.timestampedInteractionReports.front().timeValue == L"6");
   REQUIRE(receiverReports.timestampedInteractionReports.front().sentOrderType == TIMESTAMP);
   REQUIRE(receiverReports.timestampedInteractionReports.front().receivedOrderType == TIMESTAMP);
+
+  // The regulator's current time plus lookahead is exactly 6 here. TAR must
+  // stay pending at GALT equality, so advance the regulator once more before
+  // asserting the grant at the receiver's request limit.
+  REQUIRE_NOTHROW(regulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  drainCallbacks(*regulator);
+  drainCallbacks(*receiver);
   REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
   REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"6");
   REQUIRE(receiverReports.callbackOrder == std::vector<std::string>{
@@ -655,6 +664,130 @@ TEST_CASE(
   REQUIRE_NOTHROW(regulator->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(regulator->disconnect());
+}
+
+TEST_CASE(
+    "Embedded TARA at undefined GALT follows the non-regulated grant switch",
+    "[integration][development-profile][interaction-management][time-management]"
+    "[lane.tara-undefined-galt-nrg][tara-undefined-galt-nrg]"
+    "[time-advance-request-available][galt]"
+    "[rti.service.time-advance-request-available][rti.service.send-interaction]"
+    "[rti.service.enable-time-regulation][rti.service.disable-time-regulation]"
+    "[federate.callback.receive-interaction][federate.callback.time-advance-grant]") {
+  auto runCase = [&](bool nrgEnabled) {
+    ReportingFederateAmbassador regulatorReports;
+    ReportingFederateAmbassador requesterReports;
+    auto regulator = makeRti();
+    auto requester = makeRti();
+    auto const federationName = nextFederationName() + L"-tara-undefined-galt-nrg";
+    auto const fomName = nrgEnabled ? L"nrg-interaction-tck.xml" : L"p0-tck.xml";
+    auto const fomModule = sourcePath(
+        std::filesystem::path("packages") / "hla-rti-cpp-tck" / "fom" / fomName).wstring();
+
+    REQUIRE_NOTHROW(regulator->connect(regulatorReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+    REQUIRE_NOTHROW(regulator->createFederationExecution(
+        federationName, fomModule, standard_hla::mom::integer64_time));
+    REQUIRE_NOTHROW(regulator->joinFederationExecution(
+        L"tara-nrg-regulator", L"regulator", federationName));
+    REQUIRE_NOTHROW(requester->joinFederationExecution(
+        L"tara-nrg-requester", L"requester", federationName));
+    REQUIRE(regulator->getNonRegulatedGrantSwitch() == nrgEnabled);
+    REQUIRE(requester->getNonRegulatedGrantSwitch() == nrgEnabled);
+
+    auto const interaction = regulator->getInteractionClassHandle(
+        fixture_hla::fom::tck_nrg_interaction);
+    auto const parameter = regulator->getParameterHandle(
+        interaction, fixture_hla::fixture::payload);
+    REQUIRE(interaction.isValid());
+    REQUIRE(parameter.isValid());
+    REQUIRE_NOTHROW(regulator->publishInteractionClass(interaction));
+    REQUIRE_NOTHROW(regulator->changeInteractionOrderType(interaction, TIMESTAMP));
+    REQUIRE_NOTHROW(requester->subscribeInteractionClass(interaction));
+    REQUIRE_NOTHROW(requester->enableTimeConstrained());
+    drainCallbacks(*requester);
+    REQUIRE(requesterReports.timeConstrainedEnabledReports.size() == 1U);
+    REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+        rti1516_2025::HLAinteger64Interval(1)));
+    drainCallbacks(*regulator);
+    REQUIRE(regulatorReports.timeRegulationEnabledReports.size() == 1U);
+
+    unsigned char const payloadBytes[] = {0x54U, 0x41U, 0x52U};
+    unsigned char const tagBytes[] = {0x4EU, 0x52U, 0x47U};
+    ParameterHandleValueMap parameterValues;
+    parameterValues.emplace(parameter, VariableLengthData(payloadBytes, sizeof(payloadBytes)));
+    VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+    auto const retraction = regulator->sendInteraction(
+        interaction,
+        parameterValues,
+        tag,
+        rti1516_2025::HLAinteger64Time(3));
+    REQUIRE(retraction.isValid());
+
+    // The constrained requester is now the only potential regulator. Its GALT
+    // is undefined after the sending regulator disables Time Regulation.
+    REQUIRE_NOTHROW(regulator->disableTimeRegulation());
+    drainCallbacks(*regulator);
+    REQUIRE(requesterReports.timestampedInteractionReports.empty());
+    REQUIRE_NOTHROW(requester->timeAdvanceRequestAvailable(
+        rti1516_2025::HLAinteger64Time(10)));
+
+    if (!nrgEnabled) {
+      auto const quietDeadline = std::chrono::steady_clock::now() +
+          std::chrono::milliseconds(250);
+      while (std::chrono::steady_clock::now() < quietDeadline) {
+        drainCallbacks(*regulator);
+        drainCallbacks(*requester);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+      REQUIRE(requesterReports.timestampedInteractionReports.empty());
+      REQUIRE(requesterReports.timeAdvanceGrantReports.empty());
+      rti1516_2025::HLAinteger64Time currentTime;
+      REQUIRE_NOTHROW(requester->queryLogicalTime(currentTime));
+      REQUIRE(currentTime.getTime() == 0);
+
+      REQUIRE_NOTHROW(regulator->enableTimeRegulation(
+          rti1516_2025::HLAinteger64Interval(1)));
+      drainCallbacks(*regulator);
+      REQUIRE(regulatorReports.timeRegulationEnabledReports.size() == 2U);
+      REQUIRE_NOTHROW(regulator->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(4)));
+      drainCallbacks(*regulator);
+    }
+
+    auto const deliveryDeadline = std::chrono::steady_clock::now() +
+        std::chrono::seconds(2);
+    while (std::chrono::steady_clock::now() < deliveryDeadline &&
+           requesterReports.timeAdvanceGrantReports.empty()) {
+      drainCallbacks(*regulator);
+      drainCallbacks(*requester);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(requesterReports.timestampedInteractionReports.size() == 1U);
+    REQUIRE(requesterReports.timeAdvanceGrantReports.size() == 1U);
+    REQUIRE(requesterReports.timestampedInteractionReports.front().timeValue == L"3");
+    REQUIRE(requesterReports.timestampedInteractionReports.front().sentOrderType == TIMESTAMP);
+    REQUIRE(requesterReports.timestampedInteractionReports.front().receivedOrderType == TIMESTAMP);
+    REQUIRE(requesterReports.callbackOrder ==
+            std::vector<std::string>{"interaction", "grant"});
+    REQUIRE(requesterReports.timeAdvanceGrantReports.front().value == L"3");
+    REQUIRE(regulatorReports.timeAdvanceGrantReports.size() == (nrgEnabled ? 0U : 1U));
+    rti1516_2025::HLAinteger64Time requesterTime;
+    REQUIRE_NOTHROW(requester->queryLogicalTime(requesterTime));
+    REQUIRE(requesterTime.getTime() == 3);
+
+    REQUIRE_NOTHROW(requester->disableTimeConstrained());
+    if (!nrgEnabled) {
+      REQUIRE_NOTHROW(regulator->disableTimeRegulation());
+    }
+    REQUIRE_NOTHROW(requester->resignFederationExecution(rti1516_2025::NO_ACTION));
+    REQUIRE_NOTHROW(regulator->resignFederationExecution(rti1516_2025::NO_ACTION));
+    REQUIRE_NOTHROW(regulator->destroyFederationExecution(federationName));
+    REQUIRE_NOTHROW(requester->disconnect());
+    REQUIRE_NOTHROW(regulator->disconnect());
+  };
+
+  runCase(false);
+  runCase(true);
 }
 
 TEST_CASE(
@@ -1046,6 +1179,15 @@ TEST_CASE(
   drainCallbacks(*receiver);
 
   REQUIRE(receiverReports.timestampedInteractionReports.size() == 2U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.empty());
+
+  // At this point the publisher's lookahead puts GALT exactly at 2. A TAR(2)
+  // is strictly below GALT, so the receiver is released only after the
+  // publisher advances far enough to make GALT greater than 2.
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(2)));
+  drainCallbacks(*publisher);
+  drainCallbacks(*receiver);
+
   REQUIRE(receiverReports.timestampedInteractionReports.back().timeValue == L"2");
   REQUIRE(receiverReports.timestampedInteractionReports.back().sentOrderType == TIMESTAMP);
   REQUIRE(receiverReports.timestampedInteractionReports.back().receivedOrderType == TIMESTAMP);

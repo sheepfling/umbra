@@ -17,6 +17,7 @@ import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
@@ -113,6 +114,9 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          JavaTckSupport.check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "regional regulation receiver did not enable region designators");
+         if (!defaultRegion) {
+            receiverCallbacks.inspectRegions(receiver, receiverFirst, receiverSecond);
+         }
          receiver.subscribeObjectClassAttributesWithRegions(receiverClass, receiverPair);
          subscribed = true;
          object = defaultRegion ? publisher.registerObjectInstance(publisherClass)
@@ -143,7 +147,9 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
             "regional regulation members began at different logical times");
          LogicalTime updateTime = offset(publisherInitial, epsilon, 5);
          LogicalTime receiverUpdateTime = offset(receiverInitial, receiverEpsilon, 5);
-         LogicalTime publisherTarget = offset(publisherInitial, epsilon, 2);
+         // Advance far enough that the re-enabled producer's GALT is beyond
+         // the queued timestamp, releasing the receiver's grant after reflect.
+         LogicalTime publisherTarget = offset(publisherInitial, epsilon, 3);
          LogicalTime changedLookaheadTime = offset(publisherInitial, epsilon, 3);
          LogicalTimeInterval changedLookahead = intervalSteps(epsilon, 3);
          byte[] value = new byte[] {0x52, 0x47, 0x41, 0x43};
@@ -183,14 +189,27 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
          JavaTckSupport.check(receiverCallbacks.reflections.isEmpty(),
             "queued reflection arrived while the producer boundary was pending");
          publisher.timeAdvanceRequest(publisherTarget);
-         await(publisher, receiver, callbackModel,
-            () -> receiverCallbacks.reflections.size() >= 1
-               && receiverCallbacks.grants.size() >= 1 && publisherCallbacks.grants.size() >= 1,
-            "regional update delivery and matching grants");
+         try {
+            await(publisher, receiver, callbackModel,
+               () -> receiverCallbacks.reflections.size() >= 1
+                  && receiverCallbacks.grants.size() >= 1
+                  && publisherCallbacks.grants.size() >= 1,
+               "regional update delivery and matching grants");
+         } catch (AssertionError failure) {
+            throw new AssertionError(failure.getMessage() + " (reflections="
+               + receiverCallbacks.reflections.size() + ", receiverGrants="
+               + receiverCallbacks.grants.size() + ", publisherGrants="
+               + publisherCallbacks.grants.size() + ", regulationEnables="
+               + publisherCallbacks.timeRegulationEnabledCount + ")", failure);
+         }
          JavaTckSupport.check(receiverCallbacks.reflections.size() == 1
                && publisherCallbacks.timeRegulationEnabledCount == 2
                && receiverCallbacks.callbackOrder.equals(Arrays.asList("reflect", "grant")),
             "re-enabled producer delivered the wrong callbacks or delivery order");
+         if (receiverCallbacks.callbackFailure != null) {
+            throw new AssertionError("callback-time source-region query failed",
+               receiverCallbacks.callbackFailure);
+         }
          JavaTckSupport.check(updateTime.equals(receiverCallbacks.grants.get(0))
                && publisherTarget.equals(publisherCallbacks.grants.get(0))
                && updateTime.equals(receiver.queryLogicalTime())
@@ -198,7 +217,7 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
             "time-advance grants or logical-time queries returned the wrong times");
          assertReflection(receiver, receiverCallbacks.reflections.get(0), object,
             receiverAttribute, producer, value, tag, updateTime, sent.handle,
-            defaultRegion, publisherRegion);
+          defaultRegion, receiverFirst, receiverSecond);
          JavaTckSupport.expectFailure(() -> publisher.retract(sent.handle),
             "MessageCanNoLongerBeRetracted",
             "retracting the regional timestamped update after delivery");
@@ -304,15 +323,22 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
          byte[] value, byte[] tag, LogicalTime<?, ?> time,
          MessageRetractionHandle retraction, boolean defaultRegion,
-         RegionHandle expectedRegion) throws Exception {
+         DimensionHandle firstDimension, DimensionHandle secondDimension) throws Exception {
+      boolean sourceRegionMatches = defaultRegion
+         ? reflection.regions != null && reflection.regions.isEmpty()
+         : reflection.regions != null && reflection.regions.size() == 1
+            && reflection.regionDimensions != null
+            && reflection.regionDimensions.size() == 2
+            && reflection.regionDimensions.contains(firstDimension)
+            && reflection.regionDimensions.contains(secondDimension)
+            && new RangeBounds(1, 3).equals(reflection.firstBounds)
+            && new RangeBounds(1, 3).equals(reflection.secondBounds);
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer)
             && time.equals(reflection.time) && reflection.sentOrder == OrderType.TIMESTAMP
             && reflection.receivedOrder == OrderType.TIMESTAMP
-            && retraction.equals(reflection.retraction) && reflection.regions != null
-            && (defaultRegion ? reflection.regions.isEmpty()
-               : reflection.regions.size() == 1 && reflection.regions.contains(expectedRegion)),
+            && retraction.equals(reflection.retraction) && sourceRegionMatches,
          "regional regulation re-enable returned incorrect value or source-region metadata");
       TransportationTypeHandle transportation = reflection.transportation;
       JavaTckSupport.check(transportation != null
@@ -350,17 +376,29 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
       private RegionHandleSet regions;
+      private DimensionHandleSet regionDimensions;
+      private RangeBounds firstBounds, secondBounds;
       private LogicalTime<?, ?> time;
       private OrderType sentOrder, receivedOrder;
       private MessageRetractionHandle retraction;
    }
 
    private static final class Recorder {
+      private volatile Throwable callbackFailure;
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
       private volatile int timeRegulationEnabledCount, timeConstrainedEnabledCount;
+      private volatile RTIambassador regionInspector;
+      private volatile DimensionHandle firstRegionDimension, secondRegionDimension;
+
+      private void inspectRegions(RTIambassador inspector, DimensionHandle first,
+            DimensionHandle second) {
+         regionInspector = inspector;
+         firstRegionDimension = first;
+         secondRegionDimension = second;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -381,13 +419,29 @@ final class TimestampedRegionalAttributeRegulationReenableTck {
                   reflection.tag = ((byte[]) arguments[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) arguments[3];
                   reflection.producer = (FederateHandle) arguments[4];
-                  reflection.regions = (RegionHandleSet) arguments[5];
+                  reflection.regions = arguments[5] == null ? null
+                     : ((RegionHandleSet) arguments[5]).clone();
                   reflection.time = (LogicalTime<?, ?>) arguments[6];
                   reflection.sentOrder = (OrderType) arguments[7];
                   reflection.receivedOrder = (OrderType) arguments[8];
                   reflection.retraction = (MessageRetractionHandle) arguments[9];
                   reflections.add(reflection);
                   callbackOrder.add("reflect");
+                  RTIambassador inspector = regionInspector;
+                  if (inspector != null && reflection.regions != null
+                        && reflection.regions.size() == 1) {
+                     try {
+                        RegionHandle conveyedRegion = reflection.regions.iterator().next();
+                        reflection.regionDimensions = inspector.getDimensionHandleSet(
+                           conveyedRegion);
+                        reflection.firstBounds = inspector.getRangeBounds(conveyedRegion,
+                           firstRegionDimension);
+                        reflection.secondBounds = inspector.getRangeBounds(conveyedRegion,
+                           secondRegionDimension);
+                     } catch (Throwable failure) {
+                        callbackFailure = failure;
+                     }
+                  }
                } else if ("timeAdvanceGrant".equals(name) && arguments != null) {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
                   callbackOrder.add("grant");

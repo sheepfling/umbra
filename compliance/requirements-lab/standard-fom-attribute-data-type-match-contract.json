@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-sections-semantic-clauses-5-6-page-092-l58-11"
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l58-11",
+      "standard_section": "hla-1516.2-2025:clause-6.2.5"
+    }
+  ],
+  "mapping_note": "Direct, fixture-bounded evidence for the attribute-table Data type reference: the XSD-valid FOM contains an attribute whose dataType name is absent from every supplied FOM module and the standard MIM, and the official Create Federation Execution call rejects it. This does not claim exhaustive data-type reference validation.",
+  "notes": "The TCK uses the standard C++ Create Federation Execution API with an XSD-valid IEEE 1516.2-2025 FOM file. After rejecting this one unresolved attribute data type, the same federation name is created with the valid baseline FOM and joined. This is local Umbra adapter evidence, not independent-provider validation, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-attribute-data-type-reference-validation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "Create Federation Execution",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomStandardInvalidInputCorpus",
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomStandardInvalidInputCorpusContract"
+      ]
+    }
+  ]
+}

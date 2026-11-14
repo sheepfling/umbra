@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable MOM Category C Interaction TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Exercise the ignored category-c MOM interaction rule.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds a class outside the RTI-send and RTI-receive MOM branches.</description>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>HLAmanager</name>
+                <interactionClass>
+                    <name>HLAfederate</name>
+                    <interactionClass>
+                        <name>TckCategoryCInteraction</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Test-only interaction outside the RTI-send and RTI-receive MOM branches.</semantics>
+                        <parameter>
+                            <name>HLAserviceReporting</name>
+                            <dataType>HLAswitch</dataType>
+                            <semantics>Switch-shaped payload used to verify that an uncategorized MOM interaction is not processed as HLAsetSwitches.</semantics>
+                        </parameter>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

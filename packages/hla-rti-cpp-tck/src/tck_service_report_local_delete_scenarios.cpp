@@ -114,6 +114,10 @@ void scenarioServiceReportLocalDeleteObjectInstance(
         report.parameters.count(parameterHandle) == 1U,
         "Local-delete service-report callback omitted a standard report parameter");
   }
+  require(
+      owner.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == requester.federateHandle(),
+      "Local-delete service-report callback identified the wrong federate");
 
   rti::HLAunicodeString service;
   service.decode(report.parameters.at(reportParameters[0]));
@@ -130,6 +134,36 @@ void scenarioServiceReportLocalDeleteObjectInstance(
   require(
       success.get(),
       "Local-delete service-report callback did not report a successful invocation");
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 1U,
+      "LocalDeleteObjectInstance report returned the wrong supplied-argument count");
+  auto const& suppliedObject = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(suppliedObject.get(0U)).get() == 37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedObject.get(1U)).get() ==
+              L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedObject.get(2U)).get() ==
+              L"\"" + object.toString() + L"\"",
+      "LocalDeleteObjectInstance report returned the wrong ObjectInstanceHandle argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+              L"null",
+      "Successful LocalDeleteObjectInstance report returned the wrong void-return Null record");
   rti::HLAunicodeString exception;
   exception.decode(report.parameters.at(reportParameters[5]));
   require(
@@ -269,6 +303,10 @@ void scenarioServiceReportLocalDeleteObjectInstanceFailure(
           report.parameters.count(parameterHandle) == 1U,
           "Local-delete failure service-report callback omitted a standard report parameter");
     }
+    require(
+        owner.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) == requester.federateHandle(),
+        "Local-delete failure service-report callback identified the wrong federate");
 
     rti::HLAunicodeString service;
     service.decode(report.parameters.at(reportParameters[0]));

@@ -8,5 +8,10 @@
             <reliable>Yes</reliable>
             <semantics>Reliable fixture transportation.</semantics>
         </transportation>
+        <transportation>
+            <name>UmbraBestEffortTransportationFixture</name>
+            <reliable>No</reliable>
+            <semantics>Best-effort fixture transportation.</semantics>
+        </transportation>
     </transportations>
 </objectModel>

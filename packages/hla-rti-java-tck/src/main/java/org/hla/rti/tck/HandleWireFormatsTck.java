@@ -11,11 +11,13 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
+import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
@@ -67,20 +69,42 @@ final class HandleWireFormatsTck {
             publisherClass, attributeName);
          AttributeHandle receiverAttribute = receiver.getAttributeHandle(
             receiverClass, attributeName);
+         String interactionClassName = System.getProperty(
+            "hla.rti.tck.interactionClass", "HLAinteractionRoot.TckInteraction");
+         String parameterName = System.getProperty("hla.rti.tck.parameter", "Payload");
+         InteractionClassHandle publisherInteraction =
+            publisher.getInteractionClassHandle(interactionClassName);
+         InteractionClassHandle receiverInteraction =
+            receiver.getInteractionClassHandle(interactionClassName);
+         ParameterHandle publisherParameter = publisher.getParameterHandle(
+            publisherInteraction, parameterName);
+         ParameterHandle receiverParameter = receiver.getParameterHandle(
+            receiverInteraction, parameterName);
          DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle receiverFirst = receiver.getDimensionHandle(firstDimensionName);
          DimensionHandle receiverSecond = receiver.getDimensionHandle(secondDimensionName);
          JavaTckSupport.check(publisherClass.equals(receiverClass)
                && publisherAttribute.equals(receiverAttribute)
+               && publisherInteraction.equals(receiverInteraction)
+               && publisherParameter.equals(receiverParameter)
                && publisherFirst.equals(receiverFirst)
                && publisherSecond.equals(receiverSecond),
-            "adapter FOM did not resolve stable object, attribute, and dimension handles");
+            "adapter FOM did not resolve stable object, attribute, interaction, parameter, and dimension handles");
          JavaTckSupport.check(publisher.getAvailableDimensionsForObjectClass(publisherClass)
                .contains(publisherFirst)
                && publisher.getAvailableDimensionsForObjectClass(publisherClass)
                   .contains(publisherSecond),
             "adapter object class does not expose both configured dimensions");
+         JavaTckSupport.check(publisher.getAvailableDimensionsForInteractionClass(
+               publisherInteraction).contains(publisherFirst)
+               && publisher.getAvailableDimensionsForInteractionClass(
+                  publisherInteraction).contains(publisherSecond),
+            "adapter interaction class does not expose both configured dimensions");
+         JavaTckSupport.check(publisher.getDimensionName(publisherFirst)
+               .equals(firstDimensionName)
+               && publisher.getDimensionName(publisherSecond).equals(secondDimensionName),
+            "adapter dimension name lookup did not preserve the configured names");
 
          DimensionHandleSet dimensions = publisher.getDimensionHandleSetFactory().create();
          dimensions.add(publisherFirst);
@@ -95,6 +119,16 @@ final class HandleWireFormatsTck {
          publisher.setRangeBounds(region, publisherFirst, new RangeBounds(1, 5));
          publisher.setRangeBounds(region, publisherSecond, new RangeBounds(2, 7));
          publisher.commitRegionModifications(regions);
+         DimensionHandleSet committedDimensions = publisher.getDimensionHandleSet(region);
+         RangeBounds firstBounds = publisher.getRangeBounds(region, publisherFirst);
+         RangeBounds secondBounds = publisher.getRangeBounds(region, publisherSecond);
+         JavaTckSupport.check(committedDimensions.size() == 2
+               && committedDimensions.contains(publisherFirst)
+               && committedDimensions.contains(publisherSecond),
+            "committed region did not preserve the two configured dimensions");
+         JavaTckSupport.check(firstBounds.lower == 1 && firstBounds.upper == 5
+               && secondBounds.lower == 2 && secondBounds.upper == 7,
+            "committed region did not preserve the configured range bounds");
 
          assertHandleRoundTrip(publisherFirst.encodedLength(), publisherFirst::encode,
             (bytes, offset) -> publisher.getDimensionHandleFactory().decode(bytes, offset),

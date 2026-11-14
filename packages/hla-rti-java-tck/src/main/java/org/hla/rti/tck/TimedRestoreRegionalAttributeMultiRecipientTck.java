@@ -113,7 +113,7 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
          LogicalTime<?, ?> time8 = offset(initial, epsilon, 8);
          LogicalTime<?, ?> time10 = offset(initial, epsilon, 10);
          publisher.enableTimeRegulation(epsilon);
-         await(members, () -> ownerEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> ownerEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -124,6 +124,7 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
                && saved.handle != null && firstEvents.reflections.isEmpty()
                && secondEvents.reflections.isEmpty(),
             "timestamp-eight regional update was not queued for both recipients");
+         byte[] savedRetraction = encodeHandle(saved.handle);
          publisher.requestFederationSave(saveLabel, time6);
          first.timeAdvanceRequest(time6);
          second.timeAdvanceRequest(time6);
@@ -131,16 +132,19 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
          await(members, () -> ownerEvents.saveLabels.equals(List.of(saveLabel))
                && firstEvents.saveLabels.equals(List.of(saveLabel))
                && secondEvents.saveLabels.equals(List.of(saveLabel))
-               && ownerEvents.saveTimes.equals(List.of(time6))
-               && firstEvents.saveTimes.equals(List.of(time6))
-               && secondEvents.saveTimes.equals(List.of(time6))
+               && ownerEvents.saveTimes.size() == 1
+               && firstEvents.saveTimes.size() == 1
+               && secondEvents.saveTimes.size() == 1
                && ownerEvents.timeGrants.size() == 1
                && firstEvents.timeGrants.size() == 1
                && secondEvents.timeGrants.size() == 1,
             "timed save initiation and time-six grants");
-         for (Recorder events : List.of(ownerEvents, firstEvents, secondEvents))
-            JavaTckSupport.check(events.timeGrants.get(0).equals(time6),
+         for (Recorder events : List.of(ownerEvents, firstEvents, secondEvents)) {
+            JavaTckSupport.check(Arrays.equals(encodeTime(events.saveTimes.get(0)), encodeTime(time6)),
+               "federate received a different timed save boundary");
+            JavaTckSupport.check(Arrays.equals(encodeTime(events.timeGrants.get(0)), encodeTime(time6)),
                "federate did not reach the timed save boundary");
+         }
          for (RTIambassador member : members) {
             member.federateSaveBegun();
             member.federateSaveComplete();
@@ -187,9 +191,9 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
                && secondEvents.flushGrants.size() == 1,
             "second restored regional reflection and FQG");
          checkReflected(firstEvents, firstSubscription, object, publisherHandle,
-            saved.handle, time8, time7, value, tag);
+            savedRetraction, time8, time7, value, tag);
          checkReflected(secondEvents, secondSubscription, object, publisherHandle,
-            saved.handle, time8, time7, value, tag);
+            savedRetraction, time8, time7, value, tag);
          firstEvents.snapshotEnabled = false;
          secondEvents.snapshotEnabled = false;
 
@@ -199,8 +203,9 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
          await(members, () -> firstEvents.retractions.size() == 1
                && secondEvents.retractions.size() == 1,
             "both restored regional request-retraction callbacks");
-         JavaTckSupport.check(firstEvents.retractions.get(0).equals(saved.handle)
-               && secondEvents.retractions.get(0).equals(saved.handle)
+         JavaTckSupport.check(Arrays.equals(encodeHandle(firstEvents.retractions.get(0)),
+                  savedRetraction)
+               && Arrays.equals(encodeHandle(secondEvents.retractions.get(0)), savedRetraction)
                && firstEvents.order.equals(List.of("request-retraction"))
                && secondEvents.order.equals(List.of("request-retraction")),
             "restored regional retraction callbacks changed their handles or order");
@@ -292,8 +297,8 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
 
    private static void checkReflected(Recorder events, RegionSubscription subscription,
          ObjectInstanceHandle object, FederateHandle publisher,
-         MessageRetractionHandle saved, LogicalTime<?, ?> time8, LogicalTime<?, ?> time7,
-         byte[] value, byte[] tag) {
+         byte[] savedRetraction, LogicalTime<?, ?> time8, LogicalTime<?, ?> time7,
+         byte[] value, byte[] tag) throws Exception {
       JavaTckSupport.check(events.reflections.size() == 1 && events.flushGrants.size() == 1,
          "recipient did not receive exactly one restored reflection and FQG");
       Reflection reflected = events.reflections.get(0);
@@ -303,11 +308,11 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
             && Arrays.equals(reflected.values.get(subscription.attribute), value)
             && Arrays.equals(reflected.tag, tag)
             && reflected.producer.equals(publisher)
-            && reflected.time.equals(time8)
+            && Arrays.equals(encodeTime(reflected.time), encodeTime(time8))
             && reflected.sentOrder == OrderType.TIMESTAMP
             && reflected.receivedOrder == OrderType.TIMESTAMP
             && reflected.regions != null && reflected.regions.size() == 1
-            && saved.equals(reflected.retraction),
+            && Arrays.equals(encodeHandle(reflected.retraction), savedRetraction),
          "restored regional reflection changed its source, timestamp, order, or payload");
       if (events.snapshotFailure != null)
          throw new AssertionError("callback-time source-region query failed", events.snapshotFailure);
@@ -319,10 +324,22 @@ final class TimedRestoreRegionalAttributeMultiRecipientTck {
             && new RangeBounds(1, 7).equals(events.snapshotFirstBounds)
             && new RangeBounds(1, 7).equals(events.snapshotSecondBounds),
          "receiver-visible copied source region lost its saved dimensions or bounds");
-      JavaTckSupport.check(grant.time.equals(time7)
-            && grant.optimisticTime.equals(time8)
+      JavaTckSupport.check(Arrays.equals(encodeTime(grant.time), encodeTime(time7))
+            && Arrays.equals(encodeTime(grant.optimisticTime), encodeTime(time8))
             && events.order.equals(List.of("reflect", "flush-grant")),
          "restored regional reflection did not precede the time-seven FQG");
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(List<RTIambassador> members,

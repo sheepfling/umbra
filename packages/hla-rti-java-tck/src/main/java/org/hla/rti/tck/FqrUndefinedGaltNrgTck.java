@@ -26,18 +26,22 @@ import java.util.function.BooleanSupplier;
 final class FqrUndefinedGaltNrgTck {
    private FqrUndefinedGaltNrgTck() { }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
-         String interactionClassName, String parameterName, CallbackModel model)
-         throws Exception {
-      runOne(factory, fom, timeImplementation, interactionClassName, parameterName,
-         model, false);
-      runOne(factory, fom, timeImplementation, interactionClassName, parameterName,
-         model, true);
+   static void run(RtiFactory factory, String disabledFom, String enabledFom,
+         String timeImplementation, String interactionClassName, String parameterName,
+         CallbackModel model) throws Exception {
+      runOne(factory, disabledFom, timeImplementation, interactionClassName,
+         parameterName, model, false, false);
+      runOne(factory, disabledFom, timeImplementation, interactionClassName,
+         parameterName, model, true, false);
+      runOne(factory, enabledFom, timeImplementation, interactionClassName,
+         parameterName, model, false, true);
+      runOne(factory, enabledFom, timeImplementation, interactionClassName,
+         parameterName, model, true, true);
    }
 
    private static void runOne(RtiFactory factory, String fom, String timeImplementation,
          String interactionClassName, String parameterName, CallbackModel model,
-         boolean queued) throws Exception {
+         boolean queued, boolean expectedNrgEnabled) throws Exception {
       RTIambassador requester = factory.getRtiAmbassador();
       RTIambassador producer = factory.getRtiAmbassador();
       Recorder requesterEvents = new Recorder();
@@ -59,14 +63,19 @@ final class FqrUndefinedGaltNrgTck {
             "fqr-undefined-galt-producer", federation);
          producerJoined = true;
          boolean nrgEnabled = requester.getNonRegulatedGrantSwitch();
+         JavaTckSupport.check(nrgEnabled == expectedNrgEnabled,
+            "adapter FOM did not match the scenario's expected NRG switch");
          JavaTckSupport.check(producer.getNonRegulatedGrantSwitch() == nrgEnabled,
             "federates disagreed on the adapter FOM non-regulated grant switch");
          LogicalTimeFactory<?, ?> timeFactory = requester.getTimeFactory();
          JavaTckSupport.check(timeFactory.getName().equals(producer.getTimeFactory().getName()),
             "federates selected different logical-time implementations");
          LogicalTime<?, ?> initial = requester.queryLogicalTime();
+         JavaTckSupport.check(producer.queryLogicalTime().equals(initial),
+            "undefined-GALT federates began at different logical times");
          LogicalTimeInterval<?> epsilon = timeFactory.makeEpsilon();
          LogicalTime<?, ?> messageTime = offset(initial, epsilon, 5);
+         LogicalTime<?, ?> laterMessageTime = offset(initial, epsilon, 7);
          LogicalTime<?, ?> requestTime = offset(initial, epsilon, 10);
          requester.enableTimeConstrained();
          await(requester, model, () -> requesterEvents.constrainedEnabled == 1,
@@ -93,8 +102,11 @@ final class FqrUndefinedGaltNrgTck {
             values.put(parameter, payload.clone());
             MessageRetractionReturn retraction = producer.sendInteraction(
                interaction, values, tag.clone(), messageTime);
+            MessageRetractionReturn laterRetraction = producer.sendInteraction(
+               interaction, values, tag.clone(), laterMessageTime);
             JavaTckSupport.check(retraction != null && retraction.retractionHandleIsValid
-                  && retraction.handle != null,
+                  && retraction.handle != null && laterRetraction != null
+                  && laterRetraction.retractionHandleIsValid && laterRetraction.handle != null,
                "queued interaction lacks a retraction handle");
             producer.disableTimeRegulation();
             JavaTckSupport.drain(producer);
@@ -105,7 +117,7 @@ final class FqrUndefinedGaltNrgTck {
             "undefined-GALT FQR setup unexpectedly had a defined GALT");
          requester.flushQueueRequest(requestTime);
          await(requester, model, () -> requesterEvents.grants.size() == 1
-               && (!queued || requesterEvents.interactions.size() == 1),
+               && requesterEvents.interactions.size() == (queued ? 2 : 0),
             "undefined-GALT Flush Queue Grant");
          LogicalTime<?, ?> expectedOptimistic = queued ? messageTime : requestTime;
          LogicalTime<?, ?> expectedActual = nrgEnabled ? expectedOptimistic : initial;
@@ -114,21 +126,25 @@ final class FqrUndefinedGaltNrgTck {
                && grant.optimistic.equals(expectedOptimistic),
             "undefined-GALT FQG actual or optimistic time disagreed with NRG switch");
          JavaTckSupport.check(requesterEvents.order.equals(queued
-                  ? List.of("interaction", "flush-grant") : List.of("flush-grant")),
+                  ? List.of("interaction", "interaction", "flush-grant")
+                  : List.of("flush-grant")),
             "undefined-GALT FQR callback order differed from delivery order");
-         JavaTckSupport.check(requesterEvents.interactions.size() == (queued ? 1 : 0),
+         JavaTckSupport.check(requesterEvents.interactions.size() == (queued ? 2 : 0),
             "undefined-GALT FQR delivered the wrong number of interactions");
          if (queued) {
-            Delivery delivered = requesterEvents.interactions.get(0);
-            JavaTckSupport.check(delivered.interaction.equals(interaction)
-                  && delivered.parameters.size() == 1
-                  && Arrays.equals(delivered.parameters.get(parameter), payload)
-                  && Arrays.equals(delivered.tag, tag)
-                  && delivered.time.equals(messageTime)
-                  && delivered.producer.equals(producerHandle)
-                  && delivered.sentOrder == OrderType.TIMESTAMP
-                  && delivered.receivedOrder == OrderType.TIMESTAMP,
-               "undefined-GALT FQR changed the delivered interaction fields");
+            for (int index = 0; index < requesterEvents.interactions.size(); ++index) {
+               Delivery delivered = requesterEvents.interactions.get(index);
+               LogicalTime<?, ?> expectedTime = index == 0 ? messageTime : laterMessageTime;
+               JavaTckSupport.check(delivered.interaction.equals(interaction)
+                     && delivered.parameters.size() == 1
+                     && Arrays.equals(delivered.parameters.get(parameter), payload)
+                     && Arrays.equals(delivered.tag, tag)
+                     && delivered.time.equals(expectedTime)
+                     && delivered.producer.equals(producerHandle)
+                     && delivered.sentOrder == OrderType.TIMESTAMP
+                     && delivered.receivedOrder == OrderType.TIMESTAMP,
+                  "undefined-GALT FQR changed a delivered interaction or its order");
+            }
          }
          JavaTckSupport.check(!requester.queryGALT().timeIsValid,
             "undefined-GALT FQR fabricated a GALT after its grant");

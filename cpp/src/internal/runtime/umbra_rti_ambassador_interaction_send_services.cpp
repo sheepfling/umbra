@@ -169,12 +169,49 @@ void UmbraRtiAmbassador::sendInteraction(
   try {
   std::optional<std::wstring> federationName;
   std::optional<std::uint64_t> producingFederateId;
+  auto isAllowedMomSaveRestoreInteraction = [&] (
+      std::wstring const& federation,
+      std::uint64_t federateId) {
+    auto const interactionHandle = interactionClassHandleValue(interactionClass);
+    if (!interactionHandle) {
+      return false;
+    }
+    auto& registry = embeddedFederationRegistry();
+    auto const operationStatus =
+        registry.serviceOperationStatus(federation, federateId);
+    if (operationStatus !=
+            umbra::detail::FederationServiceOperationStatus::save_in_progress &&
+        operationStatus !=
+            umbra::detail::FederationServiceOperationStatus::restore_in_progress) {
+      return false;
+    }
+    auto const interactionName = registry.interactionClassNameFor(
+        federation, *interactionHandle);
+    if (!interactionName.has_value()) {
+      return false;
+    }
+    if (operationStatus ==
+        umbra::detail::FederationServiceOperationStatus::save_in_progress) {
+      return *interactionName ==
+                 umbra::detail::hla::utf8::mom::service_federate_save_begun ||
+          *interactionName ==
+                 umbra::detail::hla::utf8::mom::service_federate_save_complete;
+    }
+    return *interactionName ==
+        umbra::detail::hla::utf8::mom::service_federate_restore_complete;
+  };
   // Preserve the 2025 service's connection and membership preconditions ahead
   // of caller-supplied handle validation, matching the other public services.
   {
     std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
     requireConnectedForFederationManagement(lifecycle_);
-    requireFederationServiceOperationAvailable(L"Send Interaction");
+    if (!joinedFederationName_ || !joinedFederateId_) {
+      requireFederationServiceOperationAvailable(L"Send Interaction");
+    }
+    if (!isAllowedMomSaveRestoreInteraction(
+            *joinedFederationName_, *joinedFederateId_)) {
+      requireFederationServiceOperationAvailable(L"Send Interaction");
+    }
     if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
         !joinedFederationName_ || !joinedFederateId_) {
       throw FederateNotExecutionMember(
@@ -383,6 +420,19 @@ void UmbraRtiAmbassador::sendInteraction(
     throw RTIinternalError(
         L"The embedded federation rejected the object-instance MOM request.");
   };
+
+  // Dispatch state-transition MOM interactions before the report-request
+  // handlers. Those handlers each begin with the ordinary service-availability
+  // gate, which is deliberately closed during save/restore.
+  if (handleEmbeddedMomInteractionControlRequest(
+          federationName,
+          producingFederateId,
+          interactionClassHandle,
+          interactionClass,
+          parameterValues,
+          userSuppliedTag)) {
+    return;
+  }
 
   if (handleMomObjectInstanceReportRequest()) {
     std::vector<InteractionParameterValue> sentParameters =
@@ -2244,22 +2294,15 @@ void UmbraRtiAmbassador::sendInteraction(
         std::move(*momDirectedInteractionsReceivedReport));
     return;
   }
-  // Keep MOM control requests separate from ordinary application delivery.
-  if (handleEmbeddedMomInteractionControlRequest(
-          federationName,
-          producingFederateId,
-          interactionClassHandle,
-          interactionClass,
-          parameterValues,
-          userSuppliedTag)) {
-    return;
-  }
   // Ordinary embedded application validation, delivery, and exception reporting.
 
   auto planCurrentRequest = [&]() {
     std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
     requireConnectedForFederationManagement(lifecycle_);
-    requireFederationServiceOperationAvailable(L"Send Interaction");
+    if (!isAllowedMomSaveRestoreInteraction(
+            *federationName, *producingFederateId)) {
+      requireFederationServiceOperationAvailable(L"Send Interaction");
+    }
     if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
         !joinedFederationName_ || !joinedFederateId_) {
       throw FederateNotExecutionMember(

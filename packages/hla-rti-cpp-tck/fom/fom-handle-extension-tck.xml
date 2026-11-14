@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable C++ TCK FOM Handle Extension</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Test atomic additional-FOM handle reconciliation</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds distinct object and interaction classes to the handle identity FOM.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>TckHandleExtensionObject</name>
+            <sharing>PublishSubscribe</sharing>
+            <attribute>
+                <name>TckHandleExtensionAttribute</name>
+                <dataType>HLAbyte</dataType>
+                <updateType>Conditional</updateType>
+                <updateCondition>On change.</updateCondition>
+                <valueRequired>false</valueRequired>
+                <ownership>DivestAcquire</ownership>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Attribute used to exercise additional-FOM handle rollback.</semantics>
+            </attribute>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>TckHandleExtensionInteraction</name>
+            <sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation>
+            <order>Receive</order>
+        </interactionClass>
+    </interactions>
+</objectModel>

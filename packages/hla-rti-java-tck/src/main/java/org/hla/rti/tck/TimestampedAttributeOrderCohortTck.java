@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Verifies timestamp ordering and complete equal-time cohorts for two recipients. */
 final class TimestampedAttributeOrderCohortTck {
@@ -65,6 +66,9 @@ final class TimestampedAttributeOrderCohortTck {
             publisherClass, attributeName);
          AttributeHandle firstAttribute = firstReceiver.getAttributeHandle(firstClass, attributeName);
          AttributeHandle secondAttribute = secondReceiver.getAttributeHandle(secondClass, attributeName);
+         JavaTckSupport.check(publisherClass != null && firstClass != null && secondClass != null
+               && publisherAttribute != null && firstAttribute != null && secondAttribute != null,
+            "timestamped attribute cohort lookup returned a null handle");
          AttributeHandleSet published = publisher.getAttributeHandleSetFactory().create();
          published.add(publisherAttribute);
          AttributeHandleSet firstSubscribed = firstReceiver.getAttributeHandleSetFactory().create();
@@ -77,6 +81,8 @@ final class TimestampedAttributeOrderCohortTck {
          publisher.changeDefaultAttributeOrderType(
             publisherClass, published, OrderType.TIMESTAMP);
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         JavaTckSupport.check(object != null,
+            "timestamped attribute cohort registration returned a null object handle");
          drainAll(publisher, firstReceiver, secondReceiver);
          JavaTckSupport.check(object.equals(firstRecorder.discoveredObject)
                && object.equals(secondRecorder.discoveredObject),
@@ -110,9 +116,9 @@ final class TimestampedAttributeOrderCohortTck {
          LogicalTime firstSeven = offset(firstInitial, firstEpsilon, 7);
          LogicalTime secondFive = offset(secondInitial, secondEpsilon, 5);
          LogicalTime secondSeven = offset(secondInitial, secondEpsilon, 7);
-         JavaTckSupport.check(timeFive.equals(firstFive) && timeFive.equals(secondFive)
-               && timeSeven.equals(firstSeven) && timeSeven.equals(secondSeven),
-            "federates did not derive matching logical timestamps");
+         LogicalTime publisherFour = offset(publisherInitial, publisherEpsilon, 4);
+         LogicalTime publisherSix = offset(publisherInitial, publisherEpsilon, 6);
+         LogicalTime publisherEight = offset(publisherInitial, publisherEpsilon, 8);
 
          byte[] earlyValue = new byte[] {0x41, 0x56, 0x2d, 0x35};
          byte[] equalValue = new byte[] {0x41, 0x56, 0x2d, 0x35, 0x45};
@@ -137,10 +143,16 @@ final class TimestampedAttributeOrderCohortTck {
          secondRecorder.callbackOrder.clear();
          firstReceiver.timeAdvanceRequest(firstFive);
          secondReceiver.timeAdvanceRequest(secondFive);
-         publisher.timeAdvanceRequest(offset(publisherInitial, publisherEpsilon, 4));
-         drainAll(publisher, firstReceiver, secondReceiver);
-         checkFirstBoundary(firstRecorder, firstFive, "first recipient");
-         checkFirstBoundary(secondRecorder, secondFive, "second recipient");
+         publisher.timeAdvanceRequest(publisherFour);
+         awaitAll(publisher, firstReceiver, secondReceiver,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 1
+                  && firstRecorder.reflections.size() >= 2
+                  && secondRecorder.reflections.size() >= 2
+                  && firstRecorder.timeAdvanceGrantTimes.isEmpty()
+                  && secondRecorder.timeAdvanceGrantTimes.isEmpty(),
+            "first equal-time cohort before recipient grants");
+         checkFirstBoundary(firstRecorder, "first recipient");
+         checkFirstBoundary(secondRecorder, "second recipient");
          assertCohort(firstRecorder.reflections, firstAttribute, object, producer,
             timeFive, earlyValue, earlyTag, early.handle, equalValue, equalTag, equal.handle,
             firstReceiver, "first recipient");
@@ -148,12 +160,34 @@ final class TimestampedAttributeOrderCohortTck {
             timeFive, earlyValue, earlyTag, early.handle, equalValue, equalTag, equal.handle,
             secondReceiver, "second recipient");
 
+         publisher.timeAdvanceRequest(publisherSix);
+         awaitAll(publisher, firstReceiver, secondReceiver,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 2
+                  && firstRecorder.timeAdvanceGrantTimes.size() >= 1
+                  && secondRecorder.timeAdvanceGrantTimes.size() >= 1,
+            "recipient grants at the first equal-time cohort boundary");
+         JavaTckSupport.check(publisherRecorder.timeAdvanceGrantTimes.size() >= 2
+               && publisherFour.equals(publisherRecorder.timeAdvanceGrantTimes.get(0))
+               && publisherSix.equals(publisherRecorder.timeAdvanceGrantTimes.get(1)),
+            "publisher did not receive the first two time-advance grants");
+         checkFirstGrant(firstRecorder, firstFive, "first recipient");
+         checkFirstGrant(secondRecorder, secondFive, "second recipient");
+
          firstReceiver.timeAdvanceRequest(firstSeven);
          secondReceiver.timeAdvanceRequest(secondSeven);
-         publisher.timeAdvanceRequest(offset(publisherInitial, publisherEpsilon, 6));
-         drainAll(publisher, firstReceiver, secondReceiver);
+         publisher.timeAdvanceRequest(publisherEight);
+         awaitAll(publisher, firstReceiver, secondReceiver,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 3
+                  && firstRecorder.reflections.size() >= 3
+                  && secondRecorder.reflections.size() >= 3
+                  && firstRecorder.timeAdvanceGrantTimes.size() >= 2
+                  && secondRecorder.timeAdvanceGrantTimes.size() >= 2,
+            "later timestamped update and recipient grants");
          checkSecondBoundary(firstRecorder, firstSeven, "first recipient");
          checkSecondBoundary(secondRecorder, secondSeven, "second recipient");
+         JavaTckSupport.check(publisherEight.equals(
+               publisherRecorder.timeAdvanceGrantTimes.get(2)),
+            "publisher did not receive its final time-advance grant");
          assertLate(firstRecorder.reflections.get(2), firstAttribute, object, producer,
             timeSeven, lateValue, lateTag, late.handle, firstReceiver, "first recipient");
          assertLate(secondRecorder.reflections.get(2), secondAttribute, object, producer,
@@ -221,13 +255,30 @@ final class TimestampedAttributeOrderCohortTck {
       JavaTckSupport.drain(second);
    }
 
-   private static void checkFirstBoundary(Recorder recorder, LogicalTime grant, String who) {
+   private static void awaitAll(RTIambassador publisher, RTIambassador first,
+         RTIambassador second, ReadyCheck ready, String description) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         drainAll(publisher, first, second);
+         if (ready.isReady()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(description + " timed out");
+   }
+
+   private static void checkFirstBoundary(Recorder recorder, String who) {
       JavaTckSupport.check(recorder.reflections.size() == 2
-            && recorder.timeAdvanceGrantTimes.size() == 1
-            && Arrays.asList("reflectAttributeValues", "reflectAttributeValues", "timeAdvanceGrant")
-               .equals(recorder.callbackOrder)
+            && recorder.timeAdvanceGrantTimes.isEmpty()
+            && Arrays.asList("reflectAttributeValues", "reflectAttributeValues")
+               .equals(recorder.callbackOrder),
+         who + " did not receive the full equal-time cohort before the grant became safe");
+   }
+
+   private static void checkFirstGrant(Recorder recorder, LogicalTime grant, String who) {
+      JavaTckSupport.check(recorder.reflections.size() == 2
+            && recorder.timeAdvanceGrantTimes.size() >= 1
             && grant.equals(recorder.timeAdvanceGrantTimes.get(0)),
-         who + " did not receive the complete equal-time cohort before its matching grant");
+         who + " did not receive the equal-time cohort before its matching grant");
    }
 
    private static void checkSecondBoundary(Recorder recorder, LogicalTime grant, String who) {
@@ -276,7 +327,8 @@ final class TimestampedAttributeOrderCohortTck {
          MessageRetractionHandle retraction, RTIambassador inspector, String who)
          throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
-            && reflection.values.containsKey(attribute) && time.equals(reflection.time),
+            && reflection.values.containsKey(attribute) && time.equals(reflection.time)
+            && reflection.timeText != null && !reflection.timeText.isEmpty(),
          who + " received the wrong object, attribute, or timestamp");
       JavaTckSupport.check(producer.equals(reflection.producer)
             && reflection.sentOrder == OrderType.TIMESTAMP
@@ -297,18 +349,19 @@ final class TimestampedAttributeOrderCohortTck {
       private FederateHandle producer;
       private boolean regionsEmpty;
       private LogicalTime<?, ?> time;
+      private String timeText;
       private OrderType sentOrder;
       private OrderType receivedOrder;
       private MessageRetractionHandle retraction;
    }
 
    private static final class Recorder {
-      private ObjectInstanceHandle discoveredObject;
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private final List<Reflection> reflections = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
+      private volatile ObjectInstanceHandle discoveredObject;
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -334,6 +387,7 @@ final class TimestampedAttributeOrderCohortTck {
                   reflection.regionsEmpty = arguments[5] == null
                      || ((RegionHandleSet) arguments[5]).isEmpty();
                   reflection.time = (LogicalTime<?, ?>) arguments[6];
+                  reflection.timeText = reflection.time.toString();
                   reflection.sentOrder = (OrderType) arguments[7];
                   reflection.receivedOrder = (OrderType) arguments[8];
                   reflection.retraction = (MessageRetractionHandle) arguments[9];
@@ -353,4 +407,7 @@ final class TimestampedAttributeOrderCohortTck {
             });
       }
    }
+
+   @FunctionalInterface
+   private interface ReadyCheck { boolean isReady(); }
 }

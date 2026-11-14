@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <RTI/NullFederateAmbassador.h>
+#include <RTI/RangeBounds.h>
 #include <RTI/RTI1516.h>
 
 #include "hla_test_names.hpp"
@@ -535,6 +536,170 @@ TEST_CASE(
   REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(member->disconnect());
   REQUIRE_NOTHROW(creator->disconnect());
+}
+
+TEST_CASE(
+    "Embedded Create Federation Execution rejects same-named object attributes with different transportation or order",
+    "[integration][development-profile][federation-management][fom]"
+    "[fom-module-attribute-transport-order-conflict]"
+    "[rti.service.create-federation-execution]") {
+  rti1516_2025::NullFederateAmbassador creatorFederate;
+  auto creator = makeRti();
+  auto const packageFom = [](char const* filename) {
+    return (std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+            "hla-rti-cpp-tck" / "fom" / filename).wstring();
+  };
+  auto const base = packageFom("object-attribute-merge-base-tck.xml");
+  auto const transportConflict =
+      packageFom("object-attribute-transportation-conflict-tck.xml");
+  auto const orderConflict = packageFom("object-attribute-order-conflict-tck.xml");
+
+  REQUIRE_NOTHROW(creator->connect(creatorFederate, rti1516_2025::HLA_EVOKED));
+  auto const rejectAndRetry = [&](std::wstring const& conflict) {
+    auto const federationName = nextFederationName();
+    REQUIRE_THROWS_AS(
+        creator->createFederationExecution(
+            federationName, std::vector<std::wstring>{base, conflict},
+            L"HLAinteger64Time"),
+        rti1516_2025::InconsistentFOM);
+    REQUIRE_NOTHROW(creator->createFederationExecution(
+        federationName, std::vector<std::wstring>{base}, L"HLAinteger64Time"));
+    REQUIRE_NOTHROW(creator->destroyFederationExecution(federationName));
+  };
+
+  rejectAndRetry(transportConflict);
+  rejectAndRetry(orderConflict);
+  REQUIRE_NOTHROW(creator->disconnect());
+}
+
+TEST_CASE(
+    "Embedded attribute declaration services reject attributes unavailable on the selected object class",
+    "[integration][development-profile][2025][federation-management]"
+    "[declaration-management][available-attribute-declaration]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.unpublish-object-class-attributes]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.unsubscribe-object-class-attributes]") {
+  rti1516_2025::NullFederateAmbassador federate;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
+
+  REQUIRE_NOTHROW(rti->connect(federate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(L"available-attribute-member", federationName));
+
+  auto const baseClass = rti->getObjectClassHandle(fixture_hla::fom::employee);
+  auto const derivedClass = rti->getObjectClassHandle(fixture_hla::fom::employee_server);
+  auto const baseAttribute =
+      rti->getAttributeHandle(baseClass, fixture_hla::fixture::name);
+  auto const derivedOnlyAttribute =
+      rti->getAttributeHandle(derivedClass, fixture_hla::fixture::efficiency);
+  rti1516_2025::AttributeHandleSet const baseAttributes{baseAttribute};
+  rti1516_2025::AttributeHandleSet const derivedOnlyAttributes{derivedOnlyAttribute};
+
+  REQUIRE(baseClass.isValid());
+  REQUIRE(derivedClass.isValid());
+  REQUIRE(baseAttribute.isValid());
+  REQUIRE(derivedOnlyAttribute.isValid());
+
+  // IEEE 1516.1-2025 §5.1.2(a) and the nonregional portion of §9.1.5:
+  // these four services may use an attribute only when it is available on
+  // the selected object class. This case does not call either With Regions
+  // subscription variant also listed in §9.1.5. AttributeNotDefined is
+  // checked as binding behavior, not as an exception prescribed by the rule.
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(baseClass, baseAttributes));
+  REQUIRE_THROWS_AS(
+      rti->publishObjectClassAttributes(baseClass, derivedOnlyAttributes),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_THROWS_AS(
+      rti->unpublishObjectClassAttributes(baseClass, derivedOnlyAttributes),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(derivedClass, baseAttributes));
+  REQUIRE_NOTHROW(rti->publishObjectClassAttributes(derivedClass, derivedOnlyAttributes));
+  REQUIRE_NOTHROW(rti->unpublishObjectClassAttributes(derivedClass, derivedOnlyAttributes));
+  REQUIRE_NOTHROW(rti->unpublishObjectClassAttributes(derivedClass, baseAttributes));
+  REQUIRE_NOTHROW(rti->unpublishObjectClassAttributes(baseClass, baseAttributes));
+
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(baseClass, baseAttributes));
+  REQUIRE_THROWS_AS(
+      rti->subscribeObjectClassAttributes(baseClass, derivedOnlyAttributes),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_THROWS_AS(
+      rti->unsubscribeObjectClassAttributes(baseClass, derivedOnlyAttributes),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(derivedClass, baseAttributes));
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributes(derivedClass, derivedOnlyAttributes));
+  REQUIRE_NOTHROW(rti->unsubscribeObjectClassAttributes(derivedClass, derivedOnlyAttributes));
+  REQUIRE_NOTHROW(rti->unsubscribeObjectClassAttributes(derivedClass, baseAttributes));
+  REQUIRE_NOTHROW(rti->unsubscribeObjectClassAttributes(baseClass, baseAttributes));
+
+  REQUIRE_NOTHROW(rti->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
+}
+
+TEST_CASE(
+    "Embedded DDM With Regions attribute declaration services reject unavailable attributes",
+    "[integration][development-profile][2025][declaration-management]"
+    "[ddm][available-attribute-declaration][ddm-with-regions-available-attribute]"
+    "[rti.service.subscribe-object-class-attributes-with-regions]"
+    "[rti.service.unsubscribe-object-class-attributes-with-regions]") {
+  rti1516_2025::NullFederateAmbassador federate;
+  auto rti = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = testDataPath("ddm-available-attribute-fom.xml").wstring();
+
+  REQUIRE_NOTHROW(rti->connect(federate, rti1516_2025::HLA_EVOKED));
+  REQUIRE_NOTHROW(rti->createFederationExecution(
+      federationName, fomModule, L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(rti->joinFederationExecution(
+      L"ddm-available-attribute-member", federationName));
+
+  auto const baseClass = rti->getObjectClassHandle(L"HLAobjectRoot.UmbraAvailableAttributeBase");
+  auto const derivedClass = rti->getObjectClassHandle(
+      L"HLAobjectRoot.UmbraAvailableAttributeBase.UmbraAvailableAttributeDerived");
+  auto const baseAttribute = rti->getAttributeHandle(baseClass, L"BaseValue");
+  auto const derivedOnlyAttribute = rti->getAttributeHandle(derivedClass, L"DerivedOnlyValue");
+  auto const dimension = rti->getDimensionHandle(L"UmbraAvailableAttributeDimension");
+  REQUIRE(baseClass.isValid());
+  REQUIRE(derivedClass.isValid());
+  REQUIRE(baseAttribute.isValid());
+  REQUIRE(derivedOnlyAttribute.isValid());
+  REQUIRE(dimension.isValid());
+
+  auto const region = rti->createRegion(rti1516_2025::DimensionHandleSet{dimension});
+  REQUIRE(region.isValid());
+  rti->setRangeBounds(region, dimension, rti1516_2025::RangeBounds(0UL, 10UL));
+  rti->commitRegionModifications(rti1516_2025::RegionHandleSet{region});
+
+  rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const baseValueRegion{{
+      rti1516_2025::AttributeHandleSet{baseAttribute},
+      rti1516_2025::RegionHandleSet{region},
+  }};
+  rti1516_2025::AttributeHandleSetRegionHandleSetPairVector const derivedOnlyRegion{{
+      rti1516_2025::AttributeHandleSet{derivedOnlyAttribute},
+      rti1516_2025::RegionHandleSet{region},
+  }};
+
+  REQUIRE_THROWS_AS(
+      rti->subscribeObjectClassAttributesWithRegions(baseClass, derivedOnlyRegion),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_THROWS_AS(
+      rti->unsubscribeObjectClassAttributesWithRegions(baseClass, derivedOnlyRegion),
+      rti1516_2025::AttributeNotDefined);
+  REQUIRE_NOTHROW(rti->subscribeObjectClassAttributesWithRegions(baseClass, baseValueRegion));
+  REQUIRE_NOTHROW(rti->unsubscribeObjectClassAttributesWithRegions(baseClass, baseValueRegion));
+  REQUIRE_NOTHROW(
+      rti->subscribeObjectClassAttributesWithRegions(derivedClass, derivedOnlyRegion));
+  REQUIRE_NOTHROW(
+      rti->unsubscribeObjectClassAttributesWithRegions(derivedClass, derivedOnlyRegion));
+
+  REQUIRE_NOTHROW(rti->deleteRegion(region));
+  REQUIRE_NOTHROW(rti->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(rti->disconnect());
 }
 
 }  // namespace

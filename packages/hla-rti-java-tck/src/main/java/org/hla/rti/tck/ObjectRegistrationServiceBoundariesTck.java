@@ -125,6 +125,28 @@ final class ObjectRegistrationServiceBoundariesTck {
          JavaTckSupport.check(memberClass.equals(member.getKnownObjectClassHandle(memberObject)),
             "member known-object-class lookup did not round-trip");
 
+         ObjectInstanceHandle secondObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(secondObject != null && secondObject.encodedLength() > 0,
+            "second ordinary object registration returned an invalid handle");
+         String secondObjectName = owner.getObjectInstanceName(secondObject);
+         JavaTckSupport.check(secondObjectName != null && !secondObjectName.isEmpty()
+               && !secondObjectName.equals(objectName),
+            "RTI-generated object instance names were empty or not unique within the federation");
+         JavaTckSupport.check(secondObject.equals(owner.getObjectInstanceHandle(secondObjectName)),
+            "second object instance name lookup did not round-trip");
+         await(member, callbackModel,
+            () -> memberCallbacks.discoveries.stream()
+               .anyMatch(event -> secondObjectName.equals(event.name)),
+            "second object discovery");
+         Discovery secondDiscovered = memberCallbacks.discoveries.stream()
+            .filter(event -> secondObjectName.equals(event.name)).findFirst()
+            .orElseThrow(() -> new AssertionError("second object discovery was not recorded"));
+         JavaTckSupport.check(secondObject.equals(secondDiscovered.object)
+               && memberClass.equals(secondDiscovered.objectClass)
+               && secondObjectName.equals(secondDiscovered.name)
+               && ownerName.equals(member.getFederateName(secondDiscovered.producer)),
+            "second discovery returned the wrong object identity");
+
          member.publishObjectClassAttributes(memberClass, memberAttributes);
          member.attributeOwnershipAcquisition(memberObject, memberAttributes, new byte[] {0x51, 0x18});
          JavaTckSupport.expectFailure(() -> joinedMember.localDeleteObjectInstance(memberObject),
@@ -149,10 +171,14 @@ final class ObjectRegistrationServiceBoundariesTck {
          freshMember.subscribeObjectClassAttributes(freshClass, freshAttributes);
          freshMemberSubscribed = true;
          await(freshMember, callbackModel,
-            () -> !freshMemberCallbacks.discoveries.isEmpty(), "fresh-member discovery");
+            () -> freshMemberCallbacks.discoveries.stream()
+               .anyMatch(event -> objectName.equals(event.name)), "fresh-member discovery");
+         Discovery freshDiscovery = freshMemberCallbacks.discoveries.stream()
+            .filter(event -> objectName.equals(event.name)).findFirst()
+            .orElseThrow(() -> new AssertionError("fresh-member discovery was not recorded"));
          ObjectInstanceHandle freshObject = freshMember.getObjectInstanceHandle(objectName);
-         JavaTckSupport.check(freshObject.equals(freshMemberCallbacks.discoveries.get(0).object)
-               && freshClass.equals(freshMemberCallbacks.discoveries.get(0).objectClass),
+         JavaTckSupport.check(freshObject.equals(freshDiscovery.object)
+               && freshClass.equals(freshDiscovery.objectClass),
             "fresh-member discovery returned the wrong object identity");
 
          freshMember.localDeleteObjectInstance(freshObject);

@@ -1,5 +1,21 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <set>
+#include <string>
+#include <vector>
+
+namespace {
+
+template <typename Handle>
+std::string encodedHandleKey(Handle const& handle) {
+  auto const encoded = handle.encode();
+  return std::string(
+      static_cast<char const*>(encoded.data()),
+      encoded.size());
+}
+
+}  // namespace
+
 TEST_CASE(
     "Embedded transportation-type controls accept declared FOM transportation handles",
     "[integration][development-profile][federation-management][transportation]"
@@ -160,6 +176,93 @@ TEST_CASE(
   REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(peer->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Joined federates receive unique execution-wide handles for handle-valued FOM names",
+    "[integration][development-profile][fom][fom-handle-uniqueness]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.get-dimension-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.get-order-type]") {
+  ReportingFederateAmbassador ownerReports;
+  ReportingFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federation = nextFederationName();
+  auto const fom = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+      "hla-rti-cpp-tck" / "fom" / "fom-handle-uniqueness-tck.xml";
+  std::vector<std::wstring> const fomModules{fom.wstring()};
+
+  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federation, fomModules, standard_hla::mom::integer64_time));
+  REQUIRE_NOTHROW(owner->joinFederationExecution(
+      L"fom-handle-owner", L"owner", federation));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"fom-handle-peer", L"peer", federation));
+
+  auto collectHandleEncodings = [](rti1516_2025::RTIambassador& ambassador) {
+    auto const objectClass =
+        ambassador.getObjectClassHandle(L"HLAobjectRoot.TckHandleObject");
+    auto const objectChild = ambassador.getObjectClassHandle(
+        L"HLAobjectRoot.TckHandleObject.TckHandleObjectChild");
+    auto const attribute =
+        ambassador.getAttributeHandle(objectClass, L"TckHandleAttribute");
+    auto const childAttribute =
+        ambassador.getAttributeHandle(objectChild, L"TckHandleChildAttribute");
+    auto const interaction = ambassador.getInteractionClassHandle(
+        L"HLAinteractionRoot.TckHandleInteraction");
+    auto const interactionChild = ambassador.getInteractionClassHandle(
+        L"HLAinteractionRoot.TckHandleInteraction.TckHandleInteractionChild");
+    auto const parameter =
+        ambassador.getParameterHandle(interaction, L"TckHandleParameter");
+    auto const childParameter = ambassador.getParameterHandle(
+        interactionChild, L"TckHandleChildParameter");
+
+    std::vector<std::string> encodings{
+        encodedHandleKey(ambassador.getObjectClassHandle(L"HLAobjectRoot")),
+        encodedHandleKey(objectClass),
+        encodedHandleKey(objectChild),
+        encodedHandleKey(attribute),
+        encodedHandleKey(childAttribute),
+        encodedHandleKey(ambassador.getInteractionClassHandle(L"HLAinteractionRoot")),
+        encodedHandleKey(interaction),
+        encodedHandleKey(interactionChild),
+        encodedHandleKey(parameter),
+        encodedHandleKey(childParameter),
+        encodedHandleKey(ambassador.getDimensionHandle(L"TckHandleDimension")),
+        encodedHandleKey(ambassador.getDimensionHandle(L"TckHandleDimensionSecond")),
+        encodedHandleKey(ambassador.getTransportationTypeHandle(L"HLAreliable")),
+        encodedHandleKey(ambassador.getTransportationTypeHandle(L"HLAbestEffort")),
+        encodedHandleKey(
+            ambassador.getTransportationTypeHandle(L"TckHandleTransportation")),
+    };
+    return encodings;
+  };
+
+  auto const ownerHandles = collectHandleEncodings(*owner);
+  auto const peerHandles = collectHandleEncodings(*peer);
+  REQUIRE(ownerHandles == peerHandles);
+  REQUIRE(std::set<std::string>(ownerHandles.begin(), ownerHandles.end()).size() ==
+          ownerHandles.size());
+
+  // Clause 10.1.1 names order types, but the official C++ binding exposes
+  // them as the fixed OrderType enum rather than an OrderTypeHandle. Keep
+  // their name/value behavior explicit without treating them as allocated
+  // handles in the uniqueness set above.
+  auto const receiveOrder = owner->getOrderType(L"Receive");
+  auto const timestampOrder = owner->getOrderType(L"TimeStamp");
+  REQUIRE(receiveOrder != timestampOrder);
+  REQUIRE(peer->getOrderType(L"Receive") == receiveOrder);
+  REQUIRE(peer->getOrderType(L"TimeStamp") == timestampOrder);
+
+  REQUIRE_NOTHROW(peer->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federation));
   REQUIRE_NOTHROW(peer->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
 }

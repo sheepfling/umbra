@@ -75,25 +75,25 @@ TEST_CASE(
   auto const objectInstanceText = asAscii(objectInstance.toString());
   auto const expectedRecords =
       std::string{
-          R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Normalized value","HLAargumentValue":)" +
+          R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":)" +
       std::to_string(serviceGroupValue) +
       R"(}],"HLAservice":"NormalizeServiceGroup","HLAsuppliedArguments":[{"HLAargumentType":50,"HLAargumentName":"Service group indicator","HLAargumentValue":"SUPPORT_SERVICES"}],"HLAsuccessIndicator":true,"HLAexception":null})" +
-      R"({"HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Normalized value","HLAargumentValue":)" +
+      R"({"HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":)" +
       std::to_string(federateValue) +
       R"(}],"HLAservice":"NormalizeFederateHandle","HLAsuppliedArguments":[{"HLAargumentType":15,"HLAargumentName":"Federate handle","HLAargumentValue":")" +
       ownerFederateText +
       R"("}],"HLAsuccessIndicator":true,"HLAexception":null})" +
-      R"({"HLAserialNumber":2,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Normalized value","HLAargumentValue":)" +
+      R"({"HLAserialNumber":2,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":)" +
       std::to_string(objectClassValue) +
       R"(}],"HLAservice":"NormalizeObjectClassHandle","HLAsuppliedArguments":[{"HLAargumentType":36,"HLAargumentName":"Object class handle","HLAargumentValue":")" +
       serverText +
       R"("}],"HLAsuccessIndicator":true,"HLAexception":null})" +
-      R"({"HLAserialNumber":3,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Normalized value","HLAargumentValue":)" +
+      R"({"HLAserialNumber":3,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":)" +
       std::to_string(interactionClassValue) +
       R"(}],"HLAservice":"NormalizeInteractionClassHandle","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class handle","HLAargumentValue":")" +
       takeOrderText +
       R"("}],"HLAsuccessIndicator":true,"HLAexception":null})" +
-      R"({"HLAserialNumber":4,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Normalized value","HLAargumentValue":)" +
+      R"({"HLAserialNumber":4,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":)" +
       std::to_string(objectInstanceValue) +
       R"(}],"HLAservice":"NormalizeObjectInstanceHandle","HLAsuppliedArguments":[{"HLAargumentType":37,"HLAargumentName":"Object instance handle","HLAargumentValue":")" +
       objectInstanceText +

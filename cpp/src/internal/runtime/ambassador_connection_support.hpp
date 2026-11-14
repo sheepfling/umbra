@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <set>
 #include <string>
 
 namespace rti1516_2025::umbra_binding_detail {
@@ -18,7 +19,10 @@ namespace rti1516_2025::umbra_binding_detail {
 void validateAmbassadorConnectionCallbackModel(CallbackModel callbackModel);
 ConfigurationResult ignoredAmbassadorConnectionResult();
 std::optional<umbra::detail::ProcessTransportAddress>
-configuredAmbassadorProcessEndpoint(RtiConfiguration const* configuration);
+configuredAmbassadorProcessEndpoint(
+    RtiConfiguration const* configuration,
+    bool& tlsCertificateValidationSettingApplied,
+    bool& tlsCertificateValidationSettingFailedToParse);
 std::string ambassadorProcessEndpointIdentity(RtiConfiguration const* configuration);
 std::uint64_t nextAmbassadorProcessEndpointSessionId() noexcept;
 void requireNoCredentialsWhenAmbassadorAuthorizationIsDisabled(
@@ -33,6 +37,15 @@ std::filesystem::path configuredAmbassadorFederationSaveDirectory(
     RtiConfiguration const* configuration,
     bool& settingsApplied);
 umbra::detail::FomStandardEdition configuredAmbassadorFomStandardEdition(
+    RtiConfiguration const* configuration,
+    bool& settingsApplied,
+    bool& settingsFailedToParse);
+std::set<std::string> configuredAmbassadorUnsupportedTransportationTypes(
+    RtiConfiguration const* configuration,
+    bool& settingsApplied,
+    bool& settingsFailedToParse);
+umbra::detail::ProcessFederationClientOptions
+configuredAmbassadorProcessFederationClientOptions(
     RtiConfiguration const* configuration,
     bool& settingsApplied,
     bool& settingsFailedToParse);

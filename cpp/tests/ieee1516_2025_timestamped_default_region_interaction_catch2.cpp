@@ -120,7 +120,8 @@ TEST_CASE(
     "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
     "[rti.service.disable-time-constrained][rti.service.time-advance-request]"
     "[federate.callback.receive-interaction][federate.callback.time-constrained-enabled]"
-    "[federate.callback.time-advance-grant]") {
+    "[federate.callback.time-advance-grant]"
+    "[timestamped-default-region-interaction-reenable]") {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
   auto publisher = makeRti();
@@ -232,7 +233,7 @@ TEST_CASE(
 TEST_CASE(
     "Embedded timestamped default-region interaction uses available and next-message advances",
     "[integration][development-profile][interaction-management][ddm][time-management]"
-    "[timestamped-default-region][default-region][tso]"
+    "[timestamped-default-region][default-region][timestamped-default-region-interaction-alternate-advances][tso]"
     "[time-advance-request-available][next-message-request-available]"
     "[rti.service.send-interaction][rti.service.subscribe-interaction-class-with-regions]"
     "[rti.service.set-convey-region-designator-sets-switch]"
@@ -706,7 +707,8 @@ TEST_CASE(
 TEST_CASE(
     "Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
     "[integration][development-profile][interaction-management][ddm][time-management]"
-    "[default-region][tso][mixed-fanout][multi-federate-callback-ordering][retract]"
+    "[default-region][tso][mixed-fanout][timestamped-default-region-interaction-mixed-fanout]"
+    "[multi-federate-callback-ordering][retract]"
     "[rti.service.send-interaction][rti.service.retract]"
     "[rti.service.subscribe-interaction-class-with-regions]"
     "[rti.service.time-advance-request][federate.callback.receive-interaction]"

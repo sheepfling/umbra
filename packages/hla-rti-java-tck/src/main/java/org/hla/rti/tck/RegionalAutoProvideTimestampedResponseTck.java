@@ -18,6 +18,7 @@ import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
@@ -29,7 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /** Verifies timestamped regional Auto Provide through recipient grant and retraction boundary. */
@@ -84,6 +84,7 @@ final class RegionalAutoProvideTimestampedResponseTck {
             "adapter FOM did not enable Auto Provide for both members");
          checkDimension(owner, ownerClass, ownerDimension);
          checkDimension(requester, requesterClass, requesterDimension);
+         requesterCallbacks.configureRegionInspection(requester, requesterDimension);
 
          LogicalTimeFactory<?, ?> ownerTimeFactory = owner.getTimeFactory();
          LogicalTimeFactory<?, ?> requesterTimeFactory = requester.getTimeFactory();
@@ -122,8 +123,9 @@ final class RegionalAutoProvideTimestampedResponseTck {
          requester.enableTimeConstrained(); requesterConstrained = true;
          owner.enableTimeRegulation(ownerEpsilon); ownerRegulating = true;
          await(owner, requester, callbackModel,
-            () -> ownerCallbacks.timeRegulationEnabled.get()
-               && requesterCallbacks.timeConstrainedEnabled.get(), "time-role enable callbacks");
+            () -> ownerCallbacks.timeRegulationTimes.size() == 1
+               && requesterCallbacks.timeConstrainedTimes.size() == 1,
+            "time-role enable callbacks");
 
          object = owner.registerObjectInstanceWithRegions(ownerClass, ownerPair); associated = true;
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
@@ -163,6 +165,10 @@ final class RegionalAutoProvideTimestampedResponseTck {
             () -> requesterCallbacks.reflections.size() == 1
                && requesterCallbacks.grants.size() == 1 && ownerCallbacks.grants.size() == 1,
             "timestamped Auto Provide reflection and time grants");
+         if (callbackFailure.get() != null) {
+            throw new AssertionError("timestamped regional Auto Provide callback failed",
+               callbackFailure.get());
+         }
          JavaTckSupport.check(callbackOrder.equals(Arrays.asList("discover", "provide", "reflect"))
                && requesterCallbackOrder.equals(Arrays.asList("reflect", "grant")),
             "timestamped Auto Provide callback order did not deliver reflection before grant");
@@ -175,7 +181,6 @@ final class RegionalAutoProvideTimestampedResponseTck {
                && reliable.equals(reflection.transportation)
                && producer.equals(reflection.producer)
                && reflection.regions != null && reflection.regions.size() == 1
-               && reflection.regions.contains(ownerRegion)
                && responseTime.equals(reflection.time)
                && reflection.sentOrder == OrderType.TIMESTAMP
                && reflection.receivedOrder == OrderType.TIMESTAMP
@@ -323,10 +328,12 @@ final class RegionalAutoProvideTimestampedResponseTck {
       private final List<ProvidedUpdate> provided = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final List<LogicalTime> grants = new CopyOnWriteArrayList<>();
-      private final AtomicBoolean timeConstrainedEnabled = new AtomicBoolean();
-      private final AtomicBoolean timeRegulationEnabled = new AtomicBoolean();
+      private final List<LogicalTime> timeConstrainedTimes = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime> timeRegulationTimes = new CopyOnWriteArrayList<>();
       private final AtomicReference<RTIambassador> owner = new AtomicReference<>();
+      private final AtomicReference<RTIambassador> regionInspector = new AtomicReference<>();
       private final AtomicReference<AttributeHandle> expectedAttribute = new AtomicReference<>();
+      private final AtomicReference<DimensionHandle> regionDimension = new AtomicReference<>();
       private final AtomicReference<AttributeHandleValueMap> responseValues = new AtomicReference<>();
       private final AtomicReference<LogicalTime> responseTime = new AtomicReference<>();
       private final AtomicReference<MessageRetractionReturn> retraction = new AtomicReference<>();
@@ -344,6 +351,11 @@ final class RegionalAutoProvideTimestampedResponseTck {
          owner.set(ambassador);
       }
 
+      private void configureRegionInspection(RTIambassador ambassador, DimensionHandle dimension) {
+         regionInspector.set(ambassador);
+         regionDimension.set(dimension);
+      }
+
       private void configureResponse(AttributeHandle attribute, AttributeHandleValueMap values,
             LogicalTime time) {
          expectedAttribute.set(attribute); responseValues.set(values); responseTime.set(time);
@@ -353,11 +365,11 @@ final class RegionalAutoProvideTimestampedResponseTck {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+               if ("discoverObjectInstance".equals(name) && args != null && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery); callbackOrder.add("discover");
                } else if ("provideAttributeValueUpdate".equals(name) && args != null
                      && args.length == 3) {
@@ -384,17 +396,37 @@ final class RegionalAutoProvideTimestampedResponseTck {
                   reflection.tag = ((byte[]) args[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) args[3];
                   reflection.producer = (FederateHandle) args[4];
-                  reflection.regions = (RegionHandleSet) args[5];
+                  RegionHandleSet callbackRegions = (RegionHandleSet) args[5];
+                  reflection.regions = callbackRegions == null ? null : callbackRegions.clone();
                   reflection.time = (LogicalTime) args[6];
                   reflection.sentOrder = (OrderType) args[7];
                   reflection.receivedOrder = (OrderType) args[8];
                   reflection.retraction = (MessageRetractionHandle) args[9];
+                  if (receiver) try {
+                     JavaTckSupport.check(reflection.regions != null
+                           && reflection.regions.size() == 1,
+                        "timestamped regional Auto Provide callback did not convey one source region copy");
+                     RegionHandle callbackRegion = reflection.regions.iterator().next();
+                     RTIambassador inspector = regionInspector.get();
+                     DimensionHandle expectedDimension = regionDimension.get();
+                     DimensionHandleSet dimensions = inspector.getDimensionHandleSet(callbackRegion);
+                     JavaTckSupport.check(dimensions.size() == 1
+                           && dimensions.contains(expectedDimension),
+                        "timestamped regional Auto Provide callback region copy changed its dimension set");
+                     JavaTckSupport.check(inspector.getRangeBounds(callbackRegion, expectedDimension)
+                           .equals(new RangeBounds(0L, 2L)),
+                        "timestamped regional Auto Provide callback region copy changed its range bounds");
+                  } catch (Throwable failure) {
+                     callbackFailure.compareAndSet(null, failure);
+                  }
                   reflections.add(reflection); callbackOrder.add("reflect");
                   requesterCallbackOrder.add("reflect");
-               } else if ("timeConstrainedEnabled".equals(name) && args != null) {
-                  timeConstrainedEnabled.set(true);
-               } else if ("timeRegulationEnabled".equals(name) && args != null) {
-                  timeRegulationEnabled.set(true);
+               } else if ("timeConstrainedEnabled".equals(name) && args != null
+                     && args.length == 1) {
+                  timeConstrainedTimes.add((LogicalTime) args[0]);
+               } else if ("timeRegulationEnabled".equals(name) && args != null
+                     && args.length == 1) {
+                  timeRegulationTimes.add((LogicalTime) args[0]);
                } else if ("timeAdvanceGrant".equals(name) && args != null) {
                   grants.add((LogicalTime) args[0]);
                   if (receiver) requesterCallbackOrder.add("grant");

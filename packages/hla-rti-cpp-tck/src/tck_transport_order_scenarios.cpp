@@ -8,7 +8,50 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void verifyJoinedAttributeTransportationDefaultsFromFom(
+    Options const& options,
+    rti::CallbackModel model) {
+  auto const scenarioFom = options.scenarioFoms.find("transport-order-fdd-default");
+  require(scenarioFom != options.scenarioFoms.end() && !scenarioFom->second.empty(),
+          "Transport/order scenario requires its FDD transportation-default fixture");
+
+  Session first(options, model, "fdd-default-first");
+  Session second(options, model, "fdd-default-second");
+  auto const federation = federationName(options, "transport-order-fdd-default");
+  connectAndJoin(first, second, options, federation, scenarioFom->second);
+
+  auto verifyJoinedDefault = [&](Session& federate) {
+    auto& ambassador = federate.rtiAmbassador();
+    auto const objectClass = ambassador.getObjectClassHandle(options.objectClassName);
+    auto const attribute = ambassador.getAttributeHandle(objectClass, options.attributeName);
+    require(objectClass.isValid() && attribute.isValid(),
+            "FDD transport-default fixture did not resolve the target class and attribute");
+    rti::AttributeHandleSet const attributes{attribute};
+    ambassador.publishObjectClassAttributes(objectClass, attributes);
+    auto const object = ambassador.registerObjectInstance(objectClass);
+    require(object.isValid(), "FDD transport-default object registration returned an invalid handle");
+
+    federate.recorder().clearTransportationRecords();
+    ambassador.queryAttributeTransportationType(object, attribute);
+    waitFor(federate,
+            [&] { return federate.recorder().attributeTransportationReports().size() >= 1U; },
+            options,
+            "joined-federate FDD transportation-default report");
+    auto const reports = federate.recorder().attributeTransportationReports();
+    require(reports.size() == 1U && reports.front().object == object &&
+                reports.front().attribute == attribute && reports.front().transportation.isValid() &&
+                ambassador.getTransportationTypeName(reports.front().transportation) ==
+                    L"HLAbestEffort",
+            "joined federate did not initialize its attribute transportation default from the FDD");
+  };
+
+  verifyJoinedDefault(first);
+  verifyJoinedDefault(second);
+}
+
 void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel model) {
+  verifyJoinedAttributeTransportationDefaultsFromFom(options, model);
+
   Session owner(options, model, "owner");
   Session observer(options, model, "member");
   auto const federation = federationName(options, "transport-order");
@@ -23,6 +66,8 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
       options.objectClassName);
   auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
       observerClass, options.attributeName);
+  auto const ownerUnownedAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.secondaryAttributeName);
   auto const ownerSecondAttribute = owner.rtiAmbassador().getAttributeHandle(
       ownerClass, options.objectClassThirdAttributeName);
   auto const observerSecondAttribute = observer.rtiAmbassador().getAttributeHandle(
@@ -44,6 +89,9 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
   // The adapter supplies the additional FOM attribute so the standardized
   // set-valued transportation API is exercised with multiple members.
   ownerAttributes.insert(ownerSecondAttribute);
+  require(ownerUnownedAttribute.isValid() &&
+              ownerAttributes.count(ownerUnownedAttribute) == 0U,
+          "Transport/order query fixture must include a valid unowned class attribute");
   rti::AttributeHandleSet observerAttributes;
   observerAttributes.insert(observerAttribute);
   observerAttributes.insert(observerSecondAttribute);
@@ -234,11 +282,14 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
   owner.recorder().clearTransportationRecords();
   owner.rtiAmbassador().queryAttributeTransportationType(first, ownerAttribute);
   owner.rtiAmbassador().queryAttributeTransportationType(second, ownerAttribute);
+  owner.rtiAmbassador().queryAttributeTransportationType(first, ownerUnownedAttribute);
   waitFor(owner,
-          [&] { return owner.recorder().attributeTransportationReports().size() >= 2U; },
+          [&] { return owner.recorder().attributeTransportationReports().size() >= 3U; },
           options,
           "attribute transportation query reports");
   auto const attributeReports = owner.recorder().attributeTransportationReports();
+  require(attributeReports.size() == 3U,
+          "attribute transportation queries did not produce exactly three reports");
   auto const firstReport = std::find_if(
       attributeReports.begin(), attributeReports.end(), [&](auto const& report) {
         return report.object == first && report.attribute == ownerAttribute;
@@ -247,12 +298,19 @@ void scenarioTransportOrderPortable(Options const& options, rti::CallbackModel m
       attributeReports.begin(), attributeReports.end(), [&](auto const& report) {
         return report.object == second && report.attribute == ownerAttribute;
       });
-  require(firstReport != attributeReports.end() && secondReport != attributeReports.end(),
+  auto const unownedReport = std::find_if(
+      attributeReports.begin(), attributeReports.end(), [&](auto const& report) {
+        return report.object == first && report.attribute == ownerUnownedAttribute;
+      });
+  require(firstReport != attributeReports.end() && secondReport != attributeReports.end() &&
+              unownedReport != attributeReports.end(),
           "Attribute transportation query reports omitted a registered object");
   require(sameTransport(owner.rtiAmbassador(), firstReport->transportation, L"HLAreliable"),
           "first object did not retain the reliable transportation default");
   require(sameTransport(owner.rtiAmbassador(), secondReport->transportation, L"HLAbestEffort"),
           "second object did not capture the best-effort class default");
+  require(sameTransport(owner.rtiAmbassador(), unownedReport->transportation, L"HLAreliable"),
+          "unowned attribute query did not report the transportation type declared in the FOM");
 
   owner.recorder().clearTransportationRecords();
   observer.recorder().clearReflection();
@@ -575,10 +633,38 @@ void scenarioStandardOrderAndTransportationLookupsPortable(
       owner.rtiAmbassador().getOrderName(rti::RECEIVE) == L"Receive" &&
           owner.rtiAmbassador().getOrderName(rti::TIMESTAMP) == L"TimeStamp",
       "mandatory order types did not round-trip to their standard names");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getOrderType(L"receive"));
+      },
+      L"InvalidOrderName",
+      "case-mismatched Receive order name lookup");
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getOrderType(L"timestamp"));
+      },
+      L"InvalidOrderName",
+      "case-mismatched TimeStamp order name lookup");
   require(
       member.rtiAmbassador().getOrderType(L"Receive") == rti::RECEIVE &&
           member.rtiAmbassador().getOrderType(L"TimeStamp") == rti::TIMESTAMP,
       "member order lookups did not resolve to the mandatory order types");
+  require(
+      member.rtiAmbassador().getOrderName(rti::RECEIVE) == L"Receive" &&
+          member.rtiAmbassador().getOrderName(rti::TIMESTAMP) == L"TimeStamp",
+      "member order types did not round-trip to their standard names");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getOrderType(L"receive"));
+      },
+      L"InvalidOrderName",
+      "member case-mismatched Receive order name lookup");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getOrderType(L"timestamp"));
+      },
+      L"InvalidOrderName",
+      "member case-mismatched TimeStamp order name lookup");
 
   auto const ownerReliable = owner.rtiAmbassador().getTransportationTypeHandle(
       L"HLAreliable");

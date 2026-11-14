@@ -169,6 +169,37 @@ bool validateHlaNames(
           diagnostics);
       return;
     }
+    if (node.localName == fom_schema::element::synchronization_point) {
+      auto const *label = firstChildNamed(node, fom_schema::element::label);
+      if (label == nullptr) {
+        return;
+      }
+      valid = validateHlaNamePart(
+          label->text,
+          childPath(path, *label),
+          "synchronization-point label",
+          allowReservedHlaNames,
+          false,
+          diagnostics);
+      return;
+    }
+    if (node.localName == fom_schema::element::variant_record_data) {
+      auto const *discriminant = firstChildNamed(node, fom_schema::element::discriminant);
+      if (discriminant != nullptr) {
+        valid = validateHlaNamePart(
+            discriminant->text,
+            childPath(path, *discriminant),
+            "variant-record discriminant name",
+            allowReservedHlaNames ||
+                (knownReservedHlaNames != nullptr &&
+                 knownReservedHlaNames->contains(discriminant->text)),
+            false,
+            diagnostics);
+      }
+      if (!valid) {
+        return;
+      }
+    }
     if (isHlaNamedDeclaration(node.localName)) {
       auto const *name = firstChildNamed(node, fom_schema::element::name);
       if (name == nullptr) {
@@ -199,6 +230,7 @@ bool validateHlaNames(
           allowReservedHlaNames,
           false,
           diagnostics);
+      return;
     }
   });
   return valid;
@@ -760,6 +792,88 @@ bool validateDimensionInputDataTypeDescriptions(SemanticNode const &root, std::s
     }
   }
   return true;
+}
+
+bool validateDimensionRequiredTextFields(SemanticNode const& root, std::string& diagnostics) {
+  // DIF's String type permits empty content, but the 2025 Dimension table
+  // requires these text cells to be populated. Keep the data-type list,
+  // optional upper bound, and optional default value on their own rules.
+  auto const* dimensions = firstChildNamed(root, fom_schema::element::dimensions);
+  if (dimensions == nullptr) {
+    return true;
+  }
+
+  std::string const dimensionsPath = childPath(fom_schema::element::object_model, *dimensions);
+  for (auto const& [key, dimension] : dimensions->children) {
+    (void)key;
+    if (dimension.localName != fom_schema::element::dimension) {
+      continue;
+    }
+
+    for (auto const fieldName : {fom_schema::element::input_data_description,
+                                 fom_schema::element::normalization,
+                                 fom_schema::element::output_data_semantics}) {
+      auto const* field = firstChildNamed(dimension, fieldName);
+      bool const containsNonWhitespace = field != nullptr &&
+          std::any_of(field->text.begin(), field->text.end(), [](unsigned char character) {
+            return std::isspace(character) == 0;
+          });
+      if (!containsNonWhitespace) {
+        diagnostics = "Dimension " +
+                      quotedIdentityValue(dimension, fom_schema::identity::name_prefix) + " at " +
+                      childPath(dimensionsPath, dimension) + " has a blank " +
+                      std::string(fieldName) + " field.";
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool validateAttributeRequiredTextFields(SemanticNode const& root,
+                                         std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, fom_schema::element::object_model,
+            [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != fom_schema::element::attribute) {
+      return;
+    }
+    auto const* semantics = firstChildNamed(node, fom_schema::element::semantics);
+    bool const containsNonWhitespace = semantics != nullptr &&
+        std::any_of(semantics->text.begin(), semantics->text.end(), [](unsigned char character) {
+          return std::isspace(character) == 0;
+        });
+    if (!containsNonWhitespace) {
+      diagnostics = "Attribute " +
+                    quotedIdentityValue(node, fom_schema::identity::name_prefix) + " at " + path +
+                    " has a blank semantics field.";
+      valid = false;
+    }
+  });
+  return valid;
+}
+
+bool validateModelIdentificationVersionNonblank(
+    xmlNode const* modelIdentification,
+    std::string& diagnostics) {
+  if (modelIdentification == nullptr) {
+    return true;
+  }
+
+  auto const* version = directChildElement(modelIdentification, "version");
+  if (version == nullptr) {
+    return true;
+  }
+  std::string const value = textFromNode(version);
+  if (std::any_of(value.begin(), value.end(), [](unsigned char character) {
+        return std::isspace(character) == 0;
+      })) {
+    return true;
+  }
+
+  diagnostics =
+      "Object-model version at objectModel/modelIdentification/version must be nonblank.";
+  return false;
 }
 
 bool isStandardInstanceIdentifierAttribute(std::string_view name);
@@ -1338,6 +1452,32 @@ bool validateStandardRootClassHierarchies(SemanticNode const& root, std::string&
              "Interaction");
 }
 
+// IEEE 1516.2-2025 DIF permits a FOM module to contain name-only scaffolding
+// classes so another module can complete them. Validate the composed model,
+// not each input module: a class left without its required sharing definition
+// after the complete Create/Join module union is not a full class definition.
+bool validateFullClassDefinitions(SemanticNode const& root, std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, fom_schema::element::object_model,
+            [&](SemanticNode const& node, std::string const& path) {
+    if (!valid ||
+        (node.localName != fom_schema::element::object_class &&
+         node.localName != fom_schema::element::interaction_class) ||
+        firstChildNamed(node, fom_schema::element::sharing) != nullptr) {
+      return;
+    }
+    std::string const kind = node.localName == fom_schema::element::object_class
+                                 ? "Object"
+                                 : "Interaction";
+    diagnostics = kind + " class " +
+                  quotedIdentityValue(node, fom_schema::identity::name_prefix) +
+                  " at " + path +
+                  " remains a scaffolding definition without sharing after all FOM modules are merged.";
+    valid = false;
+  });
+  return valid;
+}
+
 bool validateInheritedObjectClassAttributeNames(SemanticNode const& root, std::string& diagnostics) {
   ObjectClassReferenceDefinitions const classes = objectClassReferenceDefinitions(root);
   for (auto const& [className, definition] : classes) {
@@ -1435,6 +1575,19 @@ bool validateInheritedInteractionClassParameterNames(
   return true;
 }
 
+std::string trimAsciiWhitespace(std::string value) {
+  auto const isWhitespace = [](unsigned char character) {
+    return std::isspace(character) != 0;
+  };
+  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.front()))) {
+    value.erase(value.begin());
+  }
+  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.back()))) {
+    value.pop_back();
+  }
+  return value;
+}
+
 bool validateEnumeratedValues(SemanticNode const& root, std::string& diagnostics) {
   bool valid = true;
   walkNodes(root, fom_schema::element::object_model, [&](SemanticNode const& node, std::string const& path) {
@@ -1453,33 +1606,39 @@ bool validateEnumeratedValues(SemanticNode const& root, std::string& diagnostics
         if (value.localName != fom_schema::element::value || value.text.empty()) {
           continue;
         }
-        auto const [existing, inserted] = valueOwners.emplace(value.text, enumeratorName);
-        if (!inserted && existing->second != enumeratorName) {
-          diagnostics = "Enumerated data type " +
-                        quotedIdentityValue(node, fom_schema::identity::name_prefix) +
-                        " assigns value " + quoteDiagnosticString(value.text) + " to both " +
-                        quoteDiagnosticString(existing->second) + " and " +
-                        quoteDiagnosticString(enumeratorName) + " at " + path + ".";
-          valid = false;
-          return;
+        std::size_t componentStart = 0;
+        while (componentStart <= value.text.size()) {
+          std::size_t const comma = value.text.find(',', componentStart);
+          std::string const component = trimAsciiWhitespace(
+              value.text.substr(
+                  componentStart,
+                  comma == std::string::npos ? std::string::npos : comma - componentStart));
+          if (component.empty()) {
+            diagnostics = "Enumerated data type " +
+                          quotedIdentityValue(node, fom_schema::identity::name_prefix) +
+                          " has an empty value component at " + path + ".";
+            valid = false;
+            return;
+          }
+          auto const [existing, inserted] = valueOwners.emplace(component, enumeratorName);
+          if (!inserted && existing->second != enumeratorName) {
+            diagnostics = "Enumerated data type " +
+                          quotedIdentityValue(node, fom_schema::identity::name_prefix) +
+                          " assigns value " + quoteDiagnosticString(component) + " to both " +
+                          quoteDiagnosticString(existing->second) + " and " +
+                          quoteDiagnosticString(enumeratorName) + " at " + path + ".";
+            valid = false;
+            return;
+          }
+          if (comma == std::string::npos) {
+            break;
+          }
+          componentStart = comma + 1;
         }
       }
     }
   });
   return valid;
-}
-
-std::string trimAsciiWhitespace(std::string value) {
-  auto const isWhitespace = [](unsigned char character) {
-    return std::isspace(character) != 0;
-  };
-  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.front()))) {
-    value.erase(value.begin());
-  }
-  while (!value.empty() && isWhitespace(static_cast<unsigned char>(value.back()))) {
-    value.pop_back();
-  }
-  return value;
 }
 
 std::vector<SemanticNode const*> variantDiscriminantEnumeratorNodes(
@@ -1678,6 +1837,53 @@ bool validateVariantRecordAlternatives(SemanticNode const& root, std::string& di
         }
       }
     }
+  });
+  return valid;
+}
+
+bool validateVariantRecordPredefinedEncoding(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, fom_schema::element::object_model, [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != fom_schema::element::variant_record_data) {
+      return;
+    }
+    auto const encoding = trimAsciiWhitespace(
+        scalarChildValue(node, fom_schema::element::encoding));
+    if (encoding != fom_schema::value::fixed_record_encoding) {
+      return;
+    }
+    diagnostics = "Variant-record data type " + quotedIdentityValue(node, fom_schema::identity::name_prefix) +
+                  " at " + path + " uses predefined encoding " +
+                  quoteDiagnosticString(encoding) +
+                  "; the predefined variant-record encoding must be " +
+                  std::string(fom_schema::value::variant_record_encoding) + ".";
+    valid = false;
+  });
+  return valid;
+}
+
+bool validateFixedRecordPredefinedEncoding(
+    SemanticNode const& root,
+    std::string& diagnostics) {
+  bool valid = true;
+  walkNodes(root, fom_schema::element::object_model, [&](SemanticNode const& node, std::string const& path) {
+    if (!valid || node.localName != fom_schema::element::fixed_record_data) {
+      return;
+    }
+    auto const encoding = trimAsciiWhitespace(
+        scalarChildValue(node, fom_schema::element::encoding));
+    if (encoding != fom_schema::value::variant_record_encoding &&
+        encoding != fom_schema::value::extendable_variant_record_encoding) {
+      return;
+    }
+    diagnostics = "Fixed-record data type " + quotedIdentityValue(node, fom_schema::identity::name_prefix) +
+                  " at " + path + " uses predefined encoding " +
+                  quoteDiagnosticString(encoding) +
+                  "; the predefined fixed-record encoding must be " +
+                  std::string(fom_schema::value::fixed_record_encoding) + ".";
+    valid = false;
   });
   return valid;
 }
@@ -2092,6 +2298,17 @@ bool validateFomModificationDate(xmlNode const* modelIdentification, std::string
   return validateModificationDate(modelIdentification, diagnostics);
 }
 
+bool validateFomModelIdentificationVersionNonblank(
+    xmlNode const* modelIdentification,
+    std::string& diagnostics) {
+  return validateModelIdentificationVersionNonblank(modelIdentification, diagnostics);
+}
+
+bool validateFomAttributeRequiredTextFields(SemanticNode const& module,
+                                            std::string& diagnostics) {
+  return validateAttributeRequiredTextFields(module, diagnostics);
+}
+
 void collectFomReservedHlaNames(SemanticNode const& root, std::set<std::string>& reservedNames) {
   collectReservedHlaNames(root, reservedNames);
 }
@@ -2116,6 +2333,9 @@ bool validateComposedFomModel(
   bool const strictDataTypeTableRules = standardEdition == FomStandardEdition::ieee1516_2025;
   // Keep this table-specific failure ahead of generic reserved-name checks;
   // the established NA-companion case intentionally uses a transport named NA.
+  // Synchronization-point capability is an IEEE 1516.2 DIF enumeration; valid
+  // 2025 modules use values such as Achieve and RegisterAchieve, so the schema
+  // rather than an NA-only rule governs this field.
   return validateAttributeNaCompanionFields(merged, diagnostics) &&
          (!strictDataTypeTableRules ||
           validateHlaNames(merged, FomModuleKind::fom, &reservedHlaNames, diagnostics)) &&
@@ -2130,10 +2350,15 @@ bool validateComposedFomModel(
          (!strictDataTypeTableRules ||
           validateFixedRecordFieldAndVariantRecordAlternativeDataTypeKinds(merged, diagnostics)) &&
          (!strictDataTypeTableRules ||
+          validateFixedRecordPredefinedEncoding(merged, diagnostics)) &&
+         (!strictDataTypeTableRules ||
+          validateVariantRecordPredefinedEncoding(merged, diagnostics)) &&
+         (!strictDataTypeTableRules ||
           validateVariantRecordDiscriminantDataTypeKinds(merged, diagnostics)) &&
          validateVariantRecordDiscriminantEnumeratorMembership(merged, diagnostics) &&
          validateVariantRecordDiscriminantEnumeratorAssignments(merged, diagnostics) &&
          (!strictDataTypeTableRules || validateDimensionInputDataTypeKinds(merged, diagnostics)) &&
+         (!strictDataTypeTableRules || validateDimensionRequiredTextFields(merged, diagnostics)) &&
          validateDimensionInputDataTypeNaExclusivity(merged, diagnostics) &&
          validateDimensionInputDataTypeDescriptions(merged, diagnostics) &&
          validateDataTypeRepresentationReferences(merged, diagnostics) &&
@@ -2146,6 +2371,7 @@ bool validateComposedFomModel(
          validateDimensionDefaultValues(merged, diagnostics) &&
          validateTransportationReferences(merged, diagnostics) &&
          validateStandardRootClassHierarchies(merged, diagnostics) &&
+         (!strictDataTypeTableRules || validateFullClassDefinitions(merged, diagnostics)) &&
          validateUpdateRateValues(merged, diagnostics) &&
          validateArrayCardinalities(merged, diagnostics) &&
          validateArrayEncodingCardinalityCompatibility(merged, diagnostics) &&

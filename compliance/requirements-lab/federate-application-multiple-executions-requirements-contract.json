@@ -3,8 +3,30 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-test-not-conformance-evidence",
-  "notes": "This reference maps the portable C++ TCK and focused C++ Catch2 coverage to the clause-4 application-participation requirement. The TCK exercises the public 2025 API with two federation executions and multiple joined federates. Its local Umbra adapter results do not establish external-provider validation or conformance.",
+  "notes": "This reference maps portable TCK evidence to the clause-1.5 case-sensitive name, clause-4 application-participation, and clause-4.5 execution-isolation requirements. The C++ and Java TCK scenarios exercise the public 2025 APIs with two federation executions and multiple joined federates. Local Umbra adapter results do not establish external-provider validation or conformance.",
   "requirements": [
+    {
+      "id": "tck-case-sensitive-federation-execution-names",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l58-7",
+      "clause_id": "clause-1.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioApplicationMultipleFederatesAcrossExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateApplicationMultipleExecutionsTck.java::run"
+      ]
+    },
+    {
+      "id": "tck-case-sensitive-federate-names",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l58-7-federate",
+      "clause_id": "clause-1.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioApplicationMultipleFederatesAcrossExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateApplicationMultipleExecutionsTck.java::run"
+      ]
+    },
     {
       "id": "cpp-tck-one-application-multiple-federate-executions",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
@@ -16,6 +38,28 @@
         "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutionsContract",
         "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp::One application may join multiple federates across multiple federation executions"
       ]
+    },
+    {
+      "id": "cpp-tck-one-application-no-intercommunication",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7-no-intercommunication",
+      "clause_id": "clause-4.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioApplicationMultipleFederatesAcrossExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateApplicationMultipleExecutionsTck.java::verifyExecutionDataIsolation"
+      ]
+    },
+    {
+      "id": "cpp-tck-one-application-independent-execution-membership",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7-independence",
+      "clause_id": "clause-4.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioApplicationMultipleFederatesAcrossExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions"
+      ],
+      "scope": "Two distinct simultaneously joined federation executions accept the same two exact federate names, and separate member reports return exactly those names for each execution. This is a bounded C++ public-API witness, not exhaustive federation-execution independence or conformance evidence."
     }
   ]
 }

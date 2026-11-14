@@ -4,10 +4,11 @@
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard_sections": [
+    "hla-1516.1-2025:clause-10.21",
     "hla-1516.1-2025:clause-11.5",
     "hla-1516.1-2025:clause-11.5.1"
   ],
-  "notes": "This contract records the portable C++ TCK check for a successful RTIambassador::getAvailableDimensionsForObjectClass invocation reported through the standard HLAreportServiceInvocation interaction. The report content maps directly to IEEE 1516.1-2025 sections 11.5 and 11.5.1; federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM (including the typed object class and its configured dimension), standard MIM, endpoint, callback model, and logical-time configuration. It verifies the API's one-dimension result set, service classification, typed object-class-handle and dimension-set arguments, reliable report delivery, reporter identity, success/exception state, and report serial. Provider-private headers, registries, routing, file sinks, names, and diagnostics are outside this contract.",
+  "notes": "This contract records portable C++ TCK checks for both a nonempty one-dimension result and the required empty-set result when an object class has no available dimensions; each invocation is reported through HLAreportServiceInvocation. The API behavior maps to §10.21. The Lab-exported §10.20.6 crosswalk is the preceding service's reference chart; use the existing RL-423 source-backed correction without changing the Lab export. Report delivery is checked only for the asserted fields and is not a claim of complete §11.5 or §11.5.1 coverage. Federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM (including the typed object class and its configured dimension), standard MIM, endpoint, callback model, and logical-time configuration. Provider-private headers, registries, routing, file sinks, names, and diagnostics are outside this contract.",
   "api_surfaces": [
     {
       "id": "standard-cpp-service-report-object-dimensions",
@@ -17,8 +18,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "RTIambassador::getAvailableDimensionsForObjectClass; standard MIM HLAreportServiceInvocation",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportObjectDimensions",
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportObjectDimensionsContract"
+        "packages/hla-rti-cpp-tck/src/tck_service_report_lookup_scenarios.cpp::scenarioServiceReportObjectDimensions",
+        "packages/hla-rti-cpp-tck/src/tck_service_report_lookup_scenarios.cpp::scenarioServiceReportObjectDimensionsContract"
       ]
     }
   ]

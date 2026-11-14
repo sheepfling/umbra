@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for a successful ordinary attribute update service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. It verifies the standard HLAreportServiceInvocation payload and ordinary object update route without provider-specific headers, registries, names, or diagnostics.",
+  "notes": "This contract records the portable C++ TCK check for a successful ordinary attribute update service report. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard MIM data elements, and the standard library; the adapter supplies the provider package, ordinary FOM, standard MIM, endpoint, and callback configuration. It verifies the standard HLAreportServiceInvocation payload and ordinary object update route without provider-specific headers, registries, names, or diagnostics. The Table 5 VariableLengthData check observes attribute payload bytes 01 02 as Base64 AQI=, and the separate UserSuppliedTag check observes bytes 00 01 FE FF as Base64 AAH+/w==; both are bounded to the successful UpdateAttributeValues service-report arguments and do not establish every Binary Data form or conformance.",
   "api_surfaces": [
     {
       "id": "standard-cpp-service-report-attribute-update",

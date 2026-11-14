@@ -103,6 +103,9 @@ void scenarioLogicalTimeFactoryPortable(
     Options const& options,
     rti::CallbackModel model);
 void scenarioLogicalTimePortable(Options const& options, rti::CallbackModel model);
+void scenarioLogicalTimeIntervalNonnegativeContract(
+    Options const& options,
+    rti::CallbackModel model);
 void scenarioLogicalTimeFactoryFactoryPortable(
     Options const& options,
     rti::CallbackModel model);

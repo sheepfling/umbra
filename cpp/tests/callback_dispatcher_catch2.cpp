@@ -331,6 +331,36 @@ TEST_CASE("Evoke Multiple Callbacks retains FIFO order through its minimum wait"
   REQUIRE(dispatcher.pendingCount() == 0);
 }
 
+TEST_CASE(
+    "Evoke Multiple Callbacks wakes for callbacks submitted during its minimum wait",
+    "[unit][kernel][callbacks][concurrency][foundation]") {
+  CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
+  std::promise<void> submitCallback;
+  auto submitCallbackSignal = submitCallback.get_future();
+  auto submittedAt = std::chrono::steady_clock::time_point{};
+  auto invokedAt = std::chrono::steady_clock::time_point{};
+
+  std::thread producer([&] {
+    submitCallbackSignal.wait();
+    std::this_thread::sleep_for(25ms);
+    submittedAt = std::chrono::steady_clock::now();
+    dispatcher.submit([&] { invokedAt = std::chrono::steady_clock::now(); });
+  });
+
+  auto const startedAt = std::chrono::steady_clock::now();
+  submitCallback.set_value();
+  auto const pending = dispatcher.evokeMultiple(200ms, 500ms);
+  auto const elapsed = std::chrono::steady_clock::now() - startedAt;
+  producer.join();
+
+  REQUIRE_FALSE(pending);
+  REQUIRE(submittedAt != std::chrono::steady_clock::time_point{});
+  REQUIRE(invokedAt >= submittedAt);
+  REQUIRE(invokedAt - submittedAt < 150ms);
+  REQUIRE(elapsed >= 150ms);
+  REQUIRE(elapsed < 450ms);
+}
+
 TEST_CASE("The evoked callback dispatcher reports pending work while disabled", "[unit][kernel][callbacks][foundation]") {
   CallbackDispatcher dispatcher(CallbackDispatchModel::evoked);
   dispatcher.setEnabled(false);

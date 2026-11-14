@@ -122,9 +122,32 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   bool federationSaveDirectorySettingsApplied = false;
   bool fomEditionSettingsApplied = false;
   bool fomEditionSettingsFailedToParse = false;
+  bool unsupportedTransportationSettingsApplied = false;
+  bool unsupportedTransportationSettingsFailedToParse = false;
+  bool federateProtocolSettingsApplied = false;
+  bool federateProtocolSettingsFailedToParse = false;
+  bool tlsCertificateValidationSettingApplied = false;
+  bool tlsCertificateValidationSettingFailedToParse = false;
+  auto const unsupportedTransportationTypeNames =
+      configuredAmbassadorUnsupportedTransportationTypes(
+          configuration,
+          unsupportedTransportationSettingsApplied,
+          unsupportedTransportationSettingsFailedToParse);
+  auto processFederationClientOptions =
+      umbra::detail::ProcessFederationClientOptions{};
   std::unique_ptr<umbra::detail::ServiceReportStore> serviceReportStore;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
-  auto processEndpoint = configuredAmbassadorProcessEndpoint(configuration);
+  auto processEndpoint = configuredAmbassadorProcessEndpoint(
+      configuration,
+      tlsCertificateValidationSettingApplied,
+      tlsCertificateValidationSettingFailedToParse);
+  if (processEndpoint) {
+    processFederationClientOptions =
+        configuredAmbassadorProcessFederationClientOptions(
+            configuration,
+            federateProtocolSettingsApplied,
+            federateProtocolSettingsFailedToParse);
+  }
   std::filesystem::path federationSaveDirectory;
   if (!processEndpoint) {
     federationSaveDirectory = configuredAmbassadorFederationSaveDirectory(
@@ -171,10 +194,15 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   // allocation cannot leave a partially established connection behind.
   ConfigurationResult result = ignoredAmbassadorConnectionResult();
   auto const additionalSettingsResult =
-      fomEditionSettingsFailedToParse
+      fomEditionSettingsFailedToParse ||
+              unsupportedTransportationSettingsFailedToParse ||
+              federateProtocolSettingsFailedToParse ||
+              tlsCertificateValidationSettingFailedToParse
           ? SETTINGS_FAILED_TO_PARSE
           : (settingsApplied || federationSaveDirectorySettingsApplied ||
-             fomEditionSettingsApplied)
+             fomEditionSettingsApplied || unsupportedTransportationSettingsApplied ||
+             federateProtocolSettingsApplied ||
+             tlsCertificateValidationSettingApplied)
                 ? SETTINGS_APPLIED
                 : SETTINGS_IGNORED;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -192,14 +220,20 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
         false,
         SETTINGS_FAILED_TO_PARSE,
         L"Umbra could not parse an optional additional-settings value; the default embedded configuration was used.");
-  } else if (settingsApplied || fomEditionSettingsApplied) {
+  } else if (settingsApplied || fomEditionSettingsApplied ||
+             unsupportedTransportationSettingsApplied ||
+             tlsCertificateValidationSettingApplied) {
     result = ConfigurationResult(
         true, false, SETTINGS_APPLIED,
-        fomEditionSettingsApplied
+        unsupportedTransportationSettingsApplied
+            ? L"Umbra applied the configured transportation support profile."
+            : (fomEditionSettingsApplied
             ? L"Umbra applied the configured FOM model edition for the embedded compatibility profile."
             : (federationSaveDirectorySettingsApplied
                    ? L"Umbra applied federationSaveDirectory for durable federation saves."
-                   : L"Umbra applied serviceReportDirectory for embedded service-report files."));
+                   : (tlsCertificateValidationSettingApplied
+                       ? L"Umbra applied the configured TLS certificate-validation mode."
+                       : L"Umbra applied serviceReportDirectory for embedded service-report files."))));
   }
   auto callbackSession =
       std::make_shared<CallbackSession>(federateAmbassador, instrumentation_);
@@ -218,7 +252,12 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
               instrumentation_,
               [this](std::wstring faultDescription) {
                 handleProcessTransportFailure(std::move(faultDescription));
-              });
+              },
+              [this](std::wstring reasonForResign) {
+                return handleProcessFederateResignation(
+                    std::move(reasonForResign));
+              },
+              processFederationClientOptions);
       // Borrow the official ambassador's callback controls so the process
       // endpoint observes the same enable/disable and dispatch model as the
       // embedded endpoint.  The client never owns the recipient.
@@ -280,6 +319,7 @@ ConfigurationResult UmbraRtiAmbassador::connectImpl(
   serviceReportConnection_ = std::move(serviceReportConnection);
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   fomStandardEdition_ = configuredFomEdition;
+  unsupportedTransportationTypeNames_ = unsupportedTransportationTypeNames;
   transportConnection_ = std::move(transportConnection);
   processFederationClient_ = std::move(processFederationClient);
   processEndpointActive_ = static_cast<bool>(processFederationClient_);

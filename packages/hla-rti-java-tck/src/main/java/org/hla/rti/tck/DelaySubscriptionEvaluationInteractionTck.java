@@ -75,6 +75,9 @@ final class DelaySubscriptionEvaluationInteractionTck {
             checkInteraction(first, subscribedClass, publisherHandle,
                "pre-subscription interaction");
          }
+         JavaTckSupport.check(publisher.getDelaySubscriptionEvaluationSwitch() == enabled
+               && receiver.getDelaySubscriptionEvaluationSwitch() == enabled,
+            "Delay Subscription Evaluation switch changed across the initial callback boundary");
 
          receiverEvents.clear();
          if (model == CallbackModel.HLA_IMMEDIATE) receiver.disableCallbacks();

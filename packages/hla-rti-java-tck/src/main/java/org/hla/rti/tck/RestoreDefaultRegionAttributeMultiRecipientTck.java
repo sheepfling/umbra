@@ -104,7 +104,7 @@ final class RestoreDefaultRegionAttributeMultiRecipientTck {
          LogicalTime<?, ?> time7 = offset(initial, epsilon, 7);
          LogicalTime<?, ?> time10 = offset(initial, epsilon, 10);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          MessageRetractionReturn saved = publisher.updateAttributeValues(
@@ -113,6 +113,7 @@ final class RestoreDefaultRegionAttributeMultiRecipientTck {
                && saved.handle != null && firstEvents.reflections.isEmpty()
                && secondEvents.reflections.isEmpty(),
             "default-source timestamp-seven update was not queued for both recipients");
+         byte[] savedRetraction = encodeHandle(saved.handle);
          first.timeAdvanceRequest(time1);
          second.timeAdvanceRequest(time1);
          publisher.requestFederationSave(saveLabel);
@@ -153,29 +154,30 @@ final class RestoreDefaultRegionAttributeMultiRecipientTck {
          firstEvents.order.clear();
          secondEvents.order.clear();
          first.flushQueueRequest(time10);
-         await(members, () -> firstEvents.reflections.size() == 1
+         await(List.of(first), () -> firstEvents.reflections.size() == 1
                && firstEvents.flushGrants.size() == 1,
             "first restored default-region reflection and FQG");
          JavaTckSupport.check(secondEvents.reflections.isEmpty()
                && secondEvents.flushGrants.isEmpty() && secondEvents.order.isEmpty(),
             "first FQR prematurely released the second default-region reflection");
          second.flushQueueRequest(time10);
-         await(members, () -> secondEvents.reflections.size() == 1
+         await(List.of(second), () -> secondEvents.reflections.size() == 1
                && secondEvents.flushGrants.size() == 1,
             "second restored default-region reflection and FQG");
          checkReflected(firstEvents, firstRegion, object, publisherHandle,
-            saved.handle, time7, time5, value, tag);
+            savedRetraction, time7, time5, value, tag);
          checkReflected(secondEvents, secondRegion, object, publisherHandle,
-            saved.handle, time7, time5, value, tag);
+            savedRetraction, time7, time5, value, tag);
 
          firstEvents.order.clear();
          secondEvents.order.clear();
          publisher.retract(saved.handle);
-         await(members, () -> firstEvents.retractions.size() == 1
+         await(List.of(first, second), () -> firstEvents.retractions.size() == 1
                && secondEvents.retractions.size() == 1,
             "both restored default-region request-retraction callbacks");
-         JavaTckSupport.check(firstEvents.retractions.get(0).equals(saved.handle)
-               && secondEvents.retractions.get(0).equals(saved.handle)
+         JavaTckSupport.check(Arrays.equals(
+                  encodeHandle(firstEvents.retractions.get(0)), savedRetraction)
+               && Arrays.equals(encodeHandle(secondEvents.retractions.get(0)), savedRetraction)
                && firstEvents.order.equals(List.of("request-retraction"))
                && secondEvents.order.equals(List.of("request-retraction")),
             "restored default-region retraction callbacks differed between recipients");
@@ -244,8 +246,8 @@ final class RestoreDefaultRegionAttributeMultiRecipientTck {
 
    private static void checkReflected(Recorder events, RegionSubscription handles,
          ObjectInstanceHandle object, FederateHandle publisher,
-         MessageRetractionHandle saved, LogicalTime<?, ?> time7,
-         LogicalTime<?, ?> time5, byte[] value, byte[] tag) {
+         byte[] savedRetraction, LogicalTime<?, ?> time7,
+         LogicalTime<?, ?> time5, byte[] value, byte[] tag) throws Exception {
       Reflection reflection = events.reflections.get(0);
       FlushGrant grant = events.flushGrants.get(0);
       JavaTckSupport.check(reflection.object.equals(object)
@@ -254,13 +256,26 @@ final class RestoreDefaultRegionAttributeMultiRecipientTck {
             && Arrays.equals(reflection.tag, tag)
             && reflection.producer.equals(publisher)
             && reflection.regions != null && reflection.regions.isEmpty()
-            && reflection.time.equals(time7)
+            && Arrays.equals(encodeTime(reflection.time), encodeTime(time7))
             && reflection.sentOrder == OrderType.TIMESTAMP
             && reflection.receivedOrder == OrderType.TIMESTAMP
-            && reflection.retraction.equals(saved)
-            && grant.time.equals(time5) && grant.optimisticTime.equals(time7)
+            && Arrays.equals(encodeHandle(reflection.retraction), savedRetraction)
+            && Arrays.equals(encodeTime(grant.time), encodeTime(time5))
+            && Arrays.equals(encodeTime(grant.optimisticTime), encodeTime(time7))
             && events.order.equals(List.of("reflect", "flush-grant")),
          "restored default-region reflection, grant, or callback order changed");
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(List<RTIambassador> members,

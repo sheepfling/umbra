@@ -142,6 +142,64 @@ final class TarQueuedTsoBeforeGrantTck {
                Arrays.asList("interaction", "grant")),
             "TAR delivered the queued TSO after its time-advance grant");
 
+         LogicalTime<?, ?> belowGrantMessageTime =
+            offset(publisherInitial, publisherEpsilon, 6);
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendInteraction(publisherClass,
+               oneParameter(publisher, publisherParameter, payload), tag.clone(),
+               belowGrantMessageTime),
+            "InvalidLogicalTime",
+            "TAR producer send below current time plus lookahead after receiver grant");
+
+         LogicalTime<?, ?> nextMessageTime = offset(publisherInitial, publisherEpsilon, 7);
+         LogicalTime<?, ?> nextPublisherTarget = offset(publisherInitial, publisherEpsilon, 3);
+         LogicalTime<?, ?> nextReceiverTarget = offset(receiverInitial, receiverEpsilon, 7);
+         byte[] nextPayload = {0x54, 0x41, 0x52, 0x2d, 0x37};
+         byte[] nextTag = {0x54, 0x41, 0x52, 0x2d, 0x37};
+         MessageRetractionReturn nextRetraction = publisher.sendInteraction(
+            publisherClass, oneParameter(publisher, publisherParameter, nextPayload),
+            nextTag.clone(), nextMessageTime);
+         JavaTckSupport.check(nextRetraction != null && nextRetraction.retractionHandleIsValid
+               && nextRetraction.handle != null,
+            "TAR producer send at the post-advance lookahead floor returned no valid handle");
+         long earlyDeliveryDeadline = System.nanoTime() + EARLY_CALLBACK_WINDOW_NANOS;
+         while (System.nanoTime() < earlyDeliveryDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) receiver.evokeCallback(0.0);
+            else Thread.yield();
+         }
+         JavaTckSupport.check(receiverCallbacks.interactions.size() == 1
+               && receiverCallbacks.grants.size() == 1,
+            "post-grant timestamp-7 interaction arrived before the receiver TAR(7)");
+
+         receiverCallbacks.callbackOrder.clear();
+         receiver.timeAdvanceRequest(nextReceiverTarget);
+         publisher.timeAdvanceRequest(nextPublisherTarget);
+         await(publisher, callbackModel,
+            () -> publisherCallbacks.grants.size() == 2,
+            "TAR regulator TAR(3) grant");
+         JavaTckSupport.check(nextPublisherTarget.equals(publisher.queryLogicalTime()),
+            "TAR regulator did not reach its second requested time");
+         await(receiver, callbackModel,
+            () -> receiverCallbacks.interactions.size() == 2
+               && receiverCallbacks.grants.size() == 2,
+            "TAR post-grant TSO and grant callbacks");
+         Interaction nextDelivery = receiverCallbacks.interactions.get(1);
+         JavaTckSupport.check(receiverClass.equals(nextDelivery.interactionClass)
+               && nextDelivery.parameters.size() == 1
+               && Arrays.equals(nextPayload, nextDelivery.parameters.get(receiverParameter))
+               && Arrays.equals(nextTag, nextDelivery.tag)
+               && producer.equals(nextDelivery.producer)
+               && nextMessageTime.equals(nextDelivery.time)
+               && nextDelivery.sentOrder == OrderType.TIMESTAMP
+               && nextDelivery.receivedOrder == OrderType.TIMESTAMP
+               && nextRetraction.handle.equals(nextDelivery.retraction),
+            "TAR delivered the wrong post-grant timestamped interaction or metadata");
+         JavaTckSupport.check(nextReceiverTarget.equals(receiverCallbacks.grants.get(1))
+               && nextReceiverTarget.equals(receiver.queryLogicalTime())
+               && receiverCallbacks.callbackOrder.equals(
+                  Arrays.asList("interaction", "grant")),
+            "TAR did not deliver the later legal TSO before its TAR(7) grant");
+
          receiver.resignFederationExecution(ResignAction.NO_ACTION);
          receiverJoined = false;
          publisher.resignFederationExecution(ResignAction.NO_ACTION);

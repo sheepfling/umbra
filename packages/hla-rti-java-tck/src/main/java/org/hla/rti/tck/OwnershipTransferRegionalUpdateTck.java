@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Verifies ownership transfer clears the former owner's regional update source. */
 final class OwnershipTransferRegionalUpdateTck {
@@ -34,7 +35,8 @@ final class OwnershipTransferRegionalUpdateTck {
    private OwnershipTransferRegionalUpdateTck() { }
 
    static void run(RtiFactory factory, String fom, String objectClassName, String attributeName,
-         String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
+         String firstDimensionName, String secondDimensionName, String unrelatedDimensionName,
+         CallbackModel callbackModel)
          throws Exception {
       JavaTckSupport.check(fom != null && !fom.isEmpty(),
          "adapter-supplied dimensional FOM is required");
@@ -56,6 +58,7 @@ final class OwnershipTransferRegionalUpdateTck {
       RegionHandle newOwnerRegion = null;
       RegionHandle receiverOwnerRegion = null;
       RegionHandle receiverReplacementRegion = null;
+      RegionHandle invalidRegion = null;
       AttributeSetRegionSetPairList ownerPair = null;
       AttributeSetRegionSetPairList newOwnerPair = null;
       AttributeSetRegionSetPairList receiverPair = null;
@@ -105,6 +108,7 @@ final class OwnershipTransferRegionalUpdateTck {
             "ownership/DDM adapter FOM resolved inconsistent class, attribute, or dimensions");
          checkObjectDimensions(owner, ownerClass, ownerDimensions,
             firstDimensionName, secondDimensionName);
+         receiverCallbacks.configureReflectionInspection(receiver, receiverDimensions);
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          newOwnerAttributes = JavaTckSupport.attributeSet(newOwner, newOwnerAttribute);
@@ -120,12 +124,29 @@ final class OwnershipTransferRegionalUpdateTck {
          receiverOwnerRegion = createRegion(receiver, receiverDimensions, 1, 3, 1, 3);
          receiverReplacementRegion = createRegion(receiver, receiverDimensions, 6, 8, 6, 8);
          ownerPair = pairList(owner, ownerAttributes, ownerRegion);
+         DimensionHandle unrelatedDimension = owner.getDimensionHandle(unrelatedDimensionName);
+         DimensionHandleSet availableDimensions =
+            owner.getAvailableDimensionsForObjectClass(ownerClass);
+         JavaTckSupport.check(!availableDimensions.contains(unrelatedDimension),
+            "unrelated DDM dimension unexpectedly belongs to the object class");
+         DimensionHandleSet unrelatedDimensionSet =
+            owner.getDimensionHandleSetFactory().create();
+         unrelatedDimensionSet.add(unrelatedDimension);
+         invalidRegion = owner.createRegion(unrelatedDimensionSet);
+         owner.setRangeBounds(invalidRegion, unrelatedDimension, new RangeBounds(1, 3));
+         commitRegion(owner, invalidRegion);
+         expectInvalidRegionContext(owner, ownerClass, ownerAttributes, invalidRegion);
+         owner.deleteRegion(invalidRegion);
+         invalidRegion = null;
          newOwnerPair = pairList(newOwner, newOwnerAttributes, newOwnerRegion);
          receiverPair = pairList(receiver, receiverAttributes,
             receiverOwnerRegion, receiverReplacementRegion);
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          JavaTckSupport.check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "receiver did not enable region-designator callbacks");
+         receiver.setAttributeScopeAdvisorySwitch(true);
+         JavaTckSupport.check(receiver.getAttributeScopeAdvisorySwitch(),
+            "receiver did not enable attribute-scope advisories");
          newOwner.subscribeObjectClassAttributesWithRegions(newOwnerClass, newOwnerPair);
          newOwnerSubscribed = true;
          receiver.subscribeObjectClassAttributesWithRegions(receiverClass, receiverPair);
@@ -149,10 +170,13 @@ final class OwnershipTransferRegionalUpdateTck {
          update(owner, object, ownerAttribute, ownerValue, divestitureTag);
          await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
             "initial regional owner reflection");
+         receiverCallbacks.checkCallbackFailures();
          assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
-            ownerFederate, ownerValue, divestitureTag, ownerRegion, receiver,
+            ownerFederate, ownerValue, divestitureTag,
+            new RegionBoundsSnapshot(1, 3, 1, 3), receiver,
             "initial owner reflection");
 
+         receiverCallbacks.clearScopeAdvisories();
          newOwnerCallbacks.acquisitions.clear();
          if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
             // In immediate delivery, If Available reports unavailable inline;
@@ -178,15 +202,26 @@ final class OwnershipTransferRegionalUpdateTck {
                && acquisition.attributes.contains(newOwnerAttribute)
                && Arrays.equals(divestitureTag, acquisition.tag),
             "ownership acquisition callback returned the wrong object, attributes, or tag");
+         settle(receiver, callbackModel);
+         receiverCallbacks.requireNoScopeAdvisories(
+            "Divestiture If Wanted caused a transient attribute scope transition");
 
          receiverCallbacks.reflections.clear();
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[0],
+            new RangeBounds(7, 9));
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[1],
+            new RangeBounds(7, 9));
+         commitRegion(receiver, receiverOwnerRegion);
          expectAttributeNotOwned(owner, object, ownerAttribute, divestitureTag);
          update(newOwner, object, newOwnerAttribute, defaultValue, divestitureTag);
          await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
             "new-owner default-source reflection");
+         receiverCallbacks.checkCallbackFailures();
          assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
             newOwnerFederate, defaultValue, divestitureTag, null, receiver,
             "new-owner default-source reflection");
+         JavaTckSupport.check(receiverCallbacks.callbacksWithoutSourceRegions.get() == 1,
+            "new-owner default-source reflection conveyed a source-region copy");
 
          receiverCallbacks.reflections.clear();
          newOwner.setRangeBounds(newOwnerRegion, newOwnerDimensions[0], new RangeBounds(6, 8));
@@ -196,9 +231,136 @@ final class OwnershipTransferRegionalUpdateTck {
          update(newOwner, object, newOwnerAttribute, replacementValue, acquisitionTag);
          await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
             "explicit replacement-region reflection");
+         receiverCallbacks.checkCallbackFailures();
          assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
-            newOwnerFederate, replacementValue, acquisitionTag, newOwnerRegion,
+            newOwnerFederate, replacementValue, acquisitionTag,
+            new RegionBoundsSnapshot(6, 8, 6, 8),
             receiver, "explicit replacement-region reflection");
+
+         ownerCallbacks.acquisitions.clear();
+         newOwnerCallbacks.releaseRequests.clear();
+         owner.attributeOwnershipAcquisition(object, ownerAttributes, acquisitionTag);
+         await(newOwner, callbackModel, () -> !newOwnerCallbacks.releaseRequests.isEmpty(),
+            "former-owner reacquisition release request");
+         OwnershipEvent releaseRequest = newOwnerCallbacks.releaseRequests.get(0);
+         JavaTckSupport.check(object.equals(releaseRequest.object)
+               && releaseRequest.attributes.equals(newOwnerAttributes)
+               && Arrays.equals(acquisitionTag, releaseRequest.tag),
+            "former-owner reacquisition release request returned the wrong data");
+         AttributeHandleSet reacquired = newOwner.attributeOwnershipDivestitureIfWanted(
+            object, newOwnerAttributes, divestitureTag);
+         JavaTckSupport.check(reacquired != null && reacquired.equals(newOwnerAttributes)
+               && owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !newOwner.isAttributeOwnedByFederate(object, newOwnerAttribute),
+            "former-owner reacquisition did not transfer ownership back");
+         await(owner, callbackModel, () -> !ownerCallbacks.acquisitions.isEmpty(),
+            "former-owner reacquisition notification");
+         OwnershipEvent reacquisition = ownerCallbacks.acquisitions.get(0);
+         JavaTckSupport.check(object.equals(reacquisition.object)
+               && reacquisition.attributes.equals(ownerAttributes)
+               && Arrays.equals(divestitureTag, reacquisition.tag),
+            "former-owner reacquisition notification returned the wrong data");
+
+         byte[] reacquiredDefaultValue = new byte[] {0x52, 0x45, 0x41, 0x43};
+         receiverCallbacks.reflections.clear();
+         update(owner, object, ownerAttribute, reacquiredDefaultValue, acquisitionTag);
+         await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
+            "reacquired owner default-source reflection");
+         receiverCallbacks.checkCallbackFailures();
+         assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
+            ownerFederate, reacquiredDefaultValue, acquisitionTag, null, receiver,
+            "reacquired owner default-source reflection");
+         JavaTckSupport.check(receiverCallbacks.callbacksWithoutSourceRegions.get() == 2,
+            "reacquired owner did not use the default source region");
+
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[0],
+            new RangeBounds(1, 3));
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[1],
+            new RangeBounds(1, 3));
+         commitRegion(receiver, receiverOwnerRegion);
+         owner.associateRegionsForUpdates(object, ownerPair);
+         byte[] reassociatedValue = new byte[] {0x52, 0x45, 0x41, 0x53};
+         receiverCallbacks.reflections.clear();
+         update(owner, object, ownerAttribute, reassociatedValue, divestitureTag);
+         await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
+            "explicitly reassociated former-owner reflection");
+         receiverCallbacks.checkCallbackFailures();
+         assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
+            ownerFederate, reassociatedValue, divestitureTag,
+            new RegionBoundsSnapshot(1, 3, 1, 3), receiver,
+            "explicitly reassociated former-owner reflection");
+         JavaTckSupport.check(receiverCallbacks.callbacksWithoutSourceRegions.get() == 2,
+            "explicit reassociation changed the default-source callback count");
+
+         receiverCallbacks.clearScopeAdvisories();
+         ownerCallbacks.releaseRequests.clear();
+         ownerCallbacks.divestitureConfirmations.clear();
+         newOwnerCallbacks.acquisitions.clear();
+         owner.negotiatedAttributeOwnershipDivestiture(
+            object, ownerAttributes, divestitureTag);
+         newOwner.attributeOwnershipAcquisition(object, newOwnerAttributes, acquisitionTag);
+         await(owner, callbackModel, () -> !ownerCallbacks.divestitureConfirmations.isEmpty(),
+            "negotiated divestiture confirmation request");
+         OwnershipEvent confirmationRequest = ownerCallbacks.divestitureConfirmations.get(0);
+         JavaTckSupport.check(object.equals(confirmationRequest.object)
+               && confirmationRequest.attributes.equals(ownerAttributes)
+               && Arrays.equals(acquisitionTag, confirmationRequest.tag)
+               && owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !newOwner.isAttributeOwnedByFederate(object, newOwnerAttribute),
+            "negotiated divestiture confirmation request returned the wrong data or ownership");
+         settle(receiver, callbackModel);
+         receiverCallbacks.requireNoScopeAdvisories(
+            "pending negotiated divestiture caused a transient attribute scope transition");
+         owner.confirmDivestiture(object, ownerAttributes, divestitureTag);
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && newOwner.isAttributeOwnedByFederate(object, newOwnerAttribute),
+            "confirmed negotiated divestiture did not transfer ownership immediately");
+         await(newOwner, callbackModel, () -> !newOwnerCallbacks.acquisitions.isEmpty(),
+            "negotiated acquisition notification");
+         OwnershipEvent negotiatedAcquisition = newOwnerCallbacks.acquisitions.get(0);
+         JavaTckSupport.check(object.equals(negotiatedAcquisition.object)
+               && negotiatedAcquisition.attributes.equals(newOwnerAttributes)
+               && Arrays.equals(divestitureTag, negotiatedAcquisition.tag),
+            "negotiated acquisition notification returned the wrong data");
+         settle(receiver, callbackModel);
+         receiverCallbacks.requireNoScopeAdvisories(
+            "confirmed negotiated divestiture caused a transient attribute scope transition");
+
+         newOwner.associateRegionsForUpdates(object, newOwnerPair);
+         receiverCallbacks.clearScopeAdvisories();
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[0],
+            new RangeBounds(8, 10));
+         receiver.setRangeBounds(receiverOwnerRegion, receiverDimensions[1],
+            new RangeBounds(8, 10));
+         receiver.setRangeBounds(receiverReplacementRegion, receiverDimensions[0],
+            new RangeBounds(0, 1));
+         receiver.setRangeBounds(receiverReplacementRegion, receiverDimensions[1],
+            new RangeBounds(0, 1));
+         RegionHandleSet regionsToCommit = receiver.getRegionHandleSetFactory().create();
+         regionsToCommit.add(receiverOwnerRegion);
+         regionsToCommit.add(receiverReplacementRegion);
+         receiver.commitRegionModifications(regionsToCommit);
+         await(receiver, callbackModel, () -> !receiverCallbacks.attributesOutOfScope.isEmpty(),
+            "live out-of-scope advisory control");
+         requireSingleScopeAdvisory(receiverCallbacks.attributesOutOfScope, object,
+            receiverAttributes, "live out-of-scope advisory control");
+         JavaTckSupport.check(receiverCallbacks.attributesInScope.isEmpty(),
+            "out-of-scope control also produced an in-scope advisory");
+         receiverCallbacks.clearScopeAdvisories();
+         receiver.setRangeBounds(receiverReplacementRegion, receiverDimensions[0],
+            new RangeBounds(6, 8));
+         receiver.setRangeBounds(receiverReplacementRegion, receiverDimensions[1],
+            new RangeBounds(6, 8));
+         commitRegion(receiver, receiverReplacementRegion);
+         await(receiver, callbackModel, () -> !receiverCallbacks.attributesInScope.isEmpty(),
+            "live in-scope advisory control");
+         requireSingleScopeAdvisory(receiverCallbacks.attributesInScope, object,
+            receiverAttributes, "live in-scope advisory control");
+         JavaTckSupport.check(receiverCallbacks.attributesOutOfScope.isEmpty(),
+            "in-scope control also produced an out-of-scope advisory");
+         receiver.setAttributeScopeAdvisorySwitch(false);
+         JavaTckSupport.check(!receiver.getAttributeScopeAdvisorySwitch(),
+            "receiver did not disable attribute-scope advisories after the control");
       } finally {
          if (joined[2] && receiverSubscribed && receiverClass != null && receiverPair != null) {
             try { receiver.unsubscribeObjectClassAttributesWithRegions(receiverClass, receiverPair); }
@@ -210,6 +372,10 @@ final class OwnershipTransferRegionalUpdateTck {
          }
          if (joined[1] && object != null && newOwnerPair != null) {
             try { newOwner.unassociateRegionsForUpdates(object, newOwnerPair); }
+            catch (Exception ignored) { }
+         }
+         if (joined[0] && object != null && ownerPair != null) {
+            try { owner.unassociateRegionsForUpdates(object, ownerPair); }
             catch (Exception ignored) { }
          }
          if (joined[0] && ownerPublished && ownerClass != null && ownerAttributes != null) {
@@ -225,6 +391,9 @@ final class OwnershipTransferRegionalUpdateTck {
          }
          if (joined[2] && receiverReplacementRegion != null) {
             try { receiver.deleteRegion(receiverReplacementRegion); } catch (Exception ignored) { }
+         }
+         if (joined[0] && invalidRegion != null) {
+            try { owner.deleteRegion(invalidRegion); } catch (Exception ignored) { }
          }
          if (joined[1] && newOwnerRegion != null) {
             try { newOwner.deleteRegion(newOwnerRegion); } catch (Exception ignored) { }
@@ -316,6 +485,7 @@ final class OwnershipTransferRegionalUpdateTck {
             "deferred ownership/DDM FOM resolved inconsistent handles");
          checkObjectDimensions(owner, ownerClass, ownerDimensions,
             firstDimensionName, secondDimensionName);
+         receiverCallbacks.configureReflectionInspection(receiver, receiverDimensions);
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          newOwnerAttributes = JavaTckSupport.attributeSet(newOwner, newOwnerAttribute);
@@ -346,6 +516,19 @@ final class OwnershipTransferRegionalUpdateTck {
                && receiverCallbacks.discoveries.contains(registeredObject),
             "deferred ownership-transfer discovery");
 
+         // Give the pending owner's association a distinct realization so
+         // callback-visible copies distinguish it from the current owner's region.
+         newOwner.setRangeBounds(deferredRegion, deferredDimensions[0],
+            new RangeBounds(6, 8));
+         newOwner.setRangeBounds(deferredRegion, deferredDimensions[1],
+            new RangeBounds(6, 8));
+         commitRegion(newOwner, deferredRegion);
+         receiver.setRangeBounds(receiverDeferredRegion, receiverDimensions[0],
+            new RangeBounds(6, 8));
+         receiver.setRangeBounds(receiverDeferredRegion, receiverDimensions[1],
+            new RangeBounds(6, 8));
+         commitRegion(receiver, receiverDeferredRegion);
+
          byte[] ownerValue = new byte[] {0x4f, 0x4c, 0x44, 0x26};
          byte[] newOwnerValue = new byte[] {0x4e, 0x45, 0x57, 0x26};
          byte[] acquisitionTag = new byte[] {0x41, 0x43, 0x51, 0x26};
@@ -357,8 +540,10 @@ final class OwnershipTransferRegionalUpdateTck {
          update(owner, object, ownerAttribute, ownerValue, divestitureTag);
          await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
             "pre-transfer owner reflection");
+         receiverCallbacks.checkCallbackFailures();
          assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
-            ownerFederate, ownerValue, divestitureTag, ownerRegion, receiver,
+            ownerFederate, ownerValue, divestitureTag,
+            new RegionBoundsSnapshot(1, 3, 1, 3), receiver,
             "pre-transfer owner reflection");
 
          ownerCallbacks.releaseRequests.clear();
@@ -391,8 +576,10 @@ final class OwnershipTransferRegionalUpdateTck {
          update(newOwner, object, newOwnerAttribute, newOwnerValue, acquisitionTag);
          await(receiver, callbackModel, () -> !receiverCallbacks.reflections.isEmpty(),
             "post-transfer deferred-region reflection");
+         receiverCallbacks.checkCallbackFailures();
          assertReflection(receiverCallbacks.reflections.get(0), object, receiverAttribute,
-            newOwnerFederate, newOwnerValue, acquisitionTag, deferredRegion, receiver,
+            newOwnerFederate, newOwnerValue, acquisitionTag,
+            new RegionBoundsSnapshot(6, 8, 6, 8), receiver,
             "post-transfer deferred-region reflection");
       } finally {
          if (joined[2] && receiverSubscribed && receiverClass != null && receiverPair != null) {
@@ -506,9 +693,27 @@ final class OwnershipTransferRegionalUpdateTck {
       JavaTckSupport.check(false, "former owner successfully updated an attribute after transfer");
    }
 
+   private static void expectInvalidRegionContext(RTIambassador ambassador,
+         ObjectClassHandle objectClass, AttributeHandleSet attributes, RegionHandle region)
+         throws Exception {
+      try {
+         ambassador.registerObjectInstanceWithRegions(
+            objectClass, pairList(ambassador, attributes, region));
+      } catch (Exception exception) {
+         JavaTckSupport.check("InvalidRegionContext".equals(
+               exception.getClass().getSimpleName()),
+            "registration with an unrelated dimension failed with the wrong exception: "
+               + exception.getClass().getName());
+         return;
+      }
+      JavaTckSupport.check(false,
+         "registration accepted a source region with a dimension unavailable to the object class");
+   }
+
    private static void assertReflection(Reflection reflection, ObjectInstanceHandle object,
          AttributeHandle attribute, FederateHandle producer, byte[] value, byte[] tag,
-         RegionHandle expectedRegion, RTIambassador receiver, String description) throws Exception {
+         RegionBoundsSnapshot expectedRegionBounds, RTIambassador receiver,
+         String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
@@ -516,14 +721,24 @@ final class OwnershipTransferRegionalUpdateTck {
       JavaTckSupport.check(reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty(),
          description + " omitted transportation metadata");
-      if (expectedRegion == null) {
+      if (expectedRegionBounds == null) {
          JavaTckSupport.check(reflection.regions == null || reflection.regions.isEmpty(),
             description + " inherited a former owner's source-region association");
       } else {
          JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1
-               && reflection.regions.contains(expectedRegion),
-            description + " returned the wrong source-region designator");
+               && reflection.copiedRegionBounds.size() == 1
+               && expectedRegionBounds.matches(reflection.copiedRegionBounds.get(0)),
+            description + " returned the wrong copied source-region dimensions or bounds");
       }
+   }
+
+   private static void requireSingleScopeAdvisory(List<ScopeAdvisory> reports,
+         ObjectInstanceHandle object, AttributeHandleSet attributes, String description) {
+      JavaTckSupport.check(reports.size() == 1,
+         description + " returned an unexpected callback count");
+      ScopeAdvisory report = reports.get(0);
+      JavaTckSupport.check(object.equals(report.object) && attributes.equals(report.attributes),
+         description + " returned the wrong object or attribute set");
    }
 
    private static void awaitAll(RTIambassador first, RTIambassador second, RTIambassador third,
@@ -550,6 +765,16 @@ final class OwnershipTransferRegionalUpdateTck {
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
+   private static void settle(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) {
+         while (ambassador.evokeMultipleCallbacks(0.0, 0.0)) { }
+      } else {
+         long deadline = System.nanoTime() + 100_000_000L;
+         while (System.nanoTime() < deadline) Thread.yield();
+      }
+   }
+
    private static void resign(RTIambassador ambassador, ResignAction action) {
       try { ambassador.resignFederationExecution(action); } catch (Exception ignored) { }
    }
@@ -572,6 +797,7 @@ final class OwnershipTransferRegionalUpdateTck {
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
       private final RegionHandleSet regions;
+      private final List<RegionBoundsSnapshot> copiedRegionBounds = new java.util.ArrayList<>();
       private Reflection(Object[] arguments) {
          object = (ObjectInstanceHandle) arguments[0];
          AttributeHandleValueMap received = (AttributeHandleValueMap) arguments[1];
@@ -584,11 +810,100 @@ final class OwnershipTransferRegionalUpdateTck {
       }
    }
 
+   private static final class RegionBoundsSnapshot {
+      private final long firstLower;
+      private final long firstUpper;
+      private final long secondLower;
+      private final long secondUpper;
+      private RegionBoundsSnapshot(long firstLower, long firstUpper,
+            long secondLower, long secondUpper) {
+         this.firstLower = firstLower;
+         this.firstUpper = firstUpper;
+         this.secondLower = secondLower;
+         this.secondUpper = secondUpper;
+      }
+      private boolean matches(RegionBoundsSnapshot other) {
+         return other != null && firstLower == other.firstLower && firstUpper == other.firstUpper
+            && secondLower == other.secondLower && secondUpper == other.secondUpper;
+      }
+   }
+
+   private static final class ScopeAdvisory {
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleSet attributes;
+      private ScopeAdvisory(ObjectInstanceHandle object, AttributeHandleSet attributes) {
+         this.object = object;
+         this.attributes = (AttributeHandleSet) attributes.clone();
+      }
+   }
+
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> divestitureConfirmations = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<ScopeAdvisory> attributesInScope = new CopyOnWriteArrayList<>();
+      private final List<ScopeAdvisory> attributesOutOfScope = new CopyOnWriteArrayList<>();
+      private final List<Throwable> callbackFailures = new CopyOnWriteArrayList<>();
+      private final AtomicInteger callbacksWithoutSourceRegions = new AtomicInteger();
+      private volatile RTIambassador reflectionAmbassador;
+      private volatile DimensionHandle[] reflectionDimensions;
+
+      private void configureReflectionInspection(RTIambassador ambassador,
+            DimensionHandle[] dimensions) {
+         reflectionAmbassador = ambassador;
+         reflectionDimensions = dimensions.clone();
+      }
+
+      private void checkCallbackFailures() {
+         JavaTckSupport.check(callbackFailures.isEmpty(),
+            "reflection callback inspection failed: "
+               + (callbackFailures.isEmpty() ? "" : callbackFailures.get(0).toString()));
+      }
+
+      private void clearScopeAdvisories() {
+         attributesInScope.clear();
+         attributesOutOfScope.clear();
+      }
+
+      private void requireNoScopeAdvisories(String description) {
+         JavaTckSupport.check(attributesInScope.isEmpty() && attributesOutOfScope.isEmpty(),
+            description);
+      }
+
+      private void recordReflection(Object[] arguments) {
+         Reflection reflection = new Reflection(arguments);
+         try {
+            if (reflection.regions == null || reflection.regions.isEmpty()) {
+               callbacksWithoutSourceRegions.incrementAndGet();
+            } else {
+               JavaTckSupport.check(reflection.regions.size() == 1,
+                  "ownership-transfer reflection conveyed an unexpected number of region copies");
+               RTIambassador ambassador = reflectionAmbassador;
+               DimensionHandle[] dimensions = reflectionDimensions;
+               JavaTckSupport.check(ambassador != null && dimensions != null
+                     && dimensions.length == 2,
+                  "reflection callback region inspection was not configured");
+               RegionHandle callbackRegion = reflection.regions.iterator().next();
+               DimensionHandleSet expectedDimensions =
+                  ambassador.getDimensionHandleSetFactory().create();
+               expectedDimensions.add(dimensions[0]);
+               expectedDimensions.add(dimensions[1]);
+               JavaTckSupport.check(ambassador.getDimensionHandleSet(callbackRegion)
+                     .equals(expectedDimensions),
+                  "ownership-transfer callback region copy changed its dimension set");
+               RangeBounds first = ambassador.getRangeBounds(callbackRegion, dimensions[0]);
+               RangeBounds second = ambassador.getRangeBounds(callbackRegion, dimensions[1]);
+               reflection.copiedRegionBounds.add(new RegionBoundsSnapshot(
+                  first.lower, first.upper, second.lower, second.upper));
+            }
+         } catch (Throwable failure) {
+            callbackFailures.add(failure);
+         }
+         reflections.add(reflection);
+      }
+
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -602,9 +917,22 @@ final class OwnershipTransferRegionalUpdateTck {
                } else if ("requestAttributeOwnershipRelease".equals(name)
                      && arguments != null && arguments.length >= 3) {
                   releaseRequests.add(new OwnershipEvent(arguments));
+               } else if ("requestDivestitureConfirmation".equals(name)
+                     && arguments != null && arguments.length >= 3) {
+                  divestitureConfirmations.add(new OwnershipEvent(arguments));
                } else if ("reflectAttributeValues".equals(name) && arguments != null
                      && arguments.length == 6) {
-                  reflections.add(new Reflection(arguments));
+                  recordReflection(arguments);
+               } else if ("attributesInScope".equals(name) && arguments != null
+                     && arguments.length >= 2) {
+                  attributesInScope.add(new ScopeAdvisory(
+                     (ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1]));
+               } else if ("attributesOutOfScope".equals(name) && arguments != null
+                     && arguments.length >= 2) {
+                  attributesOutOfScope.add(new ScopeAdvisory(
+                     (ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK regional ownership callbacks";

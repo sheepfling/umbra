@@ -108,9 +108,11 @@ final class FederateMomCompleteAttributeSubscriptionTck {
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+         requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
+         JavaTckSupport.check(targetFederate != null,
+            "requester could not resolve the subject federate handle for the standard MIM query");
 
          ObjectClassHandle subjectObjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle requesterObjectClass = requester.getObjectClassHandle(objectClassName);

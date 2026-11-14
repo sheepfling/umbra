@@ -1,4 +1,5 @@
 #include "internal/federation/process_federation_service.hpp"
+#include "internal/runtime/utf8_string.hpp"
 #include "internal/federation/process_federation_service_helpers.hpp"
 
 #include "internal/fom/hla_names.hpp"
@@ -33,6 +34,7 @@ void ProcessFederationService::clearJoinedFederateSessionState(
   if (state == sessions_.end() || state->second.federateId != federateId) {
     return;
   }
+  auto const federationName = state->second.federationName;
   // Resignation ends this joined-federate lifetime even when the transport
   // session remains connected. A delivered TSO may still have a pending
   // pushed Request Retraction recipient entry; do not let a later Retract
@@ -52,7 +54,9 @@ void ProcessFederationService::clearJoinedFederateSessionState(
   sessionsByFederateId_.erase(federateId);
   for (auto position = processTsoMessageProducers_.begin();
        position != processTsoMessageProducers_.end();) {
-    if (position->second == federateId) {
+    if (federationName &&
+        position->first.first == *federationName &&
+        position->second == federateId) {
       pendingPushedRetractionRecipients_.erase(position->first);
       position = processTsoMessageProducers_.erase(position);
     } else {
@@ -242,11 +246,23 @@ TransportServiceMessage ProcessFederationService::handleCreate(
         preparedDefinition->logicalTimeImplementationName.empty()) {
       return rejected(request);
     }
+    for (auto const& name : createRequest.unsupportedTransportationTypeNames) {
+      auto const encodedName = utf8FromWide(name);
+      if (!encodedName) {
+        return rejected(request);
+      }
+      preparedDefinition->unsupportedTransportationTypeNames.insert(*encodedName);
+    }
   }
   auto result = registry_.create(
       createRequest.federationName,
       preparedDefinition ? std::move(*preparedDefinition)
                          : *federationDefinition_);
+  if (result.status == FederationRegistryStatus::federation_already_exists) {
+    return responseFor(
+        request,
+        TransportServiceStatus::federation_execution_already_exists);
+  }
   if (result.status != FederationRegistryStatus::applied) {
     return rejected(request);
   }
@@ -341,21 +357,21 @@ TransportServiceMessage ProcessFederationService::handleJoin(
   // the receiver process's official FederateAmbassador dispatch.
   callbackRoute.receiveOrderSubmit = [](FederateCallbackInvocation) {};
   auto timeState = makeProcessFederateTimeState(effectiveDefinition);
-  auto const processConnection = session.connection();
+  auto const sendSessionEvent = session.makeServiceSender();
   auto timeAdvanceGrantDispatchFactory =
       [this,
-       processConnection,
+       sendSessionEvent,
        federationName = joinRequest.federationName,
        timeState](std::uint64_t federateId,
                    std::uint64_t generation,
                    std::uint64_t dispatchIdentity)
       -> FederationTimeGrantDispatch {
-    if (!processConnection || !timeState || federateId == 0U ||
+    if (!sendSessionEvent || !timeState || federateId == 0U ||
         generation == 0U || dispatchIdentity == 0U) {
       return {};
     }
     return [this,
-            processConnection,
+            sendSessionEvent,
             federationName,
             timeState,
             federateId,
@@ -492,17 +508,15 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         eventResult.status = ProcessFederationTimeAdvanceStatus::applied;
         eventResult.grantedTime = std::move(encodedGrant);
         eventResult.optimisticTime = std::move(encodedOptimistic);
-        ProcessTransportSession eventSession(processConnection);
-        if (!eventSession.send(
-                TransportServiceMessage{
-                    TransportServiceMessageKind::event,
-                    TransportServiceOperation::time_advance_grant,
-                    TransportServiceStatus::ok,
-                    0U,
-                    encodeProcessFederationTimeAdvanceResult(eventResult)})) {
-          throw std::runtime_error(
-              "The process federation could not deliver the Flush Queue Grant event.");
-        }
+        // The sender resolves the current socket for this joined session.
+        // A failed write remains in message history and is replayed after a
+        // reconnect; it must not roll back an already-applied grant.
+        (void)sendSessionEvent(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::time_advance_grant,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationTimeAdvanceResult(eventResult)});
         return;
       }
       // Timestamped interaction callbacks precede the matching grant.  Keep
@@ -539,16 +553,12 @@ TransportServiceMessage ProcessFederationService::handleJoin(
             immediateSaveAdmission.currentFederateNotification->label;
         ProcessFederationReceiveInteractionResult saveResult;
         saveResult.saveEvent = std::move(saveEvent);
-        ProcessTransportSession eventSession(processConnection);
-        if (!eventSession.send(TransportServiceMessage{
-                TransportServiceMessageKind::event,
-                TransportServiceOperation::receive_interaction,
-                TransportServiceStatus::ok,
-                0U,
-                encodeProcessFederationReceiveInteractionResult(saveResult)})) {
-          throw std::runtime_error(
-              "The process federation could not deliver the untimed save initiation event.");
-        }
+        (void)sendSessionEvent(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(saveResult)});
       }
       if (!immediateSaveAdmission.notifications.empty() &&
           !enqueueFederationSaveNotifications(
@@ -589,16 +599,12 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         }
         ProcessFederationReceiveInteractionResult saveResult;
         saveResult.saveEvent = std::move(saveEvent);
-        ProcessTransportSession eventSession(processConnection);
-        if (!eventSession.send(TransportServiceMessage{
-                TransportServiceMessageKind::event,
-                TransportServiceOperation::receive_interaction,
-                TransportServiceStatus::ok,
-                0U,
-                encodeProcessFederationReceiveInteractionResult(saveResult)})) {
-          throw std::runtime_error(
-              "The process federation could not deliver the timestamped save initiation event.");
-        }
+        (void)sendSessionEvent(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_interaction,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveInteractionResult(saveResult)});
       }
       if (!saveAdmission.notifications.empty() &&
           !enqueueFederationSaveNotifications(
@@ -623,17 +629,12 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       eventResult.status = ProcessFederationTimeAdvanceStatus::applied;
       eventResult.grantedTime = std::move(encodedGrant);
       eventResult.regulationEnabled = implicitRegulationAdvance;
-      ProcessTransportSession eventSession(processConnection);
-      if (!eventSession.send(
-              TransportServiceMessage{
-                  TransportServiceMessageKind::event,
-                  TransportServiceOperation::time_advance_grant,
-                  TransportServiceStatus::ok,
-                  0U,
-                  encodeProcessFederationTimeAdvanceResult(eventResult)})) {
-        throw std::runtime_error(
-            "The process federation could not deliver a time-advance grant event.");
-      }
+      (void)sendSessionEvent(TransportServiceMessage{
+          TransportServiceMessageKind::event,
+          TransportServiceOperation::time_advance_grant,
+          TransportServiceStatus::ok,
+          0U,
+          encodeProcessFederationTimeAdvanceResult(eventResult)});
       if (pendingSnapshot.advanceMode ==
           FederateTimeAdvanceMode::time_advance_request_available) {
         // A TARA grant permits future equal-time arrivals. Dispatch any
@@ -778,7 +779,19 @@ TransportServiceMessage ProcessFederationService::handleJoin(
         }
       }
       serviceReportWriter = std::move(writer);
+    } catch (std::exception const& error) {
+      if (options_.failureDiagnosticForTesting) {
+        options_.failureDiagnosticForTesting(error.what());
+      }
+      if (!rollbackJoinedMembership()) {
+        return internalError(request);
+      }
+      return internalError(request);
     } catch (...) {
+      if (options_.failureDiagnosticForTesting) {
+        options_.failureDiagnosticForTesting(
+            "non-standard exception during process Join report setup");
+      }
       if (!rollbackJoinedMembership()) {
         return internalError(request);
       }
@@ -816,6 +829,9 @@ TransportServiceMessage ProcessFederationService::handleJoin(
     if (options_.afterJoinedFederateSessionInstalledForTesting) {
       options_.afterJoinedFederateSessionInstalledForTesting();
     }
+    if (options_.afterJoinedFederateSessionInstalledForRecoveryTesting) {
+      options_.afterJoinedFederateSessionInstalledForRecoveryTesting(session);
+    }
   } catch (...) {
     (void)rollbackInstalledJoin();
     return internalError(request);
@@ -838,6 +854,14 @@ TransportServiceMessage ProcessFederationService::handleJoin(
       }
       return internalError(request);
     }
+  }
+  if (!enqueueFederationMomConditionalAttributeUpdate(
+          joinRequest.federationName,
+          {hla::utf8::mom::federates_in_federation})) {
+    if (!rollbackInstalledJoin()) {
+      return internalError(request);
+    }
+    return internalError(request);
   }
   auto pendingAnnouncements = registry_.announcePendingSynchronizationPoints(
       joinRequest.federationName,

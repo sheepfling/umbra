@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The selected 2025 requirement calls for RTI and federate message-history buffers that permit lost messages to be resent after a connection fault. Fourteen bounded public-API TCK cases now exercise complementary paths: an RTI-to-federate Join result, a federate-to-RTI getFederateHandle request lost before RTI acceptance, and accepted successful responses for RegisterObjectInstance, CreateFederationExecutionWithMIM, ReserveObjectInstanceName, DeleteObjectInstance, UpdateAttributeValues, SendInteraction, EnableTimeRegulation, EnableTimeConstrained, TimeAdvanceRequest, TimeAdvanceRequestAvailable, NextMessageRequest, and NextMessageRequestAvailable that are lost and replayed. These cases do not establish replay for every message type or complete coverage of either peer's history buffer.",
+  "requirements": [
+    {
+      "id": "umbra-connection-fault-replays-join-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultJoinResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-federate-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_federation_client.cpp",
+      "source_symbol": "ProcessFederationClient::reconnectTransport retained request replay",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultFederateRequestReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-registration-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultRegistrationResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-create-federation-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultCreateFederationResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-reservation-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultReservationResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-delete-object-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultDeleteObjectResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-attribute-update-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultAttributeUpdateResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-send-interaction-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultSendInteractionResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-time-regulation-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeRegulationResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-time-constrained-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeConstrainedResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-time-advance-request-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeAdvanceRequestResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-time-advance-request-available-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeAdvanceRequestAvailableResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-next-message-request-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultNextMessageRequestResponseReplay"
+      ]
+    },
+    {
+      "id": "umbra-connection-fault-replays-next-message-request-available-response",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l74-24",
+      "clause_id": "clause-12.13.4.4",
+      "source": "cpp/src/internal/federation/process_transport_session.cpp",
+      "source_symbol": "ProcessTransportSession::replayOutgoingAfter",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultNextMessageRequestAvailableResponseReplay"
+      ]
+    }
+  ]
+}

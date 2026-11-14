@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(Federate, federate)
+UMBRA_2025_DEFINE_HANDLE(Federate, federate, Federate)
 
 }  // namespace rti1516_2025

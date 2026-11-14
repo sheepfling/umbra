@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This focused trace covers IEEE 1516.1-2025 §11.3.1 p. 290 l. 33-10 through the observed handling of each tested MOM leaf class, §11.4.1 p. 290 l. 156 (active RTI subscription to Table 7 S leaves), and bounded no-tag/no-timestamp behavior across selected callbacks. The portable C++ TCK and Catch2 tests provide direct evidence only for their exercised leaves and callback paths; the contract twin reuses the same TCK scenario and is not independent evidence. No complete MOM service semantics, provider validation, interoperability, or conformance is claimed.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l156-51",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1, Table 7; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 156",
+      "source_symbol": "HLAmanager leaf interaction classes designated Subscribe (S)",
+      "statement": "The RTI shall be actively subscribed to all leaf interaction classes in Table 7 that are designated with an S.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscriptionContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l165-54-no-metadata",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 165",
+      "source_symbol": "RTI-originated report interactions exercised by Table 7 S-leaf requests",
+      "statement": "The RTI shall never provide timestamps or user-supplied tags with instance attribute updates, sent interactions, or object instance deletion.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscriptionContract",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract",
+        "cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp::Embedded joined-federate MOM objects use the public discovery reflection and removal route"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l165-54",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 165",
+      "source_symbol": "Instance attribute updates, sent interactions, and object instance deletion",
+      "statement": "Across the paired Table 7 S-leaf and joined-federate MOM lifecycle scenarios, the RTI provides no timestamps or user-supplied tags on the exercised report interactions, Table 8 initial/request attribute updates, or resignation-triggered object deletions. This is bounded evidence for the three callback categories, not a universal audit of every RTI output path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscriptionContract",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l33-10",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_lines": "page 290, line 33",
+      "source_symbol": "RTI subscription to the specific MOM leaf interaction class",
+      "statement": "The RTI shall subscribe at the MOM leaf-class level (e.g., HLAmanager.HLAfederate.HLAadjust.HLAsetTiming).",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_s_leaf_subscription.cpp::scenarioFederationMomSLeafSubscription"
+      ]
+    }
+  ]
+}

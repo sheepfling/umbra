@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java case resolves one adapter-selected DDM dimension, checks its public handle validity and name round-trip, and checks NameNotFound for one undefined name. It does not cover every dimension lookup boundary or all of the service clauses.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-dimension-handle-and-name-lookup",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "DimensionHandle getDimensionHandle(String name)",
+        "String getDimensionName(DimensionHandle dimension)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleNameLookupTck.java#run"
+      ]
+    }
+  ]
+}

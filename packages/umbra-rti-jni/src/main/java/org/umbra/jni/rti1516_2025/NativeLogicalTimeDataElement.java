@@ -1,6 +1,7 @@
 package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.encoding.ByteWrapper;
+import hla.rti1516_2025.encoding.DecoderException;
 import hla.rti1516_2025.encoding.EncoderException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -57,15 +58,25 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
       return encoded;
    }
 
-   private Object decode(byte[] encoded) throws Throwable {
-      if (encoded == null) throw new IllegalArgumentException("Logical-time encoding must not be null");
-      Class<?> factoryType = standardType(
-         "hla.rti1516_2025.LogicalTimeFactory",
-         "hla.rti1516_2025.time.LogicalTimeFactory");
-      value = factoryType.getMethod(
-         interval ? "decodeInterval" : "decodeTime", byte[].class, int.class)
-         .invoke(factory, encoded, Integer.valueOf(0));
-      return proxy;
+   private Object decode(byte[] encoded) throws DecoderException {
+      if (encoded == null) throw new DecoderException("Logical-time encoding must not be null");
+      try {
+         Class<?> factoryType = standardType(
+            "hla.rti1516_2025.LogicalTimeFactory",
+            "hla.rti1516_2025.time.LogicalTimeFactory");
+         value = factoryType.getMethod(
+            interval ? "decodeInterval" : "decodeTime", byte[].class, int.class)
+            .invoke(factory, encoded, Integer.valueOf(0));
+         return proxy;
+      } catch (Throwable error) {
+         Throwable cause = unwrap(error);
+         if (cause instanceof DecoderException) throw (DecoderException) cause;
+         DecoderException failure = new DecoderException(
+            interval ? "Could not decode logical-time interval data element"
+               : "Could not decode logical-time data element");
+         failure.initCause(cause);
+         throw failure;
+      }
    }
 
    private static Class<?> standardType(String preferred, String fallback)
@@ -125,7 +136,11 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
          return Integer.valueOf(encodedValue().length);
       }
       if ("toByteArray".equals(name) && values.length == 0) return encodedValue();
-      if ("encode".equals(name) && values.length == 0) return new ByteWrapper(encodedValue());
+      if ("encode".equals(name) && values.length == 0) {
+         ByteWrapper result = new ByteWrapper(encodedValue());
+         result.advance(result.remaining());
+         return result;
+      }
       if ("encode".equals(name) && values.length == 1 && values[0] instanceof ByteWrapper) {
          ((ByteWrapper) values[0]).put(encodedValue());
          return null;
@@ -143,7 +158,7 @@ final class NativeLogicalTimeDataElement implements InvocationHandler {
          // logical-time element width.  This preserves following composite
          // fields and leaves the caller's cursor untouched on failure.
          if (source.remaining() < Long.BYTES) {
-            throw new IllegalArgumentException(
+            throw new DecoderException(
                "Logical-time ByteWrapper input is shorter than eight octets");
          }
          ByteWrapper window = source.slice(Long.BYTES);

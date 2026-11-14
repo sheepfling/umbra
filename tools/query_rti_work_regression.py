@@ -576,7 +576,7 @@ MAPPED_CORE_CASES = {
     },
     "Embedded 2025 dimension lookup follows FOM hierarchy and upper bounds": {
         "mapping_id": "rti.service.dimension-lookup-foundation",
-        "requirements": 6,
+        "requirements": 7,
         "sections": {
             "hla-1516.1-2025:clause-9.1.1",
             "hla-1516.1-2025:clause-9.1.2",
@@ -903,6 +903,133 @@ def assert_bounded_discovery_output() -> None:
         if not any(test.get("requirements") for test in machine["tests"]):
             raise AssertionError(f"{command} removed full JSON requirement records")
 
+    tck_only_requirement_id = (
+        "requirement-candidate-content-clauses-08-time-management-page-182-l106-33"
+    )
+    requirement_evidence = json.loads(
+        run("requirement", tck_only_requirement_id, "--json", "--summary")
+    )
+    matrix_evidence = json.loads(
+        run(
+            "matrix",
+            tck_only_requirement_id,
+            "--group-by",
+            "requirement",
+            "--json",
+            "--summary",
+        )
+    )
+    for command, evidence in (
+        ("requirement", requirement_evidence),
+        ("matrix", matrix_evidence),
+    ):
+        portable = evidence.get("portable_cpp_tck")
+        if (
+            evidence.get("count") != 0
+            or not isinstance(portable, dict)
+            or portable.get("evidence_class") != "portable-cpp-tck-catalog-mapping"
+            or portable.get("scenario_count") != 1
+            or portable.get("shown_scenario_count") != 0
+            or portable.get("interpretation", "").find("not an execution") < 0
+        ):
+            raise AssertionError(
+                f"{command} failed to keep TCK catalog mappings separate from Catch2 execution evidence"
+            )
+    if matrix_evidence.get("found") is not True:
+        raise AssertionError("matrix failed to resolve a TCK-only requirement mapping")
+
+    scenario_matrix_query = "cpp-tck.timestamped-regional-interaction-tar-nmr"
+    for group_by in ("requirement", "section"):
+        scenario_matrix = json.loads(
+            run(
+                "matrix",
+                scenario_matrix_query,
+                "--group-by",
+                group_by,
+                "--json",
+                "--summary",
+            )
+        )
+        scenario_portable = scenario_matrix.get("portable_cpp_tck")
+        if (
+            scenario_matrix.get("found") is not True
+            or scenario_matrix.get("count") != 0
+            or not isinstance(scenario_portable, dict)
+            or scenario_portable.get("scenario_count") != 1
+            or scenario_portable.get("mapping_count") != 1
+            or scenario_portable.get("requirement_ids")
+            != ["requirement-candidate-content-clauses-09-data-distribution-management-page-221-l89-28"]
+        ):
+            raise AssertionError(
+                f"matrix scenario handle lost its exact {group_by} TCK mapping"
+            )
+
+    tck_family_gap_output = run(
+        "gaps",
+        "--family",
+        "portable-cpp-tck-2025",
+        "--clause",
+        "clause-9.1.3.2",
+        "--summary",
+        "--limit",
+        "1",
+    )
+    if (
+        "Catch2-plan requirement gaps" not in tck_family_gap_output
+        or "Catch2 plan mappings only" not in tck_family_gap_output
+        or "separate traceability-only evidence class" not in tck_family_gap_output
+    ):
+        raise AssertionError(
+            "portable C++ TCK family gaps did not distinguish Catch2 coverage from catalog mappings"
+        )
+
+    tck_gap_summary_output = run(
+        "tck-gaps",
+        "--document",
+        "hla-1516.1-2025",
+        "--clause",
+        "clause-11.5.1",
+        "--summary",
+        "--compact",
+        "--limit",
+        "12",
+    )
+    if (
+        len(tck_gap_summary_output.splitlines()) > 24
+        or len(tck_gap_summary_output) > 6000
+        or "Disposition preview (not direct TCK test coverage)" not in tck_gap_summary_output
+        or "rationale=" in tck_gap_summary_output
+        or "boundary=" in tck_gap_summary_output
+    ):
+        raise AssertionError(
+            "portable C++ TCK gap summary expanded dispositions instead of showing a bounded preview"
+        )
+    tck_gap_summary_json = json.loads(
+        run(
+            "tck-gaps",
+            "--document",
+            "hla-1516.1-2025",
+            "--clause",
+            "clause-11.5.1",
+            "--summary",
+            "--json",
+            "--limit",
+            "12",
+        )
+    )
+    tck_gap_disposition_preview = tck_gap_summary_json.get("dispositions", [])
+    if (
+        len(tck_gap_disposition_preview) > 5
+        or not tck_gap_summary_json.get("disposition_preview_truncated")
+        or any(
+            "rationale" in disposition or "evidence_boundary" in disposition
+            for disposition in tck_gap_disposition_preview
+        )
+    ):
+        raise AssertionError(
+            "portable C++ TCK JSON gap summary exceeded its bounded disposition preview"
+        )
+
     family_pointer = json.loads(
         run("next", "--family", "portable-cpp-tck-2025", "--pointer", "--json")
     )
@@ -951,18 +1078,25 @@ def assert_bounded_discovery_output() -> None:
     if len(resume_summary.splitlines()) > 20 or len(resume_summary) > 4000:
         raise AssertionError("compact resume exceeded its first-read discovery budget")
     if "Next slice:" in resume_summary:
-        if not all(
+        if "mapping_seed_only=" in resume_summary:
+            if not all(
+                marker in resume_summary
+                for marker in ("proposed_plan_id=", "case=", "mapping_seed=")
+            ):
+                raise AssertionError(
+                    "new-case resume omitted its proposed TCK ID or mapped seed handle"
+                )
+            if "ctest_target=" in resume_summary or "ctest_filter=" in resume_summary:
+                raise AssertionError(
+                    "new-case resume advertised a build selector before the scenario exists"
+                )
+        elif not all(
             marker in resume_summary
             for marker in ("case=", "ctest_target=", "ctest_filter=")
         ):
             raise AssertionError(
                 "compact resume omitted the active case or Catch2 build target"
             )
-        if "mapping_seed_only=" in resume_summary:
-            if "mapping_seed=" not in resume_summary:
-                raise AssertionError(
-                    "new-case resume omitted its explicit mapped seed handle"
-                )
         elif "contract_mapping=" in resume_summary:
             if not all(
                 marker in resume_summary
@@ -1112,7 +1246,8 @@ def assert_bounded_discovery_output() -> None:
     )
     if (
         relaxed_ddm_requirement not in full_requirement_matrix
-        or "standard_sections: hla-1516.1-2025:clause-10.55\n" not in full_requirement_matrix
+        or "standard_sections: hla-1516.1-2025:clause-10.55\n"
+        not in full_requirement_matrix
     ):
         raise AssertionError(
             "exact requirement matrix lost the new relaxed-DDM requirement/subsection pair"
@@ -1176,6 +1311,7 @@ def assert_bounded_discovery_output() -> None:
         check=False,
     )
     scoped_ready = scoped_ready_result.stdout
+    scoped_ready_lines = set(scoped_ready.splitlines())
     active_handoff_plan = active_handoff.get("plan_id")
     if str(active_handoff.get("state") or "").casefold() in {
         "complete",
@@ -1188,17 +1324,45 @@ def assert_bounded_discovery_output() -> None:
             raise AssertionError(
                 "completed active handoff did not fall back to bounded family selection"
             )
-    elif (
-        scoped_ready_result.returncode != 0
-        or f"family_selection: {active_handoff_family}" not in scoped_ready
-        or not active_handoff_plan
-        or f"plan_id: {active_handoff_plan}" not in scoped_ready
-        or f"lane: {active_handoff.get('lane')}" not in scoped_ready
-        or "state: active-handoff" not in scoped_ready
-    ):
-        raise AssertionError("scoped ready query lost the current active handoff")
-    if "mapping_seed:" in scoped_ready or "seed_trace_command:" in scoped_ready:
-        raise AssertionError("compact active handoff leaked mapping-seed details")
+    else:
+        if (
+            scoped_ready_result.returncode != 0
+            or f"family_selection: {active_handoff_family}" not in scoped_ready
+            or not active_handoff_plan
+            or f"lane: {active_handoff.get('lane')}" not in scoped_ready
+        ):
+            raise AssertionError("scoped ready query lost the current active handoff")
+        if f"plan_id: {active_handoff_plan}" in scoped_ready_lines:
+            if "state: active-handoff" not in scoped_ready:
+                raise AssertionError(
+                    "scoped ready query lost the runnable active handoff state"
+                )
+        elif (
+            f"proposed_plan_id: {active_handoff_plan}" not in scoped_ready_lines
+            or "handoff_kind: new-case" not in scoped_ready
+            or not any(
+                f"state: {state}" in scoped_ready
+                for state in ("active", "new-case-needed")
+            )
+        ):
+            raise AssertionError(
+                "scoped ready query lost the proposed new-case handoff"
+            )
+    proposed_handoff = (
+        f"proposed_plan_id: {active_handoff_plan}" in scoped_ready_lines
+    )
+    if "mapping_seed:" in scoped_ready:
+        raise AssertionError("compact active handoff leaked a full mapping-seed dump")
+    if proposed_handoff:
+        if (
+            "mapping_seed_only:" not in scoped_ready
+            or "seed_trace_command:" not in scoped_ready
+        ):
+            raise AssertionError(
+                "compact proposed handoff lost its bounded mapping-seed pointer"
+            )
+    elif "seed_trace_command:" in scoped_ready:
+        raise AssertionError("compact runnable handoff leaked a mapping-seed command")
     if len(scoped_ready.splitlines()) > 28 or len(scoped_ready) > 5000:
         raise AssertionError(
             "compact ready family output exceeded its discovery budget"
@@ -1223,6 +1387,17 @@ def assert_bounded_discovery_output() -> None:
         ):
             raise AssertionError(
                 "bounded family selection lost its on-demand matrix handles"
+            )
+    elif proposed_handoff:
+        if (
+            "seed_trace_command:" not in scoped_ready
+            or f'matrix_requirements=python tools/query_rti_work.py matrix "{active_handoff_plan}"'
+            in scoped_ready
+            or f'matrix_sections=python tools/query_rti_work.py matrix "{active_handoff_plan}"'
+            in scoped_ready
+        ):
+            raise AssertionError(
+                "proposed TCK handoff advertised unavailable scenario-matrix handles"
             )
     elif (
         f'matrix_requirements=python tools/query_rti_work.py matrix "{active_handoff_plan}" --group-by requirement --summary --compact'
@@ -1304,25 +1479,57 @@ def main() -> int:
         *(REPOSITORY_ROOT / "cmake").rglob("*.cmake"),
         *(REPOSITORY_ROOT / "packages").rglob("CMakeLists.txt"),
     ]
+    cmake_source_text = {
+        cmake_source: cmake_source.read_text(encoding="utf-8")
+        for cmake_source in cmake_sources
+    }
     declared_executables = {
         target
-        for cmake_source in cmake_sources
-        for target in target_declaration.findall(
-            cmake_source.read_text(encoding="utf-8")
-        )
+        for source_text in cmake_source_text.values()
+        for target in target_declaration.findall(source_text)
     }
-    if handoff_target and handoff_target not in declared_executables:
+    grouped_catch2_runners_are_generated = any(
+        "set(UMBRA_IEEE1516_2025_GROUPED_CATCH2_RUNNERS)" in source_text
+        and '"umbra_2025_g${_umbra_aggregate_group}_catch2"' in source_text
+        and 'add_executable("${_umbra_group_target}"' in source_text
+        for source_text in cmake_source_text.values()
+    )
+    is_generated_group_target = bool(
+        handoff_target
+        and re.fullmatch(r"umbra_2025_g[1-9][0-9]*_catch2", handoff_target)
+        and grouped_catch2_runners_are_generated
+    )
+    handoff_uses_non_cmake_runner = (
+        isinstance(handoff_target, str)
+        and handoff_target.casefold().startswith("not-applicable")
+    )
+    if (
+        handoff_target
+        and not handoff_uses_non_cmake_runner
+        and handoff_target not in declared_executables
+        and not is_generated_group_target
+    ):
         raise AssertionError(
             f"active handoff names an undeclared CMake target: {handoff_target}"
         )
-    if declared_active_handoff.get("family") == "portable-cpp-tck-2025":
+    if (
+        declared_active_handoff.get("family") == "portable-cpp-tck-2025"
+        and str(declared_active_handoff.get("state") or "").casefold()
+        not in {"completed", "verified"}
+    ):
         scenario_id = declared_active_handoff.get("plan_id")
         scenario_command = (declared_active_handoff.get("commands") or {}).get(
             "scenario"
         )
-        if not scenario_id or scenario_command != scenario_id:
+        is_new_tck_case = (
+            str(declared_active_handoff.get("state") or "").casefold()
+            == "new-case-needed"
+        )
+        if not scenario_id or (
+            is_new_tck_case and scenario_command is not None
+        ) or (not is_new_tck_case and scenario_command != scenario_id):
             raise AssertionError(
-                "portable C++ TCK handoffs must identify the scenario separately from its CMake target"
+                "portable C++ TCK handoffs must identify runnable scenarios separately from CMake targets"
             )
     plan = query_rti_work.load_json(query_rti_work.DEFAULT_PLAN)
     bundle = query_rti_work.load_json(query_rti_work.DEFAULT_BUNDLE)
@@ -1599,6 +1806,43 @@ def main() -> int:
             raise AssertionError(
                 "portable TCK verification handoff must resolve from its scenario contracts"
             )
+        catalog_scenarios_by_id = {
+            row.get("id"): row
+            for row in cpp_tck_catalog.get("scenarios", [])
+            if isinstance(row, dict) and isinstance(row.get("id"), str)
+        }
+        expected_direct_pairs: set[tuple[str, str]] = set()
+        for scenario_id in (
+            active_handoff.get("plan_id"),
+            declared_handoff.get("mapping_seed_plan_id"),
+        ):
+            source = catalog_scenarios_by_id.get(scenario_id)
+            if not isinstance(source, dict):
+                continue
+            mappings = source.get("requirement_mappings", [])
+            if not isinstance(mappings, list):
+                continue
+            for mapping in mappings:
+                if not isinstance(mapping, dict):
+                    continue
+                requirement_id = mapping.get("requirement_id") or mapping.get(
+                    "lab_requirement_id"
+                )
+                standard_section = mapping.get("standard_section")
+                if isinstance(requirement_id, str) and isinstance(
+                    standard_section, str
+                ):
+                    expected_direct_pairs.add((requirement_id, standard_section))
+        actual_direct_pairs = {
+            (row.get("lab_requirement_id"), row.get("standard_section"))
+            for row in active_handoff.get("requirement_section_pairs", [])
+            if isinstance(row, dict)
+        }
+        if actual_direct_pairs != expected_direct_pairs:
+            raise AssertionError(
+                "portable TCK handoff direct mappings must match its catalog declarations; "
+                f"expected {len(expected_direct_pairs)}, got {len(actual_direct_pairs)}"
+            )
     else:
         if (
             not isinstance(active_handoff, dict)
@@ -1615,14 +1859,26 @@ def main() -> int:
             or active_handoff.get("mapping_seed_test_case")
             != mapping_seed_plan.get("test_case")
             or active_handoff.get("api_surfaces")
-            != query_rti_work.strings(
-                mapping_seed_plan.get("selected_cpp_api_surface_ids")
-                if isinstance(mapping_seed_plan, dict)
-                else None
+            != sorted(
+                query_rti_work.strings(
+                    mapping_seed_plan.get("selected_cpp_api_surface_ids")
+                    if isinstance(mapping_seed_plan, dict)
+                    else None
+                )
             )
             or bool(declared_handoff.get("api_surfaces"))
             or active_handoff.get("requirement_section_pair_count", 0) == 0
-            or not active_handoff.get("ctest_filter")
+            or (
+                declared_handoff.get("family") == "portable-cpp-tck-2025"
+                and (
+                    not active_handoff.get("lane_pending")
+                    or active_handoff.get("ctest_filter") is not None
+                )
+            )
+            or (
+                declared_handoff.get("family") != "portable-cpp-tck-2025"
+                and not active_handoff.get("ctest_filter")
+            )
             or active_handoff.get("test_case") not in resume_handoff
             or f"proposed_plan_id={declared_handoff.get('plan_id')}"
             not in resume_handoff
@@ -1661,11 +1917,15 @@ def main() -> int:
                 or tck_handoff.get("post_mapping_check_command")
             )
             != expected_catalog_check
+            or (
+                tck_handoff.get("lane_pending")
+                and tck_handoff.get("check_command") is not None
+            )
             or tck_handoff.get("post_mapping_focus_command") is not None
             or "query_rti_work.py check --lane" in str(tck_handoff)
         ):
             raise AssertionError(
-                "portable C++ TCK handoffs must validate through the TCK catalog, not Catch2 lanes"
+                "portable C++ TCK handoffs must avoid runnable catalog checks before their scenario is mapped"
             )
     delay_requirement_ids = {
         "requirement-candidate-content-clauses-08-time-management-page-187-l25-6",
@@ -1889,6 +2149,10 @@ def main() -> int:
             "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_callback_gating_catch2.cpp",
             "cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_arrival_catch2.cpp",
         ),
+        "umbra-cpp-service-report-time-role-transitions-mom-interaction-integration": (
+            "cpp/tests/ieee1516_2025_federation_management_catch2.cpp",
+            "cpp/tests/ieee1516_2025_time_role_service_reporting_mom_catch2.cpp",
+        ),
         # 7d3803e0 extracted this same push-receive case into its own fixture.
         "umbra-cpp-confirm-divestiture-process-push-integration": (
             "cpp/tests/attribute_ownership_acquisition_catch2.cpp",
@@ -1942,6 +2206,26 @@ def main() -> int:
     ):
         raise AssertionError(
             "completion-ledger source relocation counterexample was not rejected"
+        )
+    multi_source_history = {
+        "plan_id": "multi-source-pointer-regression",
+        "source_location": (
+            "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp:80"
+        ),
+    }
+    if completion_ledger_source_pointer_findings(
+        [multi_source_history],
+        {
+            "multi-source-pointer-regression": (
+                "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp:80; "
+                "cpp/tests/ieee1516_2025_joined_federate_mom_public_object_lifecycle_catch2.cpp:52"
+            )
+        },
+        {},
+        REPOSITORY_ROOT,
+    ):
+        raise AssertionError(
+            "completion-ledger source checker rejected a live multi-source pointer"
         )
     contract_drift = query_rti_work.contract_drift_report(
         query_rti_work.DEFAULT_CONTRACT_DIRECTORY,
@@ -2788,7 +3072,8 @@ def main() -> int:
     family_gap_records = family_gap_covered_elsewhere.get("requirements", [])
     family_gap_target = next(
         (
-            record for record in family_gap_records
+            record
+            for record in family_gap_records
             if record.get("id")
             == "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4"
         ),
@@ -2854,6 +3139,160 @@ def main() -> int:
         or tck_galt_summary.get("requirements") != []
     ):
         raise AssertionError("portable TCK gap summary expanded requirement records")
+    tck_external_requirement = query_rti_work.cpp_tck_requirement_gap_inventory(
+        standard_requirements,
+        cpp_tck_catalog,
+        tests,
+        query=(
+            "requirement-candidate-content-clauses-09-data-distribution-management-"
+            "page-221-l89-28-normalization"
+        ),
+        limit=0,
+    )
+    external_dispositions = tck_external_requirement.get("dispositions", [])
+    if (
+        tck_external_requirement.get("total_requirement_count") != 1
+        or tck_external_requirement.get("mapped_requirement_count") != 0
+        or tck_external_requirement.get("uncovered_requirement_count") != 1
+        or tck_external_requirement.get("dispositioned_requirement_count") != 1
+        or tck_external_requirement.get("actionable_uncovered_requirement_count") != 0
+        or tck_external_requirement.get("coverage_percent") != 0.0
+        or len(external_dispositions) != 1
+        or external_dispositions[0].get("owner_role") != "federation-application"
+        or tck_external_requirement.get("invalid_disposition_count") != 0
+    ):
+        raise AssertionError(
+            "external federation-responsibility disposition changed direct TCK coverage"
+        )
+    tck_external_summary = query_rti_work.cpp_tck_requirement_gap_summary_data(
+        tck_external_requirement
+    )
+    if (
+        tck_external_summary.get("requirements") != []
+        or tck_external_summary.get("dispositioned_requirement_count") != 1
+        or len(tck_external_summary.get("dispositions", [])) != 1
+    ):
+        raise AssertionError(
+            "portable TCK gap summary hid the bounded external-responsibility disposition"
+        )
+    optional_advisory_requirement = query_rti_work.cpp_tck_requirement_gap_inventory(
+        standard_requirements,
+        cpp_tck_catalog,
+        tests,
+        query="requirement-source-refinement-relaxed-ddm-advisory",
+        limit=0,
+    )
+    optional_advisory_dispositions = optional_advisory_requirement.get(
+        "dispositions", []
+    )
+    if (
+        optional_advisory_requirement.get("total_requirement_count") != 1
+        or optional_advisory_requirement.get("mapped_requirement_count") != 0
+        or optional_advisory_requirement.get("uncovered_requirement_count") != 1
+        or optional_advisory_requirement.get("dispositioned_requirement_count") != 1
+        or optional_advisory_requirement.get("actionable_uncovered_requirement_count")
+        != 0
+        or optional_advisory_requirement.get("coverage_percent") != 0.0
+        or len(optional_advisory_dispositions) != 1
+        or optional_advisory_dispositions[0].get("status")
+        != "permissive-standard-behavior"
+        or optional_advisory_requirement.get("invalid_disposition_count") != 0
+    ):
+        raise AssertionError(
+            "permissive Allow Relaxed DDM advisory text changed direct TCK coverage"
+        )
+    optional_advisory_summary = query_rti_work.cpp_tck_requirement_gap_summary_data(
+        optional_advisory_requirement
+    )
+    if (
+        optional_advisory_summary.get("requirements") != []
+        or optional_advisory_summary.get("dispositioned_requirement_count") != 1
+        or len(optional_advisory_summary.get("dispositions", [])) != 1
+    ):
+        raise AssertionError(
+            "portable TCK gap summary hid the permissive-behavior disposition"
+        )
+    for api_gap_id in (
+        "requirement-candidate-table-5-p296-r012",
+        "requirement-candidate-table-5-p296-r013",
+        "requirement-candidate-table-5-p296-r014",
+        "requirement-candidate-table-5-p296-r015",
+        "requirement-candidate-table-5-p296-r016",
+    ):
+        tck_api_gap_requirement = query_rti_work.cpp_tck_requirement_gap_inventory(
+            standard_requirements,
+            cpp_tck_catalog,
+            tests,
+            query=api_gap_id,
+            limit=0,
+        )
+        api_gap_dispositions = tck_api_gap_requirement.get("dispositions", [])
+        if (
+            tck_api_gap_requirement.get("total_requirement_count") != 1
+            or tck_api_gap_requirement.get("mapped_requirement_count") != 0
+            or tck_api_gap_requirement.get("uncovered_requirement_count") != 1
+            or tck_api_gap_requirement.get("dispositioned_requirement_count") != 1
+            or tck_api_gap_requirement.get("actionable_uncovered_requirement_count")
+            != 0
+            or tck_api_gap_requirement.get("coverage_percent") != 0.0
+            or len(api_gap_dispositions) != 1
+            or api_gap_dispositions[0].get("status")
+            != "no-public-cpp-api-trigger"
+            or tck_api_gap_requirement.get("invalid_disposition_count") != 0
+        ):
+            raise AssertionError(
+                f"{api_gap_id} disposition changed direct C++ TCK coverage"
+            )
+        tck_api_gap_summary = query_rti_work.cpp_tck_requirement_gap_summary_data(
+            tck_api_gap_requirement
+        )
+        if (
+            tck_api_gap_summary.get("requirements") != []
+            or tck_api_gap_summary.get("mapped_requirement_count") != 0
+            or tck_api_gap_summary.get("coverage_percent") != 0.0
+            or len(tck_api_gap_summary.get("dispositions", [])) != 1
+        ):
+            raise AssertionError(
+                f"portable TCK summary treated {api_gap_id} as coverage"
+            )
+    language_mapping_requirement_id = (
+        "requirement-candidate-content-clauses-12-programming-language-mappings-"
+        "page-413-l45-14"
+    )
+    java_named_cpp_scenario_catalog = {
+        "kind": "portable-cpp-tck-catalog",
+        "scenarios": [
+            {
+                "id": "java-tck.api-surface-inventory",
+                "cpp_test": "src/tck_api_foundation.cpp#scenarioApiSurfaceInventory",
+                "promotion": "promoted",
+                "requirement_mappings": [
+                    {
+                        "requirement_id": language_mapping_requirement_id,
+                        "standard_section": "hla-1516.1-2025:clause-13.2",
+                    }
+                ],
+            }
+        ],
+    }
+    language_mapping_coverage = query_rti_work.cpp_tck_requirement_gap_inventory(
+        standard_requirements,
+        java_named_cpp_scenario_catalog,
+        tests,
+        query=language_mapping_requirement_id,
+        limit=0,
+    )
+    if (
+        language_mapping_coverage.get("total_requirement_count") != 1
+        or language_mapping_coverage.get("mapped_requirement_count") != 1
+        or language_mapping_coverage.get("uncovered_requirement_count") != 0
+        or language_mapping_coverage.get("promoted_requirement_count") != 1
+        or language_mapping_coverage.get("invalid_mapping_count") != 0
+        or language_mapping_coverage.get("section_disagreement_count") != 0
+    ):
+        raise AssertionError(
+            "C++ TCK coverage inventory ignored a C++ source-backed scenario because its ID preserves the Java parity prefix"
+        )
     crosswalk_target_id = "requirement-candidate-regression-crosswalk-target"
     crosswalk_requirement_ids = [
         *(f"requirement-candidate-regression-crosswalk-{index}" for index in range(20)),
@@ -2912,6 +3351,30 @@ def main() -> int:
         or now_covered_lookup.get("globally_covered_requirement_count") != 1
     ):
         raise AssertionError("exactly covered requirement lookup drifted")
+    selected_only_requirement_id = (
+        "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair"
+    )
+    selected_only_case = {
+        "id": "umbra-selected-requirement-query-regression",
+        "selected_requirements_lab_requirement_ids": [selected_only_requirement_id],
+    }
+    if query_rti_work.select_tests(
+        [selected_only_case], selected_only_requirement_id, "requirement"
+    ) != [selected_only_case]:
+        raise AssertionError("exact requirement query ignored selected plan-row ids")
+    selected_only_lookup = query_rti_work.requirement_gap_inventory(
+        standard_requirements,
+        [selected_only_case],
+        query=selected_only_requirement_id,
+        limit=20,
+    )
+    if (
+        selected_only_lookup.get("uncovered_requirement_count") != 0
+        or selected_only_lookup.get("globally_covered_requirement_count") != 1
+    ):
+        raise AssertionError(
+            "selected plan-row requirement id was reported as uncovered"
+        )
     uncovered_lookup = query_rti_work.requirement_gap_inventory(
         standard_requirements,
         tests,

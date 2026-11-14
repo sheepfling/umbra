@@ -20,6 +20,8 @@
 #include <RTI/time/HLAinteger64Time.h>
 #include <RTI/time/HLAinteger64TimeFactory.h>
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
+#include <RTI/time/LogicalTime.h>
+#include <RTI/time/LogicalTimeInterval.h>
 
 #include "generated/rti_ambassador_shell.hpp"
 
@@ -43,8 +45,54 @@ using rti1516_2025::InvalidLogicalTime;
 using rti1516_2025::InvalidLogicalTimeInterval;
 using rti1516_2025::LogicalTimeFactory;
 using rti1516_2025::LogicalTimeFactoryFactory;
+using rti1516_2025::LogicalTime;
+using rti1516_2025::LogicalTimeInterval;
 using rti1516_2025::Octet;
 using rti1516_2025::VariableLengthData;
+
+template <typename Left, typename Right>
+concept SupportsAdditionAssignment = requires(Left& left, Right const& right) {
+  left += right;
+};
+
+template <typename Left, typename Right>
+concept SupportsSubtractionAssignment = requires(Left& left, Right const& right) {
+  left -= right;
+};
+
+template <typename Left, typename Right>
+concept SupportsAllComparisons = requires(Left const& left, Right const& right) {
+  left < right;
+  left <= right;
+  left == right;
+  left >= right;
+  left > right;
+  left != right;
+};
+
+template <typename Left, typename Right>
+concept SupportsAdditionalBinaryArithmetic =
+    requires(Left const& left, Right const& right) { left * right; } ||
+    requires(Left const& left, Right const& right) { left / right; } ||
+    requires(Left const& left, Right const& right) { left % right; };
+
+template <typename Value>
+concept SupportsAdditionalUnaryArithmetic =
+    requires(Value const& value) { +value; } ||
+    requires(Value const& value) { -value; };
+
+template <typename Value>
+concept SupportsIncrementOrDecrement =
+    requires(Value& value) { ++value; } ||
+    requires(Value& value) { value++; } ||
+    requires(Value& value) { --value; } ||
+    requires(Value& value) { value--; };
+
+template <typename Left, typename Right>
+concept SupportsAdditionalCompoundArithmetic =
+    requires(Left& left, Right const& right) { left *= right; } ||
+    requires(Left& left, Right const& right) { left /= right; } ||
+    requires(Left& left, Right const& right) { left %= right; };
 
 template <std::size_t Size>
 bool encodedEquals(VariableLengthData const& actual, std::array<unsigned char, Size> const& expected) {
@@ -65,6 +113,90 @@ class ReferenceTimeAmbassador final
  private:
   std::wstring implementationName_;
 };
+
+template <typename Time, typename Interval>
+void requireLogicalTimeIdentitySet() {
+  Time initial;
+  initial.setInitial();
+  Time final;
+  final.setFinal();
+  Interval epsilon;
+  epsilon.setEpsilon();
+  Interval zero;
+  zero.setZero();
+  auto const timeLess = [](LogicalTime const& left, LogicalTime const& right) {
+    return left.operator<(right);
+  };
+  auto const timeGreater = [](LogicalTime const& left, LogicalTime const& right) {
+    return left.operator>(right);
+  };
+  auto const timeEqual = [](LogicalTime const& left, LogicalTime const& right) {
+    return left.operator==(right);
+  };
+  auto const intervalEqual = [](
+                                 LogicalTimeInterval const& left,
+                                 LogicalTimeInterval const& right) {
+    return left.operator==(right);
+  };
+  auto const intervalAtLeast = [](
+                                   LogicalTimeInterval const& left,
+                                   LogicalTimeInterval const& right) {
+    return left.operator>=(right);
+  };
+
+  Time time(initial);
+  time += epsilon;
+  time += epsilon;
+  Time advanced(time);
+  advanced += epsilon;
+  REQUIRE(timeLess(time, advanced));
+  Time finalPlusInterval(final);
+  finalPlusInterval += epsilon;
+  REQUIRE(timeEqual(finalPlusInterval, final));
+  Time retreated(time);
+  retreated -= epsilon;
+  REQUIRE(timeGreater(time, retreated));
+  Time initialMinusInterval(initial);
+  initialMinusInterval -= epsilon;
+  REQUIRE(timeEqual(initialMinusInterval, initial));
+  Time timePlusZero(time);
+  timePlusZero += zero;
+  REQUIRE(timeEqual(timePlusZero, time));
+  Time timeMinusZero(time);
+  timeMinusZero -= zero;
+  REQUIRE(timeEqual(timeMinusZero, time));
+
+  Interval differenceOfDistinctTimes;
+  differenceOfDistinctTimes.setToDifference(advanced, time);
+  REQUIRE(intervalAtLeast(differenceOfDistinctTimes, epsilon));
+  Interval differenceOfEqualTimes;
+  differenceOfEqualTimes.setToDifference(time, time);
+  REQUIRE(intervalEqual(differenceOfEqualTimes, zero));
+
+  Interval interval(epsilon);
+  Interval intervalPlusZero(interval);
+  intervalPlusZero += zero;
+  REQUIRE(intervalEqual(intervalPlusZero, interval));
+  Interval intervalMinusZero(interval);
+  intervalMinusZero -= zero;
+  REQUIRE(intervalEqual(intervalMinusZero, interval));
+  Interval differenceOfEqualIntervals(interval);
+  differenceOfEqualIntervals -= interval;
+  REQUIRE(intervalEqual(differenceOfEqualIntervals, zero));
+  Interval smallerMinusLarger(interval);
+  Interval larger(interval);
+  larger += epsilon;
+  smallerMinusLarger -= larger;
+  REQUIRE(intervalEqual(smallerMinusLarger, zero));
+  Interval largerMinusSmaller(larger);
+  largerMinusSmaller -= interval;
+  REQUIRE(intervalAtLeast(largerMinusSmaller, epsilon));
+  REQUIRE_FALSE(intervalEqual(epsilon, zero));
+  REQUIRE(intervalAtLeast(epsilon, epsilon));
+  REQUIRE(timeLess(retreated, time));
+  REQUIRE(timeLess(initial, time));
+  REQUIRE(timeLess(time, final));
+}
 
 }  // namespace
 
@@ -105,8 +237,19 @@ TEST_CASE(
 
   HLAinteger64Time initialTime;
   REQUIRE(initialTime.isInitial());
-  REQUIRE_THROWS_AS(initialTime -= epsilon, IllegalTimeArithmetic);
   REQUIRE_THROWS_AS(HLAinteger64Time(-1), InvalidLogicalTime);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 logical time intervals reject negative values",
+    "[2025][time][unit][time-management][logical-time-interval-nonnegative]") {
+  REQUIRE_THROWS(HLAinteger64Interval(-1));
+  HLAinteger64Interval integerInterval;
+  REQUIRE_THROWS(integerInterval.setInterval(-1));
+
+  REQUIRE_THROWS(HLAfloat64Interval(-1.0));
+  HLAfloat64Interval floatInterval;
+  REQUIRE_THROWS(floatInterval.setInterval(-1.0));
 }
 
 TEST_CASE(
@@ -192,6 +335,37 @@ TEST_CASE(
   REQUIRE(finalTime.isFinal());
   REQUIRE(finalTime.getTime() == finalValue);
   REQUIRE_THROWS_AS(HLAfloat64Time(std::numeric_limits<double>::infinity()), InvalidLogicalTime);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 float64 time uses local epsilon for smaller nonzero intervals",
+    "[2025][time][unit][time-management][logical-time-epsilon-step]") {
+  constexpr double finalValue = std::numeric_limits<double>::max();
+  constexpr double smallerInterval = std::numeric_limits<double>::denorm_min();
+
+  HLAfloat64Interval interval(smallerInterval);
+  HLAfloat64Time const startingTime(finalValue / 2.0);
+  auto const startingValue = startingTime.getTime();
+  auto const nextValue = std::nextafter(startingValue, finalValue);
+  auto const previousValue = std::nextafter(startingValue, 0.0);
+  REQUIRE(interval.getInterval() > 0.0);
+  REQUIRE(interval.getInterval() < nextValue - startingValue);
+  REQUIRE(interval.getInterval() < startingValue - previousValue);
+
+  HLAfloat64Time adding(startingValue);
+  adding += interval;
+  REQUIRE(adding.getTime() == nextValue);
+
+  HLAfloat64Time subtracting(startingValue);
+  subtracting -= interval;
+  REQUIRE(subtracting.getTime() == previousValue);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 reference time values satisfy the logical-time identity set",
+    "[2025][time][unit][time-management][logical-time-standard-identities]") {
+  requireLogicalTimeIdentitySet<HLAinteger64Time, HLAinteger64Interval>();
+  requireLogicalTimeIdentitySet<HLAfloat64Time, HLAfloat64Interval>();
 }
 
 TEST_CASE("HLAfloat64Time rejects nonfinite encodings and factory-decodes HLAfloat64BE", "[baseline][time][unit][foundation][time-management]") {
@@ -341,4 +515,93 @@ TEST_CASE(
   REQUIRE_THROWS_AS(decoded.decode(malformed), CouldNotDecode);
   std::vector<Octet> const tooShort(truncated.begin(), truncated.end());
   REQUIRE_THROWS_AS(decoded.decodeFrom(tooShort, 0U), EncoderException);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 logical-time intervals test zero alongside interval arithmetic",
+    "[2025][time][unit][time-management][logical-time-interval-zero]") {
+  HLAinteger64Interval integerZero;
+  HLAinteger64Interval integerEpsilon;
+  integerZero.setZero();
+  integerEpsilon.setEpsilon();
+  REQUIRE(integerZero.isZero());
+  REQUIRE(integerZero.getInterval() == 0);
+  integerZero += integerEpsilon;
+  REQUIRE(integerZero.getInterval() == 1);
+  integerZero -= integerEpsilon;
+  REQUIRE(integerZero.isZero());
+
+  HLAfloat64Interval floatZero;
+  HLAfloat64Interval floatEpsilon;
+  floatZero.setZero();
+  floatEpsilon.setEpsilon();
+  REQUIRE(floatZero.isZero());
+  REQUIRE(floatZero.getInterval() == 0.0);
+  floatZero += floatEpsilon;
+  REQUIRE(floatZero.getInterval() == std::numeric_limits<double>::denorm_min());
+  floatZero -= floatEpsilon;
+  REQUIRE(floatZero.isZero());
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 time and interval subtraction clamp at their lower bounds",
+    "[2025][time][unit][time-management][logical-time-lower-bound-clamp]") {
+  HLAinteger64Time integerInitial;
+  HLAinteger64Interval integerEpsilon;
+  integerEpsilon.setEpsilon();
+  integerInitial -= integerEpsilon;
+  REQUIRE(integerInitial.isInitial());
+  REQUIRE(integerInitial.getTime() == 0);
+
+  HLAfloat64Time floatInitial;
+  HLAfloat64Interval floatEpsilon;
+  floatEpsilon.setEpsilon();
+  floatInitial -= floatEpsilon;
+  REQUIRE(floatInitial.isInitial());
+  REQUIRE(floatInitial.getTime() == 0.0);
+
+  HLAinteger64Interval integerZero;
+  integerZero -= integerEpsilon;
+  REQUIRE(integerZero.isZero());
+  REQUIRE(integerZero.getInterval() == 0);
+
+  HLAfloat64Interval floatZero;
+  floatZero -= floatEpsilon;
+  REQUIRE(floatZero.isZero());
+  REQUIRE(floatZero.getInterval() == 0.0);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 logical-time arithmetic and comparisons enforce operand types",
+    "[2025][time][unit][time-management][logical-time-operand-types]") {
+  STATIC_REQUIRE(SupportsAdditionAssignment<LogicalTime, LogicalTimeInterval>);
+  STATIC_REQUIRE(SupportsSubtractionAssignment<LogicalTime, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionAssignment<LogicalTime, LogicalTime>);
+  STATIC_REQUIRE_FALSE(SupportsSubtractionAssignment<LogicalTime, LogicalTime>);
+  STATIC_REQUIRE(SupportsAdditionAssignment<LogicalTimeInterval, LogicalTimeInterval>);
+  STATIC_REQUIRE(SupportsSubtractionAssignment<LogicalTimeInterval, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionAssignment<LogicalTimeInterval, LogicalTime>);
+  STATIC_REQUIRE_FALSE(SupportsSubtractionAssignment<LogicalTimeInterval, LogicalTime>);
+  STATIC_REQUIRE(SupportsAllComparisons<LogicalTime, LogicalTime>);
+  STATIC_REQUIRE(SupportsAllComparisons<LogicalTimeInterval, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAllComparisons<LogicalTime, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAllComparisons<LogicalTimeInterval, LogicalTime>);
+}
+
+TEST_CASE(
+    "IEEE 1516.1-2025 logical-time interfaces expose no additional arithmetic operators",
+    "[2025][time][unit][time-management][logical-time-no-other-arithmetic]") {
+  STATIC_REQUIRE_FALSE(SupportsAdditionalBinaryArithmetic<LogicalTime, LogicalTime>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionalBinaryArithmetic<LogicalTime, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionalBinaryArithmetic<LogicalTimeInterval, LogicalTime>);
+  STATIC_REQUIRE_FALSE(
+      SupportsAdditionalBinaryArithmetic<LogicalTimeInterval, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionalUnaryArithmetic<LogicalTime>);
+  STATIC_REQUIRE_FALSE(SupportsAdditionalUnaryArithmetic<LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(SupportsIncrementOrDecrement<LogicalTime>);
+  STATIC_REQUIRE_FALSE(SupportsIncrementOrDecrement<LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(
+      SupportsAdditionalCompoundArithmetic<LogicalTime, LogicalTimeInterval>);
+  STATIC_REQUIRE_FALSE(
+      SupportsAdditionalCompoundArithmetic<LogicalTimeInterval, LogicalTimeInterval>);
 }

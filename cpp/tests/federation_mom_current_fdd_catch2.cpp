@@ -325,6 +325,7 @@ TEST_CASE(
     "Embedded federation MOM content reports FOM module and MIM data through a focused lane",
     "[integration][development-profile][federation-management][mom]"
     "[mom-request-report][fom-module-management][interaction-management]"
+    "[mom-table7-report-fom-module-data][mom-mimdata-source-name-conflict]"
     "[federation-mom-content-reports][2025]"
     "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
     "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
@@ -381,6 +382,12 @@ TEST_CASE(
   REQUIRE(mimReportClass.isValid());
   REQUIRE(mimReportData.isValid());
   REQUIRE(reliable.isValid());
+  // The 1516.2-2025 standard MIM uses lowercase "data"; the 1516.1-2025
+  // clause 4.1.4.2 and Table 7 transcription uses "Data" (tracked as RL-393).
+  REQUIRE(observer->getInteractionClassName(mimRequestClass) ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestMIMdata");
+  REQUIRE(observer->getInteractionClassName(mimReportClass) ==
+          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportMIMdata");
 
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(fomReportClass));
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(mimReportClass));

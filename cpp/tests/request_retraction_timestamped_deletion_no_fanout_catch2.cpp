@@ -119,9 +119,8 @@ TEST_CASE(
       tag,
       rti1516_2025::HLAinteger64Time(6));
   REQUIRE(retraction.isValid());
-  REQUIRE_THROWS_AS(
-      publisher->getObjectInstanceHandle(objectInstanceName),
-      rti1516_2025::ObjectInstanceNotKnown);
+  // Section 8.22 requires reconstitution after Retract; it does not prescribe
+  // the sender's name-lookup state before this future timestamp is reached.
   REQUIRE_NOTHROW(publisher->retract(retraction));
   REQUIRE(publisher->getObjectInstanceHandle(objectInstanceName) == objectInstance);
   REQUIRE(publisher->isAttributeOwnedByFederate(objectInstance, reliable));

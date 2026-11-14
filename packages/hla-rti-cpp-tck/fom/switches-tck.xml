@@ -12,9 +12,10 @@
         <releaseRestriction>NA</releaseRestriction>
         <purpose>Portable IEEE 1516.1-2025 switch conformance tests</purpose>
         <applicationDomain>Conformance testing</applicationDomain>
-        <description>This module enables the standard Delay Subscription Evaluation switch for focused portable interaction and attribute-update tests.</description>
+        <description>This module supplies standard Convey Region Designator Sets, Delay Subscription Evaluation, and Allow Relaxed DDM switch values for focused portable tests.</description>
     </modelIdentification>
     <switches>
+        <conveyRegionDesignatorSets isEnabled="true"/>
         <delaySubscriptionEvaluation isEnabled="true"/>
         <allowRelaxedDDM isEnabled="true"/>
     </switches>

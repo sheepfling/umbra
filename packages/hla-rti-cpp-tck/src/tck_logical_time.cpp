@@ -4,6 +4,80 @@ namespace hla_rti_cpp_tck::detail {
 
 namespace {
 
+template <typename Left, typename Right>
+concept SupportsAdditionAssignment = requires(Left& left, Right const& right) {
+  left += right;
+};
+
+template <typename Left, typename Right>
+concept SupportsSubtractionAssignment = requires(Left& left, Right const& right) {
+  left -= right;
+};
+
+template <typename Left, typename Right>
+concept SupportsAllComparisons = requires(Left const& left, Right const& right) {
+  left < right;
+  left <= right;
+  left == right;
+  left >= right;
+  left > right;
+  left != right;
+};
+
+template <typename Left, typename Right>
+concept SupportsAdditionalBinaryArithmetic =
+    requires(Left const& left, Right const& right) { left * right; } ||
+    requires(Left const& left, Right const& right) { left / right; } ||
+    requires(Left const& left, Right const& right) { left % right; };
+
+template <typename Value>
+concept SupportsAdditionalUnaryArithmetic =
+    requires(Value const& value) { +value; } ||
+    requires(Value const& value) { -value; };
+
+template <typename Value>
+concept SupportsIncrementOrDecrement =
+    requires(Value& value) { ++value; } ||
+    requires(Value& value) { value++; } ||
+    requires(Value& value) { --value; } ||
+    requires(Value& value) { value--; };
+
+template <typename Left, typename Right>
+concept SupportsAdditionalCompoundArithmetic =
+    requires(Left& left, Right const& right) { left *= right; } ||
+    requires(Left& left, Right const& right) { left /= right; } ||
+    requires(Left& left, Right const& right) { left %= right; };
+
+static_assert(SupportsAdditionAssignment<rti::LogicalTime, rti::LogicalTimeInterval>);
+static_assert(SupportsSubtractionAssignment<rti::LogicalTime, rti::LogicalTimeInterval>);
+static_assert(!SupportsAdditionAssignment<rti::LogicalTime, rti::LogicalTime>);
+static_assert(!SupportsSubtractionAssignment<rti::LogicalTime, rti::LogicalTime>);
+static_assert(
+    SupportsAdditionAssignment<rti::LogicalTimeInterval, rti::LogicalTimeInterval>);
+static_assert(
+    SupportsSubtractionAssignment<rti::LogicalTimeInterval, rti::LogicalTimeInterval>);
+static_assert(!SupportsAdditionAssignment<rti::LogicalTimeInterval, rti::LogicalTime>);
+static_assert(!SupportsSubtractionAssignment<rti::LogicalTimeInterval, rti::LogicalTime>);
+static_assert(SupportsAllComparisons<rti::LogicalTime, rti::LogicalTime>);
+static_assert(
+    SupportsAllComparisons<rti::LogicalTimeInterval, rti::LogicalTimeInterval>);
+static_assert(!SupportsAllComparisons<rti::LogicalTime, rti::LogicalTimeInterval>);
+static_assert(!SupportsAllComparisons<rti::LogicalTimeInterval, rti::LogicalTime>);
+static_assert(!SupportsAdditionalBinaryArithmetic<rti::LogicalTime, rti::LogicalTime>);
+static_assert(
+    !SupportsAdditionalBinaryArithmetic<rti::LogicalTime, rti::LogicalTimeInterval>);
+static_assert(
+    !SupportsAdditionalBinaryArithmetic<rti::LogicalTimeInterval, rti::LogicalTime>);
+static_assert(
+    !SupportsAdditionalBinaryArithmetic<rti::LogicalTimeInterval, rti::LogicalTimeInterval>);
+static_assert(!SupportsAdditionalUnaryArithmetic<rti::LogicalTime>);
+static_assert(!SupportsAdditionalUnaryArithmetic<rti::LogicalTimeInterval>);
+static_assert(!SupportsIncrementOrDecrement<rti::LogicalTime>);
+static_assert(!SupportsIncrementOrDecrement<rti::LogicalTimeInterval>);
+static_assert(!SupportsAdditionalCompoundArithmetic<rti::LogicalTime, rti::LogicalTimeInterval>);
+static_assert(
+    !SupportsAdditionalCompoundArithmetic<rti::LogicalTimeInterval, rti::LogicalTimeInterval>);
+
 std::vector<rti::Octet> encodePortableLogicalTimeValue(std::int64_t value) {
   auto const bits = static_cast<std::uint64_t>(value);
   std::vector<rti::Octet> bytes(portableLogicalTimeEncodingSize);
@@ -40,6 +114,122 @@ std::int64_t portableLogicalTimeIntervalValue(
         L"PortableLogicalTimeInterval received an incompatible value.");
   }
   return typed->value();
+}
+
+template <typename Time, typename Interval>
+void verifyLogicalTimeIdentitySet(std::string const& representation) {
+  Time initial;
+  initial.setInitial();
+  Time final;
+  final.setFinal();
+  Interval epsilon;
+  epsilon.setEpsilon();
+  Interval zero;
+  zero.setZero();
+  auto const timeLess = [](
+                             rti::LogicalTime const& left,
+                             rti::LogicalTime const& right) {
+    return left.operator<(right);
+  };
+  auto const timeGreater = [](
+                                rti::LogicalTime const& left,
+                                rti::LogicalTime const& right) {
+    return left.operator>(right);
+  };
+  auto const timeEqual = [](
+                             rti::LogicalTime const& left,
+                             rti::LogicalTime const& right) {
+    return left.operator==(right);
+  };
+  auto const intervalEqual = [](
+                                 rti::LogicalTimeInterval const& left,
+                                 rti::LogicalTimeInterval const& right) {
+    return left.operator==(right);
+  };
+  auto const intervalAtLeast = [](
+                                   rti::LogicalTimeInterval const& left,
+                                   rti::LogicalTimeInterval const& right) {
+    return left.operator>=(right);
+  };
+
+  Time time(initial);
+  time += epsilon;
+  time += epsilon;
+  Time advanced(time);
+  advanced += epsilon;
+  require(
+      timeLess(time, advanced),
+      representation + ": positive addition did not advance time");
+  Time finalPlusInterval(final);
+  finalPlusInterval += epsilon;
+  require(
+      timeEqual(finalPlusInterval, final),
+      representation + ": final time changed on addition");
+  Time retreated(time);
+  retreated -= epsilon;
+  require(
+      timeGreater(time, retreated),
+      representation + ": positive subtraction did not retreat time");
+  Time initialMinusInterval(initial);
+  initialMinusInterval -= epsilon;
+  require(
+      timeEqual(initialMinusInterval, initial),
+      representation + ": initial time changed on subtraction");
+  Time timePlusZero(time);
+  timePlusZero += zero;
+  require(timeEqual(timePlusZero, time), representation + ": adding zero changed time");
+  Time timeMinusZero(time);
+  timeMinusZero -= zero;
+  require(timeEqual(timeMinusZero, time), representation + ": subtracting zero changed time");
+
+  Interval distinctTimeDifference;
+  distinctTimeDifference.setToDifference(advanced, time);
+  require(
+      intervalAtLeast(distinctTimeDifference, epsilon),
+      representation + ": distinct time difference was below epsilon");
+  Interval equalTimeDifference;
+  equalTimeDifference.setToDifference(time, time);
+  require(
+      intervalEqual(equalTimeDifference, zero),
+      representation + ": equal times had nonzero difference");
+
+  Interval interval(epsilon);
+  Interval intervalPlusZero(interval);
+  intervalPlusZero += zero;
+  require(
+      intervalEqual(intervalPlusZero, interval),
+      representation + ": adding zero changed an interval");
+  Interval intervalMinusZero(interval);
+  intervalMinusZero -= zero;
+  require(
+      intervalEqual(intervalMinusZero, interval),
+      representation + ": subtracting zero changed an interval");
+  Interval equalIntervalDifference(interval);
+  equalIntervalDifference -= interval;
+  require(
+      intervalEqual(equalIntervalDifference, zero),
+      representation + ": equal intervals had nonzero difference");
+  Interval smallerMinusLarger(interval);
+  Interval larger(interval);
+  larger += epsilon;
+  smallerMinusLarger -= larger;
+  require(
+      intervalEqual(smallerMinusLarger, zero),
+      representation + ": negative interval difference was nonzero");
+  Interval largerMinusSmaller(larger);
+  largerMinusSmaller -= interval;
+  require(
+      intervalAtLeast(largerMinusSmaller, epsilon),
+      representation + ": positive interval difference was below epsilon");
+  require(!intervalEqual(epsilon, zero), representation + ": epsilon equaled zero");
+  require(
+      intervalAtLeast(epsilon, epsilon),
+      representation + ": epsilon was below itself");
+  require(
+      timeLess(retreated, time),
+      representation + ": reverse time comparison was inconsistent");
+  require(timeLess(initial, time), representation + ": finite time was not above initial");
+  require(timeLess(time, final), representation + ": finite time was not below final");
 }
 
 }  // namespace
@@ -295,8 +485,62 @@ std::wstring PortableLogicalTimeFactory::getName() const {
   return L"PortableLogicalTime";
 }
 
+void verifyRequiredStandardLogicalTimeRepresentations() {
+  rti::HLAinteger64Time requiredIntegerInitial;
+  requiredIntegerInitial.setInitial();
+  rti::HLAinteger64Time requiredIntegerFinal;
+  requiredIntegerFinal.setFinal();
+  rti::HLAfloat64Time requiredFloatInitial;
+  requiredFloatInitial.setInitial();
+  rti::HLAfloat64Time requiredFloatFinal;
+  requiredFloatFinal.setFinal();
+  rti::HLAinteger64TimeFactory requiredIntegerFactory;
+  rti::HLAfloat64TimeFactory requiredFloatFactory;
+  require(
+      requiredIntegerInitial.isInitial() && requiredIntegerFinal.isFinal() &&
+          requiredIntegerInitial < requiredIntegerFinal &&
+          requiredIntegerFactory.getName() == L"HLAinteger64Time" &&
+          requiredFloatInitial.isInitial() && requiredFloatFinal.isFinal() &&
+          requiredFloatInitial < requiredFloatFinal &&
+          requiredFloatFactory.getName() == L"HLAfloat64Time",
+      "RTI did not provide both standard logical-time representations "
+      "with initial/final points");
+}
+
+template <typename Value, typename FactoryDecoder>
+void requireOffsetEncodingRoundTrip(
+    Value const& value,
+    FactoryDecoder&& factoryDecoder,
+    std::string const& description) {
+  auto const encodedLength = value.encodedLength();
+  auto const sentinel = static_cast<rti::Octet>(0xa5U);
+  std::vector<rti::Octet> buffer(encodedLength + 2U, sentinel);
+  auto const encodedSize = value.encode(buffer.data() + 1U, encodedLength);
+  require(
+      encodedSize == encodedLength,
+      description + " did not report its complete direct-buffer encoding");
+  require(
+      buffer.front() == sentinel && buffer.back() == sentinel,
+      description + " wrote outside the selected buffer offset");
+
+  Value decoded;
+  decoded.decode(buffer.data() + 1U, encodedSize);
+  require(
+      decoded.operator==(value),
+      description + " did not decode from a nonzero offset");
+
+  auto factoryDecoded = factoryDecoder(buffer.data() + 1U, encodedSize);
+  require(
+      factoryDecoded != nullptr && factoryDecoded->operator==(value),
+      description + " factory did not decode from a nonzero offset");
+}
+
 void verifyReferenceTimeTypes() {
+  verifyRequiredStandardLogicalTimeRepresentations();
   rti::HLAinteger64Time integerTime(41);
+  require(
+      !integerTime.toString().empty(),
+      "HLAinteger64Time returned no printable string representation");
   rti::HLAinteger64Interval integerEpsilon;
   integerEpsilon.setEpsilon();
   require(
@@ -318,6 +562,9 @@ void verifyReferenceTimeTypes() {
   integerTime.setTime(41);
 
   rti::HLAinteger64Interval integerInterval(3);
+  require(
+      !integerInterval.toString().empty(),
+      "HLAinteger64Interval returned no printable string representation");
   rti::HLAinteger64Interval integerIntervalCopied(integerInterval);
   rti::HLAinteger64Interval integerIntervalAssigned;
   integerIntervalAssigned = integerInterval;
@@ -334,6 +581,10 @@ void verifyReferenceTimeTypes() {
   require(
       integerInterval.isEpsilon() && integerInterval.getInterval() == 1,
       "HLAinteger64Interval epsilon mutator did not produce epsilon");
+  require(
+      copyBytes(integerIntervalCopied.encode()) ==
+          std::vector<std::uint8_t>{0U, 0U, 0U, 0U, 0U, 0U, 0U, 3U},
+      "HLAinteger64Interval did not use HLAinteger64BE encoding");
   requireDirectTimeEncoding(
       integerIntervalCopied,
       "HLAinteger64Interval");
@@ -363,10 +614,18 @@ void verifyReferenceTimeTypes() {
       "HLAinteger64Time final boundary was incorrect");
   rti::HLAinteger64Time integerInitial;
   require(integerInitial.isInitial(), "HLAinteger64Time initial boundary was incorrect");
-  requireException(
-      [&] { integerInitial -= integerEpsilon; },
-      L"IllegalTimeArithmetic",
-      "HLAinteger64Time subtraction before initial");
+  require(
+      integerInitial < integerTime && integerTime < integerFinal,
+      "HLAinteger64Time did not compare a finite value against both boundaries");
+  integerInitial -= integerEpsilon;
+  require(
+      integerInitial.isInitial() && integerInitial.getTime() == 0,
+      "HLAinteger64Time subtraction below initial did not clamp to initial");
+  rti::HLAinteger64Interval integerZero;
+  integerZero -= integerEpsilon;
+  require(
+      integerZero.isZero() && integerZero.getInterval() == 0,
+      "HLAinteger64Interval subtraction below zero did not clamp to zero");
   integerFinal += integerEpsilon;
   require(
       integerFinal.isFinal() &&
@@ -383,6 +642,18 @@ void verifyReferenceTimeTypes() {
       "negative HLAinteger64Time construction");
 
   rti::HLAinteger64TimeFactory integerFactory;
+  requireOffsetEncodingRoundTrip(
+      integerTime,
+      [&integerFactory](void const* buffer, std::size_t size) {
+        return integerFactory.decodeLogicalTime(buffer, size);
+      },
+      "HLAinteger64Time");
+  requireOffsetEncodingRoundTrip(
+      integerIntervalCopied,
+      [&integerFactory](void const* buffer, std::size_t size) {
+        return integerFactory.decodeLogicalTimeInterval(buffer, size);
+      },
+      "HLAinteger64Interval");
   std::vector<rti::Octet> integerFactoryEncoding{
       static_cast<rti::Octet>(0U),
       static_cast<rti::Octet>(0U),
@@ -402,6 +673,45 @@ void verifyReferenceTimeTypes() {
           integerFactory.getName() == L"HLAinteger64Time",
       "HLAinteger64TimeFactory did not decode its standard value");
 
+  auto integerFactoryMade = integerFactory.makeLogicalTime(259);
+  auto integerFactoryInitial = integerFactory.makeInitial();
+  auto* integerFactoryInitialConcrete =
+      dynamic_cast<rti::HLAinteger64Time*>(integerFactoryInitial.get());
+  auto integerFactoryFinal = integerFactory.makeFinal();
+  auto* integerFactoryFinalConcrete =
+      dynamic_cast<rti::HLAinteger64Time*>(integerFactoryFinal.get());
+  require(
+      integerFactoryMade->getTime() == 259 &&
+          integerFactoryInitialConcrete != nullptr &&
+          integerFactoryInitialConcrete->isInitial() &&
+          integerFactoryFinalConcrete != nullptr &&
+          integerFactoryFinalConcrete->isFinal(),
+      "HLAinteger64TimeFactory returned an unexpected logical-time type or value");
+
+  auto integerFactoryInterval = integerFactory.makeLogicalTimeInterval(258);
+  auto integerFactoryZero = integerFactory.makeZero();
+  auto* integerFactoryZeroConcrete =
+      dynamic_cast<rti::HLAinteger64Interval*>(integerFactoryZero.get());
+  auto integerFactoryEpsilon = integerFactory.makeEpsilon();
+  auto* integerFactoryEpsilonConcrete =
+      dynamic_cast<rti::HLAinteger64Interval*>(integerFactoryEpsilon.get());
+  auto integerFactoryDecodedInterval = integerFactory.decodeLogicalTimeInterval(
+      integerFactoryEncoding.data(),
+      integerFactoryEncoding.size());
+  auto* integerFactoryDecodedIntervalConcrete =
+      dynamic_cast<rti::HLAinteger64Interval*>(
+          integerFactoryDecodedInterval.get());
+  require(
+      integerFactoryInterval != nullptr &&
+          integerFactoryInterval->getInterval() == 258 &&
+          integerFactoryZeroConcrete != nullptr &&
+          integerFactoryZeroConcrete->isZero() &&
+          integerFactoryEpsilonConcrete != nullptr &&
+          integerFactoryEpsilonConcrete->isEpsilon() &&
+          integerFactoryDecodedIntervalConcrete != nullptr &&
+          integerFactoryDecodedIntervalConcrete->getInterval() == 258,
+      "HLAinteger64TimeFactory returned an unexpected logical-time-interval type or value");
+
   rti::HLAfloat64Time floatInitial;
   rti::HLAfloat64Time floatFinal;
   rti::HLAfloat64Interval floatEpsilon;
@@ -410,11 +720,31 @@ void verifyReferenceTimeTypes() {
   constexpr double floatFinalValue = std::numeric_limits<double>::max();
   constexpr double floatEpsilonValue = std::numeric_limits<double>::denorm_min();
   require(
-      floatInitial.isInitial() && floatFinal.isFinal() &&
+      floatInitial.isInitial() && floatInitial.getTime() == 0.0 &&
+          floatFinal.isFinal() &&
           floatFinal.getTime() == floatFinalValue && floatEpsilon.isEpsilon() &&
           floatEpsilon.getInterval() == floatEpsilonValue &&
           floatFinal.implementationName() == L"HLAfloat64Time",
       "HLAfloat64Time did not preserve its standard boundaries and epsilon");
+  floatInitial -= floatEpsilon;
+  require(
+      floatInitial.isInitial() && floatInitial.getTime() == 0.0,
+      "HLAfloat64Time subtraction below initial did not clamp to initial");
+  rti::HLAfloat64Time floatEpsilonFromInitial;
+  rti::LogicalTime& floatEpsilonFromInitialResult =
+      floatEpsilonFromInitial.operator+=(floatEpsilon);
+  require(
+      &floatEpsilonFromInitialResult == &floatEpsilonFromInitial &&
+          dynamic_cast<rti::HLAfloat64Time*>(&floatEpsilonFromInitialResult) ==
+              &floatEpsilonFromInitial &&
+          floatEpsilonFromInitialResult.implementationName() == L"HLAfloat64Time" &&
+          floatEpsilonFromInitial.getTime() == floatEpsilonValue,
+      "HLAfloat64Time epsilon addition from initial did not make the smallest guaranteed change");
+  rti::HLAfloat64Interval floatZero;
+  floatZero -= floatEpsilon;
+  require(
+      floatZero.isZero() && floatZero.getInterval() == 0.0,
+      "HLAfloat64Interval subtraction below zero did not clamp to zero");
   floatFinal += floatEpsilon;
   require(floatFinal.isFinal() && floatFinal.getTime() == floatFinalValue,
           "HLAfloat64Time addition to final did not preserve final");
@@ -423,20 +753,43 @@ void verifyReferenceTimeTypes() {
           "HLAfloat64Time subtraction from final did not preserve final");
   rti::HLAfloat64Time floatLarge(floatFinalValue / 2.0);
   auto const floatBefore = floatLarge.getTime();
+  auto const floatNext = std::nextafter(floatBefore, floatFinalValue);
+  auto const floatPrevious = std::nextafter(floatBefore, 0.0);
+  require(
+      floatEpsilonValue > 0.0 &&
+          floatEpsilonValue < floatNext - floatBefore &&
+          floatEpsilonValue < floatBefore - floatPrevious,
+      "HLAfloat64Interval epsilon was not smaller than the local time spacing");
   floatLarge += floatEpsilon;
   require(
-      floatLarge.getTime() == std::nextafter(floatBefore, floatFinalValue),
+      floatLarge.getTime() == floatNext,
       "HLAfloat64Time epsilon did not advance by one representable step");
   floatLarge -= floatEpsilon;
   require(
       floatLarge.getTime() == floatBefore,
       "HLAfloat64Time epsilon subtraction did not restore the value");
+  rti::HLAfloat64Time floatSubtracting(floatBefore);
+  floatSubtracting -= floatEpsilon;
+  require(
+      floatSubtracting.getTime() == floatPrevious,
+      "HLAfloat64Time sub-epsilon subtraction did not retreat by one representable step");
 
   rti::HLAfloat64Time floatValue(1.5);
+  require(
+      !floatValue.toString().empty(),
+      "HLAfloat64Time returned no printable string representation");
+  require(
+      floatInitial < floatValue && floatValue < floatFinal,
+      "HLAfloat64Time did not compare a finite value against both boundaries");
   require(
       copyBytes(floatValue.encode()) ==
           std::vector<std::uint8_t>{0x3FU, 0xF8U, 0U, 0U, 0U, 0U, 0U, 0U},
       "HLAfloat64Time did not use HLAfloat64BE encoding");
+  rti::HLAfloat64Time floatWireValue(3.25);
+  require(
+      copyBytes(floatWireValue.encode()) ==
+          std::vector<std::uint8_t>{0x40U, 0x0AU, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64Time did not preserve a second HLAfloat64BE golden vector");
   requireDirectTimeEncoding(floatValue, "HLAfloat64Time");
   rti::HLAfloat64Time floatDecoded;
   floatDecoded.decode(floatValue.encode());
@@ -445,14 +798,55 @@ void verifyReferenceTimeTypes() {
       "HLAfloat64Time did not decode its own encoding");
   rti::HLAfloat64Time floatCopied(floatValue);
   rti::HLAfloat64Time floatAssigned;
-  floatAssigned = floatValue;
+  rti::HLAfloat64Time& concreteAssignmentResult = (floatAssigned = floatValue);
+  require(
+      &concreteAssignmentResult == &floatAssigned &&
+          concreteAssignmentResult.implementationName() == L"HLAfloat64Time",
+      "HLAfloat64Time copy assignment did not return its concrete receiver");
+  rti::LogicalTime const& abstractFloatValue = floatValue;
+  rti::HLAfloat64Time floatAssignedThroughBase;
+  rti::HLAfloat64Time& baseAssignmentResult =
+      floatAssignedThroughBase.operator=(abstractFloatValue);
+  require(
+      &baseAssignmentResult == &floatAssignedThroughBase &&
+          baseAssignmentResult.implementationName() == L"HLAfloat64Time",
+      "HLAfloat64Time base-interface assignment did not return its concrete receiver");
   floatValue.setTime(2.5);
   require(
-      floatCopied.getTime() == 1.5 && floatAssigned.getTime() == 1.5,
+      floatCopied.getTime() == 1.5 && floatAssigned.getTime() == 1.5 &&
+          floatAssignedThroughBase.getTime() == 1.5,
       "HLAfloat64Time copy or assignment was not independent");
   floatValue.setTime(1.5);
 
+  rti::HLAfloat64Time floatArithmeticProbe(1.5);
+  rti::HLAfloat64Interval floatArithmeticInterval(0.5);
+  rti::LogicalTime& floatAdditionResult =
+      floatArithmeticProbe.operator+=(floatArithmeticInterval);
+  require(
+      &floatAdditionResult == &floatArithmeticProbe &&
+          dynamic_cast<rti::HLAfloat64Time*>(&floatAdditionResult) ==
+              &floatArithmeticProbe &&
+          floatAdditionResult.implementationName() == L"HLAfloat64Time" &&
+          floatArithmeticProbe.getTime() == 2.0,
+      "HLAfloat64Time addition did not return a reference to its concrete receiver");
+  rti::LogicalTime& floatSubtractionResult =
+      floatArithmeticProbe.operator-=(floatArithmeticInterval);
+  require(
+      &floatSubtractionResult == &floatArithmeticProbe &&
+          dynamic_cast<rti::HLAfloat64Time*>(&floatSubtractionResult) ==
+              &floatArithmeticProbe &&
+          floatSubtractionResult.implementationName() == L"HLAfloat64Time" &&
+          floatArithmeticProbe.getTime() == 1.5,
+      "HLAfloat64Time subtraction did not return a reference to its concrete receiver");
+
   rti::HLAfloat64Interval floatInterval(2.5);
+  require(
+      !floatInterval.toString().empty(),
+      "HLAfloat64Interval returned no printable string representation");
+  require(
+      copyBytes(floatInterval.encode()) ==
+          std::vector<std::uint8_t>{0x40U, 0x04U, 0U, 0U, 0U, 0U, 0U, 0U},
+      "HLAfloat64Interval did not use HLAfloat64BE encoding");
   rti::HLAfloat64Interval floatIntervalCopied(floatInterval);
   rti::HLAfloat64Interval floatIntervalAssigned;
   floatIntervalAssigned = floatInterval;
@@ -504,6 +898,18 @@ void verifyReferenceTimeTypes() {
       L"CouldNotDecode",
       "positive-infinity HLAfloat64Time encoding");
   rti::HLAfloat64TimeFactory floatFactory;
+  requireOffsetEncodingRoundTrip(
+      floatValue,
+      [&floatFactory](void const* buffer, std::size_t size) {
+        return floatFactory.decodeLogicalTime(buffer, size);
+      },
+      "HLAfloat64Time");
+  requireOffsetEncodingRoundTrip(
+      floatIntervalCopied,
+      [&floatFactory](void const* buffer, std::size_t size) {
+        return floatFactory.decodeLogicalTimeInterval(buffer, size);
+      },
+      "HLAfloat64Interval");
   std::vector<rti::Octet> floatFactoryEncoding{
       static_cast<rti::Octet>(0x40U),
       static_cast<rti::Octet>(0x0AU),
@@ -523,6 +929,49 @@ void verifyReferenceTimeTypes() {
           floatFactory.getName() == L"HLAfloat64Time",
       "HLAfloat64TimeFactory did not decode its standard value");
 
+  auto floatFactoryMade = floatFactory.makeLogicalTime(3.25);
+  auto floatFactoryInitial = floatFactory.makeInitial();
+  auto* floatFactoryInitialConcrete =
+      dynamic_cast<rti::HLAfloat64Time*>(floatFactoryInitial.get());
+  auto floatFactoryFinal = floatFactory.makeFinal();
+  auto* floatFactoryFinalConcrete =
+      dynamic_cast<rti::HLAfloat64Time*>(floatFactoryFinal.get());
+  auto floatFactoryInterval = floatFactory.makeLogicalTimeInterval(3.25);
+  auto* floatFactoryIntervalConcrete =
+      dynamic_cast<rti::HLAfloat64Interval*>(floatFactoryInterval.get());
+  auto floatFactoryZero = floatFactory.makeZero();
+  auto* floatFactoryZeroConcrete =
+      dynamic_cast<rti::HLAfloat64Interval*>(floatFactoryZero.get());
+  auto floatFactoryEpsilon = floatFactory.makeEpsilon();
+  auto* floatFactoryEpsilonConcrete =
+      dynamic_cast<rti::HLAfloat64Interval*>(floatFactoryEpsilon.get());
+  auto floatFactoryDecodedInterval = floatFactory.decodeLogicalTimeInterval(
+      floatFactoryEncoding.data(),
+      floatFactoryEncoding.size());
+  auto* floatFactoryDecodedIntervalConcrete =
+      dynamic_cast<rti::HLAfloat64Interval*>(
+          floatFactoryDecodedInterval.get());
+  require(
+      floatFactoryMade != nullptr && floatFactoryMade->getTime() == 3.25 &&
+          floatFactoryInitialConcrete != nullptr &&
+          floatFactoryInitialConcrete->isInitial() &&
+          floatFactoryFinalConcrete != nullptr &&
+          floatFactoryFinalConcrete->isFinal() &&
+          floatFactoryInterval != nullptr &&
+          floatFactoryIntervalConcrete != nullptr &&
+          floatFactoryInterval->getInterval() == 3.25 &&
+          floatFactoryZeroConcrete != nullptr &&
+          floatFactoryZeroConcrete->isZero() &&
+          floatFactoryEpsilonConcrete != nullptr &&
+          floatFactoryEpsilonConcrete->isEpsilon() &&
+          floatFactoryDecodedIntervalConcrete != nullptr &&
+          floatFactoryDecodedIntervalConcrete->getInterval() == 3.25,
+      "HLAfloat64TimeFactory returned unexpected logical-time or interval values");
+
+  verifyLogicalTimeIdentitySet<rti::HLAinteger64Time, rti::HLAinteger64Interval>(
+      "HLAinteger64Time");
+  verifyLogicalTimeIdentitySet<rti::HLAfloat64Time, rti::HLAfloat64Interval>(
+      "HLAfloat64Time");
   verifyStandardLogicalTimeFactoryFactoryContract();
 }
 
@@ -872,10 +1321,10 @@ void scenarioLogicalTimeFactoryPortable(
   *copied = *second;
   require(*copied == *second, "logical-time assignment did not preserve the value");
   auto underflow = time.factory->makeInitial();
-  requireException(
-      [&] { *underflow -= *time.epsilon; },
-      L"IllegalTimeArithmetic",
-      "logical-time subtraction before initial");
+  *underflow -= *time.epsilon;
+  require(
+      *underflow == *time.initial,
+      "logical-time subtraction below initial did not preserve the initial value");
   auto finalBoundary = time.factory->makeFinal();
   *finalBoundary += *time.epsilon;
   require(finalBoundary->isFinal(),
@@ -906,10 +1355,52 @@ void scenarioLogicalTimePortable(Options const&, rti::CallbackModel) {
   verifyReferenceTimeTypes();
 }
 
+void scenarioLogicalTimeIntervalNonnegativeContract(
+    Options const&,
+    rti::CallbackModel) {
+  requireException(
+      [] { static_cast<void>(rti::HLAinteger64Interval(-1)); },
+      L"InvalidLogicalTimeInterval",
+      "negative integer64 logical-time interval construction");
+  rti::HLAinteger64Interval integerInterval;
+  requireException(
+      [&] { integerInterval.setInterval(-1); },
+      L"InvalidLogicalTimeInterval",
+      "negative integer64 logical-time interval mutation");
+
+  requireException(
+      [] { static_cast<void>(rti::HLAfloat64Interval(-1.0)); },
+      L"InvalidLogicalTimeInterval",
+      "negative float64 logical-time interval construction");
+  rti::HLAfloat64Interval floatInterval;
+  requireException(
+      [&] { floatInterval.setInterval(-1.0); },
+      L"InvalidLogicalTimeInterval",
+      "negative float64 logical-time interval mutation");
+}
+
 void scenarioLogicalTimeFactoryFactoryPortable(
     Options const&,
     rti::CallbackModel) {
   verifyStandardLogicalTimeFactoryFactoryContract();
+
+  auto forwardedIntegerFactory =
+      rti::LogicalTimeFactoryFactory::makeLogicalTimeFactory(L"HLAinteger64Time");
+  require(
+      forwardedIntegerFactory != nullptr &&
+          forwardedIntegerFactory->getName() == L"HLAinteger64Time" &&
+          dynamic_cast<rti::HLAinteger64TimeFactory*>(
+              forwardedIntegerFactory.get()) != nullptr,
+      "LogicalTimeFactoryFactory did not forward HLAinteger64Time to its standard factory");
+
+  auto forwardedFloatFactory =
+      rti::LogicalTimeFactoryFactory::makeLogicalTimeFactory(L"HLAfloat64Time");
+  require(
+      forwardedFloatFactory != nullptr &&
+          forwardedFloatFactory->getName() == L"HLAfloat64Time" &&
+          dynamic_cast<rti::HLAfloat64TimeFactory*>(
+              forwardedFloatFactory.get()) != nullptr,
+      "LogicalTimeFactoryFactory did not forward HLAfloat64Time to its standard factory");
 }
 
 

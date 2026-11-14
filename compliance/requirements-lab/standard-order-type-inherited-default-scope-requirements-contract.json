@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This C++ TCK trace covers the selected §8.25 rule using P0's inherited Value attribute. It checks both class-handle invocation directions, preserves existing instance order, and checks federate-local default isolation. It does not establish every §8.25.3 obligation or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-inherited-attribute-default-order-invocation-scope",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l94-26",
+      "clause_id": "clause-8.25",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Inherited class-attribute default order invocation scope",
+      "statement": "Invoking the Change Default Attribute Order Type service on a class attribute shall affect the order type of a federate’s future instance attributes of the class attribute irrespective of the object class used in the invocation. Existing owned object instances will not change their current order type, nor will the class attribute default order type of other federates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioInheritedAttributeDefaultOrderScope",
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioInheritedAttributeDefaultOrderScopeContract"
+      ]
+    }
+  ]
+}

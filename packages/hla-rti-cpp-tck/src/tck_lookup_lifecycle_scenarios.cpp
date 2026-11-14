@@ -96,8 +96,12 @@ void scenarioInteractionClassLookupLifecycle(
           memberExtensionInteraction == ownerExtensionInteraction &&
           owner.rtiAmbassador().getInteractionClassName(ownerExtensionInteraction) ==
               extensionInteractionName &&
+          extension.rtiAmbassador().getInteractionClassName(
+              memberExtensionInteraction) == extensionInteractionName &&
           owner.rtiAmbassador().getInteractionClassHandle(options.interactionClassName) ==
-              baseInteraction,
+              baseInteraction &&
+          extension.rtiAmbassador().getInteractionClassHandle(
+              options.interactionClassName) == baseInteraction,
       "additional-module join did not compose a shared extension interaction or preserve the base handle");
 
   extension.resign(rti::NO_ACTION);
@@ -198,12 +202,21 @@ void scenarioObjectClassLookupLifecycle(
       extensionObjectName);
   require(
       ownerExtensionObject.isValid() &&
+          ownerExtensionObject != baseObject &&
           memberExtensionObject == ownerExtensionObject &&
           owner.rtiAmbassador().getObjectClassName(ownerExtensionObject) ==
               extensionObjectName &&
+          extension.rtiAmbassador().getObjectClassName(
+              memberExtensionObject) == extensionObjectName &&
           owner.rtiAmbassador().getObjectClassHandle(options.objectClassName) ==
-              baseObject,
-      "additional-module join did not compose a shared extension object class or preserve the base handle");
+              baseObject &&
+          owner.rtiAmbassador().getObjectClassName(baseObject) ==
+              options.objectClassName &&
+          extension.rtiAmbassador().getObjectClassHandle(
+               options.objectClassName) == baseObject &&
+           extension.rtiAmbassador().getObjectClassName(baseObject) ==
+               options.objectClassName,
+       "additional-module join did not compose a shared extension object class or preserve and resolve the base handle");
 
   extension.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
@@ -211,6 +224,93 @@ void scenarioObjectClassLookupLifecycle(
   extension.disconnect();
   owner.disconnect();
   observer.disconnect();
+}
+
+void scenarioKnownObjectClassAndInstanceHandleLookup(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty(),
+      "Known object lookup requires an adapter-supplied FOM");
+
+  Session owner(options, model, "known-object-lookup-owner");
+  Session observer(options, model, "known-object-lookup-observer");
+  auto const federation = federationName(options, "known-object-handle-lookup");
+  connectAndJoin(owner, observer, options, federation, options.fom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.attributeName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.attributeName);
+  require(
+      ownerClass == observerClass && ownerAttribute == observerAttribute,
+      "Known object lookup resolved different class or attribute handles");
+  require(
+      owner.rtiAmbassador().getAttributeName(ownerClass, ownerAttribute) ==
+              options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerClass,
+              observerAttribute) == options.attributeName,
+      "Get Attribute Name did not round-trip the configured P0 handle pair");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const objectName = options.ownerFederateName + L"-known-object";
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(objectName);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().reservationSucceeded(objectName); },
+      options,
+      "known object lookup name reservation");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(
+      ownerClass,
+      objectName);
+  require(object.isValid(), "Named object registration returned an invalid handle");
+  require(
+      owner.rtiAmbassador().getKnownObjectClassHandle(object) == ownerClass &&
+          owner.rtiAmbassador().getObjectInstanceName(object) == objectName &&
+          owner.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "registering federate could not resolve its locally known object handle and name");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "known object lookup discovery");
+
+  require(
+      observer.rtiAmbassador().getKnownObjectClassHandle(object) == observerClass,
+      "Get Known Object Class Handle did not return the discovered object's class");
+  require(
+      observer.rtiAmbassador().getObjectInstanceName(object) == objectName,
+      "Get Object Instance Name did not return the discovered object's name");
+  require(
+      observer.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "Get Object Instance Handle did not return the discovered object's handle");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(
+      ownerClass,
+      ownerAttributes);
+  owner.resign(rti::DELETE_OBJECTS);
+  observer.resign(rti::NO_ACTION);
 }
 
 void scenarioAttributeLookupLifecycle(
@@ -351,6 +451,11 @@ void scenarioAttributeLookupLifecycle(
       "looking up a derived attribute handle on its base object class");
 
   member.join(options.memberFederateName, options.federateType, federation);
+  auto const memberBaseObject = member.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const memberBaseIdentity = member.rtiAmbassador().getAttributeHandle(
+      memberBaseObject,
+      options.typedIdentityAttributeName);
   auto const memberDerivedObject = member.rtiAmbassador().getObjectClassHandle(
       options.typedDerivedObjectClassName);
   auto const memberIdentity = member.rtiAmbassador().getAttributeHandle(
@@ -360,9 +465,37 @@ void scenarioAttributeLookupLifecycle(
       memberDerivedObject,
       options.typedDerivedAttributeName);
   require(
-      memberDerivedObject == derivedObject && memberIdentity == baseIdentity &&
+      memberBaseObject == baseObject && memberBaseIdentity == baseIdentity &&
+          memberDerivedObject == derivedObject && memberIdentity == baseIdentity &&
           memberDerivedAttribute == derivedAttribute,
       "inherited attribute handles did not retain cross-federate identity");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAttributeHandle(
+            memberBaseObject,
+            options.typedDerivedAttributeName));
+      },
+      L"NameNotFound",
+      "looking up a derived attribute on its base class through the member");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getAttributeName(
+            memberBaseObject,
+            memberDerivedAttribute));
+      },
+      L"AttributeNotDefined",
+      "looking up a derived attribute name on its base class through the member");
+  require(
+      member.rtiAmbassador().getAttributeName(
+          memberBaseObject,
+          memberBaseIdentity) == options.typedIdentityAttributeName &&
+          member.rtiAmbassador().getAttributeName(
+              memberDerivedObject,
+              memberIdentity) == options.typedIdentityAttributeName &&
+          member.rtiAmbassador().getAttributeName(
+              memberDerivedObject,
+              memberDerivedAttribute) == options.typedDerivedAttributeName,
+      "member attribute handles did not round-trip to their configured names");
 
   member.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
@@ -513,6 +646,11 @@ void scenarioParameterLookupLifecycle(
       "looking up a derived parameter handle on its base interaction class");
 
   member.join(options.memberFederateName, options.federateType, federation);
+  auto const memberBaseInteraction = member.rtiAmbassador().getInteractionClassHandle(
+      options.typedInteractionClassName);
+  auto const memberBaseParameter = member.rtiAmbassador().getParameterHandle(
+      memberBaseInteraction,
+      options.typedIntegerParameterName);
   auto const memberDerivedInteraction = member.rtiAmbassador().getInteractionClassHandle(
       options.typedDerivedInteractionClassName);
   auto const memberInheritedParameter = member.rtiAmbassador().getParameterHandle(
@@ -522,10 +660,23 @@ void scenarioParameterLookupLifecycle(
       memberDerivedInteraction,
       options.typedDerivedParameterName);
   require(
-      memberDerivedInteraction == derivedInteraction &&
+      memberBaseInteraction == baseInteraction &&
+          memberBaseParameter == baseParameter &&
+          memberDerivedInteraction == derivedInteraction &&
           memberInheritedParameter == baseParameter &&
           memberDerivedParameter == derivedParameter,
       "inherited parameter handles did not retain cross-federate identity");
+  require(
+      member.rtiAmbassador().getParameterName(
+          memberBaseInteraction,
+          memberBaseParameter) == options.typedIntegerParameterName &&
+          member.rtiAmbassador().getParameterName(
+              memberDerivedInteraction,
+              memberInheritedParameter) == options.typedIntegerParameterName &&
+          member.rtiAmbassador().getParameterName(
+              memberDerivedInteraction,
+              memberDerivedParameter) == options.typedDerivedParameterName,
+      "member parameter handles did not round-trip to their configured names");
 
   member.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
@@ -552,6 +703,20 @@ void scenarioDimensionLookupLifecycle(
   auto requireLookupLifecycle = [&](Session& session,
                                     std::wstring const& expected,
                                     std::string const& phase) {
+    auto requireInvalidHandleLookup = [&](auto operation,
+                                          std::wstring const& invalidHandleException,
+                                          std::string const& description) {
+      if (expected == L"FederateNotExecutionMember") {
+        // Both the handle and membership preconditions fail in this phase.
+        // Do not turn the listed exception set into an ordering requirement.
+        requireExceptionOneOf(
+            operation,
+            std::vector<std::wstring>{expected, invalidHandleException},
+            description);
+        return;
+      }
+      requireException(operation, expected, description);
+    };
     requireException(
         [&] {
           static_cast<void>(session.rtiAmbassador().getDimensionHandle(
@@ -559,34 +724,34 @@ void scenarioDimensionLookupLifecycle(
         },
         expected,
         "looking up a dimension handle " + phase);
-    requireException(
+    requireInvalidHandleLookup(
         [&] {
           static_cast<void>(session.rtiAmbassador().getDimensionName(
               invalidDimension));
         },
-        expected,
+        L"InvalidDimensionHandle",
         "looking up a dimension name " + phase);
-    requireException(
+    requireInvalidHandleLookup(
         [&] {
           static_cast<void>(session.rtiAmbassador().getDimensionUpperBound(
               invalidDimension));
         },
-        expected,
+        L"InvalidDimensionHandle",
         "looking up a dimension upper bound " + phase);
-    requireException(
+    requireInvalidHandleLookup(
         [&] {
           static_cast<void>(session.rtiAmbassador().getAvailableDimensionsForObjectClass(
               invalidObjectClass));
         },
-        expected,
+        L"InvalidObjectClassHandle",
         "looking up object-class dimensions " + phase);
-    requireException(
+    requireInvalidHandleLookup(
         [&] {
           static_cast<void>(session.rtiAmbassador()
                                 .getAvailableDimensionsForInteractionClass(
                                     invalidInteractionClass));
         },
-        expected,
+        L"InvalidInteractionClassHandle",
         "looking up interaction-class dimensions " + phase);
   };
 
@@ -642,14 +807,20 @@ void scenarioDimensionLookupLifecycle(
           member.rtiAmbassador().getDimensionName(memberSecond) ==
               options.ddmDimensionNames.at(1),
       "dimension handle-to-name lookup did not round-trip");
+  auto const ownerFirstUpperBound =
+      owner.rtiAmbassador().getDimensionUpperBound(ownerFirst);
+  auto const ownerSecondUpperBound =
+      owner.rtiAmbassador().getDimensionUpperBound(ownerSecond);
+  auto const memberFirstUpperBound =
+      member.rtiAmbassador().getDimensionUpperBound(memberFirst);
+  auto const memberSecondUpperBound =
+      member.rtiAmbassador().getDimensionUpperBound(memberSecond);
   require(
-      owner.rtiAmbassador().getDimensionUpperBound(ownerFirst) > 0U &&
-          owner.rtiAmbassador().getDimensionUpperBound(ownerSecond) > 0U &&
-          owner.rtiAmbassador().getDimensionUpperBound(ownerFirst) ==
-              member.rtiAmbassador().getDimensionUpperBound(memberFirst) &&
-          owner.rtiAmbassador().getDimensionUpperBound(ownerSecond) ==
-              member.rtiAmbassador().getDimensionUpperBound(memberSecond),
-      "dimension upper bounds were not positive and stable across federates");
+      ownerFirstUpperBound == 10UL && ownerSecondUpperBound == 10UL &&
+          memberFirstUpperBound == 10UL && memberSecondUpperBound == 10UL &&
+          ownerFirstUpperBound == memberFirstUpperBound &&
+          ownerSecondUpperBound == memberSecondUpperBound,
+      "dimension upper bounds did not exactly match the positive FDD values or were not stable across federates");
 
   auto const ownerObjectDimensions =
       owner.rtiAmbassador().getAvailableDimensionsForObjectClass(ownerObjectClass);
@@ -707,6 +878,43 @@ void scenarioDimensionLookupLifecycle(
       },
       L"InvalidInteractionClassHandle",
       "looking up dimensions for an invalid interaction class");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getDimensionHandle(
+            L"TckMissingDimension"));
+      },
+      L"NameNotFound",
+      "looking up an unknown dimension name through the member");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getDimensionName(
+            invalidDimension));
+      },
+      L"InvalidDimensionHandle",
+      "looking up an invalid dimension name through the member");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador().getDimensionUpperBound(
+            invalidDimension));
+      },
+      L"InvalidDimensionHandle",
+      "looking up an invalid dimension upper bound through the member");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador()
+                              .getAvailableDimensionsForObjectClass(
+                                  invalidObjectClass));
+      },
+      L"InvalidObjectClassHandle",
+      "looking up dimensions for an invalid object class through the member");
+  requireException(
+      [&] {
+        static_cast<void>(member.rtiAmbassador()
+                              .getAvailableDimensionsForInteractionClass(
+                                  invalidInteractionClass));
+      },
+      L"InvalidInteractionClassHandle",
+      "looking up dimensions for an invalid interaction class through the member");
 
   owner.resign(rti::NO_ACTION);
   requireLookupLifecycle(

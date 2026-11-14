@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the portable C++ TCK witness for IEEE 1516.1-2025 §§12.13.5 and 12.13.5.2. The C++ scenario uses the official RTIambassador and FederateAmbassador APIs; its adapter supplies a ws:// RTI Address, runs a transparent TCP frame observer, and verifies List Federation Executions completes. Both callback-model runs observed binary data frames and no text frames in either direction; a separate text-frame negative control received close status 1003. This is Umbra-under-test evidence, not independent-provider interoperability, TLS/WSS, extension negotiation, or provider-wide conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-websocket-transport-connect",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect using an RtiConfiguration RTI Address with the ws:// scheme, followed by List Federation Executions and its report callback; adapter observes binary WebSocket data frames and verifies text-frame rejection",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::connect, RtiConfiguration::withRtiAddress, and RTIambassador::listFederationExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_websocket_transport.cpp::scenarioWebSocketTransportSupport"
+      ]
+    }
+  ]
+}

@@ -3,11 +3,17 @@ package org.hla.rti.tck;
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
+import hla.rti1516_2025.AttributeRegionAssociation;
+import hla.rti1516_2025.AttributeSetRegionSetPairList;
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.DimensionHandle;
+import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.RangeBounds;
+import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
@@ -20,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Checks independent named-rate and default-rate ordinary attribute reflections. */
+/** Checks named-rate and default-rate ordinary and regional attribute reflections. */
 final class MixedUpdateRateSubscriptionsTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
 
@@ -28,7 +34,9 @@ final class MixedUpdateRateSubscriptionsTck {
 
    static void run(RtiFactory factory, String rateFom, String timeImplementation,
          String objectClassName, String reliableAttributeName, String bestEffortAttributeName,
-         String updateRateDesignator, CallbackModel callbackModel) throws Exception {
+         String updateRateDesignator, String regionalObjectClassName,
+         String regionalAttributeName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder receiverRecorder = new Recorder();
@@ -127,6 +135,10 @@ final class MixedUpdateRateSubscriptionsTck {
          assertPassel(receiver, receiverRecorder.reflections, secondStart, object, producer,
             receiverReliable, secondReliable, receiverBestEffort, secondBestEffort,
             secondTag, false, "second mixed-rate passel");
+
+         runRegionalBranch(factory, publisher, receiver, receiverRecorder, federation, producer,
+            regionalObjectClassName, regionalAttributeName, updateRateDesignator,
+            firstDimensionName, secondDimensionName, callbackModel);
       } finally {
          if (receiverJoined && subscribed) {
             try { receiver.unsubscribeObjectClassAttributes(receiverClass,
@@ -157,6 +169,225 @@ final class MixedUpdateRateSubscriptionsTck {
             try { publisher.disconnect(); } catch (Exception ignored) { }
          }
       }
+   }
+
+   private static void runRegionalBranch(RtiFactory factory, RTIambassador publisher,
+         RTIambassador rateReceiver, Recorder rateRecorder, String federation,
+         FederateHandle producer, String objectClassName, String attributeName,
+         String updateRateDesignator, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador defaultReceiver = factory.getRtiAmbassador();
+      Recorder defaultRecorder = new Recorder();
+      boolean defaultConnected = false;
+      boolean defaultJoined = false;
+      boolean regionalPublished = false;
+      boolean rateSubscribed = false;
+      boolean defaultSubscribed = false;
+      ObjectClassHandle publisherClass = null;
+      ObjectClassHandle rateClass = null;
+      ObjectClassHandle defaultClass = null;
+      AttributeHandle publisherAttribute = null;
+      AttributeHandle rateAttribute = null;
+      AttributeHandle defaultAttribute = null;
+      AttributeHandleSet publisherAttributes = null;
+      AttributeHandleSet rateAttributes = null;
+      AttributeHandleSet defaultAttributes = null;
+      RegionHandle sourceRegion = null;
+      RegionHandle rateRegion = null;
+      RegionHandle defaultRegion = null;
+      AttributeSetRegionSetPairList sourcePairs = null;
+      AttributeSetRegionSetPairList ratePairs = null;
+      AttributeSetRegionSetPairList defaultPairs = null;
+      ObjectInstanceHandle regionalObject = null;
+      try {
+         defaultReceiver.connect(defaultRecorder.proxy(), callbackModel);
+         defaultConnected = true;
+         defaultReceiver.joinFederationExecution(
+            "java-tck-mixed-rate-default-receiver", federation);
+         defaultJoined = true;
+
+         publisherClass = publisher.getObjectClassHandle(objectClassName);
+         rateClass = rateReceiver.getObjectClassHandle(objectClassName);
+         defaultClass = defaultReceiver.getObjectClassHandle(objectClassName);
+         publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
+         rateAttribute = rateReceiver.getAttributeHandle(rateClass, attributeName);
+         defaultAttribute = defaultReceiver.getAttributeHandle(defaultClass, attributeName);
+         publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
+         rateAttributes = JavaTckSupport.attributeSet(rateReceiver, rateAttribute);
+         defaultAttributes = JavaTckSupport.attributeSet(defaultReceiver, defaultAttribute);
+         publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
+         regionalPublished = true;
+
+         sourceRegion = createRateRegion(publisher, firstDimensionName, secondDimensionName);
+         rateRegion = createRateRegion(rateReceiver, firstDimensionName, secondDimensionName);
+         defaultRegion = createRateRegion(defaultReceiver, firstDimensionName,
+            secondDimensionName);
+         sourcePairs = attributeRegionPairs(publisher, publisherAttributes, sourceRegion);
+         ratePairs = attributeRegionPairs(rateReceiver, rateAttributes, rateRegion);
+         defaultPairs = attributeRegionPairs(defaultReceiver, defaultAttributes, defaultRegion);
+         rateReceiver.subscribeObjectClassAttributesWithRegions(
+            rateClass, ratePairs, updateRateDesignator);
+         rateSubscribed = true;
+         defaultReceiver.subscribeObjectClassAttributesWithRegions(defaultClass, defaultPairs, "");
+         defaultSubscribed = true;
+
+         regionalObject = publisher.registerObjectInstanceWithRegions(publisherClass,
+            sourcePairs);
+         JavaTckSupport.check(regionalObject != null,
+            "regional update-rate registration returned no object handle");
+         final ObjectInstanceHandle observedObject = regionalObject;
+         await(rateReceiver, callbackModel,
+            () -> rateRecorder.discoveries.contains(observedObject),
+            "regional update-rate discovery for named-rate subscriber");
+         await(defaultReceiver, callbackModel,
+            () -> defaultRecorder.discoveries.contains(observedObject),
+            "regional update-rate discovery for default-rate subscriber");
+
+         double regionalNamedRate = rateReceiver.getUpdateRateValue(updateRateDesignator);
+         JavaTckSupport.check(regionalNamedRate > 0.0
+               && rateReceiver.getUpdateRateValueForAttribute(observedObject, rateAttribute)
+                  == regionalNamedRate,
+            "regional subscription did not apply the named maximum update rate");
+         JavaTckSupport.check(defaultReceiver.getUpdateRateValueForAttribute(
+               observedObject, defaultAttribute) == 0.0,
+            "regional subscription without a designator did not retain the default rate");
+
+         final AttributeHandle observedRateAttribute = rateAttribute;
+         final AttributeHandle observedDefaultAttribute = defaultAttribute;
+         byte[] firstValue = new byte[] {0x31};
+         byte[] secondValue = new byte[] {0x32};
+         byte[] firstTag = new byte[] {0x73};
+         byte[] secondTag = new byte[] {0x74};
+         int rateFirstStart = rateRecorder.reflections.size();
+         int defaultFirstStart = defaultRecorder.reflections.size();
+         sendRegionalUpdate(publisher, observedObject, publisherAttribute, firstValue, firstTag);
+         await(rateReceiver, callbackModel,
+            () -> countRegionalValue(rateRecorder.reflections, rateFirstStart, observedObject,
+               producer, observedRateAttribute, firstValue, firstTag) == 1,
+            "first regional update for named-rate subscriber");
+         await(defaultReceiver, callbackModel,
+            () -> countRegionalValue(defaultRecorder.reflections, defaultFirstStart,
+               observedObject, producer, observedDefaultAttribute, firstValue, firstTag) == 1,
+            "first regional update for default-rate subscriber");
+
+         int rateSecondStart = rateRecorder.reflections.size();
+         int defaultSecondStart = defaultRecorder.reflections.size();
+         sendRegionalUpdate(publisher, observedObject, publisherAttribute, secondValue, secondTag);
+         await(defaultReceiver, callbackModel,
+            () -> countRegionalValue(defaultRecorder.reflections, defaultSecondStart,
+               observedObject, producer, observedDefaultAttribute, secondValue, secondTag) == 1,
+            "second regional update for default-rate subscriber");
+
+         long rateIntervalNanos = (long) (1_000_000_000.0 / regionalNamedRate);
+         long quietNanos = Math.max(1_000_000L,
+            Math.min(100_000_000L, rateIntervalNanos / 4));
+         long quietDeadline = System.nanoTime() + quietNanos;
+         while (System.nanoTime() < quietDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               JavaTckSupport.drain(rateReceiver);
+               JavaTckSupport.drain(defaultReceiver);
+            } else {
+               Thread.sleep(1L);
+            }
+         }
+         JavaTckSupport.check(countRegionalValue(rateRecorder.reflections, rateSecondStart,
+               observedObject, producer, observedRateAttribute, secondValue, secondTag) == 0,
+            "named-rate regional subscriber received the second best-effort update");
+         JavaTckSupport.check(countRegionalValue(defaultRecorder.reflections, defaultSecondStart,
+               observedObject, producer, observedDefaultAttribute, secondValue, secondTag) == 1,
+            "default-rate regional subscriber did not receive exactly one second update");
+      } finally {
+         if (rateSubscribed && ratePairs != null) {
+            try { rateReceiver.unsubscribeObjectClassAttributesWithRegions(rateClass, ratePairs); }
+            catch (Exception ignored) { }
+         }
+         if (defaultSubscribed && defaultPairs != null) {
+            try { defaultReceiver.unsubscribeObjectClassAttributesWithRegions(
+               defaultClass, defaultPairs); }
+            catch (Exception ignored) { }
+         }
+         if (regionalObject != null && sourcePairs != null) {
+            try { publisher.unassociateRegionsForUpdates(regionalObject, sourcePairs); }
+            catch (Exception ignored) { }
+         }
+         if (regionalPublished && publisherClass != null && publisherAttributes != null) {
+            try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (sourceRegion != null) {
+            try { publisher.deleteRegion(sourceRegion); } catch (Exception ignored) { }
+         }
+         if (rateRegion != null) {
+            try { rateReceiver.deleteRegion(rateRegion); } catch (Exception ignored) { }
+         }
+         if (defaultRegion != null) {
+            try { defaultReceiver.deleteRegion(defaultRegion); } catch (Exception ignored) { }
+         }
+         if (defaultJoined) {
+            try { defaultReceiver.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (defaultConnected) {
+            try { defaultReceiver.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   private static RegionHandle createRateRegion(RTIambassador ambassador,
+         String firstDimensionName, String secondDimensionName) throws Exception {
+      DimensionHandle first = ambassador.getDimensionHandle(firstDimensionName);
+      DimensionHandle second = ambassador.getDimensionHandle(secondDimensionName);
+      JavaTckSupport.check(first != null && second != null && !first.equals(second)
+            && ambassador.getDimensionUpperBound(first) >= 3
+            && ambassador.getDimensionUpperBound(second) >= 3,
+         "regional update-rate FOM dimensions are invalid or too small");
+      DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
+      dimensions.add(first);
+      dimensions.add(second);
+      RegionHandle region = ambassador.createRegion(dimensions);
+      try {
+         ambassador.setRangeBounds(region, first, new RangeBounds(1L, 3L));
+         ambassador.setRangeBounds(region, second, new RangeBounds(1L, 3L));
+         RegionHandleSet regions = ambassador.getRegionHandleSetFactory().create();
+         regions.add(region);
+         ambassador.commitRegionModifications(regions);
+         return region;
+      } catch (Exception failure) {
+         try { ambassador.deleteRegion(region); } catch (Exception ignored) { }
+         throw failure;
+      }
+   }
+
+   private static AttributeSetRegionSetPairList attributeRegionPairs(
+         RTIambassador ambassador, AttributeHandleSet attributes, RegionHandle region)
+         throws Exception {
+      RegionHandleSet regions = ambassador.getRegionHandleSetFactory().create();
+      regions.add(region);
+      AttributeSetRegionSetPairList pairs =
+         ambassador.getAttributeSetRegionSetPairListFactory().create(1);
+      pairs.add(new AttributeRegionAssociation(attributes, regions));
+      return pairs;
+   }
+
+   private static void sendRegionalUpdate(RTIambassador publisher, ObjectInstanceHandle object,
+         AttributeHandle attribute, byte[] value, byte[] tag) throws Exception {
+      AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
+      values.put(attribute, value.clone());
+      publisher.updateAttributeValues(object, values, tag.clone());
+   }
+
+   private static int countRegionalValue(List<Reflection> reflections, int start,
+         ObjectInstanceHandle object, FederateHandle producer, AttributeHandle attribute,
+         byte[] expectedValue, byte[] expectedTag) {
+      int result = 0;
+      for (int i = start; i < reflections.size(); ++i) {
+         Reflection reflection = reflections.get(i);
+         byte[] actual = reflection.values.get(attribute);
+         if (reflection.object.equals(object) && producer.equals(reflection.producer)
+               && actual != null && Arrays.equals(actual, expectedValue)
+               && Arrays.equals(reflection.tag, expectedTag)) result++;
+      }
+      return result;
    }
 
    private static void send(RTIambassador publisher, ObjectInstanceHandle object,

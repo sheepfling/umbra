@@ -189,69 +189,83 @@ void scenarioOrdinaryMultiAttributeSubscriptionProjection(
       "second-only subscriber received an unrequested attribute");
 
   update(true, false, 0x33U, 0x00U, firstTag);
-  waitForSessions(
-      {&both, &firstOnly},
-      [&] {
-        return both.recorder().reflections().size() >= 2U &&
-            firstOnly.recorder().reflections().size() >= 2U;
-      },
-      options,
-      "ordinary multi-attribute projection first-only delivery");
-  for (int pass = 0; pass != 8; ++pass) {
-    secondOnly.pump();
-  }
-  require(
-      secondOnly.recorder().reflections().size() == 1U,
-      "second-only subscriber received an unrequested first-attribute update");
-  auto const bothFirstOnlyDelivery = both.recorder().reflections().at(1);
-  require(
-      bothFirstOnlyDelivery.values.size() == 1U &&
-          bothFirstOnlyDelivery.values.count(bothFirst) == 1U &&
-          copyBytes(bothFirstOnlyDelivery.values.at(bothFirst)) ==
-              std::vector<std::uint8_t>{0x33U},
-      "both-attribute subscriber did not project the first-only update");
-  auto const firstOnlySecondDelivery = firstOnly.recorder().reflections().at(1);
-  require(
-      firstOnlySecondDelivery.values.size() == 1U &&
-          firstOnlySecondDelivery.values.count(firstOnlyAttribute) == 1U &&
-          copyBytes(firstOnlySecondDelivery.values.at(firstOnlyAttribute)) ==
-              std::vector<std::uint8_t>{0x33U},
-      "first-only subscriber did not receive the first-only update");
-  require(
-      bothFirstOnlyDelivery.tag == firstTag &&
-          firstOnlySecondDelivery.tag == firstTag,
-      "first-only update did not preserve its user tag");
-
   update(false, true, 0x00U, 0x44U, secondTag);
   waitForSessions(
-      {&both, &secondOnly},
+      {&both, &firstOnly, &secondOnly},
       [&] {
         return both.recorder().reflections().size() >= 3U &&
+            firstOnly.recorder().reflections().size() >= 2U &&
             secondOnly.recorder().reflections().size() >= 2U;
       },
       options,
-      "ordinary multi-attribute projection second-only delivery");
+      "ordinary multi-attribute projection consecutive updates");
+  for (int pass = 0; pass != 8; ++pass) {
+    both.pump();
+    firstOnly.pump();
+    secondOnly.pump();
+  }
   require(
-      firstOnly.recorder().reflections().size() == 2U,
-      "first-only subscriber received an unrequested second-attribute update");
-  auto const bothSecondOnlyDelivery = both.recorder().reflections().at(2);
+      both.recorder().reflections().size() == 3U &&
+          firstOnly.recorder().reflections().size() == 2U &&
+          secondOnly.recorder().reflections().size() == 2U,
+      "consecutive Update Attribute Values invocations were merged or duplicated");
+
+  auto const bothUpdates = both.recorder().reflections();
+  auto const firstOnlyUpdates = firstOnly.recorder().reflections();
+  auto const secondOnlyUpdates = secondOnly.recorder().reflections();
+  auto findByTag = [](std::vector<ReflectionRecord> const& records,
+                      std::vector<std::uint8_t> const& tag) {
+    return std::find_if(
+        records.begin(),
+        records.end(),
+        [&](ReflectionRecord const& record) { return record.tag == tag; });
+  };
+  auto const bothFirstOnlyDelivery = findByTag(bothUpdates, firstTag);
+  auto const bothSecondOnlyDelivery = findByTag(bothUpdates, secondTag);
+  auto const firstOnlyFirstDelivery = findByTag(firstOnlyUpdates, firstTag);
+  auto const secondOnlySecondDelivery = findByTag(secondOnlyUpdates, secondTag);
   require(
-      bothSecondOnlyDelivery.values.size() == 1U &&
-          bothSecondOnlyDelivery.values.count(bothSecond) == 1U &&
-          copyBytes(bothSecondOnlyDelivery.values.at(bothSecond)) ==
+      bothFirstOnlyDelivery != bothUpdates.end() &&
+          bothSecondOnlyDelivery != bothUpdates.end() &&
+          firstOnlyFirstDelivery != firstOnlyUpdates.end() &&
+          secondOnlySecondDelivery != secondOnlyUpdates.end(),
+      "one of the consecutive update invocations did not retain a distinct callback tag");
+  assertMetadata(
+      *bothFirstOnlyDelivery,
+      firstTag,
+      "both-attribute subscriber first-only update");
+  assertMetadata(
+      *bothSecondOnlyDelivery,
+      secondTag,
+      "both-attribute subscriber second-only update");
+  assertMetadata(
+      *firstOnlyFirstDelivery,
+      firstTag,
+      "first-only subscriber matching update");
+  assertMetadata(
+      *secondOnlySecondDelivery,
+      secondTag,
+      "second-only subscriber matching update");
+  require(
+      bothFirstOnlyDelivery->values.size() == 1U &&
+          bothFirstOnlyDelivery->values.count(bothFirst) == 1U &&
+          copyBytes(bothFirstOnlyDelivery->values.at(bothFirst)) ==
+              std::vector<std::uint8_t>{0x33U} &&
+          bothSecondOnlyDelivery->values.size() == 1U &&
+          bothSecondOnlyDelivery->values.count(bothSecond) == 1U &&
+          copyBytes(bothSecondOnlyDelivery->values.at(bothSecond)) ==
               std::vector<std::uint8_t>{0x44U},
-      "both-attribute subscriber did not project the second-only update");
-  auto const secondOnlySecondDelivery = secondOnly.recorder().reflections().at(1);
+      "a reflection callback mixed values from distinct update invocations");
   require(
-      secondOnlySecondDelivery.values.size() == 1U &&
-          secondOnlySecondDelivery.values.count(secondOnlyAttribute) == 1U &&
-          copyBytes(secondOnlySecondDelivery.values.at(secondOnlyAttribute)) ==
+      firstOnlyFirstDelivery->values.size() == 1U &&
+          firstOnlyFirstDelivery->values.count(firstOnlyAttribute) == 1U &&
+          copyBytes(firstOnlyFirstDelivery->values.at(firstOnlyAttribute)) ==
+              std::vector<std::uint8_t>{0x33U} &&
+          secondOnlySecondDelivery->values.size() == 1U &&
+          secondOnlySecondDelivery->values.count(secondOnlyAttribute) == 1U &&
+          copyBytes(secondOnlySecondDelivery->values.at(secondOnlyAttribute)) ==
               std::vector<std::uint8_t>{0x44U},
-      "second-only subscriber did not receive the second-only update");
-  require(
-      bothSecondOnlyDelivery.tag == secondTag &&
-          secondOnlySecondDelivery.tag == secondTag,
-      "second-only update did not preserve its user tag");
+      "a selective subscriber received values outside its matching update invocation");
   require(
       publisher.recorder().reflections().empty(),
       "ordinary multi-attribute projection delivered a reflection to its owner");

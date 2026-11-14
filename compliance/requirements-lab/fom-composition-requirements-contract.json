@@ -71,9 +71,7 @@
       "clause_id": "clause-C.8",
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "mergeSwitches",
-      "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
-      ]
+      "tests": []
     },
     {
       "id": "umbra-omt-annex-c-equivalent-duplicate-switch-is-ignored",
@@ -82,7 +80,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "mergeSwitches",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight rejects conflicting duplicate switch definitions"
       ]
     },
     {
@@ -91,9 +89,7 @@
       "clause_id": "clause-C.8",
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "mergeSwitches",
-      "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
-      ]
+      "tests": []
     },
     {
       "id": "umbra-omt-annex-c-switch-warning-for-non-equivalent-duplicate",
@@ -101,9 +97,7 @@
       "clause_id": "clause-C.8",
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "mergeSwitches",
-      "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
-      ]
+      "tests": []
     },
     {
       "id": "umbra-omt-composed-data-type-reference-resolution",

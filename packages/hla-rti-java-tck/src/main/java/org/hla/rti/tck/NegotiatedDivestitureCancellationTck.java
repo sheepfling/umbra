@@ -97,13 +97,24 @@ final class NegotiatedDivestitureCancellationTck {
             JavaTckSupport.check(ownerRecorder.releaseRequests.isEmpty(),
                "evoked ordinary release request arrived before negotiated divestiture cancellation");
          }
+         pump(requester, callbackModel);
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(object, requesterAttribute)
+               && requesterRecorder.acquisitions.isEmpty(),
+            "negotiated divestiture did not remain pending with ownership at the divesting federate");
 
+         ownerRecorder.divestitureConfirmations.clear();
          owner.cancelNegotiatedAttributeOwnershipDivestiture(object, ownerAttributes);
          await(owner, callbackModel, () -> !ownerRecorder.releaseRequests.isEmpty(),
             "ordinary release request after negotiated divestiture cancellation");
          checkEvent(ownerRecorder.releaseRequests.get(0), object,
             new HashSet<>(ownerAttributes), acquisitionTag,
             "ordinary release request after negotiated divestiture cancellation");
+         pump(owner, callbackModel);
+         pump(requester, callbackModel);
+         JavaTckSupport.check(ownerRecorder.divestitureConfirmations.isEmpty()
+               && requesterRecorder.acquisitions.isEmpty(),
+            "successful negotiated-divestiture cancellation left a stale confirmation or acquisition callback");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
                && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
             "canceling negotiated divestiture changed ownership");
@@ -113,6 +124,9 @@ final class NegotiatedDivestitureCancellationTck {
             "ownership acquisition cancellation");
          checkEvent(requesterRecorder.cancellations.get(0), object,
             new HashSet<>(requesterAttributeSet), null, "ownership acquisition cancellation");
+         pump(requester, callbackModel);
+         JavaTckSupport.check(requesterRecorder.acquisitions.isEmpty(),
+            "canceled ownership acquisition later transferred the attribute");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
                && !requester.isAttributeOwnedByFederate(object, requesterAttribute),
             "canceling acquisition changed ownership");
@@ -158,6 +172,11 @@ final class NegotiatedDivestitureCancellationTck {
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
+   private static void pump(RTIambassador ambassador, CallbackModel callbackModel)
+         throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
+   }
+
    private static void checkEvent(OwnershipEvent event, ObjectInstanceHandle object,
          HashSet<AttributeHandle> attributes, byte[] tag, String description) {
       JavaTckSupport.check(object.equals(event.object) && attributes.equals(event.attributes)
@@ -187,6 +206,7 @@ final class NegotiatedDivestitureCancellationTck {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> divestitureConfirmations = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> cancellations = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
@@ -203,6 +223,9 @@ final class NegotiatedDivestitureCancellationTck {
                } else if ("requestAttributeOwnershipRelease".equals(name)
                      && arguments != null && arguments.length == 3) {
                   releaseRequests.add(event(arguments));
+               } else if ("attributeOwnershipAcquisitionNotification".equals(name)
+                     && arguments != null && arguments.length == 3) {
+                  acquisitions.add(event(arguments));
                } else if ("confirmAttributeOwnershipAcquisitionCancellation".equals(name)
                      && arguments != null && arguments.length == 2) {
                   cancellations.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
@@ -222,6 +245,7 @@ final class NegotiatedDivestitureCancellationTck {
       private void clearOwnershipEvents() {
          divestitureConfirmations.clear();
          releaseRequests.clear();
+         acquisitions.clear();
          cancellations.clear();
       }
    }

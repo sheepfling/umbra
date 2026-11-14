@@ -133,6 +133,21 @@ final class NoPregrantTsoFloorTck {
          JavaTckSupport.check(requestTime.equals(requester.queryLogicalTime()),
             requestKind + " no-pregrant logical-time query returned the wrong time");
 
+         if (available) {
+            requester.nextMessageRequestAvailable(requestTime);
+            await(requester, callbackModel,
+               () -> requesterCallbacks.grants.size() == 2,
+               "NMRA request equal to current logical time grant");
+            JavaTckSupport.check(requesterCallbacks.grants.size() == 2
+                  && requestTime.equals(requesterCallbacks.grants.get(1)),
+               "NMRA request equal to current logical time granted at a different time");
+            LogicalTime<?, ?> pastRequestTime = offset(requesterInitial, requesterEpsilon, 9);
+            JavaTckSupport.expectFailure(
+               () -> requester.nextMessageRequestAvailable(pastRequestTime),
+               "LogicalTimeAlreadyPassed",
+               "NMRA request below current logical time");
+         }
+
          LogicalTime<?, ?> legalTime = offset(requestTime, actualLookahead, 1);
          byte[] payload = {0x4e, 0x4d, (byte) (available ? 0x41 : 0x52)};
          byte[] tag = {0x4e, 0x4f, 0x50, 0x52, 0x45};

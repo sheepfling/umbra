@@ -3,7 +3,16 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Native-green 31-assertion representation and special-instance-identifier witness. Public Create/Join accepts reference types naming HLAobjectInstanceName with HLAunicodeString and HLAobjectInstanceHandle with HLAobjectInstanceHandle. Public Create rejects separate schema-valid unresolved simple/enumerated representations, an invalid special-identifier representation, and a raw basic representation for an ordinary reference. A valid retry checks federation-name reuse. Direct mappings are to clauses 6.2.15, 6.2.16, 6.2.17, and 4.14.9. The existing invalid-FOM corpus also covers the latter two rejection categories. Data-type introspection, broader table constraints, Java runtime, interoperability, and conformance are not claimed.",
+  "notes": "The public Create/Join representation and special-instance-identifier witness accepts a valid custom BasicData row and rejects schema-valid BasicData and ReferenceDataType rows named NA as InconsistentFOM, exercising IEEE 1516.2-2025 §4.14.3 p. 68 l. 64 and §4.14.9 p. 79 l. 45. All three name fixtures pass the pinned DIF XSD; the valid custom representation control is a 32-bit signed integer. Size/encoding semantic consistency and Interpretation/reference-Semantics prose quality are separately dispositioned because the public API has no objective readback oracle. Existing direct mappings cover clauses 6.2.15, 6.2.16, 6.2.17, and 4.14.9. Existing invalid-FOM corpus also covers prior representation rejection categories. Focused installed-package CTest and direct TCK execution each passed 4/4 across primary/contract scenarios and both callback models (out/mgw/data-representation-name-20261108.json and .xml). Data-type introspection, broad table constraints, Java parity for the new name assertions, interoperability, and conformance are not claimed.",
+  "requirement_mappings": [
+    {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l54-10", "standard_section": "hla-1516.2-2025:clause-6.2.15"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l70-13", "standard_section": "hla-1516.2-2025:clause-6.2.16"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l90-17", "standard_section": "hla-1516.2-2025:clause-6.2.17"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l102-20", "standard_section": "hla-1516.2-2025:clause-6.2.17"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l57-5", "standard_section": "hla-1516.2-2025:clause-4.14.9"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-068-l64-4", "standard_section": "hla-1516.2-2025:clause-4.14.3"},
+    {"requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-079-l45-2", "standard_section": "hla-1516.2-2025:clause-4.14.9"}
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-data-representation-resolution",

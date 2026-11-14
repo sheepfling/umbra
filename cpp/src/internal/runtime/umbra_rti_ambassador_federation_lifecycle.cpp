@@ -8,6 +8,7 @@
 #include "internal/runtime/ambassador_string_helpers.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 #include "internal/runtime/umbra_rti_ambassador_service_failure_translation.hpp"
+#include "internal/runtime/utf8_string.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
 #include "internal/time/federation_time_factory_provider.hpp"
@@ -27,6 +28,21 @@ using namespace service_failure_translation;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 
 namespace {
+
+std::vector<std::wstring> processUnsupportedTransportationTypeNames(
+    std::set<std::string> const& names) {
+  std::vector<std::wstring> result;
+  result.reserve(names.size());
+  for (auto const& name : names) {
+    auto const wideName = umbra::detail::wideFromUtf8(name);
+    if (!wideName) {
+      throw RTIinternalError(
+          L"Umbra could not encode a configured transportation type name for the process coordinator.");
+    }
+    result.push_back(*wideName);
+  }
+  return result;
+}
 
 std::wstring serviceReportCallbackModelName(CallbackModel callbackModel) {
   switch (callbackModel) {
@@ -138,22 +154,25 @@ void UmbraRtiAmbassador::createFederationExecution(
             L"Umbra's process endpoint has no active federation client.");
       }
       try {
-        // Keep the official FOM and logical-time arguments at the process
-        // boundary.  The service delegates validation/composition to its
-        // injected standards-derived coordinator before registry commit.
-        if (logicalTimeImplementationName.empty()) {
-          // Preserve the original server-owned process fixture payload for
-          // the binding's default-time overload.  Explicit logical-time
-          // selections use the standards-derived FOM transport below; a
-          // future capability handshake can remove this legacy branch.
-          processFederationClient_->createFederationExecution(federationName);
-        } else {
-          processFederationClient_->createFederationExecution(
-              federationName,
-              fomModules,
-              std::nullopt,
-              logicalTimeImplementationName);
+        // Preserve all official Create inputs across the process boundary.
+        // An empty logical-time name asks the standards-derived coordinator
+        // to select the default from the validated FOM; it must not replace
+        // caller FOM modules with a server-owned default definition.
+        processFederationClient_->createFederationExecution(
+            federationName,
+            fomModules,
+            std::nullopt,
+            logicalTimeImplementationName,
+            true,
+            processUnsupportedTransportationTypeNames(
+                unsupportedTransportationTypeNames_));
+      } catch (umbra::detail::ProcessFederationClientError const& error) {
+        if (error.status() ==
+            umbra::detail::TransportServiceStatus::federation_execution_already_exists) {
+          throw FederationExecutionAlreadyExists(
+              L"A federation execution with the supplied name already exists.");
         }
+        throw RTIinternalError(wideAscii(error.what()));
       } catch (std::exception const& error) {
         throw RTIinternalError(wideAscii(error.what()));
       }
@@ -172,6 +191,8 @@ void UmbraRtiAmbassador::createFederationExecution(
   if (!preparation.accepted()) {
     throwPreparationFailure(preparation);
   }
+  preparation.definition->unsupportedTransportationTypeNames =
+      unsupportedTransportationTypeNames_;
 
   auto created = embeddedFederationRegistry().create(federationName, std::move(*preparation.definition));
   switch (created.status) {
@@ -216,7 +237,17 @@ void UmbraRtiAmbassador::createFederationExecutionWithMIM(
             federationName,
             fomModules,
             std::optional<std::wstring>{mimModule},
-            logicalTimeImplementationName);
+            logicalTimeImplementationName,
+            true,
+            processUnsupportedTransportationTypeNames(
+                unsupportedTransportationTypeNames_));
+      } catch (umbra::detail::ProcessFederationClientError const& error) {
+        if (error.status() ==
+            umbra::detail::TransportServiceStatus::federation_execution_already_exists) {
+          throw FederationExecutionAlreadyExists(
+              L"A federation execution with the supplied name already exists.");
+        }
+        throw RTIinternalError(wideAscii(error.what()));
       } catch (std::exception const& error) {
         throw RTIinternalError(wideAscii(error.what()));
       }
@@ -235,6 +266,8 @@ void UmbraRtiAmbassador::createFederationExecutionWithMIM(
   if (!preparation.accepted()) {
     throwPreparationFailure(preparation);
   }
+  preparation.definition->unsupportedTransportationTypeNames =
+      unsupportedTransportationTypeNames_;
 
   auto created = embeddedFederationRegistry().create(federationName, std::move(*preparation.definition));
   switch (created.status) {
@@ -1398,8 +1431,9 @@ void UmbraRtiAmbassador::synchronizationPointAchieved(
   }
 }
 
-std::unique_ptr<LogicalTimeFactory> UmbraRtiAmbassador::getTimeFactory() const {
-  auto instrumentationScope = beginRtiCall("getTimeFactory");
+std::unique_ptr<LogicalTimeFactory>
+UmbraRtiAmbassador::makeLogicalTimeFactoryForJavaBinding() const {
+  std::unique_ptr<LogicalTimeFactory> factory;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   {
     std::optional<std::wstring> processImplementationName;
@@ -1422,33 +1456,59 @@ std::unique_ptr<LogicalTimeFactory> UmbraRtiAmbassador::getTimeFactory() const {
         throw RTIinternalError(
             L"The process service did not return the selected logical-time implementation.");
       }
-      auto factory = umbra::detail::makeFederationLogicalTimeFactory(
+      factory = umbra::detail::makeFederationLogicalTimeFactory(
           *processImplementationName);
       if (!factory || factory->getName() != *processImplementationName) {
         throw CouldNotCreateLogicalTimeFactory(
             L"Umbra could not recreate the process federation's selected logical-time factory.");
       }
-      return factory;
     }
   }
 #endif
-  std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
-  requireConnectedForFederationManagement(lifecycle_);
-  if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
-      !joinedFederationName_ || !joinedFederateId_) {
-    throw FederateNotExecutionMember(
-        L"A logical-time factory is available only to a joined federate.");
-  }
+  if (!factory) {
+    std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+    requireConnectedForFederationManagement(lifecycle_);
+    if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_) {
+      throw FederateNotExecutionMember(
+          L"A logical-time factory is available only to a joined federate.");
+    }
 
-  auto definition = embeddedFederationRegistry().definitionFor(*joinedFederationName_);
-  if (!definition) {
-    // The registry cannot normally lose a federation with an active member;
-    // preserve the public membership error if an external backend later makes
-    // that state observable.
-    throw FederateNotExecutionMember(
-        L"The embedded federation no longer records this RTI ambassador's federation execution.");
+    auto definition = embeddedFederationRegistry().definitionFor(*joinedFederationName_);
+    if (!definition) {
+      // The registry cannot normally lose a federation with an active member;
+      // preserve the public membership error if an external backend later makes
+      // that state observable.
+      throw FederateNotExecutionMember(
+          L"The embedded federation no longer records this RTI ambassador's federation execution.");
+    }
+    factory = ambassadorMakeDefinitionTimeFactory(*definition);
   }
-  return ambassadorMakeDefinitionTimeFactory(*definition);
+  return factory;
+}
+
+std::unique_ptr<LogicalTimeFactory> UmbraRtiAmbassador::getTimeFactory() const {
+  auto instrumentationScope = beginRtiCall("getTimeFactory");
+  try {
+    auto factory = makeLogicalTimeFactoryForJavaBinding();
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"GetTimeFactory",
+        umbra::detail::MomServiceType::support_services,
+        {},
+        {umbra::detail::MomArgumentType::factory_class,
+         L"Time factory class",
+         umbra::detail::formatMomFactoryClass(
+             umbra::detail::MomFactoryClass::logical_time_factory)});
+    return factory;
+  } catch (Exception const& exception) {
+    emitExceptionReport(L"Get Time Factory", exception);
+    appendFailedServiceReportToFileIfSelected(
+        L"GetTimeFactory",
+        umbra::detail::MomServiceType::support_services,
+        {},
+        describeAmbassadorException(exception));
+    throw;
+  }
 }
 
 #endif

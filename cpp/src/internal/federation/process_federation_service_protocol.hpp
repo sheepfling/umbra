@@ -37,6 +37,10 @@ struct ProcessFederationCreateRequest final {
   // base definition, while a new request cannot be silently ignored when
   // the server has no standards-derived preparation callback.
   bool hasFomInputs = false;
+  // Adapter/profile capability settings are appended only after the
+  // standards-derived FOM input suffix, preserving the historical name-only
+  // request and the existing FOM-input encoding.
+  std::vector<std::wstring> unsupportedTransportationTypeNames;
 };
 
 struct ProcessFederationJoinConnectionSnapshot final {
@@ -1233,6 +1237,12 @@ struct ProcessFederationExceptionReportingSwitchResult final {
   bool value = false;
 };
 
+struct ProcessFederationNonRegulatedGrantSwitchResult final {
+  FederationServiceOperationStatus status =
+      FederationServiceOperationStatus::available;
+  bool value = false;
+};
+
 struct ProcessFederationServiceExceptionRequest final {
   std::wstring federationName;
   std::uint64_t federateId = 0U;
@@ -2350,6 +2360,12 @@ encodeProcessFederationQueryLogicalTimeResult(
     ProcessFederationQueryLogicalTimeResult const& result);
 [[nodiscard]] ProcessFederationQueryLogicalTimeResult
 decodeProcessFederationQueryLogicalTimeResult(
+    std::span<std::uint8_t const> encoded);
+[[nodiscard]] std::vector<std::uint8_t>
+encodeProcessFederationNonRegulatedGrantSwitchResult(
+    ProcessFederationNonRegulatedGrantSwitchResult const& result);
+[[nodiscard]] ProcessFederationNonRegulatedGrantSwitchResult
+decodeProcessFederationNonRegulatedGrantSwitchResult(
     std::span<std::uint8_t const> encoded);
 
 [[nodiscard]] std::vector<std::uint8_t>

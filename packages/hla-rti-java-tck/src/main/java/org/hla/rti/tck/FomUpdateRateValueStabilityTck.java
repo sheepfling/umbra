@@ -13,8 +13,8 @@ final class FomUpdateRateValueStabilityTck {
    private FomUpdateRateValueStabilityTck() { }
 
    static void run(RtiFactory factory, String rateFom, String additionalFom,
-         String baseRateName, String additionalRateName, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+         String baseRateName, String slowBaseRateName, String additionalRateName,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador extension = factory.getRtiAmbassador();
       String federation = "java-tck-fom-rate-stability-" + UUID.randomUUID();
@@ -34,8 +34,9 @@ final class FomUpdateRateValueStabilityTck {
          ownerJoined = true;
 
          double baseRate = owner.getUpdateRateValue(baseRateName);
-         JavaTckSupport.check(baseRate > 0.0,
-            "adapter base FOM did not expose a positive update rate");
+         double slowBaseRate = owner.getUpdateRateValue(slowBaseRateName);
+         JavaTckSupport.check(baseRate == 25.0 && slowBaseRate == 0.5,
+            "adapter base FOM did not retain the selected base update-rate table values");
          JavaTckSupport.expectFailure(() -> owner.getUpdateRateValue(additionalRateName),
             "InvalidUpdateRateDesignator",
             "resolving the additional-module update rate before its module is joined");
@@ -45,13 +46,17 @@ final class FomUpdateRateValueStabilityTck {
          extensionJoined = true;
          double ownerBaseAfter = owner.getUpdateRateValue(baseRateName);
          double extensionBase = extension.getUpdateRateValue(baseRateName);
+         double ownerSlowAfter = owner.getUpdateRateValue(slowBaseRateName);
+         double extensionSlow = extension.getUpdateRateValue(slowBaseRateName);
          double ownerAdditional = owner.getUpdateRateValue(additionalRateName);
          double extensionAdditional = extension.getUpdateRateValue(additionalRateName);
-         JavaTckSupport.check(ownerBaseAfter == baseRate && extensionBase == baseRate,
-            "additional-module join changed the existing update-rate value");
-         JavaTckSupport.check(ownerAdditional > 0.0
+         JavaTckSupport.check(ownerBaseAfter == 25.0 && extensionBase == 25.0
+               && ownerBaseAfter == baseRate && ownerSlowAfter == 0.5
+               && extensionSlow == 0.5 && ownerSlowAfter == slowBaseRate,
+            "additional-module join changed a selected base update-rate table entry");
+         JavaTckSupport.check(ownerAdditional == 2.0 && extensionAdditional == 2.0
                && extensionAdditional == ownerAdditional,
-            "additional-module update-rate value was not composed consistently across members");
+            "additional-module update-rate table entry did not retain its exact value across members");
       } finally {
          if (extensionJoined) resign(extension);
          if (ownerJoined) resign(owner);

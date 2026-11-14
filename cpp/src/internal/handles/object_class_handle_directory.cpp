@@ -1,13 +1,15 @@
 #include "internal/handles/object_class_handle_directory.hpp"
 
 #include "internal/fom/fom_catalog.hpp"
+#include "internal/handles/fom_handle_allocator.hpp"
 
-#include <limits>
 #include <utility>
 
 namespace umbra::detail {
 
-bool ObjectClassHandleDirectory::reconcile(FomCatalog const* catalog) {
+bool ObjectClassHandleDirectory::reconcile(
+    FomCatalog const* catalog,
+    FomHandleAllocator& handleAllocator) {
   if (catalog == nullptr) {
     return true;
   }
@@ -19,11 +21,12 @@ bool ObjectClassHandleDirectory::reconcile(FomCatalog const* catalog) {
     if (handlesByName_.contains(name)) {
       continue;
     }
-    if (nextHandle_ == 0) {
+    auto const allocatedHandle =
+        handleAllocator.allocate("object-class", name);
+    if (!allocatedHandle) {
       return false;
     }
-
-    std::uint64_t const handle = nextHandle_;
+    std::uint64_t const handle = *allocatedHandle;
     auto [namePosition, insertedName] = handlesByName_.emplace(name, handle);
     if (!insertedName) {
       continue;
@@ -39,10 +42,6 @@ bool ObjectClassHandleDirectory::reconcile(FomCatalog const* catalog) {
       handlesByName_.erase(namePosition);
       throw;
     }
-
-    nextHandle_ = handle == std::numeric_limits<std::uint64_t>::max()
-        ? 0
-        : handle + 1;
   }
   return true;
 }

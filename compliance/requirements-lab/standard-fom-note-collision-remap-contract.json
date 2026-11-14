@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Annex C.9 note-label collision witness through standard federation MOM HLAcurrentFDD. The adapter supplies the provider package, standard MIM, both schema-valid FOM modules, endpoint, logical time, and callback model. Only distinct referenced labels and preserved note semantics are asserted; no provider-specific label spelling or private composer behavior is required. Focused Java packaged-provider runtime passed in both callback models; interoperability is unverified.",
+  "notes": "Portable Annex C.9 note-label collision witness through standard federation MOM HLAcurrentFDD. The adapter supplies the provider package, standard MIM, both schema-valid FOM modules, endpoint, logical time, and callback model. Only distinct referenced labels and preserved note semantics are asserted; no provider-specific label spelling or private composer behavior is required. For §4.15.1, the C++ TCK verifies that XML noteReferences pointers are retained on the composed CurrentFDD table entry in both module orders; tabular OMT bracket/asterisk syntax is not exercised. For §4.15.2, the C++ TCK fixtures also provide a selected valid Table 44 note-template/name witness, but do not validate arbitrary invalid labels or every HLA naming rule. Fresh installed-package MinGW/Ninja CTest passed the C++ primary/contract pair 4/4 across HLA_EVOKED/HLA_IMMEDIATE. Prior focused Java packaged-provider runtime passed in both callback models; interoperability is unverified.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-note-collision-remap",
@@ -31,6 +31,21 @@
     {
       "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l66-11",
       "standard_section": "hla-1516.2-2025:clause-C.9"
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-086-l76-7",
+      "standard_section": "hla-1516.2-2025:clause-4.15.1",
+      "note": "The XML noteReferences pointer is preserved in the composed CurrentFDD; tabular OMT pointer syntax is not asserted."
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-086-l84-8",
+      "standard_section": "hla-1516.2-2025:clause-4.15.2",
+      "note": "The valid Table 44-form note records and public CurrentFDD composition are tested; this does not validate every allowed note-template field or malformed form."
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-086-l88-9",
+      "standard_section": "hla-1516.2-2025:clause-4.15.2",
+      "note": "A valid labeled note is referenced and retained across collisions. Arbitrary HLA name-convention validation is outside this scenario."
     }
   ]
 }

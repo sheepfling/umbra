@@ -462,14 +462,14 @@ EmbeddedFederationRegistry::setObjectClassAttributeRegionalSubscriptionWithScope
     return {RegionalObjectClassAttributeDeclarationStatus::invalid_update_rate_designator};
   }
 
-  auto const availableDimensions = availableObjectClassDimensions(
-      federation->second,
-      objectClassHandle);
-  if (!availableDimensions) {
-    return {RegionalObjectClassAttributeDeclarationStatus::inconsistent_catalog};
-  }
   for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
-    static_cast<void>(attributeHandle);
+    auto const availableDimensions = availableObjectClassAttributeDimensions(
+        federation->second,
+        objectClassHandle,
+        attributeHandle);
+    if (!availableDimensions) {
+      return {RegionalObjectClassAttributeDeclarationStatus::inconsistent_catalog};
+    }
     for (std::uint64_t const regionHandle : regionHandles) {
       auto const region = federation->second.regions.find(regionHandle);
       if (region == federation->second.regions.end()) {

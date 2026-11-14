@@ -322,7 +322,7 @@ final class SupportServicesTck {
       Object decode(byte[] buffer, int offset) throws Exception;
    }
 
-   private static FederateAmbassador noOpFederateAmbassador() {
+   static FederateAmbassador noOpFederateAmbassador() {
       return (FederateAmbassador) Proxy.newProxyInstance(
          FederateAmbassador.class.getClassLoader(),
          new Class<?>[] {FederateAmbassador.class},

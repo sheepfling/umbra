@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK Delay Subscription Evaluation switch</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-10</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Isolated IEEE 1516.1-2025 Delay Subscription Evaluation coverage</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>
+            Enables only Delay Subscription Evaluation so this fixture can be
+            composed with the portable P0 FOM without changing unrelated
+            standard switch values.
+        </description>
+    </modelIdentification>
+    <switches>
+        <delaySubscriptionEvaluation isEnabled="true"/>
+    </switches>
+</objectModel>

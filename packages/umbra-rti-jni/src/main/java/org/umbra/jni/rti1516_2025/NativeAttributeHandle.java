@@ -31,6 +31,11 @@ final class NativeAttributeHandle implements AttributeHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("AttributeHandle", encoded);
+   }
+
    private boolean sameEncoding(AttributeHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

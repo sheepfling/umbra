@@ -922,7 +922,8 @@ TEST_CASE(
                   if (request.operation != operation) {
                     throw std::runtime_error(message);
                   }
-                  return handler(request);
+                  auto response = handler(request);
+                  return response;
                 })) {
           throw std::runtime_error(message);
         }

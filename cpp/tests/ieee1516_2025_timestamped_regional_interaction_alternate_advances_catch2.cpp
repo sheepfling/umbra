@@ -3,7 +3,7 @@
 TEST_CASE(
     "Embedded timestamped regional interaction uses available and next-message advances",
     "[integration][development-profile][interaction-management][ddm][time-management]"
-    "[timestamped-regional-interaction][tso]"
+    "[timestamped-regional-interaction][timestamped-regional-interaction-alternate-advances][tso]"
     "[time-advance-request-available][next-message-request-available]"
     "[rti.service.send-interaction-with-regions][rti.service.subscribe-interaction-class-with-regions]"
     "[rti.service.set-convey-region-designator-sets-switch]"

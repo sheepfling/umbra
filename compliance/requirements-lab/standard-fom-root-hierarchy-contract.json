@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Native-green focused IEEE 1516.2-2025 object and interaction root-hierarchy witness. Public Create accepts schema-valid HLAobjectRoot/HLAinteractionRoot with joined child-class handle/name round trips, rejects separate schema-valid nonstandard object and interaction top-level roots as InconsistentFOM, and proves valid federation-name reuse. The direct native requirement mappings are clauses 4.5.1 and 4.6.1. FOM and logical-time configuration are adapter-owned. Installed-package C++ and Java runtime outcomes are recorded separately. Omitted object/interaction tables, complete merge, private diagnostics, interoperability, and conformance are not claimed.",
+  "notes": "Native-green focused IEEE 1516.2-2025 object and interaction root-hierarchy witness. Public Create accepts schema-valid HLAobjectRoot/HLAinteractionRoot with joined child-class handle/name round trips, rejects separate schema-valid nonstandard object and interaction top-level roots as InconsistentFOM, and proves valid federation-name reuse. The direct native requirement mappings include clauses 4.5.1, 4.6.1, and the selected object-hierarchy/root witnesses in 4.2.1. The §4.2.1 evidence is limited to a root-qualified object-class path and rejection of the tested nonstandard top-level object root; arbitrary class graphs, leaf status, and general single-inheritance edge cases are not established. Fresh installed-package MinGW/Ninja CTest passed the C++ primary/contract pair 4/4 across HLA_EVOKED/HLA_IMMEDIATE. FOM and logical-time configuration are adapter-owned. Installed-package Java runtime outcomes are recorded separately. Omitted object/interaction tables, complete merge, private diagnostics, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-root-hierarchy",
@@ -13,6 +13,18 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1-2025 RTIambassador federation lifecycle and class lookup services",
       "tests": ["packages/hla-rti-cpp-tck/src/tck_fom_root_hierarchy.cpp::scenarioFomRootHierarchyContract"]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-039-l18-2",
+      "standard_section": "hla-1516.2-2025:clause-4.2.1",
+      "note": "Selected valid root-qualified object class and tested missing-root rejection; broader object-class structures are not claimed."
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-039-l26-4",
+      "standard_section": "hla-1516.2-2025:clause-4.2.1",
+      "note": "Selected HLAobjectRoot relationship witness; leaf and general single-inheritance constraints are not established."
     }
   ]
 }

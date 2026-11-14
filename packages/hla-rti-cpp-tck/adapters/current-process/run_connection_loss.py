@@ -35,6 +35,9 @@ DEFAULT_FOM = (
     / "examples"
     / "RestaurantFOMmodule-2025.xml"
 )
+DEFAULT_FEDERATE_LOST_MOM_REPORT_FOM = (
+    Path(__file__).resolve().parents[2] / "fom" / "p0-tck.xml"
+)
 DEFAULT_MIM = (
     Path(__file__).resolve().parents[4]
     / "third_party"
@@ -42,6 +45,12 @@ DEFAULT_MIM = (
     / "resources"
     / "mim"
     / "HLAstandardMIM-2025.xml"
+)
+FEDERATE_LOST_MOM_REPORT_SCENARIOS = frozenset(
+    {
+        "cpp-tck.federate-lost-mom-report",
+        "cpp-tck.federate-lost-mom-report-contract",
+    }
 )
 
 
@@ -51,7 +60,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--tck-executable", type=Path, required=True)
     parser.add_argument("--process-fixture", type=Path, required=True)
-    parser.add_argument("--fom-path", type=Path, default=DEFAULT_FOM)
+    parser.add_argument("--fom-path", type=Path)
     parser.add_argument("--mim-fom", type=Path, default=DEFAULT_MIM)
     parser.add_argument("--time-implementation", default="HLAinteger64Time")
     parser.add_argument(
@@ -89,9 +98,19 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--configuration-name", default="")
     parser.add_argument("--additional-settings", default="")
+    parser.add_argument("--service-report-directory", type=Path)
+    parser.add_argument(
+        "--artifact-directory",
+        type=Path,
+        help="Preserve adapter marker files and fixture diagnostics in this directory",
+    )
     parser.add_argument(
         "--interaction-class",
         default="HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+    )
+    parser.add_argument(
+        "--cutoff-interaction-class",
+        help="Application interaction used by the lost-federate TSO-cutoff case",
     )
     parser.add_argument("--object-class", default="HLAobjectRoot.Employee.Server")
     parser.add_argument("--attribute", default="Efficiency")
@@ -100,7 +119,19 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--scenario-timeout-s", type=float, default=60.0)
     parser.add_argument("--results", type=Path)
     parser.add_argument("--junit", type=Path)
-    return parser.parse_args()
+    arguments = parser.parse_args()
+    lost_mom_report = arguments.scenario in FEDERATE_LOST_MOM_REPORT_SCENARIOS
+    if arguments.fom_path is None:
+        arguments.fom_path = (
+            DEFAULT_FEDERATE_LOST_MOM_REPORT_FOM if lost_mom_report else DEFAULT_FOM
+        )
+    if arguments.cutoff_interaction_class is None:
+        arguments.cutoff_interaction_class = (
+            "HLAinteractionRoot.TckInteraction"
+            if lost_mom_report
+            else "HLAinteractionRoot.CustomerTransactions.CustomerSeated"
+        )
+    return arguments
 
 
 def wait_for_port(
@@ -161,6 +192,9 @@ def tck_command(
     results: Path,
     junit: Path,
 ) -> list[str]:
+    interaction_class = arguments.interaction_class
+    if scenario_id in FEDERATE_LOST_MOM_REPORT_SCENARIOS:
+        interaction_class = arguments.cutoff_interaction_class
     command = [
         str(arguments.tck_executable),
         "--fom",
@@ -190,7 +224,7 @@ def tck_command(
         "--member-configuration-name",
         arguments.member_configuration_name,
         "--interaction-class",
-        arguments.interaction_class,
+        interaction_class,
         "--object-class",
         arguments.object_class,
         "--attribute",
@@ -209,8 +243,13 @@ def tck_command(
     ]
     if arguments.configuration_name:
         command.extend(["--configuration-name", arguments.configuration_name])
-    if arguments.additional_settings:
-        command.extend(["--additional-settings", arguments.additional_settings])
+    # Keep the intentional transport-loss cases bounded. The production
+    # profile retains its standard reconnect default; these tests shorten only
+    # the adapter clients' retry window so ConnectionLost can be observed.
+    additional_settings = (
+        arguments.additional_settings or "FED_TIMEOUT_RECONNECT=0.25"
+    )
+    command.extend(["--additional-settings", additional_settings])
     return command
 
 
@@ -222,6 +261,11 @@ def run_one(
 ) -> tuple[int, TckEvidencePayload, ET.Element]:
     marker_directory = root / callback_model
     marker_directory.mkdir()
+    if arguments.service_report_directory:
+        (marker_directory / "service-report-directory.txt").write_text(
+            str(arguments.service_report_directory.resolve()) + "\n",
+            encoding="utf-8",
+        )
     results = marker_directory / "results.json"
     junit = marker_directory / "results.xml"
     marker = marker_directory / "receiver-loss.ok"
@@ -264,6 +308,13 @@ def run_one(
         (marker_directory / "federate-lost-mom-report.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
+    if scenario_id in {
+        "cpp-tck.connection-loss-cleanup",
+        "cpp-tck.connection-loss-cleanup-contract",
+    }:
+        (marker_directory / "save-failure-during-connection-loss.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     fixture: subprocess.Popen[bytes] | None = None
     try:
         fixture = subprocess.Popen(
@@ -290,9 +341,26 @@ def run_one(
                 timeout=arguments.scenario_timeout_s,
             )
         except subprocess.TimeoutExpired as error:
+            fixture_error = marker_directory / "public-server-loss.error"
+            receiver_closed = marker_directory / "receiver-closed.ok"
+            fixture_status = fixture.poll()
+            fixture_state = (
+                "running" if fixture_status is None else f"exited({fixture_status})"
+            )
+            markers = (
+                f"ready={ready_marker.is_file()}, "
+                f"receiver_closed={receiver_closed.is_file()}, "
+                f"callback_ok={marker.is_file()}"
+            )
+            fixture_detail = (
+                fixture_error.read_text(encoding="utf-8", errors="replace").strip()
+                if fixture_error.is_file()
+                else "no fixture error detail"
+            )
             raise RuntimeError(
                 f"The portable TCK did not finish {scenario_id} [{callback_model}] "
-                f"within {arguments.scenario_timeout_s:g} seconds"
+                f"within {arguments.scenario_timeout_s:g} seconds; "
+                f"fixture={fixture_state}, {markers}; {fixture_detail}"
             ) from error
         payload = (
             load_tck_evidence(results) if results.is_file() else empty_tck_evidence()
@@ -303,9 +371,29 @@ def run_one(
         if tck_result.returncode != 0:
             fixture_error = marker_directory / "public-server-loss.error"
             receiver_closed = marker_directory / "receiver-closed.ok"
+            allocated_reports = marker_directory / "service-report-files.txt"
+            configured_report_directory = (
+                marker_directory / "service-report-directory-loaded.txt"
+            )
             if fixture_error.is_file():
                 detail = fixture_error.read_text(encoding="utf-8").strip()
                 print(f"connection-loss fixture failed: {detail}", file=sys.stderr)
+            if allocated_reports.is_file():
+                print(
+                    "connection-loss fixture allocated service reports: "
+                    + allocated_reports.read_text(
+                        encoding="utf-8", errors="replace"
+                    ).strip(),
+                    file=sys.stderr,
+                )
+            if configured_report_directory.is_file():
+                print(
+                    "connection-loss fixture report directory: "
+                    + configured_report_directory.read_text(
+                        encoding="utf-8", errors="replace"
+                    ).strip(),
+                    file=sys.stderr,
+                )
             elif ready_marker.is_file() and not receiver_closed.is_file():
                 fixture_status = fixture.poll()
                 if fixture_status is None:
@@ -390,7 +478,12 @@ def run(arguments: argparse.Namespace) -> int:
         if not path.is_file():
             raise FileNotFoundError(f"{description} does not exist: {path}")
 
-    root = Path(tempfile.mkdtemp(prefix="hla-rti-cpp-tck-"))
+    root = (
+        arguments.artifact_directory
+        if arguments.artifact_directory is not None
+        else Path(tempfile.mkdtemp(prefix="hla-rti-cpp-tck-"))
+    )
+    root.mkdir(parents=True, exist_ok=True)
     try:
         models = (
             ("evoked", "immediate")
@@ -414,7 +507,8 @@ def run(arguments: argparse.Namespace) -> int:
         write_combined_evidence(arguments, payloads, junit_roots)
         return int(exit_code)
     finally:
-        shutil.rmtree(root, ignore_errors=True)
+        if arguments.artifact_directory is None:
+            shutil.rmtree(root, ignore_errors=True)
 
 
 def main() -> int:

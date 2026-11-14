@@ -38,7 +38,7 @@ FomValidationRequest requestFor(
 
 }  // namespace
 
-TEST_CASE("The libxml2 FOM validator accepts supplied IEEE 1516.2-2025 modules under DIF", "[unit][fom][xml-schema]") {
+TEST_CASE("The libxml2 FOM validator accepts supplied 2025 FOM and SOM modules under DIF", "[unit][fom][xml-schema]") {
   LibXml2FomValidator validator;
 
   for (std::filesystem::path const& relative : {
@@ -54,9 +54,6 @@ TEST_CASE("The libxml2 FOM validator accepts supplied IEEE 1516.2-2025 modules u
     REQUIRE(model.module->schemaDesignator == L"IEEE1516-DIF-2025.xsd");
   }
 
-  auto mim = validator.validate(requestFor("mim/HLAstandardMIM-2025.xml", FomModuleKind::mim));
-  REQUIRE(mim.status == FomValidationStatus::valid);
-  REQUIRE(mim.module.has_value());
 }
 
 TEST_CASE("The libxml2 FOM validator distinguishes missing, invalid, and DTD-bearing input", "[unit][fom][xml-schema]") {

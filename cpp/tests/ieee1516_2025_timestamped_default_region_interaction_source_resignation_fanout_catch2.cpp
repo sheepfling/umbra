@@ -4,7 +4,7 @@ namespace {
 TEST_CASE(
     "Embedded queued timestamped default-region interaction survives source resignation for each recipient",
     "[integration][development-profile][interaction-management][ddm][time-management]"
-    "[timestamped-default-region-interaction][default-region][tso][resignation]"
+    "[timestamped-default-region-interaction][default-region][timestamped-default-region-interaction-source-resignation-fanout][tso][resignation]"
     "[multi-federate-callback-ordering]"
     "[rti.service.send-interaction][rti.service.resign-federation-execution]"
     "[rti.service.subscribe-interaction-class-with-regions]"

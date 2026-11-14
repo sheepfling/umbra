@@ -3,13 +3,39 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "IEEE 1516.1-2025 public-API scenario: two known candidates publish an owner's attribute; the second requests and cancels acquisition, leaving its cancellation confirmation queued. The owner unconditionally divests. During the first candidate's Request Attribute Ownership Assumption callback, the second federate services its cancellation confirmation. The first callback returns without acquisition, and the unowned search continues to exactly one tagged assumption callback for the second candidate. The immediate-model path uses standard Disable/Enable Callbacks services to hold that confirmation until the same callback boundary. Direct pinned mappings follow the native plan row: page-148-l61-18 and page-148-l70-21 -> Clause 7, and page-154-l156-49 -> §7.2. The adapter supplies the provider, endpoint, FOM, names, callback model, and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime evidence. This is not a conformance claim.",
+  "notes": "IEEE 1516.1-2025 public-API scenario: known candidates publish an owner's attribute; one requests and cancels acquisition while a second receives an assumption callback, and the cancellation confirmation is serviced concurrently. The owner unconditionally divests and the search continues to the canceled candidate. A third published candidate invokes Attribute Ownership Acquisition If Available while the owner still holds the attribute; callback delivery is held until after divestiture, and the test asserts that no Request Attribute Ownership Assumption is invoked at this Willing-to-Acquire candidate, directly covering requirement-candidate-content-clauses-04-federation-management-page-058-l147-40-assumption (§4.12). Other direct mappings are page-148-l61-18 and page-148-l70-21 -> §7.1, p150-l125-39 -> §7.1.2, p153-l129-40 -> §7.1.4, and page-154-l156-49 -> §7.2. The immediate-model path uses standard Disable/Enable Callbacks to hold callbacks until the search boundary. This paired primary/contract case is C++ public-API evidence only, not a conformance claim.",
+  "requirements": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
+      "standard_section": "hla-1516.1-2025:clause-7.1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21",
+      "standard_section": "hla-1516.1-2025:clause-7.1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l125-39",
+      "standard_section": "hla-1516.1-2025:clause-7.1.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l129-40",
+      "standard_section": "hla-1516.1-2025:clause-7.1.4"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49",
+      "standard_section": "hla-1516.1-2025:clause-7.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l147-40-assumption",
+      "standard_section": "hla-1516.1-2025:clause-4.12"
+    }
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-ownership-assumption-search-after-decline",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador attributeOwnershipAcquisition, cancelAttributeOwnershipAcquisition, unconditionalAttributeOwnershipDivestiture and FederateAmbassador confirmAttributeOwnershipAcquisitionCancellation, requestAttributeOwnershipAssumption",
+      "signature": "RTIambassador publishObjectClassAttributes, attributeOwnershipAcquisition, cancelAttributeOwnershipAcquisition, attributeOwnershipAcquisitionIfAvailable, unconditionalAttributeOwnershipDivestiture and FederateAmbassador confirmAttributeOwnershipAcquisitionCancellation, requestAttributeOwnershipAssumption, attributeOwnershipUnavailable",
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
       "tests": [

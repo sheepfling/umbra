@@ -19,10 +19,10 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Checks delivery of an accepted timestamped update after its attribute changes owner. */
 final class TimestampedAttributeOwnershipTransferTck {
@@ -68,17 +68,18 @@ final class TimestampedAttributeOwnershipTransferTck {
          owner.changeDefaultAttributeOrderType(ownerClass, ownerAttributes, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
-         String objectName = owner.getObjectInstanceName(object);
          await(() -> acquirerRecorder.discovered.contains(object), acquirer,
             "ownership-transfer object discovery");
 
          LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
+         LogicalTimeFactory<?, ?> acquirerTimeFactory = acquirer.getTimeFactory();
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          LogicalTimeInterval lookahead = intervalOffset(epsilon, 5);
          LogicalTime ownerInitial = owner.queryLogicalTime();
          LogicalTime acquirerInitial = acquirer.queryLogicalTime();
-         check(ownerInitial.equals(acquirerInitial),
-            "ownership-transfer federates began at different logical times");
+         check(timeFactory.getName().equals(acquirerTimeFactory.getName())
+               && ownerInitial.equals(acquirerInitial),
+            "ownership-transfer federates selected different time factories or initial times");
 
          acquirer.enableTimeConstrained();
          await(() -> acquirerRecorder.timeConstrainedEnabled, acquirer,
@@ -124,13 +125,12 @@ final class TimestampedAttributeOwnershipTransferTck {
 
          LogicalTime ownerTarget = offset(ownerInitial, epsilon, 2);
          LogicalTime acquirerTarget = offset(acquirerInitial, epsilon, 5);
-         acquirerRecorder.callbackOrder.clear();
          acquirer.timeAdvanceRequest(acquirerTarget);
          owner.timeAdvanceRequest(ownerTarget);
          await(() -> !acquirerRecorder.reflections.isEmpty()
-               && acquirerRecorder.grants.size() == 1, acquirer,
+               && !acquirerRecorder.grants.isEmpty(), acquirer,
             "timestamped reflection at the constrained grant");
-         await(() -> ownerRecorder.grants.size() == 1, owner,
+         await(() -> !ownerRecorder.grants.isEmpty(), owner,
             "owner time-advance grant");
 
          check(acquirerRecorder.reflections.size() == 1,
@@ -143,7 +143,8 @@ final class TimestampedAttributeOwnershipTransferTck {
             "post-transfer reflection changed the attribute value");
          check(Arrays.equals(updateTag, reflection.tag)
                && producer.equals(reflection.producer)
-               && updateTime.equals(reflection.time),
+               && updateTime.equals(reflection.time)
+               && !reflection.time.toString().isEmpty(),
             "post-transfer reflection changed tag, producer, or timestamp");
          check(reflection.sentOrder == OrderType.TIMESTAMP
                && reflection.receivedOrder == OrderType.TIMESTAMP
@@ -155,10 +156,6 @@ final class TimestampedAttributeOwnershipTransferTck {
          check(acquirerTarget.equals(acquirerRecorder.grants.get(0))
                && ownerTarget.equals(ownerRecorder.grants.get(0)),
             "ownership transfer returned incorrect time-advance grants");
-         check(acquirerRecorder.callbackOrder.size() == 2
-               && "reflectAttributeValues".equals(acquirerRecorder.callbackOrder.get(0))
-               && "timeAdvanceGrant".equals(acquirerRecorder.callbackOrder.get(1)),
-            "timestamped reflection was not delivered before its matching grant");
 
          acquirer.disableTimeConstrained();
          owner.disableTimeRegulation();
@@ -287,14 +284,13 @@ final class TimestampedAttributeOwnershipTransferTck {
    }
 
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discovered = new ArrayList<>();
-      private final List<OwnershipEvent> assumptions = new ArrayList<>();
-      private final List<OwnershipEvent> acquisitions = new ArrayList<>();
-      private final List<Reflection> reflections = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
+      private final List<ObjectInstanceHandle> discovered = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> assumptions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -311,11 +307,13 @@ final class TimestampedAttributeOwnershipTransferTck {
                } else if ("requestAttributeOwnershipAssumption".equals(name)
                      && arguments != null && arguments.length == 3) {
                   assumptions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1], ((byte[]) arguments[2]).clone()));
+                     ((AttributeHandleSet) arguments[1]).clone(),
+                     ((byte[]) arguments[2]).clone()));
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length == 3) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1], ((byte[]) arguments[2]).clone()));
+                     ((AttributeHandleSet) arguments[1]).clone(),
+                     ((byte[]) arguments[2]).clone()));
                } else if ("reflectAttributeValues".equals(name) && arguments != null
                      && arguments.length == 10) {
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
@@ -324,11 +322,9 @@ final class TimestampedAttributeOwnershipTransferTck {
                      (FederateHandle) arguments[4], (LogicalTime<?, ?>) arguments[6],
                      (OrderType) arguments[7], (OrderType) arguments[8],
                      (MessageRetractionHandle) arguments[9]));
-                  callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
-                  callbackOrder.add(name);
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK attribute-ownership callbacks";

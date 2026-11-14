@@ -70,13 +70,14 @@ final class RestoreLiveTsoRetractionRecordTck {
          receiver.subscribeInteractionClass(receiverInteraction);
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
          receiver.enableTimeConstrained();
+         receiver.evokeCallback(0.0);
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTime<?, ?> initial = publisher.queryLogicalTime();
          LogicalTimeInterval<?> epsilon = timeFactory.makeEpsilon();
          LogicalTime<?, ?> time1 = offset(initial, epsilon, 1);
          LogicalTime<?, ?> time6 = offset(initial, epsilon, 6);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          MessageRetractionReturn sent = publisher.sendInteraction(
@@ -126,16 +127,17 @@ final class RestoreLiveTsoRetractionRecordTck {
                && Arrays.equals(delivered.parameters.get(receiverParameter), payload)
                && Arrays.equals(delivered.tag, tag)
                && delivered.producer.equals(publisherHandle)
-               && delivered.time.equals(time6)
+               && Arrays.equals(encodeTime(delivered.time), encodeTime(time6))
                && delivered.sentOrder == OrderType.TIMESTAMP
                && delivered.receivedOrder == OrderType.TIMESTAMP
-               && delivered.retraction.equals(sent.handle)
+               && Arrays.equals(encodeHandle(delivered.retraction), encodeHandle(sent.handle))
                && receiverEvents.order.equals(List.of("interaction", "flush-grant")),
             "restored live interaction changed payload, designator, or callback ordering");
          publisher.retract(sent.handle);
          await(members, () -> receiverEvents.retractions.size() == 1,
             "restored live request-retraction callback");
-         JavaTckSupport.check(receiverEvents.retractions.get(0).equals(sent.handle),
+         JavaTckSupport.check(Arrays.equals(
+               encodeHandle(receiverEvents.retractions.get(0)), encodeHandle(sent.handle)),
             "restored live retraction callback returned a different designator");
          JavaTckSupport.expectFailure(() -> publisher.retract(sent.handle),
             "MessageCanNoLongerBeRetracted", "restored terminal designator");
@@ -169,6 +171,18 @@ final class RestoreLiveTsoRetractionRecordTck {
          for (RTIambassador member : members) member.evokeCallback(0.0);
       }
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})

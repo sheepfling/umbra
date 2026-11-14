@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK contract for IEEE 1516.1-2025 §4.1.7 p. 50 l. 126-41 and §12.5 p. 357 l. 58-18. A protected RID profile supplies two distinct, valid service values; both test services independently authorize empty HLAnoCredentials. Public Connect must reject the profile, so silently selecting either configured service would fail the test. The contract claims only a failed Connect, not a normative exception class. This is implementation-specific RID behavior exercised by an adapter-specific provider bridge, not provider interoperability or full conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-configures-only-one-authorization-service-per-rti",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l58-18",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerSingleServicePerRidProfile",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerSingleServicePerRidProfile"
+      ]
+    },
+    {
+      "id": "umbra-cpp-rti-allows-only-one-configured-authorization-service",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l126-41",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerSingleServicePerRidProfile",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerSingleServicePerRidProfile"
+      ]
+    }
+  ]
+}

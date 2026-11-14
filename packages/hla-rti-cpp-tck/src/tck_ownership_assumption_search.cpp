@@ -86,6 +86,14 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
     releaseRequests_.push_back(AssumptionEvent{object, attributes, copyBytes(tag)});
   }
 
+  void attributeOwnershipUnavailable(
+      rti::ObjectInstanceHandle const& object,
+      rti::AttributeHandleSet const& attributes,
+      rti::VariableLengthData const& tag) override {
+    std::lock_guard<std::mutex> lock(mutex_);
+    unavailable_.push_back(AssumptionEvent{object, attributes, copyBytes(tag)});
+  }
+
   bool discovered(rti::ObjectInstanceHandle const& object) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return std::find(discovered_.begin(), discovered_.end(), object) != discovered_.end();
@@ -116,6 +124,11 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
     return releaseRequests_;
   }
 
+  std::vector<AssumptionEvent> unavailable() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return unavailable_;
+  }
+
   std::exception_ptr divestitureFailure() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return divestitureFailure_;
@@ -139,6 +152,7 @@ class AssumptionCallbacks final : public rti::NullFederateAmbassador {
   std::vector<AssumptionEvent> acquisitions_;
   std::vector<AssumptionEvent> divestitureRequests_;
   std::vector<AssumptionEvent> releaseRequests_;
+  std::vector<AssumptionEvent> unavailable_;
   std::function<void()> assumptionHook_;
   std::function<void()> divestitureHook_;
   std::exception_ptr divestitureFailure_;
@@ -205,14 +219,17 @@ void scenarioOwnershipAssumptionSearchAfterDecline(
   auto owner = factory.createRTIambassador();
   auto first = factory.createRTIambassador();
   auto second = factory.createRTIambassador();
-  require(owner && first && second,
+  auto willing = factory.createRTIambassador();
+  require(owner && first && second && willing,
           "The standard RTIambassador factory returned no ambassador");
   AssumptionCallbacks ownerCallbacks;
   AssumptionCallbacks firstCallbacks;
   AssumptionCallbacks secondCallbacks;
+  AssumptionCallbacks willingCallbacks;
   connect(*owner, ownerCallbacks, options, model, true);
   connect(*first, firstCallbacks, options, model, false);
   connect(*second, secondCallbacks, options, model, false);
+  connect(*willing, willingCallbacks, options, model, false);
   auto const federation = federationName(options, "assumption-search-after-decline");
   owner->createFederationExecution(
       federation, options.fom.wstring(), options.logicalTimeImplementationName);
@@ -225,31 +242,42 @@ void scenarioOwnershipAssumptionSearchAfterDecline(
   static_cast<void>(second->joinFederationExecution(
       options.memberFederateName + L"-assumption-search-second",
       options.federateType, federation));
+  static_cast<void>(willing->joinFederationExecution(
+      options.memberFederateName + L"-assumption-search-willing",
+      options.federateType, federation));
 
   auto const ownerClass = owner->getObjectClassHandle(options.objectClassName);
   auto const firstClass = first->getObjectClassHandle(options.objectClassName);
   auto const secondClass = second->getObjectClassHandle(options.objectClassName);
+  auto const willingClass = willing->getObjectClassHandle(options.objectClassName);
   auto const ownerAttribute = owner->getAttributeHandle(ownerClass, options.attributeName);
   auto const firstAttribute = first->getAttributeHandle(firstClass, options.attributeName);
   auto const secondAttribute = second->getAttributeHandle(secondClass, options.attributeName);
+  auto const willingAttribute = willing->getAttributeHandle(willingClass, options.attributeName);
   require(ownerClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
+              willingClass.isValid() &&
               ownerAttribute.isValid() && firstAttribute.isValid() &&
-              secondAttribute.isValid(),
+              secondAttribute.isValid() && willingAttribute.isValid(),
           "Ownership-assumption search lookup returned an invalid standard handle");
   rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
   rti::AttributeHandleSet const firstAttributes{firstAttribute};
   rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  rti::AttributeHandleSet const willingAttributes{willingAttribute};
   owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
   first->subscribeObjectClassAttributes(firstClass, firstAttributes, true, L"");
   second->subscribeObjectClassAttributes(secondClass, secondAttributes, true, L"");
+  willing->subscribeObjectClassAttributes(willingClass, willingAttributes, true, L"");
   auto const object = owner->registerObjectInstance(ownerClass);
   require(object.isValid(), "Ownership-assumption search registration returned an invalid handle");
   evokeUntil(*first, [&] { return firstCallbacks.discovered(object); }, options, model,
              "first assumption candidate discovery");
   evokeUntil(*second, [&] { return secondCallbacks.discovered(object); }, options, model,
              "second assumption candidate discovery");
+  evokeUntil(*willing, [&] { return willingCallbacks.discovered(object); }, options, model,
+             "Willing-to-Acquire assumption candidate discovery");
   first->publishObjectClassAttributes(firstClass, firstAttributes);
   second->publishObjectClassAttributes(secondClass, secondAttributes);
+  willing->publishObjectClassAttributes(willingClass, willingAttributes);
 
   std::vector<std::uint8_t> const acquisitionTagBytes{0xC1U, 0x25U};
   std::vector<std::uint8_t> const divestitureTagBytes{0xC2U, 0x25U};
@@ -262,6 +290,13 @@ void scenarioOwnershipAssumptionSearchAfterDecline(
   }
   second->attributeOwnershipAcquisition(object, secondAttributes, acquisitionTag);
   second->cancelAttributeOwnershipAcquisition(object, secondAttributes);
+  // Hold the If-Available result pending across divestiture so this candidate
+  // remains in the public API's Willing-to-Acquire state at the §4.12 search.
+  if (model == rti::HLA_IMMEDIATE) {
+    willing->disableCallbacks();
+  }
+  willing->attributeOwnershipAcquisitionIfAvailable(
+      object, willingAttributes, acquisitionTag);
 
   std::mutex coordinationMutex;
   std::condition_variable coordination;
@@ -337,12 +372,32 @@ void scenarioOwnershipAssumptionSearchAfterDecline(
               continued.front().tag == divestitureTagBytes,
           "Continued assumption lost its object, attribute, or tag");
 
+  if (model == rti::HLA_IMMEDIATE) {
+    willing->enableCallbacks();
+  }
+  evokeUntil(*willing,
+             [&] {
+               return !willingCallbacks.assumptions().empty() ||
+                   !willingCallbacks.unavailable().empty() ||
+                   !willingCallbacks.acquisitions().empty();
+             },
+             options, model, "Willing-to-Acquire ownership result");
+  if (model == rti::HLA_EVOKED) {
+    while (willing->evokeCallback(0.0)) {
+    }
+  }
+  require(willingCallbacks.assumptions().empty(),
+          "RTI invoked Request Attribute Ownership Assumption at a federate already in the Willing-to-Acquire state");
+
+  willing->unpublishObjectClass(willingClass);
   first->unpublishObjectClass(firstClass);
   second->unpublishObjectClass(secondClass);
   owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   first->resignFederationExecution(rti::NO_ACTION);
   second->resignFederationExecution(rti::NO_ACTION);
+  willing->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   second->destroyFederationExecution(federation);
+  willing->disconnect();
   second->disconnect();
   first->disconnect();
   owner->disconnect();
@@ -415,6 +470,9 @@ void scenarioOwnershipAssumptionTransferEpoch(
   rti::VariableLengthData const acquisitionTag(
       acquisitionTagBytes.data(), acquisitionTagBytes.size());
   owner->unconditionalAttributeOwnershipDivestiture(object, transferred, firstTag);
+  require(
+      !owner->isAttributeOwnedByFederate(object, ownerAttribute),
+      "Unconditionally divested instance attribute remained owned by the divesting federate");
   evokeUntil(*first, [&] { return firstCallbacks.assumptions().size() == 1U; },
              options, model, "first transfer assumption");
   evokeUntil(*second, [&] { return secondCallbacks.assumptions().size() == 1U; },
@@ -426,6 +484,10 @@ void scenarioOwnershipAssumptionTransferEpoch(
               initialSecond.attributes == transferred &&
               initialFirst.tag == firstTagBytes && initialSecond.tag == firstTagBytes,
           "Initial ownership search did not offer both candidates the original tag");
+  require(
+      !first->isAttributeOwnedByFederate(object, firstAttribute) &&
+          !second->isAttributeOwnedByFederate(object, secondAttribute),
+      "Ownership assumption offers transferred the attribute without an explicit acquisition service");
 
   first->attributeOwnershipAcquisition(object, transferred, acquisitionTag);
   evokeUntil(*first, [&] { return firstCallbacks.acquisitions().size() == 1U; },
@@ -434,6 +496,14 @@ void scenarioOwnershipAssumptionTransferEpoch(
   require(acquisition.object == object && acquisition.attributes == transferred &&
               first->isAttributeOwnedByFederate(object, firstAttribute),
           "First candidate did not acquire the transferred attribute set");
+
+  if (model == rti::HLA_EVOKED) {
+    while (second->evokeCallback(0.0)) {
+    }
+  }
+  require(secondCallbacks.assumptions().size() == 1U &&
+              first->isAttributeOwnedByFederate(object, firstAttribute),
+          "RTI issued an additional assumption after the attribute became owned");
 
   second->unpublishObjectClass(secondClass);
   owner->resignFederationExecution(rti::NO_ACTION);
@@ -646,6 +716,398 @@ void scenarioNegotiatedDivestitureConcurrentAssumptionContract(
   scenarioNegotiatedDivestitureConcurrentAssumption(options, model);
 }
 
+void scenarioNegotiatedDivestitureConfirmationCoalescing(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.multiAttributeFom.empty(),
+          "Negotiated confirmation coalescing requires a two-attribute FOM");
+  rti::RTIambassadorFactory factory;
+  auto owner = factory.createRTIambassador();
+  auto requester = factory.createRTIambassador();
+  require(owner && requester,
+          "The standard RTIambassador factory returned no ambassador");
+  AssumptionCallbacks ownerCallbacks;
+  AssumptionCallbacks requesterCallbacks;
+  connect(*owner, ownerCallbacks, options, model, true);
+  connect(*requester, requesterCallbacks, options, model, false);
+
+  auto const federation = federationName(
+      options, "negotiated-divestiture-confirmation-coalescing");
+  owner->createFederationExecution(
+      federation, options.multiAttributeFom.wstring(),
+      options.logicalTimeImplementationName);
+  static_cast<void>(owner->joinFederationExecution(
+      options.ownerFederateName + L"-confirmation-owner", options.federateType,
+      federation));
+  static_cast<void>(requester->joinFederationExecution(
+      options.memberFederateName + L"-confirmation-requester", options.federateType,
+      federation));
+
+  auto const ownerClass = owner->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeFirstName);
+  auto const ownerSecond = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeSecondName);
+  auto const requesterFirst = requester->getAttributeHandle(
+      requesterClass, options.multiAttributeFirstName);
+  auto const requesterSecond = requester->getAttributeHandle(
+      requesterClass, options.multiAttributeSecondName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerFirst.isValid() && ownerSecond.isValid() &&
+              requesterFirst.isValid() && requesterSecond.isValid() &&
+              ownerFirst != ownerSecond && requesterFirst != requesterSecond,
+          "Adapter FOM did not resolve two distinct ownership attributes");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->publishObjectClassAttributes(requesterClass, requesterAttributes);
+  requester->subscribeObjectClassAttributes(
+      requesterClass, requesterAttributes, true, L"");
+  auto const object = owner->registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Negotiated confirmation coalescing registration returned no object");
+  evokeUntil(*requester, [&] { return requesterCallbacks.discovered(object); },
+             options, model, "confirmation requester object discovery");
+
+  std::vector<std::uint8_t> const offerTagBytes{0x41U, 0x7cU, 0x22U};
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x52U, 0x8dU, 0x33U};
+  std::vector<std::uint8_t> const confirmationTagBytes{0x63U, 0x9eU, 0x44U};
+  rti::VariableLengthData const offerTag(offerTagBytes.data(), offerTagBytes.size());
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(), confirmationTagBytes.size());
+
+  owner->negotiatedAttributeOwnershipDivestiture(
+      object, ownerAttributes, offerTag);
+  require(ownerCallbacks.divestitureRequests().empty() &&
+              owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner->isAttributeOwnedByFederate(object, ownerSecond),
+          "Negotiated divestiture lost ownership before a new owner was found");
+
+  requester->attributeOwnershipAcquisition(
+      object, requesterAttributes, acquisitionTag);
+  evokeUntil(*owner,
+             [&] { return !ownerCallbacks.divestitureRequests().empty(); },
+             options, model, "coalesced request divestiture confirmation");
+  if (model == rti::HLA_EVOKED) {
+    while (owner->evokeCallback(0.0)) {
+    }
+    while (requester->evokeCallback(0.0)) {
+    }
+  }
+
+  auto const requests = ownerCallbacks.divestitureRequests();
+  require(requests.size() == 1U && requests.front().object == object &&
+              requests.front().attributes == ownerAttributes &&
+              requests.front().tag == acquisitionTagBytes,
+          "One acquisition call did not produce one full-set confirmation callback");
+  require(owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner->isAttributeOwnedByFederate(object, ownerSecond) &&
+              !requester->isAttributeOwnedByFederate(object, requesterFirst) &&
+              !requester->isAttributeOwnedByFederate(object, requesterSecond) &&
+              requesterCallbacks.acquisitions().empty(),
+          "Negotiated acquisition transferred attributes before owner confirmation");
+
+  owner->confirmDivestiture(object, ownerAttributes, confirmationTag);
+  evokeUntil(*requester,
+             [&] { return !requesterCallbacks.acquisitions().empty(); },
+             options, model, "acquisition notification after full-set confirmation");
+  if (model == rti::HLA_EVOKED) {
+    while (owner->evokeCallback(0.0)) {
+    }
+    while (requester->evokeCallback(0.0)) {
+    }
+  }
+  auto const acquisitions = requesterCallbacks.acquisitions();
+  require(acquisitions.size() == 1U && acquisitions.front().object == object &&
+              acquisitions.front().attributes == requesterAttributes &&
+              acquisitions.front().tag == confirmationTagBytes &&
+              !owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              !owner->isAttributeOwnedByFederate(object, ownerSecond) &&
+              requester->isAttributeOwnedByFederate(object, requesterFirst) &&
+              requester->isAttributeOwnedByFederate(object, requesterSecond),
+          "Confirmed negotiated divestiture did not transfer the complete set");
+
+  requester->unpublishObjectClassAttributes(requesterClass, requesterAttributes);
+  owner->unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->resignFederationExecution(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner->destroyFederationExecution(federation);
+  requester->disconnect();
+  owner->disconnect();
+}
+
+void scenarioNegotiatedDivestitureConfirmationCoalescingContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioNegotiatedDivestitureConfirmationCoalescing(options, model);
+}
+
+void scenarioNegotiatedDivestitureReturnsToWaitingForNewOwner(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Negotiated-divestiture recovery requires an adapter-supplied FOM");
+  rti::RTIambassadorFactory factory;
+  auto owner = factory.createRTIambassador();
+  auto requester = factory.createRTIambassador();
+  require(owner && requester,
+          "The standard RTIambassador factory returned no ambassador");
+  AssumptionCallbacks ownerCallbacks;
+  AssumptionCallbacks requesterCallbacks;
+  connect(*owner, ownerCallbacks, options, model, true);
+  connect(*requester, requesterCallbacks, options, model, false);
+
+  auto const federation = federationName(
+      options, "negotiated-divestiture-waiting-recovery");
+  owner->createFederationExecution(
+      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+  static_cast<void>(owner->joinFederationExecution(
+      options.ownerFederateName + L"-waiting-recovery-owner",
+      options.federateType, federation));
+  static_cast<void>(requester->joinFederationExecution(
+      options.memberFederateName + L"-waiting-recovery-requester",
+      options.federateType, federation));
+
+  auto const ownerClass = owner->getObjectClassHandle(options.objectClassName);
+  auto const requesterClass = requester->getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner->getAttributeHandle(
+      ownerClass, options.attributeName);
+  auto const requesterAttribute = requester->getAttributeHandle(
+      requesterClass, options.attributeName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerAttribute.isValid() && requesterAttribute.isValid(),
+          "Negotiated-divestiture recovery could not resolve the object attribute");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
+  rti::AttributeHandleSet const requesterAttributes{requesterAttribute};
+  owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->publishObjectClassAttributes(requesterClass, requesterAttributes);
+  requester->subscribeObjectClassAttributes(
+      requesterClass, requesterAttributes, true, L"");
+  auto const object = owner->registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Negotiated-divestiture recovery registration returned no object");
+  evokeUntil(*requester, [&] { return requesterCallbacks.discovered(object); },
+             options, model, "waiting-recovery object discovery");
+
+  std::vector<std::uint8_t> const offerTagBytes{0x37U, 0x61U};
+  std::vector<std::uint8_t> const firstAcquisitionTagBytes{0x48U, 0x72U};
+  std::vector<std::uint8_t> const secondAcquisitionTagBytes{0x59U, 0x83U};
+  std::vector<std::uint8_t> const confirmationTagBytes{0x6AU, 0x94U};
+  rti::VariableLengthData const offerTag(offerTagBytes.data(), offerTagBytes.size());
+  rti::VariableLengthData const firstAcquisitionTag(
+      firstAcquisitionTagBytes.data(), firstAcquisitionTagBytes.size());
+  rti::VariableLengthData const secondAcquisitionTag(
+      secondAcquisitionTagBytes.data(), secondAcquisitionTagBytes.size());
+  rti::VariableLengthData const confirmationTag(
+      confirmationTagBytes.data(), confirmationTagBytes.size());
+
+  owner->negotiatedAttributeOwnershipDivestiture(
+      object, ownerAttributes, offerTag);
+  requester->attributeOwnershipAcquisition(
+      object, requesterAttributes, firstAcquisitionTag);
+  evokeUntil(*owner,
+             [&] { return ownerCallbacks.divestitureRequests().size() == 1U; },
+             options, model, "first negotiated-divestiture confirmation request");
+  auto const firstRequests = ownerCallbacks.divestitureRequests();
+  require(firstRequests.front().object == object &&
+              firstRequests.front().attributes == ownerAttributes &&
+              firstRequests.front().tag == firstAcquisitionTagBytes &&
+              owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !requester->isAttributeOwnedByFederate(object, requesterAttribute),
+          "First negotiated confirmation did not preserve ownership and request metadata");
+
+  requester->cancelAttributeOwnershipAcquisition(object, requesterAttributes);
+  bool noAcquisitionPending = false;
+  bool confirmationWasNoLongerRequested = false;
+  if (model == rti::HLA_EVOKED) {
+    try {
+      owner->confirmDivestiture(object, ownerAttributes, confirmationTag);
+    } catch (rti::NoAcquisitionPending const&) {
+      noAcquisitionPending = true;
+    }
+  }
+  evokeUntil(*requester,
+             [&] { return requesterCallbacks.cancellations().size() == 1U; },
+             options, model, "canceled acquisition confirmation");
+  if (model == rti::HLA_IMMEDIATE) {
+    try {
+      owner->confirmDivestiture(object, ownerAttributes, confirmationTag);
+    } catch (rti::AttributeDivestitureWasNotRequested const&) {
+      confirmationWasNoLongerRequested = true;
+    }
+  }
+  auto const cancellations = requesterCallbacks.cancellations();
+  require(cancellations.front().object == object &&
+              cancellations.front().attributes == requesterAttributes,
+          "Canceled acquisition confirmation returned the wrong attribute set");
+  require(
+      (model == rti::HLA_EVOKED && noAcquisitionPending) ||
+          (model == rti::HLA_IMMEDIATE && confirmationWasNoLongerRequested),
+      "Confirm Divestiture did not report the exception matching the cancellation timing");
+  require(owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !requester->isAttributeOwnedByFederate(object, requesterAttribute) &&
+              ownerCallbacks.divestitureRequests().size() == 1U &&
+              requesterCallbacks.acquisitions().empty(),
+          "Failed confirmation did not retain ownership while waiting for a new owner");
+
+  requester->attributeOwnershipAcquisition(
+      object, requesterAttributes, secondAcquisitionTag);
+  evokeUntil(*owner,
+             [&] { return ownerCallbacks.divestitureRequests().size() == 2U; },
+             options, model, "new confirmation request after acquisition cancellation");
+  auto const requests = ownerCallbacks.divestitureRequests();
+  require(requests.size() == 2U && requests.back().object == object &&
+              requests.back().attributes == ownerAttributes &&
+              requests.back().tag == secondAcquisitionTagBytes &&
+              owner->isAttributeOwnedByFederate(object, ownerAttribute),
+          "Negotiated divestiture did not return to waiting for a later acquirer");
+
+  owner->confirmDivestiture(object, ownerAttributes, confirmationTag);
+  evokeUntil(*requester,
+             [&] { return requesterCallbacks.acquisitions().size() == 1U; },
+             options, model, "acquisition notification after recovered confirmation");
+  auto const acquisitions = requesterCallbacks.acquisitions();
+  require(acquisitions.size() == 1U && acquisitions.front().object == object &&
+              acquisitions.front().attributes == requesterAttributes &&
+              acquisitions.front().tag == confirmationTagBytes &&
+              !owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              requester->isAttributeOwnedByFederate(object, requesterAttribute),
+          "Recovered negotiated divestiture did not transfer after confirmation");
+
+  requester->unpublishObjectClassAttributes(requesterClass, requesterAttributes);
+  owner->unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->resignFederationExecution(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner->destroyFederationExecution(federation);
+  requester->disconnect();
+  owner->disconnect();
+}
+
+void scenarioNegotiatedDivestitureReturnsToWaitingForNewOwnerContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioNegotiatedDivestitureReturnsToWaitingForNewOwner(options, model);
+}
+
+void scenarioAttributeOwnershipReleaseCoalescing(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.multiAttributeFom.empty(),
+          "Ownership-release coalescing requires a two-attribute FOM");
+  rti::RTIambassadorFactory factory;
+  auto owner = factory.createRTIambassador();
+  auto requester = factory.createRTIambassador();
+  require(owner && requester,
+          "The standard RTIambassador factory returned no ambassador");
+  AssumptionCallbacks ownerCallbacks;
+  AssumptionCallbacks requesterCallbacks;
+  connect(*owner, ownerCallbacks, options, model, true);
+  connect(*requester, requesterCallbacks, options, model, false);
+
+  auto const federation = federationName(
+      options, "attribute-ownership-release-coalescing");
+  owner->createFederationExecution(
+      federation, options.multiAttributeFom.wstring(),
+      options.logicalTimeImplementationName);
+  static_cast<void>(owner->joinFederationExecution(
+      options.ownerFederateName + L"-release-coalescing-owner",
+      options.federateType, federation));
+  static_cast<void>(requester->joinFederationExecution(
+      options.memberFederateName + L"-release-coalescing-requester",
+      options.federateType, federation));
+
+  auto const ownerClass = owner->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeFirstName);
+  auto const ownerSecond = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeSecondName);
+  auto const requesterFirst = requester->getAttributeHandle(
+      requesterClass, options.multiAttributeFirstName);
+  auto const requesterSecond = requester->getAttributeHandle(
+      requesterClass, options.multiAttributeSecondName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerFirst.isValid() && ownerSecond.isValid() &&
+              requesterFirst.isValid() && requesterSecond.isValid() &&
+              ownerFirst != ownerSecond && requesterFirst != requesterSecond,
+          "Adapter FOM did not resolve two distinct ownership attributes");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const requesterAttributes{requesterFirst, requesterSecond};
+  owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->publishObjectClassAttributes(requesterClass, requesterAttributes);
+  requester->subscribeObjectClassAttributes(
+      requesterClass, requesterAttributes, true, L"");
+  auto const object = owner->registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Ownership-release coalescing registration returned no object");
+  evokeUntil(*requester, [&] { return requesterCallbacks.discovered(object); },
+             options, model, "ownership-release requester discovery");
+  require(owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner->isAttributeOwnedByFederate(object, ownerSecond),
+          "Release-request owner did not initially own both attributes");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x71U, 0x32U, 0x5AU};
+  std::vector<std::uint8_t> const divestitureTagBytes{0x72U, 0x43U, 0x6BU};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  rti::VariableLengthData const divestitureTag(
+      divestitureTagBytes.data(), divestitureTagBytes.size());
+  requester->attributeOwnershipAcquisition(
+      object, requesterAttributes, acquisitionTag);
+  evokeUntil(*owner,
+             [&] { return !ownerCallbacks.releaseRequests().empty(); },
+             options, model, "coalesced ownership-release request");
+  if (model == rti::HLA_EVOKED) {
+    while (owner->evokeCallback(0.0)) {
+    }
+    while (requester->evokeCallback(0.0)) {
+    }
+  }
+  auto const releases = ownerCallbacks.releaseRequests();
+  require(releases.size() == 1U && releases.front().object == object &&
+              releases.front().attributes == ownerAttributes &&
+              releases.front().tag == acquisitionTagBytes,
+          "One multi-attribute acquisition did not produce one complete release request");
+  require(owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner->isAttributeOwnedByFederate(object, ownerSecond) &&
+              !requester->isAttributeOwnedByFederate(object, requesterFirst) &&
+              !requester->isAttributeOwnedByFederate(object, requesterSecond),
+          "Request Attribute Ownership Release changed ownership before divestiture");
+
+  owner->unconditionalAttributeOwnershipDivestiture(
+      object, ownerAttributes, divestitureTag);
+  evokeUntil(*requester,
+             [&] { return !requesterCallbacks.acquisitions().empty(); },
+             options, model, "acquisition notification after release request");
+  auto const acquisitions = requesterCallbacks.acquisitions();
+  require(acquisitions.size() == 1U && acquisitions.front().object == object &&
+              acquisitions.front().attributes == requesterAttributes &&
+              acquisitions.front().tag == acquisitionTagBytes &&
+              !owner->isAttributeOwnedByFederate(object, ownerFirst) &&
+              !owner->isAttributeOwnedByFederate(object, ownerSecond) &&
+              requester->isAttributeOwnedByFederate(object, requesterFirst) &&
+              requester->isAttributeOwnedByFederate(object, requesterSecond),
+          "Coalesced release request did not lead to one complete acquisition");
+
+  requester->unpublishObjectClassAttributes(requesterClass, requesterAttributes);
+  owner->unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  requester->resignFederationExecution(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+  owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner->destroyFederationExecution(federation);
+  requester->disconnect();
+  owner->disconnect();
+}
+
+void scenarioAttributeOwnershipReleaseCoalescingContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioAttributeOwnershipReleaseCoalescing(options, model);
+}
+
 void scenarioAcquisitionWhileOwnerWaitsForNewOwner(
     Options const& options, rti::CallbackModel model) {
   require(!options.fom.empty(),
@@ -744,6 +1206,52 @@ void scenarioAcquisitionWhileOwnerWaitsForNewOwner(
               !owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
               requester->isAttributeOwnedByFederate(object, requesterAttribute),
           "Confirmed waiting-owner divestiture did not transfer the requested attribute");
+
+  std::vector<std::uint8_t> const denialTagBytes{0xD9U, 0x18U, 0x04U};
+  rti::VariableLengthData const denialTag(
+      denialTagBytes.data(), denialTagBytes.size());
+  owner->attributeOwnershipAcquisition(object, ownerAttributes, acquisitionTag);
+  evokeUntil(*requester,
+             [&] { return requesterCallbacks.releaseRequests().size() == 1U; },
+             options, model, "release request before acquisition denial");
+  auto const reacquisitionRelease = requesterCallbacks.releaseRequests();
+  require(reacquisitionRelease.front().object == object &&
+              reacquisitionRelease.front().attributes == requesterAttributes &&
+              reacquisitionRelease.front().tag == acquisitionTagBytes,
+          "Post-transfer reacquisition returned the wrong release request");
+  requester->attributeOwnershipReleaseDenied(
+      object, requesterAttributes, denialTag);
+  evokeUntil(*owner,
+             [&] { return ownerCallbacks.unavailable().size() == 1U; },
+             options, model, "acquisition-unavailable callback after denial");
+  auto const unavailable = ownerCallbacks.unavailable();
+  require(unavailable.front().object == object &&
+              unavailable.front().attributes == ownerAttributes &&
+              unavailable.front().tag == denialTagBytes,
+          "Denied reacquisition returned the wrong unavailable callback data");
+  require(!owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              requester->isAttributeOwnedByFederate(object, requesterAttribute) &&
+              ownerCallbacks.acquisitions().empty() &&
+              requesterCallbacks.acquisitions().size() == 1U,
+          "Denied reacquisition changed ownership or emitted an acquisition notification");
+
+  owner->attributeOwnershipAcquisition(object, ownerAttributes, acquisitionTag);
+  evokeUntil(*requester,
+             [&] { return requesterCallbacks.releaseRequests().size() == 2U; },
+             options, model, "release request before acquisition cancellation");
+  owner->cancelAttributeOwnershipAcquisition(object, ownerAttributes);
+  evokeUntil(*owner,
+             [&] { return ownerCallbacks.cancellations().size() == 1U; },
+             options, model, "acquisition-cancellation confirmation");
+  auto const cancellations = ownerCallbacks.cancellations();
+  require(cancellations.front().object == object &&
+              cancellations.front().attributes == ownerAttributes &&
+              ownerCallbacks.unavailable().size() == 1U &&
+              ownerCallbacks.acquisitions().empty() &&
+              requesterCallbacks.acquisitions().size() == 1U &&
+              !owner->isAttributeOwnedByFederate(object, ownerAttribute) &&
+              requester->isAttributeOwnedByFederate(object, requesterAttribute),
+          "Canceled reacquisition did not remain pending until confirmed cancellation");
 
   requester->resignFederationExecution(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
   owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -964,6 +1472,244 @@ void scenarioConfirmDivestitureMixedSetAtomicity(
 void scenarioConfirmDivestitureMixedSetAtomicityContract(
     Options const& options, rti::CallbackModel model) {
   scenarioConfirmDivestitureMixedSetAtomicity(options, model);
+}
+
+void scenarioUnconditionalDivestitureMixedSetAtomicity(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.multiAttributeFom.empty(),
+          "Mixed unconditional divestiture requires an adapter-supplied two-attribute FOM");
+
+  Session owner(options, model, "unconditional-divestiture-atomicity-owner");
+  Session requester(options, model, "unconditional-divestiture-atomicity-requester");
+  auto const federation = federationName(
+      options, "unconditional-divestiture-mixed-set-atomicity");
+  owner.connect();
+  requester.connect();
+  owner.rtiAmbassador().createFederationExecution(
+      federation, options.multiAttributeFom.wstring(),
+      options.logicalTimeImplementationName);
+  owner.join(options.ownerFederateName + L"-unconditional-atomicity-owner",
+             options.federateType, federation);
+  requester.join(options.memberFederateName + L"-unconditional-atomicity-requester",
+                 options.federateType, federation);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const requesterClass = requester.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.multiAttributeSecondName);
+  auto const requesterFirst = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass, options.multiAttributeFirstName);
+  auto const requesterSecond = requester.rtiAmbassador().getAttributeHandle(
+      requesterClass, options.multiAttributeSecondName);
+  require(ownerClass.isValid() && requesterClass.isValid() &&
+              ownerFirst.isValid() && ownerSecond.isValid() &&
+              requesterFirst.isValid() && requesterSecond.isValid() &&
+              ownerFirst != ownerSecond && requesterFirst != requesterSecond,
+          "Adapter FOM did not resolve two distinct ordinary ownership attributes");
+
+  rti::AttributeHandleSet const ownerBoth{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const ownerFirstOnly{ownerFirst};
+  rti::AttributeHandleSet const requesterBoth{requesterFirst, requesterSecond};
+  rti::AttributeHandleSet const requesterFirstOnly{requesterFirst};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerBoth);
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass, requesterBoth);
+  requester.rtiAmbassador().subscribeObjectClassAttributes(
+      requesterClass, requesterBoth, true, L"");
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Mixed unconditional divestiture registration returned an invalid handle");
+  waitFor(requester,
+          [&] { return requester.recorder().hasDiscovery(object); },
+          options, "mixed unconditional divestiture object discovery");
+  require(owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond),
+          "Registrant did not initially own both ordinary attributes");
+
+  std::vector<std::uint8_t> const acquisitionTagBytes{0x91U, 0x54U};
+  std::vector<std::uint8_t> const transferTagBytes{0x92U, 0x54U};
+  std::vector<std::uint8_t> const invalidSetTagBytes{0x93U, 0x54U};
+  rti::VariableLengthData const acquisitionTag(
+      acquisitionTagBytes.data(), acquisitionTagBytes.size());
+  rti::VariableLengthData const transferTag(
+      transferTagBytes.data(), transferTagBytes.size());
+  rti::VariableLengthData const invalidSetTag(
+      invalidSetTagBytes.data(), invalidSetTagBytes.size());
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      object, requesterFirstOnly, acquisitionTag);
+  rti::AttributeHandleSet divested;
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object, ownerFirstOnly, transferTag, divested);
+  require(divested == ownerFirstOnly &&
+              !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond) &&
+              requester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, requesterFirst),
+          "The setup transfer did not leave one attribute owned by each federate");
+  waitFor(requester,
+          [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+          options, "setup ownership acquisition notification");
+  auto const acquisition = requester.recorder().ownershipAcquisition();
+  require(acquisition->object == object &&
+              acquisition->attributes == requesterFirstOnly &&
+              acquisition->tag == transferTagBytes,
+          "Setup acquisition notification returned incorrect metadata");
+
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  requireException(
+      [&] {
+        owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+            object, ownerBoth, invalidSetTag);
+      },
+      L"AttributeNotOwned",
+      "unconditional divestiture with one attribute owned by another federate");
+  for (int pass = 0; pass != 8; ++pass) {
+    owner.pump();
+    requester.pump();
+  }
+  require(!requester.recorder().ownershipAssumption().has_value() &&
+              !requester.recorder().ownershipAcquisition().has_value() &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerSecond) &&
+              !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerFirst) &&
+              requester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, requesterFirst) &&
+              !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, requesterSecond),
+          "Rejected mixed-set divestiture produced a callback or partially changed ownership");
+
+  owner.rtiAmbassador().deleteObjectInstance(
+      object, rti::VariableLengthData{});
+  requester.resign(rti::NO_ACTION);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+  owner.disconnect();
+}
+
+void scenarioUnconditionalDivestitureMixedSetAtomicityContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioUnconditionalDivestitureMixedSetAtomicity(options, model);
+}
+
+void scenarioUnconditionalDivestitureAssumptionCoalescing(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.multiAttributeFom.empty(),
+          "Unconditional divestiture assumption requires a two-attribute FOM");
+
+  rti::RTIambassadorFactory factory;
+  auto owner = factory.createRTIambassador();
+  auto candidate = factory.createRTIambassador();
+  auto observer = factory.createRTIambassador();
+  require(owner && candidate && observer,
+          "The standard RTIambassador factory returned no ambassador");
+  AssumptionCallbacks ownerCallbacks;
+  AssumptionCallbacks candidateCallbacks;
+  AssumptionCallbacks observerCallbacks;
+  connect(*owner, ownerCallbacks, options, model, true);
+  connect(*candidate, candidateCallbacks, options, model, false);
+  connect(*observer, observerCallbacks, options, model, false);
+
+  auto const federation = federationName(
+      options, "unconditional-divestiture-assumption-coalescing");
+  owner->createFederationExecution(
+      federation, options.multiAttributeFom.wstring(),
+      options.logicalTimeImplementationName);
+  static_cast<void>(owner->joinFederationExecution(
+      options.ownerFederateName + L"-assumption-owner", options.federateType,
+      federation));
+  static_cast<void>(candidate->joinFederationExecution(
+      options.memberFederateName + L"-assumption-candidate", options.federateType,
+      federation));
+  static_cast<void>(observer->joinFederationExecution(
+      options.memberFederateName + L"-assumption-observer", options.federateType,
+      federation));
+
+  auto const ownerClass = owner->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const candidateClass = candidate->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const observerClass = observer->getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeFirstName);
+  auto const ownerSecond = owner->getAttributeHandle(
+      ownerClass, options.multiAttributeSecondName);
+  auto const candidateFirst = candidate->getAttributeHandle(
+      candidateClass, options.multiAttributeFirstName);
+  auto const candidateSecond = candidate->getAttributeHandle(
+      candidateClass, options.multiAttributeSecondName);
+  auto const observerFirst = observer->getAttributeHandle(
+      observerClass, options.multiAttributeFirstName);
+  auto const observerSecond = observer->getAttributeHandle(
+      observerClass, options.multiAttributeSecondName);
+  require(ownerClass.isValid() && candidateClass.isValid() &&
+              observerClass.isValid() && ownerFirst.isValid() &&
+              ownerSecond.isValid() && candidateFirst.isValid() &&
+              candidateSecond.isValid() && observerFirst.isValid() &&
+              observerSecond.isValid() && ownerFirst != ownerSecond &&
+              candidateFirst != candidateSecond && observerFirst != observerSecond,
+          "Adapter FOM did not resolve two distinct ownership attributes");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const candidateAttributes{candidateFirst, candidateSecond};
+  rti::AttributeHandleSet const observerAttributes{observerFirst, observerSecond};
+  owner->publishObjectClassAttributes(ownerClass, ownerAttributes);
+  candidate->publishObjectClassAttributes(candidateClass, candidateAttributes);
+  candidate->subscribeObjectClassAttributes(
+      candidateClass, candidateAttributes, true, L"");
+  observer->subscribeObjectClassAttributes(
+      observerClass, observerAttributes, true, L"");
+
+  auto const object = owner->registerObjectInstance(ownerClass);
+  require(object.isValid(),
+          "Unconditional-divestiture assumption registration returned no object");
+  evokeUntil(*candidate, [&] { return candidateCallbacks.discovered(object); },
+             options, model, "eligible assumption candidate discovery");
+  evokeUntil(*observer, [&] { return observerCallbacks.discovered(object); },
+             options, model, "non-publishing observer discovery");
+
+  std::vector<std::uint8_t> const tagBytes{0x74U, 0x43U, 0x4fU};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  owner->unconditionalAttributeOwnershipDivestiture(object, ownerAttributes, tag);
+  evokeUntil(*candidate,
+             [&] { return !candidateCallbacks.assumptions().empty(); },
+             options, model, "unconditional-divestiture assumption callback");
+  if (model == rti::HLA_EVOKED) {
+    while (owner->evokeCallback(0.0)) {
+    }
+    while (candidate->evokeCallback(0.0)) {
+    }
+    while (observer->evokeCallback(0.0)) {
+    }
+  }
+
+  auto const offers = candidateCallbacks.assumptions();
+  require(offers.size() == 1U && offers.front().object == object &&
+              offers.front().attributes == candidateAttributes &&
+              offers.front().tag == tagBytes,
+          "Eligible federate did not receive one coalesced assumption for the full set");
+  require(ownerCallbacks.assumptions().empty(),
+          "Divesting federate was incorrectly asked to assume its own attributes");
+  require(observerCallbacks.assumptions().empty(),
+          "A non-publishing subscriber was incorrectly offered ownership");
+
+  candidate->resignFederationExecution(rti::NO_ACTION);
+  observer->resignFederationExecution(rti::NO_ACTION);
+  owner->resignFederationExecution(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  owner->destroyFederationExecution(federation);
+  observer->disconnect();
+  candidate->disconnect();
+  owner->disconnect();
+}
+
+void scenarioUnconditionalDivestitureAssumptionCoalescingContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioUnconditionalDivestitureAssumptionCoalescing(options, model);
 }
 
 void scenarioResignMultiSurvivorAssumptionFanout(

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLAfederate Added Attribute Same Instance TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-03</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Exercise added attributes on the RTI-registered HLAfederate MOM instance.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds one federate-publishable attribute directly to HLAfederate.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>HLAmanager</name>
+                <objectClass>
+                    <name>HLAfederate</name>
+                    <attribute>
+                        <name>TckFederateAddedValue</name>
+                        <dataType>TckFederateAddedValueType</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>When updated by the owning federate.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Test-only federate-owned attribute added directly to the predefined HLAfederate MOM class.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>TckFederateAddedValueType</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Test-only signed integer representation for the added HLAfederate attribute.</semantics>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

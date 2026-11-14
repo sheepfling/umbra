@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java TCK case uses the pinned official IEEE 1516.1-2025 API to keep Next Message Request Available pending while a future timestamped attribute update is sent. It verifies that the reflection and grant remain absent until the publisher advances, then verifies reflection before the grant at the message time. The case does not assert a GALT formula or complete §8.11 coverage.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-nmra-timestamped-attribute-update",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "void nextMessageRequestAvailable(LogicalTime<?, ?>)",
+        "void publishObjectClassAttributes(ObjectClassHandle, AttributeHandleSet)",
+        "void changeDefaultAttributeOrderType(ObjectClassHandle, AttributeHandleSet, OrderType)",
+        "void subscribeObjectClassAttributes(ObjectClassHandle, AttributeHandleSet)",
+        "void enableTimeConstrained()",
+        "void enableTimeRegulation(LogicalTimeInterval<?>)",
+        "void timeAdvanceRequest(LogicalTime<?, ?>)",
+        "MessageRetractionReturn updateAttributeValues(ObjectInstanceHandle, AttributeHandleValueMap, byte[], LogicalTime<?, ?>)",
+        "LogicalTime<?, ?> queryLogicalTime()"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java#timestampedAttributeUpdateFutureNmraArrival",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedAttributeTaraFutureArrivalTck.java#runNmra"
+      ]
+    },
+    {
+      "id": "standard-java-nmra-attribute-reflection-before-grant",
+      "owner": "FederateAmbassador",
+      "language": "java",
+      "signatures": [
+        "void discoverObjectInstance(ObjectInstanceHandle, ObjectClassHandle, String, FederateHandle)",
+        "void reflectAttributeValues(ObjectInstanceHandle, AttributeHandleValueMap, byte[], TransportationTypeHandle, FederateHandle, RegionHandleSet, LogicalTime<?, ?>, OrderType, OrderType, MessageRetractionHandle)",
+        "void timeAdvanceGrant(LogicalTime<?, ?>)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/TimestampedAttributeTaraFutureArrivalTck.java#Recorder"
+      ]
+    }
+  ]
+}

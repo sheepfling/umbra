@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable official-API service-utilization OR witness. The adapter supplies the provider package, standard MIM, two FOM modules, endpoint, logical time, and callback model. The public HLAcurrentFDD federation MOM attribute exposes the composed FDD. Focused Java packaged-provider runtime passed in evoked and immediate callback models. Broader MOM reflection metadata, C.9 note-label remapping, provider-specific labels, and interoperability are not claimed.",
+  "notes": "Portable official-API service-utilization OR witness. The adapter supplies the provider package, standard MIM, two FOM modules, endpoint, logical time, and callback model. The public HLAcurrentFDD federation MOM attribute exposes the composed FDD. This is partial evidence for IEEE 1516.1-2025 §4.5's compliant-FDD requirement, limited to the C.10 service-utilization observable; it does not establish every FDD compliance rule or conformance. Current-source MinGW C++ installed-package CTest/direct runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE with valid TCK result validation; results are preserved under out/mgw/cpp-tck-evidence-fom-compliant-fdd-20261105. The temporary 1.09 GB build outputs were cleaned after execution. Focused Java packaged-provider runtime also passed in evoked and immediate callback models. Broader MOM reflection metadata, C.9 note-label remapping, provider-specific labels, and interoperability are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-service-usage-merge",
@@ -28,6 +28,10 @@
     }
   ],
   "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l58-10",
+      "standard_section": "hla-1516.1-2025:clause-4.5"
+    },
     {
       "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l74-12",
       "standard_section": "hla-1516.2-2025:clause-C.10"

@@ -13,6 +13,10 @@ final class DataElementBaseTck {
    private DataElementBaseTck() {
    }
 
+   static DataElement createBoundary16Element() {
+      return new Boundary16Element();
+   }
+
    static void run() throws Exception {
       Boundary16Element element = new Boundary16Element();
       byte[] zeros = new byte[LENGTH];

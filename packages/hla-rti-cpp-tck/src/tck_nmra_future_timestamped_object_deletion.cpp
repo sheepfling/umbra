@@ -1,9 +1,261 @@
 #include "tck_nmra_future_timestamped_object_deletion.hpp"
 
 #include "tck_harness.hpp"
+#include "tck_nmr_process_coordination.hpp"
+
+#include <chrono>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
+
+void requireNmraObjectDeletionPending(
+    Session& receiver,
+    std::string const& context) {
+  auto const deadline = Clock::now() + std::chrono::milliseconds(40);
+  while (Clock::now() < deadline) {
+    receiver.pump();
+    require(
+        receiver.recorder().timedRemovals().empty() &&
+            receiver.recorder().timeAdvanceGrants().empty(),
+        context);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
+
+void runNmraFutureTimestampedObjectDeletionRequesterProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  Session receiver(options, model, "owner");
+  receiver.connect();
+  auto const federation = federationName(
+      options,
+      "nmra-future-timestamped-object-deletion");
+  receiver.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  writeNmrProcessMarker(directory, "federation-created.marker");
+  receiver.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const objectClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const attribute = receiver.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "NMRA process requester could not resolve its object class and attribute");
+  rti::AttributeHandleSet const attributes{attribute};
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      objectClass,
+      attributes,
+      true,
+      L"");
+
+  auto receiverTime = makeTimeContext(receiver);
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "NMRA process requester Time Constrained callback");
+  writeNmrProcessMarker(directory, "requester-ready.marker");
+  waitForNmrProcessMarker(directory, "publisher-ready.marker", options);
+  waitForNmrProcessMarker(directory, "publisher-object-registered.marker", options);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().discoveryCount() == 1U; },
+      options,
+      "independent publisher's NMRA object-deletion discovery");
+  waitForNmrProcessMarker(directory, "publisher-ready-to-delete.marker", options);
+
+  auto const requestBoundary = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      10U);
+  auto const deletionTime = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      7U);
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
+  requireNmraObjectDeletionPending(
+      receiver,
+      "NMRA process requester completed before the publisher sent its deletion");
+  writeNmrProcessMarker(directory, "requester-pending.marker");
+
+  waitForNmrProcessMarker(directory, "publisher-deletion-sent.marker", options);
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedRemovals().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "independent publisher's NMRA timestamped object deletion");
+  auto const removals = receiver.recorder().timedRemovals();
+  auto const grants = receiver.recorder().timeAdvanceGrants();
+  auto const discovery = receiver.recorder().discovery();
+  std::vector<std::uint8_t> const tagBytes{0x4EU, 0x4DU, 0x52U, 0x41U};
+  require(
+      removals.size() == 1U && grants.size() == 1U && discovery.present &&
+          removals.front().object == discovery.object &&
+          removals.front().producer == discovery.producer,
+      "NMRA process requester received the wrong object-deletion identity");
+  auto const& removal = removals.front();
+  require(
+      removal.tag == tagBytes,
+      "NMRA process requester did not preserve the deletion user tag");
+  require(
+      removal.time == encodeTime(*deletionTime) && !removal.timeText.empty() &&
+          removal.sentOrder == rti::TIMESTAMP &&
+          removal.receivedOrder == rti::TIMESTAMP,
+      "NMRA process requester received incorrect deletion time or order metadata");
+  require(
+      removal.retractionPresent && !removal.retraction.empty(),
+      "NMRA process requester omitted the deletion retraction metadata");
+  require(
+      receiver.recorder().callbackOrder() ==
+          std::vector<std::string>{"remove", "grant"} &&
+          grants.front().encoded == encodeTime(*deletionTime),
+      "NMRA process requester granted before removal or at the wrong time");
+
+  auto queriedTime = receiverTime.factory->makeInitial();
+  require(
+      queriedTime != nullptr,
+      "NMRA process requester could not allocate Query Logical Time value");
+  receiver.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(
+      *queriedTime,
+      *deletionTime,
+      "NMRA process requester final logical time");
+
+  writeNmrProcessMarker(directory, "requester-deletion-received.marker");
+  waitForNmrProcessMarker(directory, "publisher-resigned.marker", options);
+  receiver.rtiAmbassador().disableTimeConstrained();
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      objectClass,
+      attributes);
+  receiver.resign(rti::NO_ACTION);
+  receiver.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+}
+
+void runNmraFutureTimestampedObjectDeletionPublisherProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  waitForNmrProcessMarker(directory, "federation-created.marker", options);
+  Session publisher(options, model, "member");
+  publisher.connect();
+  auto const federation = federationName(
+      options,
+      "nmra-future-timestamped-object-deletion");
+  publisher.join(options.memberFederateName, options.federateType, federation);
+
+  auto const objectClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const attribute = publisher.rtiAmbassador().getAttributeHandle(
+      objectClass,
+      options.attributeName);
+  require(
+      objectClass.isValid() && attribute.isValid(),
+      "NMRA process publisher could not resolve its object class and attribute");
+  rti::AttributeHandleSet const attributes{attribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      objectClass,
+      attributes);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto const lookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(
+      lookahead != nullptr,
+      "NMRA process publisher could not allocate its lookahead");
+  lookahead->setToDifference(*lookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "NMRA process publisher Time Regulation callback");
+  writeNmrProcessMarker(directory, "publisher-ready.marker");
+  waitForNmrProcessMarker(directory, "requester-ready.marker", options);
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(objectClass);
+  require(object.isValid(), "NMRA process publisher registered an invalid object");
+  writeNmrProcessMarker(directory, "publisher-object-registered.marker");
+  auto const publisherCurrentTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherCurrentTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "NMRA process publisher initial advance");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*publisherCurrentTime),
+      "NMRA process publisher advanced to an unexpected initial time");
+  writeNmrProcessMarker(directory, "publisher-ready-to-delete.marker");
+  waitForNmrProcessMarker(directory, "requester-pending.marker", options);
+
+  auto const deletionTime = timeAfter(
+      *publisherTime.factory,
+      *publisherCurrentTime,
+      *publisherTime.epsilon,
+      5U);
+  std::vector<std::uint8_t> const tagBytes{0x4EU, 0x4DU, 0x52U, 0x41U};
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().deleteObjectInstance(
+      object,
+      tag,
+      *deletionTime);
+  require(
+      retraction.isValid(),
+      "NMRA process publisher timestamped deletion had no retraction handle");
+  writeNmrProcessMarker(directory, "publisher-deletion-sent.marker");
+
+  auto const publisherAdvance = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherAdvance);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "NMRA process publisher final advance");
+  require(
+      publisher.recorder().timeAdvanceGrants().back().encoded ==
+          encodeTime(*publisherAdvance),
+      "NMRA process publisher final advance reached the wrong time");
+  waitForNmrProcessMarker(directory, "requester-deletion-received.marker", options);
+
+  publisher.rtiAmbassador().disableTimeRegulation();
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      objectClass,
+      attributes);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.disconnect();
+  writeNmrProcessMarker(directory, "publisher-resigned.marker");
+}
 
 void runNmraFutureTimestampedObjectDeletion(
     Options const& options,
@@ -11,6 +263,29 @@ void runNmraFutureTimestampedObjectDeletion(
   require(
       !options.logicalTimeImplementationName.empty(),
       "NMRA future timestamped object deletion requires an adapter-supplied logical-time implementation");
+
+  if (!options.nmrProcessRole.empty()) {
+    auto const directory = nextNmrProcessRunDirectory(options);
+    if (options.nmrProcessRole == "requester") {
+      runNmraFutureTimestampedObjectDeletionRequesterProcess(
+          options,
+          model,
+          directory);
+      return;
+    }
+    if (options.nmrProcessRole == "publisher") {
+      runNmraFutureTimestampedObjectDeletionPublisherProcess(
+          options,
+          model,
+          directory);
+      return;
+    }
+    throw std::runtime_error(
+        "NMRA process role must be either requester or publisher");
+  }
+  require(
+      options.nmrProcessCoordinationDirectory.empty(),
+      "NMRA process coordination directory requires an explicit process role");
 
   Session publisher(options, model, "owner");
   Session receiver(options, model, "member");

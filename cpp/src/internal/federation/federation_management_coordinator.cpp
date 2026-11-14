@@ -275,12 +275,17 @@ FederationPreparationResult FederationManagementCoordinator::prepareAdditionalMo
     modules.push_back(std::move(*validation.module));
   }
 
-  return materializeDefinition(
+  auto prepared = materializeDefinition(
       composer_,
       timeSelector_,
       std::move(modules),
       existing.logicalTimeImplementationName,
       existing.standardEdition);
+  if (prepared.accepted() && prepared.definition) {
+    prepared.definition->unsupportedTransportationTypeNames =
+        existing.unsupportedTransportationTypeNames;
+  }
+  return prepared;
 }
 
 }  // namespace umbra::detail

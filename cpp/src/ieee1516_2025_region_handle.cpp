@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(Region, region)
+UMBRA_2025_DEFINE_HANDLE(Region, region, Region)
 
 }  // namespace rti1516_2025

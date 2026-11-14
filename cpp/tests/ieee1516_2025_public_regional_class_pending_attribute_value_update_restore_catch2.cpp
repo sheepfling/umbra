@@ -7,6 +7,7 @@ TEST_CASE(
     "Embedded public fresh-registry restore rebinds pending regional object-class Request Attribute Value Update through HLA_EVOKED and HLA_IMMEDIATE",
     "[integration][development-profile][federation-management][object-management][save-restore]"
     "[durable-save][filesystem][process-restart][restore][pending-application-request-state]"
+    "[restore-public-fom-handle-rebinding]"
     "[application-value-state][object-lifecycle-state][attribute-value-update][ddm][region-state]"
     "[process-restart-regional-pending-attribute-value-update]"
     "[public-process-restart-regional-pending-attribute-value-update-provider-departure]"
@@ -220,7 +221,7 @@ TEST_CASE(
           L"public-pending-regional-avu-owner", L"publisher", federationName));
       REQUIRE_NOTHROW(requester->joinFederationExecution(
           L"public-pending-regional-avu-requester", L"subscriber", federationName));
-      REQUIRE(freshOwnerHandle == sourceOwnerHandle);
+      REQUIRE(freshOwnerHandle.isValid());
 
       auto const freshSoda = owner->getObjectClassHandle(
           fixture_hla::fom::food_drink_soda);
@@ -228,9 +229,13 @@ TEST_CASE(
           freshSoda, fixture_hla::fixture::flavor);
       auto const freshSodaFlavor = owner->getDimensionHandle(
           fixture_hla::fixture::soda_flavor);
-      REQUIRE(freshSoda == sourceSoda);
-      REQUIRE(freshFlavor == sourceFlavor);
-      REQUIRE(freshSodaFlavor == sourceSodaFlavor);
+      // FOM handles are execution-wide identities, not a promise that a new
+      // registry will reproduce the prior execution's opaque handle values.
+      // Exercise the current execution's lookups and verify saved work is
+      // rebound to these handles when restoration completes.
+      REQUIRE(freshSoda.isValid());
+      REQUIRE(freshFlavor.isValid());
+      REQUIRE(freshSodaFlavor.isValid());
       REQUIRE_NOTHROW(owner->publishObjectClassAttributes(
           freshSoda, AttributeHandleSet{freshFlavor}));
       AttributeHandleSetRegionHandleSetPairVector const freshRequesterPair{{

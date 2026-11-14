@@ -3,8 +3,223 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-private-and-public-traceability-not-conformance-evidence",
-  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, per-(interaction-class, region) active/passive state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. The focused service-report case now also proves the accepted §9.10 and §9.11 transitions append recipient-local successful-void records with type-27 InteractionClassHandle, type-43 RegionHandleSet, and the type-6 passive-indicator Boolean before the next interaction operation; paired C++ cases cover both the configured filesystem and HLA_IMMEDIATE MOM routes, including passive-indicator inversion and stable serial order. A paired ordinary Send Interaction With Regions failure matrix now records invalid interaction-class, parameter, and region inputs through both the configured filesystem and HLA_IMMEDIATE MOM routes with type-27/type-40/type-43/type-63/type-34 forms, false indicators, Null returns, exact exceptions, and no application callback. The dedicated Allow Relaxed DDM regression adds a direct-source, implementation-specific exact-boundary expansion while preserving strict overlap; RL-030 records the lack of an immutable Lab candidate for §9.1.4/§9.1.8 policy prose. Passive pairs remain subscribed and retain their region-use fence, but cannot arrange delivery; a later subscription of the same pair changes its mode. The passive-subscription definition supplies the delivery predicate, while the Lab's immutable candidate records cover the service's active/passive pair-state language. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, broader relaxed-DDM matrices, save/restore, remote transport, package support, catalog evidence, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
+  "notes": "This source/test traceability contract covers only the bounded IEEE 1516.1-2025 regional interaction declaration and no-time Send Interaction With Regions slice in Umbra's opt-in, non-installable development profile. It validates owner-created committed region specifications, available-dimension context, independent regional subscription state, per-(interaction-class, region) active/passive state, strict 2025 region-set overlap, callback-entry rechecks, and the empty-region no-op rules. The focused service-report case now also proves the accepted §9.10 and §9.11 transitions append recipient-local successful-void records with type-27 InteractionClassHandle, type-43 RegionHandleSet, and the type-6 passive-indicator Boolean before the next interaction operation; paired C++ cases cover both the configured filesystem and HLA_IMMEDIATE MOM routes, including passive-indicator inversion and stable serial order. A paired ordinary Send Interaction With Regions failure matrix now records invalid interaction-class, parameter, and region inputs through both the configured filesystem and HLA_IMMEDIATE MOM routes with type-27/type-40/type-43/type-63/type-34 forms, false indicators, Null returns, exact exceptions, and no application callback. The dedicated Allow Relaxed DDM regression adds a direct-source, implementation-specific exact-boundary expansion while preserving strict overlap; RL-030 records the lack of an immutable Lab candidate for §9.1.4/§9.1.8 policy prose. Passive pairs remain subscribed and retain their region-use fence, but cannot arrange delivery; a later subscription of the same pair changes its mode. The passive-subscription definition supplies the delivery predicate, while the Lab's immutable candidate records cover the service's active/passive pair-state language. The portable C++ TCK separately checks the Create Region template-to-specification transition on the Send Interaction With Regions path as partial evidence for §9.1.3.1 p. 218 l. 12; it does not establish all region relationships or all DDM service families. Object-instance regional registration/association, object-class attribute regional subscriptions, Request Attribute Value Update With Regions, timestamped/retraction behavior, realization/association state, broader relaxed-DDM matrices, save/restore, remote transport, package support, and conformance remain outside this slice. The contract uses immutable candidate IDs exported by the Requirements Lab, including its current source-title path mismatch.",
   "requirements": [
+    {
+      "id": "umbra-tck-ddm-regional-subscription-region-dimensions-must-be-available",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l20-6",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRegionValidation",
+      "statement": "The subscriber creates and commits a region containing only an unrelated dimension, then passes it to Subscribe Interaction Class With Regions for an interaction class whose available dimensions are the adapter's X/Y pair. The service throws InvalidRegionContext; sending before a valid regional subscription produces no callback, and a later valid X/Y region subscription delivers as the positive control. This directly maps the subscription dimension-subset rule and does not claim object/attribute DDM coverage.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRegionValidation",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRegionValidationContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-template-to-specification-interaction-path",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l12-1",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "On the Send Interaction With Regions path, a region designator returned by Create Region is rejected with InvalidRegion before bounds are set, after bounds are set for only one of two specified dimensions, and after both dimensions are set but before commit. After Commit Region Modifications, the same designator is accepted; the scenario then sends with committed regions and verifies overlapping regional delivery plus the callback-scoped source region designator. This is partial evidence for the cross-cutting region-specification/realization relationships in the interaction-send path, not coverage of every §9.1.2 relationship or DDM service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-specified-dimensions-remain-create-region-set",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l99-30",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The scenario creates a region with only the first of two interaction-class dimensions, sets that dimension's range, and commits the region. Get Dimension Handle Set still returns exactly the dimension supplied to Create Region, showing that Set Range Bounds and Commit Region Modifications did not change the region's specified dimensions.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-bounds-effects-require-full-commit",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l62-20",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The interaction-send path first rejects a newly created region template, then rejects it after bounds are set for only one of its two specified dimensions, and still rejects it after both dimensions have bounds but before commit. After Commit Region Modifications, the same region designator is accepted. This provides direct, bounded evidence that Set Range Bounds effects remain pending until every specified dimension has bounds and the region is committed; it covers this Send Interaction With Regions path only, not every DDM service family or all conformance behavior.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-template-persists-until-commit",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l86-28",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "After Set Range Bounds has been invoked for both dimensions specified at Create Region, the scenario attempts Send Interaction With Regions before Commit Region Modifications and receives InvalidRegion; after commit, that same designator is accepted. This directly demonstrates that this interaction-send path still treats the uncommitted region as a template rather than a region specification. It does not claim the same lifecycle evidence for other DDM services.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-bounds-remain-pending-until-commit",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l92-30",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "A committed receiver region with Y bounds [6..9) is kept in an active regional interaction subscription. Set Range Bounds changes it to [1..4), but an interaction still fails to overlap before commit; after Commit Region Modifications, the same source interaction is delivered. This directly witnesses that this subscribed-region realization keeps the previous bounds effective until commit and applies the new bounds afterward. This is limited to receive-order interaction subscription routing.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-latest-region-bounds-invocation-wins-at-commit",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l104-34",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "While a committed receiver region remains actively subscribed, the scenario invokes Set Range Bounds twice for its Y dimension before one commit: [6..9), which would filter the source interaction, followed by [1..4), which overlaps it. A delivery after commit shows the latest invocation supplied the range used by the committed subscription. This is a bounded interaction-subscription path and does not claim other DDM service families.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-regional-interaction-subscription-region-establishes-receive-criteria",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l41-13",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The joined receiver creates and commits a region, supplies it to Subscribe Interaction Class With Regions, and receives an interaction whose source region overlaps it. The outside/inside probes show that the region supplied for the interaction-class subscription determines whether interactions of that class are delivered on this bounded receive-order path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-regional-interaction-unsubscribe-removes-pair",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l8-2",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "After the receiver unsubscribes the same interaction-class/region pair that previously delivered an overlapping interaction, the scenario sends again from the still-overlapping source region and observes no callback. This directly checks that the unsubscribed region is no longer used for subscription of that interaction class, limited to this receive-order path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-empty-regional-interaction-subscription-set-no-op",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l14-4",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "Before creating a non-empty regional interaction subscription, the scenario invokes Subscribe Interaction Class With Regions with an empty region set and sends an interaction with an overlapping source/default realization; no callback occurs. After a non-empty pair is established, it invokes Unsubscribe Interaction Class With Regions with an empty set and verifies the same overlapping route still delivers. A later non-empty unsubscribe removes the route. These checks show empty-set calls leave the interaction class's regional subscription set unchanged for this receive-order path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-15162-relationships-govern-regional-interactions",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l122-39",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "This bounded case publishes an interaction class, sends a parameter map through Send Interaction With Regions, and verifies callback delivery according to regional overlap. It demonstrates that the §9.1.2 DDM relationships govern this interaction class/parameter/interaction path, without claiming coverage of every DDM relationship or service family.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-unspecified-region-dimension-uses-fom-default-range",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l114-35",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The adapter-supplied interaction FOM gives TckDimensionY the default range [0..5). The sender creates and commits a region specifying only X, while the receiver subscribes using a region specifying only Y. The interaction is filtered when the receiver's Y range is [6..9) and delivered when it is changed to [1..4), proving this interaction-send realization uses the FOM default for the omitted available dimension rather than treating that dimension as an unconstrained wildcard. This is one interaction-service example, not coverage of every region relationship or DDM service family.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-specified-region-dimension-constrains-interaction-realization",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l162-51",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The sender creates and commits an interaction region specifying only X with bounds [1..5). The receiver subscribes with an X region at disjoint bounds [6..9), and delivery is filtered; after changing the receiver's X bounds to [1..4), an interaction is delivered. Both regions leave Y unspecified, and the adapter FOM gives Y default range [0..5), so Y overlaps throughout. This demonstrates that the explicitly specified X dimension remains in the relevant interaction region realizations and constrains delivery. This is bounded interaction-service evidence, not coverage of every region relationship or DDM service family.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-specified-region-dimension-preserves-exact-range",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l165-52",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The sender creates and commits a region specification with X bounds [1..5). Receiver subscriptions on X [0..1) and [5..6) are filtered, while [1..2) and [4..5) receive. Both sender and receiver leave Y unspecified; the adapter FOM's [0..5) Y default makes that dimension overlap in every probe. The four boundary probes distinguish preservation of the specified half-open X range from widening or narrowing it. This is bounded interaction-service evidence, not coverage of every region relationship or DDM service family.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-unspecified-dimension-adds-fom-default-range",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l177-56",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The interaction FOM assigns TckDimensionY the default range [0..5). The sender's region specification includes X but leaves Y unspecified; a receiver subscription at Y [6..9) is filtered, while Y [1..4) receives the interaction. This demonstrates that the FOM default range is added for an omitted available dimension in this interaction realization. It covers one default-range dimension and service path only; it does not cover dimensions whose FOM uses the excluded indicator.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-default-range-retained-after-active-region-modification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l186-59",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioRegionalInteractionRouting",
+      "statement": "The receiver subscribes using an interaction region specification with X only, leaving Y unspecified; the adapter FOM gives Y default range [0..5). With X overlap, sender Y [6..9) is filtered and Y [1..4) is delivered. The receiver then changes the same region's X bounds and commits while keeping the region associated with the subscription, without unsubscribing. Afterward the same outside/inside Y probes remain filtered/delivered with X overlap under the new bounds. This shows the modified subscription realization still uses the FDD default for omitted Y. This is one interaction-subscription modification path and one default-range dimension, not coverage of all region families.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-empty-region-realizes-available-fom-default-dimension",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3",
+      "clause_id": "clause-9.1.3.1",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioZeroDimensionalRegionalInteractionFomDefaultRange",
+      "statement": "The adapter FOM gives available interaction dimension TckDimensionY the default range [0..5). The publisher sends using a committed region created from an empty specification. A receiver region on Y [6..9) is filtered, while a receiver region on Y [1..4) receives the interaction. This bounded interaction case demonstrates that the empty specification's realization includes the available Y dimension's FOM default instead of treating it as an unconstrained wildcard. It does not establish exclusion of nonavailable dimensions or behavior for other default/excluded-indicator combinations.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioZeroDimensionalRegionalInteraction",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioZeroDimensionalRegionalInteractionContract"
+      ]
+    },
+    {
+      "id": "umbra-cpp-ddm-empty-interaction-region-realizes-available-fom-default",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3",
+      "clause_id": "clause-9.1.3.1",
+      "source": "cpp/tests/zero_dimensional_regional_interaction_catch2.cpp",
+      "source_symbol": "Embedded empty interaction regions realize available FOM default ranges",
+      "statement": "The focused official C++ HLA_EVOKED case sends with a committed empty region specification under a FOM where available interaction dimension TckDimensionY defaults to [0..5). A receiver subscription at Y [6..9) is filtered and one at Y [1..4) receives. This is bounded receive-order interaction evidence for this available default dimension only; it does not establish TSO, object/attribute service, nonavailable-dimension exclusion, other default/excluded combinations, remote transport, or conformance.",
+      "tests": [
+        "cpp/tests/zero_dimensional_regional_interaction_catch2.cpp::Embedded empty interaction regions realize available FOM default ranges"
+      ]
+    },
     {
       "id": "umbra-interaction-region-overlap-controls-delivery",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l152-45",
@@ -193,6 +408,94 @@
         "cpp/tests/regional_interaction_service_report_interaction_catch2.cpp::Embedded service reporting delivers accepted regional Send Interaction With Regions through MOM interaction"
       ],
       "notes": "The accepted ordinary regional Send Interaction With Regions matrix verifies the five supplied Table 5 slots (type-27 interaction class, type-40 parameter map, type-43 source-region set, type-63 tag, and type-34 Null timestamp), a Null return, interaction-management service type 2, success true, serial zero, and delivery of the source RegionHandleSet to the constrained application callback. The configured filesystem and HLA_IMMEDIATE HLAreportServiceInvocation routes are both covered before callback admission. Requirements Lab RL-105/RL-152 provide no row-level backend/lifecycle relation for this cross-cutting §11.5.1 behavior; this is development-profile traceability rather than validation or conformance."
+    },
+    {
+      "id": "umbra-tck-ddm-update-region-set-definition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l47-15",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioMultiRegionInteractionRouting",
+      "statement": "The portable scenario constructs a RegionHandleSet containing two distinct committed source regions and supplies that set to Send Interaction With Regions; it also supplies each single-region subset on separate sends. This directly exercises the update-region-set form defined for interaction sending in §9.1.3.3. The mapping does not treat the defined term as a separate runtime behavior and does not cover attribute updates.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-subscription-region-set-definition",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l53-17",
+      "clause_id": "clause-9.1.3.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioMultiRegionInteractionRouting",
+      "statement": "The portable scenario constructs a RegionHandleSet containing two distinct committed receiver regions and supplies that set to Subscribe Interaction Class With Regions; it also exercises one-region subscription sets. This directly exercises the subscription-region-set form defined for interaction subscription in §9.1.3.3. The mapping does not treat the defined term as a separate runtime behavior and does not cover object-class attribute subscriptions.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-region-set-overlap-any-pair",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l62-19",
+      "clause_id": "clause-9.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioMultiRegionInteractionRouting",
+      "statement": "The portable scenario sends with two source regions: the combined subscriber's two-region subscription overlaps them and receives one callback, while the disjoint subscription has no overlapping member region and remains silent. Separate one-region sends reach only the corresponding single-region subscriber and the matching member of the combined subscription. This is bounded public interaction-path evidence for the any-pair overlap criterion in §9.1.4, not an exhaustive dimensional or range-boundary matrix and not object-attribute DDM coverage.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-no-common-dimension-regions-do-not-overlap",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l68-21",
+      "clause_id": "clause-9.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioMultiRegionInteractionRouting",
+      "statement": "The portable interaction scenario uses an adapter-supplied FOM whose interaction dimensions are marked Excluded for FOM default-range realization, then creates and commits a source region containing only X and a subscription region containing only Y. It verifies the dimension sets are disjoint, sends with the X-only region, pumps all federates, and asserts that the Y-only subscription receives no interaction while a positive control with a shared X dimension does. This directly checks the §9.1.4 no-common-dimensions rule on the interaction service path; it does not claim coverage of every attribute DDM service or dimension/range combination.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-range-overlap-half-open-and-relaxed-touch",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22",
+      "clause_id": "clause-9.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioMultiRegionInteractionRouting",
+      "statement": "Together the portable cases exercise the range-overlap branches on interaction delivery: equal lower bounds overlap; with Allow Relaxed DDM disabled, an exact [0,2)/[2,4) touch is suppressed and a strict [0,2)/[1,3) interior overlap delivers; the adapter-backed Allow Relaxed DDM case rejects [0,2)/[2,3) when disabled and admits it when enabled. The latter also covers corresponding object delivery. This maps bounded examples of the §9.1.4 p. 221 l. 71 formula, not every range relation or the implementation-specific sufficiently-close threshold beyond exact touching.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioMultiRegionInteractionRoutingContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAllowRelaxedDdm",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAllowRelaxedDdmContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-relaxed-overlap-does-not-reduce-ranges",
+      "requirements_lab_requirement_id": "requirement-source-refinement-relaxed-ddm-overlap",
+      "clause_id": "clause-9.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioAllowRelaxedDdm",
+      "statement": "The adapter-backed public-API case creates touching source [0,2) and subscription [2,3) ranges in both dimensions with Allow Relaxed DDM enabled. After the corresponding object and interaction delivery paths, it reads back both federates' original region bounds and asserts that neither the source nor subscription ranges were reduced; the receive-side callback copy is also checked against the source bounds. This supplies bounded evidence for the exact-touch case and the no-reduction condition in §9.1.4 p. 221 l. 75, but does not define the implementation-specific sufficiently-close threshold or cover every range relation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioAllowRelaxedDdm",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioAllowRelaxedDdmContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-time-axis-independence-tso-region-routing",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l89-28",
+      "clause_id": "clause-9.1.4",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_symbol": "scenarioTimestampedRegionalInteractionTarNmr",
+      "statement": "The paired public-API cases check both sides of regional filtering with time management active. For overlapping source/subscription regions, one timestamped interaction is delivered to each receiver before its TAR or NMR grant with timestamp and source-region designator preserved. For strictly non-overlapping regions, a timestamped interaction remains filtered while the sender regulates and receiver is time constrained. This directly supports the §9.1.4 statement that DDM effects are independent of time management for this timestamped interaction path; it does not establish every DDM service family, all time-management modes, or all region geometries.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionTarNmr",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionTarNmrContract",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionNoOverlap",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioTimestampedRegionalInteractionNoOverlapContract"
+      ]
     }
   ]
 }

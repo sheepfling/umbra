@@ -35,4 +35,9 @@ final class NativeRegionHandle implements RegionHandle {
    public int hashCode() {
       return Arrays.hashCode(encoded);
    }
+
+   @Override
+   public String toString() {
+      return NativeHandleText.format("RegionHandle", encoded);
+   }
 }

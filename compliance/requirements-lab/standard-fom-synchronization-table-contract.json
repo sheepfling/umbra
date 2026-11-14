@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "The public C++ TCK synchronization-table lane accepts a schema-valid FOM row with Capability=NA and label TckSyncReady, rejects Capability=Achieve and a schema-valid user label using the reserved HLA prefix as InconsistentFOM, and confirms a valid Create retry after rejection. The new FOM fixtures validate against the pinned 2025 DIF XSD. Focused MinGW installed-package regression passed 14/14 CTests and 14 direct callback-model executions across the FOM-model, synchronization-duplicate, and synchronization-table primary/contract IDs; runner image was 64,908,578 bytes with 0 DWARF (out/mgw/cpp-tck-sync-table-20261108/tck-results/sync-table-regression-20261108.json). The SOM Capability values are owned by the SOM document author and are not observable through the RTI API; no SOM validation, interoperability, Java provider runtime, or conformance is claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-synchronization-table-validation",
+      "owner": "IEEE 1516.1-2025 C++ API and IEEE 1516.2-2025 OMT",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(fomModules), destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation execution creation services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_synchronization_duplicate.cpp::scenarioFomSynchronizationTableValidation",
+        "packages/hla-rti-cpp-tck/src/tck_fom_synchronization_duplicate.cpp::scenarioFomSynchronizationTableValidationContract"
+      ]
+    }
+  ]
+}

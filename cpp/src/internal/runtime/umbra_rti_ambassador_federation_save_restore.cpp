@@ -1014,7 +1014,10 @@ void UmbraRtiAmbassador::requestFederationRestore(std::wstring const& label) {
 #endif
   std::vector<umbra::detail::FederationRestoreNotification> notifications;
   {
-    std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
+    // The registry serializes federation state itself. Avoid the process-wide
+    // federation-management lock here so requests from distinct joined
+    // federates can reach the restore admission arbiter concurrently.
+    std::scoped_lock lock(mutex_);
     requireConnectedForFederationManagement(lifecycle_);
     if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
         !joinedFederationName_ || !joinedFederateId_) {

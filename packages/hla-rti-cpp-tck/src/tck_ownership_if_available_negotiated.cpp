@@ -50,10 +50,13 @@ void scenarioIfAvailableDuringNegotiatedDivestiture(
           "Registrant did not initially own the negotiated attribute");
 
   std::vector<std::uint8_t> const requestTagBytes{0x6AU, 0x71U};
+  std::vector<std::uint8_t> const repeatedRequestTagBytes{0x6DU, 0x71U};
   std::vector<std::uint8_t> const divestitureTagBytes{0x6BU, 0x71U};
   std::vector<std::uint8_t> const confirmationTagBytes{0x6CU, 0x71U};
   rti::VariableLengthData const requestTag(
       requestTagBytes.data(), requestTagBytes.size());
+  rti::VariableLengthData const repeatedRequestTag(
+      repeatedRequestTagBytes.data(), repeatedRequestTagBytes.size());
   rti::VariableLengthData const divestitureTag(
       divestitureTagBytes.data(), divestitureTagBytes.size());
   rti::VariableLengthData const confirmationTag(
@@ -65,6 +68,27 @@ void scenarioIfAvailableDuringNegotiatedDivestiture(
   // negotiation, matching the native evoked-ordering witness.
   requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
       object, requesterAttributes, requestTag);
+  try {
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        object, requesterAttributes, repeatedRequestTag);
+  } catch (rti::AttributeAlreadyBeingAcquired const&) {
+    // The exception is permitted; the original Willing to Acquire state must
+    // remain intact either way.
+  }
+  require(owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                  object, requesterAttribute) &&
+              !requester.recorder().ownershipAcquisition().has_value(),
+          "Repeating If Available changed the pending willingness or transferred ownership");
+  bool publicationHeldUntilResult = false;
+  try {
+    requester.rtiAmbassador().unpublishObjectClassAttributes(
+        requesterClass, requesterAttributes);
+  } catch (rti::OwnershipAcquisitionPending const&) {
+    publicationHeldUntilResult = true;
+  }
+  require(publicationHeldUntilResult,
+          "A willing If Available requester could unpublish before its terminal callback");
   owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
       object, ownerAttributes, divestitureTag);
   waitFor(owner,
@@ -94,6 +118,8 @@ void scenarioIfAvailableDuringNegotiatedDivestiture(
               acquisition->attributes == requesterAttributes &&
               acquisition->tag == confirmationTagBytes,
           "Negotiated If Available notification returned the wrong object, set, or tag");
+  requester.rtiAmbassador().unpublishObjectClassAttributes(
+      requesterClass, requesterAttributes);
 
   owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
   requester.resign(rti::NO_ACTION);

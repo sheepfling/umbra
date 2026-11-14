@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "This narrow trace maps the portable switch test to the canonical IEEE 1516.1-2025 MOM clause and the pinned IEEE 1516.2-2025 standard MIM. It verifies only the standard federate-specific Service Reporting switch false-to-true-to-false behavior through the public getter; it does not claim complete service-reporting or MOM conformance.",
+  "notes": "This trace maps the portable C++ test to canonical IEEE 1516.1-2025 §11.4.1 and the pinned IEEE 1516.2-2025 standard MIM. It verifies the joined-federate Service Reporting switch false-to-true-to-false transition through HLAsetSwitches and the public getter, while a second joined federate's switch remains unchanged; the scenario's catalog mapping also directly relates this setter effect to the Lab's Clause 11.6 source-refinement row. It then observes one successful receive-order SendInteraction report at the second federate with the exact Table 5 argument values. This is a bounded §11.5 witness, not exhaustive evidence for every HLA service or RTI-invoked service; FDD initial values are separately checked for omitted and explicitly enabled inputs. This is development-profile traceability, not full MOM conformance.",
   "requirements": [
     {
       "id": "cpp-1516.1-tck-federate-service-reporting-mom-switch",
@@ -13,8 +13,8 @@
       "source_lines": "984-1036",
       "statement": "A joined federate may send individual declared parameters of the standard HLAsetSwitches interaction; HLAserviceReporting sets that joined federate's Service Reporting switch to the provided value, whose default is false.",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomSwitch",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateServiceReportingMomSwitchContract"
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateServiceReportingMomSwitch",
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateServiceReportingMomSwitchContract"
       ]
     }
   ]

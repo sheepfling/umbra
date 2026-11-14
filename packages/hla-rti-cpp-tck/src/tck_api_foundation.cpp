@@ -4,7 +4,33 @@
 #include "tck_factory_identity.hpp"
 #include "tck_logical_time.hpp"
 
+#include <type_traits>
+#include <utility>
+
 namespace hla_rti_cpp_tck::detail {
+namespace {
+
+struct ExceptionWithoutNameOverride final : rti::Exception {
+  std::wstring what() const noexcept override { return {}; }
+};
+
+static_assert(
+    std::is_abstract_v<ExceptionWithoutNameOverride>,
+    "the standard Exception::name() method must remain pure virtual");
+
+}  // namespace
+
+void verifyRegionalSendNoRetractionDesignatorContract() {
+  using NoTimeRegionalSendReturn = decltype(
+      std::declval<rti::RTIambassador&>().sendInteractionWithRegions(
+          std::declval<rti::InteractionClassHandle const&>(),
+          std::declval<rti::ParameterHandleValueMap const&>(),
+          std::declval<rti::RegionHandleSet const&>(),
+          std::declval<rti::VariableLengthData const&>()));
+  static_assert(
+      std::is_void_v<NoTimeRegionalSendReturn>,
+      "the no-time Send Interaction With Regions overload must return no retraction designator");
+}
 
 void verifyStandardExceptionHierarchyContract() {
   auto widenExceptionName = [](char const* name) {
@@ -253,7 +279,35 @@ void verifyStandardEnumContract() {
 
 
 void verifyStandardHandleAndCollectionContract() {
+  static_assert(
+      std::is_same<
+          rti::AttributeHandleSet,
+          std::set<rti::AttributeHandle>>::value,
+      "AttributeHandleSet must contain AttributeHandle values");
+  static_assert(
+      std::is_same<
+          rti::InteractionClassHandleSet,
+          std::set<rti::InteractionClassHandle>>::value,
+      "InteractionClassHandleSet must contain InteractionClassHandle values");
+  static_assert(
+      std::is_same<
+          rti::ParameterHandleSet,
+          std::set<rti::ParameterHandle>>::value,
+      "ParameterHandleSet must contain ParameterHandle values");
+  static_assert(
+      std::is_same<rti::FederateHandleSet, std::set<rti::FederateHandle>>::value,
+      "FederateHandleSet must contain FederateHandle values");
+  static_assert(
+      std::is_same<rti::DimensionHandleSet, std::set<rti::DimensionHandle>>::value,
+      "DimensionHandleSet must contain DimensionHandle values");
+  static_assert(
+      std::is_same<rti::RegionHandleSet, std::set<rti::RegionHandle>>::value,
+      "RegionHandleSet must contain RegionHandle values");
+
   rti::AttributeHandle invalidAttribute;
+  static_assert(
+      std::is_same<decltype(invalidAttribute.hash()), long>::value,
+      "AttributeHandle::hash() must return long");
   rti::AttributeHandle copiedInvalidAttribute(invalidAttribute);
   rti::AttributeHandle assignedInvalidAttribute;
   assignedInvalidAttribute = invalidAttribute;
@@ -272,11 +326,30 @@ void verifyStandardHandleAndCollectionContract() {
       "standard AttributeHandleSet did not preserve set semantics");
 
   rti::ParameterHandle invalidParameter;
+  static_assert(
+      std::is_same<decltype(invalidParameter.hash()), long>::value,
+      "ParameterHandle::hash() must return long");
+  rti::ParameterHandle copiedInvalidParameter(invalidParameter);
+  rti::ParameterHandle assignedInvalidParameter;
+  assignedInvalidParameter = invalidParameter;
+  require(
+      !invalidParameter.isValid() && copiedInvalidParameter == invalidParameter &&
+          assignedInvalidParameter == invalidParameter &&
+          copiedInvalidParameter.hash() == invalidParameter.hash(),
+      "standard ParameterHandle copy, assignment, or hash semantics were not preserved");
   std::vector<std::uint8_t> parameterBytes{0x10U, 0x20U};
   rti::ParameterHandleValueMap parameters;
   parameters.emplace(
       invalidParameter,
       rti::VariableLengthData(parameterBytes.data(), parameterBytes.size()));
+  std::vector<std::uint8_t> duplicateParameterBytes{0x11U, 0x21U};
+  auto const duplicateParameter = parameters.emplace(
+      invalidParameter,
+      rti::VariableLengthData(
+          duplicateParameterBytes.data(), duplicateParameterBytes.size()));
+  require(!duplicateParameter.second && parameters.size() == 1U &&
+              copyBytes(parameters.at(invalidParameter)) == parameterBytes,
+          "standard ParameterHandleValueMap retained a duplicate key");
   auto copiedParameters = parameters;
   rti::ParameterHandleValueMap assignedParameters;
   assignedParameters = parameters;
@@ -292,6 +365,14 @@ void verifyStandardHandleAndCollectionContract() {
   attributeValues.emplace(
       invalidAttribute,
       rti::VariableLengthData(attributeBytes.data(), attributeBytes.size()));
+  std::vector<std::uint8_t> duplicateAttributeBytes{0x41U, 0x51U};
+  auto const duplicateAttribute = attributeValues.emplace(
+      invalidAttribute,
+      rti::VariableLengthData(
+          duplicateAttributeBytes.data(), duplicateAttributeBytes.size()));
+  require(!duplicateAttribute.second && attributeValues.size() == 1U &&
+              copyBytes(attributeValues.at(invalidAttribute)) == attributeBytes,
+          "standard AttributeHandleValueMap retained a duplicate key");
   auto copiedAttributeValues = attributeValues;
   rti::AttributeHandleValueMap assignedAttributeValues;
   assignedAttributeValues = attributeValues;
@@ -339,6 +420,9 @@ void verifyStandardHandleAndCollectionContract() {
                                  auto const& copied,
                                  auto const& assigned,
                                  char const* handleName) {
+    static_assert(
+        std::is_same<decltype(invalid.hash()), long>::value,
+        "standard handle hash() must return long");
     require(
         !invalid.isValid() && copied == invalid && assigned == invalid &&
             !(copied != invalid) && !(invalid < copied) &&
@@ -665,6 +749,25 @@ void scenarioNullFederateAmbassadorContract(
     Options const&,
     rti::CallbackModel) {
   verifyStandardNullFederateAmbassadorContract();
+}
+void scenarioExceptionNameString(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session session(options, model, "exception-name-string");
+  std::wstring observedName;
+  try {
+    (void)session.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot");
+  } catch (rti::Exception const& exception) {
+    observedName = exception.name();
+  }
+  require(
+      observedName == L"NotConnected",
+      "getObjectClassHandle before Connect must report the exact NotConnected exception name through rti::Exception::name");
+}
+void scenarioThreeLibrarySetContract(Options const&, rti::CallbackModel) {
+  verifyStandardRTIambassadorFactoryContract();
+  verifyStandardLogicalTimeFactoryFactoryContract();
+  verifyStandardAuthorizerFactoryFactoryContract();
 }
 void scenarioApiSurfaceInventory(Options const&, rti::CallbackModel) {
   static_assert(sizeof(rti::RTIambassadorFactory) > 0,

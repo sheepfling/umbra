@@ -10,6 +10,7 @@ import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
+import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
@@ -37,7 +38,10 @@ final class RegionLifecycleTck {
       String federation = "java-tck-region-lifecycle-" + UUID.randomUUID();
       boolean lifecycleConnected = false, ownerConnected = false, memberConnected = false;
       boolean created = false, ownerJoined = false, memberJoined = false;
+      boolean ownerPublished = false;
       RegionHandle ownerRegion = null, memberRegion = null, oneDimensionRegion = null;
+      AttributeHandleSet ownerAttributes = null;
+      ObjectInstanceHandle boundaryObject = null;
       try {
          owner.connect(callbacks(), callbackModel);
          ownerConnected = true;
@@ -49,27 +53,6 @@ final class RegionLifecycleTck {
          ownerJoined = true;
          member.joinFederationExecution("java-tck-region-lifecycle-member", federation);
          memberJoined = true;
-
-         BoundaryFixture fixture = BoundaryFixture.create(owner);
-         fixture.expect(lifecycle, "NotConnected", "before connect");
-         lifecycle.connect(callbacks(), callbackModel);
-         lifecycleConnected = true;
-         fixture.expect(lifecycle, "FederateNotExecutionMember", "before joining an execution");
-         lifecycle.disconnect();
-         lifecycleConnected = false;
-
-         LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
-         LogicalTime<?, ?> initialTime = (LogicalTime<?, ?>) timeFactory.makeInitial();
-         ParameterHandleValueMap emptyParameters =
-            owner.getParameterHandleValueMapFactory().create(1);
-         fixture.expectTimestampedInteraction(lifecycle, initialTime, emptyParameters,
-            "NotConnected", "before connect");
-         lifecycle.connect(callbacks(), callbackModel);
-         lifecycleConnected = true;
-         fixture.expectTimestampedInteraction(lifecycle, initialTime, emptyParameters,
-            "FederateNotExecutionMember", "before joining an execution");
-         lifecycle.disconnect();
-         lifecycleConnected = false;
 
          ObjectClassHandle ownerObjectClass = owner.getObjectClassHandle(objectClassName);
          ObjectClassHandle memberObjectClass = member.getObjectClassHandle(objectClassName);
@@ -124,6 +107,36 @@ final class RegionLifecycleTck {
          assertRegion(member, memberRegion, memberFirst, memberSecond, 1, 5, 2, 7,
             "member region initial metadata");
 
+         ownerAttributes = owner.getAttributeHandleSetFactory().create();
+         ownerAttributes.add(ownerAttribute);
+         owner.publishObjectClassAttributes(ownerObjectClass, ownerAttributes);
+         ownerPublished = true;
+         boundaryObject = owner.registerObjectInstance(ownerObjectClass);
+         JavaTckSupport.check(boundaryObject != null && boundaryObject.encodedLength() > 0,
+            "region-lifecycle boundary setup returned an invalid object handle");
+
+         BoundaryFixture fixture = BoundaryFixture.create(owner, ownerObjectClass,
+            ownerInteraction, boundaryObject, ownerFirst, ownerRegion);
+         fixture.expect(lifecycle, "NotConnected", "before connect");
+         lifecycle.connect(callbacks(), callbackModel);
+         lifecycleConnected = true;
+         fixture.expect(lifecycle, "FederateNotExecutionMember", "before joining an execution");
+         lifecycle.disconnect();
+         lifecycleConnected = false;
+
+         LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
+         LogicalTime<?, ?> initialTime = (LogicalTime<?, ?>) timeFactory.makeInitial();
+         ParameterHandleValueMap emptyParameters =
+            owner.getParameterHandleValueMapFactory().create(1);
+         fixture.expectTimestampedInteraction(lifecycle, initialTime, emptyParameters,
+            "NotConnected", "before connect");
+         lifecycle.connect(callbacks(), callbackModel);
+         lifecycleConnected = true;
+         fixture.expectTimestampedInteraction(lifecycle, initialTime, emptyParameters,
+            "FederateNotExecutionMember", "before joining an execution");
+         lifecycle.disconnect();
+         lifecycleConnected = false;
+
          owner.setRangeBounds(ownerRegion, ownerFirst, new RangeBounds(0, 4));
          RegionHandleSet ownerRegions = regionSet(owner, ownerRegion);
          owner.commitRegionModifications(ownerRegions);
@@ -157,6 +170,11 @@ final class RegionLifecycleTck {
          JavaTckSupport.expectFailure(() -> owner.getDimensionHandleSet(deletedOwnerRegion),
             "InvalidRegion", "looking up dimensions after region deletion");
 
+         owner.deleteObjectInstance(boundaryObject, new byte[0]);
+         boundaryObject = null;
+         owner.unpublishObjectClassAttributes(ownerObjectClass, ownerAttributes);
+         ownerPublished = false;
+
          owner.resignFederationExecution(ResignAction.NO_ACTION);
          ownerJoined = false;
          member.resignFederationExecution(ResignAction.NO_ACTION);
@@ -165,6 +183,13 @@ final class RegionLifecycleTck {
          created = false;
       } finally {
          if (lifecycleConnected) try { lifecycle.disconnect(); } catch (Exception ignored) { }
+         if (ownerJoined && boundaryObject != null) try {
+            owner.deleteObjectInstance(boundaryObject, new byte[0]);
+         } catch (Exception ignored) { }
+         if (ownerJoined && ownerPublished && ownerAttributes != null) try {
+            owner.unpublishObjectClassAttributes(owner.getObjectClassHandle(objectClassName),
+               ownerAttributes);
+         } catch (Exception ignored) { }
          deleteRegion(owner, oneDimensionRegion, ownerJoined);
          deleteRegion(owner, ownerRegion, ownerJoined);
          deleteRegion(member, memberRegion, memberJoined);
@@ -240,27 +265,33 @@ final class RegionLifecycleTck {
       private final RegionHandleSet emptyRegions;
       private final AttributeSetRegionSetPairList emptyAttributeRegionPairs;
       private final ParameterHandleValueMap emptyParameters;
-      private final ObjectClassHandle invalidObjectClass =
-         JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-      private final InteractionClassHandle invalidInteractionClass =
-         JavaTckSupport.invalidHandle(InteractionClassHandle.class);
-      private final hla.rti1516_2025.ObjectInstanceHandle invalidObjectInstance =
-         JavaTckSupport.invalidHandle(hla.rti1516_2025.ObjectInstanceHandle.class);
-      private final DimensionHandle invalidDimension =
-         JavaTckSupport.invalidHandle(DimensionHandle.class);
-      private final RegionHandle invalidRegion = JavaTckSupport.invalidHandle(RegionHandle.class);
+      private final ObjectClassHandle objectClass;
+      private final InteractionClassHandle interactionClass;
+      private final ObjectInstanceHandle objectInstance;
+      private final DimensionHandle dimension;
+      private final RegionHandle region;
       private RegionHandle deletedRegion;
 
-      private BoundaryFixture(RTIambassador owner) throws Exception {
+      private BoundaryFixture(RTIambassador owner, ObjectClassHandle objectClass,
+            InteractionClassHandle interactionClass, ObjectInstanceHandle objectInstance,
+            DimensionHandle dimension, RegionHandle region) throws Exception {
          emptyDimensions = owner.getDimensionHandleSetFactory().create();
          emptyRegions = owner.getRegionHandleSetFactory().create();
          emptyAttributeRegionPairs =
             owner.getAttributeSetRegionSetPairListFactory().create(1);
          emptyParameters = owner.getParameterHandleValueMapFactory().create(1);
+         this.objectClass = objectClass;
+         this.interactionClass = interactionClass;
+         this.objectInstance = objectInstance;
+         this.dimension = dimension;
+         this.region = region;
       }
 
-      private static BoundaryFixture create(RTIambassador owner) throws Exception {
-         return new BoundaryFixture(owner);
+      private static BoundaryFixture create(RTIambassador owner, ObjectClassHandle objectClass,
+            InteractionClassHandle interactionClass, ObjectInstanceHandle objectInstance,
+            DimensionHandle dimension, RegionHandle region) throws Exception {
+         return new BoundaryFixture(owner, objectClass, interactionClass, objectInstance,
+            dimension, region);
       }
 
       private void expect(RTIambassador ambassador, String exception, String phase)
@@ -270,52 +301,52 @@ final class RegionLifecycleTck {
             "creating an empty region " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.commitRegionModifications(emptyRegions),
             exception, "committing an empty region set " + phase);
-         JavaTckSupport.expectFailure(() -> ambassador.deleteRegion(invalidRegion), exception,
-            "deleting an invalid region " + phase);
+         JavaTckSupport.expectFailure(() -> ambassador.deleteRegion(region), exception,
+            "deleting another federate's region " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.registerObjectInstanceWithRegions(
-               invalidObjectClass, emptyAttributeRegionPairs), exception,
+               objectClass, emptyAttributeRegionPairs), exception,
             "registering an object with regions " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.registerObjectInstanceWithRegions(
-               invalidObjectClass, emptyAttributeRegionPairs, "tck-region-lifecycle-object"),
+               objectClass, emptyAttributeRegionPairs, "tck-region-lifecycle-object"),
             exception, "named regional object registration " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.associateRegionsForUpdates(
-               invalidObjectInstance, emptyAttributeRegionPairs), exception,
+               objectInstance, emptyAttributeRegionPairs), exception,
             "associating regions " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.unassociateRegionsForUpdates(
-               invalidObjectInstance, emptyAttributeRegionPairs), exception,
+               objectInstance, emptyAttributeRegionPairs), exception,
             "unassociating regions " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.subscribeObjectClassAttributesWithRegions(
-               invalidObjectClass, emptyAttributeRegionPairs), exception,
+               objectClass, emptyAttributeRegionPairs), exception,
             "subscribing to regional attributes " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.unsubscribeObjectClassAttributesWithRegions(
-               invalidObjectClass, emptyAttributeRegionPairs), exception,
+               objectClass, emptyAttributeRegionPairs), exception,
             "unsubscribing from regional attributes " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.subscribeInteractionClassWithRegions(
-               invalidInteractionClass, emptyRegions), exception,
+               interactionClass, emptyRegions), exception,
             "subscribing to regional interactions " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.unsubscribeInteractionClassWithRegions(
-               invalidInteractionClass, emptyRegions), exception,
+               interactionClass, emptyRegions), exception,
             "unsubscribing from regional interactions " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.sendInteractionWithRegions(
-               invalidInteractionClass, emptyParameters, emptyRegions, new byte[0]), exception,
+               interactionClass, emptyParameters, emptyRegions, new byte[0]), exception,
             "sending a regional interaction " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.requestAttributeValueUpdateWithRegions(
-               invalidObjectClass, emptyAttributeRegionPairs, new byte[0]), exception,
+               objectClass, emptyAttributeRegionPairs, new byte[0]), exception,
             "requesting regional attribute values " + phase);
-         JavaTckSupport.expectFailure(() -> ambassador.getRangeBounds(invalidRegion, invalidDimension),
-            exception, "reading bounds for an invalid region " + phase);
+         JavaTckSupport.expectFailure(() -> ambassador.getRangeBounds(region, dimension),
+            exception, "reading bounds for another federate's region " + phase);
          JavaTckSupport.expectFailure(() -> ambassador.setRangeBounds(
-               invalidRegion, invalidDimension, range), exception,
-            "setting bounds for an invalid region " + phase);
-         JavaTckSupport.expectFailure(() -> ambassador.getDimensionHandleSet(invalidRegion),
-            exception, "reading dimensions for an invalid region " + phase);
+               region, dimension, range), exception,
+            "setting bounds for another federate's region " + phase);
+         JavaTckSupport.expectFailure(() -> ambassador.getDimensionHandleSet(region),
+            exception, "reading dimensions for another federate's region " + phase);
       }
 
       private void expectTimestampedInteraction(RTIambassador ambassador,
             LogicalTime<?, ?> time, ParameterHandleValueMap parameters, String exception,
             String phase) throws Exception {
          JavaTckSupport.expectFailure(() -> ambassador.sendInteractionWithRegions(
-               invalidInteractionClass, parameters, emptyRegions, new byte[0], time), exception,
+               interactionClass, parameters, emptyRegions, new byte[0], time), exception,
             "sending a timestamped regional interaction " + phase);
       }
    }

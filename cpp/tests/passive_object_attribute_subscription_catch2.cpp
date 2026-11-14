@@ -432,8 +432,10 @@ TEST_CASE(
   REQUIRE_FALSE(
       subscriberReports.attributeReflectionReports.front().attributeValues.contains(attributeB));
 
-  // Re-declaring A as passive and B as active changes only those selected
-  // attributes; it does not discard either class-attribute declaration.
+  // §9.1.5 p. 223 l. 103: each subscribed class attribute has one mode, not
+  // simultaneous active and passive modes. Re-declaring A as passive and B as
+  // active changes only those selected attributes; it does not discard either
+  // class-attribute declaration.
   REQUIRE_NOTHROW(subscriber->subscribeObjectClassAttributes(
       objectClass,
       AttributeHandleSet{attributeA},

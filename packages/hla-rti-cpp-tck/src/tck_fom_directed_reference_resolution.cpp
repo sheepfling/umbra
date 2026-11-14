@@ -23,6 +23,8 @@ void scenarioFomDirectedReferenceResolution(Options const& options,
   auto const& interactionFom =
       directedReferenceFom(options, "directed-reference-interaction");
   auto const& missing = directedReferenceFom(options, "directed-reference-missing");
+  auto const& invalidSharing =
+      directedReferenceFom(options, "directed-reference-invalid-sharing");
 
   Session sender(options, model, "directed-reference-sender");
   Session receiver(options, model, "directed-reference-receiver");
@@ -88,6 +90,8 @@ void scenarioFomDirectedReferenceResolution(Options const& options,
 
   requireException([&] { create({missing}); }, L"InconsistentFOM",
                    "unresolved directed-interaction class reference");
+  requireException([&] { create({invalidSharing, interactionFom}); }, L"InvalidFOM",
+                   "directed-interaction sharing value outside the P/S domain");
   create({objectFom, interactionFom});
   sending.destroyFederationExecution(federation);
   receiver.disconnect();

@@ -471,6 +471,14 @@ void scenarioTimestampedAttributeUpdateQueuedPasselRetraction(
   require(
       firstReported && secondReported,
       "Timestamped queued-passel did not preserve both attribute values");
+  require(
+      reflections.size() == 1U && reflections.front().values.size() == 2U &&
+          reflections.front().values.count(receiverFirst) == 1U &&
+          reflections.front().values.count(receiverSecond) == 1U &&
+          !reflections.front().regions.has_value() &&
+          receiver.rtiAmbassador().getTransportationTypeName(
+              reflections.front().transportation) == L"HLAreliable",
+      "Attributes with matching transport, order, and region designators were not delivered in one passel callback");
   requireException(
       [&] { publisher.rtiAmbassador().retract(secondRetraction); },
       L"MessageCanNoLongerBeRetracted",
@@ -4179,11 +4187,13 @@ void scenarioTimestampedDefaultRegionAttributeRegulationReenable(
       *publisherTime.initial,
       *publisherTime.epsilon,
       5U);
+  // Advancing to three with lookahead three moves GALT beyond the queued t5
+  // update, allowing the receiver grant after the reflection.
   auto const publisherTarget = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const changedLookaheadTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,

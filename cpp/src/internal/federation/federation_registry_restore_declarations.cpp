@@ -17,6 +17,7 @@ using federation_registry_state_image_validation::isRouteFreeMultipleDirectedInt
 using federation_registry_state_image_validation::isRouteFreeMultipleInteractionPublicationImage;
 using federation_registry_state_image_validation::isRouteFreeRegionalTsoInteractionImage;
 using federation_registry_state_image_validation::isOneQueuedTsoInteractionIdentityRebindingImage;
+using federation_registry_state_image_validation::isOneQueuedReceiveOrderInteractionIdentityRebindingImage;
 
 void EmbeddedFederationRegistry::restoreObjectClassAttributeDeclarationsFromStateImage(
     Federation& federation,
@@ -180,7 +181,8 @@ void EmbeddedFederationRegistry::restoreInteractionDeclarationsFromStateImage(
       !isRouteFreeMixedMultipleInteractionDeclarationImage(image) &&
       !isRouteFreeMultipleDirectedInteractionDeclarationImage(image) &&
       !isRouteFreeRegionalTsoInteractionImage(image) &&
-      !isOneQueuedTsoInteractionIdentityRebindingImage(image)) {
+      !isOneQueuedTsoInteractionIdentityRebindingImage(image) &&
+      !isOneQueuedReceiveOrderInteractionIdentityRebindingImage(image)) {
     throw std::logic_error(
         "The saved interaction declarations are outside the route-free restore boundary.");
   }

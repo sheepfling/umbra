@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused C++ TCK uses only the official connection, federation-management, and callback APIs. One ambassador connects without an RtiConfiguration or RTI address and creates a uniquely named federation using the adapter-supplied FOM. A second ambassador supplies a unique nonexistent configuration name, no RTI address, and no additional settings; after Connect, List Federation Executions must report the federation created through the no-name path. The observed shared federation is the behavioral oracle that both paths selected the same implementation default. ConfigurationResult flags are deliberately not interpreted as a default-selection signal. The case does not assert a provider-specific configuration name, file, address, backend, or interoperability result.",
+  "requirements": [
+    {
+      "id": "cpp-tck-connection-default-configuration-fallback",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-051-l18-3-default",
+      "clause_id": "clause-4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_connection_configuration_fallback.cpp",
+      "source_symbol": "scenarioConnectionDefaultConfigurationFallback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_configuration_fallback.cpp::scenarioConnectionDefaultConfigurationFallback"
+      ]
+    }
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-default-configuration-fallback",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect overloads, createFederationExecution, listFederationExecutions, and FederateAmbassador::reportFederationExecutions",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador connection and federation-execution query declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_configuration_fallback.cpp::scenarioConnectionDefaultConfigurationFallback"
+      ]
+    }
+  ]
+}

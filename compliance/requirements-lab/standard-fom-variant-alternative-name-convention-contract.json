@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.20 public-API witness for the Variant Record Alternative Name rule at p. 95 l. 70. Public Create accepts the valid control; the schema-valid negative differs only by a period in Alternative Name and must be rejected as InconsistentFOM. This demonstrates the period restriction only, not every HLA naming rule, other variant-record fields, arbitrary FOMs, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-variant-alternative-name-convention",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_variant_alternative_name_convention.cpp::scenarioFomVariantAlternativeNameConventionContract"
+      ]
+    }
+  ]
+}

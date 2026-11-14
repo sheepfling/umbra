@@ -155,7 +155,8 @@ std::unique_ptr<RTIambassador> makeRti() {
 TEST_CASE(
     "Embedded timestamped default-region Update Attribute Values splits immediate delivery and pending retraction",
     "[integration][development-profile][object-management][ddm][time-management]"
-    "[default-region][tso][mixed-fanout][multi-federate-callback-ordering][retract]"
+    "[default-region][tso][mixed-fanout][timestamped-default-region-attribute-mixed-fanout]"
+    "[multi-federate-callback-ordering][retract]"
     "[rti.service.update-attribute-values][rti.service.retract]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"
     "[rti.service.time-advance-request][federate.callback.reflect-attribute-values]"

@@ -19,6 +19,13 @@ void scenarioFomObjectAttributeMergeConflict(Options const& options,
               !options.objectAttributeDisjointFom.empty() &&
               !options.objectAttributeConflictFom.empty(),
           "Annex C.3 object-attribute test requires three adapter-supplied FOM modules");
+  auto const transportationConflict =
+      options.scenarioFoms.find("object-attribute-transportation-conflict");
+  auto const orderConflict =
+      options.scenarioFoms.find("object-attribute-order-conflict");
+  require(transportationConflict != options.scenarioFoms.end() &&
+              orderConflict != options.scenarioFoms.end(),
+          "Attribute transportation/order conflict testing requires two adapter-supplied FOM modules");
   require(!options.logicalTimeImplementationName.empty(),
           "Annex C.3 object-attribute test requires adapter-supplied logical time");
   Session creator(options, model, "fom-attribute-creator");
@@ -47,6 +54,24 @@ void scenarioFomObjectAttributeMergeConflict(Options const& options,
       [&] { create(creator, federation, options, options.objectAttributeBaseFom,
                    options.objectAttributeConflictFom); },
       L"InconsistentFOM", "merging conflicting semantics for one named attribute");
+  create(creator, federation, options, options.objectAttributeBaseFom,
+         options.objectAttributeDisjointFom);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  requireException(
+      [&] {
+        create(creator, federation, options, options.objectAttributeBaseFom,
+               transportationConflict->second);
+      },
+      L"InconsistentFOM", "merging a transportation conflict for one named attribute");
+  create(creator, federation, options, options.objectAttributeBaseFom,
+         options.objectAttributeDisjointFom);
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  requireException(
+      [&] {
+        create(creator, federation, options, options.objectAttributeBaseFom,
+               orderConflict->second);
+      },
+      L"InconsistentFOM", "merging an order conflict for one named attribute");
   create(creator, federation, options, options.objectAttributeBaseFom,
          options.objectAttributeDisjointFom);
   creator.rtiAmbassador().destroyFederationExecution(federation);

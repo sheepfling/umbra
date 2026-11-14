@@ -104,9 +104,9 @@ final class FederateMomDirectedPublicationQueryTck {
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+         requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
 
          // The first class carries both the primary and class-specific directed
          // interactions; the second carries the primary interaction only.

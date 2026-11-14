@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-current-source-public-tck-evidence-not-conformance",
+  "notes": "The pinned C++ binding exposes mandatory transportation types through TransportationTypeHandle and getTransportationTypeHandle(name), not public RTI_RELIABLE/RTI_BEST_EFFORT enum tokens. The standard-order-and-transportation-lookups scenario checks that HLAreliable and HLAbestEffort resolve to valid, distinct handles, that handles are stable between joined federates, and that getTransportationTypeName round-trips both standard names. This is direct public C++ API evidence for the two standard type availability requirements; it does not test their message-delivery classifications, independent-provider interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-standard-rti-reliable-transportation-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-392-l232-75",
+      "clause_id": "clause-12.12.6.19",
+      "source": "packages/hla-rti-cpp-tck/src/tck_transport_order_scenarios.cpp",
+      "source_symbol": "scenarioStandardOrderAndTransportationLookupsPortable",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_transport_order_scenarios.cpp::scenarioStandardOrderAndTransportationLookupsPortable"
+      ]
+    },
+    {
+      "id": "umbra-cpp-standard-best-effort-transportation-type",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-392-l232-75-best-effort",
+      "clause_id": "clause-12.12.6.19",
+      "source": "packages/hla-rti-cpp-tck/src/tck_transport_order_scenarios.cpp",
+      "source_symbol": "scenarioStandardOrderAndTransportationLookupsPortable",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_transport_order_scenarios.cpp::scenarioStandardOrderAndTransportationLookupsPortable"
+      ]
+    }
+  ]
+}

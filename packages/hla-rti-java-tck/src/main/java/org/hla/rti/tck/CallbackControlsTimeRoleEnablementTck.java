@@ -9,6 +9,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,20 +65,29 @@ final class CallbackControlsTimeRoleEnablementTck {
 
          regulator.enableCallbacks();
          constrained.enableCallbacks();
-         await(regulator, callbackModel, objectClassName,
+         service(regulator, callbackModel, objectClassName);
+         service(constrained, callbackModel, objectClassName);
+         await(regulator, constrained, callbackModel, objectClassName,
             () -> regulatorRecorder.timeRegulationTimes.size() == 1,
-            "timeRegulationEnabled callback did not arrive after enabling callbacks");
-         await(constrained, callbackModel, objectClassName,
+            "timeRegulationEnabled callback did not arrive after enabling callbacks",
             () -> constrainedRecorder.timeConstrainedTimes.size() == 1,
             "timeConstrainedEnabled callback did not arrive after enabling callbacks");
-         LogicalTime<?, ?> regulatorInitial = regulator.queryLogicalTime();
-         LogicalTime<?, ?> constrainedInitial = constrained.queryLogicalTime();
-         JavaTckSupport.check(regulatorRecorder.timeRegulationTimes.size() == 1
-               && regulatorInitial.equals(regulatorRecorder.timeRegulationTimes.get(0)),
-            "timeRegulationEnabled returned the wrong initial logical time");
-         JavaTckSupport.check(constrainedRecorder.timeConstrainedTimes.size() == 1
-               && constrainedInitial.equals(constrainedRecorder.timeConstrainedTimes.get(0)),
-            "timeConstrainedEnabled returned the wrong initial logical time");
+         JavaTckSupport.check(regulatorRecorder.timeRegulationTimes.size() == 1,
+            "callback enablement exposed more than one timeRegulationEnabled callback");
+         JavaTckSupport.check(constrainedRecorder.timeConstrainedTimes.size() == 1,
+            "callback enablement exposed more than one timeConstrainedEnabled callback");
+         LogicalTime<?, ?> regulatorInitial = regulator.getTimeFactory().makeInitial();
+         LogicalTime<?, ?> constrainedInitial = constrained.getTimeFactory().makeInitial();
+         LogicalTime<?, ?> regulatorCallbackTime = regulatorRecorder.timeRegulationTimes.get(0);
+         LogicalTime<?, ?> constrainedCallbackTime = constrainedRecorder.timeConstrainedTimes.get(0);
+         JavaTckSupport.check(Arrays.equals(encode(regulatorInitial), encode(regulatorCallbackTime))
+               && regulatorCallbackTime.equals(regulator.queryLogicalTime())
+               && !regulatorCallbackTime.toString().isEmpty(),
+            "timeRegulationEnabled returned incomplete or incorrect initial-time metadata");
+         JavaTckSupport.check(Arrays.equals(encode(constrainedInitial), encode(constrainedCallbackTime))
+               && constrainedCallbackTime.equals(constrained.queryLogicalTime())
+               && !constrainedCallbackTime.toString().isEmpty(),
+            "timeConstrainedEnabled returned incomplete or incorrect initial-time metadata");
 
          constrained.disableTimeConstrained();
          timeConstrained = false;
@@ -121,20 +131,32 @@ final class CallbackControlsTimeRoleEnablementTck {
       }
    }
 
-   private static void await(RTIambassador ambassador, CallbackModel model,
-         String objectClassName, Condition condition, String description) throws Exception {
+   private static void await(RTIambassador first, RTIambassador second, CallbackModel model,
+         String objectClassName, Condition firstCondition, String firstDescription,
+         Condition secondCondition, String secondDescription) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
-      while (System.nanoTime() < deadline && !condition.isTrue()) {
-         service(ambassador, model, objectClassName);
+      while (System.nanoTime() < deadline
+            && (!firstCondition.isTrue() || !secondCondition.isTrue())) {
+         service(first, model, objectClassName);
+         service(second, model, objectClassName);
          Thread.yield();
       }
-      JavaTckSupport.check(condition.isTrue(), "timed out waiting for " + description);
+      JavaTckSupport.check(firstCondition.isTrue(),
+         "timed out waiting for " + firstDescription);
+      JavaTckSupport.check(secondCondition.isTrue(),
+         "timed out waiting for " + secondDescription);
    }
 
    private static void service(RTIambassador ambassador, CallbackModel model,
          String objectClassName) throws Exception {
       if (model == CallbackModel.HLA_EVOKED) ambassador.evokeMultipleCallbacks(0.0, 1.0);
       else ambassador.getObjectClassHandle(objectClassName);
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private interface Condition {

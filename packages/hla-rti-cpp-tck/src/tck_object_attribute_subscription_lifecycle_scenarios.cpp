@@ -7,10 +7,16 @@ void scenarioObjectAttributeSubscriptionLifecycle(
     rti::CallbackModel model) {
   Session publisher(options, model, "publisher");
   Session subscriber(options, model, "subscriber");
+  Session nonSubscriber(options, model, "non-subscriber");
   auto const federation = federationName(
       options,
       "object-attribute-subscription-lifecycle");
   connectAndJoin(publisher, subscriber, options, federation, options.fom);
+  nonSubscriber.connect();
+  nonSubscriber.join(
+      options.memberFederateName + L"-no-attributes",
+      options.federateType,
+      federation);
 
   auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);
@@ -256,6 +262,12 @@ void scenarioObjectAttributeSubscriptionLifecycle(
       activeValue,
       activeTag,
       "active object-attribute subscription reflection");
+  for (int pass = 0; pass != 8; ++pass) {
+    nonSubscriber.pump();
+  }
+  require(
+      !nonSubscriber.recorder().reflection().present,
+      "attribute update was reflected to a joined federate with no attribute subscription");
 
   // Downgrading the declaration to passive suppresses subsequent ordinary
   // Update/Reflect callbacks while retaining the known object identity.
@@ -310,10 +322,157 @@ void scenarioObjectAttributeSubscriptionLifecycle(
       !subscriber.recorder().reflection().present,
       "unsubscribed object-attribute declaration unexpectedly reflected an update");
 
+  // Removing one class's subscription must not clear the independent
+  // subscription state for another class. The default TCK FOM gives the
+  // derived class its own class scope while retaining the inherited Value
+  // attribute handle.
+  auto const publisherDerivedClassName =
+      options.objectClassName + L".TckSecondaryObject";
+  auto const publisherDerivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      publisherDerivedClassName);
+  auto const subscriberDerivedClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      publisherDerivedClassName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.attributeName);
+  auto const subscriberDerivedAttribute = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberDerivedClass,
+      options.attributeName);
+  require(
+      publisherDerivedClass.isValid() && subscriberDerivedClass.isValid() &&
+          publisherDerivedAttribute == publisherAttribute &&
+          subscriberDerivedAttribute == subscriberAttribute,
+      "derived-class subscription fixture did not expose the inherited Value attribute");
+
+  rti::AttributeHandleSet const derivedAttributes{subscriberDerivedAttribute};
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes,
+      true,
+      L"");
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberDerivedClass,
+      derivedAttributes,
+      true,
+      L"");
+  rti::AttributeHandleSet const derivedPublishedAttributes{
+      publisherDerivedAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherDerivedClass,
+      derivedPublishedAttributes);
+
+  auto const isolationBaseObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  auto const isolationDerivedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherDerivedClass);
+  require(
+      isolationBaseObject.isValid() && isolationDerivedObject.isValid(),
+      "class-isolation registration returned an invalid object handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(isolationBaseObject); },
+      options,
+      "base-class subscription discovery for class-isolation test");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(isolationDerivedObject); },
+      options,
+      "derived-class subscription discovery for class-isolation test");
+
+  std::vector<std::uint8_t> const derivedBeforeUnsubscribe{0x44U, 0x45U, 0x52U};
+  std::vector<std::uint8_t> const derivedBeforeUnsubscribeTag{0x44U, 0x31U};
+  rti::AttributeHandleValueMap const derivedBeforeUnsubscribeValues{
+      {publisherDerivedAttribute,
+       rti::VariableLengthData(
+           derivedBeforeUnsubscribe.data(),
+           derivedBeforeUnsubscribe.size())}};
+  rti::VariableLengthData derivedBeforeUnsubscribeUserTag(
+      derivedBeforeUnsubscribeTag.data(),
+      derivedBeforeUnsubscribeTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      isolationDerivedObject,
+      derivedBeforeUnsubscribeValues,
+      derivedBeforeUnsubscribeUserTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().reflection().present; },
+      options,
+      "derived-class subscription before base-class unsubscribe");
+  auto const derivedBeforeUnsubscribeReflection = subscriber.recorder().reflection();
+  require(
+      derivedBeforeUnsubscribeReflection.object == isolationDerivedObject &&
+          derivedBeforeUnsubscribeReflection.values.size() == 1U &&
+          derivedBeforeUnsubscribeReflection.values.count(
+              subscriberDerivedAttribute) == 1U &&
+          copyBytes(derivedBeforeUnsubscribeReflection.values.at(
+              subscriberDerivedAttribute)) == derivedBeforeUnsubscribe &&
+          derivedBeforeUnsubscribeReflection.tag == derivedBeforeUnsubscribeTag,
+      "derived-class subscription was not active before base-class unsubscribe");
+
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  subscriber.recorder().clearReflection();
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberClass,
+      subscriberAttributes);
+  std::vector<std::uint8_t> const baseAfterUnsubscribe{0x42U, 0x41U, 0x53U};
+  std::vector<std::uint8_t> const baseAfterUnsubscribeTag{0x42U, 0x32U};
+  rti::AttributeHandleValueMap const baseAfterUnsubscribeValues{
+      {publisherAttribute,
+       rti::VariableLengthData(
+           baseAfterUnsubscribe.data(),
+           baseAfterUnsubscribe.size())}};
+  rti::VariableLengthData baseAfterUnsubscribeUserTag(
+      baseAfterUnsubscribeTag.data(),
+      baseAfterUnsubscribeTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      isolationBaseObject,
+      baseAfterUnsubscribeValues,
+      baseAfterUnsubscribeUserTag);
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  require(
+      !subscriber.recorder().reflection().present,
+      "unsubscribed base class unexpectedly reflected an attribute update");
+
+  std::vector<std::uint8_t> const derivedAfterUnsubscribe{0x44U, 0x45U, 0x52U};
+  std::vector<std::uint8_t> const derivedAfterUnsubscribeTag{0x44U, 0x33U};
+  rti::AttributeHandleValueMap const derivedAfterUnsubscribeValues{
+      {publisherDerivedAttribute,
+       rti::VariableLengthData(
+           derivedAfterUnsubscribe.data(),
+           derivedAfterUnsubscribe.size())}};
+  rti::VariableLengthData derivedAfterUnsubscribeUserTag(
+      derivedAfterUnsubscribeTag.data(),
+      derivedAfterUnsubscribeTag.size());
+  publisher.rtiAmbassador().updateAttributeValues(
+      isolationDerivedObject,
+      derivedAfterUnsubscribeValues,
+      derivedAfterUnsubscribeUserTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().reflection().present; },
+      options,
+      "derived-class subscription after base-class unsubscribe");
+  auto const derivedAfterUnsubscribeReflection = subscriber.recorder().reflection();
+  require(
+      derivedAfterUnsubscribeReflection.object == isolationDerivedObject &&
+          derivedAfterUnsubscribeReflection.values.size() == 1U &&
+          derivedAfterUnsubscribeReflection.values.count(
+              subscriberDerivedAttribute) == 1U &&
+          copyBytes(derivedAfterUnsubscribeReflection.values.at(
+              subscriberDerivedAttribute)) == derivedAfterUnsubscribe &&
+          derivedAfterUnsubscribeReflection.tag == derivedAfterUnsubscribeTag,
+      "base-class unsubscribe changed the derived class's subscribed attribute set");
+
   subscriber.resign(rti::NO_ACTION);
+  nonSubscriber.resign(rti::NO_ACTION);
   publisher.resign(rti::DELETE_OBJECTS);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   subscriber.disconnect();
+  nonSubscriber.disconnect();
   publisher.disconnect();
 }
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK contract for IEEE 1516.1-2025 §12.5 p. 357 l. 55-17 and §4.1.7 p. 50 l. 75-24. Three protected RID profiles are selected through the official RtiConfiguration.withConfigurationName API. With identical empty HLAnoCredentials, the configured denying service must cause public Connect to throw Unauthorized, the distinct allowing service must permit Connect/Disconnect, and service=disabled must also permit Connect/Disconnect without a configured authorization service. This is bounded Umbra RID behavior exercised with an adapter-specific provider bridge; it is not third-party provider interoperability or full conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-rid-selects-authorization-service-and-enable-state",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-357-l55-17",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerRidConfigurationDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerRidConfigurationDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-rti-configurable-authorization-service",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l75-24",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerRidConfigurationDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerRidConfigurationDecision"
+      ]
+    }
+  ]
+}

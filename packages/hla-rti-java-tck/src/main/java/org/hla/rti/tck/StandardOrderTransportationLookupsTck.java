@@ -39,6 +39,10 @@ final class StandardOrderTransportationLookupsTck {
 
          checkMandatoryNames(owner.rti, "owner");
          checkMandatoryNames(peer.rti, "peer");
+         JavaTckSupport.expectFailure(() -> owner.rti.getOrderType("receive"),
+            "InvalidOrderName", "case-mismatched Receive order name");
+         JavaTckSupport.expectFailure(() -> owner.rti.getOrderType("timestamp"),
+            "InvalidOrderName", "case-mismatched TimeStamp order name");
 
          TransportationTypeHandle ownerReliable =
             owner.rti.getTransportationTypeHandle("HLAreliable");

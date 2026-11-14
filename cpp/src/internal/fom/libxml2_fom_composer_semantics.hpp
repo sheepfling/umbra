@@ -166,7 +166,10 @@ constexpr std::string_view dimension = "dimension";
 constexpr std::string_view input_data_types = "inputDataTypes";
 constexpr std::string_view input_data_description = "inputDataDescription";
 constexpr std::string_view upper_bound = "upperBound";
+constexpr std::string_view normalization = "normalization";
+constexpr std::string_view output_data_semantics = "outputDataSemantics";
 constexpr std::string_view data_type = "dataType";
+constexpr std::string_view semantics = "semantics";
 constexpr std::string_view value = "value";
 constexpr std::string_view rate = "rate";
 constexpr std::string_view attribute = "attribute";
@@ -186,6 +189,7 @@ constexpr std::string_view reference_data_type = "referenceDataType";
 constexpr std::string_view array_data = "arrayData";
 constexpr std::string_view fixed_record_data = "fixedRecordData";
 constexpr std::string_view variant_record_data = "variantRecordData";
+constexpr std::string_view discriminant = "discriminant";
 constexpr std::string_view logical_time = "logicalTime";
 constexpr std::string_view logical_time_interval = "logicalTimeInterval";
 constexpr std::string_view update_reflect_tag = "updateReflectTag";
@@ -220,6 +224,8 @@ constexpr std::string_view true_literal = "true";
 constexpr std::string_view true_numeric = "1";
 constexpr std::string_view not_applicable_name = "na";
 constexpr std::string_view reserved_hla_prefix = "hla";
+constexpr std::string_view fixed_record_encoding = "HLAfixedRecord";
+constexpr std::string_view variant_record_encoding = "HLAvariantRecord";
 constexpr std::string_view excluded_dimension_value = "Excluded";
 constexpr std::string_view dynamic_cardinality = "Dynamic";
 constexpr std::string_view hla_other_enumerator = "HLAother";
@@ -285,8 +291,12 @@ inline void walkNodes(SemanticNode const& node, std::string const& path, Functio
 }
 
 bool validateFomModificationDate(xmlNode const* modelIdentification, std::string& diagnostics);
+bool validateFomModelIdentificationVersionNonblank(
+    xmlNode const* modelIdentification,
+    std::string& diagnostics);
 void collectFomReservedHlaNames(SemanticNode const& root, std::set<std::string>& reservedNames);
 bool validateUniqueComposedFomDimensions(xmlDoc const* document, std::string& diagnostics);
+bool validateFomAttributeRequiredTextFields(SemanticNode const& module, std::string& diagnostics);
 bool validateMergedFomModuleState(SemanticNode const& merged, std::string& diagnostics);
 bool validateComposedFomModel(
     SemanticNode const& merged,

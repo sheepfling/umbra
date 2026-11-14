@@ -31,6 +31,11 @@ final class NativeParameterHandle implements ParameterHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("ParameterHandle", encoded);
+   }
+
    private boolean sameEncoding(ParameterHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

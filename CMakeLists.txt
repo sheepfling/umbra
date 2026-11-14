@@ -7,6 +7,12 @@ project(
   LANGUAGES CXX
 )
 
+if(POLICY CMP0207)
+  cmake_policy(SET CMP0207 NEW)
+endif()
+
+find_package(OpenSSL 3.0 REQUIRED COMPONENTS SSL)
+
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # Match MSVC's /bigobj allowance for the standards-shaped, high-fanout
   # dispatch translation units when emitting MinGW COFF object files.
@@ -16,6 +22,7 @@ endif()
 include(GNUInstallDirs)
 include(CTest)
 include(cmake/test_executable_budget.cmake)
+include(cmake/windows_runtime_dependency_staging.cmake)
 include(CMakePackageConfigHelpers)
 
 option(UMBRA_FETCH_CATCH2 "Download the pinned Catch2 test dependency when it is unavailable" OFF)
@@ -230,13 +237,90 @@ else()
   set(_umbra_2025_library_type STATIC)
 endif()
 
-# Shared package identity is independent of the linkage profile. Keep the
-# historical output basenames and exported CMake target names stable; derive
-# the ABI generation from the project major version and expose it to consumers.
+# SISO-REF-080-2023 defines the filename form used by HLA shared libraries
+# beginning with IEEE 1516-2023 (and therefore the 2025 API). Its GCC 12 marker
+# explicitly covers GCC 12 and later. Applying that compiler marker to MinGW
+# is our interpretation that the OS-specific filename extension distinguishes
+# the target platform while the marker identifies the GCC compiler family.
+set(UMBRA_HLA_COMPILER_VERSION_MARKER "" CACHE STRING
+  "Override the SISO-REF-080-2023 compiler marker for HLA shared-library filenames")
+if(UMBRA_HLA_COMPILER_VERSION_MARKER)
+  set(_umbra_hla_compiler_marker "${UMBRA_HLA_COMPILER_VERSION_MARKER}")
+  set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "user-configured")
+else()
+  string(REGEX MATCH "^[0-9]+" _umbra_compiler_major
+    "${CMAKE_CXX_COMPILER_VERSION}")
+  if(NOT _umbra_compiler_major)
+    set(_umbra_compiler_major "0")
+  endif()
+
+  if(MSVC AND MSVC_TOOLSET_VERSION)
+    set(_umbra_hla_compiler_marker "vc${MSVC_TOOLSET_VERSION}")
+    if(MSVC_TOOLSET_VERSION MATCHES "^14[0-3]$")
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "SISO-REF-080-2023")
+    else()
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "umbra-local-extension")
+    endif()
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(_umbra_compiler_major GREATER_EQUAL 12)
+      set(_umbra_hla_compiler_marker "gcc12")
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "SISO-REF-080-2023")
+    elseif(_umbra_compiler_major GREATER_EQUAL 5 AND
+           _umbra_compiler_major LESS_EQUAL 11)
+      set(_umbra_hla_compiler_marker "gcc${_umbra_compiler_major}")
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "SISO-REF-080-2023")
+    else()
+      set(_umbra_hla_compiler_marker "gcc${_umbra_compiler_major}")
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "umbra-local-extension")
+    endif()
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(_umbra_hla_compiler_marker "clang${_umbra_compiler_major}")
+    if(APPLE AND _umbra_compiler_major GREATER_EQUAL 5 AND
+       _umbra_compiler_major LESS_EQUAL 13)
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "SISO-REF-080-2023")
+    else()
+      set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "umbra-local-extension")
+    endif()
+  else()
+    string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" _umbra_compiler_id_marker)
+    string(REGEX REPLACE "[^a-z0-9]" "" _umbra_compiler_id_marker
+      "${_umbra_compiler_id_marker}")
+    set(_umbra_hla_compiler_marker
+      "${_umbra_compiler_id_marker}${_umbra_compiler_major}")
+    set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "umbra-local-extension")
+  endif()
+endif()
+if(NOT _umbra_hla_compiler_marker MATCHES "^[A-Za-z0-9]+$")
+  message(FATAL_ERROR
+    "UMBRA_HLA_COMPILER_VERSION_MARKER must contain only letters and digits")
+endif()
+if(NOT UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE)
+  set(UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE "umbra-local-extension")
+endif()
+message(STATUS
+  "Umbra HLA shared-library compiler marker: ${_umbra_hla_compiler_marker} (${UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE})")
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+  set(_umbra_hla_library_32bit_marker "_32")
+else()
+  set(_umbra_hla_library_32bit_marker "")
+endif()
+
+# Keep exported CMake target names stable. Static archives retain their
+# historical output identity; shared runtime libraries use the standard HLA
+# base names and the compiler marker above.
 set(UMBRA_RTI_ABI_MAJOR_VERSION "${PROJECT_VERSION_MAJOR}")
-set(UMBRA_RTI_LIBRARY_NAME "umbra_rti")
-set(UMBRA_FEDTIME_LIBRARY_NAME "umbra_fedtime")
-set(UMBRA_AUTHORIZER_LIBRARY_NAME "umbra_authorizer")
+if(UMBRA_BUILD_SHARED_LIBRARIES)
+  set(UMBRA_RTI_LIBRARY_NAME
+    "rti1516_2023${_umbra_hla_compiler_marker}${_umbra_hla_library_32bit_marker}")
+  set(UMBRA_FEDTIME_LIBRARY_NAME
+    "fedtime1516_2023${_umbra_hla_compiler_marker}${_umbra_hla_library_32bit_marker}")
+  set(UMBRA_AUTHORIZER_LIBRARY_NAME
+    "authorizer1516_2023${_umbra_hla_compiler_marker}${_umbra_hla_library_32bit_marker}")
+else()
+  set(UMBRA_RTI_LIBRARY_NAME "umbra_rti")
+  set(UMBRA_FEDTIME_LIBRARY_NAME "umbra_fedtime")
+  set(UMBRA_AUTHORIZER_LIBRARY_NAME "umbra_authorizer")
+endif()
 function(umbra_configure_2025_library_abi target export_name library_name)
   set_target_properties(${target} PROPERTIES
     EXPORT_NAME "${export_name}"
@@ -246,6 +330,8 @@ function(umbra_configure_2025_library_abi target export_name library_name)
   )
   if(UMBRA_BUILD_SHARED_LIBRARIES)
     set_target_properties(${target} PROPERTIES
+      PREFIX "lib"
+      OUTPUT_NAME_DEBUG "${library_name}d"
       VERSION "${PROJECT_VERSION}"
       SOVERSION "${UMBRA_RTI_ABI_MAJOR_VERSION}"
       WINDOWS_EXPORT_ALL_SYMBOLS OFF
@@ -283,6 +369,7 @@ add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/internal/federation/embedded_transport.cpp
   cpp/src/internal/federation/process_transport.cpp
   cpp/src/internal/federation/process_transport_proxy_host.cpp
+  cpp/src/internal/federation/process_federation_service_runtime.cpp
   cpp/src/internal/federation/process_federation_service_host.cpp
   cpp/src/internal/federation/process_federation_service.cpp
   cpp/src/internal/federation/process_federation_service_region_management.cpp
@@ -295,6 +382,7 @@ add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/internal/federation/process_federation_service_dimension_queries.cpp
   cpp/src/internal/federation/process_federation_service_dispatch.cpp
   cpp/src/internal/federation/process_federation_service_connection_loss.cpp
+  cpp/src/internal/federation/process_federation_service_forced_resignation.cpp
   cpp/src/internal/federation/process_federation_service_codecs.cpp
   cpp/src/internal/federation/process_federation_service_control_codecs.cpp
   cpp/src/internal/federation/process_federation_service_time_codecs.cpp
@@ -336,12 +424,15 @@ add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/internal/federation/process_federation_client_handle_lookup.cpp
   cpp/src/internal/federation/process_federation_client_ownership.cpp
   cpp/src/internal/federation/process_transport_session.cpp
+  cpp/src/internal/federation/process_transport_message_history.cpp
   cpp/src/internal/federation/transport_protocol.cpp
   cpp/src/internal/federation/transport_service_protocol.cpp
   cpp/src/internal/handles/attribute_handle_directory.cpp
   cpp/src/internal/handles/dimension_handle_directory.cpp
+  cpp/src/internal/handles/fom_handle_allocator.cpp
   cpp/src/internal/federation/federate_lifecycle.cpp
   cpp/src/internal/time/federate_time_state.cpp
+  cpp/src/internal/time/federation_time_factory_provider.cpp
     cpp/src/internal/federation/federation_management_coordinator.cpp
     cpp/src/internal/federation/federation_registry.cpp cpp/src/internal/federation/federation_registry_control_state.cpp cpp/src/internal/federation/federation_registry_time_tso_enqueue.cpp cpp/src/internal/federation/federation_registry_tso_delivery.cpp cpp/src/internal/federation/federation_registry_regions.cpp cpp/src/internal/federation/federation_registry_catalog_queries.cpp cpp/src/internal/federation/federation_registry_attribute_relevance.cpp cpp/src/internal/federation/federation_registry_directed_interactions.cpp cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp cpp/src/internal/federation/federation_registry_object_instance_registration.cpp cpp/src/internal/federation/federation_registry_update_region_associations.cpp cpp/src/internal/federation/federation_registry_object_instance_deletion.cpp cpp/src/internal/federation/federation_registry_object_instance_discovery_planning.cpp cpp/src/internal/federation/federation_registry_object_discovery_routes.cpp cpp/src/internal/federation/federation_registry_object_instance_removal.cpp cpp/src/internal/federation/federation_registry_object_instance_discovery_state.cpp cpp/src/internal/federation/federation_registry_attribute_value_update_requests.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition_if_available.cpp cpp/src/internal/federation/federation_registry_negotiated_attribute_ownership_divestiture.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_pending_work.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_acquisition.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_assumptions.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_divestiture_if_wanted.cpp cpp/src/internal/federation/federation_registry_attribute_ownership_cancellation.cpp cpp/src/internal/federation/federation_registry_receive_order_interactions.cpp cpp/src/internal/federation/federation_registry_mom_service_reporting.cpp cpp/src/internal/federation/federation_registry_federate_lost_reporting.cpp cpp/src/internal/federation/federation_registry_mom_exception_reporting.cpp cpp/src/internal/federation/federation_registry_mom_object_instances_updated_reporting.cpp cpp/src/internal/federation/federation_registry_mom_object_instances_that_can_be_deleted_reporting.cpp cpp/src/internal/federation/federation_registry_mom_object_instances_reflected_reporting.cpp cpp/src/internal/federation/federation_registry_mom_object_instance_information_reporting.cpp cpp/src/internal/federation/federation_registry_mom_fom_module_data_reporting.cpp cpp/src/internal/federation/federation_registry_mom_federation_content_reporting.cpp cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp cpp/src/internal/federation/federation_registry_mom_publications_reporting.cpp cpp/src/internal/federation/federation_registry_mom_subscriptions_reporting.cpp cpp/src/internal/federation/federation_registry_mom_updates_sent_reporting.cpp cpp/src/internal/federation/federation_registry_mom_interactions_sent_reporting.cpp cpp/src/internal/federation/federation_registry_mom_directed_interactions_sent_reporting.cpp cpp/src/internal/federation/federation_registry_mom_interactions_received_reporting.cpp cpp/src/internal/federation/federation_registry_mom_directed_interactions_received_reporting.cpp cpp/src/internal/federation/federation_registry_mom_reflections_received_reporting.cpp cpp/src/internal/federation/federation_registry_attribute_transportation_type_change_planning.cpp cpp/src/internal/federation/federation_registry_transportation_order_services.cpp
     cpp/src/internal/federation/federation_state_image.cpp
@@ -349,6 +440,8 @@ add_library(umbra_rti ${_umbra_2025_library_type}
     cpp/src/internal/federation/federation_save_commit_store.cpp
     cpp/src/internal/platform/filesystem_operations.cpp
     cpp/src/internal/platform/socket_operations.cpp
+    cpp/src/internal/platform/tls_socket.cpp
+    cpp/src/internal/platform/websocket_socket.cpp
     cpp/src/internal/platform/protected_initialization_data.cpp
   cpp/src/internal/handles/interaction_class_handle_directory.cpp
   cpp/src/internal/observability/mom_service_report_encoding.cpp
@@ -363,13 +456,14 @@ add_library(umbra_rti ${_umbra_2025_library_type}
   cpp/src/internal/observability/runtime_instrumentation.cpp
   cpp/src/internal/observability/runtime_instrumentation_output.cpp
   cpp/src/internal/time/update_rate_gate.cpp
-  cpp/src/internal/time/tso_message_queue.cpp cpp/src/internal/federation/federation_registry_state_image_validation.cpp cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp cpp/src/internal/federation/federation_registry_state_image_capture.cpp cpp/src/internal/federation/federation_registry_state_image_restore.cpp cpp/src/internal/federation/federation_registry_restore_declarations.cpp cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp cpp/src/internal/federation/federation_registry_state_image_restore_helpers.cpp cpp/src/internal/federation/federation_registry_value_helpers.cpp
+  cpp/src/internal/time/tso_message_queue.cpp cpp/src/internal/federation/federation_registry_state_image_validation.cpp cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp cpp/src/internal/federation/federation_registry_state_image_capture.cpp cpp/src/internal/federation/federation_registry_state_image_restore.cpp cpp/src/internal/federation/federation_registry_state_image_fom_rebinding.cpp cpp/src/internal/federation/federation_registry_restore_declarations.cpp cpp/src/internal/federation/federation_registry_restore_ownership_ledgers.cpp cpp/src/internal/federation/federation_registry_restore_tso_payloads.cpp cpp/src/internal/federation/federation_registry_state_image_restore_helpers.cpp cpp/src/internal/federation/federation_registry_value_helpers.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_service_failure_translation.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_connect_services.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_callback_control_services.cpp
   cpp/src/internal/runtime/ambassador_connection_support.cpp
   cpp/src/internal/runtime/rti_initialization_data.cpp
+  cpp/src/internal/runtime/authorizer_factory_provider.cpp
   cpp/src/internal/runtime/utf8_string.cpp
 )
 target_sources(umbra_rti PRIVATE
@@ -410,8 +504,12 @@ target_include_directories(umbra_rti
     "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
 )
 target_link_libraries(umbra_rti PUBLIC umbra::ieee1516_2025_headers)
+target_link_libraries(umbra_rti PRIVATE OpenSSL::SSL)
+if(CMAKE_DL_LIBS)
+  target_link_libraries(umbra_rti PRIVATE ${CMAKE_DL_LIBS})
+endif()
 if(WIN32)
-  target_link_libraries(umbra_rti PRIVATE ws2_32 advapi32)
+  target_link_libraries(umbra_rti PRIVATE ws2_32 advapi32 bcrypt)
 endif()
 
 # IEEE 1516.1-2010 / 1516e bounded binding. This target owns the official
@@ -469,18 +567,25 @@ target_link_libraries(umbra_fedtime PUBLIC umbra::rti)
 
 # The C++ binding similarly separates the generic AuthorizerFactoryFactory
 # entry point into libauthorizer. The reference HLAauthorizer implementation
-# stays in the RTI library; this target preserves the standard forwarding
-# boundary without inventing third-party RID loading before it exists.
-add_library(umbra_authorizer ${_umbra_2025_library_type} cpp/src/ieee1516_2025_authorizer.cpp)
+# stays in the RTI library; custom factories may be supplied through the
+# implementation-specific shared-provider bridge selected by RID service name.
+add_library(umbra_authorizer ${_umbra_2025_library_type}
+  cpp/src/ieee1516_2025_authorizer.cpp
+  cpp/src/internal/runtime/authorizer_factory_provider.cpp)
 add_library(umbra::authorizer ALIAS umbra_authorizer)
 umbra_configure_2025_library_abi(umbra_authorizer authorizer "${UMBRA_AUTHORIZER_LIBRARY_NAME}")
 target_compile_features(umbra_authorizer PUBLIC cxx_std_20)
+target_include_directories(umbra_authorizer PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src")
 if(UMBRA_BUILD_SHARED_LIBRARIES)
   target_compile_definitions(umbra_authorizer PRIVATE BUILDING_AUTHORIZER)
 else()
   target_compile_definitions(umbra_authorizer PUBLIC STATIC_AUTHORIZER)
 endif()
 target_link_libraries(umbra_authorizer PUBLIC umbra::rti)
+if(CMAKE_DL_LIBS)
+  target_link_libraries(umbra_authorizer PRIVATE ${CMAKE_DL_LIBS})
+endif()
 
 if(WIN32 AND UMBRA_BUILD_SHARED_LIBRARIES AND
    UMBRA_EXPORT_INTERNAL_TEST_SYMBOLS)
@@ -508,6 +613,28 @@ if(WIN32 AND UMBRA_BUILD_SHARED_LIBRARIES AND
 endif()
 
 include(cmake/fom_validation_backend.cmake)
+
+if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  add_executable(umbra_rti_process_service
+    cpp/tools/umbra_rti_process_service_main.cpp
+  )
+  target_compile_features(umbra_rti_process_service PRIVATE cxx_std_20)
+  target_include_directories(umbra_rti_process_service PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/cpp/src"
+  )
+  target_link_libraries(umbra_rti_process_service PRIVATE
+    umbra::rti
+    umbra::fedtime
+  )
+  set_target_properties(umbra_rti_process_service PROPERTIES
+    OUTPUT_NAME "umbra-rti-process-service"
+  )
+  if(UMBRA_BUILD_SHARED_LIBRARIES)
+    target_compile_definitions(umbra_rti_process_service PRIVATE
+      UMBRA_PROCESS_FEDERATION_RUNTIME_IMPORT=1
+    )
+  endif()
+endif()
 
 if(BUILD_TESTING)
   add_executable(umbra_ieee1516_2025_headers_smoke cpp/tests/ieee1516_2025_headers_smoke.cpp)
@@ -2115,6 +2242,7 @@ if(BUILD_TESTING)
 
   if(TARGET Catch2::Catch2WithMain)
     include(cmake/catch2_executable_targets.cmake)
+    include(cmake/process_federation_recovery_catch2.cmake)
     include(cmake/annex_c_variant_alternative_merge_target.cmake)
     include(cmake/annex_c_general_data_type_merge_target.cmake)
     include(cmake/annex_c_class_element_conflict_target.cmake)
@@ -2179,18 +2307,60 @@ foreach(_umbra_test_target IN LISTS _umbra_local_targets)
   if(_umbra_target_type STREQUAL "EXECUTABLE")
     umbra_guard_test_executable("${_umbra_test_target}")
   endif()
+  umbra_stage_windows_runtime_dependencies("${_umbra_test_target}")
 endforeach()
 
 install(TARGETS ieee1516_2025_headers ieee1516_2010_headers
   EXPORT umbra_rti_targets
 )
+if(WIN32)
+  set(_umbra_runtime_dependency_set_arguments
+    RUNTIME_DEPENDENCY_SET umbra_runtime_dependencies)
+endif()
 install(TARGETS umbra_rti umbra_rti_2010 umbra_fedtime umbra_authorizer
+  ${_umbra_runtime_dependency_set_arguments}
   EXPORT umbra_rti_targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+if(TARGET umbra_rti_process_service)
+  install(TARGETS umbra_rti_process_service
+    ${_umbra_runtime_dependency_set_arguments}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+endif()
+if(WIN32)
+  set(_umbra_runtime_dependency_search_directories)
+  if(OPENSSL_ROOT_DIR)
+    list(APPEND _umbra_runtime_dependency_search_directories
+      "${OPENSSL_ROOT_DIR}/bin"
+      "${OPENSSL_ROOT_DIR}/c/bin"
+    )
+  endif()
+  set(_umbra_runtime_dependency_directory_arguments)
+  if(_umbra_runtime_dependency_search_directories)
+    list(APPEND _umbra_runtime_dependency_directory_arguments
+      DIRECTORIES ${_umbra_runtime_dependency_search_directories})
+  endif()
+  install(RUNTIME_DEPENDENCY_SET umbra_runtime_dependencies
+    PRE_EXCLUDE_REGEXES
+      "[Aa][Pp][Ii]-[Mm][Ss]-[Ww][Ii][Nn]-.*"
+      "[Ee][Xx][Tt]-[Mm][Ss]-[Ww][Ii][Nn]-.*"
+    POST_EXCLUDE_REGEXES
+      ".*[/\\\\][Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\].*"
+      ".*[/\\\\][Ww][Ii][Nn][Ss][Xx][Ss][/\\\\].*"
+    ${_umbra_runtime_dependency_directory_arguments}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT UmbraRuntimeDependencies
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endif()
+if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT AND
+   NOT UMBRA_BUILD_SHARED_LIBRARIES)
+  # A static RTI archive cannot absorb the backend's link interface, so export
+  # it only for that profile. The shared RTI links the backend privately and
+  # must not make its third-party dependency part of a federate's link inputs.
   install(TARGETS umbra_fom_validation_backend
     EXPORT umbra_rti_targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

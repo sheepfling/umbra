@@ -11,6 +11,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -84,7 +85,8 @@ final class RestorePendingAdvanceModesTck {
          }
          JavaTckSupport.check(callbacks.saveLabels.equals(List.of(saveLabel))
                && callbacks.savedCount == 1 && callbacks.saveFailures.isEmpty()
-               && callbacks.timeGrants.equals(List.of(savedTarget)),
+               && callbacks.timeGrants.size() == 1
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(0))),
             "pending-mode save did not capture the request before its first grant");
          if (!immediate) while (member.evokeCallback(0.0)) { }
 
@@ -95,7 +97,7 @@ final class RestorePendingAdvanceModesTck {
                "pending-mode post-save grant");
          }
          JavaTckSupport.check(callbacks.timeGrants.size() == 2
-               && laterTarget.equals(callbacks.timeGrants.get(1))
+               && Arrays.equals(encode(laterTarget), encode(callbacks.timeGrants.get(1)))
                && laterTarget.equals(member.queryLogicalTime()),
             "pending-mode post-save advance did not reach time 9");
 
@@ -125,7 +127,7 @@ final class RestorePendingAdvanceModesTck {
          JavaTckSupport.check(callbacks.restoredCount == 1
                && callbacks.restoreFailures.isEmpty()
                && callbacks.timeGrants.size() == 3
-               && savedTarget.equals(callbacks.timeGrants.get(2))
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(2)))
                && callbacks.order.equals(List.of(
                   "restore-request-succeeded", "restore-begun",
                   "restore-initiate", "restore-complete", "grant"))
@@ -138,7 +140,7 @@ final class RestorePendingAdvanceModesTck {
                "pending-mode post-restore grant");
          }
          JavaTckSupport.check(callbacks.timeGrants.size() == 4
-               && nextTarget.equals(callbacks.timeGrants.get(3)),
+               && Arrays.equals(encode(nextTarget), encode(callbacks.timeGrants.get(3))),
             "advance mode was not usable after restored grant");
 
          member.resignFederationExecution(ResignAction.NO_ACTION);
@@ -184,6 +186,12 @@ final class RestorePendingAdvanceModesTck {
          ambassador.evokeCallback(0.0);
       }
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static final class Recorder {

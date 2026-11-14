@@ -2704,12 +2704,13 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaParameters = javaParameterHandleValueMap(environment, parameterValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaRegions = optionalSentRegions == nullptr
         ? nullptr
         : javaRegionHandleSet(environment, *optionalSentRegions);
     if (javaInteraction == nullptr || javaParameters == nullptr || javaTag == nullptr ||
-        javaTransportation == nullptr || javaProducingFederate == nullptr ||
+        javaTransportation == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) ||
         (optionalSentRegions != nullptr && javaRegions == nullptr)) {
       if (javaInteraction != nullptr) environment->DeleteLocalRef(javaInteraction);
       if (javaParameters != nullptr) environment->DeleteLocalRef(javaParameters);
@@ -2760,7 +2761,7 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaParameters = javaParameterHandleValueMap(environment, parameterValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaRegions = optionalSentRegions == nullptr
         ? nullptr
         : javaRegionHandleSet(environment, *optionalSentRegions);
@@ -2771,7 +2772,8 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
         ? nullptr
         : javaMessageRetractionHandle(environment, *optionalRetraction);
     if (javaInteraction == nullptr || javaParameters == nullptr || javaTag == nullptr ||
-        javaTransportation == nullptr || javaProducingFederate == nullptr || javaTime == nullptr ||
+        javaTransportation == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) || javaTime == nullptr ||
         javaSentOrder == nullptr || javaReceivedOrder == nullptr ||
         (optionalSentRegions != nullptr && javaRegions == nullptr) ||
         (optionalRetraction != nullptr && javaRetraction == nullptr)) {
@@ -2833,10 +2835,10 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaParameters = javaParameterHandleValueMap(environment, parameterValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     if (javaInteraction == nullptr || javaObjectInstance == nullptr ||
         javaParameters == nullptr || javaTag == nullptr || javaTransportation == nullptr ||
-        javaProducingFederate == nullptr) {
+        (producingFederate.isValid() && javaProducingFederate == nullptr)) {
       if (javaInteraction != nullptr) environment->DeleteLocalRef(javaInteraction);
       if (javaObjectInstance != nullptr) environment->DeleteLocalRef(javaObjectInstance);
       if (javaParameters != nullptr) environment->DeleteLocalRef(javaParameters);
@@ -2888,7 +2890,7 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaParameters = javaParameterHandleValueMap(environment, parameterValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaTime = javaLogicalTime(environment, time);
     jobject javaSentOrder = javaOrderType(environment, sentOrderType);
     jobject javaReceivedOrder = javaOrderType(environment, receivedOrderType);
@@ -2897,7 +2899,8 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
         : javaMessageRetractionHandle(environment, *optionalRetraction);
     if (javaInteraction == nullptr || javaObjectInstance == nullptr ||
         javaParameters == nullptr || javaTag == nullptr || javaTransportation == nullptr ||
-        javaProducingFederate == nullptr || javaTime == nullptr || javaSentOrder == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) ||
+        javaTime == nullptr || javaSentOrder == nullptr ||
         javaReceivedOrder == nullptr ||
         (optionalRetraction != nullptr && javaRetraction == nullptr)) {
       if (javaInteraction != nullptr) environment->DeleteLocalRef(javaInteraction);
@@ -3044,9 +3047,9 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaInstance = javaObjectInstanceHandle(environment, objectInstance);
     jobject javaClass = javaObjectClassHandle(environment, objectClass);
     jstring javaName = javaString(environment, objectInstanceName);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     if (javaInstance == nullptr || javaClass == nullptr || javaName == nullptr ||
-        javaProducingFederate == nullptr) {
+        (producingFederate.isValid() && javaProducingFederate == nullptr)) {
       if (javaInstance != nullptr) environment->DeleteLocalRef(javaInstance);
       if (javaClass != nullptr) environment->DeleteLocalRef(javaClass);
       if (javaName != nullptr) environment->DeleteLocalRef(javaName);
@@ -3103,12 +3106,13 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaAttributes = javaAttributeHandleValueMap(environment, attributeValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaRegions = optionalSentRegions == nullptr
         ? nullptr
         : javaRegionHandleSet(environment, *optionalSentRegions);
     if (javaInstance == nullptr || javaAttributes == nullptr || javaTag == nullptr ||
-        javaTransportation == nullptr || javaProducingFederate == nullptr ||
+        javaTransportation == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) ||
         (optionalSentRegions != nullptr && javaRegions == nullptr)) {
       if (javaInstance != nullptr) environment->DeleteLocalRef(javaInstance);
       if (javaAttributes != nullptr) environment->DeleteLocalRef(javaAttributes);
@@ -3159,7 +3163,7 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     jobject javaAttributes = javaAttributeHandleValueMap(environment, attributeValues);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
     jobject javaTransportation = javaTransportationTypeHandle(environment, transportationType);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaRegions = optionalSentRegions == nullptr
         ? nullptr
         : javaRegionHandleSet(environment, *optionalSentRegions);
@@ -3170,7 +3174,8 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
         ? nullptr
         : javaMessageRetractionHandle(environment, *optionalRetraction);
     if (javaInstance == nullptr || javaAttributes == nullptr || javaTag == nullptr ||
-        javaTransportation == nullptr || javaProducingFederate == nullptr || javaTime == nullptr ||
+        javaTransportation == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) || javaTime == nullptr ||
         javaSentOrder == nullptr || javaReceivedOrder == nullptr ||
         (optionalSentRegions != nullptr && javaRegions == nullptr) ||
         (optionalRetraction != nullptr && javaRetraction == nullptr)) {
@@ -3226,8 +3231,9 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     if (target == nullptr || method == nullptr) return;
     jobject javaInstance = javaObjectInstanceHandle(environment, objectInstance);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
-    if (javaInstance == nullptr || javaTag == nullptr || javaProducingFederate == nullptr) {
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
+    if (javaInstance == nullptr || javaTag == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr)) {
       if (javaInstance != nullptr) environment->DeleteLocalRef(javaInstance);
       if (javaTag != nullptr) environment->DeleteLocalRef(javaTag);
       if (javaProducingFederate != nullptr) environment->DeleteLocalRef(javaProducingFederate);
@@ -3259,14 +3265,15 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     if (target == nullptr || method == nullptr) return;
     jobject javaInstance = javaObjectInstanceHandle(environment, objectInstance);
     jbyteArray javaTag = javaByteArray(environment, userSuppliedTag);
-    jobject javaProducingFederate = javaFederateHandle(environment, producingFederate);
+    jobject javaProducingFederate = javaNullableFederateHandle(environment, producingFederate);
     jobject javaTime = javaLogicalTime(environment, time);
     jobject javaSentOrder = javaOrderType(environment, sentOrderType);
     jobject javaReceivedOrder = javaOrderType(environment, receivedOrderType);
     jobject javaRetraction = optionalRetraction == nullptr
         ? nullptr
         : javaMessageRetractionHandle(environment, *optionalRetraction);
-    if (javaInstance == nullptr || javaTag == nullptr || javaProducingFederate == nullptr ||
+    if (javaInstance == nullptr || javaTag == nullptr ||
+        (producingFederate.isValid() && javaProducingFederate == nullptr) ||
         javaTime == nullptr || javaSentOrder == nullptr || javaReceivedOrder == nullptr ||
         (optionalRetraction != nullptr && javaRetraction == nullptr)) {
       if (javaInstance != nullptr) environment->DeleteLocalRef(javaInstance);
@@ -3960,6 +3967,12 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
     return result;
   }
 
+  jobject javaNullableFederateHandle(JNIEnv* environment, rti::FederateHandle const& value) {
+    // RTI-originated callbacks have no producing federate. The Java API uses
+    // null for that absence instead of exposing the C++ invalid-handle value.
+    return value.isValid() ? javaFederateHandle(environment, value) : nullptr;
+  }
+
   jobject javaObjectInstanceHandle(
       JNIEnv* environment, rti::ObjectInstanceHandle const& value) {
     jbyteArray encoded = javaByteArray(environment, value.encode());
@@ -4004,17 +4017,17 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
           L"Umbra could not find the Java bridge logical-time factories.");
     }
     jclass factoryInterface = nullptr;
-    jmethodID forName = nullptr;
+    jmethodID forServiceLoader = nullptr;
     jmethodID decode = nullptr;
     jobject factory = nullptr;
     jstring javaFactoryName = nullptr;
     jbyteArray encoded = nullptr;
     try {
-      forName = requiredStaticMethod(
+      forServiceLoader = requiredStaticMethod(
           environment,
           factoriesClass,
-          "forName",
-          "(Ljava/lang/String;J)Lhla/rti1516_2025/time/LogicalTimeFactory;");
+          "forServiceLoader",
+          "(Ljava/lang/String;)Lhla/rti1516_2025/time/LogicalTimeFactory;");
       factoryInterface = environment->FindClass("hla/rti1516_2025/time/LogicalTimeFactory");
       if (factoryInterface == nullptr) {
         clearJavaException(environment);
@@ -4026,8 +4039,11 @@ class JavaFederateAmbassador final : public rti::NullFederateAmbassador {
           "decodeTime",
           "([BI)Lhla/rti1516_2025/time/LogicalTime;");
       javaFactoryName = javaString(environment, factoryName);
+      // The C++ callback time is already validated. Decode its bytes using the
+      // standalone Java carrier so conversion cannot re-enter native RTI
+      // services while the callback session is active.
       factory = environment->CallStaticObjectMethod(
-          factoriesClass, forName, javaFactoryName, nativeHandle_);
+          factoriesClass, forServiceLoader, javaFactoryName);
       environment->DeleteLocalRef(javaFactoryName);
       javaFactoryName = nullptr;
       encoded = javaByteArray(environment, value.encode());
@@ -4372,6 +4388,10 @@ rti::CallbackModel callbackModel(std::wstring const& value) {
 rti::OrderType orderTypeFromJava(std::wstring const& value) {
   if (value == L"RECEIVE" || value == L"Receive") return rti::RECEIVE;
   if (value == L"TIMESTAMP" || value == L"TimeStamp") return rti::TIMESTAMP;
+  // The Java API's closed OrderType enum uses null for the invalid lookup case.
+  // Its adapter sentinel must become an invalid C++ enum value so the RTI emits
+  // the normal InvalidOrderType exception and service-invocation report.
+  if (value == L"UNSUPPORTED") return static_cast<rti::OrderType>(0x7f);
   throw rti::InvalidOrderName(L"The Java JNI bridge received an unknown order type.");
 }
 
@@ -4666,6 +4686,13 @@ class NativeState final {
   }
 
   std::wstring getFederateName(rti::VariableLengthData const& encodedFederateHandle) {
+    if (encodedFederateHandle.size() == 0) {
+      // Java exposes opaque handle interfaces without a public invalid-handle
+      // constructor. Preserve the portable TCK's empty invalid sentinel as a
+      // default-constructed official C++ handle so the RTI reports the API
+      // exception instead of a handle-decoding failure.
+      return ambassador_.getFederateName(rti::FederateHandle{});
+    }
     return ambassador_.getFederateName(
         ambassador_.decodeFederateHandle(encodedFederateHandle));
   }
@@ -4682,14 +4709,20 @@ class NativeState final {
 
   std::wstring getObjectClassName(
       rti::VariableLengthData const& encodedObjectClassHandle) {
+    if (encodedObjectClassHandle.size() == 0) {
+      return ambassador_.getObjectClassName(rti::ObjectClassHandle{});
+    }
     return ambassador_.getObjectClassName(
         ambassador_.decodeObjectClassHandle(encodedObjectClassHandle));
   }
 
   rti::ObjectClassHandle getKnownObjectClassHandle(
       rti::VariableLengthData const& encodedObjectInstanceHandle) {
+    auto const objectInstance = encodedObjectInstanceHandle.size() == 0
+        ? rti::ObjectInstanceHandle{}
+        : ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle);
     return ambassador_.getKnownObjectClassHandle(
-        ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle));
+        objectInstance);
   }
 
   unsigned long normalizeObjectClassHandle(
@@ -4701,16 +4734,24 @@ class NativeState final {
   rti::AttributeHandle getAttributeHandle(
       rti::VariableLengthData const& encodedObjectClassHandle,
       std::wstring const& attributeName) {
+    auto const objectClass = encodedObjectClassHandle.size() == 0
+        ? rti::ObjectClassHandle{}
+        : ambassador_.decodeObjectClassHandle(encodedObjectClassHandle);
     return ambassador_.getAttributeHandle(
-        ambassador_.decodeObjectClassHandle(encodedObjectClassHandle), attributeName);
+        objectClass, attributeName);
   }
 
   std::wstring getAttributeName(
       rti::VariableLengthData const& encodedObjectClassHandle,
       rti::VariableLengthData const& encodedAttributeHandle) {
+    auto const objectClass = encodedObjectClassHandle.size() == 0
+        ? rti::ObjectClassHandle{}
+        : ambassador_.decodeObjectClassHandle(encodedObjectClassHandle);
+    auto const attribute = encodedAttributeHandle.size() == 0
+        ? rti::AttributeHandle{}
+        : ambassador_.decodeAttributeHandle(encodedAttributeHandle);
     return ambassador_.getAttributeName(
-        ambassador_.decodeObjectClassHandle(encodedObjectClassHandle),
-        ambassador_.decodeAttributeHandle(encodedAttributeHandle));
+        objectClass, attribute);
   }
 
   rti::DimensionHandle getDimensionHandle(std::wstring const& dimensionName) {
@@ -4909,6 +4950,9 @@ class NativeState final {
 
   std::wstring getObjectInstanceName(
       rti::VariableLengthData const& encodedObjectInstanceHandle) {
+    if (encodedObjectInstanceHandle.size() == 0) {
+      return ambassador_.getObjectInstanceName(rti::ObjectInstanceHandle{});
+    }
     return ambassador_.getObjectInstanceName(
         ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle));
   }
@@ -4934,7 +4978,7 @@ class NativeState final {
       rti::AttributeHandleValueMap const& attributeValues,
       rti::VariableLengthData const& userSuppliedTag,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     auto retraction = ambassador_.updateAttributeValues(
         ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle),
@@ -4956,7 +5000,7 @@ class NativeState final {
       rti::VariableLengthData const& encodedObjectInstanceHandle,
       rti::VariableLengthData const& userSuppliedTag,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     auto retraction = ambassador_.deleteObjectInstance(
         ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle),
@@ -5274,9 +5318,14 @@ class NativeState final {
   double getUpdateRateValueForAttribute(
       rti::VariableLengthData const& encodedObjectInstanceHandle,
       rti::VariableLengthData const& encodedAttributeHandle) {
+    auto const objectInstance = encodedObjectInstanceHandle.size() == 0
+        ? rti::ObjectInstanceHandle{}
+        : ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle);
+    auto const attribute = encodedAttributeHandle.size() == 0
+        ? rti::AttributeHandle{}
+        : ambassador_.decodeAttributeHandle(encodedAttributeHandle);
     return ambassador_.getUpdateRateValueForAttribute(
-        ambassador_.decodeObjectInstanceHandle(encodedObjectInstanceHandle),
-        ambassador_.decodeAttributeHandle(encodedAttributeHandle));
+        objectInstance, attribute);
   }
 
   void changeDefaultAttributeTransportationType(
@@ -5296,7 +5345,7 @@ class NativeState final {
 
   void validateLogicalTimeImplementation(
       std::wstring const& implementationName, bool interval) const {
-    auto const selectedName = ambassador_.getTimeFactory()->getName();
+    auto const selectedName = ambassador_.makeLogicalTimeFactoryForJavaBinding()->getName();
     if (selectedName == implementationName) return;
     std::wstring message = L"The supplied logical-time implementation '" + implementationName +
         L"' does not match the federation's selected implementation '" + selectedName + L"'.";
@@ -5305,7 +5354,7 @@ class NativeState final {
   }
 
   rti::VariableLengthData makeIntegerLogicalTime(std::int64_t value) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto* typedFactory = dynamic_cast<rti::HLAinteger64TimeFactory*>(factory.get());
     if (typedFactory == nullptr) {
       throw rti::RTIinternalError(L"The selected C++ logical-time factory is not integer64.");
@@ -5314,7 +5363,7 @@ class NativeState final {
   }
 
   rti::VariableLengthData makeIntegerLogicalTimeInterval(std::int64_t value) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto* typedFactory = dynamic_cast<rti::HLAinteger64TimeFactory*>(factory.get());
     if (typedFactory == nullptr) {
       throw rti::RTIinternalError(L"The selected C++ logical-time factory is not integer64.");
@@ -5323,7 +5372,7 @@ class NativeState final {
   }
 
   rti::VariableLengthData makeFloatLogicalTime(double value) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto* typedFactory = dynamic_cast<rti::HLAfloat64TimeFactory*>(factory.get());
     if (typedFactory == nullptr) {
       throw rti::RTIinternalError(L"The selected C++ logical-time factory is not float64.");
@@ -5332,7 +5381,7 @@ class NativeState final {
   }
 
   rti::VariableLengthData makeFloatLogicalTimeInterval(double value) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto* typedFactory = dynamic_cast<rti::HLAfloat64TimeFactory*>(factory.get());
     if (typedFactory == nullptr) {
       throw rti::RTIinternalError(L"The selected C++ logical-time factory is not float64.");
@@ -5341,11 +5390,11 @@ class NativeState final {
   }
 
   rti::VariableLengthData decodeLogicalTime(rti::VariableLengthData const& encoded) {
-    return ambassador_.getTimeFactory()->decodeLogicalTime(encoded)->encode();
+    return ambassador_.makeLogicalTimeFactoryForJavaBinding()->decodeLogicalTime(encoded)->encode();
   }
 
   rti::VariableLengthData decodeLogicalTimeInterval(rti::VariableLengthData const& encoded) {
-    return ambassador_.getTimeFactory()->decodeLogicalTimeInterval(encoded)->encode();
+    return ambassador_.makeLogicalTimeFactoryForJavaBinding()->decodeLogicalTimeInterval(encoded)->encode();
   }
 
   // Logical-time arithmetic is an RTI semantic operation.  Keep the Java
@@ -5354,7 +5403,7 @@ class NativeState final {
   rti::VariableLengthData addLogicalTime(
       rti::VariableLengthData const& encodedTime,
       rti::VariableLengthData const& encodedInterval) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedTime);
     auto interval = factory->decodeLogicalTimeInterval(encodedInterval);
     *time += *interval;
@@ -5364,7 +5413,7 @@ class NativeState final {
   rti::VariableLengthData subtractLogicalTime(
       rti::VariableLengthData const& encodedTime,
       rti::VariableLengthData const& encodedInterval) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedTime);
     auto interval = factory->decodeLogicalTimeInterval(encodedInterval);
     *time -= *interval;
@@ -5374,7 +5423,7 @@ class NativeState final {
   rti::VariableLengthData addLogicalTimeInterval(
       rti::VariableLengthData const& encodedInterval,
       rti::VariableLengthData const& encodedAddend) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto interval = factory->decodeLogicalTimeInterval(encodedInterval);
     auto addend = factory->decodeLogicalTimeInterval(encodedAddend);
     *interval += *addend;
@@ -5384,7 +5433,7 @@ class NativeState final {
   rti::VariableLengthData subtractLogicalTimeInterval(
       rti::VariableLengthData const& encodedInterval,
       rti::VariableLengthData const& encodedSubtrahend) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto interval = factory->decodeLogicalTimeInterval(encodedInterval);
     auto subtrahend = factory->decodeLogicalTimeInterval(encodedSubtrahend);
     *interval -= *subtrahend;
@@ -5394,7 +5443,7 @@ class NativeState final {
   rti::VariableLengthData differenceLogicalTime(
       rti::VariableLengthData const& encodedMinuend,
       rti::VariableLengthData const& encodedSubtrahend) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto minuend = factory->decodeLogicalTime(encodedMinuend);
     auto subtrahend = factory->decodeLogicalTime(encodedSubtrahend);
     auto difference = factory->makeZero();
@@ -5404,7 +5453,7 @@ class NativeState final {
 
   void enableTimeRegulation(
       rti::VariableLengthData const& encodedLogicalTimeInterval) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto interval = factory->decodeLogicalTimeInterval(encodedLogicalTimeInterval);
     ambassador_.enableTimeRegulation(*interval);
   }
@@ -5420,64 +5469,64 @@ class NativeState final {
   void disableAsynchronousDelivery() { ambassador_.disableAsynchronousDelivery(); }
 
   void modifyLookahead(rti::VariableLengthData const& encodedLogicalTimeInterval) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto interval = factory->decodeLogicalTimeInterval(encodedLogicalTimeInterval);
     ambassador_.modifyLookahead(*interval);
   }
 
   rti::VariableLengthData queryLookahead() {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto interval = factory->makeZero();
     ambassador_.queryLookahead(*interval);
     return interval->encode();
   }
 
   void timeAdvanceRequest(rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.timeAdvanceRequest(*time);
   }
 
   void timeAdvanceRequestAvailable(rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.timeAdvanceRequestAvailable(*time);
   }
 
   void nextMessageRequest(rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.nextMessageRequest(*time);
   }
 
   void nextMessageRequestAvailable(rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.nextMessageRequestAvailable(*time);
   }
 
   void flushQueueRequest(rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.flushQueueRequest(*time);
   }
 
   rti::VariableLengthData queryLogicalTime() {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->makeInitial();
     ambassador_.queryLogicalTime(*time);
     return time->encode();
   }
 
   std::pair<bool, rti::VariableLengthData> queryGALT() {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->makeInitial();
     bool const valid = ambassador_.queryGALT(*time);
     return {valid, time->encode()};
   }
 
   std::pair<bool, rti::VariableLengthData> queryLITS() {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->makeInitial();
     bool const valid = ambassador_.queryLITS(*time);
     return {valid, time->encode()};
@@ -5488,7 +5537,7 @@ class NativeState final {
       rti::ParameterHandleValueMap const& parameterValues,
       rti::VariableLengthData const& userSuppliedTag,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     auto retraction = ambassador_.sendInteraction(
         ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle),
@@ -5515,6 +5564,12 @@ class NativeState final {
 
   std::wstring getInteractionClassName(
       rti::VariableLengthData const& encodedInteractionClassHandle) {
+    if (encodedInteractionClassHandle.size() == 0) {
+      // The public Java API has no invalid-handle constructor. Pass its empty
+      // TCK sentinel through as the official default invalid C++ handle so the
+      // RTI reports InvalidInteractionClassHandle.
+      return ambassador_.getInteractionClassName(rti::InteractionClassHandle{});
+    }
     return ambassador_.getInteractionClassName(
         ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle));
   }
@@ -5535,8 +5590,16 @@ class NativeState final {
   std::wstring getParameterName(
       rti::VariableLengthData const& encodedInteractionClassHandle,
       rti::VariableLengthData const& encodedParameterHandle) {
+    auto const interactionClass = encodedInteractionClassHandle.size() == 0
+        ? rti::InteractionClassHandle{}
+        : ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle);
+    if (encodedParameterHandle.size() == 0) {
+      // Preserve the empty Java TCK sentinel as an invalid official C++
+      // parameter handle so the RTI can emit its normal API error report.
+      return ambassador_.getParameterName(interactionClass, rti::ParameterHandle{});
+    }
     return ambassador_.getParameterName(
-        ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle),
+        interactionClass,
         ambassador_.decodeParameterHandle(encodedParameterHandle));
   }
 
@@ -5664,7 +5727,7 @@ class NativeState final {
       rti::ParameterHandleValueMap const& parameterValues,
       rti::VariableLengthData const& userSuppliedTag,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     auto retraction = ambassador_.sendDirectedInteraction(
         ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle),
@@ -5693,7 +5756,7 @@ class NativeState final {
       rti::RegionHandleSet const& regions,
       rti::VariableLengthData const& userSuppliedTag,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     auto retraction = ambassador_.sendInteractionWithRegions(
         ambassador_.decodeInteractionClassHandle(encodedInteractionClassHandle),
@@ -5739,7 +5802,7 @@ class NativeState final {
   void requestFederationSave(
       std::wstring const& label,
       rti::VariableLengthData const& encodedLogicalTime) {
-    auto factory = ambassador_.getTimeFactory();
+    auto factory = ambassador_.makeLogicalTimeFactoryForJavaBinding();
     auto time = factory->decodeLogicalTime(encodedLogicalTime);
     ambassador_.requestFederationSave(label, *time);
   }

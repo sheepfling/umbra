@@ -1,19 +1,42 @@
 #include "tck_main_scenarios.hpp"
 #include "tck_delay_subscription_scenarios.hpp"
 
+#include <filesystem>
+#include <type_traits>
+
 namespace hla_rti_cpp_tck::detail {
+namespace {
+
+std::filesystem::path const& delaySubscriptionEvaluationFom(
+    Options const& options) {
+  auto const fixture =
+      options.scenarioFoms.find("delay-subscription-evaluation");
+  require(
+      fixture != options.scenarioFoms.end() && !fixture->second.empty(),
+      "Delay Subscription Evaluation requires its adapter-supplied isolated FOM");
+  return fixture->second;
+}
+
+}  // namespace
 
 void scenarioDelaySubscriptionEvaluationInteraction(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  using DelaySubscriptionEvaluationGetter =
+      bool (rti::RTIambassador::*)() const;
+  static_assert(
+      std::is_same_v<
+          decltype(&rti::RTIambassador::getDelaySubscriptionEvaluationSwitch),
+          DelaySubscriptionEvaluationGetter>,
+      "Get Delay Subscription Evaluation Switch must be const and return bool");
+
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
 
   auto delaySubscriptionEvaluationFomModules =
       [&](bool const delaySubscriptionEvaluationEnabled) {
         std::vector<std::wstring> fomModules{options.fom.wstring()};
         if (delaySubscriptionEvaluationEnabled) {
-          fomModules.push_back(options.switchesFom.wstring());
+          fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
         }
         return fomModules;
       };
@@ -91,12 +114,20 @@ void scenarioDelaySubscriptionEvaluationInteraction(
         "enabled delay-subscription evaluation did not retain the interaction");
     if (firstInteraction.present) {
       require(
-          firstInteraction.interaction == receiverInteraction &&
-              firstInteraction.parameters.empty() &&
-              firstInteraction.tag.empty() &&
-              firstInteraction.producer == publisher.federateHandle() &&
-              !firstInteraction.regions.has_value(),
-          "delayed interaction delivery did not preserve standard callback metadata");
+          firstInteraction.interaction == receiverInteraction,
+          "delayed interaction delivery changed the interaction class handle");
+      require(
+          firstInteraction.parameters.empty(),
+          "delayed interaction delivery added or changed parameters");
+      require(
+          firstInteraction.tag.empty(),
+          "delayed interaction delivery changed the interaction tag");
+      require(
+          firstInteraction.producer == publisher.federateHandle(),
+          "delayed interaction delivery changed the producing federate handle");
+      require(
+          !firstInteraction.regions.has_value(),
+          "non-regional delayed interaction delivery supplied regions");
     }
 
     // With the switch disabled, immediate generation-time filtering is
@@ -138,14 +169,13 @@ void scenarioDelaySubscriptionEvaluationInteraction(
 void scenarioDelaySubscriptionEvaluationDirectedInteraction(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
 
   auto delaySubscriptionEvaluationFomModules =
       [&](bool const delaySubscriptionEvaluationEnabled) {
         std::vector<std::wstring> fomModules{options.fom.wstring()};
         if (delaySubscriptionEvaluationEnabled) {
-          fomModules.push_back(options.switchesFom.wstring());
+          fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
         }
         return fomModules;
       };
@@ -297,8 +327,7 @@ void scenarioDelaySubscriptionEvaluationDirectedInteraction(
 void scenarioDelaySubscriptionEvaluationAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
 
   auto runConfiguration = [&](bool const delaySubscriptionEvaluationEnabled) {
     Session publisher(options, model, "delay-subscription-attribute-publisher");
@@ -313,7 +342,7 @@ void scenarioDelaySubscriptionEvaluationAttributeUpdate(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.fom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     publisher.rtiAmbassador().createFederationExecution(
         federation,
@@ -458,8 +487,7 @@ void scenarioDelaySubscriptionEvaluationAttributeUpdate(
 void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "regional delay-subscription testing requires a switch-declaration FOM");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.ddmFom.empty(),
           "regional delay-subscription testing requires a dimensional FOM");
 
@@ -473,7 +501,9 @@ void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
     publisher.connect();
     receiver.connect();
     std::vector<std::wstring> modules{options.ddmFom.wstring()};
-    if (delayEnabled) modules.push_back(options.switchesFom.wstring());
+    if (delayEnabled) {
+      modules.push_back(delaySubscriptionEvaluationFom(options).wstring());
+    }
     publisher.rtiAmbassador().createFederationExecution(
         federation, modules, options.logicalTimeImplementationName);
     publisher.join(options.ownerFederateName, options.federateType, federation);
@@ -647,8 +677,7 @@ void scenarioDelaySubscriptionEvaluationReceiveOrderRegionalAttributeUpdate(
 void scenarioDelaySubscriptionEvaluationTimestampedInteraction(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.logicalTimeImplementationName.empty(),
           "timestamped delay-subscription scenario requires a logical-time implementation");
 
@@ -665,7 +694,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedInteraction(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.fom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     publisher.rtiAmbassador().createFederationExecution(
         federation,
@@ -843,8 +872,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedInteraction(
 void scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.logicalTimeImplementationName.empty(),
           "timestamped directed delay-subscription scenario requires a logical-time implementation");
 
@@ -861,7 +889,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.fom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     owner.rtiAmbassador().createFederationExecution(
         federation,
@@ -1042,8 +1070,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedDirectedInteraction(
 void scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.logicalTimeImplementationName.empty(),
           "timestamped delay-subscription scenario requires a logical-time implementation");
 
@@ -1060,7 +1087,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.fom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     publisher.rtiAmbassador().createFederationExecution(
         federation,
@@ -1269,8 +1296,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedAttributeUpdate(
 void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.ddmFom.empty(),
           "timestamped regional delay-subscription testing requires an adapter-supplied dimensional FOM");
   require(!options.logicalTimeImplementationName.empty(),
@@ -1289,7 +1315,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.ddmFom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     publisher.rtiAmbassador().createFederationExecution(
         federation,
@@ -1551,8 +1577,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalAttributeUpdate(
 void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
     Options const& options,
     rti::CallbackModel model) {
-  require(!options.switchesFom.empty(),
-          "switch-declaration FOM input was not supplied by the adapter");
+  static_cast<void>(delaySubscriptionEvaluationFom(options));
   require(!options.ddmFom.empty(),
           "timestamped regional delay-subscription testing requires an adapter-supplied dimensional FOM");
   require(!options.logicalTimeImplementationName.empty(),
@@ -1571,7 +1596,7 @@ void scenarioDelaySubscriptionEvaluationTimestampedRegionalInteraction(
     receiver.connect();
     std::vector<std::wstring> fomModules{options.ddmFom.wstring()};
     if (delaySubscriptionEvaluationEnabled) {
-      fomModules.push_back(options.switchesFom.wstring());
+      fomModules.push_back(delaySubscriptionEvaluationFom(options).wstring());
     }
     publisher.rtiAmbassador().createFederationExecution(
         federation,

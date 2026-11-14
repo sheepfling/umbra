@@ -61,6 +61,12 @@ final class ObjectPublicationRegistrationFenceTck {
             subscriber, subscriberAttribute);
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          subscribed = true;
+         ObjectClassHandle initiallyUnpublishedClass = publisherClass;
+         JavaTckSupport.expectFailure(
+            () -> publisher.registerObjectInstance(initiallyUnpublishedClass),
+            "ObjectClassNotPublished", "registering before object-class publication");
+         JavaTckSupport.check(subscriberCallbacks.discoveries.isEmpty(),
+            "registration before object-class publication unexpectedly delivered discovery");
 
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;

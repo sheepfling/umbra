@@ -31,22 +31,33 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
    private RegionalAttributeUpdateCallbackDdmRecheckTck() { }
 
    static void run(RtiFactory factory, String fom, String objectClassName, String attributeName,
-         String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
-         throws Exception {
+         String firstDimensionName, String secondDimensionName, String unrelatedDimensionName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador active = factory.getRtiAmbassador();
       RTIambassador rechecked = factory.getRtiAmbassador();
+      RTIambassador emptySubscriber = factory.getRtiAmbassador();
       Recorder publisherCallbacks = new Recorder();
       Recorder activeCallbacks = new Recorder();
       Recorder recheckedCallbacks = new Recorder();
+      Recorder emptySubscriberCallbacks = new Recorder();
       String federation = "java-tck-regional-callback-ddm-recheck-" + UUID.randomUUID();
       boolean publisherConnected = false, activeConnected = false, recheckedConnected = false;
+      boolean emptySubscriberConnected = false;
       boolean created = false, publisherJoined = false, activeJoined = false, recheckedJoined = false;
+      boolean emptySubscriberJoined = false;
       boolean published = false, activeSubscribed = false, recheckedSubscribed = false;
+      boolean emptySubscriberSubscribed = false;
       ObjectClassHandle publisherClass = null, activeClass = null, recheckedClass = null;
+      ObjectClassHandle emptySubscriberClass = null;
       AttributeHandle publisherAttribute = null, activeAttribute = null, recheckedAttribute = null;
+      AttributeHandle emptySubscriberAttribute = null;
       AttributeHandleSet publisherAttributes = null, activeAttributes = null, recheckedAttributes = null;
+      AttributeHandleSet emptySubscriberAttributes = null;
       AttributeSetRegionSetPairList publisherPair = null, activePair = null, recheckedPair = null;
+      AttributeSetRegionSetPairList emptySourcePair = null;
+      AttributeSetRegionSetPairList activeEmptyPair = null;
+      AttributeSetRegionSetPairList emptySubscriberPair = null;
       RegionHandle sourceRegion = null, activeRegion = null, recheckedRegion = null;
       ObjectInstanceHandle object = null;
       try {
@@ -56,6 +67,8 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          activeConnected = true;
          rechecked.connect(recheckedCallbacks.proxy(), callbackModel);
          recheckedConnected = true;
+         emptySubscriber.connect(emptySubscriberCallbacks.proxy(), callbackModel);
+         emptySubscriberConnected = true;
          publisher.createFederationExecution(federation, fom);
          created = true;
          FederateHandle producingFederate = publisher.joinFederationExecution(
@@ -65,31 +78,46 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          activeJoined = true;
          rechecked.joinFederationExecution("java-tck-regional-callback-rechecked", federation);
          recheckedJoined = true;
+         emptySubscriber.joinFederationExecution("java-tck-regional-callback-empty", federation);
+         emptySubscriberJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          activeClass = active.getObjectClassHandle(objectClassName);
          recheckedClass = rechecked.getObjectClassHandle(objectClassName);
+         emptySubscriberClass = emptySubscriber.getObjectClassHandle(objectClassName);
          publisherAttribute = publisher.getAttributeHandle(publisherClass, attributeName);
          activeAttribute = active.getAttributeHandle(activeClass, attributeName);
          recheckedAttribute = rechecked.getAttributeHandle(recheckedClass, attributeName);
+         emptySubscriberAttribute = emptySubscriber.getAttributeHandle(emptySubscriberClass, attributeName);
          DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle activeFirst = active.getDimensionHandle(firstDimensionName);
          DimensionHandle activeSecond = active.getDimensionHandle(secondDimensionName);
          DimensionHandle recheckedFirst = rechecked.getDimensionHandle(firstDimensionName);
          DimensionHandle recheckedSecond = rechecked.getDimensionHandle(secondDimensionName);
+         DimensionHandle emptySubscriberFirst = emptySubscriber.getDimensionHandle(firstDimensionName);
+         DimensionHandle emptySubscriberSecond = emptySubscriber.getDimensionHandle(secondDimensionName);
          JavaTckSupport.check(publisherClass.equals(activeClass)
                && publisherClass.equals(recheckedClass)
+               && publisherClass.equals(emptySubscriberClass)
                && publisherAttribute.equals(activeAttribute)
                && publisherAttribute.equals(recheckedAttribute)
+               && publisherAttribute.equals(emptySubscriberAttribute)
                && publisherFirst.equals(activeFirst) && publisherSecond.equals(activeSecond)
-               && publisherFirst.equals(recheckedFirst) && publisherSecond.equals(recheckedSecond),
+               && publisherFirst.equals(recheckedFirst) && publisherSecond.equals(recheckedSecond)
+               && publisherFirst.equals(emptySubscriberFirst)
+               && publisherSecond.equals(emptySubscriberSecond),
             "adapter DDM FOM returned inconsistent object, attribute, or dimension handles");
          checkDimensions(publisher, publisherClass, publisherFirst, publisherSecond);
+         activeCallbacks.inspectRegionMetadata(active, activeFirst, activeSecond);
+         recheckedCallbacks.inspectRegionMetadata(rechecked, recheckedFirst, recheckedSecond);
 
          publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
          activeAttributes = JavaTckSupport.attributeSet(active, activeAttribute);
          recheckedAttributes = JavaTckSupport.attributeSet(rechecked, recheckedAttribute);
+         emptySubscriberAttributes = JavaTckSupport.attributeSet(emptySubscriber, emptySubscriberAttribute);
+         requireInvalidDimensionSubscriptionRejected(
+            rechecked, recheckedClass, recheckedAttributes, unrelatedDimensionName);
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;
          sourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 1, 5);
@@ -98,26 +126,38 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          publisherPair = association(publisher, publisherAttributes, sourceRegion);
          activePair = association(active, activeAttributes, activeRegion);
          recheckedPair = association(rechecked, recheckedAttributes, recheckedRegion);
+         activeEmptyPair = emptyAssociation(active, activeAttributes);
+         emptySubscriberPair = emptyAssociation(emptySubscriber, emptySubscriberAttributes);
          active.setConveyRegionDesignatorSetsSwitch(true);
          rechecked.setConveyRegionDesignatorSetsSwitch(true);
+         emptySubscriber.setConveyRegionDesignatorSetsSwitch(true);
          active.subscribeObjectClassAttributesWithRegions(activeClass, activePair);
          activeSubscribed = true;
          rechecked.subscribeObjectClassAttributesWithRegions(recheckedClass, recheckedPair);
          recheckedSubscribed = true;
+         emptySubscriber.subscribeObjectClassAttributesWithRegions(
+            emptySubscriberClass, emptySubscriberPair);
+         emptySubscriberSubscribed = true;
          object = publisher.registerObjectInstanceWithRegions(publisherClass, publisherPair);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "regional callback DDM registration returned an invalid object handle");
+         emptySourcePair = emptyAssociation(publisher, publisherAttributes);
+         publisher.associateRegionsForUpdates(object, emptySourcePair);
          ObjectInstanceHandle registeredObject = object;
          await(publisher, active, rechecked, callbackModel,
             () -> activeCallbacks.discoveries.contains(registeredObject)
                && recheckedCallbacks.discoveries.contains(registeredObject),
             "regional object discovery");
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            registeredObject, callbackModel, "after regional object registration");
 
          activeCallbacks.reflections.clear();
          recheckedCallbacks.reflections.clear();
          byte[] firstValue = new byte[] {0x41, 0x31};
          byte[] firstTag = new byte[] {0x52, 0x31};
          update(publisher, object, publisherAttribute, firstValue, firstTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after the first regional update");
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.check(activeCallbacks.reflections.isEmpty()
                   && recheckedCallbacks.reflections.isEmpty(),
@@ -137,21 +177,24 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
             moveRegion(rechecked, recheckedRegion, recheckedFirst, recheckedSecond, false);
          }
          requireReflection(active, activeCallbacks.reflections, object, activeAttribute,
-            firstValue, firstTag, producingFederate, sourceRegion,
+            firstValue, firstTag, producingFederate, activeFirst, activeSecond,
             "active receiver's first regional reflection");
          if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
             requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
-               firstValue, firstTag, producingFederate, sourceRegion,
+               firstValue, firstTag, producingFederate, recheckedFirst, recheckedSecond,
                "immediate rechecked receiver's first reflection");
          }
          JavaTckSupport.check(publisherCallbacks.reflections.isEmpty(),
             "regional attribute callback DDM update looped a reflection to the publisher");
 
+         publisher.unassociateRegionsForUpdates(object, emptySourcePair);
          activeCallbacks.reflections.clear();
          recheckedCallbacks.reflections.clear();
          byte[] secondValue = new byte[] {0x41, 0x32};
          byte[] secondTag = new byte[] {0x52, 0x32};
          update(publisher, object, publisherAttribute, secondValue, secondTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after the second regional update");
          await(publisher, active, rechecked, callbackModel,
             () -> activeCallbacks.reflections.size() >= 1,
             "active receiver reflection while other region is disjoint");
@@ -159,7 +202,7 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          JavaTckSupport.check(recheckedCallbacks.reflections.isEmpty(),
             "regional callback delivered while the receiver region was disjoint");
          requireReflection(active, activeCallbacks.reflections, object, activeAttribute,
-            secondValue, secondTag, producingFederate, sourceRegion,
+            secondValue, secondTag, producingFederate, activeFirst, activeSecond,
             "active receiver's second regional reflection");
 
          moveRegion(rechecked, recheckedRegion, recheckedFirst, recheckedSecond, true);
@@ -168,21 +211,152 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          byte[] restoredValue = new byte[] {0x41, 0x33};
          byte[] restoredTag = new byte[] {0x52, 0x33};
          update(publisher, object, publisherAttribute, restoredValue, restoredTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after the restored-overlap regional update");
          await(publisher, active, rechecked, callbackModel,
             () -> activeCallbacks.reflections.size() >= 1
                && recheckedCallbacks.reflections.size() >= 1,
             "regional reflection after restoring overlap");
          requireReflection(active, activeCallbacks.reflections, object, activeAttribute,
-            restoredValue, restoredTag, producingFederate, sourceRegion,
+            restoredValue, restoredTag, producingFederate, activeFirst, activeSecond,
             "active receiver's restored-overlap reflection");
          requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
-            restoredValue, restoredTag, producingFederate, sourceRegion,
+            restoredValue, restoredTag, producingFederate, recheckedFirst, recheckedSecond,
             "rechecked receiver's restored-overlap reflection");
+
+         moveRegion(active, activeRegion, activeFirst, activeSecond, false);
+         moveRegion(rechecked, recheckedRegion, recheckedFirst, recheckedSecond, false);
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         publisher.unassociateRegionsForUpdates(object, publisherPair);
+         byte[] unassociatedValue = new byte[] {0x41, 0x34};
+         byte[] unassociatedTag = new byte[] {0x52, 0x34};
+         update(publisher, object, publisherAttribute, unassociatedValue, unassociatedTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after source-region unassociation");
+         await(publisher, active, rechecked, callbackModel,
+            () -> activeCallbacks.reflections.size() >= 1
+               && recheckedCallbacks.reflections.size() >= 1,
+            "regional reflections after source-region unassociation");
+         requireUnassociatedReflection(active, activeCallbacks.reflections, object,
+            activeAttribute, unassociatedValue, unassociatedTag, producingFederate,
+            "active receiver's post-unassociation reflection");
+         requireUnassociatedReflection(rechecked, recheckedCallbacks.reflections, object,
+            recheckedAttribute, unassociatedValue, unassociatedTag, producingFederate,
+            "rechecked receiver's post-unassociation reflection");
+
+         rechecked.unsubscribeObjectClassAttributesWithRegions(recheckedClass, recheckedPair);
+         recheckedSubscribed = false;
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         byte[] unsubscribedValue = new byte[] {0x41, 0x35};
+         byte[] unsubscribedTag = new byte[] {0x52, 0x35};
+         update(publisher, object, publisherAttribute, unsubscribedValue, unsubscribedTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after regional unsubscription");
+         await(publisher, active, rechecked, callbackModel,
+            () -> activeCallbacks.reflections.size() >= 1,
+            "still-subscribed receiver after regional unsubscription");
+         for (int pass = 0; pass < 8; ++pass) pump(rechecked, callbackModel);
+         JavaTckSupport.check(recheckedCallbacks.reflections.isEmpty(),
+            "regional update reached the receiver after its subscription was removed");
+         requireUnassociatedReflection(active, activeCallbacks.reflections, object, activeAttribute,
+            unsubscribedValue, unsubscribedTag, producingFederate,
+            "still-subscribed receiver after regional unsubscription");
+
+         publisher.associateRegionsForUpdates(object, publisherPair);
+         moveRegion(active, activeRegion, activeFirst, activeSecond, true);
+         moveRegion(rechecked, recheckedRegion, recheckedFirst, recheckedSecond, true);
+         rechecked.subscribeObjectClassAttributesWithRegions(recheckedClass, recheckedPair);
+         recheckedSubscribed = true;
+
+         active.unsubscribeObjectClassAttributesWithRegions(activeClass, activeEmptyPair);
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         byte[] emptyUnsubscribeOverlapValue = new byte[] {0x41, 0x36};
+         byte[] emptyUnsubscribeOverlapTag = new byte[] {0x52, 0x36};
+         update(publisher, object, publisherAttribute,
+            emptyUnsubscribeOverlapValue, emptyUnsubscribeOverlapTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after empty regional unsubscribe with overlap");
+         await(publisher, active, rechecked, callbackModel,
+            () -> activeCallbacks.reflections.size() >= 1
+               && recheckedCallbacks.reflections.size() >= 1,
+            "overlap controls after empty regional unsubscribe");
+         requireReflectionDelivery(active, activeCallbacks.reflections, object, activeAttribute,
+            emptyUnsubscribeOverlapValue, emptyUnsubscribeOverlapTag, producingFederate,
+            "overlap control after empty regional unsubscribe");
+         requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
+            emptyUnsubscribeOverlapValue, emptyUnsubscribeOverlapTag, producingFederate,
+            recheckedFirst, recheckedSecond,
+            "rechecked overlap control after empty regional unsubscribe");
+
+         moveRegion(active, activeRegion, activeFirst, activeSecond, false);
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         byte[] emptyUnsubscribeDisjointValue = new byte[] {0x41, 0x37};
+         byte[] emptyUnsubscribeDisjointTag = new byte[] {0x52, 0x37};
+         update(publisher, object, publisherAttribute,
+            emptyUnsubscribeDisjointValue, emptyUnsubscribeDisjointTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after empty regional unsubscribe while disjoint");
+         await(publisher, active, rechecked, callbackModel,
+            () -> recheckedCallbacks.reflections.size() >= 1,
+            "rechecked disjoint control after empty regional unsubscribe");
+         JavaTckSupport.check(activeCallbacks.reflections.isEmpty(),
+            "empty regional unsubscribe removed the active subscription's disjoint filter");
+         requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
+            emptyUnsubscribeDisjointValue, emptyUnsubscribeDisjointTag, producingFederate,
+            recheckedFirst, recheckedSecond,
+            "rechecked disjoint control after empty regional unsubscribe");
+
+         active.subscribeObjectClassAttributesWithRegions(activeClass, activeEmptyPair);
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         byte[] emptySubscribeDisjointValue = new byte[] {0x41, 0x38};
+         byte[] emptySubscribeDisjointTag = new byte[] {0x52, 0x38};
+         update(publisher, object, publisherAttribute,
+            emptySubscribeDisjointValue, emptySubscribeDisjointTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after empty regional subscribe while disjoint");
+         await(publisher, active, rechecked, callbackModel,
+            () -> recheckedCallbacks.reflections.size() >= 1,
+            "rechecked disjoint control after empty regional subscribe");
+         JavaTckSupport.check(activeCallbacks.reflections.isEmpty(),
+            "empty regional subscribe added a route while the active region was disjoint");
+         requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
+            emptySubscribeDisjointValue, emptySubscribeDisjointTag, producingFederate,
+            recheckedFirst, recheckedSecond,
+            "rechecked disjoint control after empty regional subscribe");
+
+         moveRegion(active, activeRegion, activeFirst, activeSecond, true);
+         activeCallbacks.reflections.clear();
+         recheckedCallbacks.reflections.clear();
+         byte[] emptySubscribeRestoredValue = new byte[] {0x41, 0x39};
+         byte[] emptySubscribeRestoredTag = new byte[] {0x52, 0x39};
+         update(publisher, object, publisherAttribute,
+            emptySubscribeRestoredValue, emptySubscribeRestoredTag);
+         requireNoEmptyRegionCallbacks(emptySubscriber, emptySubscriberCallbacks,
+            object, callbackModel, "after empty regional subscribe with restored overlap");
+         await(publisher, active, rechecked, callbackModel,
+            () -> activeCallbacks.reflections.size() >= 1
+               && recheckedCallbacks.reflections.size() >= 1,
+            "overlap controls after empty regional subscribe");
+         requireReflectionDelivery(active, activeCallbacks.reflections, object, activeAttribute,
+            emptySubscribeRestoredValue, emptySubscribeRestoredTag, producingFederate,
+            "active overlap control after empty regional subscribe");
+         requireReflection(rechecked, recheckedCallbacks.reflections, object, recheckedAttribute,
+            emptySubscribeRestoredValue, emptySubscribeRestoredTag, producingFederate,
+            recheckedFirst, recheckedSecond,
+            "rechecked overlap control after empty regional subscribe");
 
          active.unsubscribeObjectClassAttributesWithRegions(activeClass, activePair);
          activeSubscribed = false;
          rechecked.unsubscribeObjectClassAttributesWithRegions(recheckedClass, recheckedPair);
          recheckedSubscribed = false;
+         emptySubscriber.unsubscribeObjectClassAttributesWithRegions(
+            emptySubscriberClass, emptySubscriberPair);
+         emptySubscriberSubscribed = false;
          publisher.unassociateRegionsForUpdates(object, publisherPair);
          publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
          published = false;
@@ -193,6 +367,8 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          activeJoined = false;
          rechecked.resignFederationExecution(ResignAction.NO_ACTION);
          recheckedJoined = false;
+         emptySubscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         emptySubscriberJoined = false;
          publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
          publisherJoined = false;
          publisher.destroyFederationExecution(federation);
@@ -204,6 +380,10 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          if (recheckedSubscribed && recheckedJoined && recheckedPair != null) try {
             rechecked.unsubscribeObjectClassAttributesWithRegions(recheckedClass, recheckedPair);
          } catch (Exception ignored) { }
+         if (emptySubscriberSubscribed && emptySubscriberJoined && emptySubscriberPair != null) try {
+            emptySubscriber.unsubscribeObjectClassAttributesWithRegions(
+               emptySubscriberClass, emptySubscriberPair);
+         } catch (Exception ignored) { }
          if (published && publisherJoined) try {
             publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
          } catch (Exception ignored) { }
@@ -214,6 +394,9 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
             catch (Exception ignored) { }
          if (recheckedJoined) try { rechecked.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
+         if (emptySubscriberJoined) try {
+            emptySubscriber.resignFederationExecution(ResignAction.NO_ACTION);
+         } catch (Exception ignored) { }
          if (publisherJoined) try { publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
             catch (Exception ignored) { }
          if (created) try { publisher.destroyFederationExecution(federation); }
@@ -221,6 +404,8 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
          if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
          if (activeConnected) try { active.disconnect(); } catch (Exception ignored) { }
          if (recheckedConnected) try { rechecked.disconnect(); } catch (Exception ignored) { }
+         if (emptySubscriberConnected) try { emptySubscriber.disconnect(); }
+            catch (Exception ignored) { }
       }
    }
 
@@ -232,6 +417,37 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
             && ambassador.getDimensionUpperBound(first) >= 9
             && ambassador.getDimensionUpperBound(second) >= 9,
          "adapter FOM does not expose the dimensions and bounds required by regional DDM recheck");
+   }
+
+   private static void requireInvalidDimensionSubscriptionRejected(RTIambassador ambassador,
+         ObjectClassHandle objectClass, AttributeHandleSet attributes, String dimensionName)
+         throws Exception {
+      DimensionHandle unrelatedDimension = ambassador.getDimensionHandle(dimensionName);
+      java.util.Set<DimensionHandle> available =
+         ambassador.getAvailableDimensionsForObjectClass(objectClass);
+      JavaTckSupport.check(!available.contains(unrelatedDimension),
+         "DDM subscription test dimension is available to the target object class");
+      DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
+      dimensions.add(unrelatedDimension);
+      RegionHandle region = ambassador.createRegion(dimensions);
+      try {
+         ambassador.setRangeBounds(region, unrelatedDimension,
+            new hla.rti1516_2025.RangeBounds(0L, 1L));
+         RegionHandleSet regions = ambassador.getRegionHandleSetFactory().create();
+         regions.add(region);
+         ambassador.commitRegionModifications(regions);
+         AttributeSetRegionSetPairList pair = association(ambassador, attributes, region);
+         boolean rejected = false;
+         try {
+            ambassador.subscribeObjectClassAttributesWithRegions(objectClass, pair);
+         } catch (hla.rti1516_2025.exceptions.InvalidRegionContext expected) {
+            rejected = true;
+         }
+         JavaTckSupport.check(rejected,
+            "regional subscription accepted a region with an unavailable dimension");
+      } finally {
+         deleteRegion(ambassador, region, true);
+      }
    }
 
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle first,
@@ -258,6 +474,24 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
       return result;
    }
 
+   private static AttributeSetRegionSetPairList emptyAssociation(RTIambassador ambassador,
+         AttributeHandleSet attributes) throws Exception {
+      RegionHandleSet regions = ambassador.getRegionHandleSetFactory().create();
+      AttributeSetRegionSetPairList result =
+         ambassador.getAttributeSetRegionSetPairListFactory().create(1);
+      result.add(new AttributeRegionAssociation(attributes, regions));
+      return result;
+   }
+
+   private static void requireNoEmptyRegionCallbacks(RTIambassador ambassador, Recorder callbacks,
+         ObjectInstanceHandle object, CallbackModel model, String phase) throws Exception {
+      for (int pass = 0; pass < 8; ++pass) pump(ambassador, model);
+      JavaTckSupport.check(!callbacks.discoveries.contains(object),
+         "empty regional subscription received discovery " + phase);
+      JavaTckSupport.check(callbacks.reflections.isEmpty(),
+         "empty regional subscription received a reflection " + phase);
+   }
+
    private static void moveRegion(RTIambassador ambassador, RegionHandle region,
          DimensionHandle first, DimensionHandle second, boolean overlap) throws Exception {
       long lower = overlap ? 2 : 7;
@@ -278,7 +512,36 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
 
    private static void requireReflection(RTIambassador receiver, List<Reflection> reflections,
          ObjectInstanceHandle object, AttributeHandle attribute, byte[] value, byte[] tag,
-         FederateHandle producer, RegionHandle sourceRegion, String description) throws Exception {
+         FederateHandle producer, DimensionHandle firstDimension, DimensionHandle secondDimension,
+         String description) throws Exception {
+      Reflection reflection = requireReflectionDelivery(receiver, reflections, object, attribute,
+         value, tag, producer, description);
+      JavaTckSupport.check(reflection.regionCount == 1,
+         description + " omitted the source-region designator copy");
+      JavaTckSupport.check(reflection.regionInspectionError == null
+            && reflection.regionDimensions != null && reflection.regionDimensions.size() == 2
+            && reflection.regionDimensions.contains(firstDimension)
+            && reflection.regionDimensions.contains(secondDimension)
+            && reflection.firstBounds != null && reflection.firstBounds.lower == 1L
+            && reflection.firstBounds.upper == 5L
+            && reflection.secondBounds != null && reflection.secondBounds.lower == 1L
+            && reflection.secondBounds.upper == 5L,
+         description + " returned a source-region copy with the wrong dimensions or bounds");
+   }
+
+   private static void requireUnassociatedReflection(RTIambassador receiver,
+         List<Reflection> reflections, ObjectInstanceHandle object, AttributeHandle attribute,
+         byte[] value, byte[] tag, FederateHandle producer, String description) throws Exception {
+      Reflection reflection = requireReflectionDelivery(receiver, reflections, object, attribute,
+         value, tag, producer, description);
+      JavaTckSupport.check(reflection.regionInspectionError == null
+            && !reflection.containsOriginalSourceRegion,
+         description + " still exposed the unassociated [1,5] source-region copy");
+   }
+
+   private static Reflection requireReflectionDelivery(RTIambassador receiver,
+         List<Reflection> reflections, ObjectInstanceHandle object, AttributeHandle attribute,
+         byte[] value, byte[] tag, FederateHandle producer, String description) throws Exception {
       JavaTckSupport.check(reflections.size() == 1,
          description + " produced the wrong reflection count");
       Reflection reflection = reflections.get(0);
@@ -289,9 +552,7 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
       TransportationTypeHandle reliable = receiver.getTransportationTypeHandle("HLAreliable");
       JavaTckSupport.check(reliable.equals(reflection.transportation),
          description + " returned a transportation type other than HLAreliable");
-      JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
-         description + " omitted the source-region designator");
+      return reflection;
    }
 
    private static void await(RTIambassador first, RTIambassador second, RTIambassador third,
@@ -324,12 +585,27 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
       private byte[] tag;
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
-      private RegionHandleSet regions;
+      private int regionCount = -1;
+      private DimensionHandleSet regionDimensions;
+      private hla.rti1516_2025.RangeBounds firstBounds;
+      private hla.rti1516_2025.RangeBounds secondBounds;
+      private boolean containsOriginalSourceRegion;
+      private Exception regionInspectionError;
    }
 
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private RTIambassador regionInspector;
+      private DimensionHandle firstDimension;
+      private DimensionHandle secondDimension;
+
+      private void inspectRegionMetadata(RTIambassador ambassador, DimensionHandle first,
+            DimensionHandle second) {
+         regionInspector = ambassador;
+         firstDimension = first;
+         secondDimension = second;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -346,7 +622,35 @@ final class RegionalAttributeUpdateCallbackDdmRecheckTck {
                   reflection.tag = ((byte[]) arguments[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) arguments[3];
                   reflection.producer = (FederateHandle) arguments[4];
-                  reflection.regions = (RegionHandleSet) arguments[5];
+                  RegionHandleSet regions = (RegionHandleSet) arguments[5];
+                  reflection.regionCount = regions == null ? -1 : regions.size();
+                  if (regions != null && regionInspector != null) {
+                     for (RegionHandle callbackRegion : regions) {
+                        try {
+                           DimensionHandleSet dimensions =
+                              regionInspector.getDimensionHandleSet(callbackRegion);
+                           if (dimensions.size() == 2 && dimensions.contains(firstDimension)
+                                 && dimensions.contains(secondDimension)) {
+                              hla.rti1516_2025.RangeBounds firstBounds =
+                                 regionInspector.getRangeBounds(callbackRegion, firstDimension);
+                              hla.rti1516_2025.RangeBounds secondBounds =
+                                 regionInspector.getRangeBounds(callbackRegion, secondDimension);
+                              if (reflection.regionDimensions == null) {
+                                 reflection.regionDimensions = dimensions.clone();
+                                 reflection.firstBounds = firstBounds;
+                                 reflection.secondBounds = secondBounds;
+                              }
+                              if (firstBounds.lower == 1L && firstBounds.upper == 5L
+                                    && secondBounds.lower == 1L && secondBounds.upper == 5L) {
+                                 reflection.containsOriginalSourceRegion = true;
+                              }
+                           }
+                        } catch (Exception error) {
+                           reflection.regionInspectionError = error;
+                           break;
+                        }
+                     }
+                  }
                   reflections.add(reflection);
                }
                if (method.getDeclaringClass() == Object.class) {

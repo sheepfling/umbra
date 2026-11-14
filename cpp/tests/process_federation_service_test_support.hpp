@@ -68,7 +68,8 @@ inline FederationDefinition composedRestaurantDefinition() {
   auto result = composer.compose(modules);
   if (result.status != FomCompositionStatus::valid || !result.catalog ||
       !result.fdd) {
-    throw std::runtime_error("The process service FOM did not compose.");
+    throw std::runtime_error(
+        "The process service FOM did not compose: " + result.diagnostics);
   }
   return {
       std::move(result.modules),

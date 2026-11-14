@@ -22,6 +22,7 @@ import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -80,7 +81,8 @@ final class RestoreTerminalTsoDirectedInteractionTck {
          sender.publishObjectClassAttributes(senderClass, senderAttributes);
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          sender.publishObjectClassDirectedInteractions(senderClass, senderDirected);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass, receiverDirected);
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(
+            receiverClass, receiverDirected);
          ObjectInstanceHandle target = sender.registerObjectInstance(senderClass);
          awaitAll(members, () -> receiverEvents.discoveries.contains(target),
             "terminal directed target discovery");
@@ -133,7 +135,7 @@ final class RestoreTerminalTsoDirectedInteractionTck {
          MessageRetractionReturn discarded = sender.sendDirectedInteraction(
             senderInteraction, target, empty, tag, time6);
          JavaTckSupport.check(valid(discarded)
-               && !terminal.handle.equals(discarded.handle),
+               && !Arrays.equals(encode(terminal.handle), encode(discarded.handle)),
             "post-save directed interaction reused saved terminal designator");
          sender.requestFederationRestore(saveLabel);
          awaitAll(members, () -> senderEvents.restoreRequestSucceeded == 1
@@ -173,6 +175,12 @@ final class RestoreTerminalTsoDirectedInteractionTck {
 
    private static boolean valid(MessageRetractionReturn result) {
       return result != null && result.retractionHandleIsValid && result.handle != null;
+   }
+
+   private static byte[] encode(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
    }
 
    private static void expectTerminal(RTIambassador member, MessageRetractionHandle handle)

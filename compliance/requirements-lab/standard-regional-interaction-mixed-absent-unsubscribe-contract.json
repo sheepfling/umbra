@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records portable C++ and Java TCK checks for IEEE 1516.1-2025 §9.11 when Unsubscribe Interaction Class With Regions receives a set containing both an active subscription region and a committed region absent from that interaction class's subscription set. The exact clause text requires no changes to the subscription set when specified regions are not in it. Both tests verify that a later matching regional interaction is still delivered, then that a subsequent valid request containing only the active region removes the route. Each source uses only its official IEEE 1516.1 public API and the standard library; adapters supply the provider, dimensional FOM, endpoint, callback model, and designators. This is focused API evidence, not conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-regional-interaction-mixed-absent-unsubscribe",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador regional interaction publication, region creation and commit, regional subscription, mixed present/absent regional unsubscription, regional Send Interaction With Regions, cleanup, and FederateAmbassador receiveInteraction delivery",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador Unsubscribe Interaction Class With Regions declaration",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_interaction_mixed_absent_unsubscribe.cpp::scenarioRegionalInteractionMixedAbsentUnsubscribeSet"
+      ]
+    },
+    {
+      "id": "standard-java-regional-interaction-mixed-absent-unsubscribe",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador regional interaction publication, region creation and commit, regional subscription, mixed present/absent regional unsubscription, regional Send Interaction With Regions, cleanup, and FederateAmbassador receiveInteraction delivery",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RTIambassador regional interaction services and FederateAmbassador#receiveInteraction",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalInteractionMixedAbsentUnsubscribeTck.java#run"
+      ]
+    }
+  ]
+}

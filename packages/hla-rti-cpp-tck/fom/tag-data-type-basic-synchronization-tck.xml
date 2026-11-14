@@ -5,6 +5,7 @@
     <synchronizations><synchronizationPoint>
         <label>TckBasicDataSynchronizationTag</label>
         <dataType>HLAinteger32BE</dataType>
+        <capability>NA</capability>
         <semantics>Invalid raw basic-data synchronization tag.</semantics>
     </synchronizationPoint></synchronizations>
 </objectModel>

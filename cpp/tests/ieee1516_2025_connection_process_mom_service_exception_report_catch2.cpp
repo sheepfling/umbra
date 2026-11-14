@@ -13,6 +13,7 @@
 #include <future>
 #include <iterator>
 #include <limits>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -461,12 +462,15 @@ TEST_CASE(
     "RTIambassador reports process service invocation exceptions through HLAreportException when enabled",
     "[integration][development-profile][foundation][mom][switches]"
     "[process-mom-service-exception-report][transport][process-boundary][public-endpoint][2025]"
+    "[mom-other-report-single-federate-region]"
     "[rti.service.connect][rti.service.create-federation-execution]"
     "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
     "[rti.service.get-parameter-handle][rti.service.get-object-class-handle]"
     "[rti.service.get-transportation-type-handle][rti.service.subscribe-interaction-class]"
     "[rti.service.unsubscribe-interaction-class][rti.service.send-interaction]"
     "[rti.service.get-exception-reporting-switch][rti.service.set-exception-reporting-switch]"
+    "[rti.service.set-convey-region-designator-sets-switch]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l47-15]"
     "[rti.service.enable-callbacks][rti.service.disable-callbacks][rti.service.evoke-callback]"
     "[rti.service.resign-federation-execution][rti.service.disconnect]"
     "[federate.callback.receive-interaction]") {
@@ -477,6 +481,7 @@ TEST_CASE(
     rti1516_2025::FederateHandle producer;
     std::size_t tagSize;
     bool sentRegions;
+    std::size_t sentRegionCount = 0U;
   };
   class ReportingFederate final : public NullFederateAmbassador {
    public:
@@ -488,7 +493,8 @@ TEST_CASE(
         rti1516_2025::FederateHandle const& producer,
         rti1516_2025::RegionHandleSet const* sentRegions) override {
       reports.push_back({interaction, parameters, transportation, producer,
-                         tag.size(), sentRegions != nullptr});
+                         tag.size(), sentRegions != nullptr,
+                         sentRegions == nullptr ? 0U : sentRegions->size()});
     }
     std::vector<Report> reports;
   };
@@ -554,6 +560,7 @@ TEST_CASE(
       REQUIRE(federateParameter.isValid());
       REQUIRE(reliable.isValid());
       rti->subscribeInteractionClass(reportClass, true);
+      rti->setConveyRegionDesignatorSetsSwitch(true);
       auto drain = [&] {
         try {
           while (rti->evokeCallback(0.0)) {}
@@ -596,7 +603,8 @@ TEST_CASE(
       REQUIRE(report.transportation == reliable);
       REQUIRE_FALSE(report.producer.isValid());
       REQUIRE(report.tagSize == 0U);
-      REQUIRE_FALSE(report.sentRegions);
+      REQUIRE(report.sentRegions);
+      REQUIRE(report.sentRegionCount == 1U);
       rti1516_2025::HLAunicodeString decodedService;
       REQUIRE_NOTHROW(decodedService.decode(report.parameters.at(serviceParameter)));
       REQUIRE(decodedService.get() == L"Get Object Class Handle");

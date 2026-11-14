@@ -107,6 +107,8 @@ TEST_CASE(
     "HLAreportServiceInvocation is routed through one point-region for its federate and service group",
     "[integration][development-profile][2025][mom][service-reporting]"
     "[mom-report-single-update-region][ddm]"
+    "[mom-ddm-service-prohibition]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm]"
     "[rti.service.normalize-federate-handle][rti.service.normalize-service-group]"
     "[rti.service.subscribe-interaction-class-with-regions]"
     "[rti.service.get-dimension-handle-set][rti.service.get-dimension-name]"

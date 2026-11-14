@@ -4,6 +4,7 @@ namespace {
 TEST_CASE(
     "Embedded passive interaction subscriptions do not arrange ordinary or regional delivery",
     "[integration][development-profile][interaction-management][ddm][passive-subscription]"
+    "[ddm-interaction-subscription-active-passive-exclusivity]"
     "[rti.service.subscribe-interaction-class]"
     "[rti.service.subscribe-interaction-class-with-regions]"
     "[rti.service.send-interaction]"
@@ -44,9 +45,16 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(publisher->publishInteractionClass(interactionClass));
 
+  // §9.1.5 p. 224 l. 89: without an interaction-class subscription, the
+  // Receive Interaction callback is not arranged for the joined federate.
+  REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
+  static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
+  REQUIRE(subscriberReports.interactionReports.empty());
+
   // An ordinary passive subscription is retained as declaration state but is
   // not eligible for a Receive Interaction callback. Replacing it with an
-  // active subscription makes the next send eligible.
+  // active subscription makes the next send eligible. This exercises
+  // §9.1.5 p. 224 l. 56's one-mode rule for a non-regional interaction class.
   REQUIRE_NOTHROW(subscriber->subscribeInteractionClass(interactionClass, false));
   REQUIRE_NOTHROW(publisher->sendInteraction(interactionClass, parameterValues, tag));
   static_cast<void>(subscriber->evokeMultipleCallbacks(0.0, 0.0));
@@ -73,9 +81,9 @@ TEST_CASE(
       RangeBounds(5UL, 15UL)));
   REQUIRE_NOTHROW(subscriber->commitRegionModifications(RegionHandleSet{subscriberRegion}));
 
-  // The same eligibility rule applies to a regional pair: the region remains
-  // subscribed and in use while passive, but its overlap cannot arrange
-  // delivery until the pair is made active.
+  // The region remains subscribed and in use while passive, but its overlap
+  // cannot arrange delivery until the pair is made active. This exercises
+  // §9.1.5 p. 224 l. 62's one-mode rule for this interaction-class/region pair.
   REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
       interactionClass,
       RegionHandleSet{subscriberRegion},

@@ -6,5 +6,6 @@
         <name>TckConditionalEmptyCondition</name>
         <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
         <updateCondition/>
+        <semantics>Invalid fixture with an empty conditional update description.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

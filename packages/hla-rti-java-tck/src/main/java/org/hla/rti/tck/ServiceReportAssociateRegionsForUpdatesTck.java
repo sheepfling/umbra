@@ -49,7 +49,8 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
 
    static void run(RtiFactory factory, String fom, String modelFom, String mim,
          String timeImplementation, String objectClassName, String attributeName,
-         String dimensionName, CallbackModel callbackModel) throws Exception {
+         String secondAttributeName, String dimensionName, CallbackModel callbackModel)
+         throws Exception {
       JavaTckSupport.check(fom != null && !fom.isEmpty()
             && modelFom != null && !modelFom.isEmpty()
             && mim != null && !mim.isEmpty(),
@@ -66,6 +67,7 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
       boolean observerJoined = false;
       boolean reportSubscribed = false;
       RegionHandle region = null;
+      RegionHandle secondRegion = null;
       ObjectInstanceHandle object = null;
       AttributeSetRegionSetPairList associations = null;
       InteractionClassHandle reportClass = null;
@@ -98,22 +100,35 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
 
          ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
          AttributeHandle attribute = subject.getAttributeHandle(objectClass, attributeName);
+         AttributeHandle secondAttribute = subject.getAttributeHandle(objectClass, secondAttributeName);
          DimensionHandle dimension = subject.getDimensionHandle(dimensionName);
+         JavaTckSupport.check(!attribute.equals(secondAttribute),
+            "adapter object class must provide two distinct typed attributes");
          AttributeHandleSet attributes = JavaTckSupport.attributeSet(subject, attribute);
-         subject.publishObjectClassAttributes(objectClass, attributes);
+         AttributeHandleSet secondAttributes = JavaTckSupport.attributeSet(subject, secondAttribute);
+         subject.publishObjectClassAttributes(objectClass,
+            JavaTckSupport.attributeSet(subject, attribute, secondAttribute));
          long upperBound = subject.getDimensionUpperBound(dimension);
          JavaTckSupport.check(upperBound > 0,
             "adapter model FOM did not provide a positive dimension upper bound");
          DimensionHandleSet dimensions = subject.getDimensionHandleSetFactory().create();
          dimensions.add(dimension);
          region = subject.createRegion(dimensions);
+         secondRegion = subject.createRegion(dimensions);
          subject.setRangeBounds(region, dimension, new RangeBounds(0, upperBound));
+         subject.setRangeBounds(secondRegion, dimension, new RangeBounds(0, upperBound));
          RegionHandleSet regions = subject.getRegionHandleSetFactory().create();
          regions.add(region);
-         subject.commitRegionModifications(regions);
+         RegionHandleSet secondRegions = subject.getRegionHandleSetFactory().create();
+         secondRegions.add(secondRegion);
+         RegionHandleSet allRegions = subject.getRegionHandleSetFactory().create();
+         allRegions.add(region);
+         allRegions.add(secondRegion);
+         subject.commitRegionModifications(allRegions);
          object = subject.registerObjectInstance(objectClass);
-         associations = subject.getAttributeSetRegionSetPairListFactory().create(1);
+         associations = subject.getAttributeSetRegionSetPairListFactory().create(2);
          associations.add(new AttributeRegionAssociation(attributes, regions));
+         associations.add(new AttributeRegionAssociation(secondAttributes, secondRegions));
 
          JavaTckSupport.check(!subject.getSendServiceReportsToFileSwitch(),
             "adapter did not select standard MOM callback delivery");
@@ -123,13 +138,16 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
          JavaTckSupport.check(observerCallbacks.interactions.size() == 1,
             "Associate Regions for Updates emitted an unexpected number of service reports");
          verifyReport(observer, observerCallbacks.interactions.get(0), encoder,
-            reportClass, reportParameters, subjectHandle, object, attribute, region);
+            reportClass, reportParameters, subjectHandle, object,
+            attribute, region, secondAttribute, secondRegion);
 
          subject.setServiceReportingSwitch(false);
          subject.unassociateRegionsForUpdates(object, associations);
          associations = null;
          subject.deleteRegion(region);
          region = null;
+         subject.deleteRegion(secondRegion);
+         secondRegion = null;
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
          subject.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -149,6 +167,9 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
          if (subjectJoined && region != null) {
             try { subject.deleteRegion(region); } catch (Exception ignored) { }
          }
+         if (subjectJoined && secondRegion != null) {
+            try { subject.deleteRegion(secondRegion); } catch (Exception ignored) { }
+         }
          if (observerJoined && reportSubscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); }
             catch (Exception ignored) { }
@@ -167,8 +188,8 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
    private static void verifyReport(RTIambassador observer, Interaction report,
          EncoderFactory encoder, InteractionClassHandle reportClass,
          Map<String, ParameterHandle> parameters, FederateHandle subject,
-         ObjectInstanceHandle object, AttributeHandle attribute, RegionHandle region)
-         throws Exception {
+         ObjectInstanceHandle object, AttributeHandle attribute, RegionHandle region,
+         AttributeHandle secondAttribute, RegionHandle secondRegion) throws Exception {
       JavaTckSupport.check(reportClass.equals(report.interaction)
             && report.parameters.size() == parameters.size()
             && report.tag.length == 0 && report.producer == null
@@ -200,7 +221,9 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
       JavaTckSupport.check(suppliedArguments.size() == 2,
          "Associate Regions for Updates report had the wrong supplied-argument count");
       String associationValue = "[{\"attributeHandleSet\":[" + quote(attribute.toString())
-         + "],\"regionHandleSet\":[" + quote(region.toString()) + "]}]";
+         + "],\"regionHandleSet\":[" + quote(region.toString())
+         + "]},{\"attributeHandleSet\":[" + quote(secondAttribute.toString())
+         + "],\"regionHandleSet\":[" + quote(secondRegion.toString()) + "]}]";
       checkArgument(suppliedArguments.get(0), 37,
          "Object instance designator", quote(object.toString()));
       checkArgument(suppliedArguments.get(1), 4,
@@ -219,11 +242,16 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
 
    private static void checkArgument(HLAfixedRecord argument, int type,
          String name, String value) {
+      String actualName = argument.size() > 1
+         ? ((HLAunicodeString) argument.get(1)).getValue() : "<missing>";
+      String actualValue = argument.size() > 2
+         ? ((HLAunicodeString) argument.get(2)).getValue() : "<missing>";
       JavaTckSupport.check(argument.size() == 3
             && ((HLAinteger32BE) argument.get(0)).getValue() == type
-            && name.equals(((HLAunicodeString) argument.get(1)).getValue())
-            && value.equals(((HLAunicodeString) argument.get(2)).getValue()),
-         "Associate Regions for Updates report had an incorrect argument: " + name);
+            && name.equals(actualName)
+            && value.equals(actualValue),
+         "Associate Regions for Updates report had an incorrect argument: " + name
+            + " expected=" + value + " actual=" + actualValue);
    }
 
    private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {

@@ -24,7 +24,9 @@ DEFAULT_JAVA_MAIN = (
     / "tck"
     / "RtiTckMain.java"
 )
-SCENARIO_ID = re.compile(r'new\s+Scenario\s*\(\s*"(java-tck\.[a-z0-9-]+)"')
+SCENARIO_ID = re.compile(
+    r'new\s+(?:RtiTckMain\.)?Scenario\s*\(\s*"(java-tck\.[a-z0-9-]+)"'
+)
 
 
 def main() -> int:
@@ -42,12 +44,20 @@ def main() -> int:
         catalog = json.loads(arguments.catalog.read_text(encoding="utf-8"))
         rows = catalog["scenarios"]
         catalog_ids = {row["id"] for row in rows}
-        java_source = arguments.java_main.read_text(encoding="utf-8")
+        java_sources = sorted(arguments.java_main.parent.glob("*.java"))
+        if arguments.java_main not in java_sources:
+            java_sources.append(arguments.java_main)
+        java_ids = {
+            scenario_id
+            for java_source_path in java_sources
+            for scenario_id in SCENARIO_ID.findall(
+                java_source_path.read_text(encoding="utf-8")
+            )
+        }
     except (OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         print(f"cpp/java parity audit: cannot read inputs: {error}", file=sys.stderr)
         return 2
 
-    java_ids = set(SCENARIO_ID.findall(java_source))
     if arguments.report_cpp_gaps:
         candidates = [
             row

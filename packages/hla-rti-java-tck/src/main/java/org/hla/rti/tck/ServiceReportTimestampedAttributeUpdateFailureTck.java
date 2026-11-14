@@ -26,6 +26,7 @@ import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeFactoryFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
@@ -93,8 +94,13 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
             publisherClass, attributeName);
          AttributeHandle receiverAttribute = receiver.getAttributeHandle(
             receiverClass, attributeName);
+         ObjectClassHandle momFederateClass = publisher.getObjectClassHandle(
+            "HLAobjectRoot.HLAmanager.HLAfederate");
+         AttributeHandle foreignAttribute = momFederateClass == null ? null
+            : publisher.getAttributeHandle(momFederateClass, "HLAfederateName");
          JavaTckSupport.check(publisherClass != null && receiverClass != null
-               && publisherAttribute != null && receiverAttribute != null,
+               && publisherAttribute != null && receiverAttribute != null
+               && momFederateClass != null && foreignAttribute != null,
             "adapter-supplied object class or attribute lookup returned an invalid handle");
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
@@ -130,22 +136,31 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
             publisherClass, publisherAttributes, OrderType.TIMESTAMP);
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = true;
+         ObjectInstanceHandle unknownObject = publisher.registerObjectInstance(publisherClass);
+         await(receiver, callbackModel,
+            () -> unknownObject.equals(receiverRecorder.discoveredObject),
+            "timestamped attribute-update failure setup-object discovery");
+         publisher.deleteObjectInstance(unknownObject, new byte[0]);
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          await(receiver, callbackModel, () -> object.equals(receiverRecorder.discoveredObject),
             "timestamped attribute-update failure object discovery");
          int reflectionsBeforeFailures = receiverRecorder.reflections.size();
 
-         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
-         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
-            "federates selected different logical-time factories");
+         LogicalTimeFactory<?, ?> timeFactory =
+            LogicalTimeFactoryFactory.getLogicalTimeFactory(timeImplementation);
+         JavaTckSupport.check(timeFactory != null
+               && timeImplementation.equals(timeFactory.getName()),
+            "adapter-selected logical-time factory is unavailable");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          LogicalTimeInterval lookahead = epsilon;
          for (int i = 0; i < 4; ++i) lookahead = (LogicalTimeInterval) lookahead.add(epsilon);
+         LogicalTime initial = timeFactory.makeInitial();
+         JavaTckSupport.check(initial != null,
+            "timestamped attribute-update failure time factory returned no initial time");
          publisher.enableTimeRegulation(lookahead);
          publisherRegulating = true;
          await(publisher, callbackModel, () -> publisherRecorder.timeRegulationEnabled,
             "timestamped attribute-update failure time-regulation callback");
-         LogicalTime initial = publisher.queryLogicalTime();
          LogicalTime validTimestamp = (LogicalTime) initial.add(lookahead).add(epsilon);
          LogicalTimeInterval fourEpsilon = (LogicalTimeInterval) epsilon.add(epsilon)
             .add(epsilon).add(epsilon);
@@ -156,27 +171,24 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
          AttributeHandleValueMap validValues =
             publisher.getAttributeHandleValueMapFactory().create(1);
          validValues.put(publisherAttribute, value);
-         AttributeHandle invalidAttribute =
-            JavaTckSupport.invalidHandle(AttributeHandle.class);
          AttributeHandleValueMap invalidValues =
             publisher.getAttributeHandleValueMapFactory().create(1);
-         invalidValues.put(invalidAttribute, value);
+         invalidValues.put(foreignAttribute, value);
          publisher.setServiceReportingSwitch(true);
          publisher.setSendServiceReportsToFileSwitch(false);
 
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
          JavaTckSupport.expectFailure(
             () -> publisher.updateAttributeValues(
-               invalidObject, validValues, tag, validTimestamp),
+               unknownObject, validValues, tag, validTimestamp),
             "ObjectInstanceNotKnown", "timestamped update with an unknown object");
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "unknown-object timestamped update failure report");
          JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "unknown-object timestamped update produced more than one service report");
+            "unknown-object timestamped update produced more than one service report: "
+               + reportSequence(observerRecorder.interactions, encoder, reportParameters));
          verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, invalidObject.toString(),
-            publisherAttribute.toString(), value, tag, validTimestamp,
+            reportParameters, encoder, publisherHandle, unknownObject, publisherAttribute,
+            value, tag, validTimestamp,
             "ObjectInstanceNotKnown", 0, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
@@ -189,10 +201,11 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "undefined-attribute timestamped update failure report");
          JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "undefined-attribute timestamped update produced more than one service report");
+            "undefined-attribute timestamped update produced more than one service report: "
+               + reportSequence(observerRecorder.interactions, encoder, reportParameters));
          verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, object.toString(),
-            invalidAttribute.toString(), value, tag, validTimestamp,
+            reportParameters, encoder, publisherHandle, object, foreignAttribute,
+            value, tag, validTimestamp,
             "AttributeNotDefined", 1, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
@@ -205,10 +218,11 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "invalid-time timestamped update failure report");
          JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "invalid-time timestamped update produced more than one service report");
+            "invalid-time timestamped update produced more than one service report: "
+               + reportSequence(observerRecorder.interactions, encoder, reportParameters));
          verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, object.toString(),
-            publisherAttribute.toString(), value, tag, invalidTimestamp,
+            reportParameters, encoder, publisherHandle, object, publisherAttribute,
+            value, tag, invalidTimestamp,
             "InvalidLogicalTime", 2, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
@@ -263,8 +277,8 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
 
    private static void verifyFailureReport(RTIambassador observer, Interaction report,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> parameters,
-         EncoderFactory encoder, FederateHandle publisher, String objectValue,
-         String attributeValue, byte[] value, byte[] tag, LogicalTime timestamp,
+         EncoderFactory encoder, FederateHandle publisher, ObjectInstanceHandle object,
+         AttributeHandle attribute, byte[] value, byte[] tag, LogicalTime timestamp,
          String exceptionName, int serialNumber, TransportationTypeHandle reliable)
          throws Exception {
       JavaTckSupport.check(reportClass.equals(report.interaction)
@@ -293,12 +307,35 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
       supplied.decode(report.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 4,
          "timestamped attribute-update failure report returned the wrong argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator", quoted(objectValue));
-      verifyArgument(supplied.get(1), 2,
-         "Constrained set of attribute designator and value pairs",
-         "{\"" + attributeValue + "\":\"" + base64(value) + "\"}");
+      HLAfixedRecord objectDesignator = supplied.get(0);
+      JavaTckSupport.check(objectDesignator.size() == 3
+            && ((HLAinteger32BE) objectDesignator.get(0)).getValue() == 37
+            && "Object instance designator".equals(
+               ((HLAunicodeString) objectDesignator.get(1)).getValue()),
+         "timestamped attribute-update failure report returned the wrong object-designator shape");
+      String objectDesignatorValue = ((HLAunicodeString) objectDesignator.get(2)).getValue();
+      JavaTckSupport.check(quoted(object.toString()).equals(objectDesignatorValue),
+         "timestamped attribute-update failure report did not identify the actual object argument");
+
+      HLAfixedRecord attributeMapArgument = supplied.get(1);
+      JavaTckSupport.check(attributeMapArgument.size() == 3
+            && ((HLAinteger32BE) attributeMapArgument.get(0)).getValue() == 2
+            && "Constrained set of attribute designator and value pairs".equals(
+               ((HLAunicodeString) attributeMapArgument.get(1)).getValue()),
+         "timestamped attribute-update failure report returned the wrong map argument shape");
+      String mapValue = ((HLAunicodeString) attributeMapArgument.get(2)).getValue();
+      String keyValueSeparator = "\":\"";
+      int separator = mapValue.indexOf(keyValueSeparator);
+      boolean oneMapEntry = mapValue.startsWith("{\"")
+         && mapValue.endsWith("\":\"" + base64(value) + "\"}")
+         && separator > 2 && separator == mapValue.lastIndexOf(keyValueSeparator);
+      String expectedMapValue = "{\"" + attribute.toString() + "\":\""
+         + base64(value) + "\"}";
+      JavaTckSupport.check(oneMapEntry && expectedMapValue.equals(mapValue),
+         "timestamped attribute-update failure report returned the wrong map key or value");
       verifyArgument(supplied.get(2), 60, "User-supplied tag", quoted(base64(tag)));
-      verifyArgument(supplied.get(3), 31, "Optional timestamp", quoted(timestamp.toString()));
+      verifyArgument(supplied.get(3), 31, "Optional timestamp",
+         quoted(timestamp.toString()));
 
       HLAfixedRecord returned = fixedRecordPrototype(encoder);
       returned.decode(report.parameters.get(parameters.get("HLAreturnedArgument")));
@@ -322,6 +359,20 @@ final class ServiceReportTimestampedAttributeUpdateFailureTck {
       record.add(encoder.createHLAunicodeString());
       record.add(encoder.createHLAunicodeString());
       return record;
+   }
+
+   private static String reportSequence(List<Interaction> reports, EncoderFactory encoder,
+         Map<String, ParameterHandle> parameters) throws Exception {
+      StringBuilder sequence = new StringBuilder();
+      for (Interaction report : reports) {
+         HLAunicodeString service = encoder.createHLAunicodeString();
+         service.decode(report.parameters.get(parameters.get("HLAservice")));
+         HLAinteger32BE serial = encoder.createHLAinteger32BE();
+         serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
+         if (sequence.length() != 0) sequence.append(", ");
+         sequence.append(service.getValue()).append('#').append(serial.getValue());
+      }
+      return sequence.toString();
    }
 
    private static void verifyArgument(HLAfixedRecord argument, int type, String name,

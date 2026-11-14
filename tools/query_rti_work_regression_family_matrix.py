@@ -639,7 +639,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
     )
     if not isinstance(content_reports, dict):
         raise AssertionError("focused federation MOM content-report plan row is absent")
-    if content_reports.get("assertions") != 55:
+    if content_reports.get("assertions") != 57:
         raise AssertionError(
             "focused federation MOM content-report assertion count drifted"
         )
@@ -661,11 +661,11 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         raise AssertionError(
             "focused federation MOM content-report mapped count drifted"
         )
-    if content_reports_focus.get("assertion_count") != 55:
+    if content_reports_focus.get("assertion_count") != 57:
         raise AssertionError(
             "focused federation MOM content-report lane assertion total drifted"
         )
-    if content_reports_focus.get("requirement_section_pair_count") != 1:
+    if content_reports_focus.get("requirement_section_pair_count") != 2:
         raise AssertionError(
             "focused federation MOM content-report direct pair count drifted"
         )
@@ -939,7 +939,7 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         f"represented subsections={expected_transport_gap['family_section_count']}; "
         f"{expected_transport_gap['candidate_count']} global gaps in represented subsections "
         f"({expected_transport_gap['preview_candidate_count']} IEEE 1516.1-2025 previewable; "
-        f"{expected_transport_gap['out_of_scope_candidate_count']} other-document gaps excluded; "
+        f"{expected_transport_gap['out_of_scope_candidate_count']} out-of-scope gaps excluded; "
         f"{expected_transport_gap['inventory_only_count']} inventory-only excluded)"
     )
     if (
@@ -953,6 +953,53 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         not in transport_gap_text
     ):
         raise AssertionError("new-case family text omitted its bounded gap handles")
+
+    cpp_tck_gap = query_rti_work.family_gap_preview(
+        index,
+        tests,
+        standard_requirements,
+        "portable-cpp-tck-2025",
+    )
+    cpp_tck_requirement = (
+        cpp_tck_gap.get("requirement") if isinstance(cpp_tck_gap, dict) else None
+    )
+    expected_cpp_tck_gap = expected_family_gap_head(
+        index,
+        tests,
+        standard_requirements,
+        "portable-cpp-tck-2025",
+    )
+    expected_cpp_tck_requirement = expected_cpp_tck_gap.get("requirement")
+    if (
+        not isinstance(cpp_tck_requirement, dict)
+        or not cpp_tck_requirement
+        or not isinstance(expected_cpp_tck_requirement, dict)
+        or cpp_tck_requirement.get("id") != expected_cpp_tck_requirement.get("id")
+        or cpp_tck_requirement.get("document_id") != "hla-1516.1-2025"
+    ):
+        raise AssertionError(
+            "portable C++ handoff did not select an in-scope 1516.1 requirement"
+        )
+    cpp_tck_requirement_text = " ".join(
+        str(cpp_tck_requirement.get(field) or "")
+        for field in ("title", "statement", "machine_statement")
+    ).casefold()
+    if "java api" in cpp_tck_requirement_text and "c++" not in cpp_tck_requirement_text:
+        raise AssertionError(
+            "portable C++ handoff selected an explicitly Java-only requirement"
+        )
+    cpp_tck_gap_text = "\n".join(
+        query_rti_work.text_gap_preview({"gap_preview": cpp_tck_gap})
+    )
+    if (
+        "direct_tck_gap_query=python tools/query_rti_work.py tck-gaps "
+        "--document hla-1516.1-2025 --summary --compact" not in cpp_tck_gap_text
+        or "the family gaps above are Catch2-plan inventory, not direct C++ TCK coverage"
+        not in cpp_tck_gap_text
+    ):
+        raise AssertionError(
+            "portable C++ TCK handoff did not distinguish Catch2 inventory from TCK coverage"
+        )
 
     # Family summaries and the bounded gap preview must select the same rows.
     # Lane-owner handles (for example ``interaction-class-handle``) are easy
@@ -993,6 +1040,21 @@ def run_family_matrix(inputs: FamilyMatrixInputs) -> None:
         ) or not source_only_ready.get("source_location"):
             raise AssertionError(
                 "explicit source-only opt-in displaced or dropped the active handoff"
+            )
+    elif (
+        source_only_ready.get("state") == "active"
+        and source_only_ready.get("handoff_kind") == "new-case"
+    ):
+        declared_handoff = index.get("active_handoff")
+        if (
+            not isinstance(declared_handoff, dict)
+            or source_only_ready.get("plan_id") != declared_handoff.get("plan_id")
+            or source_only_ready.get("source_target")
+            != declared_handoff.get("source_target")
+            or not source_only_ready.get("source_target")
+        ):
+            raise AssertionError(
+                "explicit source-only opt-in displaced or dropped the proposed handoff"
             )
     elif source_only_ready.get("state") == "unplanned-source":
         if not source_only_ready.get("source_location"):

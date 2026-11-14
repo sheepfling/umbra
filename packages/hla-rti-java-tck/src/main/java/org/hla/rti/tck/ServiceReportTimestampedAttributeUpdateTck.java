@@ -7,6 +7,7 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
@@ -16,6 +17,7 @@ import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
@@ -27,8 +29,12 @@ import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeFactoryFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +47,8 @@ final class ServiceReportTimestampedAttributeUpdateTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
    private static final String REPORT_CLASS_NAME =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
+   private static final String FEDERATE_MOM_CLASS = "HLAobjectRoot.HLAmanager.HLAfederate";
+   private static final String REPORT_DIRECTORY_SETTING = "serviceReportDirectory=";
    private static final String[] REPORT_PARAMETER_NAMES = {
       "HLAservice", "HLAserviceType", "HLAsuccessIndicator", "HLAsuppliedArguments",
       "HLAreturnedArgument", "HLAexception", "HLAserialNumber", "HLAfederate"
@@ -49,8 +57,19 @@ final class ServiceReportTimestampedAttributeUpdateTck {
    private ServiceReportTimestampedAttributeUpdateTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String objectClassName, String attributeName, CallbackModel callbackModel)
-         throws Exception {
+         String objectClassName, String attributeName, CallbackModel callbackModel,
+         RtiConfiguration publisherConfiguration, String additionalSettings,
+         String serviceReportDirectory) throws Exception {
+      JavaTckSupport.check(publisherConfiguration != null,
+         "timestamped service-report publisher configuration is required");
+      JavaTckSupport.check(serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+            && Files.isDirectory(Path.of(serviceReportDirectory)),
+         "adapter-supplied service-report directory must exist");
+      String expectedDirectorySetting = REPORT_DIRECTORY_SETTING
+         + Path.of(serviceReportDirectory);
+      JavaTckSupport.check(additionalSettings != null
+            && Arrays.asList(additionalSettings.split(";")).contains(expectedDirectorySetting),
+         "adapter did not configure the expected timestamped service-report directory");
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
@@ -62,12 +81,14 @@ final class ServiceReportTimestampedAttributeUpdateTck {
       boolean publisherConnected = false, receiverConnected = false, observerConnected = false;
       boolean created = false, publisherJoined = false, receiverJoined = false;
       boolean observerJoined = false, published = false, subscribed = false;
-      boolean reportSubscribed = false;
+      boolean reportSubscribed = false, federateMomSubscribed = false;
       ObjectClassHandle publisherClass = null, receiverClass = null;
       AttributeHandleSet publisherAttributes = null, receiverAttributes = null;
+      ObjectClassHandle federateMomClass = null;
+      AttributeHandleSet federateMomAttributes = null;
       InteractionClassHandle reportClass = null;
       try {
-         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         publisher.connect(publisherRecorder.proxy(), callbackModel, publisherConfiguration);
          publisherConnected = true;
          receiver.connect(receiverRecorder.proxy(), callbackModel);
          receiverConnected = true;
@@ -76,8 +97,9 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          publisher.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         String publisherName = "java-tck-tso-report-publisher-" + UUID.randomUUID();
          FederateHandle publisherHandle = publisher.joinFederationExecution(
-            "java-tck-tso-report-publisher-" + UUID.randomUUID(), "java-tck", federation);
+            publisherName, "java-tck", federation);
          publisherJoined = true;
          receiver.joinFederationExecution(
             "java-tck-tso-report-receiver-" + UUID.randomUUID(), "java-tck", federation);
@@ -119,6 +141,23 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                && "HLAreliable".equals(receiver.getTransportationTypeName(receiverReliable)),
             "standard reliable transportation lookup/name round-trip failed");
 
+         federateMomClass = observer.getObjectClassHandle(FEDERATE_MOM_CLASS);
+         AttributeHandle federateNameAttribute = observer.getAttributeHandle(
+            federateMomClass, "HLAfederateName");
+         AttributeHandle reportFileAttribute = observer.getAttributeHandle(
+            federateMomClass, "HLAreportServiceFile");
+         JavaTckSupport.check(FEDERATE_MOM_CLASS.equals(
+               observer.getObjectClassName(federateMomClass))
+               && "HLAfederateName".equals(
+                  observer.getAttributeName(federateMomClass, federateNameAttribute))
+               && "HLAreportServiceFile".equals(
+                  observer.getAttributeName(federateMomClass, reportFileAttribute)),
+            "standard Federate MOM report-file handles did not round-trip by public name");
+         federateMomAttributes = JavaTckSupport.attributeSet(
+            observer, federateNameAttribute, reportFileAttribute);
+         observer.subscribeObjectClassAttributes(federateMomClass, federateMomAttributes, "");
+         federateMomSubscribed = true;
+
          publisherAttributes = publisher.getAttributeHandleSetFactory().create();
          publisherAttributes.add(publisherAttribute);
          receiverAttributes = receiver.getAttributeHandleSetFactory().create();
@@ -140,6 +179,24 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          JavaTckSupport.check(object.equals(receiverRecorder.discoveredObject),
             "timestamped service-report discovery identified the wrong object");
 
+         byte[] encodedPublisherName = encoder.createHLAunicodeString(publisherName).toByteArray();
+         await(observer, callbackModel,
+            () -> publisherMomReflection(observerRecorder, federateNameAttribute,
+               reportFileAttribute, encodedPublisherName) != null,
+            "publisher HLAreportServiceFile MOM reflection");
+         Reflection publisherMomReflection = publisherMomReflection(
+            observerRecorder, federateNameAttribute, reportFileAttribute, encodedPublisherName);
+         String reportFileName = decodeUnicode(
+            encoder, publisherMomReflection.values.get(reportFileAttribute));
+         JavaTckSupport.check(reportFileName != null && !reportFileName.trim().isEmpty(),
+            "publisher HLAreportServiceFile reflection did not contain a file name");
+         Path reportFile = Path.of(reportFileName);
+         JavaTckSupport.check(Files.isRegularFile(reportFile),
+            "publisher HLAreportServiceFile did not identify an existing file");
+         String initialReportFile = Files.readString(reportFile, StandardCharsets.UTF_8);
+         JavaTckSupport.check(!initialReportFile.isEmpty(),
+            "publisher HLAreportServiceFile did not identify a file with its initial record");
+
          publisher.setServiceReportingSwitch(false);
          publisher.setSendServiceReportsToFileSwitch(false);
          receiver.setServiceReportingSwitch(false);
@@ -149,9 +206,11 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          receiverRecorder.clearTimedEvents();
          observerRecorder.events.clear();
 
-         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
-         JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
-            "federates selected different logical-time factories");
+         LogicalTimeFactory<?, ?> timeFactory =
+            LogicalTimeFactoryFactory.getLogicalTimeFactory(timeImplementation);
+         JavaTckSupport.check(timeFactory != null
+               && timeImplementation.equals(timeFactory.getName()),
+            "adapter-selected logical-time factory is unavailable");
          receiver.enableTimeConstrained();
          await(receiver, callbackModel,
             () -> receiverRecorder.timeConstrainedEnabled,
@@ -161,12 +220,14 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          for (int i = 0; i < 4; ++i) {
             lookahead = (LogicalTimeInterval) lookahead.add(epsilon);
          }
+         LogicalTime initial = timeFactory.makeInitial();
+         JavaTckSupport.check(initial != null,
+            "timestamped service-report factory returned no initial logical time");
          publisher.enableTimeRegulation(lookahead);
          await(publisher, callbackModel,
             () -> publisherRecorder.timeRegulationEnabled,
             "timestamped service-report time-regulation callback");
 
-         LogicalTime initial = publisher.queryLogicalTime();
          LogicalTime timestamp = (LogicalTime) initial.add(lookahead).add(epsilon);
          byte[] payload = new byte[] {0x01, 0x02};
          byte[] tag = new byte[] {0x74, 0x73, 0x6f};
@@ -187,18 +248,23 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                && receiverRecorder.grants.isEmpty(),
             "timestamped attribute update arrived before the receiver advanced time");
          Interaction report = observerRecorder.events.get(0);
+         String reportSequenceText = observerRecorder.events.size() == 1
+            ? "one report" : reportSequence(observerRecorder.events, encoder, reportParameters);
          JavaTckSupport.check(observerRecorder.events.size() == 1
                && reportClass.equals(report.interaction)
                && report.parameters.size() == REPORT_PARAMETER_NAMES.length
-               && report.tag.length == 0 && report.producer == null && report.regionsEmpty
+               && report.tag.length == 0 && report.regionsEmpty
                && observerReliable.equals(report.transportation),
-            "timestamped service report returned invalid callback metadata");
+            "timestamped service report returned invalid callback metadata: "
+               + reportSequenceText);
          for (String name : REPORT_PARAMETER_NAMES) {
             JavaTckSupport.check(report.parameters.containsKey(reportParameters.get(name)),
                "timestamped service report omitted standard parameter " + name);
          }
-         verifyReport(observer, report, reportParameters, encoder, publisherHandle, object,
-            publisherAttribute, payload, tag, timestamp, retraction);
+         verifyReport(observer, report, reportParameters, encoder, publisherHandle,
+            payload, tag, timestamp, retraction);
+         observerRecorder.events.clear();
+         publisher.setServiceReportingSwitch(false);
 
          receiver.timeAdvanceRequest(timestamp);
          LogicalTimeInterval publisherAdvanceInterval =
@@ -217,6 +283,7 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                && publisherHandle.equals(reflection.producer)
                && OrderType.TIMESTAMP.equals(reflection.sentOrder)
                && OrderType.TIMESTAMP.equals(reflection.receivedOrder)
+               && retraction.handle.equals(reflection.retraction)
                && reflection.regionsEmpty
                && receiverReliable.equals(reflection.transportation)
                && timestamp.equals(receiverRecorder.grants.get(0))
@@ -228,7 +295,67 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                && "reflectAttributeValues".equals(receiverRecorder.callbackOrder.get(0))
                && "timeAdvanceGrant".equals(receiverRecorder.callbackOrder.get(1)),
             "timestamped reflection was not delivered before its matching grant");
+
+         LogicalTime fileTimestamp = (LogicalTime) initial.add(
+            (LogicalTimeInterval) epsilon.add(epsilon).add(epsilon).add(epsilon)
+               .add(epsilon).add(epsilon).add(epsilon).add(epsilon));
+         publisher.setSendServiceReportsToFileSwitch(true);
+         publisher.setServiceReportingSwitch(true);
+         String beforeFileUpdate = Files.readString(reportFile, StandardCharsets.UTF_8);
+         MessageRetractionReturn fileRetraction = publisher.updateAttributeValues(
+            object, values, tag, fileTimestamp);
+         JavaTckSupport.check(fileRetraction != null && fileRetraction.retractionHandleIsValid
+               && fileRetraction.handle != null,
+            "file-backed timestamped attribute update returned an invalid retraction handle");
+         String afterFileUpdate = Files.readString(reportFile, StandardCharsets.UTF_8);
+         String updateRecord = appendedRecord(
+            beforeFileUpdate, afterFileUpdate, "UpdateAttributeValues");
+         verifyFileSuppliedArgumentStructure(updateRecord);
+         String expectedFileTimestamp = "\"HLAargumentType\":31,"
+            + "\"HLAargumentName\":\"Optional timestamp\","
+            + "\"HLAargumentValue\":\"" + fileTimestamp.toString() + "\"";
+         JavaTckSupport.check(updateRecord.contains(expectedFileTimestamp),
+            "timestamped UpdateAttributeValues file report omitted its type-31 logical time");
+         String fileRetractionText = fileRetraction.handle.toString();
+         int retractionOpen = fileRetractionText.indexOf('(');
+         int retractionClose = fileRetractionText.indexOf(')');
+         JavaTckSupport.check(retractionOpen >= 0 && retractionClose > retractionOpen + 1,
+            "file-backed timestamped update returned no standard retraction-handle text");
+         String expectedFileRetraction = "\"HLAargumentType\":33,"
+            + "\"HLAargumentValue\":\"MessageRetractionHandle<"
+            + fileRetractionText.substring(retractionOpen + 1, retractionClose) + ">\"";
+         JavaTckSupport.check(updateRecord.contains(expectedFileRetraction),
+            "timestamped UpdateAttributeValues file report returned the wrong retraction designator");
+         publisher.setServiceReportingSwitch(false);
+         publisher.setSendServiceReportsToFileSwitch(false);
+         publisher.retract(fileRetraction.handle);
+
+         LogicalTimeInterval fileLookahead = epsilon;
+         for (int i = 1; i < 6; ++i) {
+            fileLookahead = (LogicalTimeInterval) fileLookahead.add(epsilon);
+         }
+         publisher.setSendServiceReportsToFileSwitch(true);
+         publisher.setServiceReportingSwitch(true);
+         String beforeLookahead = Files.readString(reportFile, StandardCharsets.UTF_8);
+         publisher.modifyLookahead(fileLookahead);
+         String afterLookahead = Files.readString(reportFile, StandardCharsets.UTF_8);
+         String lookaheadRecord = appendedRecord(
+            beforeLookahead, afterLookahead, "ModifyLookahead");
+         String expectedFileLookahead = "\"HLAargumentType\":32,"
+            + "\"HLAargumentName\":\"Requested lookahead\","
+            + "\"HLAargumentValue\":\"" + fileLookahead.toString() + "\"";
+         JavaTckSupport.check(lookaheadRecord.contains(expectedFileLookahead),
+            "ModifyLookahead file report omitted its type-32 interval");
+         JavaTckSupport.check(lookaheadRecord.contains("\"HLAreturnedArgument\":[null]"),
+            "void ModifyLookahead file report did not return Null");
+         publisher.setServiceReportingSwitch(false);
+         publisher.setSendServiceReportsToFileSwitch(false);
       } finally {
+         if (publisherJoined) {
+            try { publisher.setServiceReportingSwitch(false); } catch (Exception ignored) { }
+            try { publisher.setSendServiceReportsToFileSwitch(false); }
+            catch (Exception ignored) { }
+         }
          if (receiverJoined && subscribed) {
             try { receiver.unsubscribeObjectClassAttributes(receiverClass, receiverAttributes); }
             catch (Exception ignored) { }
@@ -236,6 +363,11 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          if (observerJoined && reportSubscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); }
             catch (Exception ignored) { }
+         }
+         if (observerJoined && federateMomSubscribed) {
+            try {
+               observer.unsubscribeObjectClassAttributes(federateMomClass, federateMomAttributes);
+            } catch (Exception ignored) { }
          }
          if (publisherJoined && published) {
             try { publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes); }
@@ -271,8 +403,7 @@ final class ServiceReportTimestampedAttributeUpdateTck {
 
    private static void verifyReport(RTIambassador observer, Interaction report,
          Map<String, ParameterHandle> parameters, EncoderFactory encoder,
-         FederateHandle publisher, ObjectInstanceHandle object, AttributeHandle attribute,
-         byte[] payload, byte[] tag, LogicalTime timestamp,
+         FederateHandle publisher, byte[] payload, byte[] tag, LogicalTime timestamp,
          MessageRetractionReturn retraction) throws Exception {
       FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(
          report.parameters.get(parameters.get("HLAfederate")), 0);
@@ -295,11 +426,32 @@ final class ServiceReportTimestampedAttributeUpdateTck {
       supplied.decode(report.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 4,
          "timestamped service report returned the wrong supplied-argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator",
-         quoted(object.toString()));
-      verifyArgument(supplied.get(1), 2,
-         "Constrained set of attribute designator and value pairs",
-         "{\"" + attribute.toString() + "\":\"" + base64(payload) + "\"}");
+      HLAfixedRecord objectDesignator = supplied.get(0);
+      JavaTckSupport.check(objectDesignator.size() == 3
+            && ((HLAinteger32BE) objectDesignator.get(0)).getValue() == 37
+            && "Object instance designator".equals(
+               ((HLAunicodeString) objectDesignator.get(1)).getValue()),
+         "timestamped service report returned the wrong object-designator shape");
+      String objectDesignatorValue = ((HLAunicodeString) objectDesignator.get(2)).getValue();
+      JavaTckSupport.check(objectDesignatorValue.length() > 2
+            && objectDesignatorValue.startsWith("\"")
+            && objectDesignatorValue.endsWith("\""),
+         "timestamped service report returned an unquoted object designator");
+
+      HLAfixedRecord attributeMap = supplied.get(1);
+      JavaTckSupport.check(attributeMap.size() == 3
+            && ((HLAinteger32BE) attributeMap.get(0)).getValue() == 2
+            && "Constrained set of attribute designator and value pairs".equals(
+               ((HLAunicodeString) attributeMap.get(1)).getValue()),
+         "timestamped service report returned the wrong attribute-map shape");
+      String mapValue = ((HLAunicodeString) attributeMap.get(2)).getValue();
+      String keyValueSeparator = "\":\"";
+      int separator = mapValue.indexOf(keyValueSeparator);
+      boolean oneMapEntry = mapValue.startsWith("{\"")
+         && mapValue.endsWith("\":\"" + base64(payload) + "\"}")
+         && separator > 2 && separator == mapValue.lastIndexOf(keyValueSeparator);
+      JavaTckSupport.check(oneMapEntry,
+         "timestamped service report returned the wrong map value");
       verifyArgument(supplied.get(2), 60, "User-supplied tag", quoted(base64(tag)));
       verifyArgument(supplied.get(3), 31, "Optional timestamp", quoted(timestamp.toString()));
       HLAfixedRecord returned = encoder.createHLAfixedRecord();
@@ -318,7 +470,8 @@ final class ServiceReportTimestampedAttributeUpdateTck {
             && open >= 0 && close > open + 1
             && retractionArgument.equals("\"MessageRetractionHandle<"
                + handleText.substring(open + 1, close) + ">\""),
-         "timestamped service report returned a mismatched retraction designator");
+         "timestamped service report returned a mismatched retraction designator: report="
+            + retractionArgument + ", API handle=" + handleText);
       HLAunicodeString exception = encoder.createHLAunicodeString();
       exception.decode(report.parameters.get(parameters.get("HLAexception")));
       JavaTckSupport.check(exception.getValue().isEmpty(),
@@ -327,6 +480,91 @@ final class ServiceReportTimestampedAttributeUpdateTck {
       serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
       JavaTckSupport.check(serial.getValue() == 0,
          "timestamped service report did not start at serial number zero");
+   }
+
+   private static Reflection publisherMomReflection(Recorder recorder,
+         AttributeHandle federateNameAttribute, AttributeHandle reportFileAttribute,
+         byte[] encodedPublisherName) {
+      ObjectInstanceHandle publisherMomObject = null;
+      for (Reflection reflection : recorder.reflections) {
+         if (Arrays.equals(encodedPublisherName, reflection.values.get(federateNameAttribute))) {
+            publisherMomObject = reflection.object;
+            break;
+         }
+      }
+      if (publisherMomObject == null) return null;
+      Map<AttributeHandle, byte[]> values = new LinkedHashMap<>();
+      for (Reflection reflection : recorder.reflections) {
+         if (publisherMomObject.equals(reflection.object)) values.putAll(reflection.values);
+      }
+      if (!values.containsKey(reportFileAttribute)) return null;
+      Reflection result = new Reflection();
+      result.object = publisherMomObject;
+      result.values = new LinkedHashMap<>();
+      for (AttributeHandle attribute : values.keySet()) {
+         result.values.put(attribute, values.get(attribute));
+      }
+      return result;
+   }
+
+   private static String decodeUnicode(EncoderFactory encoder, byte[] bytes) throws Exception {
+      JavaTckSupport.check(bytes != null,
+         "HLAreportServiceFile reflection omitted its value");
+      HLAunicodeString value = encoder.createHLAunicodeString();
+      value.decode(bytes);
+      return value.getValue();
+   }
+
+   private static String appendedRecord(String before, String after, String service) {
+      String marker = "\"HLAservice\":\"" + service + "\"";
+      int servicePosition = after.indexOf(marker, before.length());
+      JavaTckSupport.check(servicePosition >= before.length(),
+         "HLAreportServiceFile did not append " + service);
+      int lineBreak = after.lastIndexOf('\n', servicePosition);
+      int recordStart = lineBreak < 0 ? 0 : lineBreak + 1;
+      int recordEnd = after.indexOf('\n', servicePosition);
+      return after.substring(recordStart, recordEnd < 0 ? after.length() : recordEnd);
+   }
+
+   private static void verifyFileSuppliedArgumentStructure(String record) {
+      int argumentsStart = record.indexOf("\"HLAsuppliedArguments\":[");
+      int argumentsEnd = record.indexOf("],\"HLAsuccessIndicator\"", argumentsStart);
+      JavaTckSupport.check(argumentsStart >= 0 && argumentsEnd > argumentsStart,
+         "timestamped UpdateAttributeValues file record omitted its supplied arguments");
+      String suppliedArguments = record.substring(argumentsStart, argumentsEnd + 1);
+      String argumentPrefix = "{\"HLAargumentType\":";
+      int argumentCount = 0;
+      for (int position = suppliedArguments.indexOf(argumentPrefix);
+            position >= 0;) {
+         int next = suppliedArguments.indexOf(argumentPrefix, position + argumentPrefix.length());
+         int argumentEnd = next >= 0 ? next : suppliedArguments.indexOf(']', position);
+         JavaTckSupport.check(argumentEnd > position,
+            "timestamped service-report file contained a truncated argument record");
+         String argument = suppliedArguments.substring(position, argumentEnd);
+         int type = argument.indexOf("\"HLAargumentType\":");
+         int name = argument.indexOf("\"HLAargumentName\":");
+         int value = argument.indexOf("\"HLAargumentValue\":");
+         JavaTckSupport.check(type >= 0 && name > type && value > name,
+            "timestamped file argument omitted its standard type/name/value fields");
+         ++argumentCount;
+         position = next;
+      }
+      JavaTckSupport.check(argumentCount == 4,
+         "timestamped UpdateAttributeValues file record did not contain four arguments");
+   }
+
+   private static String reportSequence(List<Interaction> reports, EncoderFactory encoder,
+         Map<String, ParameterHandle> parameters) throws Exception {
+      StringBuilder sequence = new StringBuilder();
+      for (Interaction report : reports) {
+         HLAunicodeString service = encoder.createHLAunicodeString();
+         service.decode(report.parameters.get(parameters.get("HLAservice")));
+         HLAinteger32BE serial = encoder.createHLAinteger32BE();
+         serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
+         if (sequence.length() != 0) sequence.append(", ");
+         sequence.append(service.getValue()).append('#').append(serial.getValue());
+      }
+      return sequence.toString();
    }
 
    private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {
@@ -392,12 +630,13 @@ final class ServiceReportTimestampedAttributeUpdateTck {
 
    private static final class Reflection {
       private ObjectInstanceHandle object;
-      private AttributeHandleValueMap values;
+      private Map<AttributeHandle, byte[]> values;
       private byte[] tag;
       private LogicalTime<?, ?> time;
       private FederateHandle producer;
       private OrderType sentOrder;
       private OrderType receivedOrder;
+      private MessageRetractionHandle retraction;
       private TransportationTypeHandle transportation;
       private boolean regionsEmpty;
    }
@@ -434,20 +673,36 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
                   callbackOrder.add(name);
                } else if ("reflectAttributeValues".equals(name) && arguments != null
-                     && arguments.length == 10) {
+                     && arguments.length >= 2
+                     && arguments[0] instanceof ObjectInstanceHandle
+                     && arguments[1] instanceof AttributeHandleValueMap) {
                   Reflection event = new Reflection();
                   event.object = (ObjectInstanceHandle) arguments[0];
-                  event.values = ((AttributeHandleValueMap) arguments[1]).clone();
-                  event.tag = ((byte[]) arguments[2]).clone();
-                  event.producer = (FederateHandle) arguments[4];
-                  event.time = (LogicalTime<?, ?>) arguments[6];
-                  event.sentOrder = (OrderType) arguments[7];
-                  event.receivedOrder = (OrderType) arguments[8];
-                  event.transportation = (TransportationTypeHandle) arguments[9];
-                  event.regionsEmpty = arguments[5] == null
-                     || ((RegionHandleSet) arguments[5]).isEmpty();
+                  AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
+                  event.values = new LinkedHashMap<>();
+                  for (AttributeHandle handle : source.keySet()) {
+                     event.values.put(handle, source.get(handle).clone());
+                  }
+                  event.tag = arguments.length > 2 && arguments[2] instanceof byte[]
+                     ? ((byte[]) arguments[2]).clone() : new byte[0];
+                  if (arguments.length == 10) {
+                     event.transportation = (TransportationTypeHandle) arguments[3];
+                     event.producer = (FederateHandle) arguments[4];
+                     event.regionsEmpty = arguments[5] == null
+                        || ((RegionHandleSet) arguments[5]).isEmpty();
+                     event.time = (LogicalTime<?, ?>) arguments[6];
+                     event.sentOrder = (OrderType) arguments[7];
+                     event.receivedOrder = (OrderType) arguments[8];
+                     event.retraction = (MessageRetractionHandle) arguments[9];
+                  } else if (arguments.length >= 7) {
+                     event.sentOrder = (OrderType) arguments[3];
+                     event.transportation = (TransportationTypeHandle) arguments[4];
+                     event.producer = (FederateHandle) arguments[5];
+                     event.regionsEmpty = arguments[6] == null
+                        || ((RegionHandleSet) arguments[6]).isEmpty();
+                  }
                   reflections.add(event);
-                  callbackOrder.add(name);
+                  if (event.time != null) callbackOrder.add(name);
                } else if ("receiveInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
                   Interaction event = new Interaction();

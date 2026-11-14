@@ -408,10 +408,10 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Embedded zero-lookahead TSO send at granted time is permitted",
+    "Embedded zero-lookahead TARA permits equal-time TSO after its grant",
     "[integration][development-profile][interaction-management][time-management]"
     "[timestamped-interaction][tso][tso-send-at-granted-time-zero-lookahead]"
-    "[rti.service.send-interaction][rti.service.time-advance-request]"
+    "[rti.service.send-interaction][rti.service.time-advance-request-available]"
     "[federate.callback.receive-interaction][federate.callback.time-advance-grant]"
     "[requirement:hla-1516.1-2025:clause-8.9][2025]") {
   ReportingFederateAmbassador publisherReports;
@@ -460,14 +460,13 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Interval(0)));
   drainCallbacks(*publisher);
 
-  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequestAvailable(
       rti1516_2025::HLAinteger64Time(5)));
   drainCallbacks(*publisher);
   REQUIRE(publisherReports.timeAdvanceGrantCount == 1U);
 
-  // IEEE 1516.1-2025 §8.9 permits the just-granted federate to send at T
-  // when its actual lookahead is zero. This does not assert that every
-  // equal-T message must be delivered before a grant at T.
+  // IEEE 1516.1-2025 §8.9 permits an equal-time send after a completed
+  // zero-lookahead TARA grant; §8.1.5's TAR restriction is tested separately.
   auto const equalGrantedTimeMessage = publisher->sendInteraction(
       interactionClass,
       parameterValues,

@@ -169,15 +169,15 @@ final class RestorePendingTsoNmraDeleteTck {
                && publisherCallbacks.savedCount == 1
                && regulatorCallbacks.savedCount == 1
                && receiverCallbacks.savedCount == 1
-               && publisherCallbacks.grants.equals(List.of(regulatorTarget))
-               && regulatorCallbacks.grants.equals(List.of(regulatorTarget))
-               && receiverCallbacks.grants.equals(List.of(time5))
+               && grantsMatch(publisherCallbacks.grants, regulatorTarget)
+               && grantsMatch(regulatorCallbacks.grants, regulatorTarget)
+               && grantsMatch(receiverCallbacks.grants, time5)
                && receiverCallbacks.removals.size() == 1,
             "pending-TSO NMRA deletion save boundary or first delivery was incomplete");
          TimedRemoval original = receiverCallbacks.removals.get(0);
          JavaTckSupport.check(original.object.equals(object)
                && original.producer.equals(publisherHandle)
-               && original.time.equals(time5)
+               && encodedTimeEquals(original.time, time5)
                && original.sentOrder == OrderType.TIMESTAMP
                && original.receivedOrder == OrderType.TIMESTAMP
                && original.retraction != null
@@ -202,7 +202,7 @@ final class RestorePendingTsoNmraDeleteTck {
          }
          JavaTckSupport.check(publisherCallbacks.grants.size() == 2
                && regulatorCallbacks.grants.size() == 2
-               && receiverCallbacks.grants.equals(List.of(time5, time9))
+               && grantsMatch(receiverCallbacks.grants, time5, time9)
                && time9.equals(publisher.queryLogicalTime())
                && time9.equals(regulator.queryLogicalTime())
                && time9.equals(receiver.queryLogicalTime()),
@@ -234,12 +234,12 @@ final class RestorePendingTsoNmraDeleteTck {
                && receiverCallbacks.restoredCount == 1
                && receiverCallbacks.removals.size() == 2
                && receiverCallbacks.grants.size() == 3
-               && time5.equals(receiverCallbacks.grants.get(2)),
+               && encodedTimeEquals(receiverCallbacks.grants.get(2), time5),
             "restore did not replay one object removal before restored NMRA grant");
          TimedRemoval replayed = receiverCallbacks.removals.get(1);
          JavaTckSupport.check(replayed.object.equals(original.object)
                && replayed.producer.equals(original.producer)
-               && replayed.time.equals(original.time)
+               && encodedTimeEquals(replayed.time, original.time)
                && replayed.sentOrder == original.sentOrder
                && replayed.receivedOrder == original.receivedOrder
                && (replayed.retraction != null) == (original.retraction != null)
@@ -324,6 +324,26 @@ final class RestorePendingTsoNmraDeleteTck {
       LogicalTime result = start;
       for (int index = 0; index < steps; ++index) result = (LogicalTime) result.add(interval);
       return result;
+   }
+
+   private static boolean grantsMatch(List<LogicalTime<?, ?>> actual,
+         LogicalTime<?, ?>... expected) throws Exception {
+      if (actual.size() != expected.length) return false;
+      for (int index = 0; index < expected.length; ++index) {
+         if (!encodedTimeEquals(actual.get(index), expected[index])) return false;
+      }
+      return true;
+   }
+
+   private static boolean encodedTimeEquals(LogicalTime<?, ?> first,
+         LogicalTime<?, ?> second) throws Exception {
+      return Arrays.equals(encode(first), encode(second));
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    @FunctionalInterface

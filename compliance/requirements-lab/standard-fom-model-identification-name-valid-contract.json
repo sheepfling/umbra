@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.1 public-API witness for the Model Identification Name criterion at p. 91 l. 54. The case submits a schema-valid FOM whose Model Identification Name uses a nonempty HLA/XML-compatible name through public Create and verifies the federation can be destroyed. Evidence covers only acceptance of this conforming-name path; it does not claim rejection of every malformed spelling or full Model Identification table validation.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-model-identification-name-valid",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_model_identification_name.cpp::scenarioFomModelIdentificationNameValid",
+        "packages/hla-rti-cpp-tck/src/tck_fom_model_identification_name.cpp::scenarioFomModelIdentificationNameValidContract"
+      ]
+    }
+  ]
+}

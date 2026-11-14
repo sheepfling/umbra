@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -24,10 +25,12 @@
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/federation_save_commit_store.hpp"
 #include "internal/federation/process_federation_service_host.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include "ieee1516_2025_federation_registry_test_support.hpp"
 #endif
 
 namespace {
@@ -90,6 +93,11 @@ class SaveRestoreRecorder final : public rti::NullFederateAmbassador {
     restoreRequestLabels.push_back(label);
   }
 
+  void requestFederationRestoreFailed(std::wstring const& label) override {
+    std::scoped_lock lock(mutex_);
+    restoreRequestFailures.push_back(label);
+  }
+
   void federationRestoreBegun() override {
     std::scoped_lock lock(mutex_);
     ++restoreBegunCount;
@@ -128,6 +136,7 @@ class SaveRestoreRecorder final : public rti::NullFederateAmbassador {
   std::size_t savedCount = 0U;
   std::size_t saveFailureCount = 0U;
   std::vector<std::wstring> restoreRequestLabels;
+  std::vector<std::wstring> restoreRequestFailures;
   std::size_t restoreBegunCount = 0U;
   std::vector<std::wstring> restoreLabels;
   std::size_t restoredCount = 0U;
@@ -148,8 +157,8 @@ void evokeUntil(
   while (!predicate() && std::chrono::steady_clock::now() < deadline) {
     static_cast<void>(ambassador.evokeCallback(0.01));
   }
-  REQUIRE(predicate());
   INFO(description);
+  REQUIRE(predicate());
 }
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
@@ -208,9 +217,9 @@ umbra::detail::FederationDefinition composedDefinition() {
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
-    "Public save/restore reconstitutes one queued receive-order attribute update",
+    "Public save/restore preserves a queued receive-order attribute update across federation destruction",
     "[integration][federation-management][save-restore][receive-order]"
-    "[process-boundary][public-api][2025]"
+    "[process-boundary][public-api][2025][save-default-filesystem-persistence]"
     "[public-save-queued-ro-attribute-update][rti.service.update-attribute-values]"
     "[rti.service.request-federation-save][rti.service.request-federation-restore]"
     "[federate.callback.reflect-attribute-values]") {
@@ -218,13 +227,31 @@ TEST_CASE(
   using umbra::detail::ProcessFederationServiceHost;
   using umbra::detail::ProcessFederationServiceOptions;
 
-  EmbeddedFederationRegistry registry;
+  auto const saveDirectory =
+      umbra::test::federation_registry_support::temporarySaveCommitDirectory();
+  auto saveStore = std::make_shared<
+      umbra::detail::FilesystemFederationSaveCommitStore>(saveDirectory);
+  EmbeddedFederationRegistry registry({}, saveStore);
+  ProcessFederationServiceOptions serviceOptions{false};
+  serviceOptions.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules != std::vector<std::wstring>{
+                          L"server-owned-queued-ro-attribute-restore-fom.xml"} ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return composedDefinition();
+  };
   ProcessFederationServiceHost service(
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
       {"queued-ro-attribute-restore-server", 0xA5U},
-      ProcessFederationServiceOptions{false});
+      std::move(serviceOptions));
   service.start();
   auto const port = service.address().port;
   REQUIRE(port != 0U);
@@ -257,23 +284,48 @@ TEST_CASE(
       throw std::runtime_error("Owner Connect threw a non-standard exception.");
     }
     REQUIRE(ownerConnection.addressUsed);
-    REQUIRE(receiver->connect(receiverCallbacks, rti::HLA_EVOKED, configuration)
-                .addressUsed);
+    rti::ConfigurationResult receiverConnection;
+    try {
+      receiverConnection =
+          receiver->connect(receiverCallbacks, rti::HLA_EVOKED, configuration);
+    } catch (rti::Exception const& exception) {
+      auto const name = exception.name();
+      auto const message = exception.what();
+      throw std::runtime_error(
+          "Receiver Connect threw " + std::string(name.begin(), name.end()) +
+          ": " + std::string(message.begin(), message.end()));
+    } catch (std::exception const& exception) {
+      throw std::runtime_error(
+          "Receiver Connect threw std::exception: " +
+          std::string(exception.what()));
+    } catch (...) {
+      throw std::runtime_error("Receiver Connect threw a non-standard exception.");
+    }
+    REQUIRE(receiverConnection.addressUsed);
     auto const federation = L"queued-ro-attribute-restore-public-execution";
-    owner->createFederationExecution(
-        federation, L"server-owned-queued-ro-attribute-restore-fom.xml");
-    auto const ownerFederate =
+    try {
+      owner->createFederationExecution(
+          federation, L"server-owned-queued-ro-attribute-restore-fom.xml");
+    } catch (rti::Exception const& exception) {
+      auto const name = exception.name();
+      auto const message = exception.what();
+      throw std::runtime_error(
+          "Create Federation Execution threw " +
+          std::string(name.begin(), name.end()) + ": " +
+          std::string(message.begin(), message.end()));
+    }
+    auto ownerFederate =
         owner->joinFederationExecution(L"queued-owner", federation);
-    auto const receiverFederate =
+    auto receiverFederate =
         receiver->joinFederationExecution(L"queued-receiver", federation);
     REQUIRE(ownerFederate.isValid());
     REQUIRE(receiverFederate.isValid());
 
-    auto const ownerClass = owner->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
-    auto const receiverClass =
+    auto ownerClass = owner->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
+    auto receiverClass =
         receiver->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
-    auto const ownerAttribute = owner->getAttributeHandle(ownerClass, umbra::test::hla::wide::fixture::name);
-    auto const receiverAttribute =
+    auto ownerAttribute = owner->getAttributeHandle(ownerClass, umbra::test::hla::wide::fixture::name);
+    auto receiverAttribute =
         receiver->getAttributeHandle(receiverClass, umbra::test::hla::wide::fixture::name);
     REQUIRE(ownerClass.isValid());
     REQUIRE(receiverClass.isValid());
@@ -352,15 +404,48 @@ TEST_CASE(
       REQUIRE(receiverCallbacks.reflections.empty());
     }
 
+    SECTION("restore in the live federation execution") {
+    }
+    SECTION("restore after the federation execution is destroyed") {
+      receiver->resignFederationExecution(rti::NO_ACTION);
+      owner->resignFederationExecution(rti::NO_ACTION);
+      owner->destroyFederationExecution(federation);
+
+      owner->createFederationExecution(
+          federation, L"server-owned-queued-ro-attribute-restore-fom.xml");
+      ownerFederate =
+          owner->joinFederationExecution(L"queued-owner", federation);
+      receiverFederate =
+          receiver->joinFederationExecution(L"queued-receiver", federation);
+      REQUIRE(ownerFederate.isValid());
+      REQUIRE(receiverFederate.isValid());
+
+      ownerClass =
+          owner->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
+      receiverClass =
+          receiver->getObjectClassHandle(umbra::test::hla::wide::fom::employee);
+      ownerAttribute =
+          owner->getAttributeHandle(ownerClass, umbra::test::hla::wide::fixture::name);
+      receiverAttribute =
+          receiver->getAttributeHandle(receiverClass, umbra::test::hla::wide::fixture::name);
+    }
+
     constexpr auto restoreLabel = L"queued-ro-attribute-restore-save";
     owner->requestFederationRestore(restoreLabel);
     evokeUntil(
         *owner,
         [&] {
           std::scoped_lock lock(ownerCallbacks.mutex_);
-          return !ownerCallbacks.restoreRequestLabels.empty();
+          return !ownerCallbacks.restoreRequestLabels.empty() ||
+              !ownerCallbacks.restoreRequestFailures.empty();
         },
-        "The owner restore request did not succeed.");
+        "The owner restore request did not complete.");
+    {
+      std::scoped_lock lock(ownerCallbacks.mutex_);
+      REQUIRE(ownerCallbacks.restoreRequestFailures.empty());
+      REQUIRE(ownerCallbacks.restoreRequestLabels ==
+              std::vector<std::wstring>{restoreLabel});
+    }
     for (auto* ambassador : {owner.get(), receiver.get()}) {
       auto* callbacks = ambassador == owner.get()
           ? &ownerCallbacks
@@ -432,9 +517,12 @@ TEST_CASE(
     owner.reset();
   }
   service.stop();
+  std::error_code cleanupError;
+  std::filesystem::remove_all(saveDirectory, cleanupError);
   if (clientFailure) {
     std::rethrow_exception(clientFailure);
   }
+  REQUIRE_FALSE(cleanupError);
   REQUIRE_NOTHROW(service.rethrowIfFailed());
 }
 #endif

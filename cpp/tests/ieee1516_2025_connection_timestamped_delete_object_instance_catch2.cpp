@@ -35,6 +35,7 @@
 #include <umbra/embedded_profile_configuration.hpp>
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+#include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_transport.hpp"
@@ -43,6 +44,7 @@
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
+#include "internal/time/reference_time_selection.hpp"
 #include "internal/handles/attribute_handle.hpp"
 #include "internal/handles/dimension_handle.hpp"
 #include "internal/handles/federate_handle.hpp"
@@ -311,9 +313,12 @@ class ProcessRestoreFederateAmbassador final : public NullFederateAmbassador {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 using umbra::detail::EmbeddedFederationRegistry;
 using umbra::detail::FederationDefinition;
+using umbra::detail::FederationManagementCoordinator;
+using umbra::detail::FederationManagementResources;
 using umbra::detail::FomCompositionStatus;
 using umbra::detail::FomModuleKind;
 using umbra::detail::FomValidationStatus;
+using umbra::detail::FederationPreparationStatus;
 using umbra::detail::InteractionClassDeclarationStatus;
 using umbra::detail::ObjectClassAttributeDeclarationStatus;
 using umbra::detail::LibXml2FomModuleComposer;
@@ -325,6 +330,7 @@ using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
 using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
+using umbra::detail::ReferenceLogicalTimeSelector;
 using umbra::detail::TransportServiceMessage;
 using umbra::detail::TransportServiceMessageKind;
 using umbra::detail::TransportServiceOperation;
@@ -639,10 +645,39 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      LibXml2FomValidator fomValidator;
+      LibXml2FomModuleComposer fomComposer(
+          processResourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+      ReferenceLogicalTimeSelector timeSelector;
+      FederationManagementCoordinator coordinator(
+          fomValidator,
+          fomComposer,
+          timeSelector,
+          FederationManagementResources{
+              processResourcePath("mim/HLAstandardMIM-2025.xml"),
+              processResourcePath("schemas/IEEE1516-DIF-2025.xsd"),
+              std::nullopt});
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
+      serviceOptions.createFomPreparation =
+          [&coordinator](std::vector<std::wstring> const& fomModules,
+                         std::optional<std::wstring> const& mimModule,
+                         std::wstring const& logicalTimeImplementationName)
+          -> std::optional<FederationDefinition> {
+        auto prepared = coordinator.prepareCreate(
+            fomModules,
+            mimModule,
+            logicalTimeImplementationName);
+        if (prepared.status != FederationPreparationStatus::applied ||
+            !prepared.definition) {
+          return std::nullopt;
+        }
+        return std::move(prepared.definition);
+      };
       ProcessFederationService service(
           registry,
           composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+          std::move(serviceOptions));
       auto senderConnection = listener->accept(
           nullptr,
           {"public-process-timestamped-delete-server", 0x9D01U},
@@ -1118,7 +1153,10 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
     REQUIRE(senderRti->connect(
                 senderFederate, callbackModel, senderConfiguration)
                 .addressUsed);
-    senderRti->createFederationExecution(federationName, L"server-owned-fom.xml");
+    senderRti->createFederationExecution(
+        federationName,
+        processResourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+        L"HLAinteger64Time");
     senderRti->joinFederationExecution(
         L"public-process-timestamped-delete-sender",
         L"public-process-timestamped-delete-type",

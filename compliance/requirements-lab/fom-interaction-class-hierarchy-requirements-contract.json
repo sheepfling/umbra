@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract records bounded portable C++ TCK witnesses for one FOM interaction-class hierarchy and its inherited parameter handles. The hierarchy case resolves full root/base/derived/grandchild interaction names and base/derived parameter names through the official API. The §4.6.2 source requirement is incomplete in the Requirements Lab export (RL-440); only the direct public path/parameter behavior is traced, not the full table prose or authoring guidance. This reference is not validation, interoperability, or conformance evidence.",
+  "requirements": [
+    {
+      "id": "portable-fom-interaction-class-hierarchy",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-043-l125-2",
+      "clause_id": "clause-4.3.1",
+      "standard_section": "hla-1516.2-2025:clause-4.3.1",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInteractionClassHierarchy"
+      ]
+    },
+    {
+      "id": "portable-fom-interaction-parameter-hierarchy",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-052-l54-10",
+      "clause_id": "clause-4.6.2",
+      "standard_section": "hla-1516.2-2025:clause-4.6.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInteractionClassHierarchy"
+      ]
+    }
+  ]
+}

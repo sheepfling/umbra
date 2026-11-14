@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-current-source-public-tck-evidence-not-conformance",
+  "notes": "The public C++ TCK creates RtiConfiguration, explicitly sets configurationName, rtiAddress, and additionalSettings to empty strings, verifies those values remain empty, then connects through the configuration overload using default local settings. Successful Connect plus Disconnect is the behavioral oracle; ConfigurationResult flags are not used as a proxy for default selection. This is bounded current-source evidence, not independent-provider interoperability or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-rti-configuration-empty-strings-select-default-local-settings",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-384-l228-73",
+      "clause_id": "clause-12.12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+      "source_symbol": "scenarioConnectionCallbackContract",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionCallbackContract"
+      ]
+    }
+  ]
+}

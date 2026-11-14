@@ -27,6 +27,13 @@ EmbeddedFederationRegistry::planAttributeTransportationTypeChange(
           transportationName)) {
     return {AttributeTransportationTypeChangeStatus::invalid_transportation_type};
   }
+  auto const effectiveTransportationName = effectiveTransportationTypeName(
+      federation->second,
+      transportationName);
+  if (!effectiveTransportationName) {
+    return {AttributeTransportationTypeChangeStatus::invalid_transportation_type};
+  }
+  transportationName = *effectiveTransportationName;
   auto instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() ||
       instance->second.deleteAccepted ||

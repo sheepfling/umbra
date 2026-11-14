@@ -460,7 +460,8 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 void verifyProcessTsoRegionalInteraction(
     RegionalInteractionAdvance requestKind,
-    RegionalInteractionOrderRow const* orderRow) {
+    RegionalInteractionOrderRow const* orderRow,
+    rti1516_2025::CallbackModel callbackModel) {
   auto const unregulatedTimestamp =
       requestKind == RegionalInteractionAdvance::unregulated_timestamp;
   auto const matrixRow = orderRow != nullptr;
@@ -483,6 +484,7 @@ void verifyProcessTsoRegionalInteraction(
         rti1516_2025::TransportationTypeHandle const& transportationType,
         rti1516_2025::FederateHandle const& producingFederate,
         rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+      std::lock_guard callbackLock(callbackMutex);
       ++receivedInteractionCount;
       callbackOrder.push_back('I');
       receivedInteractionClass = interactionClass;
@@ -506,6 +508,7 @@ void verifyProcessTsoRegionalInteraction(
             static_cast<std::uint8_t const*>(userSuppliedTag.data());
         receivedTag.assign(data, data + userSuppliedTag.size());
       }
+      callbackCondition.notify_all();
     }
 
     void receiveInteraction(
@@ -519,6 +522,7 @@ void verifyProcessTsoRegionalInteraction(
         rti1516_2025::OrderType sentOrder,
         rti1516_2025::OrderType receivedOrder,
         rti1516_2025::MessageRetractionHandle const* optionalRetraction) override {
+      std::lock_guard callbackLock(callbackMutex);
       ++receivedInteractionCount;
       callbackOrder.push_back('I');
       receivedInteractionClass = interactionClass;
@@ -549,6 +553,7 @@ void verifyProcessTsoRegionalInteraction(
             static_cast<std::uint8_t const*>(userSuppliedTag.data());
         receivedTag.assign(data, data + userSuppliedTag.size());
       }
+      callbackCondition.notify_all();
     }
 
     void timeConstrainedEnabled(
@@ -603,6 +608,8 @@ void verifyProcessTsoRegionalInteraction(
     std::size_t timeAdvanceGrantCount = 0U;
     std::int64_t timeAdvanceGrantValue = -1;
     std::vector<char> callbackOrder;
+    std::mutex callbackMutex;
+    std::condition_variable callbackCondition;
   } receiverFederate;
   NullFederateAmbassador senderFederate;
 
@@ -639,8 +646,22 @@ void verifyProcessTsoRegionalInteraction(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
+      serviceOptions.createFomPreparation = [](
+          std::vector<std::wstring> const& fomModules,
+          std::optional<std::wstring> const&,
+          std::wstring const& logicalTimeImplementationName)
+          -> std::optional<FederationDefinition> {
+        if (fomModules != std::vector<std::wstring>{L"server-owned-fom.xml"} ||
+            (!logicalTimeImplementationName.empty() &&
+             logicalTimeImplementationName != L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedProcessDefinition();
+      };
       ProcessFederationService service(
-          registry, composedProcessDefinition(), ProcessFederationServiceOptions{});
+          registry, composedProcessDefinition(), serviceOptions);
       auto senderConnection = listener->accept(
           nullptr,
           {"process-tso-regional-callback-gating-server", 0xA311U},
@@ -867,7 +888,8 @@ void verifyProcessTsoRegionalInteraction(
             TransportServiceOperation::acknowledge_tso_delivery,
             "The regional callback-gating server lost TSO acknowledgement.");
       } else {
-        if (!umbra::test::servePrimaryProcessRequest(
+        if (callbackModel != HLA_IMMEDIATE &&
+            !umbra::test::servePrimaryProcessRequest(
                 receiver, receiverHandler,
                 [&](TransportServiceMessage const& request) {
                   if (request.operation !=
@@ -969,7 +991,7 @@ void verifyProcessTsoRegionalInteraction(
   try {
     REQUIRE(senderRti->connect(
                 senderFederate,
-                HLA_EVOKED,
+                callbackModel,
                 configurationFor(L"process-tso-regional-callback-gating-sender-client"))
                 .addressUsed);
     REQUIRE_NOTHROW(senderRti->createFederationExecution(
@@ -981,7 +1003,7 @@ void verifyProcessTsoRegionalInteraction(
 
     REQUIRE(receiverRti->connect(
                 receiverFederate,
-                HLA_EVOKED,
+                callbackModel,
                 configurationFor(L"process-tso-regional-callback-gating-receiver-client"))
                 .addressUsed);
     auto const receiverHandle = receiverRti->joinFederationExecution(
@@ -1096,8 +1118,18 @@ void verifyProcessTsoRegionalInteraction(
     REQUIRE(recipientCount.load(std::memory_order_acquire) == 1U);
     if (receiveOrder) {
       REQUIRE(retraction.isValid() == sentTimestampOrder);
-      static_cast<void>(receiverRti->evokeCallback(0.0));
-      REQUIRE(receivePollReturnedInteraction.load(std::memory_order_acquire));
+      std::unique_lock<std::mutex> callbackLock(
+          receiverFederate.callbackMutex, std::defer_lock);
+      if (callbackModel == HLA_IMMEDIATE) {
+        callbackLock.lock();
+        REQUIRE(receiverFederate.callbackCondition.wait_for(
+            callbackLock, std::chrono::seconds(5), [&] {
+              return receiverFederate.receivedInteractionCount == 1U;
+            }));
+      } else {
+        static_cast<void>(receiverRti->evokeCallback(0.0));
+        REQUIRE(receivePollReturnedInteraction.load(std::memory_order_acquire));
+      }
       REQUIRE(receiverFederate.receivedInteractionCount == 1U);
       REQUIRE(receiverFederate.timeAdvanceGrantCount == 0U);
       REQUIRE(receiverFederate.callbackOrder == std::vector<char>{'I'});
@@ -1123,6 +1155,9 @@ void verifyProcessTsoRegionalInteraction(
               (sentTimestampOrder ? rti1516_2025::TIMESTAMP
                                   : rti1516_2025::RECEIVE));
       REQUIRE(receiverFederate.receivedOrderType == rti1516_2025::RECEIVE);
+      if (callbackLock.owns_lock()) {
+        callbackLock.unlock();
+      }
     } else {
       REQUIRE(retraction.isValid());
       REQUIRE_NOTHROW(senderRti->timeAdvanceRequest(

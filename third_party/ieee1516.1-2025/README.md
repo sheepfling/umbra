@@ -9,7 +9,15 @@ Use [manifest.json](manifest.json) and
 
 ```powershell
 python tools/verify_ieee_headers.py
+python tools/verify_ieee_headers.py --include-root <installed-prefix>/include
+python tools/verify_ieee_headers.py --archive-root <1516_downloads-directory>
 ```
+
+The optional archive check verifies the outer and nested upstream ZIP hashes,
+then checks the nested C++ header file set and hashes against the pinned digest
+manifest. The installed-package smoke runs the include-root check automatically;
+it examines only `include/RTI/`, leaving other dependencies and the separate
+2010 API boundary untouched.
 
 Do not hand-edit files under `include/RTI/`; update them as one reviewed
 upstream import and retain their IEEE notices.

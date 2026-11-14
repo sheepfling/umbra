@@ -5,12 +5,25 @@
 #include <RTI/Exception.h>
 
 #include <algorithm>
+#include <chrono>
 #include <limits>
+#include <string>
 #include <type_traits>
 #include <utility>
 
 namespace umbra::detail {
 namespace {
+
+[[nodiscard]] std::string asciiDescription(std::wstring const& description) {
+  std::string result;
+  result.reserve(description.size());
+  for (wchar_t character : description) {
+    result.push_back(character >= 0 && character <= 0x7f
+        ? static_cast<char>(character)
+        : '?');
+  }
+  return result;
+}
 
 [[nodiscard]] char const* statusName(TransportServiceStatus status) noexcept {
   switch (status) {
@@ -26,6 +39,8 @@ namespace {
       return "service-reporting-interlock";
     case TransportServiceStatus::invalid_logical_time:
       return "invalid-logical-time";
+    case TransportServiceStatus::federation_execution_already_exists:
+      return "federation-execution-already-exists";
   }
   return "unknown";
 }
@@ -304,6 +319,8 @@ namespace {
       return "set-service-reporting-switch";
     case TransportServiceOperation::get_exception_reporting_switch:
       return "get-exception-reporting-switch";
+    case TransportServiceOperation::get_non_regulated_grant_switch:
+      return "get-non-regulated-grant-switch";
     case TransportServiceOperation::set_exception_reporting_switch:
       return "set-exception-reporting-switch";
     case TransportServiceOperation::report_service_exception:
@@ -326,6 +343,237 @@ namespace {
 
 }  // namespace
 
+ProcessTransportConnection::FailureHandler
+ProcessFederationClient::makeTransportFailureHandler() {
+  return [this](std::wstring description) {
+    {
+      std::scoped_lock lock(responseMutex_);
+      if (lastTransportFailure_.empty()) {
+        lastTransportFailure_ = asciiDescription(description);
+      }
+    }
+    bool dispatchNow = false;
+    {
+      // Socket send failures invoke this handler inline. A public request may
+      // already hold transactionMutex_ across that send; never recursively
+      // block the failing thread. The request/receive path owns recovery while
+      // a transaction is active, and the receive loop observes the closed
+      // socket independently.
+      std::unique_lock lock(transactionMutex_, std::try_to_lock);
+      if (!lock.owns_lock()) {
+        return;
+      }
+      pendingTransportFailures_.push_back(std::move(description));
+      dispatchNow = requestDepth_ == 0U &&
+          std::this_thread::get_id() != streamReaderId_;
+    }
+    responseAvailable_.notify_all();
+    callbackEventsAvailable_.notify_all();
+    if (dispatchNow) {
+      dispatchTransportFailures();
+    }
+  };
+}
+
+std::shared_ptr<ProcessTransportConnection>
+ProcessFederationClient::connectTransport(
+    std::shared_ptr<ProcessTransportSessionState> sessionState,
+    ProcessTransportConnection::ConnectedHandler connectedHandler,
+    std::optional<std::chrono::steady_clock::time_point> deadline) {
+  return ProcessTransportConnection::connectClient(
+      this,
+      address_,
+      localIdentity_,
+      makeTransportFailureHandler(),
+      forcedResignationHandler_,
+      instrumentation_,
+      std::move(sessionState),
+      std::move(connectedHandler),
+      deadline);
+}
+
+bool ProcessFederationClient::reconnectTransport(
+    ProcessTransportSession& readerSession,
+    std::string& terminalFailure) {
+  reconnecting_.store(true, std::memory_order_release);
+  heartbeatChanged_.notify_all();
+  responseAvailable_.notify_all();
+  constexpr auto retryDelay = std::chrono::milliseconds(100);
+  // Keep one stalled connect/New Session/resume exchange from occupying the receive
+  // worker for the full reconnect window. The overall window still bounds
+  // recovery; this shorter per-attempt deadline also lets close() join the
+  // reader promptly when the endpoint is no longer reachable.
+  constexpr auto reconnectAttemptTimeout = std::chrono::seconds(1);
+  auto const recoveryDeadline =
+      std::chrono::steady_clock::now() + transportRecoveryWindow_;
+
+  while (!closing_.load(std::memory_order_acquire)) {
+    if (std::chrono::steady_clock::now() >= recoveryDeadline) {
+      terminalFailure =
+          "could not restore its process transport before the recovery window expired";
+      break;
+    }
+    std::shared_ptr<ProcessTransportConnection> replacement;
+    auto clearRecoveryAttempt = [this, &replacement] {
+      if (!replacement) {
+        return;
+      }
+      std::scoped_lock lifecycleLock(connectionLifecycleMutex_);
+      if (recoveryAttemptConnection_ == replacement) {
+        recoveryAttemptConnection_.reset();
+      }
+    };
+    try {
+      // No service or heartbeat frame may race the Resume Request/replay
+      // exchange. A request already sent before this lock is retained in the
+      // shared session history and is replayed below if the host did not get it.
+      std::unique_lock transactionLock(transactionMutex_);
+      if (closing_.load(std::memory_order_acquire)) {
+        break;
+      }
+      if (!connection_ || !session_) {
+        terminalFailure = "lost its process transport session state";
+        break;
+      }
+
+      auto const sessionState = connection_->sessionState();
+      auto const attemptDeadline = std::min(
+          recoveryDeadline,
+          std::chrono::steady_clock::now() + reconnectAttemptTimeout);
+      replacement = connectTransport(
+          sessionState,
+          [this, &replacement](
+              std::shared_ptr<ProcessTransportConnection> const& connecting) {
+            replacement = connecting;
+            {
+              std::scoped_lock lifecycleLock(connectionLifecycleMutex_);
+              recoveryAttemptConnection_ = connecting;
+            }
+            if (closing_.load(std::memory_order_acquire)) {
+              connecting->close();
+            }
+          },
+          attemptDeadline);
+      if (closing_.load(std::memory_order_acquire)) {
+        replacement->close();
+        clearRecoveryAttempt();
+        break;
+      }
+      ProcessTransportSession resumeSession(replacement);
+      auto const& history = replacement->messageHistory();
+      auto const oldestAvailable = history.oldestAvailableSequenceNumber();
+      TransportResumeRequest const resumeRequest{
+          replacement->sessionId(),
+          history.lastReceivedSequenceNumber(),
+          oldestAvailable.value_or(kInvalidTransportSequenceNumber)};
+      if (!resumeSession.sendResumeRequest(resumeRequest)) {
+        replacement->close();
+        continue;
+      }
+
+      TransportResumeStatus resumeStatus;
+      if (!resumeSession.receiveResumeStatus(resumeStatus)) {
+        replacement->close();
+        continue;
+      }
+      if (resumeStatus.status != TransportResumeStatusCode::ok) {
+        terminalFailure =
+            "could not resume its process transport session (status " +
+            std::to_string(static_cast<unsigned int>(resumeStatus.status)) +
+            ")";
+        replacement->close();
+        clearRecoveryAttempt();
+        break;
+      }
+      if (!history.canReplayAfter(
+              resumeStatus.lastReceivedFederateSequenceNumber)) {
+        terminalFailure =
+            "could not resume because retained federate service history is insufficient";
+        replacement->close();
+        clearRecoveryAttempt();
+        break;
+      }
+      if (!resumeSession.replayOutgoingAfter(
+              resumeStatus.lastReceivedFederateSequenceNumber)) {
+        replacement->close();
+        continue;
+      }
+      if (closing_.load(std::memory_order_acquire)) {
+        replacement->close();
+        clearRecoveryAttempt();
+        break;
+      }
+
+      bool canceledByClose = false;
+      {
+        std::scoped_lock lifecycleLock(connectionLifecycleMutex_);
+        canceledByClose = closing_.load(std::memory_order_acquire);
+        if (!canceledByClose) {
+          session_->replaceConnection(replacement);
+          readerSession.replaceConnection(replacement);
+          connection_ = replacement;
+          activeShutdownConnection_ = replacement;
+          recoveryAttemptConnection_.reset();
+        }
+      }
+      if (canceledByClose) {
+        replacement->close();
+        clearRecoveryAttempt();
+        break;
+      }
+      pendingTransportFailures_.clear();
+      transactionLock.unlock();
+
+      {
+        std::scoped_lock responseLock(responseMutex_);
+        lastTransportFailure_.clear();
+      }
+      reconnecting_.store(false, std::memory_order_release);
+      heartbeatChanged_.notify_all();
+      noteOutboundMessageSent();
+      responseAvailable_.notify_all();
+      callbackEventsAvailable_.notify_all();
+      return true;
+    } catch (TransportProtocolError const& error) {
+      terminalFailure = std::string("could not resume its process transport session: ") +
+          error.what();
+    } catch (ProcessTransportSessionError const& error) {
+      terminalFailure = std::string("could not resume its process transport session: ") +
+          error.what();
+    } catch (ProcessTransportError const&) {
+      // The host may be restarting or the socket may have failed during the
+      // resume handshake. Keep the joined session and retry without exposing
+      // a transient socket fault as an HLA connection-loss callback.
+    } catch (std::exception const& error) {
+      terminalFailure = std::string("could not resume its process transport session: ") +
+          error.what();
+    } catch (...) {
+      terminalFailure = "could not resume its process transport session";
+    }
+
+    if (replacement) {
+      replacement->close();
+      clearRecoveryAttempt();
+    }
+    if (!terminalFailure.empty()) {
+      break;
+    }
+    std::unique_lock heartbeatLock(heartbeatMutex_);
+    auto const retryDeadline = std::min(
+        recoveryDeadline,
+        std::chrono::steady_clock::now() + retryDelay);
+    heartbeatChanged_.wait_until(heartbeatLock, retryDeadline, [this] {
+      return closing_.load(std::memory_order_acquire);
+    });
+  }
+
+  reconnecting_.store(false, std::memory_order_release);
+  heartbeatChanged_.notify_all();
+  responseAvailable_.notify_all();
+  callbackEventsAvailable_.notify_all();
+  return false;
+}
+
 std::string requestFailure(
     TransportServiceOperation operation,
     TransportServiceStatus status) {
@@ -338,45 +586,61 @@ ProcessFederationClient::ProcessFederationClient(
     TransportEndpointIdentity localIdentity,
     std::shared_ptr<RuntimeInstrumentation> instrumentation,
     FailureHandler failureHandler,
-    ForcedResignationHandler forcedResignationHandler)
-    : failureHandler_(failureHandler ? std::move(failureHandler)
-                                    : FailureHandler{[](std::wstring) {}}),
-      connection_(ProcessTransportConnection::connectClient(
-          this,
-          std::move(address),
-          std::move(localIdentity),
-          [this](std::wstring description) {
-            bool dispatchNow = false;
-            {
-              std::scoped_lock lock(transactionMutex_);
-              pendingTransportFailures_.push_back(std::move(description));
-              dispatchNow = requestDepth_ == 0U &&
-                  std::this_thread::get_id() != streamReaderId_;
-            }
-            responseAvailable_.notify_all();
-            callbackEventsAvailable_.notify_all();
-            if (dispatchNow) {
-              dispatchTransportFailures();
-            }
-          },
+    ForcedResignationHandler forcedResignationHandler,
+    ProcessFederationClientOptions options)
+    : address_(std::move(address)),
+      localIdentity_(std::move(localIdentity)),
+      instrumentation_(std::move(instrumentation)),
+      forcedResignationHandler_(
           forcedResignationHandler
               ? std::move(forcedResignationHandler)
-              : ForcedResignationHandler{[](std::wstring) { return false; }},
-          std::move(instrumentation))),
+              : ForcedResignationHandler{[](std::wstring) { return false; }}),
+      failureHandler_(failureHandler ? std::move(failureHandler)
+                                    : FailureHandler{[](std::wstring) {}}),
+      connection_(connectTransport()),
       shutdownConnection_(connection_),
+      activeShutdownConnection_(connection_),
       session_(std::make_unique<ProcessTransportSession>(connection_)),
+      federateHeartbeatInterval_(options.federateHeartbeatInterval),
+      federateHeartbeatTimeout_(options.federateHeartbeatTimeout),
+      transportRecoveryWindow_(options.transportRecoveryWindow),
+      beforeTransportReadForTesting_(
+          std::move(options.beforeTransportReadForTesting)),
       attributeRelevanceAdvisorySwitchState_(
           std::make_shared<std::atomic_bool>(true)) {
+  if (federateHeartbeatInterval_ <= std::chrono::milliseconds::zero()) {
+    throw std::invalid_argument(
+        "A process federation client heartbeat interval must be positive.");
+  }
+  if (transportRecoveryWindow_ <= std::chrono::milliseconds::zero()) {
+    throw std::invalid_argument(
+        "A process federation client transport recovery window must be positive.");
+  }
+  if (federateHeartbeatTimeout_ <= std::chrono::milliseconds::zero()) {
+    throw std::invalid_argument(
+        "A process federation client heartbeat timeout must be positive.");
+  }
   try {
     streamReaderThread_ = std::thread([this] { receiveLoop(); });
     callbackDispatchThread_ = std::thread([this] { dispatchLoop(); });
+    heartbeatThread_ = std::thread([this] { heartbeatLoop(); });
   } catch (...) {
     closing_.store(true, std::memory_order_release);
+    {
+      std::scoped_lock lock(heartbeatMutex_);
+      heartbeatChanged_.notify_all();
+    }
     shutdownConnection_->close();
     responseAvailable_.notify_all();
     callbackEventsAvailable_.notify_all();
     if (streamReaderThread_.joinable()) {
       streamReaderThread_.join();
+    }
+    if (callbackDispatchThread_.joinable()) {
+      callbackDispatchThread_.join();
+    }
+    if (heartbeatThread_.joinable()) {
+      heartbeatThread_.join();
     }
     throw;
   }
@@ -384,6 +648,62 @@ ProcessFederationClient::ProcessFederationClient(
 
 ProcessFederationClient::~ProcessFederationClient() {
   close();
+}
+
+void ProcessFederationClient::disconnectTransportForTesting() noexcept {
+  std::shared_ptr<ProcessTransportConnection> connection;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    connection = connection_;
+  }
+  if (connection) {
+    connection->close();
+  }
+}
+
+void ProcessFederationClient::sendCallbackResponse(
+    std::uint32_t callbackRequestSequenceNumber,
+    std::exception_ptr callbackFailure) {
+  std::shared_ptr<ProcessTransportConnection> connection;
+  {
+    std::scoped_lock lock(transactionMutex_);
+    connection = connection_;
+  }
+
+  std::optional<std::pair<std::string, std::string>> exceptionData;
+  if (callbackFailure) {
+    try {
+      std::rethrow_exception(callbackFailure);
+    } catch (std::exception const& error) {
+      exceptionData.emplace("std::exception", error.what());
+    } catch (...) {
+      exceptionData.emplace("unknown", "A non-standard exception was thrown.");
+    }
+  }
+  std::string streamReaderFailure;
+  std::string lastTransportFailure;
+  {
+    std::scoped_lock lock(responseMutex_);
+    streamReaderFailure = streamReaderFailure_;
+    lastTransportFailure = lastTransportFailure_;
+  }
+  if (!ProcessTransportSession::sendCallbackResponse(
+          connection, callbackRequestSequenceNumber, std::move(exceptionData))) {
+    auto const connectionDescription = connection
+        ? "on session " + std::to_string(connection->sessionId()) +
+              " (local endpoint '" + connection->localIdentity().endpointId +
+              "', peer endpoint '" + connection->peerIdentity().endpointId +
+              "')"
+        : "without an active connection";
+    throw ProcessFederationClientError(
+        "The process federation client could not send callback response " +
+        std::to_string(callbackRequestSequenceNumber) + " " +
+        connectionDescription + "; pushed-event reader failure '" +
+        (streamReaderFailure.empty() ? "none recorded" : streamReaderFailure) +
+        "'; original transport failure '" +
+        (lastTransportFailure.empty() ? "none recorded" : lastTransportFailure) +
+        "'.");
+  }
 }
 
 void ProcessFederationClient::bufferReceiveResult(
@@ -448,7 +768,9 @@ void ProcessFederationClient::bufferReceiveResult(
   callbackEventsAvailable_.notify_all();
 }
 
-void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
+void ProcessFederationClient::bufferEvent(
+    TransportServiceMessage message,
+    std::optional<std::uint32_t> callbackRequestSequenceNumber) {
   if (message.kind != TransportServiceMessageKind::event ||
       message.status != TransportServiceStatus::ok || message.requestId != 0U) {
     throw ProcessFederationClientError(
@@ -458,8 +780,26 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
   // removed this joined-federate lifetime. Never admit such a late frame to
   // the next membership's callback queue.
   if (!joinedFederationName_ || joinedFederateId_ == 0U) {
+    if (callbackRequestSequenceNumber) {
+      pendingEvents_.emplace_back(
+          PendingCallbackResponseOnly{}, callbackRequestSequenceNumber);
+    }
     return;
   }
+  auto const firstPendingEvent = pendingEvents_.size();
+  auto attachCallbackRequestSequence = [this,
+                                        callbackRequestSequenceNumber,
+                                        firstPendingEvent] {
+    if (!callbackRequestSequenceNumber) {
+      return;
+    }
+    if (pendingEvents_.size() != firstPendingEvent + 1U) {
+      throw ProcessFederationClientError(
+          "A process callback request did not produce exactly one queued callback.");
+    }
+    pendingEvents_.back().callbackRequestSequenceNumber =
+        callbackRequestSequenceNumber;
+  };
   switch (message.operation) {
     case TransportServiceOperation::receive_interaction: {
       auto result = decodeProcessFederationReceiveInteractionResult(message.payload);
@@ -469,6 +809,7 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
         throw ProcessFederationClientError(
             "Process federation client received an empty unsolicited event.");
       }
+      attachCallbackRequestSequence();
       return;
     }
     case TransportServiceOperation::receive_attribute_update: {
@@ -478,6 +819,7 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
             "Process federation client received an empty unsolicited attribute event.");
       }
       pendingEvents_.emplace_back(std::move(*result.event));
+      attachCallbackRequestSequence();
       return;
     }
     case TransportServiceOperation::claim_deferred_attribute_update: {
@@ -485,6 +827,7 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
           message.payload);
       pendingEvents_.emplace_back(PendingDeferredAttributeUpdate{
           std::move(marker.federationName), marker.receivingFederateId});
+      attachCallbackRequestSequence();
       return;
     }
     case TransportServiceOperation::receive_object_instance_discovery: {
@@ -494,6 +837,7 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
             "Process federation client received an empty unsolicited discovery event.");
       }
       pendingEvents_.emplace_back(std::move(*result.event));
+      attachCallbackRequestSequence();
       return;
     }
     case TransportServiceOperation::time_advance_grant: {
@@ -515,26 +859,66 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
       } else {
         pendingEvents_.emplace_back(std::move(*result.grantedTime));
       }
+      attachCallbackRequestSequence();
+      return;
+    }
+    case TransportServiceOperation::federate_resigned: {
+      auto reason = decodeProcessFederationStringResult(message.payload).value;
+      std::vector<std::uint32_t> discardedCallbackRequests;
+      for (auto const& pendingEvent : pendingEvents_) {
+        if (pendingEvent.callbackRequestSequenceNumber) {
+          discardedCallbackRequests.push_back(
+              *pendingEvent.callbackRequestSequenceNumber);
+        }
+      }
+      pendingEvents_.clear();
+      for (auto const sequenceNumber : discardedCallbackRequests) {
+        pendingEvents_.emplace_back(
+            PendingCallbackResponseOnly{}, sequenceNumber);
+      }
+      deferredDeliveryAcknowledgements_.clear();
+      joinedFederationName_.reset();
+      joinedFederateId_ = 0U;
+      pendingEvents_.emplace_back(
+          PendingFederateResigned{std::move(reason)},
+          callbackRequestSequenceNumber);
       return;
     }
     case TransportServiceOperation::request_retraction: {
       auto const retraction = decodeProcessFederationRequestRetractionEvent(message.payload);
-      auto const removed = std::erase_if(pendingEvents_, [&retraction](PendingEvent const& event) {
-        return std::visit([&retraction](auto const& value) {
+      std::vector<std::uint32_t> retractedCallbackRequests;
+      auto const removed = std::erase_if(
+          pendingEvents_, [&retraction, &retractedCallbackRequests](
+                              PendingEventEnvelope const& queuedEvent) {
+        auto const remove = std::visit([&retraction](auto const& value) {
           using Event = std::decay_t<decltype(value)>;
           if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent> ||
                         std::is_same_v<Event, ProcessFederationObjectInstanceRemovalEvent>) {
             return value.retractionMessageId == retraction.messageId;
           }
           return false;
-        }, event);
+        }, queuedEvent.event);
+        if (remove && queuedEvent.callbackRequestSequenceNumber) {
+          retractedCallbackRequests.push_back(
+              *queuedEvent.callbackRequestSequenceNumber);
+        }
+        return remove;
       });
+      for (auto const sequenceNumber : retractedCallbackRequests) {
+        pendingEvents_.emplace_back(
+            PendingCallbackResponseOnly{}, sequenceNumber);
+      }
       if (removed != 0U) {
         deferTsoDeliveryAcknowledgement(retraction.messageId);
+        if (callbackRequestSequenceNumber) {
+          pendingEvents_.emplace_back(
+              PendingCallbackResponseOnly{}, callbackRequestSequenceNumber);
+        }
       } else {
         // Even Request Retraction can invoke user code. Admit it in stream
         // order and dispatch only after the enclosing exchange releases.
         pendingEvents_.emplace_back(PendingRequestRetraction{retraction.messageId});
+        attachCallbackRequestSequence();
       }
       return;
     }
@@ -547,7 +931,12 @@ void ProcessFederationClient::bufferEvent(TransportServiceMessage message) {
 TransportServiceMessage ProcessFederationClient::request(
     TransportServiceOperation operation,
     std::vector<std::uint8_t> payload,
-    bool dispatchCallbacks) {
+    bool dispatchCallbacks,
+    bool bestEffort) {
+  if (bestEffort && reconnecting_.load(std::memory_order_acquire)) {
+    throw ProcessFederationClientError(
+        "A process service-report follow-up was skipped during transport recovery.");
+  }
   rethrowPendingCallbackException();
   std::unique_lock exchangeLock(exchangeMutex_);
   std::uint64_t requestId = 0U;
@@ -556,9 +945,14 @@ TransportServiceMessage ProcessFederationClient::request(
   try {
     {
       std::scoped_lock lock(transactionMutex_);
-      if (closing_.load(std::memory_order_acquire) || !session_) {
+      if (closing_.load(std::memory_order_acquire) ||
+          terminating_.load(std::memory_order_acquire) || !session_) {
         throw ProcessFederationClientError(
             "A process federation request was attempted after client close.");
+      }
+      if (bestEffort && reconnecting_.load(std::memory_order_acquire)) {
+        throw ProcessFederationClientError(
+            "A process service-report follow-up was skipped during transport recovery.");
       }
       if (nextRequestId_ == std::numeric_limits<std::uint64_t>::max()) {
         throw ProcessFederationClientError(
@@ -570,20 +964,45 @@ TransportServiceMessage ProcessFederationClient::request(
       TransportServiceMessage requestMessage{
           TransportServiceMessageKind::request, operation,
           TransportServiceStatus::ok, requestId, std::move(payload)};
-      if (!session_->send(requestMessage)) {
-        throw ProcessFederationClientError(
-            std::string("Process federation ") + operationName(operation) +
-            " could not send its request.");
+      auto const sent = session_->send(requestMessage);
+      if (sent) {
+        noteOutboundMessageSent();
       }
+      if (bestEffort) {
+        // Service-report follow-ups must not hold an API exception open while
+        // reconnect retries run. Drop their active request-depth lease before
+        // waiting for the bounded best-effort acknowledgement below.
+        --requestDepth_;
+        requestDepthRegistered = false;
+        if (!sent) {
+          callbackEventsAvailable_.notify_all();
+          throw ProcessFederationClientError(
+              "The advisory process service-exception report could not be sent.");
+        }
+      }
+      // A failed socket send remains in the session's outgoing history. The
+      // reader reconnects and replays it, so this request still waits for its
+      // original response rather than reporting a transient transport error.
     }
+
+    callbackEventsAvailable_.notify_all();
 
     TransportServiceMessage response;
     {
       std::unique_lock responseLock(responseMutex_);
-      responseAvailable_.wait(responseLock, [this, requestId] {
+      auto const responseReady = [this, requestId] {
         return responses_.contains(requestId) || streamReaderStopped_ ||
             closing_.load(std::memory_order_acquire);
-      });
+      };
+      if (bestEffort) {
+        constexpr auto advisoryResponseTimeout = std::chrono::milliseconds(250);
+        if (!responseAvailable_.wait_for(responseLock, advisoryResponseTimeout, responseReady)) {
+          throw ProcessFederationClientError(
+              "The process service-report follow-up was not acknowledged.");
+        }
+      } else {
+        responseAvailable_.wait(responseLock, responseReady);
+      }
       auto const found = responses_.find(requestId);
       if (found == responses_.end()) {
         auto const detail = streamReaderFailure_.empty()
@@ -607,8 +1026,10 @@ TransportServiceMessage ProcessFederationClient::request(
 
     {
       std::scoped_lock lock(transactionMutex_);
-      --requestDepth_;
-      requestDepthRegistered = false;
+      if (requestDepthRegistered) {
+        --requestDepth_;
+        requestDepthRegistered = false;
+      }
       if (dispatchCallbacks) {
         ++callbackDispatchSuppressionDepth_;
         callbackDispatchSuppressed = true;
@@ -670,17 +1091,54 @@ void ProcessFederationClient::receiveLoop() noexcept {
   std::string failure;
   try {
     while (!closing_.load(std::memory_order_acquire)) {
+      if (beforeTransportReadForTesting_) {
+        beforeTransportReadForTesting_();
+      }
       TransportServiceMessage message;
-      if (!readerSession.receive(message)) {
-        if (!closing_.load(std::memory_order_acquire)) {
-          failure = "lost its pushed event stream";
+      auto receivedFrameKind = TransportFrameKind::data;
+      auto receivedSequenceNumber = kInvalidTransportSequenceNumber;
+      auto receivedLastReceivedMessageNumber =
+          kInvalidTransportSequenceNumber;
+      if (!readerSession.receive(
+              message,
+              &receivedFrameKind,
+              &receivedSequenceNumber,
+              &receivedLastReceivedMessageNumber)) {
+        if (closing_.load(std::memory_order_acquire)) {
+          break;
         }
+        if (!reconnectTransport(readerSession, failure)) {
+          break;
+        }
+        continue;
+      }
+      if (receivedFrameKind == TransportFrameKind::close_ack) {
+        {
+          std::scoped_lock lock(responseMutex_);
+          if (!terminating_.load(std::memory_order_acquire) ||
+              !terminationSequenceNumber_ ||
+              receivedLastReceivedMessageNumber !=
+                  *terminationSequenceNumber_) {
+            throw ProcessFederationClientError(
+                "Process federation client received an unmatched Session Terminated control.");
+          }
+          sessionTerminatedReceived_ = true;
+        }
+        responseAvailable_.notify_all();
         break;
+      }
+      if (receivedFrameKind == TransportFrameKind::close) {
+        throw ProcessFederationClientError(
+            "Process federation client received an unexpected Terminate Session control.");
       }
       if (message.kind == TransportServiceMessageKind::event) {
         {
           std::scoped_lock lock(transactionMutex_);
-          bufferEvent(std::move(message));
+          bufferEvent(
+              std::move(message),
+              receivedFrameKind == TransportFrameKind::callback_request
+                  ? std::optional<std::uint32_t>(receivedSequenceNumber)
+                  : std::nullopt);
         }
         callbackEventsAvailable_.notify_all();
         continue;
@@ -701,29 +1159,194 @@ void ProcessFederationClient::receiveLoop() noexcept {
     }
   } catch (std::exception const& error) {
     failure = error.what();
+    {
+      std::scoped_lock lock(responseMutex_);
+      streamReaderFailure_ = failure;
+      streamReaderStopped_ = true;
+    }
     if (!closing_.load(std::memory_order_acquire)) {
-      shutdownConnection_->close();
+      readerSession.connection()->close();
     }
   } catch (...) {
     failure = "encountered an unknown pushed-event stream failure";
+    {
+      std::scoped_lock lock(responseMutex_);
+      streamReaderFailure_ = failure;
+      streamReaderStopped_ = true;
+    }
     if (!closing_.load(std::memory_order_acquire)) {
-      shutdownConnection_->close();
+      readerSession.connection()->close();
     }
   }
+  bool const transportFailed = !failure.empty();
   {
     std::scoped_lock lock(responseMutex_);
-    streamReaderFailure_ = std::move(failure);
+    if (streamReaderFailure_.empty()) {
+      streamReaderFailure_ = std::move(failure);
+    }
     streamReaderStopped_ = true;
   }
   responseAvailable_.notify_all();
   callbackEventsAvailable_.notify_all();
+  heartbeatChanged_.notify_all();
+  if (transportFailed && !closing_.load(std::memory_order_acquire)) {
+    {
+      std::scoped_lock lock(transactionMutex_);
+      if (pendingTransportFailures_.empty()) {
+        pendingTransportFailures_.push_back(
+            L"The process federation transport could not be recovered.");
+      }
+    }
+    dispatchTransportFailures();
+  }
+}
+
+void ProcessFederationClient::heartbeatLoop() noexcept {
+  std::unique_lock lock(heartbeatMutex_);
+  while (!closing_.load(std::memory_order_acquire) &&
+         !terminating_.load(std::memory_order_acquire)) {
+    auto const observedActivity = outboundActivityGeneration_;
+    auto const outboundDeadline =
+        lastOutboundMessageSent_ + federateHeartbeatInterval_;
+    lock.unlock();
+    std::shared_ptr<ProcessTransportConnection> observedConnection;
+    {
+      std::scoped_lock transactionLock(transactionMutex_);
+      observedConnection = connection_;
+    }
+    auto const peerTimeoutDeadline = observedConnection
+        ? observedConnection->sessionState()->lastPeerActivity() +
+              federateHeartbeatTimeout_
+        : std::chrono::steady_clock::now() + federateHeartbeatTimeout_;
+    lock.lock();
+    if (outboundActivityGeneration_ != observedActivity) {
+      continue;
+    }
+    auto const deadline = std::min(outboundDeadline, peerTimeoutDeadline);
+    if (heartbeatChanged_.wait_until(lock, deadline, [this, observedActivity] {
+          return closing_.load(std::memory_order_acquire) ||
+               terminating_.load(std::memory_order_acquire) ||
+              outboundActivityGeneration_ != observedActivity;
+        })) {
+      if (closing_.load(std::memory_order_acquire) ||
+          terminating_.load(std::memory_order_acquire)) {
+        return;
+      }
+      continue;
+    }
+    if (closing_.load(std::memory_order_acquire) ||
+        terminating_.load(std::memory_order_acquire)) {
+      return;
+    }
+
+    auto const now = std::chrono::steady_clock::now();
+    if (observedConnection && now >= peerTimeoutDeadline &&
+        now - observedConnection->sessionState()->lastPeerActivity() >=
+            federateHeartbeatTimeout_) {
+      lock.unlock();
+      bool closedForHeartbeatTimeout = false;
+      {
+        std::scoped_lock transactionLock(transactionMutex_);
+        if (connection_ == observedConnection &&
+            !reconnecting_.load(std::memory_order_acquire) &&
+            now - observedConnection->sessionState()->lastPeerActivity() >=
+                federateHeartbeatTimeout_) {
+          observedConnection->close();
+          closedForHeartbeatTimeout = true;
+        }
+      }
+      lock.lock();
+      if (closedForHeartbeatTimeout) {
+        heartbeatChanged_.wait(lock, [this] {
+          return closing_.load(std::memory_order_acquire) ||
+              terminating_.load(std::memory_order_acquire) ||
+              reconnecting_.load(std::memory_order_acquire);
+        });
+        if (closing_.load(std::memory_order_acquire) ||
+            terminating_.load(std::memory_order_acquire)) {
+          return;
+        }
+        heartbeatChanged_.wait(lock, [this] {
+          return closing_.load(std::memory_order_acquire) ||
+              terminating_.load(std::memory_order_acquire) ||
+              !reconnecting_.load(std::memory_order_acquire);
+        });
+        if (closing_.load(std::memory_order_acquire) ||
+            terminating_.load(std::memory_order_acquire)) {
+          return;
+        }
+        lock.unlock();
+        bool readerStopped = false;
+        {
+          std::scoped_lock responseLock(responseMutex_);
+          readerStopped = streamReaderStopped_;
+        }
+        lock.lock();
+        if (readerStopped) {
+          return;
+        }
+        continue;
+      }
+      continue;
+    }
+
+    lock.unlock();
+    std::shared_ptr<ProcessTransportConnection> connection;
+    bool sent = false;
+    bool attempted = false;
+    {
+      std::scoped_lock transactionLock(transactionMutex_);
+        if (!closing_.load(std::memory_order_acquire) &&
+            !terminating_.load(std::memory_order_acquire) &&
+          !reconnecting_.load(std::memory_order_acquire)) {
+        connection = connection_;
+        if (connection) {
+          attempted = true;
+          try {
+            sent = connection->sendSequencedFrame([&connection](auto sequenceNumber) {
+              return makeTransportHeartbeat(
+                  connection->sessionId(),
+                  sequenceNumber,
+                  connection->messageHistory().lastReceivedSequenceNumber());
+            });
+          } catch (...) {
+            sent = false;
+          }
+        }
+      }
+    }
+    if (attempted && !sent && connection) {
+      connection->close();
+    }
+    lock.lock();
+    // A failed heartbeat is a transport fault for the reader to recover. Do
+    // not spin on an expired deadline while reconnect retries are in progress.
+    lastOutboundMessageSent_ = std::chrono::steady_clock::now();
+    ++outboundActivityGeneration_;
+  }
+}
+
+void ProcessFederationClient::noteOutboundMessageSent() noexcept {
+  {
+    std::scoped_lock lock(heartbeatMutex_);
+    lastOutboundMessageSent_ = std::chrono::steady_clock::now();
+    ++outboundActivityGeneration_;
+  }
+  heartbeatChanged_.notify_all();
 }
 
 void ProcessFederationClient::dispatchLoop() noexcept {
   while (true) {
     {
       std::unique_lock lock(transactionMutex_);
-      callbackEventsAvailable_.wait(lock, [this] {
+      // close() must be able to publish shutdown and wake this worker without
+      // first acquiring transactionMutex_: a transport worker may be holding
+      // that mutex while its socket is being interrupted. The bounded wait
+      // prevents a lost notification from stranding the dispatcher.
+      callbackEventsAvailable_.wait_for(
+          lock,
+          std::chrono::milliseconds(50),
+          [this] {
         return closing_.load(std::memory_order_acquire) ||
             ((callbackBridge_ && !pendingEvents_.empty()) ||
              !deferredDeliveryAcknowledgements_.empty()) &&

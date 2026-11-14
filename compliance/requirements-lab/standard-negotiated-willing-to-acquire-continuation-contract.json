@@ -3,13 +3,27 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for negotiated Willing-to-Acquire continuation after the first candidate cancels. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador ownership APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, and callback configuration. Evoked delivery preserves two If Available reservations and continues to the second candidate after cancellation; immediate delivery verifies the standard unavailable boundary and uses a regular pending acquisition for the same negotiated continuation. Both callback models check tags, ownership state, callback ordering, and cleanup without provider-specific behavior.",
+  "notes": "This contract records the portable C++ TCK check for negotiated Willing-to-Acquire continuation after the first candidate cancels. The source uses only official IEEE 1516.1 C++ ownership APIs plus the standard library; the adapter supplies provider, FOM, endpoint, and callback configuration. Evoked delivery preserves two If Available reservations, verifies unpublishing is rejected while the first candidate is in Willing to Acquire, and continues to the next candidate after cancellation. It also verifies the If Available tag reaches Request Divestiture Confirmation and the Confirm Divestiture tag reaches the resulting Attribute Ownership Acquisition Notification. Immediate delivery verifies the standard unavailable boundary and uses regular Acquisition Pending for continuation. These callback-model assertions share one public-API body and are not independent or conformance evidence.",
+  "requirements": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l65-20",
+      "standard_section": "hla-1516.1-2025:clause-7.1.1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l18-5",
+      "standard_section": "hla-1516.1-2025:clause-7.1.4"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l51-16",
+      "standard_section": "hla-1516.1-2025:clause-7.1.4"
+    }
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-negotiated-willing-to-acquire-continuation",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador attributeOwnershipAcquisitionIfAvailable, attributeOwnershipAcquisition, cancelAttributeOwnershipAcquisition, negotiatedAttributeOwnershipDivestiture, and confirmDivestiture with standard ownership callbacks",
+      "signature": "RTIambassador attributeOwnershipAcquisitionIfAvailable, attributeOwnershipAcquisition, cancelAttributeOwnershipAcquisition, negotiatedAttributeOwnershipDivestiture, confirmDivestiture, and unpublishObjectClassAttributes with standard ownership callbacks",
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
       "tests": [

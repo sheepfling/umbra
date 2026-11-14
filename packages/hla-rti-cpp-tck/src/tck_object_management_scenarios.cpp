@@ -1,5 +1,8 @@
 #include "tck_main_scenarios.hpp"
 
+#include <type_traits>
+#include <utility>
+
 namespace hla_rti_cpp_tck::detail {
 
 void scenarioObjectRegistration(Options const& options, rti::CallbackModel model) {
@@ -92,6 +95,23 @@ void scenarioObjectRegistration(Options const& options, rti::CallbackModel model
       },
       L"ObjectInstanceNameNotReserved",
       "registering an object instance with an unreserved name");
+  auto const releasedName = federation + L"-released-before-registration";
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(releasedName);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().reservationSucceeded(releasedName); },
+      options,
+      "reserving the name before releasing it");
+  owner.rtiAmbassador().releaseObjectInstanceName(releasedName);
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstance(
+            objectClass,
+            releasedName));
+      },
+      L"ObjectInstanceNameNotReserved",
+      "registering with a name whose successful reservation was released");
   auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass);
   require(object.isValid(), "Object registration returned an invalid handle");
   auto const name = owner.rtiAmbassador().getObjectInstanceName(object);
@@ -110,6 +130,49 @@ void scenarioObjectRegistration(Options const& options, rti::CallbackModel model
   require(member.rtiAmbassador().getKnownObjectClassHandle(object) == objectClass,
           "Known object class lookup did not round-trip");
 
+  auto const secondObject = owner.rtiAmbassador().registerObjectInstance(objectClass);
+  require(secondObject.isValid(), "Second object registration returned an invalid handle");
+  auto const secondName = owner.rtiAmbassador().getObjectInstanceName(secondObject);
+  require(!secondName.empty(), "Second object registration returned an empty instance name");
+  require(secondName != name,
+          "RTI-generated object instance names were not unique within the federation");
+  require(owner.rtiAmbassador().getObjectInstanceHandle(secondName) == secondObject,
+          "Second object instance name lookup did not round-trip");
+
+  auto const memberObjectClass = member.rtiAmbassador().getObjectClassHandle(
+      options.objectClassName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberObjectClass,
+      options.attributeName);
+  require(
+      memberObjectClass.isValid() && memberAttribute.isValid(),
+      "Member object registration handles were invalid");
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  member.rtiAmbassador().publishObjectClassAttributes(
+      memberObjectClass,
+      memberAttributes);
+  auto const memberObject =
+      member.rtiAmbassador().registerObjectInstance(memberObjectClass);
+  require(
+      memberObject.isValid(),
+      "Member registration returned an invalid handle");
+  auto const memberName =
+      member.rtiAmbassador().getObjectInstanceName(memberObject);
+  require(
+      !memberName.empty() && memberName != name && memberName != secondName,
+      "RTI-generated object instance names were not unique across joined federates");
+  require(
+      member.rtiAmbassador().getObjectInstanceHandle(memberName) == memberObject,
+      "Member-generated object instance name did not round-trip");
+
+  waitFor(member, [&] { return member.recorder().hasDiscovery(secondObject); }, options,
+          "second object discovery");
+  auto const secondDiscovered = member.recorder().discovery();
+  require(secondDiscovered.object == secondObject,
+          "Second discovery returned the wrong object handle");
+  require(secondDiscovered.name == secondName,
+          "Second discovery returned the wrong object name");
+
   requireException(
       [&] { member.rtiAmbassador().localDeleteObjectInstance(rti::ObjectInstanceHandle{}); },
       L"ObjectInstanceNotKnown",
@@ -127,6 +190,13 @@ void scenarioObjectRegistration(Options const& options, rti::CallbackModel model
 }
 
 void scenarioObjectDeletion(Options const& options, rti::CallbackModel model) {
+  // Without a timestamp, the official API cannot provide a retraction handle.
+  static_assert(std::is_same_v<
+                decltype(std::declval<rti::RTIambassador&>().deleteObjectInstance(
+                    std::declval<rti::ObjectInstanceHandle const&>(),
+                    std::declval<rti::VariableLengthData const&>())),
+                void>);
+
   Session deletionLifecycle(options, model, "deletion-lifecycle");
   rti::ObjectInstanceHandle const invalidObjectInstance;
   rti::VariableLengthData const emptyDeletionTag;
@@ -286,6 +356,117 @@ void scenarioObjectDeletion(Options const& options, rti::CallbackModel model) {
   member.resign(rti::NO_ACTION);
 }
 
+void scenarioFqrTimestampedObjectDeletionKnownState(
+    Options const& options,
+    rti::CallbackModel model) {
+  Session owner(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation =
+      federationName(options, "fqr-timestamped-object-deletion-known-state");
+  connectAndJoin(owner, receiver, options, federation, options.fom);
+
+  rti::ObjectClassHandle objectClass;
+  rti::AttributeHandle attribute;
+  rti::InteractionClassHandle interactionClass;
+  rti::ParameterHandle parameter;
+  handles(owner, options, objectClass, attribute, interactionClass, parameter);
+  auto const receiverObjectClass =
+      receiver.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const receiverAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverObjectClass, options.attributeName);
+  require(receiverObjectClass == objectClass && receiverAttribute == attribute,
+          "FQR timestamped deletion FOM handles differ across federates");
+
+  rti::AttributeHandleSet ownerAttributes;
+  ownerAttributes.insert(attribute);
+  rti::AttributeHandleSet receiverAttributes;
+  receiverAttributes.insert(receiverAttribute);
+  owner.rtiAmbassador().publishObjectClassAttributes(objectClass, ownerAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverObjectClass, receiverAttributes, true, L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass);
+  require(object.isValid(), "FQR timestamped deletion returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(!objectName.empty(), "FQR timestamped deletion returned an empty object name");
+  waitFor(receiver, [&] { return receiver.recorder().discovery().present; }, options,
+          "FQR timestamped deletion object discovery");
+  require(receiver.recorder().discovery().object == object,
+          "FQR timestamped deletion discovered the wrong object");
+  require(receiver.rtiAmbassador().getKnownObjectClassHandle(object) == receiverObjectClass,
+          "FQR timestamped deletion receiver did not initially know the object");
+
+  auto ownerTime = makeTimeContext(owner);
+  auto receiverTime = makeTimeContext(receiver);
+  requireTimeEquals(*ownerTime.initial, *receiverTime.initial,
+                    "FQR timestamped object-deletion initial time");
+  enableTimestampedRoles(
+      owner, receiver, ownerTime, receiverTime, options,
+      "FQR timestamped object deletion");
+  auto const deletionTime = timeAfter(
+      *ownerTime.factory, *ownerTime.initial, *ownerTime.epsilon, 4U);
+  auto const afterDeletionTime = timeAfter(
+      *ownerTime.factory, *ownerTime.initial, *ownerTime.epsilon, 5U);
+  std::vector<std::uint8_t> const tagBytes{0x46U, 0x51U, 0x52U, 0x2DU, 0x44U};
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = owner.rtiAmbassador().deleteObjectInstance(
+      object, tag, *deletionTime);
+  require(retraction.isValid(),
+          "FQR timestamped deletion returned an invalid retraction handle");
+  require(receiver.recorder().timedRemovals().empty(),
+          "FQR timestamped deletion was delivered before Flush Queue Request");
+
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().flushQueueRequest(*deletionTime);
+  waitFor(receiver, [&] {
+    return receiver.recorder().timedRemovals().size() == 1U &&
+        receiver.recorder().flushQueueGrants().size() == 1U;
+  }, options, "FQR timestamped object deletion and flush grant");
+  auto const removal = receiver.recorder().timedRemovals().front();
+  auto const flushGrant = receiver.recorder().flushQueueGrants().front();
+  require(receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"remove", "flush-grant"},
+          "FQR delivered its grant before the timestamped object removal");
+  require(removal.object == object && removal.tag == tagBytes &&
+              removal.producer == owner.federateHandle() &&
+              removal.time == encodeTime(*deletionTime) &&
+              removal.sentOrder == rti::TIMESTAMP &&
+              removal.receivedOrder == rti::TIMESTAMP &&
+              removal.retractionPresent &&
+              removal.retraction == copyBytes(retraction.encode()),
+          "FQR returned the wrong timestamped object removal metadata");
+  require(flushGrant.optimisticTime == encodeTime(*deletionTime),
+          "FQR returned the wrong optimistic time for timestamped object deletion");
+
+  owner.rtiAmbassador().timeAdvanceRequest(*afterDeletionTime);
+  waitFor(owner, [&] { return owner.recorder().timeAdvanceGrants().size() == 1U; },
+          options, "FQR timestamped deletion producer advance");
+  receiver.rtiAmbassador().timeAdvanceRequest(*afterDeletionTime);
+  waitFor(receiver,
+          [&] { return receiver.recorder().timeAdvanceGrants().size() == 1U; },
+          options, "FQR timestamped deletion receiver advance");
+  auto receiverLogicalTime = receiverTime.factory->makeInitial();
+  require(receiverLogicalTime != nullptr,
+          "FQR timestamped deletion could not allocate a logical-time query");
+  receiver.rtiAmbassador().queryLogicalTime(*receiverLogicalTime);
+  require(*receiverLogicalTime >= *deletionTime,
+          "FQR receiver did not advance to or past the object-deletion timestamp");
+  requireException(
+      [&] {
+        static_cast<void>(receiver.rtiAmbassador().getObjectInstanceHandle(objectName));
+      },
+      L"ObjectInstanceNotKnown",
+      "FQR timestamped object lookup after advancing past deletion time");
+  requireException(
+      [&] {
+        static_cast<void>(receiver.rtiAmbassador().getKnownObjectClassHandle(object));
+      },
+      L"ObjectInstanceNotKnown",
+      "FQR timestamped known-object lookup after advancing past deletion time");
+  receiver.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+}
+
 void scenarioAttributeValueRequest(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session member(options, model, "member");
@@ -441,11 +622,57 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
       L"IllegalName",
       "reserving an empty object instance name");
 
+  requireException(
+      [&] {
+        owner.rtiAmbassador().reserveMultipleObjectInstanceNames(
+            std::set<std::wstring>{});
+      },
+      L"NameSetWasEmpty",
+      "reserving an empty object instance name set");
+  requireException(
+      [&] {
+        owner.rtiAmbassador().reserveMultipleObjectInstanceNames(
+            std::set<std::wstring>{L"HLA.ReservedByTheRTI"});
+      },
+      L"IllegalName",
+      "reserving a name with the reserved HLA prefix");
+  auto const validNameInRejectedSet = federation + L"-valid-in-rejected-set";
+  requireException(
+      [&] {
+        owner.rtiAmbassador().reserveMultipleObjectInstanceNames(
+            std::set<std::wstring>{validNameInRejectedSet, L"HLA.Invalid"});
+      },
+      L"IllegalName",
+      "rejecting a multiple-name reservation containing one illegal name");
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(validNameInRejectedSet);
+  waitFor(
+      member,
+      [&] { return member.recorder().reservationSucceeded(validNameInRejectedSet); },
+      options,
+      "valid name remains available after an illegal multiple-name reservation");
+  require(
+      !member.recorder().hasMultipleReservationOutcome(),
+      "single-name reservation used a multiple-name reservation callback");
+  member.rtiAmbassador().releaseObjectInstanceName(validNameInRejectedSet);
+
   auto const releasedName = federation + L"-released-name";
+  owner.recorder().clearReservations();
   owner.rtiAmbassador().reserveObjectInstanceName(releasedName);
   waitFor(owner, [&] { return owner.recorder().reservationSucceeded(releasedName); }, options,
           "single object-name reservation");
+  require(
+      !owner.recorder().hasMultipleReservationOutcome(),
+      "single-name reservation used a multiple-name reservation callback");
   owner.rtiAmbassador().releaseObjectInstanceName(releasedName);
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(releasedName);
+  waitFor(
+      member,
+      [&] { return member.recorder().reservationSucceeded(releasedName); },
+      options,
+      "a released object name is available to another joined federate");
+  member.rtiAmbassador().releaseObjectInstanceName(releasedName);
   owner.recorder().clearReservations();
   owner.rtiAmbassador().reserveObjectInstanceName(releasedName);
   waitFor(owner, [&] { return owner.recorder().reservationSucceeded(releasedName); }, options,
@@ -463,7 +690,35 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
   owner.rtiAmbassador().reserveMultipleObjectInstanceNames(batchNames);
   waitFor(owner, [&] { return owner.recorder().multipleReservationSucceeded(batchNames); }, options,
           "multiple object-name reservation");
+  require(
+      !owner.recorder().hasSingleReservationOutcome(),
+      "multiple-name reservation used a single-name reservation callback");
+  auto const unreservedReleaseName = federation + L"-not-reserved-for-release";
+  requireException(
+      [&] {
+        owner.rtiAmbassador().releaseMultipleObjectInstanceNames(
+            std::set<std::wstring>{*batchNames.begin(), unreservedReleaseName});
+      },
+      L"ObjectInstanceNameNotReserved",
+      "releasing a multiple-name set that contains an unreserved name");
+  for (auto const& batchName : batchNames) {
+    member.recorder().clearReservations();
+    member.rtiAmbassador().reserveObjectInstanceName(batchName);
+    waitFor(
+        member,
+        [&] { return member.recorder().reservationFailed(batchName); },
+        options,
+        "failed multiple-name release retains every reserved name");
+  }
   owner.rtiAmbassador().releaseMultipleObjectInstanceNames(batchNames);
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(*batchNames.begin());
+  waitFor(
+      member,
+      [&] { return member.recorder().reservationSucceeded(*batchNames.begin()); },
+      options,
+      "a name released from a multiple-name set is available to another joined federate");
+  member.rtiAmbassador().releaseObjectInstanceName(*batchNames.begin());
   owner.recorder().clearReservations();
   owner.rtiAmbassador().reserveObjectInstanceName(*batchNames.begin());
   waitFor(owner, [&] {
@@ -475,6 +730,16 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
   owner.rtiAmbassador().reserveObjectInstanceName(name);
   waitFor(owner, [&] { return owner.recorder().reservationSucceeded(name); }, options,
           "named object reservation");
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(name);
+  waitFor(
+      member,
+      [&] { return member.recorder().reservationFailed(name); },
+      options,
+      "another federate cannot successfully reserve a name held by the owner");
+  require(
+      !member.recorder().hasMultipleReservationOutcome(),
+      "single-name contention used a multiple-name reservation callback");
   auto const memberClass = member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
   auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
       memberClass, options.attributeName);
@@ -555,6 +820,141 @@ void scenarioNamedRegistration(Options const& options, rti::CallbackModel model)
 
   owner.resign(rti::DELETE_OBJECTS);
   member.resign(rti::NO_ACTION);
+}
+
+void scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.fom.empty(),
+          "Local-delete/orphan cleanup requires an adapter-supplied FOM");
+
+  Session owner(options, model, "local-delete-orphan-owner");
+  Session member(options, model, "local-delete-orphan-member");
+  auto const federation =
+      federationName(options, "local-delete-object-name-lookup-boundary");
+  connectAndJoin(owner, member, options, federation, options.fom);
+
+  auto const ownerClass =
+      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const memberClass =
+      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
+  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, options.attributeName);
+  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
+      memberClass, options.attributeName);
+  auto const deletePrivilege = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass, L"HLAprivilegeToDeleteObject");
+  require(ownerClass.isValid() && memberClass.isValid() &&
+              ownerAttribute.isValid() && memberAttribute.isValid() &&
+              deletePrivilege.isValid(),
+          "Local-delete/orphan cleanup lookup returned an invalid standard handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerAttribute, deletePrivilege};
+  rti::AttributeHandleSet const memberAttributes{memberAttribute};
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  member.rtiAmbassador().subscribeObjectClassAttributes(memberClass, memberAttributes);
+
+  auto const objectName = L"tck-orphan-object-" + federation;
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(objectName);
+  waitFor(owner,
+          [&] { return owner.recorder().reservationSucceeded(objectName); },
+          options, "reserving the orphan-cleanup object name");
+  member.recorder().clearDiscovery();
+  auto const object =
+      owner.rtiAmbassador().registerObjectInstance(ownerClass, objectName);
+  require(object.isValid(),
+          "Local-delete/orphan registration returned an invalid object handle");
+  waitFor(member,
+          [&] { return member.recorder().hasDiscovery(object); },
+          options, "local-delete/orphan object discovery");
+  auto const discovery = member.recorder().discovery();
+  require(discovery.object == object && discovery.name == objectName &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+              owner.rtiAmbassador().isAttributeOwnedByFederate(object, deletePrivilege),
+          "Named object discovery or initial ownership was incorrect");
+
+  member.rtiAmbassador().localDeleteObjectInstance(object);
+  requireException(
+      [&] { static_cast<void>(member.rtiAmbassador().getObjectInstanceName(object)); },
+      L"ObjectInstanceNotKnown",
+      "looking up a locally forgotten object instance");
+  require(owner.rtiAmbassador().getObjectInstanceName(object) == objectName,
+          "Subscriber-local deletion changed the publisher's object identity");
+
+  // Make every federate-owned attribute unowned, then let the last federate
+  // that knows the object locally forget it.  With no remaining owner or
+  // known instance, §6.1.6 requires the RTI to delete the orphan.
+  owner.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      object, ownerAttributes, rti::VariableLengthData{});
+  require(!owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+              !owner.rtiAmbassador().isAttributeOwnedByFederate(object, deletePrivilege),
+          "The orphan-cleanup setup left an instance attribute owned");
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  owner.rtiAmbassador().localDeleteObjectInstance(object);
+  requireException(
+      [&] { static_cast<void>(owner.rtiAmbassador().getObjectInstanceName(object)); },
+      L"ObjectInstanceNotKnown",
+      "looking up the last federate's locally forgotten object instance");
+
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(objectName);
+  waitFor(member,
+          [&] {
+            return member.recorder().reservationSucceeded(objectName) ||
+                member.recorder().reservationFailed(objectName);
+          },
+          options, "reserving the name released by orphan-object deletion");
+  require(member.recorder().reservationSucceeded(objectName),
+          "RTI retained the orphan object instead of deleting it");
+
+  member.rtiAmbassador().releaseObjectInstanceName(objectName);
+
+  // An owner that unconditionally divests on resignation is the other public
+  // path to the same orphan state: after the last known federate leaves, the
+  // still-joined member must be able to reserve the former instance name.
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  auto const resignedObjectName = L"tck-orphan-resigned-object-" + federation;
+  owner.recorder().clearReservations();
+  owner.rtiAmbassador().reserveObjectInstanceName(resignedObjectName);
+  waitFor(owner,
+          [&] { return owner.recorder().reservationSucceeded(resignedObjectName); },
+          options,
+          "reserving the name for resignation-driven orphan cleanup");
+  member.recorder().clearDiscovery();
+  auto const resignedObject = owner.rtiAmbassador().registerObjectInstance(
+      ownerClass,
+      resignedObjectName);
+  waitFor(member,
+          [&] { return member.recorder().hasDiscovery(resignedObject); },
+          options,
+          "discovering the resignation-driven orphan object");
+  member.rtiAmbassador().localDeleteObjectInstance(resignedObject);
+  owner.resign(rti::UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+
+  member.recorder().clearReservations();
+  member.rtiAmbassador().reserveObjectInstanceName(resignedObjectName);
+  waitFor(member,
+          [&] {
+            return member.recorder().reservationSucceeded(resignedObjectName) ||
+                member.recorder().reservationFailed(resignedObjectName);
+          },
+          options,
+          "reserving the name released by resignation-driven orphan cleanup");
+  require(member.recorder().reservationSucceeded(resignedObjectName),
+          "RTI retained an orphan after the final-known federate resigned");
+  member.rtiAmbassador().releaseObjectInstanceName(resignedObjectName);
+
+  member.rtiAmbassador().unsubscribeObjectClassAttributes(
+      memberClass, memberAttributes);
+  member.resign(rti::NO_ACTION);
+  owner.disconnect();
+  member.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+}
+
+void scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable(
+    Options const& options, rti::CallbackModel model) {
+  scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(options, model);
 }
 
 } // namespace hla_rti_cpp_tck::detail

@@ -14,6 +14,7 @@ import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Re-evaluate timestamped interaction subscriptions at the time-grant boundary. */
 final class DelaySubscriptionEvaluationTimestampedInteractionTck {
@@ -108,6 +110,10 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
          receiverRegion = createRegion(receiver, receiverFirst, receiverSecond, 2, 6);
          sourceRegions = regionSet(publisher, sourceRegion);
          receiverRegions = regionSet(receiver, receiverRegion);
+         receiverEvents.regionHook = regions -> {
+            checkCallbackRegion(receiver, regions, receiverFirst, receiverSecond);
+            receiverEvents.inspectedSourceRegionCallbacks.incrementAndGet();
+         };
 
          LogicalTimeFactory<?, ?> publisherFactory = publisher.getTimeFactory();
          LogicalTimeFactory<?, ?> receiverFactory = receiver.getTimeFactory();
@@ -155,7 +161,8 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
                ? null : firstRetraction.handle;
             verifyRegional(receiverEvents.interactions.get(0), receiverClass,
                receiverParameter, firstValue, tag, producer, firstTime, expectedRetraction,
-               sourceRegion, receiver, "first regional grant");
+               receiverEvents.inspectedSourceRegionCallbacks.get(), receiver,
+               "first regional grant");
          }
 
          LogicalTime secondTime = add(firstTime, epsilon);
@@ -177,6 +184,9 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
             "second regional delay-subscription grant");
          JavaTckSupport.check(receiverEvents.interactions.size() == firstDeliveryCount,
             "regional timestamped interaction was delivered after unsubscribe");
+         JavaTckSupport.check(receiverEvents.inspectedSourceRegionCallbacks.get()
+               == receiverEvents.interactions.size(),
+            "regional timestamped interaction omitted its callback-scoped source region copy");
 
          receiver.disableTimeConstrained(); constrained = false;
          publisher.disableTimeRegulation(); regulating = false;
@@ -392,7 +402,7 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
    private static void verifyRegional(Interaction event,
          InteractionClassHandle interactionClass, ParameterHandle parameter, byte[] payload,
          byte[] tag, FederateHandle producer, LogicalTime time,
-         MessageRetractionHandle expectedRetraction, RegionHandle sourceRegion,
+         MessageRetractionHandle expectedRetraction, int inspectedSourceRegionCallbacks,
          RTIambassador receiver, String phase) throws Exception {
       JavaTckSupport.check(interactionClass.equals(event.interaction)
             && event.parameters.size() == 1 && event.parameters.containsKey(parameter)
@@ -403,12 +413,28 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
             && event.transportation != null
             && !receiver.getTransportationTypeName(event.transportation).isEmpty()
             && event.regions != null && event.regions.size() == 1
-            && event.regions.contains(sourceRegion),
+            && inspectedSourceRegionCallbacks == 1,
          phase + " regional timestamped interaction lost metadata or source designator");
       if (expectedRetraction != null) {
          JavaTckSupport.check(expectedRetraction.equals(event.retraction),
             phase + " regional timestamped interaction returned the wrong retraction handle");
       }
+   }
+
+   private static void checkCallbackRegion(RTIambassador receiver, RegionHandleSet regions,
+         DimensionHandle firstDimension, DimensionHandle secondDimension) throws Exception {
+      JavaTckSupport.check(regions != null && regions.size() == 1,
+         "timestamped regional interaction callback omitted its single source designator");
+      RegionHandle callbackRegion = regions.iterator().next();
+      DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+      JavaTckSupport.check(dimensions.size() == 2 && dimensions.contains(firstDimension)
+            && dimensions.contains(secondDimension),
+         "timestamped regional interaction callback returned the wrong copied dimensions");
+      RangeBounds firstBounds = receiver.getRangeBounds(callbackRegion, firstDimension);
+      RangeBounds secondBounds = receiver.getRangeBounds(callbackRegion, secondDimension);
+      JavaTckSupport.check(firstBounds.lower == 1 && firstBounds.upper == 5
+            && secondBounds.lower == 1 && secondBounds.upper == 5,
+         "timestamped regional interaction callback returned the wrong source region bounds");
    }
 
    private static void deleteRegion(RTIambassador ambassador, RegionHandle region,
@@ -478,6 +504,8 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
       LogicalTime<?, ?> timeConstrainedEnabled;
       final List<Interaction> interactions = new ArrayList<>();
       final List<LogicalTime<?, ?>> grants = new ArrayList<>();
+      final AtomicInteger inspectedSourceRegionCallbacks = new AtomicInteger();
+      RegionHook regionHook;
 
       FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -490,6 +518,7 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
                } else if ("timeConstrainedEnabled".equals(name) && a.length == 1) {
                   timeConstrainedEnabled = (LogicalTime<?, ?>) a[0];
                } else if ("receiveInteraction".equals(name) && a.length == 10) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) a[5]);
                   Interaction event = new Interaction();
                   event.interaction = (InteractionClassHandle) a[0];
                   event.parameters = ((ParameterHandleValueMap) a[1]).clone();
@@ -514,5 +543,10 @@ final class DelaySubscriptionEvaluationTimestampedInteractionTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

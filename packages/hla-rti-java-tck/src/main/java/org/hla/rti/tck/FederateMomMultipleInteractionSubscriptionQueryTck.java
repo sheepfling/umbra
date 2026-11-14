@@ -2,9 +2,12 @@ package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.AttributeHandle;
+import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.InteractionClassHandleFactory;
+import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandleSet;
@@ -17,6 +20,7 @@ import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAbyte;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
+import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -41,25 +45,33 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
 
    private FederateMomMultipleInteractionSubscriptionQueryTck() { }
 
-   static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String interactionClassName, CallbackModel callbackModel) throws Exception {
-      run(factory, fom, mim, timeImplementation, interactionClassName, callbackModel, false, false);
-   }
-
-   static void runAfterSecondaryUnsubscribe(RtiFactory factory, String fom, String mim,
-         String timeImplementation, String interactionClassName, CallbackModel callbackModel)
+   static void run(RtiFactory factory, String fom, String rateFom, String mim,
+         String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String updateRateName, CallbackModel callbackModel)
          throws Exception {
-      run(factory, fom, mim, timeImplementation, interactionClassName, callbackModel, true, false);
+      run(factory, fom, rateFom, mim, timeImplementation, objectClassName, attributeName,
+         interactionClassName, updateRateName, callbackModel, false, false);
    }
 
-   static void runAfterFullUnsubscribe(RtiFactory factory, String fom, String mim,
-         String timeImplementation, String interactionClassName, CallbackModel callbackModel)
+   static void runAfterSecondaryUnsubscribe(RtiFactory factory, String fom, String rateFom,
+         String mim, String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String updateRateName, CallbackModel callbackModel)
          throws Exception {
-      run(factory, fom, mim, timeImplementation, interactionClassName, callbackModel, true, true);
+      run(factory, fom, rateFom, mim, timeImplementation, objectClassName, attributeName,
+         interactionClassName, updateRateName, callbackModel, true, false);
    }
 
-   private static void run(RtiFactory factory, String fom, String mim,
-         String timeImplementation, String interactionClassName, CallbackModel callbackModel,
+   static void runAfterFullUnsubscribe(RtiFactory factory, String fom, String rateFom,
+         String mim, String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String updateRateName, CallbackModel callbackModel)
+         throws Exception {
+      run(factory, fom, rateFom, mim, timeImplementation, objectClassName, attributeName,
+         interactionClassName, updateRateName, callbackModel, true, true);
+   }
+
+   private static void run(RtiFactory factory, String fom, String rateFom, String mim,
+         String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String updateRateName, CallbackModel callbackModel,
          boolean unsubscribePassiveClass, boolean unsubscribeRemainingActiveClass)
          throws Exception {
       String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
@@ -84,14 +96,21 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
          subjectConnected = true;
          requester.connect(recorder.proxy(), callbackModel);
          requesterConnected = true;
-         subject.createFederationExecutionWithMIM(federation, new String[] {fom}, mim,
+         subject.createFederationExecutionWithMIM(federation, new String[] {fom, rateFom}, mim,
             timeImplementation);
          created = true;
          subject.joinFederationExecution(subjectName, federateType, federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, federateType, federation);
+         requester.joinFederationExecution(requesterName, federateType, federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
+
+         ObjectClassHandle subjectObjectClass = subject.getObjectClassHandle(objectClassName);
+         ObjectClassHandle requesterObjectClass = requester.getObjectClassHandle(objectClassName);
+         AttributeHandle subjectAttribute = subject.getAttributeHandle(subjectObjectClass,
+            attributeName);
+         AttributeHandle requesterAttribute = requester.getAttributeHandle(requesterObjectClass,
+            attributeName);
 
          InteractionClassHandle subjectApplicationClass =
             subject.getInteractionClassHandle(interactionClassName);
@@ -102,7 +121,11 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
          InteractionClassHandle requesterServiceReportClass =
             requester.getInteractionClassHandle(SERVICE_REPORT);
          TransportationTypeHandle reliable = requester.getTransportationTypeHandle("HLAreliable");
-         JavaTckSupport.check(subjectApplicationClass != null
+         JavaTckSupport.check(subjectObjectClass != null && requesterObjectClass != null
+               && subjectAttribute != null && requesterAttribute != null
+               && subjectObjectClass.equals(requesterObjectClass)
+               && subjectAttribute.equals(requesterAttribute)
+               && subjectApplicationClass != null
                && requesterApplicationClass != null && subjectServiceReportClass != null
                && requesterServiceReportClass != null && targetFederate != null
                && reliable != null && !subjectApplicationClass.equals(subjectServiceReportClass)
@@ -110,6 +133,10 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
                && subjectServiceReportClass.equals(requesterServiceReportClass),
             "adapter application and standard MIM interaction handles were invalid or inconsistent");
 
+         AttributeHandleSet attributes = subject.getAttributeHandleSetFactory().create();
+         attributes.add(subjectAttribute);
+         subject.subscribeObjectClassAttributes(subjectObjectClass, attributes, updateRateName);
+         objectSubscribed = true;
          subject.subscribeInteractionClass(subjectApplicationClass);
          subjectApplicationSubscribed = true;
          subject.subscribeInteractionClassPassively(subjectServiceReportClass);
@@ -171,9 +198,10 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
          verifyMetadata(objectReport, reliable, "object-subscription report");
          verifyMetadata(interactionReport, reliable, "interaction-subscription report");
          verifyMetadata(directedReport, reliable, "directed-subscription report");
-         verifyNullObjectReport(encoder, objectReport, objectReportCount,
+         verifyActiveObjectReport(encoder, requester, objectReport, objectReportCount,
             objectReportClassParameter, objectReportActive, objectReportRate,
-            objectReportAttributes);
+            objectReportAttributes, requesterObjectClass, requesterAttribute, updateRateName,
+            "initial");
          JavaTckSupport.check(interactionReport.parameters.size() == 1
                && interactionReport.parameters.containsKey(interactionReportList),
             "interaction-subscription report did not contain only its MIM class-list parameter");
@@ -205,9 +233,10 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
                "post-unsubscribe interaction report");
             verifyMetadata(remainingDirectedReport, reliable,
                "post-unsubscribe directed report");
-            verifyNullObjectReport(encoder, remainingObjectReport, objectReportCount,
-               objectReportClassParameter, objectReportActive, objectReportRate,
-               objectReportAttributes);
+            verifyActiveObjectReport(encoder, requester, remainingObjectReport,
+               objectReportCount, objectReportClassParameter, objectReportActive,
+               objectReportRate, objectReportAttributes, requesterObjectClass,
+               requesterAttribute, updateRateName, "after passive interaction unsubscribe");
             JavaTckSupport.check(remainingInteractionReport.parameters.size() == 1
                   && remainingInteractionReport.parameters.containsKey(interactionReportList),
                "post-unsubscribe interaction report did not contain only its class-list parameter");
@@ -240,9 +269,10 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
             verifyMetadata(emptyInteractionReport, reliable,
                "full-unsubscribe interaction report");
             verifyMetadata(emptyDirectedReport, reliable, "full-unsubscribe directed report");
-            verifyNullObjectReport(encoder, emptyObjectReport, objectReportCount,
+            verifyActiveObjectReport(encoder, requester, emptyObjectReport, objectReportCount,
                objectReportClassParameter, objectReportActive, objectReportRate,
-               objectReportAttributes);
+               objectReportAttributes, requesterObjectClass, requesterAttribute,
+               updateRateName, "after full interaction unsubscribe");
             JavaTckSupport.check(emptyInteractionReport.parameters.size() == 1
                   && emptyInteractionReport.parameters.containsKey(interactionReportList)
                   && decodeSubscriptions(encoder, requester.getInteractionClassHandleFactory(),
@@ -262,6 +292,12 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
          if (directedSubscribed && requesterJoined && directedReportClass != null) try {
             requester.unsubscribeInteractionClass(directedReportClass);
          } catch (Exception ignored) { }
+         if (objectSubscribed && subjectJoined) try {
+            ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
+            AttributeHandleSet attributes = subject.getAttributeHandleSetFactory().create();
+            attributes.add(subject.getAttributeHandle(objectClass, attributeName));
+            subject.unsubscribeObjectClassAttributes(objectClass, attributes);
+         } catch (Exception ignored) { }
          if (subjectApplicationSubscribed && subjectJoined) try {
             subject.unsubscribeInteractionClass(subject.getInteractionClassHandle(interactionClassName));
          } catch (Exception ignored) { }
@@ -279,22 +315,50 @@ final class FederateMomMultipleInteractionSubscriptionQueryTck {
       }
    }
 
-   private static void verifyNullObjectReport(EncoderFactory encoder, Interaction report,
+   private static void verifyActiveObjectReport(EncoderFactory encoder, RTIambassador requester,
+         Interaction report,
          ParameterHandle countParameter, ParameterHandle objectClassParameter,
          ParameterHandle activeParameter, ParameterHandle rateParameter,
-         ParameterHandle attributesParameter) throws Exception {
-      JavaTckSupport.check(report.parameters.size() == 1
+         ParameterHandle attributesParameter, ObjectClassHandle expectedObjectClass,
+         AttributeHandle expectedAttribute, String expectedRate, String phase) throws Exception {
+      JavaTckSupport.check(report.parameters.size() == 5
             && report.parameters.containsKey(countParameter)
-            && !report.parameters.containsKey(objectClassParameter)
-            && !report.parameters.containsKey(activeParameter)
-            && !report.parameters.containsKey(rateParameter)
-            && !report.parameters.containsKey(attributesParameter),
-         "object-subscription report did not use the standard zero-class NULL response shape");
+            && report.parameters.containsKey(objectClassParameter)
+            && report.parameters.containsKey(activeParameter)
+            && report.parameters.containsKey(rateParameter)
+            && report.parameters.containsKey(attributesParameter),
+         phase + " object-subscription report did not contain its five standard parameters");
       HLAinteger32BE count = encoder.createHLAinteger32BE();
       count.decode(report.parameters.get(countParameter));
-      JavaTckSupport.check(count.getValue() == 0,
-         "object-subscription NULL response did not report zero classes");
+      HLAboolean active = encoder.createHLAboolean();
+      active.decode(report.parameters.get(activeParameter));
+      HLAunicodeString updateRate = encoder.createHLAunicodeString();
+      updateRate.decode(report.parameters.get(rateParameter));
+      ObjectClassHandle reportedObjectClass = requester.getObjectClassHandleFactory().decode(
+         report.parameters.get(objectClassParameter), 0);
+      List<AttributeHandle> attributes = decodeHandles(encoder,
+         bytes -> requester.getAttributeHandleFactory().decode(bytes, 0),
+         report.parameters.get(attributesParameter));
+      JavaTckSupport.check(count.getValue() == 1 && active.getValue()
+            && expectedObjectClass.equals(reportedObjectClass)
+            && expectedRate.equals(updateRate.getValue()) && attributes.size() == 1
+            && attributes.contains(expectedAttribute),
+         phase + " did not preserve the active object-class subscription and payload");
    }
+
+   private static <H> List<H> decodeHandles(EncoderFactory encoder, HandleDecoder<H> decoder,
+         byte[] encoded) throws Exception {
+      HLAvariableArray<HLAvariableArray<HLAbyte>> references = encoder.createHLAvariableArray(
+         outer -> encoder.createHLAvariableArray(inner -> encoder.createHLAbyte()));
+      references.decode(encoded);
+      List<H> result = new ArrayList<>();
+      for (HLAvariableArray<HLAbyte> reference : references) {
+         result.add(decoder.decode(reference.toByteArray()));
+      }
+      return result;
+   }
+
+   private interface HandleDecoder<H> { H decode(byte[] encoded) throws Exception; }
 
    private static void verifyInteractionSubscriptions(EncoderFactory encoder,
          InteractionClassHandleFactory factory, byte[] encoded,

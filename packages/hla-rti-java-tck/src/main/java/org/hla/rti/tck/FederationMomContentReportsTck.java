@@ -11,6 +11,7 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.exceptions.InteractionParameterNotDefined;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
@@ -55,11 +56,11 @@ final class FederationMomContentReportsTck {
             federation);
          observerJoined = true;
 
-         InteractionClassHandle fomRequest = observer.getInteractionClassHandle(
+         InteractionClassHandle fomRequest = owner.getInteractionClassHandle(
             REQUEST_ROOT + "HLArequestFOMmoduleData");
-         ParameterHandle fomIndicator = observer.getParameterHandle(
+         ParameterHandle fomIndicator = owner.getParameterHandle(
             fomRequest, "HLAFOMmoduleIndicator");
-         InteractionClassHandle mimRequest = observer.getInteractionClassHandle(
+         InteractionClassHandle mimRequest = owner.getInteractionClassHandle(
             REQUEST_ROOT + "HLArequestMIMdata");
          fomReport = observer.getInteractionClassHandle(REPORT_ROOT + "HLAreportFOMmoduleData");
          ParameterHandle reportIndicator = observer.getParameterHandle(
@@ -73,10 +74,10 @@ final class FederationMomContentReportsTck {
                && mimReport != null && mimData != null && reliable != null,
             "standard federation MOM content-report lookup returned a null handle");
          JavaTckSupport.check((REQUEST_ROOT + "HLArequestFOMmoduleData").equals(
-               observer.getInteractionClassName(fomRequest))
-               && "HLAFOMmoduleIndicator".equals(observer.getParameterName(fomRequest, fomIndicator))
+               owner.getInteractionClassName(fomRequest))
+               && "HLAFOMmoduleIndicator".equals(owner.getParameterName(fomRequest, fomIndicator))
                && (REQUEST_ROOT + "HLArequestMIMdata").equals(
-                  observer.getInteractionClassName(mimRequest))
+                  owner.getInteractionClassName(mimRequest))
                && (REPORT_ROOT + "HLAreportFOMmoduleData").equals(
                   observer.getInteractionClassName(fomReport))
                && "HLAFOMmoduleData".equals(observer.getParameterName(fomReport, fomData))
@@ -92,7 +93,7 @@ final class FederationMomContentReportsTck {
          mimSubscribed = true;
 
          if (callbackModel == CallbackModel.HLA_EVOKED) {
-            sendFomRequest(observer, fomRequest, fomIndicator, encoder);
+            sendFomRequest(owner, fomRequest, fomIndicator, encoder);
             observer.unsubscribeInteractionClass(fomReport);
             fomSubscribed = false;
             settle(observer, callbackModel);
@@ -101,9 +102,9 @@ final class FederationMomContentReportsTck {
             observer.subscribeInteractionClass(fomReport);
             fomSubscribed = true;
          } else {
-            sendFomRequest(observer, fomRequest, fomIndicator, encoder);
+            sendFomRequest(owner, fomRequest, fomIndicator, encoder);
             awaitCount(observer, recorder, 1, "initial FOM-module report delivery");
-            assertReport(recorder.events.get(0), fomReport, reliable,
+            assertReport(observer, recorder.events.get(0), fomReport, reliable,
                "initial FOM-module report");
             observer.unsubscribeInteractionClass(fomReport);
             fomSubscribed = false;
@@ -112,10 +113,10 @@ final class FederationMomContentReportsTck {
             recorder.events.clear();
          }
 
-         sendFomRequest(observer, fomRequest, fomIndicator, encoder);
+         sendFomRequest(owner, fomRequest, fomIndicator, encoder);
          awaitCount(observer, recorder, 1, "FOM-module content report delivery");
          Interaction fomEvent = recorder.events.get(0);
-         assertReport(fomEvent, fomReport, reliable, "FOM-module content report");
+         assertReport(observer, fomEvent, fomReport, reliable, "FOM-module content report");
          JavaTckSupport.check(fomEvent.parameters.size() == 2
                && fomEvent.parameters.containsKey(reportIndicator)
                && fomEvent.parameters.containsKey(fomData),
@@ -126,14 +127,15 @@ final class FederationMomContentReportsTck {
          decodedFom.decode(fomEvent.parameters.get(fomData));
          JavaTckSupport.check(decodedIndicator.getValue() == 0
                && !decodedFom.getValue().isEmpty()
-               && decodedFom.getValue().contains("objectModel"),
-            "FOM-module report did not contain module zero's standard XML content");
+               && decodedFom.getValue().contains("objectModel")
+               && decodedFom.getValue().contains("TckObject"),
+            "FOM-module report omitted module zero's adapter FOM TckObject declaration");
 
          recorder.events.clear();
-         sendRequest(observer, mimRequest, null, null);
+         sendRequest(owner, mimRequest, null, null);
          awaitCount(observer, recorder, 1, "MIM content report delivery");
          Interaction mimEvent = recorder.events.get(0);
-         assertReport(mimEvent, mimReport, reliable, "MIM content report");
+         assertReport(observer, mimEvent, mimReport, reliable, "MIM content report");
          JavaTckSupport.check(mimEvent.parameters.size() == 1
                && mimEvent.parameters.containsKey(mimData),
             "MIM report did not contain exactly its standard content parameter");
@@ -143,6 +145,23 @@ final class FederationMomContentReportsTck {
                && decodedMim.getValue().contains("HLArequestMIMdata")
                && decodedMim.getValue().contains("HLAreportMIMdata"),
             "MIM report did not contain standard request and report interaction definitions");
+
+         recorder.events.clear();
+         ParameterHandleValueMap invalidMimParameters =
+            owner.getParameterHandleValueMapFactory().create(1);
+         invalidMimParameters.put(fomIndicator,
+            encoder.createHLAinteger32BE(0).toByteArray());
+         boolean rejectedInvalidParameter = false;
+         try {
+            owner.sendInteraction(mimRequest, invalidMimParameters, new byte[0]);
+         } catch (InteractionParameterNotDefined expected) {
+            rejectedInvalidParameter = true;
+         }
+         JavaTckSupport.check(rejectedInvalidParameter,
+            "MIM request with a FOM-only parameter did not throw InteractionParameterNotDefined");
+         settle(observer, callbackModel);
+         JavaTckSupport.check(recorder.events.isEmpty(),
+            "malformed MOM MIM request produced an application-level report");
          JavaTckSupport.check(producer != null,
             "standard report request producer handle was null");
       } finally {
@@ -187,12 +206,14 @@ final class FederationMomContentReportsTck {
       ambassador.sendInteraction(request, values, new byte[0]);
    }
 
-   private static void assertReport(Interaction event, InteractionClassHandle interaction,
+   private static void assertReport(RTIambassador observer, Interaction event,
+         InteractionClassHandle interaction,
          TransportationTypeHandle reliable, String description) throws Exception {
       JavaTckSupport.check(interaction.equals(event.interaction)
             && event.tag.length == 0 && reliable.equals(event.transportation)
             && event.regionsEmpty,
          description + " did not preserve class, empty tag, reliable transport, and no regions");
+      JavaTckSupport.requireNoProducingFederate(observer, event.producer, description);
    }
 
    private static void settle(RTIambassador ambassador, CallbackModel model) throws Exception {
@@ -229,6 +250,7 @@ final class FederationMomContentReportsTck {
       private ParameterHandleValueMap parameters;
       private byte[] tag;
       private TransportationTypeHandle transportation;
+      private FederateHandle producer;
       private boolean regionsEmpty;
    }
 
@@ -246,6 +268,7 @@ final class FederationMomContentReportsTck {
                   event.parameters = ((ParameterHandleValueMap) arguments[1]).clone();
                   event.tag = ((byte[]) arguments[2]).clone();
                   event.transportation = (TransportationTypeHandle) arguments[3];
+                  event.producer = (FederateHandle) arguments[4];
                   event.regionsEmpty = arguments[5] == null
                      || ((RegionHandleSet) arguments[5]).isEmpty();
                   events.add(event);

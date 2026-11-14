@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors the public API assertions in cpp-tck.fom-name-case-sensitivity. The mappings are bounded to the listed FOM names and handle categories.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-243-l50-13",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-243-l50-13",
+      "clause_id": "clause-10.1.1",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.fom-name-case-sensitivity.requirement_mappings",
+      "statement": "When the FOM module omits explicit standard root-class declarations, the standard root names and fully qualified names of the defined subclass classes resolve through the public API.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioFomNameCaseSensitivity",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runRootlessFom"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-243-l47-12",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-243-l47-12",
+      "clause_id": "clause-10.1.1",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.fom-name-case-sensitivity.requirement_mappings",
+      "statement": "Fully qualified object and interaction class names and the standard root names resolve, while unqualified subclass leaf names are rejected with NameNotFound.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioFomNameCaseSensitivity",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runP0Fom"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-243-l59-16",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-243-l59-16",
+      "clause_id": "clause-10.1.1",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.fom-name-case-sensitivity.requirement_mappings",
+      "statement": "Exact-case names resolve and round-trip for object classes, attributes, interaction classes, and parameters; first-character case variants are rejected with NameNotFound.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioFomNameCaseSensitivity",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runP0Fom"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-353-l66-21",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-353-l66-21",
+      "clause_id": "clause-12.2",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.fom-name-case-sensitivity.requirement_mappings",
+      "statement": "For object classes, attributes, interaction classes, and parameters, the FOM name resolves to a handle and the handle resolves back to the exact name.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioFomNameCaseSensitivity",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runP0Fom"
+      ]
+    }
+  ]
+}

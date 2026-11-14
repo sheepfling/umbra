@@ -1,13 +1,36 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
+#include <array>
+#include <string_view>
+
 namespace {
+constexpr std::array<std::wstring_view, 16> kTable8FederationPublishedAttributeNames{
+    L"HLAfederationName",
+    L"HLAfederatesInFederation",
+    L"HLARTIversion",
+    L"HLAMIMdesignator",
+    L"HLAFOMmoduleDesignatorList",
+    L"HLAcurrentFDD",
+    L"HLAtimeImplementationName",
+    L"HLAlastSaveName",
+    L"HLAlastSaveTime",
+    L"HLAnextSaveName",
+    L"HLAnextSaveTime",
+    L"HLAautoProvide",
+    L"HLAadvisoriesUseKnownClass",
+    L"HLAdelaySubscriptionEvaluation",
+    L"HLAnonRegulatedGrant",
+    L"HLAallowRelaxedDDM",
+};
+
 TEST_CASE(
     "Embedded federation MOM exposes static configuration values",
     "[integration][development-profile][federation-management][mom][mom-static]"
     "[federation-mom-static-configuration]"
     "[rti.service.join-federation-execution][rti.service.subscribe-object-class-attributes]"
     "[federate.callback.discover-object-instance]"
-    "[federate.callback.reflect-attribute-values]") {
+    "[federate.callback.reflect-attribute-values]"
+    "[mom-table8-p-attribute-publication]") {
   ReportingFederateAmbassador ownerReports;
   ReportingFederateAmbassador observerReports;
   auto owner = makeRti();
@@ -65,6 +88,26 @@ TEST_CASE(
       nonRegulatedGrantAttribute,
       relaxedDdmAttribute,
   };
+  // Table 8 designates all 16 HLAfederation attributes with P in the P/S
+  // column. Subscribe to that complete set plus the inherited root
+  // HLAprivilegeToDeleteObject attribute, which Table 8 does not designate
+  // for this MOM leaf class. The initial reflection must contain exactly the
+  // static P attributes, with no inherited non-Table-8 value.
+  AttributeHandleSet table8PublishedAttributes;
+  for (std::wstring_view const attributeName :
+       kTable8FederationPublishedAttributeNames) {
+    table8PublishedAttributes.insert(observer->getAttributeHandle(
+        momClass,
+        std::wstring{attributeName}));
+  }
+  REQUIRE(table8PublishedAttributes.size() ==
+          kTable8FederationPublishedAttributeNames.size());
+  auto const inheritedPrivilegeToDeleteAttribute = observer->getAttributeHandle(
+      momClass,
+      L"HLAprivilegeToDeleteObject");
+  REQUIRE(inheritedPrivilegeToDeleteAttribute.isValid());
+  auto subscribedAttributes = table8PublishedAttributes;
+  subscribedAttributes.insert(inheritedPrivilegeToDeleteAttribute);
   REQUIRE(momClass.isValid());
   REQUIRE(staticAttributes.size() == 8U);
   for (auto const handle : staticAttributes) {
@@ -72,7 +115,7 @@ TEST_CASE(
   }
 
   REQUIRE_NOTHROW(observer->subscribeObjectClassAttributes(
-      momClass, staticAttributes, true));
+      momClass, subscribedAttributes, true));
   while (observer->evokeCallback(0.0)) {
   }
   auto const discoveredFederation = std::find_if(
@@ -92,6 +135,9 @@ TEST_CASE(
             report.attributeValues.size() == staticAttributes.size();
       });
   REQUIRE(reflectedFederation != observerReports.attributeReflectionReports.end());
+  REQUIRE(reflectedFederation->attributeValues.find(
+              inheritedPrivilegeToDeleteAttribute) ==
+          reflectedFederation->attributeValues.end());
   REQUIRE(reflectedFederation->transportationType ==
           observer->getTransportationTypeHandle(standard_hla::mom::reliable));
   REQUIRE_FALSE(reflectedFederation->producingFederate.isValid());
@@ -115,6 +161,28 @@ TEST_CASE(
   REQUIRE(decodeSwitch(delayedSubscriptionAttribute) == 0);
   REQUIRE(decodeSwitch(nonRegulatedGrantAttribute) == 1);
   REQUIRE(decodeSwitch(relaxedDdmAttribute) == 1);
+
+  auto const reflectedCountBeforeTable8Request =
+      observerReports.attributeReflectionReports.size();
+  REQUIRE_NOTHROW(observer->requestAttributeValueUpdate(
+      federationObjectInstance,
+      table8PublishedAttributes,
+      VariableLengthData{}));
+  while (observer->evokeCallback(0.0)) {
+  }
+  REQUIRE(observerReports.attributeReflectionReports.size() ==
+          reflectedCountBeforeTable8Request + 1U);
+  auto const& table8RequestedReflection =
+      observerReports.attributeReflectionReports.back();
+  REQUIRE(table8RequestedReflection.objectInstance == federationObjectInstance);
+  REQUIRE(table8RequestedReflection.attributeValues.size() ==
+          table8PublishedAttributes.size());
+  for (auto const attribute : table8PublishedAttributes) {
+    REQUIRE(table8RequestedReflection.attributeValues.contains(attribute));
+  }
+  REQUIRE(table8RequestedReflection.attributeValues.find(
+              inheritedPrivilegeToDeleteAttribute) ==
+          table8RequestedReflection.attributeValues.end());
 
   REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(owner->resignFederationExecution(NO_ACTION));

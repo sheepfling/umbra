@@ -287,6 +287,27 @@ FederationTsoRetractionResult EmbeddedFederationRegistry::retractTsoMessageForPr
         // Before any Remove Object Instance callback starts, the object has
         // not been deleted.  Cancelling the pending deletion must not roll
         // back unrelated state changes that occurred after the invocation.
+        // Disabling time-constrained delivery already made each queued
+        // recipient's object unknown. Restore only those knowledge entries
+        // from the invocation snapshot when the deletion is cancelled.
+        for (auto const receivingFederateId :
+             instance->second.pendingTimestampedRemovalFederates) {
+          if (!federation->second.members.contains(receivingFederateId) ||
+              instance->second.knownObjectClassHandlesByFederate.contains(
+                  receivingFederateId)) {
+            continue;
+          }
+          auto const invocationKnown =
+              reconstitution->second.objectInstanceAtInvocation
+                  .knownObjectClassHandlesByFederate.find(receivingFederateId);
+          if (invocationKnown !=
+              reconstitution->second.objectInstanceAtInvocation
+                  .knownObjectClassHandlesByFederate.end()) {
+            instance->second.knownObjectClassHandlesByFederate.emplace(
+                receivingFederateId,
+                invocationKnown->second);
+          }
+        }
         instance->second.pendingTimestampedDeletionMessageId.reset();
         instance->second.pendingTimestampedRemovalFederates.clear();
       }
@@ -378,12 +399,13 @@ std::size_t EmbeddedFederationRegistry::retireStaleTsoRecipientMessagesLocked(
       temporalState.timeRegulationPending &&
       temporalState.advanceMode ==
           FederateTimeAdvanceMode::time_advance_request_available;
-  // A completed TARA grant may be followed by a legal equal-time TSO arrival.
-  // Keep that timestamp eligible through later advance requests until a
-  // non-TARA grant closes the boundary; only older timestamps are stale.
+  // A completed TARA or NMRA grant may be followed by a legal equal-time TSO
+  // arrival. Keep that timestamp eligible through later available requests
+  // until a forward TAR or NMR grant closes the boundary; only older
+  // timestamps are stale.
   bool const preserveEqualTimeTso =
       regulationEnableTransition ||
-      temporalState.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant;
+      temporalState.allowEqualTimeTsoAfterAvailableGrant;
   auto retired = preserveEqualTimeTso
       ? federation.timeCoordinator.retireTsoMessagesBefore(
             receivingFederateId,
@@ -776,6 +798,19 @@ EmbeddedFederationRegistry::beginTsoPayloadReceiveOrderDelivery(
     if (auto const objectDeletion =
             federation->second.tsoObjectDeletionMessages.find(queuedMessage.messageId);
         objectDeletion != federation->second.tsoObjectDeletionMessages.end()) {
+      auto const instance = federation->second.objectInstances.find(
+          objectDeletion->second.objectInstanceHandle);
+      if (instance != federation->second.objectInstances.end() &&
+          instance->second.pendingTimestampedDeletionMessageId ==
+              queuedMessage.messageId &&
+          instance->second.pendingTimestampedRemovalFederates.contains(
+              recipientFederateId)) {
+        // Successfully disabling time-constrained immediately removes the
+        // queued deletion's object knowledge, independently of when the
+        // receive-order callback is later evoked.
+        instance->second.knownObjectClassHandlesByFederate.erase(
+            recipientFederateId);
+      }
       result.emplace_back(
           TsoObjectDeletionDelivery{queuedMessage, objectDeletion->second});
       continue;
@@ -849,8 +884,13 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
   instance->second.pendingTimestampedRemovalFederates.erase(receivingFederateId);
   auto const known = instance->second.knownObjectClassHandlesByFederate.find(
       receivingFederateId);
+  auto const receivingTimeState = federation->second.timeCoordinator.timeStateFor(
+      receivingFederateId);
+  bool const timeConstrainedDisabled = receivingTimeState &&
+      !receivingTimeState->snapshot().timeConstrained;
   if (!federation->second.members.contains(receivingFederateId) ||
-      known == instance->second.knownObjectClassHandlesByFederate.end()) {
+      (known == instance->second.knownObjectClassHandlesByFederate.end() &&
+       !timeConstrainedDisabled)) {
     return std::nullopt;
   }
 
@@ -892,7 +932,9 @@ EmbeddedFederationRegistry::beginTsoObjectInstanceRemoval(
       instance->second.handle,
       instance->second.producingFederateId,
   };
-  instance->second.knownObjectClassHandlesByFederate.erase(known);
+  if (known != instance->second.knownObjectClassHandlesByFederate.end()) {
+    instance->second.knownObjectClassHandlesByFederate.erase(known);
+  }
   // Retain the deletion marker and backing object while the returned
   // retraction designator remains execution-owned.  This makes a legal
   // post-delivery reconstitution atomic and prevents a name/handle collision

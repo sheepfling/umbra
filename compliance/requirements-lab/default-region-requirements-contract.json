@@ -63,6 +63,8 @@
       "source_symbol": "EmbeddedFederationRegistry::planReceiveOrderInteraction",
       "tests": [
         "cpp/tests/ieee1516_2025_default_region_interaction_routing_catch2.cpp::Embedded default-region interaction routing derives 2025 ordinary and regional effectiveness",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDefaultRegionInteractionRouting",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioDefaultRegionInteractionRoutingContract",
         "packages/umbra-rti-jpype/tests/test_jpype_jni_integration.py::test_cpp_jni_java_jpype_default_region_interaction_effectiveness",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction preserves 2025 regional callback metadata",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region interaction survives time-constrained re-enable",
@@ -91,6 +93,18 @@
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded mixed default-region timestamped interactions respect FQR TARA and NMRA grant boundaries",
         "cpp/tests/ieee1516_2025_timestamped_default_region_interaction_catch2.cpp::Embedded timestamped default-region Send Interaction splits immediate delivery and pending retraction",
         "cpp/tests/timestamped_default_region_interaction_retract_alternate_advance_catch2.cpp::Embedded timestamped default-region Send Interaction retracts before TARA and NMRA grants"
+      ]
+    },
+    {
+      "id": "umbra-default-region-unsubscribe-removes-interaction-subscription-route",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l35-11",
+      "clause_id": "clause-9.1.3.3",
+      "source": "cpp/src/internal/federation/federation_registry.cpp",
+      "source_symbol": "EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient",
+      "tests": [
+        "cpp/tests/default_region_interaction_routing_catch2.cpp::Embedded whole-class interaction unsubscription removes default-region subscription",
+        "packages/hla-rti-cpp-tck/src/tck_default_region_interaction_declaration_services.cpp::scenarioDefaultRegionInteractionUnsubscribeIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_default_region_interaction_declaration_services.cpp::scenarioDefaultRegionInteractionUnsubscribeIsolationContract"
       ]
     },
     {

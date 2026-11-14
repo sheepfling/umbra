@@ -154,6 +154,7 @@ final class TimestampedAttributeSourceResignationFanoutTck {
          LogicalTime firstTarget = offset(initial, firstFactory.makeEpsilon(), 7);
          LogicalTime secondTarget = offset(initial, secondFactory.makeEpsilon(), 10);
          LogicalTime clockTarget = offset(initial, clockFactory.makeEpsilon(), 2);
+         LogicalTime clockSafeTarget = offset(initial, clockFactory.makeEpsilon(), 3);
          byte[] value = new byte[] {(byte) 0xa7, 0x71, 0x52};
          byte[] tag = new byte[] {0x52, 0x45, 0x53, 0x2d, 0x46, 0x41, 0x4e};
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -190,6 +191,9 @@ final class TimestampedAttributeSourceResignationFanoutTck {
          clock.timeAdvanceRequest(clockTarget);
          await(clock, callbackModel, () -> clockRecorder.timeAdvanceGrantTimes.size() == 1,
             "regulating clock frontier grant");
+         clock.timeAdvanceRequest(clockSafeTarget);
+         await(clock, callbackModel, () -> clockRecorder.timeAdvanceGrantTimes.size() == 2,
+            "safe regulating clock frontier grant");
          await(first, callbackModel, () -> firstRecorder.reflections.size() == 1
                && firstRecorder.timeAdvanceGrantTimes.size() == 1,
             "first recipient reflection and grant");

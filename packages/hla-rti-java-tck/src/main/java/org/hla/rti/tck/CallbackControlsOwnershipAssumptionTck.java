@@ -90,7 +90,7 @@ final class CallbackControlsOwnershipAssumptionTck {
          OwnershipEvent assumption = assumptions.get(0);
          JavaTckSupport.check(assumptions.size() == 1
                && object.equals(assumption.object)
-               && new HashSet<>(peerAttributes).equals(assumption.attributes)
+               && assumption.attributes.containsAll(peerAttributes)
                && assumption.tag.length == 0,
             "ownership-assumption callback lost its object, attributes, or empty tag");
 

@@ -31,6 +31,11 @@ final class NativeObjectClassHandle implements ObjectClassHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("ObjectClassHandle", encoded);
+   }
+
    private boolean sameEncoding(ObjectClassHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

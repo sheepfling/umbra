@@ -1,11 +1,16 @@
 #include "internal/federation/federation_registry.hpp"
+#include "internal/federation/federation_registry_mom_report_types.hpp"
 #include "internal/federation/federation_management_coordinator.hpp"
 #include "internal/federation/process_federation_callback_bridge.hpp"
 #include "internal/federation/process_federation_client.hpp"
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_federation_service_host.hpp"
 #include "process_federation_service_probe_time_management.hpp"
+#include "process_federation_service_client_probe.hpp"
+#include "process_federation_service_runtime_probe.hpp"
+#include "process_tls_encryption_only_fixture.hpp"
 #include "process_public_service_fixture.hpp"
+#include "support/private_rid_test_files.hpp"
 #include "internal/fom/libxml2_fom_composer.hpp"
 #include "internal/fom/libxml2_fom_validator.hpp"
 #include "internal/handles/federate_handle.hpp"
@@ -22,6 +27,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -42,6 +48,7 @@ using umbra::detail::FederationDefinition;
 using umbra::detail::FederationManagementCoordinator;
 using umbra::detail::FederationManagementResources;
 using umbra::detail::FederationRegistryStatus;
+using umbra::detail::FederateLostReportStatus;
 using umbra::detail::FomCompositionStatus;
 using umbra::detail::FomModuleKind;
 using umbra::detail::FomValidationStatus;
@@ -53,15 +60,35 @@ using umbra::detail::ProcessFederationClient;
 using umbra::detail::ProcessFederationService;
 using umbra::detail::ProcessFederationServiceHost;
 using umbra::detail::ProcessFederationServiceOptions;
+using umbra::detail::ProcessTransportAddress;
 using umbra::detail::ProcessTransportConnection;
 using umbra::detail::ProcessTransportListener;
 using umbra::detail::ProcessTransportServiceDispatcher;
 using umbra::detail::ProcessTransportSession;
 using umbra::detail::ReferenceLogicalTimeSelector;
 using umbra::detail::TransportServiceMessage;
+using umbra::detail::TransportServiceMessageKind;
 using umbra::detail::TransportServiceOperation;
 using umbra::detail::TransportServiceStatus;
 using umbra::detail::decodeProcessFederationRegisterObjectInstanceResult;
+
+void sendResponseForReceivedRequest(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request,
+    ProcessTransportServiceDispatcher::Handler const& handler) {
+  if (request.kind != TransportServiceMessageKind::request ||
+      request.requestId == 0U || !handler) {
+    throw std::runtime_error(
+        "The process probe received an invalid initial service request.");
+  }
+  auto const response = handler(request);
+  if (response.kind != TransportServiceMessageKind::response ||
+      response.requestId != request.requestId ||
+      response.operation != request.operation || !session.send(response)) {
+    throw std::runtime_error(
+        "The process probe could not answer its initial service request.");
+  }
+}
 
 class ProbeFederateAmbassador final : public rti1516_2025::NullFederateAmbassador {
  public:
@@ -133,7 +160,37 @@ FederationDefinition composedRestaurantDefinition() {
   auto result = composer.compose(modules);
   if (result.status != FomCompositionStatus::valid ||
       !result.catalog || !result.fdd) {
-    throw std::runtime_error("The process probe FOM did not compose.");
+    throw std::runtime_error(
+        "The process probe FOM did not compose: " + result.diagnostics);
+  }
+  return {
+      std::move(result.modules),
+      L"HLAinteger64Time",
+      std::move(result.catalog),
+      std::move(result.fdd),
+  };
+}
+
+FederationDefinition composedPortableTckDefinition() {
+  auto const tckFom = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+      "packages" / "hla-rti-cpp-tck" / "fom" / "p0-tck.xml";
+  std::vector<PrevalidatedFomModule> modules{
+      validatedModule(
+          resourcePath("mim/HLAstandardMIM-2025.xml"),
+          FomModuleKind::mim,
+          L"urn:umbra:test:portable-tck-mim"),
+      validatedModule(
+          tckFom,
+          FomModuleKind::fom,
+          L"urn:umbra:test:portable-tck-fom"),
+  };
+  LibXml2FomModuleComposer composer(
+      resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+  auto result = composer.compose(modules);
+  if (result.status != FomCompositionStatus::valid ||
+      !result.catalog || !result.fdd) {
+    throw std::runtime_error(
+        "The portable TCK FOM did not compose: " + result.diagnostics);
   }
   return {
       std::move(result.modules),
@@ -179,6 +236,11 @@ ProcessFederationServiceOptions makeProcessServiceOptions(
         mimModule,
         logicalTimeImplementationName);
     if (!prepared.accepted()) {
+      std::fprintf(
+          stderr,
+          "Umbra process test coordinator rejected FOM creation (status=%u): %s\n",
+          static_cast<unsigned int>(prepared.status),
+          prepared.diagnostics.c_str());
       return std::nullopt;
     }
     return std::move(prepared.definition);
@@ -618,7 +680,8 @@ int runAuthoritativeTsoService(
     std::string const& role,
     bool pushReceiveOrderEvents = false) {
   EmbeddedFederationRegistry registry;
-  ProcessFederationServiceOptions serviceOptions;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
   serviceOptions.pushReceiveOrderEvents = pushReceiveOrderEvents;
   ProcessFederationServiceHost authority(
       registry,
@@ -677,7 +740,9 @@ int runAuthoritativeTsoSender(
     throw std::runtime_error("The sender did not select the authority endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-authoritative-tso-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const senderHandle = rti->joinFederationExecution(
       federateName, federateType, federationName);
   if (!senderHandle.isValid()) {
@@ -1006,7 +1071,9 @@ int runAuthoritativeDirectedTsoSender(
     throw std::runtime_error("The directed sender did not select the authority endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-authoritative-tso-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const senderHandle = rti->joinFederationExecution(
       federateName, federateType, federationName);
   if (!senderHandle.isValid()) {
@@ -1226,7 +1293,9 @@ int runDisableTcdTsoSender(
     throw std::runtime_error("The sender did not select the authority endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-process-tcd-tso-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const senderHandle = rti->joinFederationExecution(
       federateName, federateType, federationName);
   if (!senderHandle.isValid()) {
@@ -1405,7 +1474,9 @@ int runAuthoritativeAttributeTsoSender(
     throw std::runtime_error("The attribute sender did not select the coordinator endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-process-tso-attribute-update-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const senderHandle = rti->joinFederationExecution(
       federateName, federateType, federationName);
   if (!senderHandle.isValid()) {
@@ -1841,19 +1912,37 @@ int runServer(std::filesystem::path const& directory) {
 
   std::unique_ptr<ProcessTransportSession> sender;
   std::unique_ptr<ProcessTransportSession> receiver;
+  TransportServiceMessage senderInitialRequest;
+  TransportServiceMessage receiverInitialRequest;
   for (int index = 0; index < 2; ++index) {
     auto connection = listener->accept(
         nullptr,
         {"process-probe-server", static_cast<std::uint64_t>(0x71U + index)},
         [](std::wstring) {},
         [](std::wstring) { return false; });
-    auto const endpointId = connection->peerIdentity().endpointId;
-    if (endpointId == "process-probe-sender" && !sender) {
-      sender = std::make_unique<ProcessTransportSession>(std::move(connection));
-    } else if (endpointId == "process-probe-receiver" && !receiver) {
-      receiver = std::make_unique<ProcessTransportSession>(std::move(connection));
+    if (!connection) {
+      throw std::runtime_error("The process probe received no new session.");
+    }
+    auto session = std::make_unique<ProcessTransportSession>(connection);
+    TransportServiceMessage firstRequest;
+    if (!session->receive(firstRequest) ||
+        firstRequest.kind != TransportServiceMessageKind::request) {
+      throw std::runtime_error(
+          "The process probe received no initial federation request.");
+    }
+    if (firstRequest.operation ==
+            TransportServiceOperation::create_federation_execution &&
+        !sender) {
+      senderInitialRequest = std::move(firstRequest);
+      sender = std::move(session);
+    } else if (firstRequest.operation ==
+                   TransportServiceOperation::join_federation_execution &&
+               !receiver) {
+      receiverInitialRequest = std::move(firstRequest);
+      receiver = std::move(session);
     } else {
-      throw std::runtime_error("The process probe received an unexpected endpoint.");
+      throw std::runtime_error(
+          "The process probe received an unexpected initial federation operation.");
     }
   }
   if (!sender || !receiver) {
@@ -1862,11 +1951,11 @@ int runServer(std::filesystem::path const& directory) {
 
   auto senderHandler = service.handlerFor(*sender);
   auto receiverHandler = service.handlerFor(*receiver);
-  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
-      !umbra::test::servePrimaryProcessRequest(*sender, senderHandler) ||
-      !umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
+  sendResponseForReceivedRequest(*sender, senderInitialRequest, senderHandler);
+  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
     throw std::runtime_error("The process probe lost a Create or Join request.");
   }
+  sendResponseForReceivedRequest(*receiver, receiverInitialRequest, receiverHandler);
 
   auto const senderMember = registry.memberByName(
       L"process-execution", L"process-probe-sender");
@@ -1903,6 +1992,426 @@ int runServer(std::filesystem::path const& directory) {
   return 0;
 }
 
+int runPublicJoinResponseReplayServer(std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  std::atomic_uint32_t joinedSessions{0U};
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  serviceOptions.afterJoinedFederateSessionInstalledForRecoveryTesting =
+      [&](umbra::detail::ProcessTransportSession& session) {
+        auto const joinedCount =
+            joinedSessions.fetch_add(1U, std::memory_order_relaxed) + 1U;
+        if (joinedCount != 2U) {
+          return;
+        }
+        writeText(directory / "join-response-ready.ok", "ready\n");
+        waitForFile(
+            directory / "drop-join-response.ok",
+            [](std::filesystem::path const& marker) {
+              std::ifstream input(marker, std::ios::binary);
+              std::string value;
+              input >> value;
+              if (!input || value != "drop") {
+                throw std::runtime_error(
+                    "The Join-response fault command is invalid.");
+              }
+              return true;
+            });
+        session.connection()->close();
+        writeText(directory / "join-response-socket-closed.ok", "closed\n");
+      };
+
+  ProcessFederationServiceHost host(
+      registry,
+      composedPortableTckDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-join-response-replay", 0xD351U},
+      std::move(serviceOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "message-history-recovery-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || (value != "recovered" && value != "resume-failed")) {
+          throw std::runtime_error(
+              "The TCK message-history recovery completion marker is invalid.");
+        }
+        return true;
+      });
+  if (joinedSessions.load(std::memory_order_relaxed) != 2U) {
+    throw std::runtime_error(
+        "A resumed Join request was processed more than once by the RTI service.");
+  }
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
+int runPublicMessageHistoryServer(std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  ProcessFederationServiceHost host(
+      registry,
+      composedPortableTckDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-message-history", 0xD352U},
+      std::move(serviceOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "message-history-recovery-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "recovered") {
+          throw std::runtime_error(
+              "The TCK message-history recovery completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
+int runPublicSessionPurgeServer(std::filesystem::path const& directory) {
+  umbra::test::TemporaryRidFiles ridFiles;
+  auto const ridFile = ridFiles.writePrivateFile(
+      "rti-timeouts.ini",
+      "[rti.default]\n"
+      "RTI_TIMEOUT_HEART=0.04\n"
+      "RTI_TIMEOUT_PURGE=0.16\n");
+  umbra::test::ScopedRidFileEnvironment ridEnvironment(ridFile);
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  ProcessFederationServiceHost host(
+      registry,
+      composedPortableTckDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-session-purge", 0xD353U},
+      std::move(serviceOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "message-history-recovery-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "recovered") {
+          throw std::runtime_error(
+              "The inactive-session purge completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
+int runPublicFederateReconnectTimeoutServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  umbra::detail::ProcessFederationServiceHostOptions hostOptions{
+      std::chrono::seconds(30), std::chrono::seconds(60)};
+  ProcessFederationServiceHost host(
+      registry,
+      composedRestaurantDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-federate-reconnect-timeout", 0xD354U},
+      std::move(serviceOptions),
+      std::move(hostOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "federate-reconnect-outage-ready.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "ready") {
+          throw std::runtime_error(
+              "The federate-reconnect outage-ready marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  writeText(directory / "federate-reconnect-server-stopped.ok", "stopped\n");
+  waitForFile(
+      directory / "federate-reconnect-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The federate-reconnect completion marker is invalid.");
+        }
+        return true;
+      });
+  return 0;
+}
+
+int runPublicFederateHeartbeatTimeoutRecoveryServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  auto quietPhaseStarted = std::make_shared<std::atomic_bool>(false);
+  umbra::detail::ProcessFederationServiceHostOptions hostOptions{
+      std::chrono::milliseconds(500), std::chrono::seconds(30)};
+  hostOptions.onSessionInactivatedForTesting =
+      [quietPhaseStarted, directory] {
+        if (quietPhaseStarted->load(std::memory_order_acquire)) {
+          writeText(directory / "federate-heartbeat-inactive.ok", "inactive\n");
+        }
+      };
+  hostOptions.onSessionResumedForTesting =
+      [quietPhaseStarted, directory] {
+        if (!quietPhaseStarted->load(std::memory_order_acquire)) {
+          return;
+        }
+        writeText(directory / "federate-heartbeat-resumed.ok", "resumed\n");
+  };
+  ProcessFederationServiceHost host(
+      registry,
+      composedRestaurantDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-federate-heartbeat-timeout", 0xD355U},
+      std::move(serviceOptions),
+      std::move(hostOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "federate-heartbeat-timeout-ready.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "ready") {
+          throw std::runtime_error(
+              "The federate-heartbeat timeout readiness marker is invalid.");
+        }
+        return true;
+      });
+  quietPhaseStarted->store(true, std::memory_order_release);
+  waitForFile(
+      directory / "federate-heartbeat-recovery-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The federate-heartbeat recovery completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
+int runPublicFederateIdleHeartbeatServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  auto observingIdlePhase = std::make_shared<std::atomic_bool>(false);
+  auto observedHeartbeatCount = std::make_shared<std::atomic<std::size_t>>(0U);
+  umbra::detail::ProcessFederationServiceHostOptions hostOptions{
+      std::chrono::milliseconds(500), std::chrono::seconds(30)};
+  hostOptions.replyToFederateHeartbeatsForTesting =
+      [observingIdlePhase, observedHeartbeatCount, directory] {
+        if (observingIdlePhase->load(std::memory_order_acquire)) {
+          auto const priorCount = observedHeartbeatCount->fetch_add(
+              1U,
+              std::memory_order_acq_rel);
+          if (priorCount == 0U) {
+            writeText(
+                directory / "federate-idle-heartbeat-observed.ok",
+                "heartbeat\n");
+          } else if (priorCount == 1U) {
+            writeText(
+                directory / "federate-idle-heartbeat-repeated.ok",
+                "heartbeat\n");
+          }
+        }
+        return true;
+      };
+  hostOptions.onSessionInactivatedForTesting =
+      [observingIdlePhase, directory] {
+        if (observingIdlePhase->load(std::memory_order_acquire)) {
+          writeText(
+              directory / "federate-idle-heartbeat-inactive.ok",
+              "inactive\n");
+        }
+      };
+  ProcessFederationServiceHost host(
+      registry,
+      FederationDefinition{},
+      {"127.0.0.1", 0U},
+      {"portable-tck-federate-idle-heartbeat", 0xD356U},
+      std::move(serviceOptions),
+      std::move(hostOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "federate-idle-heartbeat-ready.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "ready") {
+          throw std::runtime_error(
+              "The federate-idle-heartbeat readiness marker is invalid.");
+        }
+        return true;
+      });
+  observingIdlePhase->store(true, std::memory_order_release);
+  waitForFile(
+      directory / "federate-idle-heartbeat-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The federate-idle-heartbeat completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
+int runPublicWebSocketTransportServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessTransportAddress address;
+  address.host = "127.0.0.1";
+  address.framing = ProcessTransportAddress::Framing::websocket;
+  address.websocketResource = "/hla";
+  ProcessFederationServiceHost host(
+      registry,
+      FederationDefinition{},
+      std::move(address),
+      {"portable-tck-websocket-binary-frames", 0U});
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "websocket-tck-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The WebSocket TCK completion marker is invalid.");
+        }
+        return true;
+      });
+  host.rethrowIfFailed();
+  writeText(directory / "websocket-negative-ready.ok", "ready\n");
+  waitForFile(
+      directory / "websocket-transport-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The WebSocket transport completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  // The adapter has verified that its deliberately injected text frame
+  // received the required protocol close. The resulting worker exception is
+  // expected; the public TCK phase was checked above before injection.
+  return 0;
+}
+
+int runPublicFederateMissingRtiMessageTimeoutServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto serviceOptions = makeProcessServiceOptions(fomContext);
+  auto suppressHeartbeatReplies = std::make_shared<std::atomic_bool>(false);
+  auto heartbeatReplySuppressed = std::make_shared<std::atomic_bool>(false);
+  umbra::detail::ProcessFederationServiceHostOptions hostOptions{
+      std::chrono::milliseconds(500), std::chrono::seconds(30)};
+  hostOptions.replyToFederateHeartbeatsForTesting =
+      [suppressHeartbeatReplies, heartbeatReplySuppressed, directory] {
+        if (!suppressHeartbeatReplies->load(std::memory_order_acquire)) {
+          return true;
+        }
+        if (!heartbeatReplySuppressed->exchange(
+                true, std::memory_order_acq_rel)) {
+          writeText(
+              directory /
+                  "federate-missing-rti-message-timeout-reply-suppressed.ok",
+              "suppressed\n");
+        }
+        return false;
+      };
+  hostOptions.onSessionResumedForTesting =
+      [suppressHeartbeatReplies, directory] {
+        if (suppressHeartbeatReplies->load(std::memory_order_acquire)) {
+          writeText(
+              directory / "federate-missing-rti-message-timeout-resumed.ok",
+              "resumed\n");
+        }
+      };
+  ProcessFederationServiceHost host(
+      registry,
+      composedRestaurantDefinition(),
+      {"127.0.0.1", 0U},
+      {"portable-tck-missing-rti-message-timeout", 0xD357U},
+      std::move(serviceOptions),
+      std::move(hostOptions));
+  host.start();
+  writeText(directory / "port.txt", std::to_string(host.address().port));
+  waitForFile(
+      directory / "federate-missing-rti-message-timeout-ready.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "ready") {
+          throw std::runtime_error(
+              "The missing-RTI-message timeout readiness marker is invalid.");
+        }
+        return true;
+      });
+  suppressHeartbeatReplies->store(true, std::memory_order_release);
+  waitForFile(
+      directory / "federate-missing-rti-message-timeout-complete.ok",
+      [](std::filesystem::path const& marker) {
+        std::ifstream input(marker, std::ios::binary);
+        std::string value;
+        input >> value;
+        if (!input || value != "complete") {
+          throw std::runtime_error(
+              "The missing-RTI-message timeout completion marker is invalid.");
+        }
+        return true;
+      });
+  host.stop();
+  host.rethrowIfFailed();
+  return 0;
+}
+
 // This server role is deliberately kept as a test fixture: the installed
 // package smoke owns both federate processes and uses only the official public
 // RTIambassador on those client sides.  The fixture supplies the private
@@ -1914,12 +2423,55 @@ int runPublicServer(
     bool objectRegistration,
     bool namedRegistration,
   bool attributeUpdate,
-  bool directedRetraction) {
+    bool directedRetraction,
+    bool forcedResignation = false) {
   EmbeddedFederationRegistry registry;
   ProcessFomPreparationContext fomContext;
+  bool const federateLostMomReport = std::filesystem::exists(
+      directory / "federate-lost-mom-report.mode");
+  bool const saveFailureDuringConnectionLoss = std::filesystem::exists(
+      directory / "save-failure-during-connection-loss.mode");
   auto serviceOptions = makeProcessServiceOptions(fomContext);
+  if (saveFailureDuringConnectionLoss || federateLostMomReport) {
+    std::ifstream reportDirectoryInput(
+        directory / "service-report-directory.txt",
+        std::ios::binary);
+    std::string reportDirectory;
+    std::getline(reportDirectoryInput, reportDirectory);
+    if (!reportDirectory.empty() && reportDirectory.back() == '\r') {
+      reportDirectory.pop_back();
+    }
+    if (!reportDirectoryInput || reportDirectory.empty()) {
+      throw std::runtime_error(
+          "The save-failure connection-loss fixture has no service-report directory configuration.");
+    }
+    serviceOptions.serviceReportDirectory = reportDirectory;
+  }
+  if (saveFailureDuringConnectionLoss) {
+    serviceOptions.afterServiceReportFileAllocatedForTesting =
+        [&](std::filesystem::path const& reportFile) {
+          std::ofstream allocatedFiles(
+              directory / "service-report-files.txt",
+              std::ios::binary | std::ios::app);
+          allocatedFiles << reportFile.string() << '\n';
+          if (!allocatedFiles) {
+            throw std::runtime_error(
+                "The save-failure connection-loss fixture could not record its service-report allocation.");
+          }
+        };
+    serviceOptions.failureDiagnosticForTesting =
+        [&](std::string const& detail) {
+          writeText(directory / "service-failure.txt", detail + "\n");
+        };
+    writeText(
+        directory / "service-report-directory-loaded.txt",
+        serviceOptions.serviceReportDirectory.string() + "\n");
+  }
+  auto definition = federateLostMomReport
+      ? composedPortableTckDefinition()
+      : composedRestaurantDefinition();
   ProcessFederationService service(
-      registry, composedRestaurantDefinition(), serviceOptions);
+      registry, std::move(definition), serviceOptions);
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
   if (!listener) {
     throw std::runtime_error(
@@ -1935,30 +2487,37 @@ int runPublicServer(
       directory / "automatic-delete-objects.mode");
   bool const automaticDeleteThenDivest = std::filesystem::exists(
       directory / "automatic-delete-then-divest.mode");
-  bool const federateLostMomReport = std::filesystem::exists(
-      directory / "federate-lost-mom-report.mode");
   std::unique_ptr<ProcessTransportSession> sender;
   std::unique_ptr<ProcessTransportSession> receiver;
   std::unique_ptr<ProcessTransportSession> survivor;
+  TransportServiceMessage senderInitialRequest;
+  TransportServiceMessage receiverInitialRequest;
+  std::vector<std::unique_ptr<ProcessTransportSession>> initialSessions;
+  initialSessions.reserve(2U);
   for (int index = 0; index < 2; ++index) {
     auto connection = listener->accept(
         nullptr,
         {"package-process-server", static_cast<std::uint64_t>(0x91U + index)},
         [](std::wstring) {},
         [](std::wstring) { return false; });
-    auto const endpointId = connection->peerIdentity().endpointId;
-    if (endpointId == "package-process-sender" && !sender) {
-      sender = std::make_unique<ProcessTransportSession>(std::move(connection));
-    } else if (endpointId == "package-process-receiver" && !receiver) {
-      receiver = std::make_unique<ProcessTransportSession>(std::move(connection));
-    } else {
+    if (!connection) {
       throw std::runtime_error(
-          "The installable process profile server received an unexpected endpoint.");
+          "The installable process profile server received no new session.");
     }
+    initialSessions.push_back(
+        std::make_unique<ProcessTransportSession>(std::move(connection)));
   }
-  if (!sender || !receiver) {
+  // Public RTIambassador Connect establishes each process transport before
+  // create/join is invoked. Accept every expected session before waiting for
+  // service traffic, or the second Connect deadlocks against this first read.
+  sender = std::move(initialSessions[0]);
+  receiver = std::move(initialSessions[1]);
+  if (!sender->receive(senderInitialRequest) ||
+      senderInitialRequest.kind != TransportServiceMessageKind::request ||
+      senderInitialRequest.operation !=
+          TransportServiceOperation::create_federation_execution) {
     throw std::runtime_error(
-        "The installable process profile server did not receive both clients.");
+        "The installable process profile server received no initial Create request.");
   }
 
   auto baseSenderHandler = service.handlerFor(*sender);
@@ -1967,27 +2526,30 @@ int runPublicServer(
   };
   auto receiverHandler = service.handlerFor(*receiver);
   std::optional<ProcessTransportServiceDispatcher::Handler> survivorHandler;
-  if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
-    throw std::runtime_error(
-        "The installable process profile server lost federate Create.");
-  }
+  sendResponseForReceivedRequest(*sender, senderInitialRequest, senderHandler);
   if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
     throw std::runtime_error(
         "The installable process profile server lost observer Join.");
   }
-  if (!umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler)) {
+  // CreateFederationExecution is synchronous: the member cannot issue Join
+  // until the Create response has been sent and the owner has joined.
+  if (!receiver->receive(receiverInitialRequest) ||
+      receiverInitialRequest.kind != TransportServiceMessageKind::request ||
+      receiverInitialRequest.operation !=
+          TransportServiceOperation::join_federation_execution) {
     throw std::runtime_error(
-        "The installable process profile server lost lost-member Join.");
+        "The installable process profile server received no initial member Join request.");
   }
+  sendResponseForReceivedRequest(*receiver, receiverInitialRequest, receiverHandler);
   if (automaticCancelPendingAcquisition) {
     auto connection = listener->accept(
         nullptr,
         {"package-process-server", 0x93U},
         [](std::wstring) {},
         [](std::wstring) { return false; });
-    if (connection->peerIdentity().endpointId != "package-process-receiver") {
+    if (!connection) {
       throw std::runtime_error(
-          "The installable process profile pending-acquisition server received an unexpected survivor endpoint.");
+          "The installable process profile pending-acquisition server received no survivor session.");
     }
     survivor = std::make_unique<ProcessTransportSession>(std::move(connection));
     survivorHandler.emplace(service.handlerFor(*survivor));
@@ -2003,6 +2565,67 @@ int runPublicServer(
       L"process-execution", L"package-process-receiver");
   auto const survivorMember = registry.memberByName(
       L"process-execution", L"package-process-receiver-survivor");
+  if (forcedResignation) {
+    waitForFile(
+        directory / "federate-resigned-ready.ok",
+        [](std::filesystem::path const& marker) {
+          std::ifstream input(marker, std::ios::binary);
+          std::string value;
+          input >> value;
+          if (!input || value != "ready") {
+            throw std::runtime_error(
+                "The forced-resignation fixture readiness marker is invalid.");
+          }
+          return true;
+        });
+    writeText(directory / "federate-resignation-trigger-started.ok", "started\n");
+    if (!service.forceFederateResignationForTesting(
+            *receiver, L"process-profile forced departure")) {
+      throw std::runtime_error(
+          "The process service could not apply the forced-resignation fixture control.");
+    }
+    writeText(directory / "federate-resignation-event-sent.ok", "sent\n");
+    // Evoke may issue empty receive-order polls between the pushed event and
+    // the later public Join. Keep servicing those polls until the fresh
+    // joined-federate lifetime is actually established.
+    bool rejoined = false;
+    while (!rejoined) {
+      if (!ProcessTransportServiceDispatcher::serveOne(
+              *receiver,
+              [&](TransportServiceMessage const& request) {
+                auto const operation = request.operation;
+                if (operation == TransportServiceOperation::receive_interaction ||
+                    operation == TransportServiceOperation::report_service_exception ||
+                    operation == TransportServiceOperation::report_failed_service_invocation ||
+                    operation == TransportServiceOperation::report_successful_service_invocation ||
+                    operation == TransportServiceOperation::report_successful_void_service_invocation) {
+                  return receiverHandler(request);
+                }
+                if (operation !=
+                    TransportServiceOperation::join_federation_execution) {
+                  throw std::runtime_error(
+                      "The forced-resignation fixture received an unexpected operation before the target's later Join.");
+                }
+                auto response = receiverHandler(request);
+                rejoined = true;
+                return response;
+              })) {
+        throw std::runtime_error(
+            "The forced-resignation fixture lost the target's later Join.");
+      }
+    }
+    if (!umbra::test::servePrimaryProcessRequest(*receiver, receiverHandler) ||
+        !umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
+      throw std::runtime_error(
+          "The forced-resignation fixture lost a later public Resign.");
+    }
+    service.detach(*sender);
+    service.detach(*receiver);
+    sender->connection()->close();
+    receiver->connection()->close();
+    writeText(directory / "server.ok", "ok\n");
+    return 0;
+  }
   auto serveExpectedSender = [&](TransportServiceOperation operation) {
     while (true) {
       bool expected = false;
@@ -2068,7 +2691,11 @@ int runPublicServer(
                   *receiver, receiverHandler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation ==
-                        TransportServiceOperation::receive_interaction) {
+                            TransportServiceOperation::receive_interaction ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation) {
                       return receiverHandler(request);
                     }
                     if (request.operation != operation) {
@@ -2096,12 +2723,18 @@ int runPublicServer(
                   *sender, senderHandler,
                   [&](TransportServiceMessage const& request) {
                     if (request.operation ==
-                        TransportServiceOperation::receive_interaction) {
+                            TransportServiceOperation::receive_interaction ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_successful_void_service_invocation) {
                       return senderHandler(request);
                     }
                     if (request.operation != operation) {
                       throw std::runtime_error(
-                          "The installable process profile server received an unexpected sender operation while draining evoked callbacks.");
+                          "The installable process profile server received unexpected sender operation " +
+                          std::to_string(static_cast<unsigned int>(request.operation)) +
+                          " while draining evoked callbacks.");
                     }
                     expected = true;
                     return senderHandler(request);
@@ -2193,11 +2826,16 @@ int runPublicServer(
         }
       };
 
+  auto const interactionClassName = federateLostMomReport
+      ? "HLAinteractionRoot.TckInteraction"
+      : "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  auto const objectClassName = federateLostMomReport
+      ? "HLAobjectRoot.TckObject"
+      : "HLAobjectRoot.Customer";
   auto const interactionClass = registry.interactionClassHandleFor(
-      L"process-execution",
-      "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed");
+      L"process-execution", interactionClassName);
   auto const objectClass = registry.objectClassHandleFor(
-      L"process-execution", "HLAobjectRoot.Customer");
+      L"process-execution", objectClassName);
   if (!senderMember || !receiverMember || !interactionClass || !objectClass) {
     throw std::runtime_error(
         "The installable process profile registry state is incomplete.");
@@ -2593,7 +3231,8 @@ int runPublicServer(
                            ProcessTransportServiceDispatcher::Handler const& handler,
                            auto const& expected,
                            std::size_t preLossCount,
-                           std::exception_ptr& error) {
+                           std::exception_ptr& error,
+                           char const* sessionRole) {
       try {
         std::size_t nextOperation = 0U;
         while (nextOperation < expected.size()) {
@@ -2622,10 +3261,28 @@ int runPublicServer(
                     return handler(request);
                   })) {
             throw std::runtime_error(
-                "The automatic delete-then-divest fixture lost a public request.");
+                std::string(
+                    "The automatic delete-then-divest fixture lost a public request for ") +
+                sessionRole + " after " + std::to_string(nextOperation) + " of " +
+                std::to_string(expected.size()) +
+                " expected operations (next operation " +
+                std::to_string(static_cast<unsigned int>(expected[nextOperation])) +
+                ").");
           }
         }
+      } catch (std::exception const& failure) {
+        writeText(
+            directory /
+                (std::string("automatic-delete-then-divest-") +
+                 sessionRole + "-reader.error"),
+            failure.what());
+        error = std::current_exception();
       } catch (...) {
+        writeText(
+            directory /
+                (std::string("automatic-delete-then-divest-") +
+                 sessionRole + "-reader.error"),
+            "non-standard exception\n");
         error = std::current_exception();
       }
     };
@@ -2652,12 +3309,18 @@ int runPublicServer(
         TransportServiceOperation::get_automatic_resign_directive};
     try {
       senderReader = std::thread([&] {
-        serveScript(*sender, senderHandler, senderOperations, 7U, senderError);
+        serveScript(
+            *sender,
+            senderHandler,
+            senderOperations,
+            7U,
+            senderError,
+            "sender");
       });
       receiverReader = std::thread([&] {
         serveScript(
             *receiver, receiverHandler, receiverOperations,
-            receiverOperations.size(), receiverError);
+            receiverOperations.size(), receiverError, "receiver");
       });
       waitForFile(directory / "connection-loss-ready.ok", [](std::filesystem::path const& marker) {
         std::ifstream input(marker, std::ios::binary);
@@ -2674,6 +3337,10 @@ int runPublicServer(
         std::rethrow_exception(receiverError);
       }
       lossStarted.store(true, std::memory_order_release);
+      // No further clients are expected after readiness.  Closing the listener
+      // makes the lost member's reconnect attempts fail promptly instead of
+      // stalling in an accept backlog with no server thread to service them.
+      listener->close();
       auto const lost = registry.connectionLost(
           L"process-execution", receiverMember->id);
       if (lost.status != FederationRegistryStatus::applied ||
@@ -2682,6 +3349,9 @@ int runPublicServer(
         throw std::runtime_error(
             "The automatic delete-then-divest fixture could not apply Connection Lost.");
       }
+      writeText(
+          directory / "automatic-delete-then-divest-sender-open-after-dispatch.txt",
+          sender->connection()->open() ? "open\n" : "closed\n");
       service.detach(*receiver);
       receiver->connection()->close();
       writeText(directory / "receiver-closed.ok", "ok\n");
@@ -2698,6 +3368,14 @@ int runPublicServer(
       senderReader.join();
       if (senderError) {
         std::rethrow_exception(senderError);
+      }
+      bool terminateSessionReceived = false;
+      while (ProcessTransportServiceDispatcher::serveOne(
+          *sender, senderHandler, &terminateSessionReceived)) {
+      }
+      if (!terminateSessionReceived || !sender->sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The automatic delete-then-divest fixture could not complete the surviving sender session termination exchange.");
       }
       service.detach(*sender);
       sender->connection()->close();
@@ -2720,6 +3398,11 @@ int runPublicServer(
     std::thread automaticUnconditionalSender;
     std::exception_ptr automaticUnconditionalSenderError;
     std::atomic_bool automaticUnconditionalLossStarted{false};
+    std::thread federateLostSenderReader;
+    std::thread federateLostReceiverReader;
+    std::exception_ptr federateLostSenderReaderError;
+    std::exception_ptr federateLostReceiverReaderError;
+    std::atomic_bool stopFederateLostReceiverReader{false};
     // An exception on the receiver side must not leave a joinable reader or a
     // blocked socket behind.  Normal completion joins the reader explicitly.
     struct SenderReaderCleanup final {
@@ -2734,14 +3417,49 @@ int runPublicServer(
       }
     } automaticUnconditionalCleanup{
         automaticUnconditionalSender, sender->connection()};
-    bool const evokedCallbacks = std::filesystem::exists(directory / "evoked.mode");
+    struct ConnectionReaderCleanup final {
+      std::thread& reader;
+      std::shared_ptr<ProcessTransportConnection> connection;
+      std::atomic_bool* stop = nullptr;
+
+      ~ConnectionReaderCleanup() {
+        if (stop != nullptr) {
+          stop->store(true, std::memory_order_release);
+        }
+        if (reader.joinable()) {
+          connection->close();
+          reader.join();
+        }
+      }
+    } federateLostSenderCleanup{
+        federateLostSenderReader, sender->connection(), nullptr},
+        federateLostReceiverCleanup{
+            federateLostReceiverReader,
+            receiver->connection(),
+            &stopFederateLostReceiverReader};
     bool const automaticUnconditional = std::filesystem::exists(
         directory / "automatic-unconditional.mode");
     if (federateLostMomReport) {
       if (!serveExpectedSender(
+              TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedSender(
+              TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedSender(
+              TransportServiceOperation::subscribe_object_class_attributes)) {
+        throw std::runtime_error(
+            "The installable process profile federate-lost MOM server lost the Federation MOM membership subscription.");
+      }
+      auto const federationMomObject = registry.federationMomObjectFor(
+          L"process-execution");
+      if (!federationMomObject ||
+          !federationMomObject->knownFederateIds.contains(senderMember->id)) {
+        throw std::runtime_error(
+            "The process service did not commit the observer's Federation MOM discovery before membership-change delivery.");
+      }
+      if (!serveExpectedSenderAfterEvokedPolls(
               TransportServiceOperation::get_interaction_class_handle)) {
         throw std::runtime_error(
-            "The installable process profile federate-lost MOM server lost report-class lookup.");
+            "The installable process profile federate-lost MOM server lost the report-class lookup after subscribing to Federation MOM.");
       }
       for (int index = 0; index < 4; ++index) {
         if (!serveExpectedSender(TransportServiceOperation::get_parameter_handle)) {
@@ -2752,6 +3470,154 @@ int runPublicServer(
       if (!serveExpectedSender(TransportServiceOperation::subscribe_interaction_class)) {
         throw std::runtime_error(
             "The installable process profile federate-lost MOM server lost report subscription.");
+      }
+
+      auto serveLossSequence = [&](ProcessTransportSession& session,
+                                    auto& handler,
+                                    std::vector<TransportServiceOperation> expected,
+                                    std::exception_ptr& error,
+                                    std::atomic_bool const* stopAfterSequence) {
+        try {
+          std::size_t nextOperation = 0U;
+          while (nextOperation < expected.size()) {
+            bool receivedExpected = false;
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session,
+                    handler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation ==
+                              TransportServiceOperation::receive_interaction ||
+                          request.operation ==
+                              TransportServiceOperation::acknowledge_tso_delivery ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_service_invocation ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_void_service_invocation) {
+                        return handler(request);
+                      }
+                      if (request.operation != expected[nextOperation]) {
+                        throw std::runtime_error(
+                            "The process loss TCK received operation " +
+                            std::to_string(static_cast<unsigned int>(request.operation)) +
+                            " before expected operation " +
+                            std::to_string(static_cast<unsigned int>(expected[nextOperation])) +
+                            ".");
+                      }
+                      ++nextOperation;
+                      receivedExpected = true;
+                      return handler(request);
+                    })) {
+              if (nextOperation != expected.size()) {
+                throw std::runtime_error(
+                    "A process loss TCK client disconnected before its expected service sequence completed.");
+              }
+              return;
+            }
+            if (!receivedExpected && nextOperation < expected.size()) {
+              continue;
+            }
+          }
+          while (stopAfterSequence != nullptr &&
+                 !stopAfterSequence->load(std::memory_order_acquire)) {
+            if (!umbra::test::servePrimaryProcessRequest(
+                    session,
+                    handler,
+                    [&](TransportServiceMessage const& request) {
+                      if (request.operation ==
+                              TransportServiceOperation::receive_interaction ||
+                          request.operation ==
+                              TransportServiceOperation::acknowledge_tso_delivery ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_service_invocation ||
+                          request.operation ==
+                              TransportServiceOperation::report_successful_void_service_invocation) {
+                        return handler(request);
+                      }
+                      throw std::runtime_error(
+                          "The lost federate issued an unexpected service after its time-advance request.");
+                    })) {
+              return;
+            }
+          }
+        } catch (...) {
+          error = std::current_exception();
+        }
+      };
+
+      federateLostReceiverReader = std::thread([&] {
+        serveLossSequence(
+            *receiver,
+            receiverHandler,
+            {
+                TransportServiceOperation::get_interaction_class_handle,
+                TransportServiceOperation::publish_interaction_class,
+                TransportServiceOperation::change_interaction_order_type,
+                TransportServiceOperation::enable_time_regulation,
+                TransportServiceOperation::set_automatic_resign_directive,
+                TransportServiceOperation::send_interaction,
+                TransportServiceOperation::time_advance_request,
+            },
+            federateLostReceiverReaderError,
+            &stopFederateLostReceiverReader);
+      });
+      federateLostSenderReader = std::thread([&] {
+        serveLossSequence(
+            *sender,
+            senderHandler,
+            {
+                TransportServiceOperation::subscribe_interaction_class,
+                TransportServiceOperation::enable_time_constrained,
+                TransportServiceOperation::time_advance_request,
+                TransportServiceOperation::get_transportation_type_handle,
+                TransportServiceOperation::list_federation_execution_members,
+                TransportServiceOperation::register_federation_synchronization_point,
+                TransportServiceOperation::synchronization_point_achieved,
+                TransportServiceOperation::resign_federation_execution,
+                TransportServiceOperation::destroy_federation_execution,
+            },
+            federateLostSenderReaderError,
+            nullptr);
+      });
+    }
+    if (saveFailureDuringConnectionLoss) {
+      if (!serveExpectedReceiver(
+              TransportServiceOperation::get_object_class_handle) ||
+          !serveExpectedReceiver(
+              TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedReceiver(
+              TransportServiceOperation::get_attribute_handle) ||
+          !serveExpectedReceiver(
+              TransportServiceOperation::subscribe_object_class_attributes) ||
+          !serveExpectedReceiverAfterEvokedPolls(
+              TransportServiceOperation::get_object_class_name)) {
+        throw std::runtime_error(
+            "The save-failure connection-loss fixture lost the HLAreportServiceFile MOM subscription setup.");
+      }
+      // The member dispatches its pushed MOM callbacks locally. The other
+      // evoked session still issues bounded receive_interaction polls while
+      // the TCK waits for that reflection, so drain those polls until the
+      // sender begins the reporting-switch sequence.
+      if (!serveExpectedSenderAfterEvokedPolls(
+              TransportServiceOperation::set_service_reporting_switch)) {
+        throw std::runtime_error(
+            "The save-failure connection-loss fixture lost Set Service Reporting Switch.");
+      }
+      if (!serveExpectedSender(
+              TransportServiceOperation::set_send_service_reports_to_file_switch)) {
+        throw std::runtime_error(
+            "The save-failure connection-loss fixture lost Set Send Service Reports To File Switch.");
+      }
+      if (!serveExpectedSender(
+              TransportServiceOperation::request_federation_save)) {
+        throw std::runtime_error(
+            "The save-failure connection-loss fixture lost Request Federation Save.");
+      }
+      if (!serveExpectedSenderAfterEvokedPolls(
+              TransportServiceOperation::federate_save_begun) ||
+          !serveExpectedReceiver(
+              TransportServiceOperation::federate_save_begun)) {
+        throw std::runtime_error(
+            "The save-failure connection-loss fixture lost Federate Save Begun.");
       }
     }
     if (automaticUnconditional) {
@@ -2894,11 +3760,43 @@ int runPublicServer(
       }
       return true;
     });
+    // No further clients are expected after readiness. Close the listener
+    // before injecting the endpoint loss so the faulted client's transport
+    // retry cannot block on a reconnect accepted into an unserviced backlog.
+    listener->close();
+    if (federateLostMomReport) {
+      stopFederateLostReceiverReader.store(true, std::memory_order_release);
+      receiver->connection()->close();
+      if (federateLostReceiverReader.joinable()) {
+        federateLostReceiverReader.join();
+      }
+      if (federateLostReceiverReaderError) {
+        std::rethrow_exception(federateLostReceiverReaderError);
+      }
+    }
     // Model a real process/socket loss on the receiver side.  Apply the
     // registry's automatic-resign policy before closing the transport so the
     // surviving sender cannot route a later interaction to a stale member.
     if (automaticUnconditional) {
       automaticUnconditionalLossStarted.store(true, std::memory_order_release);
+    }
+    if (federateLostMomReport) {
+      auto const reportPlan = registry.planFederateLostReport(
+          L"process-execution", receiverMember->id);
+      if (reportPlan.status != FederateLostReportStatus::applied ||
+          !reportPlan.lastKnownTime ||
+          reportPlan.routing.interactionClassHandle == 0U ||
+          reportPlan.routing.federateParameterHandle == 0U ||
+          reportPlan.routing.federateNameParameterHandle == 0U ||
+          reportPlan.routing.timestampParameterHandle == 0U ||
+          reportPlan.routing.faultDescriptionParameterHandle == 0U ||
+          reportPlan.recipients.size() != 1U ||
+          reportPlan.recipients.front().federateId != senderMember->id ||
+          reportPlan.recipients.front().receivedInteractionClassHandle == 0U ||
+          reportPlan.recipients.front().receivedParameterHandles.size() != 4U) {
+        throw std::runtime_error(
+            "The installable process profile federate-lost MOM plan was incomplete or did not select the subscribed surviving observer.");
+      }
     }
     bool const lossApplied = federateLostMomReport
         ? service.connectionLost(
@@ -2920,15 +3818,6 @@ int runPublicServer(
     receiver->connection()->close();
     writeText(directory / "receiver-closed.ok", "ok\n");
     if (federateLostMomReport) {
-      if (!serveExpectedSenderAfterEvokedPolls(
-              TransportServiceOperation::get_transportation_type_handle) ||
-          !serveExpectedSenderAfterEvokedPolls(
-              TransportServiceOperation::resign_federation_execution) ||
-          !serveExpectedSender(
-              TransportServiceOperation::destroy_federation_execution)) {
-        throw std::runtime_error(
-            "The installable process profile federate-lost MOM server lost a post-report lookup or observer teardown request.");
-      }
       waitForFile(directory / "receiver-loss.ok", [](std::filesystem::path const& marker) {
         std::ifstream input(marker, std::ios::binary);
         std::string value;
@@ -2939,6 +3828,20 @@ int runPublicServer(
         }
         return true;
       });
+      if (federateLostSenderReader.joinable()) {
+        federateLostSenderReader.join();
+      }
+      if (federateLostSenderReaderError) {
+        std::rethrow_exception(federateLostSenderReaderError);
+      }
+      bool terminateSessionReceived = false;
+      while (ProcessTransportServiceDispatcher::serveOne(
+          *sender, senderHandler, &terminateSessionReceived)) {
+      }
+      if (!terminateSessionReceived || !sender->sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The federate-lost MOM fixture could not complete the surviving federate session termination exchange.");
+      }
       service.detach(*sender);
       sender->connection()->close();
       writeText(directory / "server.ok", "ok\n");
@@ -2959,6 +3862,14 @@ int runPublicServer(
       automaticUnconditionalSender.join();
       if (automaticUnconditionalSenderError) {
         std::rethrow_exception(automaticUnconditionalSenderError);
+      }
+      bool terminateSessionReceived = false;
+      while (ProcessTransportServiceDispatcher::serveOne(
+          *sender, senderHandler, &terminateSessionReceived)) {
+      }
+      if (!terminateSessionReceived || !sender->sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The installable process profile automatic-divestiture fixture could not complete the surviving federate session termination exchange.");
       }
       service.detach(*sender);
       sender->connection()->close();
@@ -2987,6 +3898,16 @@ int runPublicServer(
       throw std::runtime_error(
           "The installable process profile loss server lost the survivor membership query.");
     }
+    // The connection-loss TCK next proves that the sole survivor can complete
+    // a federation-wide synchronized operation. Let those public requests
+    // cross the same fixture boundary before the existing interaction check.
+    if (!serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::register_federation_synchronization_point) ||
+        !serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::synchronization_point_achieved)) {
+      throw std::runtime_error(
+          "The installable process profile loss server lost survivor synchronization operations.");
+    }
     if (!serveExpectedSenderAfterEvokedPolls(
             TransportServiceOperation::get_interaction_class_handle) ||
         !serveExpectedSenderAfterEvokedPolls(
@@ -2996,9 +3917,22 @@ int runPublicServer(
           "The installable process profile loss server lost lookup, Send Interaction, or its successful-service report.");
     }
     writeText(directory / "send.ok", "ok\n");
-    if (!umbra::test::servePrimaryProcessRequest(*sender, senderHandler)) {
+    if (!serveExpectedSender(
+            TransportServiceOperation::set_service_reporting_switch) ||
+        !serveExpectedSender(
+            TransportServiceOperation::set_send_service_reports_to_file_switch) ||
+        !serveExpectedSender(
+            TransportServiceOperation::resign_federation_execution)) {
       throw std::runtime_error(
-          "The installable process profile loss server lost sender Resign.");
+          "The installable process profile loss server lost report-switch shutdown or sender Resign.");
+    }
+    bool terminateSessionReceived = false;
+    while (ProcessTransportServiceDispatcher::serveOne(
+        *sender, senderHandler, &terminateSessionReceived)) {
+    }
+    if (!terminateSessionReceived || !sender->sendCloseAcknowledgement()) {
+      throw std::runtime_error(
+          "The installable process profile loss server could not complete the surviving sender session termination exchange.");
     }
     service.detach(*sender);
     sender->connection()->close();
@@ -3077,6 +4011,7 @@ int runPublicOwnershipServiceReportServer(
   writeText(directory / "port.txt", std::to_string(listener->address().port));
 
   std::vector<std::unique_ptr<ProcessTransportSession>> sessions(clientCount);
+  std::vector<TransportServiceMessage> firstRequests(clientCount);
   for (std::size_t index = 0U; index < sessions.size(); ++index) {
     auto connection = listener->accept(
         nullptr,
@@ -3088,17 +4023,46 @@ int runPublicOwnershipServiceReportServer(
       throw std::runtime_error(
           "The installable " + fixtureName + " server lost a client connection.");
     }
-    auto const expectedEndpoint = index == 0U
-        ? "package-process-sender"
-        : "package-process-receiver";
-    if (connection->peerIdentity().endpointId != expectedEndpoint) {
+    sessions[index] = std::make_unique<ProcessTransportSession>(connection);
+    if (!sessions[index]->receive(firstRequests[index]) ||
+        firstRequests[index].kind != TransportServiceMessageKind::request ||
+        (firstRequests[index].operation !=
+             TransportServiceOperation::create_federation_execution &&
+         firstRequests[index].operation !=
+             TransportServiceOperation::join_federation_execution)) {
       throw std::runtime_error(
-          "The installable " + fixtureName + " server received endpoint '" +
-          connection->peerIdentity().endpointId + "' for client " +
-          std::to_string(index) + ".");
+          "The installable " + fixtureName +
+          " server received an unexpected initial federation operation.");
     }
-    sessions[index] = std::make_unique<ProcessTransportSession>(
-        std::move(connection));
+  }
+
+  std::optional<std::size_t> createIndex;
+  for (std::size_t index = 0U; index < sessions.size(); ++index) {
+    if (firstRequests[index].operation ==
+        TransportServiceOperation::create_federation_execution) {
+      if (createIndex) {
+        throw std::runtime_error(
+            "The installable " + fixtureName +
+            " server received multiple federation Create requests.");
+      }
+      createIndex = index;
+    }
+  }
+  if (!createIndex) {
+    throw std::runtime_error(
+        "The installable " + fixtureName +
+        " server received no federation Create request.");
+  }
+  auto const createHandler = service.handlerFor(*sessions[*createIndex]);
+  sendResponseForReceivedRequest(
+      *sessions[*createIndex], firstRequests[*createIndex], createHandler);
+  for (std::size_t index = 0U; index < sessions.size(); ++index) {
+    if (index == *createIndex) {
+      continue;
+    }
+    auto const joinHandler = service.handlerFor(*sessions[index]);
+    sendResponseForReceivedRequest(
+        *sessions[index], firstRequests[index], joinHandler);
   }
 
   std::vector<std::exception_ptr> failures(sessions.size());
@@ -3161,10 +4125,9 @@ int runPublicSaveRestoreServer(
       {"package-process-save-restore-server", 0x94U},
       [](std::wstring) {},
       [](std::wstring) { return false; });
-  if (!connection || connection->peerIdentity().endpointId !=
-                         "package-process-sender") {
+  if (!connection) {
     throw std::runtime_error(
-        "The installable save/restore profile server received an unexpected endpoint.");
+        "The installable save/restore profile server received no session.");
   }
   ProcessTransportSession session(connection);
   auto handler = service.handlerFor(session);
@@ -3331,6 +4294,56 @@ int runReceiver(std::filesystem::path const& directory) {
   return 0;
 }
 
+int runPublicNmrCrossListenerCoordinatorServer(
+    std::filesystem::path const& directory) {
+  EmbeddedFederationRegistry registry;
+  ProcessFomPreparationContext fomContext;
+  auto service = std::make_shared<ProcessFederationService>(
+      registry,
+      composedRestaurantDefinition(),
+      makeProcessServiceOptions(fomContext));
+  ProcessFederationServiceHost publisherHost(
+      service,
+      {"127.0.0.1", 0U},
+      {"process-tso-cross-service-sender", 0xB851U});
+  ProcessFederationServiceHost requesterHost(
+      service,
+      {"127.0.0.1", 0U},
+      {"process-tso-cross-service-receiver", 0xB852U});
+  publisherHost.start();
+  requesterHost.start();
+  writeText(
+      directory / "publisher-port.txt",
+      std::to_string(publisherHost.address().port) + "\n");
+  writeText(
+      directory / "requester-port.txt",
+      std::to_string(requesterHost.address().port) + "\n");
+
+  try {
+    static_cast<void>(waitForFile(
+        directory / "nmr-cross-listener-complete.ok",
+        [](std::filesystem::path const& marker) {
+          std::ifstream input(marker, std::ios::binary);
+          std::string value;
+          input >> value;
+          if (!input || value != "ok") {
+            throw std::runtime_error(
+                "The NMR cross-listener completion marker is invalid.");
+          }
+          return true;
+        }));
+  } catch (...) {
+    publisherHost.stop();
+    requesterHost.stop();
+    throw;
+  }
+  publisherHost.stop();
+  requesterHost.stop();
+  publisherHost.rethrowIfFailed();
+  requesterHost.rethrowIfFailed();
+  return 0;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -3342,11 +4355,68 @@ int main(int argc, char** argv) {
     if (std::string(argv[1]) == "server") {
       return runServer(directory);
     }
+    if (std::string(argv[1]) == "coordinator-runtime") {
+      return runProcessFederationServiceRuntimeProbe(directory);
+    }
+    if (std::string(argv[1]) == "coordinator-client") {
+      return runProcessFederationServiceClientProbe(directory);
+    }
     if (std::string(argv[1]) == "public-server") {
       return runPublicServer(directory, false, false, false, false, false, false);
     }
+    if (std::string(argv[1]) == "public-server-forced-resignation") {
+      return runPublicServer(
+          directory, false, false, false, false, false, false, true);
+    }
+    if (std::string(argv[1]) == "public-server-nmr-cross-listener") {
+      return runPublicNmrCrossListenerCoordinatorServer(directory);
+    }
     if (std::string(argv[1]) == "public-server-loss") {
       return runPublicServer(directory, true, false, false, false, false, false);
+    }
+    if (std::string(argv[1]) == "public-server-join-response-replay") {
+      return runPublicJoinResponseReplayServer(directory);
+    }
+    if (std::string(argv[1]) == "public-server-message-history") {
+      return runPublicMessageHistoryServer(directory);
+    }
+    if (std::string(argv[1]) == "public-server-session-purge") {
+      return runPublicSessionPurgeServer(directory);
+    }
+    if (std::string(argv[1]) == "public-server-federate-reconnect-timeout") {
+      return runPublicFederateReconnectTimeoutServer(directory);
+    }
+    if (std::string(argv[1]) ==
+        "public-server-federate-heartbeat-timeout-recovery") {
+      return runPublicFederateHeartbeatTimeoutRecoveryServer(directory);
+    }
+    if (std::string(argv[1]) == "public-server-federate-idle-heartbeat") {
+      return runPublicFederateIdleHeartbeatServer(directory);
+    }
+    if (std::string(argv[1]) == "public-server-websocket-transport") {
+      return runPublicWebSocketTransportServer(directory);
+    }
+    if (std::string(argv[1]) ==
+        "public-server-secure-websocket-transport") {
+      return umbra::test::runTlsSecureWebSocketServiceFixture(directory);
+    }
+    if (std::string(argv[1]) ==
+        "public-server-tls-encryption-only-transport") {
+      return umbra::test::runTlsEncryptionOnlyServiceFixture(directory);
+    }
+    if (std::string(argv[1]) ==
+        "public-server-tls-server-validation-transport") {
+      return umbra::test::runTlsServerValidationServiceFixture(directory);
+    }
+    if (std::string(argv[1]) == "public-server-tls-default-port-transport") {
+      return umbra::test::runTlsDefaultPortServiceFixture(directory);
+    }
+    if (std::string(argv[1]) == "public-server-tls-alternate-port-transport") {
+      return umbra::test::runTlsAlternatePortServiceFixture(directory);
+    }
+    if (std::string(argv[1]) ==
+        "public-server-federate-missing-rti-message-timeout") {
+      return runPublicFederateMissingRtiMessageTimeoutServer(directory);
     }
     if (std::string(argv[1]) == "public-server-parameterized") {
       return runPublicServer(directory, false, true, false, false, false, false);

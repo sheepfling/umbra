@@ -186,10 +186,14 @@ EmbeddedFederationRegistry::planUnconditionalAttributeOwnershipDivestiture(
     });
   }
   for (std::uint64_t const attributeHandle : attributeHandles) {
-    // Keep an empty search record when no current recipient was eligible;
-    // later discovery or publication events must still be able to continue
-    // the required assumption search.
-    instance->second.ownershipAssumptionRecipientsByAttribute.try_emplace(attributeHandle);
+    // Keep the initiating federate excluded from this entire unowned search.
+    // The divestor may remain published, so a continuation after another
+    // federate declines must not offer the attributes back to it.
+    auto const [search, inserted] =
+        instance->second.ownershipAssumptionRecipientsByAttribute.try_emplace(
+            attributeHandle);
+    static_cast<void>(inserted);
+    search->second.insert(divestingFederateId);
     instance->second.ownershipAssumptionUserSuppliedTagsByAttribute.insert_or_assign(
         attributeHandle,
         userSuppliedTag);

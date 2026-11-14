@@ -80,19 +80,21 @@ final class RestoreTsoRetractionUniquenessTck {
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          sender.publishObjectClassDirectedInteractions(senderClass, senderDirected);
          sender.changeInteractionOrderType(senderInteraction, OrderType.TIMESTAMP);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass, receiverDirected);
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(
+            receiverClass, receiverDirected);
          ObjectInstanceHandle target = sender.registerObjectInstance(senderClass);
          await(members, () -> receiverEvents.discoveries.contains(target),
             "directed target discovery");
 
          receiver.enableTimeConstrained();
+         receiver.evokeCallback(0.0);
          LogicalTimeFactory<?, ?> timeFactory = sender.getTimeFactory();
          LogicalTime<?, ?> initial = sender.queryLogicalTime();
          LogicalTimeInterval<?> epsilon = timeFactory.makeEpsilon();
          LogicalTime<?, ?> time1 = offset(initial, epsilon, 1);
          LogicalTime<?, ?> time6 = offset(initial, epsilon, 6);
          sender.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> senderEvents.regulationEnabled == 1,
+         await(List.of(sender), () -> senderEvents.regulationEnabled == 1,
             "time-regulation enablement");
 
          ParameterHandleValueMap empty = sender.getParameterHandleValueMapFactory().create(0);
@@ -115,7 +117,7 @@ final class RestoreTsoRetractionUniquenessTck {
          MessageRetractionReturn discarded = sender.sendDirectedInteraction(
             senderInteraction, target, empty, tag.clone(), time6);
          JavaTckSupport.check(valid(discarded)
-               && !saved.handle.equals(discarded.handle),
+               && !Arrays.equals(encodeHandle(saved.handle), encodeHandle(discarded.handle)),
             "post-save directed passel reused the saved handle");
          sender.requestFederationRestore(saveLabel);
          await(members, () -> senderEvents.restoreLabels.equals(List.of(saveLabel))
@@ -131,30 +133,32 @@ final class RestoreTsoRetractionUniquenessTck {
          MessageRetractionReturn fresh = sender.sendDirectedInteraction(
             senderInteraction, target, empty, tag.clone(), time6);
          JavaTckSupport.check(valid(fresh)
-               && !fresh.handle.equals(discarded.handle)
-               && !fresh.handle.equals(saved.handle),
+               && !Arrays.equals(encodeHandle(fresh.handle), encodeHandle(discarded.handle))
+               && !Arrays.equals(encodeHandle(fresh.handle), encodeHandle(saved.handle)),
             "post-restore allocation reused an old retraction designator");
          sender.retract(fresh.handle);
          JavaTckSupport.expectFailure(() -> sender.retract(fresh.handle),
             "MessageCanNoLongerBeRetracted", "fresh retraction terminal state");
 
          receiver.flushQueueRequest(time6);
-         await(members, () -> receiverEvents.deliveries.size() == 1
+         await(List.of(receiver), () -> receiverEvents.deliveries.size() == 1
                && receiverEvents.flushGrants.size() == 1,
             "saved directed passel and flush queue grant");
          Delivery delivered = receiverEvents.deliveries.get(0);
          JavaTckSupport.check(delivered.interaction.equals(receiverInteraction)
                && delivered.object.equals(target) && delivered.parameters.isEmpty()
-               && Arrays.equals(delivered.tag, tag) && time6.equals(delivered.time)
+               && Arrays.equals(delivered.tag, tag)
+               && Arrays.equals(encodeTime(time6), encodeTime(delivered.time))
                && delivered.sentOrder == OrderType.TIMESTAMP
                && delivered.receivedOrder == OrderType.TIMESTAMP
-               && saved.handle.equals(delivered.retraction)
+               && Arrays.equals(encodeHandle(saved.handle), encodeHandle(delivered.retraction))
                && receiverEvents.order.equals(List.of("interaction", "flush-grant")),
             "fresh retraction aliased or suppressed the saved directed passel");
          sender.retract(saved.handle);
-         await(members, () -> receiverEvents.retractions.size() == 1,
+         await(List.of(receiver), () -> receiverEvents.retractions.size() == 1,
             "saved directed retraction callback");
-         JavaTckSupport.check(saved.handle.equals(receiverEvents.retractions.get(0)),
+         JavaTckSupport.check(Arrays.equals(encodeHandle(saved.handle),
+                  encodeHandle(receiverEvents.retractions.get(0))),
             "saved directed retraction callback returned the wrong handle");
          JavaTckSupport.expectFailure(() -> sender.retract(saved.handle),
             "MessageCanNoLongerBeRetracted", "saved retraction terminal state");
@@ -182,6 +186,18 @@ final class RestoreTsoRetractionUniquenessTck {
 
    private static boolean valid(MessageRetractionReturn result) {
       return result != null && result.retractionHandleIsValid && result.handle != null;
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(List<RTIambassador> members,

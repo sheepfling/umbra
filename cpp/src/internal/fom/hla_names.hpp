@@ -25,6 +25,19 @@ inline constexpr char standard_mim[] = "HLAstandardMIM";
 inline constexpr char standard_mim_file_name[] = "HLAstandardMIM-2025.xml";
 inline constexpr char interaction_manager_prefix[] = "HLAinteractionRoot.HLAmanager.";
 
+inline constexpr char service_federate_save_begun[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAfederateSaveBegun";
+inline constexpr char service_federate_save_complete[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAfederateSaveComplete";
+inline constexpr char service_federate_restore_complete[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAfederateRestoreComplete";
+inline constexpr char service_resign_federation_execution[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAresignFederationExecution";
+inline constexpr char service_synchronization_point_achieved[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAsynchronizationPointAchieved";
+inline constexpr char service_unconditional_attribute_ownership_divestiture[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunconditionalAttributeOwnershipDivestiture";
+
 inline constexpr char federate_object_class[] =
     "HLAobjectRoot.HLAmanager.HLAfederate";
 inline constexpr char federation_object_class[] =
@@ -64,6 +77,18 @@ inline constexpr char request_interactions_received[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestInteractionsReceived";
 inline constexpr char request_directed_interactions_received[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestDirectedInteractionsReceived";
+inline constexpr char service_unsubscribe_object_class_attributes[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunsubscribeObjectClassAttributes";
+inline constexpr char service_subscribe_object_class_attributes[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAsubscribeObjectClassAttributes";
+inline constexpr char service_subscribe_object_class_directed_interactions[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAsubscribeObjectClassDirectedInteractions";
+inline constexpr char service_unsubscribe_object_class_directed_interactions[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunsubscribeObjectClassDirectedInteractions";
+inline constexpr char service_subscribe_interaction_class[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAsubscribeInteractionClass";
+inline constexpr char service_unsubscribe_interaction_class[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunsubscribeInteractionClass";
 inline constexpr char request_attribute_transportation_type_change[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLArequestAttributeTransportationTypeChange";
 inline constexpr char request_interaction_transportation_type_change[] =
@@ -78,6 +103,9 @@ inline constexpr char federate_modify_attribute_state[] =
     "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAmodifyAttributeState";
 
 inline constexpr char federate[] = "HLAfederate";
+inline constexpr char object_class[] = "HLAobjectClass";
+inline constexpr char resign_action[] = "HLAresignAction";
+inline constexpr char label[] = "HLAlabel";
 inline constexpr char federate_handle[] = "HLAfederateHandle";
 inline constexpr char federate_name[] = "HLAfederateName";
 inline constexpr char federate_state[] = "HLAfederateState";
@@ -134,7 +162,57 @@ inline constexpr char exception[] = "HLAexception";
 inline constexpr char rti_version[] = "HLARTIversion";
 inline constexpr char attribute_list[] = "HLAattributeList";
 inline constexpr char interaction_class[] = "HLAinteractionClass";
+inline constexpr char interaction_class_list[] = "HLAinteractionClassList";
+inline constexpr char active[] = "HLAactive";
 inline constexpr char transportation[] = "HLAtransportation";
+inline constexpr char delete_object_instance[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAdeleteObjectInstance";
+inline constexpr char enable_asynchronous_delivery[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAenableAsynchronousDelivery";
+inline constexpr char disable_asynchronous_delivery[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAdisableAsynchronousDelivery";
+inline constexpr char disable_time_constrained[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAdisableTimeConstrained";
+inline constexpr char disable_time_regulation[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAdisableTimeRegulation";
+inline constexpr char enable_time_constrained[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAenableTimeConstrained";
+inline constexpr char enable_time_regulation[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAenableTimeRegulation";
+inline constexpr char flush_queue_request[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAflushQueueRequest";
+inline constexpr char local_delete_object_instance[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAlocalDeleteObjectInstance";
+inline constexpr char modify_lookahead[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAmodifyLookahead";
+inline constexpr char next_message_request[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAnextMessageRequest";
+inline constexpr char next_message_request_available[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAnextMessageRequestAvailable";
+inline constexpr char time_advance_request[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAtimeAdvanceRequest";
+inline constexpr char time_advance_request_available[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAtimeAdvanceRequestAvailable";
+inline constexpr char publish_interaction_class[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLApublishInteractionClass";
+inline constexpr char unpublish_interaction_class[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunpublishInteractionClass";
+inline constexpr char publish_object_class_attributes[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLApublishObjectClassAttributes";
+inline constexpr char unpublish_object_class_attributes[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunpublishObjectClassAttributes";
+inline constexpr char publish_object_class_directed_interactions[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLApublishObjectClassDirectedInteractions";
+inline constexpr char unpublish_object_class_directed_interactions[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAunpublishObjectClassDirectedInteractions";
+inline constexpr char change_attribute_order_type[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAchangeAttributeOrderType";
+inline constexpr char change_interaction_order_type[] =
+    "HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAchangeInteractionOrderType";
+inline constexpr char send_order[] = "HLAsendOrder";
+inline constexpr char user_tag[] = "HLAtag";
+inline constexpr char time_stamp[] = "HLAtimeStamp";
+inline constexpr char lookahead[] = "HLAlookahead";
 inline constexpr char reliable[] = "HLAreliable";
 inline constexpr char best_effort[] = "HLAbestEffort";
 inline constexpr char default_update_rate[] = "HLAdefault";
@@ -332,6 +410,11 @@ inline constexpr wchar_t rti_version[] = L"HLARTIversion";
 inline constexpr wchar_t reliable[] = L"HLAreliable";
 inline constexpr wchar_t best_effort[] = L"HLAbestEffort";
 inline constexpr wchar_t transportation[] = L"HLAtransportation";
+inline constexpr wchar_t change_attribute_order_type[] =
+    L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAchangeAttributeOrderType";
+inline constexpr wchar_t change_interaction_order_type[] =
+    L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAservice.HLAchangeInteractionOrderType";
+inline constexpr wchar_t send_order[] = L"HLAsendOrder";
 inline constexpr wchar_t default_update_rate[] = L"HLAdefault";
 inline constexpr wchar_t default_update_rate_attribute[] =
     L"HLAdefaultUpdateRate";

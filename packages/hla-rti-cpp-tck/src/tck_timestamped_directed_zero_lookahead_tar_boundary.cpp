@@ -242,7 +242,7 @@ void scenarioTimestampedDirectedZeroLookaheadSendAtGrant(
       *publisherTime.factory, *publisherTime.initial, *publisherTime.epsilon, 5U);
   auto const nextTime = timeAfter(
       *publisherTime.factory, *grantedTime, *publisherTime.epsilon, 1U);
-  publisher.rtiAmbassador().timeAdvanceRequest(*grantedTime);
+  publisher.rtiAmbassador().nextMessageRequestAvailable(*grantedTime);
   waitFor(
       publisher,
       [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },

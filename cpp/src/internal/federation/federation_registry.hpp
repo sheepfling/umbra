@@ -2,6 +2,7 @@
 
 #include "internal/handles/attribute_handle_directory.hpp"
 #include "internal/handles/dimension_handle_directory.hpp"
+#include "internal/handles/fom_handle_allocator.hpp"
 #include "internal/time/federation_time_coordinator.hpp"
 #include "internal/fom/fom_validation.hpp"
 #include "internal/handles/interaction_class_handle_directory.hpp"
@@ -42,7 +43,8 @@ class EmbeddedFederationRegistry final {
  public:
   explicit EmbeddedFederationRegistry(
       std::shared_ptr<RuntimeInstrumentation> instrumentation = {},
-      std::shared_ptr<FederationSaveCommitStore> saveCommitStore = {});
+      std::shared_ptr<FederationSaveCommitStore> saveCommitStore = {},
+      FomHandleAllocator::RandomValueProvider fomHandleRandomValueProvider = {});
 
   // Runtime configuration may select persistent save storage before any
   // federation exists. Test seams may still inject a store at construction.
@@ -904,11 +906,12 @@ class EmbeddedFederationRegistry final {
       std::wstring const& federationName,
       std::uint64_t interactionClassHandle) const;
 
-  // DDM region-template/specification lifecycle.  Create allocates a region
-  // with the requested dimensions; SetRangeBounds records pending values;
-  // Commit promotes a complete pending map to the current specification; and
-  // Delete removes an unused region.  These methods intentionally do not
-  // create region realizations or route messages.
+  // DDM region-template/specification lifecycle. Create allocates a region
+  // with the requested dimensions and seeds pending values from supplied FOM
+  // dimension defaults; SetRangeBounds records pending overrides; Commit
+  // promotes a complete pending map to the current specification; and Delete
+  // removes an unused region. These methods intentionally do not create
+  // region realizations or route messages.
   [[nodiscard]] RegionCreateResult createRegion(
       std::wstring const& federationName,
       std::uint64_t federateId,
@@ -2550,9 +2553,10 @@ class EmbeddedFederationRegistry final {
                PendingAttributeOwnershipDivestitureIfWantedNotification>
           pendingAttributeOwnershipDivestitureIfWantedNotifications;
       // For each attribute made unowned by an unconditional divestiture or
-      // resign action, retain the federates that have already received an
-      // assumption offer.  A later join, discovery, or publication can then
-      // continue the search without duplicating the same callback.
+      // resign action, retain federates already offered an assumption and any
+      // federate excluded from that search. A later join, discovery, or
+      // publication can continue the search without duplication or re-offering
+      // ownership to the federate that initiated unconditional divestiture.
       std::map<std::uint64_t, std::set<std::uint64_t>>
           ownershipAssumptionRecipientsByAttribute;
       // Preserve the source tag for each still-unowned assumption search.
@@ -2618,6 +2622,7 @@ class EmbeddedFederationRegistry final {
     bool delaySubscriptionEvaluationSwitch = false;
     bool allowRelaxedDDMSwitch = false;
     std::shared_ptr<ObjectClassHandleDirectory const> objectClassHandles;
+    std::shared_ptr<FomHandleAllocator const> fomHandleAllocator;
     std::shared_ptr<AttributeHandleDirectory const> attributeHandles;
     std::shared_ptr<InteractionClassHandleDirectory const> interactionClassHandles;
     std::shared_ptr<ParameterHandleDirectory const> parameterHandles;
@@ -2709,7 +2714,11 @@ class EmbeddedFederationRegistry final {
     std::map<std::wstring, std::uint64_t> reservedObjectInstanceNamesByFederate;
     std::uint64_t nextRegionHandle = 1;
     std::uint64_t nextSubscriptionGeneration = 1;
+    // Application object instances use the low half of the handle space;
+    // RTI-owned MOM instances use the high half so restored application
+    // handles cannot alias newly established MOM objects.
     std::uint64_t nextObjectInstanceHandle = 1;
+    std::uint64_t nextRtiOwnedObjectInstanceHandle = 1;
     std::uint64_t nextAttributeOwnershipAcquisitionIfAvailableRequestId = 1;
     std::uint64_t nextAttributeOwnershipAcquisitionRequestId = 1;
     std::uint64_t nextAttributeOwnershipAcquisitionRequestSequence = 1;
@@ -2843,6 +2852,13 @@ class EmbeddedFederationRegistry final {
       std::uint64_t normalizationSeed,
       std::uint64_t handleValue,
       std::uint64_t handleKind) noexcept;
+  // The public HLAobjectInstanceHandle remains opaque; this internal
+  // partition preserves globally unique values across application and MOM
+  // object storage, including when application identities are restored.
+  static constexpr std::uint64_t kRtiOwnedObjectInstanceHandleDomainBit =
+      std::uint64_t{1} << 63U;
+  [[nodiscard]] static std::optional<std::uint64_t>
+  allocateRtiOwnedObjectInstanceHandle(Federation& federation) noexcept;
 
   FederationJoinResult joinImpl(
       std::wstring const& federationName,
@@ -2874,6 +2890,15 @@ class EmbeddedFederationRegistry final {
   availableObjectClassDimensions(
       Federation const& federation,
       std::uint64_t objectClassHandle);
+  [[nodiscard]] static std::optional<std::set<std::uint64_t>>
+  availableObjectClassAttributeDimensions(
+      Federation const& federation,
+      std::uint64_t objectClassHandle,
+      std::uint64_t attributeHandle);
+  [[nodiscard]] static RegionSpecificationSnapshot realizeRegionForAvailableDimensions(
+      Federation const& federation,
+      RegionSpecificationSnapshot const& region,
+      std::set<std::uint64_t> const& availableDimensions);
   [[nodiscard]] static bool regionsOverlap(
       Federation const& federation,
       std::uint64_t firstRegionHandle,
@@ -2907,6 +2932,23 @@ class EmbeddedFederationRegistry final {
       Federation const& federation,
       std::uint64_t regionHandle,
       std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides = nullptr);
+  // Object-attribute region realizations add the FDD Value When Unspecified
+  // range for every available dimension omitted from the region specification.
+  // The realization is attribute-specific because inherited attributes do
+  // not acquire dimensions introduced only by a derived class.
+  [[nodiscard]] static bool objectAttributeRegionsOverlap(
+      Federation const& federation,
+      std::uint64_t objectClassHandle,
+      std::uint64_t attributeHandle,
+      std::uint64_t firstRegionHandle,
+      std::uint64_t secondRegionHandle,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides = nullptr);
+  [[nodiscard]] static bool objectAttributeRegionOverlapsDefault(
+      Federation const& federation,
+      std::uint64_t objectClassHandle,
+      std::uint64_t attributeHandle,
+      std::uint64_t regionHandle,
+      std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides = nullptr);
   // An explicit update-region association belongs to the current owner of an
   // instance attribute.  IEEE 1516.1-2025 removes that association whenever
   // ownership is divested, transferred, or otherwise lost; it is not carried
@@ -2931,6 +2973,10 @@ class EmbeddedFederationRegistry final {
       Federation const& federation,
       std::uint64_t objectClassHandle,
       std::uint64_t attributeHandle);
+  [[nodiscard]] static std::optional<std::string>
+  effectiveTransportationTypeName(
+      Federation const& federation,
+      std::string const& declaredTransportationName);
   [[nodiscard]] static std::optional<rti1516_2025::OrderType>
   orderTypeFromName(std::string const& orderName);
   [[nodiscard]] static std::optional<rti1516_2025::OrderType>
@@ -3088,6 +3134,8 @@ class EmbeddedFederationRegistry final {
       std::uint64_t federateId);
   [[nodiscard]] static bool canPurgeDeletedObjectInstance(
       Federation::ObjectInstance const& objectInstance) noexcept;
+  [[nodiscard]] static bool canPurgeOrphanObjectInstance(
+      Federation::ObjectInstance const& objectInstance) noexcept;
   [[nodiscard]] static bool hasPendingConnectionLossTsoObjectDelivery(
       Federation const& federation,
       std::uint64_t objectInstanceHandle,
@@ -3157,6 +3205,13 @@ class EmbeddedFederationRegistry final {
   [[nodiscard]] static FederationStateImage stateImageFor(
       Federation const& federation,
       std::wstring const& federationName);
+
+  // Translate durable FOM handle identities into the opaque values allocated
+  // by the current registry before any saved declaration or payload is
+  // rehydrated. A missing catalog identity is a restore incompatibility.
+  [[nodiscard]] static bool rebindFomHandlesInStateImage(
+      FederationStateImage& image,
+      Federation const& liveFederation);
 
   // Rebuild the accepted Update Attribute Values telemetry ledger from the
   // admission-validated image. Callback routes are unrelated to these
@@ -3299,6 +3354,11 @@ class EmbeddedFederationRegistry final {
       std::optional<std::uint16_t> finalServiceReportGroup,
       bool reservePublicInteraction = false);
 
+  // Serialize restore-request admission separately from federation state.
+  // Requests that overlap at this boundary can be reported as competing
+  // attempts; a later request observes the active restore and receives the
+  // ordinary RestoreInProgress service failure.
+  mutable std::mutex restoreRequestAdmissionMutex_;
   mutable std::mutex mutex_;
   std::shared_ptr<RuntimeInstrumentation> instrumentation_;
   std::map<std::wstring, Federation> federations_;
@@ -3311,6 +3371,7 @@ class EmbeddedFederationRegistry final {
   // while the remaining typed ledgers are a later versioned step.
   std::map<std::wstring, std::map<std::wstring, Federation>> saveSnapshots_;
   std::shared_ptr<FederationSaveCommitStore> saveCommitStore_;
+  FomHandleAllocator fomHandleAllocator_;
   std::uint64_t nextFederateId_ = 1;
 };
 

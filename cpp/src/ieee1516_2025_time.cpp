@@ -204,7 +204,7 @@ double subtractFloatValue(double value, double subtrahend) {
     return value;
   }
   if (subtrahend > value) {
-    illegalTimeArithmetic(L"Reference logical-time subtraction precedes the initial value");
+    return 0.0;
   }
   auto result = value - subtrahend;
   if (subtrahend == kFloat64Epsilon && result == value && value > 0.0) {
@@ -277,7 +277,8 @@ LogicalTime& HLAinteger64Time::operator-=(LogicalTimeInterval const& subtrahend)
     return *this;
   }
   if (value > _impl->value) {
-    illegalTimeArithmetic(L"HLAinteger64Time subtraction precedes the initial value");
+    _impl->value = 0;
+    return *this;
   }
   _impl->value -= value;
   return *this;
@@ -411,7 +412,8 @@ LogicalTimeInterval& HLAinteger64Interval::operator+=(LogicalTimeInterval const&
 LogicalTimeInterval& HLAinteger64Interval::operator-=(LogicalTimeInterval const& subtrahend) {
   auto value = checkedIntegerInterval(subtrahend);
   if (value > _impl->value) {
-    illegalTimeArithmetic(L"HLAinteger64Interval subtraction precedes zero");
+    _impl->value = 0;
+    return *this;
   }
   _impl->value -= value;
   return *this;

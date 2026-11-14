@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This C++ TCK trace covers one derived-only attribute, its invalid base-class pairing, and a valid declaring-class control. It does not establish the full §8.25 exception matrix or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-default-order-class-handle-attribute-availability",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l88-24",
+      "clause_id": "clause-8.25",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Change default order requires an available class attribute",
+      "statement": "When changing a default order type, a class attribute shall be specified using a class handle for which the class attribute is available along with the class attribute’s handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioDefaultOrderAttributeClassHandleValidation",
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioDefaultOrderAttributeClassHandleValidationContract"
+      ]
+    }
+  ]
+}

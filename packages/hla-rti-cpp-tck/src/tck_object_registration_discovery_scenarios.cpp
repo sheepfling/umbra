@@ -92,6 +92,7 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   Session base(options, model, "member-base");
   Session cancelled(options, model, "member-cancelled");
   Session late(options, model, "member-late");
+  Session unrelated(options, model, "member-unrelated-class");
   auto const federation = federationName(options, "object-registration-discovery-lifecycle");
 
   rti::ObjectClassHandle const invalidObjectClass;
@@ -114,6 +115,7 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   base.connect();
   cancelled.connect();
   late.connect();
+  unrelated.connect();
   publisher.rtiAmbassador().createFederationExecution(
       federation,
       options.modelFom.wstring(),
@@ -135,21 +137,52 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
       options.memberFederateName + L"-late",
       options.federateType,
       federation);
+  unrelated.join(
+      options.memberFederateName + L"-unrelated",
+      options.federateType,
+      federation);
 
+  requireException(
+      [&] {
+        static_cast<void>(publisher.rtiAmbassador().getObjectClassHandle(
+            L"HLAobjectRoot.TckTypedObject.TckMissingFddClass"));
+      },
+      L"NameNotFound",
+      "resolving an object-class name absent from the FDD vocabulary");
+
+  auto const publisherBaseClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
   auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
       options.typedDerivedObjectClassName);
   auto const exactClass = exact.rtiAmbassador().getObjectClassHandle(
       options.typedDerivedObjectClassName);
   auto const baseClass = base.rtiAmbassador().getObjectClassHandle(
       options.typedObjectClassName);
+  auto const baseDerivedClass = base.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
   auto const cancelledClass = cancelled.rtiAmbassador().getObjectClassHandle(
       options.typedDerivedObjectClassName);
   auto const lateClass = late.rtiAmbassador().getObjectClassHandle(
       options.typedDerivedObjectClassName);
+  auto const unrelatedClass = unrelated.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
+  auto const publisherRateClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.rateObjectClassName);
   require(
-      publisherClass.isValid() && exactClass.isValid() && baseClass.isValid() &&
-          cancelledClass.isValid() && lateClass.isValid(),
+      publisherBaseClass.isValid() && publisherClass.isValid() && exactClass.isValid() &&
+          baseClass.isValid() && baseDerivedClass.isValid() &&
+          cancelledClass.isValid() && lateClass.isValid() && unrelatedClass.isValid() &&
+          publisherRateClass.isValid(),
       "object registration/discovery FOM class lookup returned an invalid handle");
+
+  requireException(
+      [&] {
+        static_cast<void>(publisher.rtiAmbassador().getAttributeHandle(
+            publisherBaseClass,
+            options.typedDerivedAttributeName));
+      },
+      L"NameNotFound",
+      "resolving an FDD-derived attribute that is not declared on the base object class");
 
   auto const publisherIdentity = publisher.rtiAmbassador().getAttributeHandle(
       publisherClass,
@@ -163,20 +196,35 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   auto const baseIdentity = base.rtiAmbassador().getAttributeHandle(
       baseClass,
       options.typedIdentityAttributeName);
+  auto const baseViewDerived = base.rtiAmbassador().getAttributeHandle(
+      baseDerivedClass,
+      options.typedDerivedAttributeName);
   auto const cancelledDerived = cancelled.rtiAmbassador().getAttributeHandle(
       cancelledClass,
       options.typedDerivedAttributeName);
   auto const lateDerived = late.rtiAmbassador().getAttributeHandle(
       lateClass,
       options.typedDerivedAttributeName);
+  auto const unrelatedAttribute = unrelated.rtiAmbassador().getAttributeHandle(
+      unrelatedClass,
+      options.rateReliableAttributeName);
+  auto const publisherRateReliable = publisher.rtiAmbassador().getAttributeHandle(
+      publisherRateClass,
+      options.rateReliableAttributeName);
+  auto const publisherRateBestEffort = publisher.rtiAmbassador().getAttributeHandle(
+      publisherRateClass,
+      options.rateBestEffortAttributeName);
   require(
       publisherIdentity.isValid() && publisherDerived.isValid() &&
           exactDerived.isValid() && baseIdentity.isValid() &&
-          cancelledDerived.isValid() && lateDerived.isValid(),
+          baseViewDerived.isValid() &&
+          cancelledDerived.isValid() && lateDerived.isValid() &&
+          unrelatedAttribute.isValid() && publisherRateReliable.isValid() &&
+          publisherRateBestEffort.isValid(),
       "object registration/discovery FOM attribute lookup returned an invalid handle");
 
   auto const publisherBaseIdentity = publisher.rtiAmbassador().getAttributeHandle(
-      publisher.rtiAmbassador().getObjectClassHandle(options.typedObjectClassName),
+      publisherBaseClass,
       options.typedIdentityAttributeName);
   require(
       publisherBaseIdentity == publisherIdentity && baseIdentity == publisherIdentity,
@@ -185,8 +233,11 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   rti::AttributeHandleSet const publishedAttributes{publisherIdentity, publisherDerived};
   rti::AttributeHandleSet const exactAttributes{exactDerived};
   rti::AttributeHandleSet const baseAttributes{baseIdentity};
+  rti::AttributeHandleSet const baseViewDerivedAttributes{baseViewDerived};
+  rti::AttributeHandleSet const publisherBaseViewDerivedAttributes{publisherDerived};
   rti::AttributeHandleSet const cancelledAttributes{cancelledDerived};
   rti::AttributeHandleSet const lateAttributes{lateDerived};
+  rti::AttributeHandleSet const unrelatedAttributes{unrelatedAttribute};
 
   requireException(
       [&] {
@@ -198,12 +249,37 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
       [&] { static_cast<void>(publisher.rtiAmbassador().registerObjectInstance(publisherClass)); },
       L"ObjectClassNotPublished",
       "registering an object before publication");
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass,
+      rti::AttributeHandleSet{});
+  requireException(
+      [&] { static_cast<void>(publisher.rtiAmbassador().registerObjectInstance(publisherClass)); },
+      L"ObjectClassNotPublished",
+      "registering an object after publishing an empty class-attribute set");
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().publishObjectClassAttributes(
+            publisherBaseClass,
+            publisherBaseViewDerivedAttributes);
+      },
+      L"AttributeNotDefined",
+      "publishing a derived-only attribute through its superclass");
 
   exact.rtiAmbassador().subscribeObjectClassAttributes(
       exactClass,
       exactAttributes,
       true,
       L"");
+  requireException(
+      [&] {
+        base.rtiAmbassador().subscribeObjectClassAttributes(
+            baseClass,
+            baseViewDerivedAttributes,
+            true,
+            L"");
+      },
+      L"AttributeNotDefined",
+      "subscribing to a derived-only attribute through its superclass");
   base.rtiAmbassador().subscribeObjectClassAttributes(
       baseClass,
       baseAttributes,
@@ -214,12 +290,21 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
       cancelledAttributes,
       true,
       L"");
+  unrelated.rtiAmbassador().subscribeObjectClassAttributes(
+      unrelatedClass,
+      unrelatedAttributes,
+      true,
+      L"");
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass,
       publishedAttributes);
 
   auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
   require(object.isValid(), "object registration/discovery returned an invalid object handle");
+  require(
+      publisher.rtiAmbassador().isAttributeOwnedByFederate(object, publisherIdentity) &&
+          publisher.rtiAmbassador().isAttributeOwnedByFederate(object, publisherDerived),
+      "registration did not make the registering federate owner of every published class attribute");
   auto const objectName = publisher.rtiAmbassador().getObjectInstanceName(object);
   require(!objectName.empty(), "object registration/discovery returned an empty object name");
   require(
@@ -235,7 +320,8 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
     require(
         exact.recorder().discoveryCount() == 0U &&
             base.recorder().discoveryCount() == 0U &&
-            cancelled.recorder().discoveryCount() == 0U,
+            cancelled.recorder().discoveryCount() == 0U &&
+            unrelated.recorder().discoveryCount() == 0U,
         "evoked discovery callback arrived before callback servicing");
     requireException(
         [&] { static_cast<void>(exact.rtiAmbassador().getKnownObjectClassHandle(object)); },
@@ -245,7 +331,8 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
     require(
         exact.recorder().discoveryCount() == 1U &&
             base.recorder().discoveryCount() == 1U &&
-            cancelled.recorder().discoveryCount() == 1U,
+            cancelled.recorder().discoveryCount() == 1U &&
+            unrelated.recorder().discoveryCount() == 0U,
         "immediate registration did not deliver one discovery callback per subscriber");
   }
 
@@ -287,6 +374,23 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
   requireDiscovery(exact, exactClass, "exact object discovery");
   requireDiscovery(base, baseClass, "base-class object discovery");
   requireDiscovery(late, lateClass, "late object discovery");
+  requireException(
+      [&] {
+        base.rtiAmbassador().requestAttributeValueUpdate(
+            object,
+            baseViewDerivedAttributes,
+            rti::VariableLengthData{});
+      },
+      L"AttributeNotDefined",
+      "requesting a derived-only attribute from an object instance known as its base class");
+  if (model == rti::HLA_EVOKED) {
+    for (int pass = 0; pass != 8; ++pass) {
+      unrelated.pump();
+    }
+  }
+  require(
+      unrelated.recorder().discoveryCount() == 0U,
+      "a subscription to an unrelated root-level class discovered a derived object");
   if (model == rti::HLA_EVOKED) {
     require(
         cancelled.recorder().discoveryCount() == 0U,
@@ -304,6 +408,69 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
         "immediate subscriber changed a delivered discovery count after unsubscribe");
   }
 
+  std::vector<std::uint8_t> const identityValue{0x31U, 0x32U};
+  std::vector<std::uint8_t> const derivedValue{0x41U, 0x42U, 0x43U};
+  std::vector<std::uint8_t> const updateTag{0x51U, 0x52U};
+  std::vector<std::uint8_t> const rejectedValue{0x61U};
+  rti::AttributeHandleValueMap const unownedValues{{
+      exactDerived,
+      rti::VariableLengthData(rejectedValue.data(), rejectedValue.size())}};
+  requireException(
+      [&] {
+        exact.rtiAmbassador().updateAttributeValues(
+            object,
+            unownedValues,
+            rti::VariableLengthData{});
+      },
+      L"AttributeNotOwned",
+      "updating a discovered instance attribute from a federate that does not own it");
+  require(
+      exact.recorder().reflectionCount() == 0U &&
+          base.recorder().reflectionCount() == 0U &&
+          late.recorder().reflectionCount() == 0U,
+      "a rejected non-owner update produced an attribute reflection");
+  rti::AttributeHandleValueMap const values{{
+      publisherIdentity,
+      rti::VariableLengthData(identityValue.data(), identityValue.size())}, {
+      publisherDerived,
+      rti::VariableLengthData(derivedValue.data(), derivedValue.size())}};
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      values,
+      rti::VariableLengthData(updateTag.data(), updateTag.size()));
+
+  auto requireReflectedAttribute = [&](Session& session,
+                                       rti::AttributeHandle const& expectedAttribute,
+                                       std::vector<std::uint8_t> const& expectedValue,
+                                       std::string const& description) {
+    waitFor(
+        session,
+        [&] { return session.recorder().reflectionCount() == 1U; },
+        options,
+        description);
+    auto const reflections = session.recorder().reflections();
+    require(
+        reflections.size() == 1U && reflections.front().object == object &&
+            reflections.front().values.size() == 1U &&
+            reflections.front().values.count(expectedAttribute) == 1U &&
+            copyBytes(reflections.front().values.at(expectedAttribute)) == expectedValue &&
+            reflections.front().tag == updateTag &&
+            reflections.front().producer == publisher.federateHandle(),
+        description + " did not reflect exactly the subscribed attribute value");
+  };
+  requireReflectedAttribute(
+      exact, exactDerived, derivedValue, "exact-class post-discovery update");
+  requireReflectedAttribute(
+      base, baseIdentity, identityValue, "base-class post-discovery update");
+  requireReflectedAttribute(
+      late, lateDerived, derivedValue, "late-subscription post-discovery update");
+  for (int pass = 0; pass != 8; ++pass) {
+    cancelled.pump();
+  }
+  require(
+      cancelled.recorder().reflectionCount() == 0U,
+      "unsubscribed federate received an attribute update after discovery");
+
   exact.rtiAmbassador().subscribeObjectClassAttributes(
       exactClass,
       exactAttributes,
@@ -313,14 +480,114 @@ void scenarioObjectRegistrationDiscoveryLifecycle(
       !exact.evokeMultipleCallbacks(0.0, 0.0) && exact.recorder().discoveryCount() == 1U,
       "repeating an object subscription generated a duplicate discovery callback");
 
+  rti::AttributeHandleSet const singleRateAttributePublication{publisherRateReliable};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherRateClass,
+      singleRateAttributePublication);
+  auto const partiallyPublishedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherRateClass);
+  require(
+      partiallyPublishedObject.isValid(),
+      "registering a class with one published attribute returned an invalid handle");
+  require(
+      publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          partiallyPublishedObject,
+          publisherRateReliable) &&
+          !publisher.rtiAmbassador().isAttributeOwnedByFederate(
+              partiallyPublishedObject,
+              publisherRateBestEffort),
+      "registration ownership did not follow the published subset of class attributes");
+  waitFor(
+      unrelated,
+      [&] { return unrelated.recorder().hasDiscovery(partiallyPublishedObject); },
+      options,
+      "discovery of the partially published rate object");
+  auto const partialDiscovery = unrelated.recorder().discovery();
+  require(
+      unrelated.recorder().discoveryCount() == 1U &&
+          partialDiscovery.object == partiallyPublishedObject &&
+          partialDiscovery.objectClass == unrelatedClass,
+      "partially published object discovery returned the wrong class or identity");
+
+  rti::AttributeHandleSet const additionalRateAttributePublication{
+      publisherRateBestEffort};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherRateClass,
+      additionalRateAttributePublication);
+  auto const additionallyPublishedObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherRateClass);
+  require(
+      additionallyPublishedObject.isValid() &&
+          publisher.rtiAmbassador().isAttributeOwnedByFederate(
+              additionallyPublishedObject,
+              publisherRateReliable) &&
+          publisher.rtiAmbassador().isAttributeOwnedByFederate(
+              additionallyPublishedObject,
+              publisherRateBestEffort),
+      "a later publication did not make the added class attribute available on a new instance");
+  waitFor(
+      unrelated,
+      [&] { return unrelated.recorder().hasDiscovery(additionallyPublishedObject); },
+      options,
+      "discovery of the object registered after adding a published attribute");
+  auto const additionalPublicationDiscovery = unrelated.recorder().discovery();
+  require(
+      unrelated.recorder().discoveryCount() == 2U &&
+          additionalPublicationDiscovery.object == additionallyPublishedObject &&
+          additionalPublicationDiscovery.objectClass == unrelatedClass &&
+          additionalPublicationDiscovery.name == publisher.rtiAmbassador().getObjectInstanceName(
+              additionallyPublishedObject),
+      "the object registered after adding a published attribute had incorrect discovery identity");
+
+  rti::AttributeHandleSet const specificallyUnpublishedRateAttribute{
+      publisherRateBestEffort};
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherRateClass,
+      specificallyUnpublishedRateAttribute);
+  require(
+      !publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          additionallyPublishedObject,
+          publisherRateBestEffort) &&
+          publisher.rtiAmbassador().isAttributeOwnedByFederate(
+              additionallyPublishedObject,
+              publisherRateReliable),
+      "unpublishing one class attribute did not remove only that instance-attribute ownership");
+  std::vector<std::uint8_t> const unpublishedAttributeValue{0x71U};
+  rti::AttributeHandleValueMap const unpublishedAttributeValues{{
+      publisherRateBestEffort,
+      rti::VariableLengthData(
+          unpublishedAttributeValue.data(), unpublishedAttributeValue.size())}};
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().updateAttributeValues(
+            additionallyPublishedObject,
+            unpublishedAttributeValues,
+            rti::VariableLengthData{});
+      },
+      L"AttributeNotOwned",
+      "updating an instance attribute after unpublishing its class attribute");
+  require(
+      unrelated.recorder().reflectionCount() == 0U,
+      "an update rejected after attribute unpublication produced a reflection");
+
   late.resign(rti::NO_ACTION);
+  unrelated.resign(rti::NO_ACTION);
   cancelled.resign(rti::NO_ACTION);
   base.resign(rti::NO_ACTION);
   exact.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
+  publisher.rtiAmbassador().unpublishObjectClass(publisherClass);
+  requireException(
+      [&] {
+        static_cast<void>(publisher.rtiAmbassador().registerObjectInstance(publisherClass));
+      },
+      L"ObjectClassNotPublished",
+      "registering an object after unpublishing its entire object class");
   publisher.resign(rti::DELETE_OBJECTS);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   unjoined.disconnect();
   late.disconnect();
+  unrelated.disconnect();
   cancelled.disconnect();
   base.disconnect();
   exact.disconnect();
@@ -351,6 +618,8 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
       publisherClass, options.typedDerivedAttributeName);
   auto const subscriberBaseIdentity = subscriber.rtiAmbassador().getAttributeHandle(
       subscriberBaseClass, options.typedIdentityAttributeName);
+  auto const subscriberDerivedIdentity = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberDerivedClass, options.typedIdentityAttributeName);
   auto const subscriberDerivedAttribute = subscriber.rtiAmbassador().getAttributeHandle(
       subscriberDerivedClass, options.typedDerivedAttributeName);
   require(
@@ -358,13 +627,18 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
           subscriberDerivedClass.isValid() &&
           subscriberBaseClass != subscriberDerivedClass &&
           publisherIdentity.isValid() && publisherDerivedAttribute.isValid() &&
-          subscriberBaseIdentity.isValid() && subscriberDerivedAttribute.isValid(),
+          subscriberBaseIdentity.isValid() &&
+          subscriberDerivedIdentity.isValid() &&
+          subscriberDerivedAttribute.isValid() &&
+          publisherIdentity == subscriberBaseIdentity &&
+          subscriberBaseIdentity == subscriberDerivedIdentity,
       "overlapping subscription hierarchy FOM lookup returned an invalid handle");
 
   rti::AttributeHandleSet const publishedAttributes{
       publisherIdentity, publisherDerivedAttribute};
   rti::AttributeHandleSet const baseAttributes{subscriberBaseIdentity};
-  rti::AttributeHandleSet const derivedAttributes{subscriberDerivedAttribute};
+  rti::AttributeHandleSet const derivedAttributes{
+      subscriberDerivedIdentity, subscriberDerivedAttribute};
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass, publishedAttributes);
   subscriber.rtiAmbassador().subscribeObjectClassAttributes(
@@ -398,10 +672,126 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(
           subscriber.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
       "one derived registration did not produce exactly one discovery of its registered class");
 
+  subscriber.recorder().clearReflection();
+  std::vector<std::uint8_t> const identityValue{0x41U, 0x42U};
+  std::vector<std::uint8_t> const identityTag{0x51U, 0x52U};
+  rti::AttributeHandleValueMap const identityValues{{
+      publisherIdentity,
+      rti::VariableLengthData(identityValue.data(), identityValue.size())}};
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      identityValues,
+      rti::VariableLengthData(identityTag.data(), identityTag.size()));
+  waitFor(
+      subscriber,
+      [&] { return !subscriber.recorder().reflections().empty(); },
+      options,
+      "reflection for one attribute subscribed through both base and derived classes");
+  auto const reflectionQuietDeadline = std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(150);
+  while (std::chrono::steady_clock::now() < reflectionQuietDeadline) {
+    subscriber.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto const reflections = subscriber.recorder().reflections();
+  require(
+      reflections.size() == 1U &&
+          reflections.front().object == object &&
+          reflections.front().values.size() == 1U &&
+          reflections.front().values.count(subscriberBaseIdentity) == 1U &&
+          copyBytes(reflections.front().values.at(subscriberBaseIdentity)) ==
+              identityValue &&
+          reflections.front().tag == identityTag &&
+          reflections.front().producer == publisher.federateHandle(),
+      "one attribute update was reflected more than once through overlapping subscriptions");
+
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberDerivedClass, derivedAttributes);
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberBaseClass, baseAttributes);
+  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+      publisherClass, publishedAttributes);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::DELETE_OBJECTS);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioObjectClassAbstractionSubscription(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.modelFom.empty(),
+      "object-class abstraction subscription requires an adapter-supplied hierarchy FOM");
+  Session publisher(options, model, "abstraction-publisher");
+  Session subscriber(options, model, "abstraction-subscriber");
+  auto const federation = federationName(options, "object-class-abstraction-subscription");
+  connectAndJoin(publisher, subscriber, options, federation, options.modelFom);
+
+  auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.typedDerivedObjectClassName);
+  auto const subscriberAbstractionClass = subscriber.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  auto const publisherIdentity = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass, options.typedIdentityAttributeName);
+  auto const subscriberIdentity = subscriber.rtiAmbassador().getAttributeHandle(
+      subscriberAbstractionClass, options.typedIdentityAttributeName);
+  require(
+      publisherClass.isValid() && subscriberAbstractionClass.isValid() &&
+          publisherClass != subscriberAbstractionClass &&
+          publisherIdentity.isValid() && subscriberIdentity.isValid() &&
+          publisherIdentity == subscriberIdentity,
+      "the hierarchy FOM did not expose the requested abstraction and inherited identity");
+
+  rti::AttributeHandleSet const publishedAttributes{publisherIdentity};
+  rti::AttributeHandleSet const abstractionAttributes{subscriberIdentity};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherClass, publishedAttributes);
+  subscriber.rtiAmbassador().subscribeObjectClassAttributes(
+      subscriberAbstractionClass, abstractionAttributes, true, L"");
+
+  auto const object = publisher.rtiAmbassador().registerObjectInstance(publisherClass);
+  require(object.isValid(), "derived object registration returned an invalid handle");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().discoveryCount() != 0U; },
+      options,
+      "discovery through the abstract object-class subscription");
+  auto const discovery = subscriber.recorder().discovery();
+  require(
+      subscriber.recorder().discoveryCount() == 1U && discovery.present &&
+          discovery.object == object,
+      "the abstract-class subscription did not discover the registered object");
+  require(
+      discovery.objectClass == subscriberAbstractionClass,
+      "the abstract-class subscription did not report its subscriber class view");
+  require(
+      subscriber.rtiAmbassador().getKnownObjectClassHandle(object) ==
+          subscriberAbstractionClass,
+      "the known-object query did not retain the subscriber class view");
+
+  std::vector<std::uint8_t> const identityValue{0x41U, 0x42U};
+  rti::AttributeHandleValueMap const identityValues{{
+      publisherIdentity,
+      rti::VariableLengthData(identityValue.data(), identityValue.size())}};
+  publisher.rtiAmbassador().updateAttributeValues(
+      object, identityValues, rti::VariableLengthData{});
+  waitFor(
+      subscriber,
+      [&] { return !subscriber.recorder().reflections().empty(); },
+      options,
+      "inherited identity reflection through the abstract object-class subscription");
+  auto const reflections = subscriber.recorder().reflections();
+  require(
+      reflections.size() == 1U && reflections.front().object == object &&
+          reflections.front().values.size() == 1U &&
+          reflections.front().values.count(subscriberIdentity) == 1U &&
+          copyBytes(reflections.front().values.at(subscriberIdentity)) == identityValue,
+      "the abstract-class subscription did not reflect the inherited identity attribute");
+
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
+      subscriberAbstractionClass, abstractionAttributes);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherClass, publishedAttributes);
   subscriber.resign(rti::NO_ACTION);
@@ -442,15 +832,52 @@ void scenarioObjectRegistrationDiscoveryMultiRecipient(
   auto const secondAttribute = second.rtiAmbassador().getAttributeHandle(
       secondClass,
       options.attributeName);
+  auto const publisherSecondAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.secondaryAttributeName);
+  auto const firstSecondAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.secondaryAttributeName);
+  auto const secondSecondAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.secondaryAttributeName);
+  auto const publisherThirdAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherClass,
+      options.objectClassThirdAttributeName);
+  auto const firstThirdAttribute = first.rtiAmbassador().getAttributeHandle(
+      firstClass,
+      options.objectClassThirdAttributeName);
+  auto const secondThirdAttribute = second.rtiAmbassador().getAttributeHandle(
+      secondClass,
+      options.objectClassThirdAttributeName);
   require(
       publisherClass.isValid() && firstClass.isValid() && secondClass.isValid() &&
           publisherAttribute.isValid() && firstAttribute.isValid() &&
-          secondAttribute.isValid(),
+          secondAttribute.isValid() && publisherSecondAttribute.isValid() &&
+          firstSecondAttribute.isValid() && secondSecondAttribute.isValid() &&
+          publisherThirdAttribute.isValid() && firstThirdAttribute.isValid() &&
+          secondThirdAttribute.isValid(),
       "multi-recipient registration lookup returned an invalid handle");
 
-  rti::AttributeHandleSet const publisherAttributes{publisherAttribute};
-  rti::AttributeHandleSet const firstAttributes{firstAttribute};
-  rti::AttributeHandleSet const secondAttributes{secondAttribute};
+  // The P0 TckObject FOM declares Value, Name, and PayRate. Resolve that
+  // complete fixture-declared set for every member; this does not claim that
+  // the public API enumerates arbitrary object-class attributes.
+  rti::AttributeHandleSet const publisherAttributes{
+      publisherAttribute,
+      publisherSecondAttribute,
+      publisherThirdAttribute};
+  rti::AttributeHandleSet const firstAttributes{
+      firstAttribute,
+      firstSecondAttribute,
+      firstThirdAttribute};
+  rti::AttributeHandleSet const secondAttributes{
+      secondAttribute,
+      secondSecondAttribute,
+      secondThirdAttribute};
+  require(
+      publisherAttributes.size() == 3U && firstAttributes.size() == 3U &&
+          secondAttributes.size() == 3U,
+      "P0 FDD class attributes did not resolve to three distinct handles");
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass,
       publisherAttributes);
@@ -477,6 +904,10 @@ void scenarioObjectRegistrationDiscoveryMultiRecipient(
   require(
       !firstName.empty() && !secondName.empty() && firstName != secondName,
       "multi-recipient registration returned invalid or duplicate object names");
+  require(
+      publisher.rtiAmbassador().getKnownObjectClassHandle(firstObject) == publisherClass &&
+          publisher.rtiAmbassador().getKnownObjectClassHandle(secondObject) == publisherClass,
+      "registering federate did not know both object instances at registration");
 
   waitForSessions(
       {&first, &second},
@@ -767,6 +1198,45 @@ void scenarioNamedRegistrationMultiRecipient(
   assertIdentity(first, firstClass, "first named-registration recipient");
   assertIdentity(second, secondClass, "second named-registration recipient");
 
+  auto const lowerCaseName = federation + L"-case-sensitive-instance";
+  auto const upperCaseName = federation + L"-Case-sensitive-instance";
+  publisher.recorder().clearReservations();
+  publisher.rtiAmbassador().reserveObjectInstanceName(lowerCaseName);
+  publisher.rtiAmbassador().reserveObjectInstanceName(upperCaseName);
+  waitFor(
+      publisher,
+      [&] {
+        return publisher.recorder().reservationSucceededCount(lowerCaseName) > 0U &&
+            publisher.recorder().reservationSucceededCount(upperCaseName) > 0U;
+      },
+      options,
+      "case-distinct object-instance name reservations");
+
+  auto const lowerCaseObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass,
+      lowerCaseName);
+  auto const upperCaseObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass,
+      upperCaseName);
+  require(
+      lowerCaseObject.isValid() && upperCaseObject.isValid() &&
+          lowerCaseObject != upperCaseObject,
+      "object-instance names that differ only by case did not identify distinct objects");
+  require(
+      publisher.rtiAmbassador().getObjectInstanceHandle(lowerCaseName) == lowerCaseObject &&
+          publisher.rtiAmbassador().getObjectInstanceHandle(upperCaseName) == upperCaseObject &&
+          publisher.rtiAmbassador().getObjectInstanceName(lowerCaseObject) == lowerCaseName &&
+          publisher.rtiAmbassador().getObjectInstanceName(upperCaseObject) == upperCaseName,
+      "case-distinct object-instance name lookups did not preserve exact spelling");
+
+  first.recorder().clearReservations();
+  first.rtiAmbassador().reserveObjectInstanceName(lowerCaseName);
+  waitFor(
+      first,
+      [&] { return first.recorder().reservationFailed(lowerCaseName); },
+      options,
+      "exact object-instance name duplicate reservation failure");
+
   first.rtiAmbassador().unsubscribeObjectClassAttributes(firstClass, firstAttributes);
   second.rtiAmbassador().unsubscribeObjectClassAttributes(secondClass, secondAttributes);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
@@ -880,6 +1350,11 @@ void scenarioPerFederateDiscoveredClass(
               objectName &&
           derivedSubscriber.rtiAmbassador().getObjectInstanceName(derivedDiscovery.object) ==
               objectName &&
+          publisher.rtiAmbassador().getObjectInstanceHandle(objectName) == object &&
+          baseSubscriber.rtiAmbassador().getObjectInstanceHandle(objectName) ==
+              baseDiscovery.object &&
+          derivedSubscriber.rtiAmbassador().getObjectInstanceHandle(objectName) ==
+              derivedDiscovery.object &&
           baseSubscriber.rtiAmbassador().getKnownObjectClassHandle(baseDiscovery.object) ==
               baseSubscriberClass &&
           derivedSubscriber.rtiAmbassador().getKnownObjectClassHandle(derivedDiscovery.object) ==

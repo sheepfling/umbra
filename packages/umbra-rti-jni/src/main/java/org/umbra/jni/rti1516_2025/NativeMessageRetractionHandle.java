@@ -32,6 +32,11 @@ final class NativeMessageRetractionHandle implements MessageRetractionHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("MessageRetractionHandle", encoded);
+   }
+
    private boolean sameEncoding(MessageRetractionHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

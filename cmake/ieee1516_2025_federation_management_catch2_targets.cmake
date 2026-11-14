@@ -108,6 +108,23 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     SOURCES
     ${UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES}
   )
+  # The shared public-connection source list contains a TLS certificate
+  # fixture that uses OpenSSL APIs directly.
+  target_link_libraries(umbra_ieee1516_2025_connection_catch2 PRIVATE OpenSSL::SSL)
+  umbra_add_embedded_2025_catch2_target(umbra_ieee1516_2025_connection_websocket_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_connection_websocket_catch2.cpp
+    packages/hla-rti-cpp-tck/src/tck_websocket_transport.cpp
+    packages/hla-rti-cpp-tck/src/tck_tls_websocket_transport.cpp
+  )
+  target_include_directories(umbra_ieee1516_2025_connection_websocket_catch2 PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/packages/hla-rti-cpp-tck/src"
+  )
+  target_link_libraries(umbra_ieee1516_2025_connection_websocket_catch2 PRIVATE OpenSSL::SSL)
+  umbra_add_embedded_2025_catch2_target(umbra_websocket_socket_catch2
+    SOURCES
+    cpp/tests/websocket_socket_catch2.cpp
+  )
   # Keep the process class-request/provider-response time slice independently
   # buildable instead of recompiling the aggregate connection suite.
   umbra_add_embedded_2025_catch2_target(umbra_process_class_request_tso_response_catch2
@@ -158,6 +175,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     MSVC_BIGOBJ
     SOURCES
     cpp/tests/process_transport_catch2.cpp
+    cpp/tests/tls_socket_catch2.cpp
     cpp/tests/process_transport_service_catch2.cpp
     cpp/tests/process_federation_callback_bridge_catch2.cpp
     cpp/tests/transport_protocol_catch2.cpp
@@ -167,6 +185,7 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/process_federation_additional_fom_catch2.cpp
     cpp/tests/process_federation_service_process_catch2.cpp
   )
+  target_link_libraries(umbra_process_boundary_private_catch2 PRIVATE OpenSSL::SSL)
   add_dependencies(
     umbra_process_boundary_private_catch2
     umbra_process_federation_service_probe
@@ -1680,6 +1699,19 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/libxml2_fom_composer_catch2.cpp
     cpp/tests/federation_registry_composed_fom_catch2.cpp
   )
+
+  # Keep the normative standard-MIM/DIF schema check independently runnable.
+  umbra_add_embedded_2025_catch2_target(umbra_standard_mim_schema_catch2
+    SOURCES
+    cpp/tests/standard_2025_mim_schema_catch2.cpp
+  )
+  add_test(
+    NAME umbra.ieee1516_2025.standard_mim.schema
+    COMMAND umbra_standard_mim_schema_catch2
+      "[standard-mim]" --reporter compact
+  )
+  set_tests_properties(umbra.ieee1516_2025.standard_mim.schema
+    PROPERTIES LABELS "unit;fom;xml-schema;standard-mim")
 
   # Keep the asynchronous RO/TSO eligibility boundary in a focused executable.
   umbra_add_embedded_2025_catch2_target(umbra_async_delivery_reenable_tso_gate_catch2

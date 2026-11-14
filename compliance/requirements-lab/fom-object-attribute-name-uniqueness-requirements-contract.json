@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "private-preflight-not-public-evidence",
+  "notes": "This contract records one public C++ TCK rejection witness for duplicate object-class attribute names within the same class. It does not claim inherited-name, all naming-convention, or NA-marker coverage, nor validation, interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "portable-fom-object-attribute-name-uniqueness",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-048-l101-3",
+      "clause_id": "clause-4.5.2",
+      "standard_section": "hla-1516.2-2025:clause-4.5.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomDuplicateObjectClassAttributeName"
+      ]
+    }
+  ]
+}

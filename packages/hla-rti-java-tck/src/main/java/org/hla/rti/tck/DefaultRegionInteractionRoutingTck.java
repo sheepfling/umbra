@@ -217,6 +217,201 @@ final class DefaultRegionInteractionRoutingTck {
       }
    }
 
+   static void runUnsubscribeIsolation(RtiFactory factory, String fom, String interactionName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador regional = factory.getRtiAmbassador();
+      RTIambassador mixed = factory.getRtiAmbassador();
+      Recorder regionalCallbacks = new Recorder();
+      Recorder mixedCallbacks = new Recorder();
+      String federation = "java-tck-default-region-interaction-unsubscribe-isolation-"
+         + UUID.randomUUID();
+      boolean publisherConnected = false, regionalConnected = false, mixedConnected = false;
+      boolean created = false, publisherJoined = false, regionalJoined = false, mixedJoined = false;
+      boolean published = false, regionalSubscribed = false, mixedOrdinarySubscribed = false;
+      boolean mixedRegionalSubscribed = false;
+      RegionHandle sourceRegion = null, disjointSourceRegion = null;
+      RegionHandle regionalRegion = null, mixedRegion = null;
+      InteractionClassHandle publisherInteraction = null, regionalInteraction = null;
+      InteractionClassHandle mixedInteraction = null;
+      ParameterHandle publisherParameter = null, regionalParameter = null, mixedParameter = null;
+      RegionHandleSet regionalRegions = null, mixedRegions = null;
+      try {
+         publisher.connect(noopFederateAmbassador(), callbackModel);
+         publisherConnected = true;
+         regional.connect(regionalCallbacks.proxy(), callbackModel);
+         regionalConnected = true;
+         mixed.connect(mixedCallbacks.proxy(), callbackModel);
+         mixedConnected = true;
+         publisher.createFederationExecution(federation, fom);
+         created = true;
+         FederateHandle producingFederate = publisher.joinFederationExecution(
+            "java-tck-default-region-interaction-publisher", federation);
+         publisherJoined = true;
+         regional.joinFederationExecution("java-tck-default-region-interaction-regional", federation);
+         regionalJoined = true;
+         mixed.joinFederationExecution("java-tck-default-region-interaction-mixed", federation);
+         mixedJoined = true;
+
+         publisherInteraction = publisher.getInteractionClassHandle(interactionName);
+         regionalInteraction = regional.getInteractionClassHandle(interactionName);
+         mixedInteraction = mixed.getInteractionClassHandle(interactionName);
+         publisherParameter = publisher.getParameterHandle(publisherInteraction, parameterName);
+         regionalParameter = regional.getParameterHandle(regionalInteraction, parameterName);
+         mixedParameter = mixed.getParameterHandle(mixedInteraction, parameterName);
+         DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
+         DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
+         DimensionHandle regionalFirst = regional.getDimensionHandle(firstDimensionName);
+         DimensionHandle regionalSecond = regional.getDimensionHandle(secondDimensionName);
+         DimensionHandle mixedFirst = mixed.getDimensionHandle(firstDimensionName);
+         DimensionHandle mixedSecond = mixed.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(publisherInteraction.equals(regionalInteraction)
+               && publisherInteraction.equals(mixedInteraction)
+               && publisherParameter.equals(regionalParameter)
+               && publisherParameter.equals(mixedParameter)
+               && publisherFirst.equals(regionalFirst) && publisherSecond.equals(regionalSecond)
+               && publisherFirst.equals(mixedFirst) && publisherSecond.equals(mixedSecond),
+            "adapter DDM FOM handles changed across interaction unsubscribe-isolation federates");
+         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond);
+         checkDimensions(regional, regionalInteraction, regionalFirst, regionalSecond);
+         checkDimensions(mixed, mixedInteraction, mixedFirst, mixedSecond);
+
+         publisher.publishInteractionClass(publisherInteraction);
+         published = true;
+         sourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 0, 1);
+         disjointSourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 2, 3);
+         regionalRegion = createRegion(regional, regionalFirst, regionalSecond, 0, 1);
+         mixedRegion = createRegion(mixed, mixedFirst, mixedSecond, 2, 3);
+         RegionHandleSet sourceRegions = regionSet(publisher, sourceRegion);
+         RegionHandleSet disjointSourceRegions = regionSet(publisher, disjointSourceRegion);
+         regionalRegions = regionSet(regional, regionalRegion);
+         mixedRegions = regionSet(mixed, mixedRegion);
+
+         regional.subscribeInteractionClassWithRegions(regionalInteraction, regionalRegions);
+         regionalSubscribed = true;
+         mixed.subscribeInteractionClass(mixedInteraction);
+         mixedOrdinarySubscribed = true;
+         mixed.subscribeInteractionClassWithRegions(mixedInteraction, mixedRegions);
+         mixedRegionalSubscribed = true;
+
+         byte[] initialValue = new byte[] {0x31, 0x01};
+         byte[] initialTag = new byte[] {0x41, 0x01};
+         sendRegional(publisher, publisherInteraction,
+            parameterMap(publisher, publisherParameter, initialValue), sourceRegions, initialTag);
+         await(regional, mixed, callbackModel,
+            () -> regionalCallbacks.interactions.size() >= 1 && mixedCallbacks.interactions.size() >= 1,
+            "default-region and matching regional interaction subscriptions");
+         pumpSeveral(regional, mixed, callbackModel);
+         JavaTckSupport.check(regionalCallbacks.interactions.size() == 1
+               && mixedCallbacks.interactions.size() == 1,
+            "ordinary interaction subscription did not remain effective beside a disjoint regional declaration");
+         assertUnsubscribeInteraction(regionalCallbacks.interactions.get(0),
+            regionalInteraction, regionalParameter, producingFederate, initialValue, initialTag,
+            "initial regional delivery");
+         assertUnsubscribeInteraction(mixedCallbacks.interactions.get(0),
+            mixedInteraction, mixedParameter, producingFederate, initialValue, initialTag,
+            "initial ordinary delivery");
+
+         mixed.unsubscribeInteractionClass(mixedInteraction);
+         mixedOrdinarySubscribed = false;
+         byte[] afterOrdinaryUnsubscribeValue = new byte[] {0x31, 0x02};
+         byte[] afterOrdinaryUnsubscribeTag = new byte[] {0x41, 0x02};
+         sendRegional(publisher, publisherInteraction,
+            parameterMap(publisher, publisherParameter, afterOrdinaryUnsubscribeValue),
+            sourceRegions, afterOrdinaryUnsubscribeTag);
+         await(regional, mixed, callbackModel,
+            () -> regionalCallbacks.interactions.size() >= 2,
+            "matching regional delivery after ordinary interaction unsubscribe");
+         pumpSeveral(regional, mixed, callbackModel);
+         JavaTckSupport.check(regionalCallbacks.interactions.size() == 2
+               && mixedCallbacks.interactions.size() == 1,
+            "ordinary interaction unsubscribe retained its default-region route or removed the disjoint regional declaration");
+         assertUnsubscribeInteraction(regionalCallbacks.interactions.get(1),
+            regionalInteraction, regionalParameter, producingFederate,
+            afterOrdinaryUnsubscribeValue, afterOrdinaryUnsubscribeTag,
+            "regional delivery after ordinary unsubscribe");
+
+         byte[] regionalValue = new byte[] {0x31, 0x03};
+         byte[] regionalTag = new byte[] {0x41, 0x03};
+         sendRegional(publisher, publisherInteraction,
+            parameterMap(publisher, publisherParameter, regionalValue), disjointSourceRegions,
+            regionalTag);
+         await(regional, mixed, callbackModel,
+            () -> mixedCallbacks.interactions.size() >= 2,
+            "explicit regional delivery after ordinary interaction unsubscribe");
+         pumpSeveral(regional, mixed, callbackModel);
+         JavaTckSupport.check(mixedCallbacks.interactions.size() == 2
+               && regionalCallbacks.interactions.size() == 2,
+            "ordinary interaction unsubscribe removed the independent matching regional subscription");
+         assertUnsubscribeInteraction(mixedCallbacks.interactions.get(1), mixedInteraction,
+            mixedParameter, producingFederate, regionalValue, regionalTag,
+            "disjoint regional delivery after ordinary unsubscribe");
+
+         mixed.unsubscribeInteractionClassWithRegions(mixedInteraction, mixedRegions);
+         mixedRegionalSubscribed = false;
+         regional.unsubscribeInteractionClassWithRegions(regionalInteraction, regionalRegions);
+         regionalSubscribed = false;
+         byte[] afterFinalUnsubscribeValue = new byte[] {0x31, 0x04};
+         byte[] afterFinalUnsubscribeTag = new byte[] {0x41, 0x04};
+         sendRegional(publisher, publisherInteraction,
+            parameterMap(publisher, publisherParameter, afterFinalUnsubscribeValue), sourceRegions,
+            afterFinalUnsubscribeTag);
+         pumpSeveral(regional, mixed, callbackModel);
+         JavaTckSupport.check(regionalCallbacks.interactions.size() == 2
+               && mixedCallbacks.interactions.size() == 2,
+            "an interaction subscription remained effective after all ordinary and regional declarations were removed");
+
+         publisher.unpublishInteractionClass(publisherInteraction);
+         published = false;
+         publisher.deleteRegion(sourceRegion);
+         sourceRegion = null;
+         publisher.deleteRegion(disjointSourceRegion);
+         disjointSourceRegion = null;
+         regional.deleteRegion(regionalRegion);
+         regionalRegion = null;
+         mixed.deleteRegion(mixedRegion);
+         mixedRegion = null;
+         mixed.resignFederationExecution(ResignAction.NO_ACTION);
+         mixedJoined = false;
+         regional.resignFederationExecution(ResignAction.NO_ACTION);
+         regionalJoined = false;
+         publisher.resignFederationExecution(ResignAction.NO_ACTION);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+      } finally {
+         if (mixedRegionalSubscribed && mixedJoined && mixedRegions != null) try {
+            mixed.unsubscribeInteractionClassWithRegions(mixedInteraction, mixedRegions);
+         } catch (Exception ignored) { }
+         if (mixedOrdinarySubscribed && mixedJoined && mixedInteraction != null) try {
+            mixed.unsubscribeInteractionClass(mixedInteraction);
+         } catch (Exception ignored) { }
+         if (regionalSubscribed && regionalJoined && regionalRegions != null) try {
+            regional.unsubscribeInteractionClassWithRegions(regionalInteraction, regionalRegions);
+         } catch (Exception ignored) { }
+         if (published && publisherJoined) try {
+            publisher.unpublishInteractionClass(publisherInteraction);
+         } catch (Exception ignored) { }
+         deleteRegion(publisher, sourceRegion, publisherJoined);
+         deleteRegion(publisher, disjointSourceRegion, publisherJoined);
+         deleteRegion(regional, regionalRegion, regionalJoined);
+         deleteRegion(mixed, mixedRegion, mixedJoined);
+         if (mixedJoined) try { mixed.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (regionalJoined) try { regional.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (publisherJoined) try {
+            publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+         } catch (Exception ignored) { }
+         if (created) try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+         if (regionalConnected) try { regional.disconnect(); } catch (Exception ignored) { }
+         if (mixedConnected) try { mixed.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
    private static void checkDimensions(RTIambassador ambassador,
          InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second)
          throws Exception {
@@ -285,6 +480,18 @@ final class DefaultRegionInteractionRoutingTck {
       JavaTckSupport.check(interaction.regions != null
             && (expectedRegions == null || interaction.regions.equals(expectedRegions)),
          description + " returned incorrect source-region metadata");
+   }
+
+   private static void assertUnsubscribeInteraction(Interaction interaction,
+         InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
+         FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
+         String description) {
+      JavaTckSupport.check(expectedClass.equals(interaction.interaction)
+            && interaction.parameters.size() == 1
+            && Arrays.equals(expectedValue, interaction.parameters.get(expectedParameter))
+            && Arrays.equals(expectedTag, interaction.tag)
+            && expectedProducer.equals(interaction.producer),
+         description + " changed class, parameter, payload, tag, or producer");
    }
 
    private static void await(RTIambassador first, RTIambassador second, CallbackModel model,

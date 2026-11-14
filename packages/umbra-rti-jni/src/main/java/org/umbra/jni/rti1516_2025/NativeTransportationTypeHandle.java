@@ -22,6 +22,11 @@ final class NativeTransportationTypeHandle implements TransportationTypeHandle {
    }
 
    @Override
+   public String toString() {
+      return NativeHandleText.format("TransportationTypeHandle", encoded);
+   }
+
+   @Override
    public boolean equals(Object other) {
       return other instanceof TransportationTypeHandle &&
          sameEncoding((TransportationTypeHandle) other);

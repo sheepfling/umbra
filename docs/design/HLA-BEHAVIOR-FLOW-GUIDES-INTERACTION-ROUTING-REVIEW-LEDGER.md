@@ -3509,7 +3509,8 @@ The Join adapter, shared membership transaction, and process handler still show 
 predicate in the inspected paths; they do not update the already-created operation status maps
 ([embedded adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364),
 [registry transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238),
-[process handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L193)). The focused
+[process `handleJoin`](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L302),
+[process registry call](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L650)). The focused
 [representative interlock case](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34)
 joins both participants before Save. Related test searches did not find a focused Join attempted during an active
 protocol. Both pinned 2025 Join overloads list `SaveInProgress` and `RestoreInProgress`, but the exact §4.11 triggering

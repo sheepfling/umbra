@@ -26,6 +26,7 @@ using rti1516_2025::ParameterHandle;
 using rti1516_2025::ParameterHandleValueMap;
 using rti1516_2025::DimensionHandle;
 using rti1516_2025::DimensionHandleSet;
+using rti1516_2025::RangeBounds;
 using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::RegionHandle;
@@ -70,6 +71,12 @@ std::filesystem::path restaurantFom() {
   return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "third_party" /
       "ieee1516.2-2025" / "resources" / "examples" /
       "RestaurantFOMmodule-2025.xml";
+}
+
+std::filesystem::path restrictedDefaultRangeFom() {
+  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+      "hla-rti-cpp-tck" / "fom" /
+      "ddm-region-realization-default-range-tck.xml";
 }
 
 std::wstring nextFederationName() {
@@ -178,6 +185,135 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(publisher->deleteRegion(zeroRegion));
   REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClass(subscriberInteraction));
+  REQUIRE_NOTHROW(publisher->unpublishInteractionClass(publisherInteraction));
+  REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(publisher->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(subscriber->disconnect());
+  REQUIRE_NOTHROW(publisher->disconnect());
+}
+
+TEST_CASE(
+    "Embedded empty interaction regions realize available FOM default ranges",
+    "[integration][development-profile][federation-management][interaction-management]"
+    "[ddm][zero-dimensional-region-realization-defaults]"
+    "[regional-interaction][rti.service.create-region]"
+    "[rti.service.commit-region-modifications][rti.service.set-range-bounds]"
+    "[rti.service.publish-interaction-class]"
+    "[rti.service.subscribe-interaction-class-with-regions]"
+    "[rti.service.unsubscribe-interaction-class-with-regions]"
+    "[rti.service.send-interaction-with-regions]"
+    "[federate.callback.receive-interaction][callback-evoked][2025]") {
+  NullFederateAmbassador publisherCallbacks;
+  InteractionReceiver subscriberCallbacks;
+  auto publisher = makeRti();
+  auto subscriber = makeRti();
+  auto const federationName = nextFederationName();
+  auto const fomModule = restrictedDefaultRangeFom().wstring();
+  unsigned char const parameterBytes[] = {0x2A, 0x15};
+  unsigned char const outsideTagBytes[] = {0x41};
+  unsigned char const insideTagBytes[] = {0x42};
+  VariableLengthData const parameterValue(parameterBytes, sizeof(parameterBytes));
+  VariableLengthData const outsideTag(outsideTagBytes, sizeof(outsideTagBytes));
+  VariableLengthData const insideTag(insideTagBytes, sizeof(insideTagBytes));
+
+  REQUIRE_NOTHROW(publisher->connect(publisherCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(subscriber->connect(subscriberCallbacks, HLA_EVOKED));
+  REQUIRE_NOTHROW(publisher->createFederationExecution(
+      federationName,
+      fomModule,
+      L"HLAinteger64Time"));
+  REQUIRE_NOTHROW(publisher->joinFederationExecution(
+      L"zero-dimensional-default-publisher",
+      L"publisher",
+      federationName));
+  REQUIRE_NOTHROW(subscriber->joinFederationExecution(
+      L"zero-dimensional-default-subscriber",
+      L"subscriber",
+      federationName));
+
+  auto const publisherInteraction = publisher->getInteractionClassHandle(
+      L"HLAinteractionRoot.TckInteraction");
+  auto const subscriberInteraction = subscriber->getInteractionClassHandle(
+      L"HLAinteractionRoot.TckInteraction");
+  auto const publisherParameter = publisher->getParameterHandle(
+      publisherInteraction,
+      L"Payload");
+  auto const subscriberParameter = subscriber->getParameterHandle(
+      subscriberInteraction,
+      L"Payload");
+  auto const publisherY = publisher->getDimensionHandle(L"TckDimensionY");
+  auto const subscriberY = subscriber->getDimensionHandle(L"TckDimensionY");
+  REQUIRE(publisherInteraction.isValid());
+  REQUIRE(subscriberInteraction.isValid());
+  REQUIRE(publisherParameter.isValid());
+  REQUIRE(subscriberParameter.isValid());
+  REQUIRE(publisherY.isValid());
+  REQUIRE(subscriberY.isValid());
+  REQUIRE(publisherInteraction == subscriberInteraction);
+  REQUIRE(publisherParameter == subscriberParameter);
+  REQUIRE(publisherY == subscriberY);
+
+  REQUIRE_NOTHROW(publisher->publishInteractionClass(publisherInteraction));
+  auto const emptyRegion = publisher->createRegion(DimensionHandleSet{});
+  REQUIRE(emptyRegion.isValid());
+  REQUIRE(publisher->getDimensionHandleSet(emptyRegion).empty());
+  REQUIRE_NOTHROW(publisher->commitRegionModifications(RegionHandleSet{emptyRegion}));
+  REQUIRE(publisher->getDimensionHandleSet(emptyRegion).empty());
+
+  auto const receiverRegion = subscriber->createRegion(DimensionHandleSet{subscriberY});
+  REQUIRE(receiverRegion.isValid());
+  auto const receiverRegions = RegionHandleSet{receiverRegion};
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      receiverRegion,
+      subscriberY,
+      RangeBounds(6UL, 9UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(receiverRegions));
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+      subscriberInteraction,
+      receiverRegions,
+      true));
+
+  auto sendWithEmptyRegion = [&](VariableLengthData const& userTag) {
+    REQUIRE_NOTHROW(publisher->sendInteractionWithRegions(
+        publisherInteraction,
+        ParameterHandleValueMap{{publisherParameter, parameterValue}},
+        RegionHandleSet{emptyRegion},
+        userTag));
+  };
+  sendWithEmptyRegion(outsideTag);
+  drain(*subscriber);
+  REQUIRE(subscriberCallbacks.received.empty());
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
+      subscriberInteraction,
+      receiverRegions));
+  REQUIRE_NOTHROW(subscriber->setRangeBounds(
+      receiverRegion,
+      subscriberY,
+      RangeBounds(1UL, 4UL)));
+  REQUIRE_NOTHROW(subscriber->commitRegionModifications(receiverRegions));
+  REQUIRE_NOTHROW(subscriber->subscribeInteractionClassWithRegions(
+      subscriberInteraction,
+      receiverRegions,
+      true));
+  sendWithEmptyRegion(insideTag);
+  drain(*subscriber);
+  REQUIRE(subscriberCallbacks.received.size() == 1U);
+  REQUIRE(subscriberCallbacks.received.front().interactionClass == subscriberInteraction);
+  REQUIRE(subscriberCallbacks.received.front().parameterValues.size() == 1U);
+  REQUIRE(subscriberCallbacks.received.front().parameterValues.contains(subscriberParameter));
+  auto const* receivedTagBytes = static_cast<unsigned char const*>(
+      subscriberCallbacks.received.front().userSuppliedTag.data());
+  REQUIRE(
+      subscriberCallbacks.received.front().userSuppliedTag.size() == sizeof(insideTagBytes));
+  REQUIRE(receivedTagBytes[0] == insideTagBytes[0]);
+
+  REQUIRE_NOTHROW(subscriber->unsubscribeInteractionClassWithRegions(
+      subscriberInteraction,
+      receiverRegions));
+  REQUIRE_NOTHROW(subscriber->deleteRegion(receiverRegion));
+  REQUIRE_NOTHROW(publisher->deleteRegion(emptyRegion));
   REQUIRE_NOTHROW(publisher->unpublishInteractionClass(publisherInteraction));
   REQUIRE_NOTHROW(subscriber->resignFederationExecution(NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(NO_ACTION));

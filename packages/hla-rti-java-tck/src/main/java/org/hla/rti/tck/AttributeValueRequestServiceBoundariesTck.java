@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Verifies ordinary instance- and class-scoped value requests and responses. */
+/** Verifies ordinary value requests and supplemental handle-context failures. */
 final class AttributeValueRequestServiceBoundariesTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
 
@@ -130,6 +130,141 @@ final class AttributeValueRequestServiceBoundariesTck {
          }
          if (memberConnected) { try { member.disconnect(); } catch (Exception ignored) { } }
          if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
+      }
+   }
+
+   static void runInvalidHandleContexts(RtiFactory factory, String fom, String additionalFom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador member = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
+      Recorder ownerRecorder = new Recorder();
+      Recorder memberRecorder = new Recorder();
+      Recorder foreignRecorder = new Recorder();
+      String federation = "java-tck-value-request-context-errors-" + UUID.randomUUID();
+      String foreignFederation = federation + "-foreign";
+      boolean ownerConnected = false;
+      boolean memberConnected = false;
+      boolean foreignConnected = false;
+      boolean created = false;
+      boolean foreignCreated = false;
+      boolean ownerJoined = false;
+      boolean memberJoined = false;
+      boolean foreignJoined = false;
+      boolean published = false;
+      boolean subscribed = false;
+      ObjectClassHandle ownerClass = null;
+      ObjectClassHandle memberClass = null;
+      AttributeHandleSet ownerAttributes = null;
+      AttributeHandleSet memberAttributes = null;
+      try {
+         owner.connect(ownerRecorder.proxy(), callbackModel);
+         ownerConnected = true;
+         member.connect(memberRecorder.proxy(), callbackModel);
+         memberConnected = true;
+         foreign.connect(foreignRecorder.proxy(), callbackModel);
+         foreignConnected = true;
+         owner.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         foreign.createFederationExecution(foreignFederation, additionalFom, timeImplementation);
+         foreignCreated = true;
+         owner.joinFederationExecution("java-tck-value-request-context-owner", federation);
+         ownerJoined = true;
+         member.joinFederationExecution("java-tck-value-request-context-member", federation);
+         memberJoined = true;
+         foreign.joinFederationExecution("java-tck-value-request-context-foreign",
+            foreignFederation);
+         foreignJoined = true;
+
+         ownerClass = owner.getObjectClassHandle(objectClassName);
+         memberClass = member.getObjectClassHandle(objectClassName);
+         ObjectClassHandle foreignClass =
+            foreign.getObjectClassHandle("HLAobjectRoot.TckExtensionObject");
+         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle memberAttribute = member.getAttributeHandle(memberClass, attributeName);
+         AttributeHandle foreignAttribute =
+            foreign.getAttributeHandle(foreignClass, "ExtensionValue");
+         JavaTckSupport.check(ownerClass != null && memberClass != null
+               && ownerAttribute != null && memberAttribute != null
+               && foreignClass != null && foreignAttribute != null
+               && objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(member.getObjectClassName(memberClass))
+               && "HLAobjectRoot.TckExtensionObject".equals(
+                  foreign.getObjectClassName(foreignClass))
+               && "ExtensionValue".equals(
+                  foreign.getAttributeName(foreignClass, foreignAttribute))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(member.getAttributeName(memberClass, memberAttribute)),
+            "adapter FOM did not resolve the primary/foreign value-request handles");
+         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         memberAttributes = JavaTckSupport.attributeSet(member, memberAttribute);
+         AttributeHandleSet contextInvalidAttributes =
+            member.getAttributeHandleSetFactory().create();
+         contextInvalidAttributes.add(foreignAttribute);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         published = true;
+         member.subscribeObjectClassAttributes(memberClass, memberAttributes);
+         subscribed = true;
+
+         ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
+         String objectName = owner.getObjectInstanceName(object);
+         await(member, callbackModel, () -> memberRecorder.discoveries.size() == 1,
+            "value-request context-error object discovery");
+         ObjectInstanceHandle memberObject = member.getObjectInstanceHandle(objectName);
+         JavaTckSupport.check(memberObject.equals(memberRecorder.discoveries.get(0)),
+            "value-request context-error discovery returned the wrong object");
+
+         ObjectClassHandle invalidObjectClass = foreignClass;
+         ObjectClassHandle validMemberClass = memberClass;
+         AttributeHandleSet validMemberAttributes = memberAttributes;
+         JavaTckSupport.expectFailure(
+            () -> member.requestAttributeValueUpdate(
+               invalidObjectClass, validMemberAttributes, new byte[0]),
+            "ObjectClassNotDefined",
+            "class value request with an object class from a different FOM execution");
+         JavaTckSupport.expectFailure(
+            () -> member.requestAttributeValueUpdate(
+               validMemberClass, contextInvalidAttributes, new byte[0]),
+            "AttributeNotDefined",
+            "class value request with an attribute defined on another object class");
+         JavaTckSupport.expectFailure(
+            () -> member.requestAttributeValueUpdate(
+               memberObject, contextInvalidAttributes, new byte[0]),
+            "AttributeNotDefined",
+            "instance value request with an attribute defined on another object class");
+      } finally {
+         if (memberJoined && subscribed) {
+            try { member.unsubscribeObjectClassAttributes(memberClass, memberAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined && published) {
+            try { owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (memberJoined) {
+            try { member.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined) {
+            try { owner.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (memberConnected) { try { member.disconnect(); } catch (Exception ignored) { } }
+         if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
+         if (foreignConnected) { try { foreign.disconnect(); } catch (Exception ignored) { } }
       }
    }
 

@@ -4,6 +4,8 @@ namespace {
 TEST_CASE(
     "Embedded joined-federate MOM regional discovery uses the immutable HLAfederate point",
     "[integration][development-profile][federation-management][mom][object-management][ddm]"
+    "[mom-ddm-service-prohibition]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm]"
     "[service-report-file][rti.service.create-region]"
     "[rti.service.set-range-bounds][rti.service.commit-region-modifications]"
     "[rti.service.subscribe-object-class-attributes-with-regions]"

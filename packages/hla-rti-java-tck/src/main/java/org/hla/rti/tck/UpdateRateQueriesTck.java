@@ -69,12 +69,12 @@ final class UpdateRateQueriesTck {
             JavaTckSupport.attributeSet(subscriber, subscriberAttribute);
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;
-         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
-         awaitDiscovery(subscriber, callbackModel, recorder, object);
-
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes,
             rateName);
          subscribed = true;
+         ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
+         awaitDiscovery(subscriber, callbackModel, recorder, object);
+
          JavaTckSupport.check(subscriber.getUpdateRateValueForAttribute(object,
                subscriberAttribute) == configuredRate,
             "active named subscription did not report its configured per-attribute rate");

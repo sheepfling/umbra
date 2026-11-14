@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -251,10 +252,25 @@ void verifyProcessTsoOrdinaryInteraction(
       EmbeddedFederationRegistry registry;
       // One service owns federation state and schedules all time requests;
       // the sender and receiver ambassadors enter through independent sessions.
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
+      serviceOptions.createFomPreparation = [](
+          std::vector<std::wstring> const& fomModules,
+          std::optional<std::wstring> const&,
+          std::wstring const& logicalTimeImplementationName)
+          -> std::optional<FederationDefinition> {
+        if (fomModules != std::vector<std::wstring>{
+                               L"urn:umbra:test:process-tso-interaction-future-arrival-fom"} ||
+            (!logicalTimeImplementationName.empty() &&
+             logicalTimeImplementationName != L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedProcessDefinition();
+      };
       ProcessFederationService coordinatorService(
           registry,
           composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+          std::move(serviceOptions));
       auto senderConnection = listener->accept(
           nullptr,
           {"process-tso-ordinary-interaction-server", 0xB401U},
@@ -267,18 +283,18 @@ void verifyProcessTsoOrdinaryInteraction(
                                auto const& handler,
                                TransportServiceOperation operation,
                                char const* description) {
-        if (!umbra::test::servePrimaryProcessRequest(
-                session, handler,
-                [&](TransportServiceMessage const& request) {
-                  if (request.operation != operation) {
-                    throw std::runtime_error(description);
-                  }
-                  auto response = handler(request);
-                  if (response.status != TransportServiceStatus::ok) {
-                    throw std::runtime_error(description);
-                  }
-                  return response;
-                })) {
+        auto responseStatus = TransportServiceStatus::internal_error;
+        bool unexpectedOperation = false;
+        bool const served = umbra::test::servePrimaryProcessRequest(
+            session, handler,
+            [&](TransportServiceMessage const& request) {
+              unexpectedOperation = request.operation != operation;
+              auto response = handler(request);
+              responseStatus = response.status;
+              return response;
+            });
+        if (!served || unexpectedOperation ||
+            responseStatus != TransportServiceStatus::ok) {
           throw std::runtime_error(description);
         }
       };
@@ -355,15 +371,30 @@ void verifyProcessTsoOrdinaryInteraction(
           TransportServiceOperation::get_parameter_handle,
           "The process-interaction server lost sender parameter lookup.");
       serveExpected(
+          sender,
+          senderHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process-interaction server lost the sender parameter-lookup report.");
+      serveExpected(
           secondSender,
           secondSenderHandler,
           TransportServiceOperation::get_parameter_handle,
           "The process-interaction server lost second sender parameter lookup.");
       serveExpected(
+          secondSender,
+          secondSenderHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process-interaction server lost the second-sender parameter-lookup report.");
+      serveExpected(
           receiver,
           receiverHandler,
           TransportServiceOperation::get_parameter_handle,
           "The process-interaction server lost receiver parameter lookup.");
+      serveExpected(
+          receiver,
+          receiverHandler,
+          TransportServiceOperation::report_successful_service_invocation,
+          "The process-interaction server lost the receiver parameter-lookup report.");
       serveExpected(
           sender,
           senderHandler,
@@ -518,7 +549,8 @@ void verifyProcessTsoOrdinaryInteraction(
                     L"process-tso-ordinary-interaction-sender-client"))
                 .addressUsed);
     REQUIRE_NOTHROW(senderRti->createFederationExecution(
-        federationName, L"server-owned-fom.xml"));
+        federationName,
+        L"urn:umbra:test:process-tso-interaction-future-arrival-fom"));
     senderHandle = senderRti->joinFederationExecution(
         senderName, federateType, federationName);
     REQUIRE(senderHandle.isValid());

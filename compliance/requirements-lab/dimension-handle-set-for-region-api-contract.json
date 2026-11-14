@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java case creates one region with one adapter-selected DDM dimension and another with two, then queries their public dimension-handle sets. Region state is removed during cleanup; no other region service behavior is claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-region-dimension-handle-set-lookup",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "RegionHandle createRegion(DimensionHandleSet dimensions)",
+        "DimensionHandleSet getDimensionHandleSet(RegionHandle region)",
+        "void deleteRegion(RegionHandle region)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleSetForRegionTck.java#run"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for standard handle encoding and decoding across dimension, region, and message-retraction services. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, DDM FOM, endpoint, logical-time implementation, and callback configuration. It verifies cross-federate handle stability, encoded length, direct-buffer and VariableLengthData round trips, copied-handle value semantics, truncated-buffer errors, region metadata, timestamped updates, and retraction without asserting provider-specific behavior.",
+  "notes": "This contract records the portable C++ and Java TCK checks for standard handle encoding and decoding across dimension, region, and message-retraction services. Both sources use only their official IEEE 1516.1 language API plus the standard library; the adapter supplies the provider package, DDM FOM, endpoint, logical-time implementation, and callback configuration. They verify cross-federate handle stability, encoded length, public factory decoding, region metadata, timestamped updates, and retraction without asserting provider-specific behavior. The Java API has no C++ VariableLengthData, direct-buffer encoding, ordering, or truncated-buffer encode overloads, so those checks remain C++ only.",
   "api_surfaces": [
     {
       "id": "standard-cpp-handle-wire-formats",
@@ -14,6 +14,17 @@
       "source_symbol": "IEEE 1516.1 RTIambassador handle, DDM, time-management, and object-management declarations",
       "tests": [
         "packages/hla-rti-cpp-tck/src/main.cpp::scenarioHandleWireFormatsContract"
+      ]
+    },
+    {
+      "id": "standard-java-handle-wire-formats",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador dimension and region metadata, standard handle factory encoding and decoding, timestamped object update, and message retraction with standard discovery callbacks",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/HandleWireFormatsTck.java",
+      "source_symbol": "HandleWireFormatsTck.run",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/HandleWireFormatsTck.java::handle factory round-trips, empty decode rejection, and DDM metadata"
       ]
     }
   ]

@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_translate_exception.hpp>
 
 #include "internal/fom/hla_names.hpp"
 #include "hla_test_names.hpp"
@@ -14,6 +15,18 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+CATCH_TRANSLATE_EXCEPTION(rti1516_2025::Exception const& error) {
+  auto narrow = [](std::wstring const& value) {
+    std::string result;
+    result.reserve(value.size());
+    for (auto const character : value) {
+      result.push_back(character < 128 ? static_cast<char>(character) : '?');
+    }
+    return result;
+  };
+  return narrow(error.name()) + ": " + narrow(error.what());
+}
 
 #ifndef UMBRA_SOURCE_DIRECTORY
 #error "The timestamped update-rate reduction test requires the Umbra source directory."
@@ -123,6 +136,12 @@ class ReportingFederateAmbassador final
     std::wstring value;
   };
 
+  struct TransportationChangeConfirmationReport final {
+    ObjectInstanceHandle objectInstance;
+    AttributeHandleSet attributes;
+    TransportationTypeHandle transportationType;
+  };
+
   void discoverObjectInstance(
       ObjectInstanceHandle const& objectInstance,
       ObjectClassHandle const&,
@@ -163,9 +182,18 @@ class ReportingFederateAmbassador final
     callbackOrder.push_back("grant");
   }
 
+  void confirmAttributeTransportationTypeChange(
+      ObjectInstanceHandle const& objectInstance,
+      AttributeHandleSet const& changedAttributes,
+      TransportationTypeHandle const& transportationType) override {
+    transportationChangeConfirmations.push_back(
+        {objectInstance, changedAttributes, transportationType});
+  }
+
   std::vector<ObjectInstanceHandle> discoveredObjectInstances;
   std::vector<ReflectionReport> attributeReflectionReports;
   std::vector<TimeAdvanceGrantReport> timeAdvanceGrantReports;
+  std::vector<TransportationChangeConfirmationReport> transportationChangeConfirmations;
   std::vector<std::string> callbackOrder;
 };
 
@@ -188,7 +216,9 @@ TEST_CASE(
     "Embedded timestamped attribute reduction suppresses excess best-effort but retains reliable",
     "[integration][development-profile][object-management][time-management]"
     "[timestamped-attribute-update][update-rate-reduction][tso]"
+    "[rti.service.request-attribute-transportation-type-change]"
     "[rti.service.subscribe-object-class-attributes][rti.service.update-attribute-values]"
+    "[federate.callback.confirm-attribute-transportation-type-change]"
     "[federate.callback.reflect-attribute-values][federate.callback.time-advance-grant]") {
   ReportingFederateAmbassador publisherReports;
   ReportingFederateAmbassador receiverReports;
@@ -268,6 +298,8 @@ TEST_CASE(
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 2U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 1U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"6");
 
   auto countAttribute = [&](AttributeHandle const handle) {
     std::size_t count = 0;
@@ -291,17 +323,20 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(7)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(2)));
+      rti1516_2025::HLAinteger64Time(3)));
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 3U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 2U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"7");
   REQUIRE(countAttribute(reliable) == 2U);
   REQUIRE(countAttribute(bestEffort) == 1U);
   REQUIRE(receiverReports.attributeReflectionReports.back().producingFederate == publisherHandle);
 
   // A message containing only the throttled passel still consumes its TSO
-  // recipient boundary without inducing a user callback.  Its retraction
-  // ledger is finalized exactly once at that boundary.
+  // recipient boundary without inducing a user callback.  Advance the
+  // producer far enough that GALT permits the receiver to grant through 8;
+  // at that point the producer's retraction lower bound has also passed 8.
   AttributeHandleValueMap bestEffortOnly;
   bestEffortOnly.emplace(bestEffort, values.at(bestEffort));
   auto const suppressed = publisher->updateAttributeValues(
@@ -313,14 +348,79 @@ TEST_CASE(
   REQUIRE_NOTHROW(receiver->timeAdvanceRequest(
       rti1516_2025::HLAinteger64Time(8)));
   REQUIRE_NOTHROW(publisher->timeAdvanceRequest(
-      rti1516_2025::HLAinteger64Time(2)));
+      rti1516_2025::HLAinteger64Time(4)));
   drainCallbacks(*publisher);
   drainCallbacks(*receiver);
   REQUIRE(receiverReports.attributeReflectionReports.size() == 3U);
-  REQUIRE_NOTHROW(publisher->retract(suppressed));
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 3U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"8");
   REQUIRE_THROWS_AS(
       publisher->retract(suppressed),
       rti1516_2025::MessageCanNoLongerBeRetracted);
+
+  auto const reliableTransportation =
+      publisher->getTransportationTypeHandle(L"HLAreliable");
+  REQUIRE(reliableTransportation.isValid());
+  AttributeHandleSet const changedTransportationAttributes{bestEffort};
+  REQUIRE_NOTHROW(publisher->requestAttributeTransportationTypeChange(
+      objectInstance,
+      changedTransportationAttributes,
+      reliableTransportation));
+  drainCallbacks(*publisher);
+  REQUIRE(publisherReports.transportationChangeConfirmations.size() == 1U);
+  auto const& transportChange =
+      publisherReports.transportationChangeConfirmations.front();
+  REQUIRE(transportChange.objectInstance == objectInstance);
+  REQUIRE(transportChange.attributes == changedTransportationAttributes);
+  REQUIRE(transportChange.transportationType == reliableTransportation);
+  REQUIRE(publisher->getTransportationTypeName(transportChange.transportationType) ==
+          L"HLAreliable");
+
+  auto const afterChangeFirst = publisher->updateAttributeValues(
+      objectInstance,
+      bestEffortOnly,
+      tag,
+      rti1516_2025::HLAinteger64Time(9));
+  REQUIRE(afterChangeFirst.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(9)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
+  drainCallbacks(*publisher);
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 4U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 4U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"9");
+  REQUIRE(countAttribute(reliable) == 2U);
+  REQUIRE(countAttribute(bestEffort) == 2U);
+  auto const& firstChangedReflection =
+      receiverReports.attributeReflectionReports.back();
+  REQUIRE(firstChangedReflection.objectInstance == objectInstance);
+  REQUIRE(firstChangedReflection.attributeValues.size() == 1U);
+  REQUIRE(firstChangedReflection.attributeValues.contains(bestEffort));
+  REQUIRE(firstChangedReflection.transportationType == reliableTransportation);
+  REQUIRE(firstChangedReflection.timeValue == L"9");
+
+  auto const afterChangeSecond = publisher->updateAttributeValues(
+      objectInstance,
+      bestEffortOnly,
+      tag,
+      rti1516_2025::HLAinteger64Time(10));
+  REQUIRE(afterChangeSecond.isValid());
+  REQUIRE_NOTHROW(receiver->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(10)));
+  REQUIRE_NOTHROW(publisher->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(6)));
+  drainCallbacks(*publisher);
+  drainCallbacks(*receiver);
+  REQUIRE(receiverReports.attributeReflectionReports.size() == 5U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.size() == 5U);
+  REQUIRE(receiverReports.timeAdvanceGrantReports.back().value == L"10");
+  REQUIRE(countAttribute(reliable) == 2U);
+  REQUIRE(countAttribute(bestEffort) == 3U);
+  auto const& secondChangedReflection =
+      receiverReports.attributeReflectionReports.back();
+  REQUIRE(secondChangedReflection.objectInstance == objectInstance);
+  REQUIRE(secondChangedReflection.attributeValues.size() == 1U);
+  REQUIRE(secondChangedReflection.attributeValues.contains(bestEffort));
+  REQUIRE(secondChangedReflection.transportationType == reliableTransportation);
+  REQUIRE(secondChangedReflection.timeValue == L"10");
 
   REQUIRE_NOTHROW(receiver->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(publisher->resignFederationExecution(

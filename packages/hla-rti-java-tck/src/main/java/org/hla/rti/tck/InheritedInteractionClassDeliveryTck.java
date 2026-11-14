@@ -142,6 +142,49 @@ final class InheritedInteractionClassDeliveryTck {
             publisherBaseParameter, producer, integerBytes, baseTag, "base interaction delivery");
          JavaTckSupport.check(baseCallbacks.interactions.get(0).parameters.size() == 1,
             "base interaction delivered an unexpected parameter set");
+
+         baseCallbacks.interactions.clear();
+         derivedCallbacks.interactions.clear();
+         publisher.unpublishInteractionClass(derived);
+         publishedDerived = false;
+         final InteractionClassHandle unpublishedDerived = derived;
+         JavaTckSupport.expectFailure(
+            () -> publisher.sendInteraction(
+               unpublishedDerived, derivedValues, derivedTag.clone()),
+            "InteractionClassNotPublished",
+            "sending a derived interaction after unpublishing its exact FDD class");
+         pumpSeveral(baseSubscriber, callbackModel);
+         pumpSeveral(derivedSubscriber, callbackModel);
+         JavaTckSupport.check(baseCallbacks.interactions.isEmpty()
+               && derivedCallbacks.interactions.isEmpty(),
+            "an unpublished derived interaction produced a receive callback");
+
+         publisher.sendInteraction(base, baseValues, baseTag.clone());
+         await(baseSubscriber, callbackModel, baseCallbacks,
+            "base interaction remains sendable while the derived interaction is unpublished");
+         pumpSeveral(derivedSubscriber, callbackModel);
+         JavaTckSupport.check(baseCallbacks.interactions.size() == 1
+               && derivedCallbacks.interactions.isEmpty(),
+            "unpublishing the derived interaction changed the base class send path");
+         assertDelivery(baseSubscriber, baseCallbacks.interactions.get(0), baseSubscriberBase,
+            publisherBaseParameter, producer, integerBytes, baseTag,
+            "base interaction while derived class is unpublished");
+
+         baseCallbacks.interactions.clear();
+         publisher.publishInteractionClass(derived);
+         publishedDerived = true;
+         publisher.sendInteraction(derived, derivedValues, derivedTag.clone());
+         await(derivedSubscriber, callbackModel, derivedCallbacks,
+            "republished derived interaction send");
+         JavaTckSupport.check(derivedCallbacks.interactions.size() == 1
+               && derived.equals(derivedCallbacks.interactions.get(0).interaction)
+               && derivedCallbacks.interactions.get(0).parameters.size() == 2
+               && Arrays.equals(derivedBytes, derivedCallbacks.interactions.get(0)
+                  .parameters.get(publisherDerivedParameter)),
+            "republishing the derived class did not restore its send path");
+         assertDelivery(derivedSubscriber, derivedCallbacks.interactions.get(0),
+            derivedSubscriberClass, derivedSubscriberBaseParameter, producer, integerBytes,
+            derivedTag, "republished derived interaction delivery");
       } finally {
          if (baseSubscribed && baseJoined && baseSubscriberBase != null) try {
             baseSubscriber.unsubscribeInteractionClass(baseSubscriberBase);
@@ -172,7 +215,8 @@ final class InheritedInteractionClassDeliveryTck {
 
     static void runClosestAncestor(RtiFactory factory, String fom,
           String timeImplementation, String baseName, String middleName,
-          String childName, CallbackModel callbackModel) throws Exception {
+          String childName, String baseParameterName, String middleParameterName,
+          CallbackModel callbackModel) throws Exception {
        RTIambassador publisher = factory.getRtiAmbassador();
        RTIambassador subscriber = factory.getRtiAmbassador();
        Recorder callbacks = new Recorder();
@@ -204,21 +248,44 @@ final class InheritedInteractionClassDeliveryTck {
                 && !baseClass.equals(middleClass) && !middleClass.equals(exactClass),
              "adapter FOM did not provide a stable three-level interaction hierarchy");
 
+          ParameterHandle baseParameter = publisher.getParameterHandle(
+             sentClass, baseParameterName);
+          ParameterHandle middleParameter = publisher.getParameterHandle(
+             sentClass, middleParameterName);
+          JavaTckSupport.check(baseParameter != null && middleParameter != null
+                && baseParameter.equals(subscriber.getParameterHandle(baseClass, baseParameterName))
+                && middleParameter.equals(subscriber.getParameterHandle(
+                   middleClass, middleParameterName))
+                && baseParameter.equals(subscriber.getParameterHandle(exactClass, baseParameterName))
+                && middleParameter.equals(subscriber.getParameterHandle(
+                   exactClass, middleParameterName)),
+             "adapter FOM did not provide stable inherited parameters across the interaction hierarchy");
+
           publisher.publishInteractionClass(sentClass);
           published = true;
-          ParameterHandleValueMap empty = publisher.getParameterHandleValueMapFactory().create(0);
+          byte[] baseValue = factory.getEncoderFactory().createHLAinteger32BE(37)
+             .toByteArray().clone();
+          byte[] middleValue = factory.getEncoderFactory().createHLAunicodeString("middle-value")
+             .toByteArray().clone();
+          ParameterHandleValueMap parameters = publisher.getParameterHandleValueMapFactory()
+             .create(2);
+          parameters.put(baseParameter, baseValue.clone());
+          parameters.put(middleParameter, middleValue.clone());
           subscriber.subscribeInteractionClass(baseClass);
           baseSubscribed = true;
           checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
-             sentClass, baseClass, empty, "base-only ancestor subscription");
+             sentClass, baseClass, baseParameter, middleParameter, parameters,
+             baseValue, middleValue, false, "base-only ancestor subscription");
           subscriber.subscribeInteractionClass(middleClass);
           middleSubscribed = true;
           checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
-             sentClass, middleClass, empty, "closest of two ancestor subscriptions");
+             sentClass, middleClass, baseParameter, middleParameter, parameters,
+             baseValue, middleValue, true, "closest of two ancestor subscriptions");
           subscriber.subscribeInteractionClass(exactClass);
           exactSubscribed = true;
           checkClosestAncestor(publisher, subscriber, callbackModel, callbacks,
-             sentClass, exactClass, empty, "exact sent-class subscription");
+             sentClass, exactClass, baseParameter, middleParameter, parameters,
+             baseValue, middleValue, true, "exact sent-class subscription");
        } finally {
           if (exactSubscribed && subscriberJoined) try {
              subscriber.unsubscribeInteractionClass(exactClass);
@@ -247,16 +314,26 @@ final class InheritedInteractionClassDeliveryTck {
 
     private static void checkClosestAncestor(RTIambassador publisher, RTIambassador subscriber,
           CallbackModel model, Recorder callbacks, InteractionClassHandle sentClass,
-          InteractionClassHandle expectedClass, ParameterHandleValueMap empty,
+          InteractionClassHandle expectedClass, ParameterHandle baseParameter,
+          ParameterHandle middleParameter, ParameterHandleValueMap parameters,
+          byte[] baseValue, byte[] middleValue, boolean includesMiddleParameter,
           String phase) throws Exception {
        callbacks.interactions.clear();
-       publisher.sendInteraction(sentClass, empty, new byte[0]);
+       publisher.sendInteraction(sentClass, parameters, new byte[0]);
        await(subscriber, model, callbacks, phase);
        pumpSeveral(subscriber, model);
-       JavaTckSupport.check(callbacks.interactions.size() == 1
-             && callbacks.interactions.get(0).interaction.equals(expectedClass)
-             && callbacks.interactions.get(0).parameters.isEmpty(),
+       JavaTckSupport.check(callbacks.interactions.size() == 1,
           phase + " did not report exactly one callback at the closest subscribed class");
+       Interaction delivery = callbacks.interactions.get(0);
+       JavaTckSupport.check(delivery.interaction.equals(expectedClass),
+          phase + " reported a class other than the closest subscribed interaction class");
+       JavaTckSupport.check(delivery.parameters.size() == (includesMiddleParameter ? 2 : 1)
+             && delivery.parameters.containsKey(baseParameter)
+             && delivery.parameters.containsKey(middleParameter) == includesMiddleParameter
+             && Arrays.equals(baseValue, delivery.parameters.get(baseParameter))
+             && (!includesMiddleParameter
+                || Arrays.equals(middleValue, delivery.parameters.get(middleParameter))),
+          phase + " did not project parameters to the selected received interaction class");
     }
 
     private static void assertDelivery(RTIambassador receiver, Interaction actual,

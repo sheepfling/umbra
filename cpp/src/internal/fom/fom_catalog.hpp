@@ -7,6 +7,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace umbra::detail {
@@ -86,6 +87,7 @@ struct FomDimensionDefinition {
   std::string name;
   std::vector<std::string> inputDataTypes;
   unsigned long upperBound = 0;
+  std::optional<std::pair<unsigned long, unsigned long>> defaultRange;
 };
 
 enum class FomDataTypeKind {
@@ -264,6 +266,18 @@ class FomCatalog final {
     return result;
   }
 
+  // Distinguish attributes supplied by the selected MIM from later FOM
+  // extensions. MOM ownership rules apply to that provenance boundary: the
+  // RTI owns predefined MOM attributes, but must not acquire attributes added
+  // to a MOM class by a FOM module.
+  [[nodiscard]] bool mimDefinesObjectClassAttribute(
+      std::string const& objectClassName,
+      std::string const& attributeName) const noexcept {
+    auto const objectClass = mimObjectClassAttributeNames_.find(objectClassName);
+    return objectClass != mimObjectClassAttributeNames_.end() &&
+        objectClass->second.contains(attributeName);
+  }
+
   // Names are emitted in the catalog's deterministic map order. A federation
   // handle directory consumes this projection so it can assign stable
   // per-federation ObjectClassHandle values without exposing the catalog's
@@ -384,6 +398,7 @@ class FomCatalog final {
  private:
   std::vector<PrevalidatedFomModule> modules_;
   std::map<std::string, FomObjectClassDefinition> objectClasses_;
+  std::map<std::string, std::set<std::string>> mimObjectClassAttributeNames_;
   std::map<std::string, FomInteractionClassDefinition> interactionClasses_;
   std::map<std::string, FomDimensionDefinition> dimensions_;
   std::map<std::string, FomTransportationDefinition> transportationTypes_;

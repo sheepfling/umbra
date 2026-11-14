@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors cpp-tck.unconveyed-peer-region-dimension-handle-set-invalid-region. It covers only InvalidRegion from Get Dimension Handle Set when a peer-created region was not conveyed to the invoking federate.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-262-l29-7",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-262-l29-7",
+      "clause_id": "clause-10.26.3",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.unconveyed-peer-region-dimension-handle-set-invalid-region.requirement_mappings",
+      "statement": "Get Dimension Handle Set reports InvalidRegion when the invoking federate neither created the region nor received its designator through Set Sent Region Designators.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioUnconveyedPeerRegionDimensionHandleSetInvalidRegion",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/UnconveyedPeerRegionDimensionHandleSetInvalidRegionTck.java#run"
+      ]
+    }
+  ]
+}

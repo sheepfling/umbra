@@ -436,13 +436,15 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
   }
 
   if (federation->second.saveOperation.has_value()) {
-    // A resigning participant makes the control-plane save fail.  Do this
-    // before removing its callback route, but do not enqueue a callback back
-    // to the federate that is leaving the execution.
+    // A voluntary resignation and an RTI-detected connection failure are
+    // distinct Federation Saved failure reasons under §4.23. Preserve that
+    // distinction before removing the departing federate's callback route.
     appendSaveCompletionNotifications(
         federation->second,
         false,
-        rti1516_2025::FEDERATE_RESIGNED_DURING_SAVE,
+        forcedConnectionLoss
+            ? rti1516_2025::RTI_DETECTED_FAILURE_DURING_SAVE
+            : rti1516_2025::FEDERATE_RESIGNED_DURING_SAVE,
         result.saveNotifications,
         federateId);
     federation->second.saveOperation.reset();
@@ -916,7 +918,8 @@ FederationRegistryResult EmbeddedFederationRegistry::resignLocked(
         ++deferredByFederate;
       }
     }
-    if (canPurgeDeletedObjectInstance(objectInstance->second)) {
+    if (canPurgeDeletedObjectInstance(objectInstance->second) ||
+        canPurgeOrphanObjectInstance(objectInstance->second)) {
       federation->second.objectInstanceHandlesByName.erase(objectInstance->second.name);
       objectInstance = federation->second.objectInstances.erase(objectInstance);
     } else {

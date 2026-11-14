@@ -34,8 +34,10 @@ final class ExplicitMimCreationTck {
             "MIM member connect returned null ConfigurationResult");
          memberConnected = true;
 
+         String reservedDesignatorFederation = federation;
          JavaTckSupport.expectFailure(() -> owner.createFederationExecutionWithMIM(
-               federation, new String[] {fom}, "HLAstandardMIM", timeImplementation),
+               reservedDesignatorFederation, new String[] {fom}, "HLAstandardMIM",
+               timeImplementation),
             "DesignatorIsHLAstandardMIM", "reserved standard-MIM designator");
 
          owner.createFederationExecutionWithMIM(
@@ -95,6 +97,30 @@ final class ExplicitMimCreationTck {
                && valid(owner.getParameterHandle(
                   owner.getInteractionClassHandle(interactionClassName), parameterName)),
             "explicit MIM composition displaced caller FOM interaction declarations");
+
+         owner.resignFederationExecution(ResignAction.NO_ACTION);
+         ownerJoined = false;
+         member.resignFederationExecution(ResignAction.NO_ACTION);
+         memberJoined = false;
+         owner.destroyFederationExecution(federation);
+         created = false;
+
+         federation = federation + "-automatic-standard-mim";
+         owner.createFederationExecution(federation, new String[] {fom}, timeImplementation);
+         created = true;
+         owner.joinFederationExecution(federateType, federation);
+         ownerJoined = true;
+
+         ObjectClassHandle defaultFederationClass = owner.getObjectClassHandle(
+            "HLAobjectRoot.HLAmanager.HLAfederation");
+         AttributeHandle defaultFederationName = owner.getAttributeHandle(
+            defaultFederationClass, "HLAfederationName");
+         check(valid(defaultFederationClass) && valid(defaultFederationName)
+               && "HLAobjectRoot.HLAmanager.HLAfederation".equals(
+                  owner.getObjectClassName(defaultFederationClass))
+               && "HLAfederationName".equals(
+                  owner.getAttributeName(defaultFederationClass, defaultFederationName)),
+            "Create without an explicit MIM did not automatically load the standard MIM");
       } finally {
          if (memberJoined) {
             try {

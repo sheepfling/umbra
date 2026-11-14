@@ -6,6 +6,26 @@
 #include <utility>
 
 namespace umbra::detail {
+
+thread_local CallbackCompletionScope* CallbackCompletionScope::current_ =
+    nullptr;
+
+CallbackCompletionScope::CallbackCompletionScope(
+    CallbackCompletionHandler handler)
+    : handler_(std::move(handler)), previous_(current_) {
+  current_ = this;
+}
+
+CallbackCompletionScope::~CallbackCompletionScope() {
+  current_ = previous_;
+}
+
+CallbackCompletionHandler CallbackCompletionScope::consumeCurrent() {
+  if (current_ == nullptr) {
+    return {};
+  }
+  return std::exchange(current_->handler_, CallbackCompletionHandler{});
+}
 namespace {
 
 thread_local std::size_t callbackExecutionDepth = 0;
@@ -27,6 +47,43 @@ class CallbackExecutionScope final {
  private:
   std::optional<CallbackDispatchModel> previousModel_;
 };
+
+template <typename Predicate>
+void waitUntilCallbackOrDeadline(
+    std::condition_variable& callbackAvailable,
+    std::unique_lock<std::mutex>& lock,
+    std::atomic<std::uint64_t> const& notificationGeneration,
+    std::chrono::steady_clock::time_point deadline,
+    Predicate predicate) {
+#if defined(_WIN32)
+  // MinGW's condition-variable timeout can wake on Windows' coarse scheduler
+  // tick even though steady_clock has sub-millisecond precision. Leave a
+  // bounded final window for a deadline spin; keep the mutex released so
+  // producers can enqueue callbacks and notify this waiter.
+  constexpr auto precisionWindow = std::chrono::milliseconds(20);
+  while (!predicate()) {
+    auto const now = std::chrono::steady_clock::now();
+    auto const remaining = deadline - now;
+    if (remaining <= std::chrono::steady_clock::duration::zero()) {
+      return;
+    }
+    if (remaining > precisionWindow) {
+      callbackAvailable.wait_for(lock, remaining - precisionWindow, predicate);
+      continue;
+    }
+
+    auto const generation =
+        notificationGeneration.load(std::memory_order_acquire);
+    lock.unlock();
+    while (std::chrono::steady_clock::now() < deadline &&
+           notificationGeneration.load(std::memory_order_acquire) == generation) {
+    }
+    lock.lock();
+  }
+#else
+  callbackAvailable.wait_until(lock, deadline, predicate);
+#endif
+}
 
 }  // namespace
 
@@ -59,7 +116,7 @@ void CallbackDispatcher::configure(CallbackDispatchModel model) {
       }
     }
   }
-  callbackAvailable_.notify_all();
+  notifyCallbackAvailable();
 
   if (drain) {
     // Drain one callback at a time.  A federate callback may legally disable
@@ -76,7 +133,7 @@ void CallbackDispatcher::reset() {
     enabled_ = true;
     pending_.clear();
   }
-  callbackAvailable_.notify_all();
+  notifyCallbackAvailable();
 }
 
 void CallbackDispatcher::setEnabled(const bool enabled) {
@@ -95,7 +152,16 @@ void CallbackDispatcher::setEnabled(const bool enabled) {
       }
     }
   }
-  callbackAvailable_.notify_all();
+  notifyCallbackAvailable();
+
+  if (!enabled) {
+    // Close callback admission before waiting. Evoked and immediate delivery
+    // hold this recursive mutex throughout callback invocation, so the lock
+    // acts as a return barrier for callbacks already in progress. Recursive
+    // acquisition preserves the supported Disable Callbacks call from inside
+    // a callback; that caller is the only callback still active on return.
+    std::scoped_lock callbackReturnBarrier(dispatchMutex_);
+  }
 
   // Do not extract the whole queue before invocation.  Immediate callback
   // code can call disableCallbacks(), and the next iteration must observe
@@ -115,6 +181,11 @@ std::size_t CallbackDispatcher::pendingCount() const {
   return pending_.size();
 }
 
+void CallbackDispatcher::notifyCallbackAvailable() noexcept {
+  notificationGeneration_.fetch_add(1U, std::memory_order_release);
+  callbackAvailable_.notify_all();
+}
+
 bool CallbackDispatcher::isExecutingCallback() const noexcept {
   return callbackExecutionDepth != 0;
 }
@@ -124,6 +195,8 @@ void CallbackDispatcher::submit(CallbackTask callback) {
     return;
   }
 
+  auto completionHandler = CallbackCompletionScope::consumeCurrent();
+
   auto submitScope = instrumentation_
       ? instrumentation_->begin(
             InstrumentationLayer::callback_dispatch,
@@ -132,7 +205,10 @@ void CallbackDispatcher::submit(CallbackTask callback) {
   bool drain = false;
   {
     std::scoped_lock lock(mutex_);
-    pending_.push_back({std::move(callback), RuntimeInstrumentation::Clock::now()});
+    pending_.push_back({
+        std::move(callback),
+        std::move(completionHandler),
+        RuntimeInstrumentation::Clock::now()});
     if (model_ == CallbackDispatchModel::immediate && enabled_) {
       if (!dispatchingImmediate_) {
         dispatchingImmediate_ = true;
@@ -146,7 +222,7 @@ void CallbackDispatcher::submit(CallbackTask callback) {
       }
     }
   }
-  callbackAvailable_.notify_one();
+  notifyCallbackAvailable();
 
   if (drain) {
     drainImmediate();
@@ -178,9 +254,13 @@ bool CallbackDispatcher::evokeOne(
     }
 
     if (pending_.empty() && minimumWait.count() > 0) {
-      callbackAvailable_.wait_for(lock, minimumWait, [this] {
-        return !pending_.empty() || !enabled_;
-      });
+      auto const deadline = std::chrono::steady_clock::now() + minimumWait;
+      waitUntilCallbackOrDeadline(
+          callbackAvailable_,
+          lock,
+          notificationGeneration_,
+          deadline,
+          [this] { return !pending_.empty() || !enabled_; });
     }
     if (!enabled_ || pending_.empty()) {
       return !pending_.empty();
@@ -229,9 +309,12 @@ bool CallbackDispatcher::evokeMultiple(
       if (std::chrono::steady_clock::now() >= minimumDeadline) {
         return false;
       }
-      callbackAvailable_.wait_until(lock, minimumDeadline, [this] {
-        return !pending_.empty() || !enabled_;
-      });
+      waitUntilCallbackOrDeadline(
+          callbackAvailable_,
+          lock,
+          notificationGeneration_,
+          minimumDeadline,
+          [this] { return !pending_.empty() || !enabled_; });
       continue;
     }
 
@@ -316,7 +399,18 @@ void CallbackDispatcher::invoke(
             InstrumentationLayer::callback_dispatch,
             executeName)
       : RuntimeInstrumentation::Scope{};
-  callback.callback();
+  std::exception_ptr callbackFailure;
+  try {
+    callback.callback();
+  } catch (...) {
+    callbackFailure = std::current_exception();
+  }
+  if (callback.completionHandler) {
+    callback.completionHandler(callbackFailure);
+  }
+  if (callbackFailure) {
+    std::rethrow_exception(callbackFailure);
+  }
 }
 
 CallbackDispatcher::QueuedCallback CallbackDispatcher::takeNextLocked() {

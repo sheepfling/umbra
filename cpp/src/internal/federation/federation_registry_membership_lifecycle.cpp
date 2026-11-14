@@ -71,28 +71,29 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
     return {FederationRegistryStatus::invalid_request};
   }
 
+  FomHandleAllocator fomHandleAllocator = fomHandleAllocator_;
   ObjectClassHandleDirectory objectClassHandles;
-  if (!objectClassHandles.reconcile(definition.catalog.get())) {
+  if (!objectClassHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   AttributeHandleDirectory attributeHandles;
-  if (!attributeHandles.reconcile(definition.catalog.get())) {
+  if (!attributeHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   InteractionClassHandleDirectory interactionClassHandles;
-  if (!interactionClassHandles.reconcile(definition.catalog.get())) {
+  if (!interactionClassHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   ParameterHandleDirectory parameterHandles;
-  if (!parameterHandles.reconcile(definition.catalog.get())) {
+  if (!parameterHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   DimensionHandleDirectory dimensionHandles;
-  if (!dimensionHandles.reconcile(definition.catalog.get())) {
+  if (!dimensionHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   TransportationTypeHandleDirectory transportationTypeHandles;
-  if (!transportationTypeHandles.reconcile(definition.catalog.get())) {
+  if (!transportationTypeHandles.reconcile(definition.catalog.get(), fomHandleAllocator)) {
     return {FederationRegistryStatus::invalid_request};
   }
   auto const objectClassHandleSnapshot =
@@ -116,6 +117,8 @@ FederationRegistryResult EmbeddedFederationRegistry::create(
 
   Federation federationState;
   federationState.normalizationSeed = nextNormalizationSeed();
+  federationState.fomHandleAllocator =
+      std::make_shared<FomHandleAllocator const>(std::move(fomHandleAllocator));
   auto const logicalTimeImplementationName = definition.logicalTimeImplementationName;
   federationState.definition = std::move(definition);
   if (federationState.definition.catalog) {
@@ -271,16 +274,22 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
   }
 
   std::shared_ptr<ObjectClassHandleDirectory const> replacementObjectClassHandles;
+  std::shared_ptr<FomHandleAllocator const> replacementFomHandleAllocator;
   std::shared_ptr<AttributeHandleDirectory const> replacementAttributeHandles;
   std::shared_ptr<InteractionClassHandleDirectory const> replacementInteractionClassHandles;
   std::shared_ptr<ParameterHandleDirectory const> replacementParameterHandles;
   std::shared_ptr<DimensionHandleDirectory const> replacementDimensionHandles;
   std::shared_ptr<TransportationTypeHandleDirectory const> replacementTransportationTypeHandles;
   if (replacementDefinition != nullptr) {
+    FomHandleAllocator reconciledHandleAllocator =
+        federation->second.fomHandleAllocator
+            ? *federation->second.fomHandleAllocator
+            : FomHandleAllocator{};
     ObjectClassHandleDirectory reconciled = federation->second.objectClassHandles
         ? *federation->second.objectClassHandles
         : ObjectClassHandleDirectory{};
-    if (!reconciled.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciled.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementObjectClassHandles =
@@ -289,7 +298,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     AttributeHandleDirectory reconciledAttributes = federation->second.attributeHandles
         ? *federation->second.attributeHandles
         : AttributeHandleDirectory{};
-    if (!reconciledAttributes.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciledAttributes.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementAttributeHandles =
@@ -298,7 +308,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     InteractionClassHandleDirectory reconciledInteractions = federation->second.interactionClassHandles
         ? *federation->second.interactionClassHandles
         : InteractionClassHandleDirectory{};
-    if (!reconciledInteractions.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciledInteractions.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementInteractionClassHandles =
@@ -307,7 +318,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     ParameterHandleDirectory reconciledParameters = federation->second.parameterHandles
         ? *federation->second.parameterHandles
         : ParameterHandleDirectory{};
-    if (!reconciledParameters.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciledParameters.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementParameterHandles =
@@ -316,7 +328,8 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     DimensionHandleDirectory reconciledDimensions = federation->second.dimensionHandles
         ? *federation->second.dimensionHandles
         : DimensionHandleDirectory{};
-    if (!reconciledDimensions.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciledDimensions.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementDimensionHandles =
@@ -326,12 +339,15 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
         federation->second.transportationTypeHandles
         ? *federation->second.transportationTypeHandles
         : TransportationTypeHandleDirectory{};
-    if (!reconciledTransportationTypes.reconcile(replacementDefinition->catalog.get())) {
+    if (!reconciledTransportationTypes.reconcile(
+            replacementDefinition->catalog.get(), reconciledHandleAllocator)) {
       return {FederationRegistryStatus::invalid_request, std::nullopt};
     }
     replacementTransportationTypeHandles =
         std::make_shared<TransportationTypeHandleDirectory const>(
             std::move(reconciledTransportationTypes));
+    replacementFomHandleAllocator = std::make_shared<FomHandleAllocator const>(
+        std::move(reconciledHandleAllocator));
   }
 
   bool const registersTimeState = static_cast<bool>(timeState);
@@ -601,6 +617,7 @@ FederationJoinResult EmbeddedFederationRegistry::joinImpl(
     using std::swap;
     swap(federation->second.definition, *replacementDefinition);
     swap(federation->second.objectClassHandles, replacementObjectClassHandles);
+    swap(federation->second.fomHandleAllocator, replacementFomHandleAllocator);
     swap(federation->second.attributeHandles, replacementAttributeHandles);
     swap(federation->second.interactionClassHandles, replacementInteractionClassHandles);
     swap(federation->second.parameterHandles, replacementParameterHandles);

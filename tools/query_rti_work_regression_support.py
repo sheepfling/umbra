@@ -88,15 +88,29 @@ def expected_family_gap_head(
         and record.get("id") not in globally_covered
         and record.get("standard_section") in family_sections
     ]
+
+    def is_java_api_specific(record: query_rti_work.JsonObject) -> bool:
+        statement = " ".join(
+            str(record.get(field) or "")
+            for field in ("title", "statement", "machine_statement")
+        ).casefold()
+        return (
+            "java api" in statement
+            and "c++" not in statement
+            and "cpp" not in statement
+        )
+
     out_of_scope = [
         record
         for record in candidates
         if str(record.get("document_id") or "").casefold() != "hla-1516.1-2025"
+        or is_java_api_specific(record)
     ]
     implementation_candidates = [
         record
         for record in candidates
         if str(record.get("document_id") or "").casefold() == "hla-1516.1-2025"
+        and not is_java_api_specific(record)
     ]
     inventory_only = [
         record

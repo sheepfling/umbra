@@ -19,10 +19,16 @@ void scenarioReceiveOrderAttributeUpdate(
 
   Session publisher(options, model, "receive-order-attribute-publisher");
   Session receiver(options, model, "receive-order-attribute-receiver");
+  Session unsubscribed(options, model, "receive-order-attribute-unsubscribed");
   auto const federation = federationName(
       options,
       "receive-order-attribute-update");
   connectAndJoin(publisher, receiver, options, federation, options.fom);
+  unsubscribed.connect();
+  unsubscribed.join(
+      options.memberFederateName + L"-receive-order-unsubscribed",
+      options.federateType,
+      federation);
 
   auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);
@@ -56,6 +62,11 @@ void scenarioReceiveOrderAttributeUpdate(
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass,
       publisherAttributes);
+  publisher.rtiAmbassador().subscribeObjectClassAttributes(
+      publisherClass,
+      publisherAttributes,
+      true,
+      L"");
   receiver.rtiAmbassador().subscribeObjectClassAttributes(
       receiverClass,
       receiverAttributes,
@@ -66,6 +77,11 @@ void scenarioReceiveOrderAttributeUpdate(
   require(
       object.isValid(),
       "Receive-order attribute-update registration returned an invalid object handle");
+  require(
+      publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          publisherAttribute),
+      "published receive-order attribute was not initially owned by its publisher");
   waitFor(
       receiver,
       [&] { return receiver.recorder().hasDiscovery(object); },
@@ -136,16 +152,54 @@ void scenarioReceiveOrderAttributeUpdate(
       secondValue,
       secondTag,
       "second receive-order attribute-update reflection");
+  for (int pass = 0; pass != 8; ++pass) {
+    unsubscribed.pump();
+  }
+  require(
+      unsubscribed.recorder().reflections().empty(),
+      "receive-order attribute update was reflected to a joined federate without a subscription");
   require(
       publisher.recorder().reflections().empty(),
       "Receive-order attribute-update looped a reflection back to its publisher");
 
+  publisher.rtiAmbassador().unpublishObjectClass(publisherClass);
+  require(
+      !publisher.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          publisherAttribute),
+      "whole-class unpublication retained ownership of its instance attribute");
+  std::vector<std::uint8_t> const unpublishedValue{0x52U, 0x33U};
+  rti::AttributeHandleValueMap unpublishedValues;
+  unpublishedValues.emplace(
+      publisherAttribute,
+      rti::VariableLengthData(
+          unpublishedValue.data(),
+          unpublishedValue.size()));
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().updateAttributeValues(
+            object,
+            unpublishedValues,
+            rti::VariableLengthData{});
+      },
+      L"AttributeNotOwned",
+      "updating an instance attribute after its class publication was withdrawn");
+  for (int pass = 0; pass != 8; ++pass) {
+    receiver.pump();
+    unsubscribed.pump();
+  }
+  require(
+      receiver.recorder().reflections().size() == 2U &&
+          unsubscribed.recorder().reflections().empty(),
+      "rejected update after unpublication produced an attribute reflection");
+
   receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
       receiverClass,
       receiverAttributes);
-  publisher.rtiAmbassador().unpublishObjectClassAttributes(
+  publisher.rtiAmbassador().unsubscribeObjectClassAttributes(
       publisherClass,
       publisherAttributes);
+  unsubscribed.resign(rti::NO_ACTION);
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::DELETE_OBJECTS);
   publisher.rtiAmbassador().destroyFederationExecution(federation);

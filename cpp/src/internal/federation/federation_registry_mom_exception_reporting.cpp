@@ -177,7 +177,7 @@ EmbeddedFederationRegistry::momExceptionReportRecipientFor(
   std::set<std::uint64_t> const endpointRegionHandles{
       kMomMomExceptionReportEndpointRegionHandle,
   };
-  return candidateReceiveOrderInteractionRecipient(
+  auto recipient = candidateReceiveOrderInteractionRecipient(
       federation->second,
       InteractionProducer::rti(),
       receivingFederateId,
@@ -188,6 +188,7 @@ EmbeddedFederationRegistry::momExceptionReportRecipientFor(
        *parameterErrorParameterHandle},
       &endpointRegionHandles,
       &endpointOverride);
+  return recipient;
 }
 
 

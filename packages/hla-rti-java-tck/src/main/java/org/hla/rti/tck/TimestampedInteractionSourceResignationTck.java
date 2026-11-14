@@ -76,6 +76,9 @@ final class TimestampedInteractionSourceResignationTck {
             publisher.getParameterHandle(publisherInteraction, parameterName);
          ParameterHandle receiverParameter =
             receiver.getParameterHandle(receiverInteraction, parameterName);
+         JavaTckSupport.check(publisherInteraction != null && receiverInteraction != null
+               && publisherParameter != null && receiverParameter != null,
+            "timestamped interaction source-resignation lookup returned a null handle");
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
@@ -136,12 +139,15 @@ final class TimestampedInteractionSourceResignationTck {
             "timestamped interaction arrived before the receiver frontier");
 
          receiver.timeAdvanceRequest(receiverTarget);
-         JavaTckSupport.check(receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
-            "receiver advanced past the message before the producer frontier");
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
+            "receiver received the interaction or advanced before the producer frontier");
          publisher.resignFederationExecution(ResignAction.NO_ACTION);
          publisherJoined = false;
          expectException(() -> publisher.retract(retraction), "FederateNotExecutionMember",
             "retracting through the resigned producer");
+         JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
                && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
             "queued interaction was released before the clock advanced"

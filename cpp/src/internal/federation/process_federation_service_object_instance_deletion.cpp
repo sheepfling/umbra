@@ -61,9 +61,13 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
     // identity as the embedded path.  The public retraction designator is
     // projected only when the producer is time-regulating and the effective
     // HLAprivilegeToDeleteObject order is timestamp-ordered.
+    auto const definition = registry_.definitionFor(deletionRequest.federationName);
+    if (!definition) {
+      return rejected(request);
+    }
     auto const timestamp = decodeProcessLogicalTime(
         *deletionRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        definition->logicalTimeImplementationName);
     auto const plan = registry_.planTsoObjectInstanceDeletion(
         deletionRequest.federationName,
         deletionRequest.federateId,
@@ -171,7 +175,8 @@ TransportServiceMessage ProcessFederationService::handleDeleteObjectInstance(
     {
       std::scoped_lock lock(mutex_);
       processTsoMessageProducers_.emplace(
-          enqueueResult.messageId,
+          ProcessFederationTsoMessageKey{
+              deletionRequest.federationName, enqueueResult.messageId},
           deletionRequest.federateId);
     }
     auto const scheduled = registry_.reevaluateTimeAdvanceGrants(

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This narrow trace covers the IEEE 1516.1-2025 §11.3.1 service-invocation report rule that FOM-added parameters are not sent by the RTI. The public-API test adds one parameter directly to HLAreportServiceInvocation and checks one RTI-originated Send Interaction report. Other MOM interaction classes are outside scope.",
+  "requirements": [
+    {
+      "id": "cpp-tck-service-report-invocation-extension-parameter-not-sent",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l12-3",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "HLAreportServiceInvocation FOM extension parameters",
+      "statement": "Parameters may be added to any MOM interaction class. Interactions of these classes that are sent by the RTI shall not contain the new parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_service_report_extension_parameter.cpp::scenarioServiceReportOmitsFomAddedParameter"
+      ]
+    }
+  ]
+}

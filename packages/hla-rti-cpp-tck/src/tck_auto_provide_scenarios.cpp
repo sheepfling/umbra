@@ -60,9 +60,11 @@ void scenarioAutoProvide(
       "Auto Provide solicited more than one provider callback");
   auto const& provided = providedUpdates.front();
   require(
-      provided.object == object && provided.attributes == ownerAttributes &&
-          provided.tag.empty(),
-      "Auto Provide callback returned the wrong object, attributes, or tag");
+      provided.object == object && provided.attributes == ownerAttributes,
+      "Auto Provide callback returned the wrong object or attributes");
+  require(
+      provided.tag.empty(),
+      "RTI-invoked Provide Attribute Value Update must carry an empty user-supplied tag");
   auto const discovery = requester.recorder().discovery();
   require(
       discovery.object == object && discovery.objectClass == requesterClass,

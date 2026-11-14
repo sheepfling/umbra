@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for update-rate designator composition across an additional-FOM join. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the rich base FOM, additional FOM module, update-rate names, provider package, endpoint, and callback configuration. It does not assert provider-specific handle values, registries, headers, or private configuration.",
+  "notes": "This contract records the portable C++ TCK check for update-rate designator composition across an additional-FOM join. The source uses only the official RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the rich base FOM, additional FOM module, update-rate names, provider package, endpoint, and callback configuration. It does not assert provider-specific handle values, registries, headers, or private configuration. The base/extension fixtures also provide bounded IEEE 1516.2-2025 §6.2.12 evidence: selected valid names TckFast, TckSlow, and TckAdditionalRate are processed by Create/Join and resolved through public getUpdateRateValue. The case does not reject invalid names or exhaustively test the naming rules of §3.3 or arbitrary update-rate tables.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-update-rate-value-stability",

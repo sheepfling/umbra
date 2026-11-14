@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The C++ TCK supplies two schema-valid FOM modules that declare the same transportation name and reliability but different Semantics descriptions. The public Create Federation Execution path and the Join Federation Execution additional-module path both accept the union and expose the transportation through standard handle/name lookup. This is bounded evidence for the rule that only FDD data participates in FOM-module combination; it does not assert which prose value is retained, description quality, other OMT elements, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-transportation-description-excluded-from-composition",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(vector<FOM modules>), joinFederationExecution(vector<additional FOM modules>), getTransportationTypeHandle, getTransportationTypeName, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation and transportation lookup services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_transportation_duplicate.cpp::scenarioFomTransportationDescriptionIgnored",
+        "packages/hla-rti-cpp-tck/src/tck_fom_transportation_duplicate.cpp::scenarioFomTransportationDescriptionIgnoredContract"
+      ]
+    }
+  ]
+}

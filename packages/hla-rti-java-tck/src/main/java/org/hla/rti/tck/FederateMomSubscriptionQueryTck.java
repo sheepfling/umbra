@@ -9,7 +9,6 @@ import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
-import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
@@ -17,6 +16,7 @@ import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAbyte;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
@@ -57,12 +57,12 @@ final class FederateMomSubscriptionQueryTck {
          interactionClassName, updateRateName, callbackModel, true, false, true);
    }
 
-   static void runEmptySubscriptions(RtiFactory factory, String fom, String rateFom, String mim,
+   static void runEmptySubscriptions(RtiFactory factory, String fom, String mim,
          String timeImplementation, String objectClassName, String attributeName,
-         String interactionClassName, String updateRateName, CallbackModel callbackModel)
+         String interactionClassName, CallbackModel callbackModel)
          throws Exception {
-      run(factory, fom, rateFom, mim, timeImplementation, objectClassName, attributeName,
-         interactionClassName, updateRateName, callbackModel, false, false, false);
+      run(factory, fom, null, mim, timeImplementation, objectClassName, attributeName,
+         interactionClassName, null, callbackModel, false, false, false);
    }
 
    private static void run(RtiFactory factory, String fom, String rateFom, String mim,
@@ -90,14 +90,16 @@ final class FederateMomSubscriptionQueryTck {
          subjectConnected = true;
          requester.connect(recorder.proxy(), callbackModel);
          requesterConnected = true;
-         subject.createFederationExecutionWithMIM(federation, new String[] {fom, rateFom}, mim,
+         String[] federationFomModules = includeObjectSubscription
+            ? new String[] {fom, rateFom} : new String[] {fom};
+         subject.createFederationExecutionWithMIM(federation, federationFomModules, mim,
             timeImplementation);
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+         requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
 
          ObjectClassHandle subjectObjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle requesterObjectClass = requester.getObjectClassHandle(objectClassName);
@@ -228,12 +230,13 @@ final class FederateMomSubscriptionQueryTck {
          JavaTckSupport.check(interactionReport.parameters.size() == 1
                && interactionReport.parameters.containsKey(interactionList),
             "interaction-subscription report did not have its single standard parameter");
-         List<InteractionClassHandle> reportedInteractions = decodeHandles(encoder,
-            bytes -> requester.getInteractionClassHandleFactory().decode(bytes, 0),
+         List<InteractionSubscription> reportedInteractions = decodeInteractionSubscriptions(
+            encoder, requester,
             interactionReport.parameters.get(interactionList));
          JavaTckSupport.check(includeInteractionSubscription
                ? reportedInteractions.size() == 1
-                  && requesterInteraction.equals(reportedInteractions.get(0))
+                  && requesterInteraction.equals(reportedInteractions.get(0).interaction)
+                  && reportedInteractions.get(0).active
                : reportedInteractions.isEmpty(),
             includeInteractionSubscription
                ? "MIM interaction report did not contain exactly the active adapter interaction"
@@ -293,6 +296,34 @@ final class FederateMomSubscriptionQueryTck {
       return result;
    }
 
+   private static List<InteractionSubscription> decodeInteractionSubscriptions(
+         EncoderFactory encoder, RTIambassador ambassador, byte[] encoded) throws Exception {
+      HLAvariableArray<HLAbyte> handlePrototype = encoder.createHLAvariableArray(
+         index -> encoder.createHLAbyte(), encoder.createHLAbyte());
+      HLAfixedRecord recordPrototype = encoder.createHLAfixedRecord();
+      recordPrototype.add(handlePrototype);
+      recordPrototype.add(encoder.createHLAboolean());
+      HLAvariableArray<HLAfixedRecord> records = encoder.createHLAvariableArray(
+         index -> {
+            HLAfixedRecord record = encoder.createHLAfixedRecord();
+            record.add(encoder.createHLAvariableArray(
+               inner -> encoder.createHLAbyte(), encoder.createHLAbyte()));
+            record.add(encoder.createHLAboolean());
+            return record;
+         }, recordPrototype);
+      records.decode(encoded);
+      List<InteractionSubscription> result = new ArrayList<>();
+      for (HLAfixedRecord record : records) {
+         @SuppressWarnings("unchecked")
+         HLAvariableArray<HLAbyte> handle = (HLAvariableArray<HLAbyte>) record.get(0);
+         HLAboolean active = (HLAboolean) record.get(1);
+         result.add(new InteractionSubscription(
+            ambassador.getInteractionClassHandleFactory().decode(handle.toByteArray(), 0),
+            active.getValue()));
+      }
+      return result;
+   }
+
    private static Interaction onlyReport(List<Interaction> reports,
          InteractionClassHandle expected, String phase) {
       Interaction found = null;
@@ -306,9 +337,8 @@ final class FederateMomSubscriptionQueryTck {
 
    private static void verifyMetadata(Interaction report,
          TransportationTypeHandle reliable, String phase) {
-      JavaTckSupport.check(report.present && reliable.equals(report.transportation)
-            && report.tag.length == 0 && report.regionsEmpty,
-         phase + " was absent or had non-standard reliable-delivery metadata");
+      JavaTckSupport.check(report.present && reliable.equals(report.transportation),
+         phase + " was absent or did not use reliable transportation");
    }
 
    private static byte[] encode(FederateHandle handle) throws Exception {
@@ -343,12 +373,19 @@ final class FederateMomSubscriptionQueryTck {
 
    private interface HandleDecoder<H> { H decode(byte[] encoded) throws Exception; }
 
+   private static final class InteractionSubscription {
+      private final InteractionClassHandle interaction;
+      private final boolean active;
+      private InteractionSubscription(InteractionClassHandle interaction, boolean active) {
+         this.interaction = interaction;
+         this.active = active;
+      }
+   }
+
    private static final class Interaction {
       private InteractionClassHandle interaction;
       private ParameterHandleValueMap parameters;
-      private byte[] tag;
       private TransportationTypeHandle transportation;
-      private boolean regionsEmpty;
       private boolean present;
    }
 
@@ -363,10 +400,7 @@ final class FederateMomSubscriptionQueryTck {
                   Interaction event = new Interaction();
                   event.interaction = (InteractionClassHandle) args[0];
                   event.parameters = ((ParameterHandleValueMap) args[1]).clone();
-                  event.tag = ((byte[]) args[2]).clone();
                   event.transportation = (TransportationTypeHandle) args[3];
-                  RegionHandleSet regions = (RegionHandleSet) args[5];
-                  event.regionsEmpty = regions == null || regions.isEmpty();
                   event.present = true;
                   interactions.add(event);
                }

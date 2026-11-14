@@ -7,7 +7,7 @@ package configuration template.
 | Path | Purpose |
 | --- | --- |
 | umbra_rti-config.cmake.in | Template installed for downstream find_package consumers. |
-| run_installed_package_smoke.cmake | Builds the exported runtime set, installs the configured build into a staging prefix, validates the profile/resource manifests, configures a clean consumer, builds it, and runs its test. |
+| run_installed_package_smoke.cmake | Builds the exported runtime set, installs the configured build into a staging prefix, validates profile/resource and IEEE 1516.1-2025 C++ API header manifests, configures a clean consumer, builds it, and runs its test. |
 | package-smoke/ | Minimal downstream project used by the smoke script. |
 
 The opt-in `UMBRA_BUILD_SHARED_LIBRARIES=ON` profile builds the 2025 RTI,

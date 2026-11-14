@@ -23,23 +23,32 @@ final class ObjectRegistrationMultiRecipientTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
-      run(factory, fom, objectClassName, attributeName, callbackModel, false);
+      run(factory, fom, objectClassName, new String[] {attributeName}, callbackModel, false);
+   }
+
+   static void run(RtiFactory factory, String fom, String objectClassName,
+         String firstAttributeName, String secondAttributeName, String thirdAttributeName,
+         CallbackModel callbackModel) throws Exception {
+      run(factory, fom, objectClassName,
+         new String[] {firstAttributeName, secondAttributeName, thirdAttributeName},
+         callbackModel, false);
    }
 
    static void runNamed(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
-      run(factory, fom, objectClassName, attributeName, callbackModel, true);
+      run(factory, fom, objectClassName, new String[] {attributeName}, callbackModel, true);
    }
 
    private static void run(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, CallbackModel callbackModel, boolean named) throws Exception {
+         String[] attributeNames, CallbackModel callbackModel, boolean named) throws Exception {
       RTIambassador[] rti = new RTIambassador[3];
       Recorder[] recorders = new Recorder[3];
       boolean[] connected = new boolean[3];
       boolean[] joined = new boolean[3];
       boolean[] subscribed = new boolean[3];
       ObjectClassHandle[] classes = new ObjectClassHandle[3];
-      AttributeHandle[] attributes = new AttributeHandle[3];
+      AttributeHandle[][] attributes = new AttributeHandle[3][];
+      AttributeHandleSet[] declaredAttributes = new AttributeHandleSet[3];
       boolean federationCreated = false;
       boolean published = false;
       String federation = "java-tck-object-registration-fanout-" + UUID.randomUUID();
@@ -62,18 +71,23 @@ final class ObjectRegistrationMultiRecipientTck {
 
          for (int i = 0; i < rti.length; ++i) {
             classes[i] = rti[i].getObjectClassHandle(objectClassName);
-            attributes[i] = rti[i].getAttributeHandle(classes[i], attributeName);
-            JavaTckSupport.check(classes[i] != null && attributes[i] != null,
-               "adapter FOM did not resolve the multi-recipient object class and attribute");
+            JavaTckSupport.check(classes[i] != null,
+               "adapter FOM did not resolve the multi-recipient object class");
+            attributes[i] = new AttributeHandle[attributeNames.length];
+            for (int j = 0; j < attributeNames.length; ++j) {
+               attributes[i][j] = rti[i].getAttributeHandle(classes[i], attributeNames[j]);
+               JavaTckSupport.check(attributes[i][j] != null,
+                  "adapter FOM did not resolve every configured object-class attribute");
+            }
+            declaredAttributes[i] = JavaTckSupport.attributeSet(rti[i], attributes[i]);
+            JavaTckSupport.check(declaredAttributes[i].size() == attributeNames.length,
+               "adapter FOM attributes did not resolve to distinct handles for each member");
          }
-         AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(rti[0], attributes[0]);
-         AttributeHandleSet firstAttributes = JavaTckSupport.attributeSet(rti[1], attributes[1]);
-         AttributeHandleSet secondAttributes = JavaTckSupport.attributeSet(rti[2], attributes[2]);
-         rti[0].publishObjectClassAttributes(classes[0], ownerAttributes);
+         rti[0].publishObjectClassAttributes(classes[0], declaredAttributes[0]);
          published = true;
-         rti[1].subscribeObjectClassAttributes(classes[1], firstAttributes);
+         rti[1].subscribeObjectClassAttributes(classes[1], declaredAttributes[1]);
          subscribed[1] = true;
-         rti[2].subscribeObjectClassAttributes(classes[2], secondAttributes);
+         rti[2].subscribeObjectClassAttributes(classes[2], declaredAttributes[2]);
          subscribed[2] = true;
 
          String firstName;
@@ -108,8 +122,10 @@ final class ObjectRegistrationMultiRecipientTck {
          JavaTckSupport.check(firstObject.equals(rti[0].getObjectInstanceHandle(firstName))
                && secondObject.equals(rti[0].getObjectInstanceHandle(secondName))
                && firstName.equals(rti[0].getObjectInstanceName(firstObject))
-               && secondName.equals(rti[0].getObjectInstanceName(secondObject)),
-            "publisher named-registration identity lookup did not round-trip");
+               && secondName.equals(rti[0].getObjectInstanceName(secondObject))
+               && classes[0].equals(rti[0].getKnownObjectClassHandle(firstObject))
+               && classes[0].equals(rti[0].getKnownObjectClassHandle(secondObject)),
+            "publisher object identity or registered class did not round-trip");
 
          await(rti[1], () -> recorders[1].discoveries().size() >= 2,
             "first subscriber did not discover both registered objects before the deadline");
@@ -120,23 +136,22 @@ final class ObjectRegistrationMultiRecipientTck {
                && recorders[2].discoveries().size() == 2,
             "registration discovery delivered an incorrect number of callbacks");
 
-         assertReceiver(rti[1], recorders[1], classes[1], firstName, secondName,
-            producer, "first subscriber");
-         assertReceiver(rti[2], recorders[2], classes[2], firstName, secondName,
-            producer, "second subscriber");
+         assertReceiver(rti[1], recorders[1], classes[1], firstObject, secondObject,
+            firstName, secondName, producer, "first subscriber");
+         assertReceiver(rti[2], recorders[2], classes[2], firstObject, secondObject,
+            firstName, secondName, producer, "second subscriber");
+         if (named) assertCaseDistinctNames(rti[0], recorders[0], classes[0], federation);
       } finally {
          for (int i = 1; i < rti.length; ++i) {
             if (rti[i] != null && joined[i] && subscribed[i]) {
                try {
-                  rti[i].unsubscribeObjectClassAttributes(classes[i],
-                     JavaTckSupport.attributeSet(rti[i], attributes[i]));
+                  rti[i].unsubscribeObjectClassAttributes(classes[i], declaredAttributes[i]);
                } catch (Exception ignored) { }
             }
          }
          if (rti[0] != null && joined[0] && published) {
             try {
-               rti[0].unpublishObjectClassAttributes(classes[0],
-                  JavaTckSupport.attributeSet(rti[0], attributes[0]));
+               rti[0].unpublishObjectClassAttributes(classes[0], declaredAttributes[0]);
             } catch (Exception ignored) { }
          }
          for (int i = rti.length - 1; i >= 0; --i) {
@@ -160,16 +175,48 @@ final class ObjectRegistrationMultiRecipientTck {
       }
    }
 
+   private static void assertCaseDistinctNames(RTIambassador publisher, Recorder recorder,
+         ObjectClassHandle objectClass, String federation) throws Exception {
+      String lowerCaseName = federation + "-case-sensitive-instance";
+      String upperCaseName = federation + "-Case-sensitive-instance";
+      JavaTckSupport.check(!lowerCaseName.equals(upperCaseName)
+            && lowerCaseName.equalsIgnoreCase(upperCaseName),
+         "case-distinct object names must differ only by ASCII case");
+      recorder.reservations.clear();
+      publisher.reserveObjectInstanceName(lowerCaseName);
+      publisher.reserveObjectInstanceName(upperCaseName);
+      await(publisher, () -> recorder.reservations.contains(lowerCaseName)
+            && recorder.reservations.contains(upperCaseName),
+         "publisher did not receive both case-distinct reservation callbacks");
+
+      ObjectInstanceHandle lowerCaseObject = publisher.registerObjectInstance(
+         objectClass, lowerCaseName);
+      ObjectInstanceHandle upperCaseObject = publisher.registerObjectInstance(
+         objectClass, upperCaseName);
+      JavaTckSupport.check(lowerCaseObject != null && upperCaseObject != null
+            && !lowerCaseObject.equals(upperCaseObject),
+         "object-instance names that differ only by case did not identify distinct objects");
+      JavaTckSupport.check(lowerCaseObject.equals(
+               publisher.getObjectInstanceHandle(lowerCaseName))
+            && upperCaseObject.equals(publisher.getObjectInstanceHandle(upperCaseName))
+            && lowerCaseName.equals(publisher.getObjectInstanceName(lowerCaseObject))
+            && upperCaseName.equals(publisher.getObjectInstanceName(upperCaseObject)),
+         "case-distinct object-name lookups did not preserve exact spelling");
+   }
+
    private static void assertReceiver(RTIambassador rti, Recorder recorder,
-         ObjectClassHandle objectClass, String firstName, String secondName,
+         ObjectClassHandle objectClass, ObjectInstanceHandle publisherFirstObject,
+         ObjectInstanceHandle publisherSecondObject, String firstName, String secondName,
          FederateHandle producer, String description) throws Exception {
       List<Discovery> events = recorder.discoveries();
       JavaTckSupport.check(events.size() == 2,
          description + " did not receive exactly two discovery callbacks");
       ObjectInstanceHandle firstLocal = rti.getObjectInstanceHandle(firstName);
       ObjectInstanceHandle secondLocal = rti.getObjectInstanceHandle(secondName);
-      JavaTckSupport.check(!firstLocal.equals(secondLocal),
-         description + " resolved two object names to the same handle");
+      JavaTckSupport.check(publisherFirstObject.equals(firstLocal)
+            && publisherSecondObject.equals(secondLocal)
+            && !firstLocal.equals(secondLocal),
+         description + " did not preserve cross-member object-handle identity");
       HashSet<String> observedNames = new HashSet<>();
       for (Discovery event : events) {
          JavaTckSupport.check(event.objectClass.equals(objectClass)
@@ -184,7 +231,11 @@ final class ObjectRegistrationMultiRecipientTck {
       JavaTckSupport.check(observedNames.contains(firstName)
             && observedNames.contains(secondName),
          description + " did not discover both registered objects");
-      JavaTckSupport.check(firstName.equals(rti.getObjectInstanceName(firstLocal))
+      JavaTckSupport.check(firstName.equals(rti.getObjectInstanceName(publisherFirstObject))
+            && secondName.equals(rti.getObjectInstanceName(publisherSecondObject))
+            && objectClass.equals(rti.getKnownObjectClassHandle(publisherFirstObject))
+            && objectClass.equals(rti.getKnownObjectClassHandle(publisherSecondObject))
+            && firstName.equals(rti.getObjectInstanceName(firstLocal))
             && secondName.equals(rti.getObjectInstanceName(secondLocal))
             && objectClass.equals(rti.getKnownObjectClassHandle(firstLocal))
             && objectClass.equals(rti.getKnownObjectClassHandle(secondLocal)),

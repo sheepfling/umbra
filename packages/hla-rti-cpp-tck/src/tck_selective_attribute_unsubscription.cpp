@@ -62,8 +62,10 @@ void scenarioSelectiveAttributeUnsubscription(
       retainedClass, retainedAttributes, true, L"");
   auto const object = publisher.rtiAmbassador().registerObjectInstance(
       publisherClass);
+  auto const secondObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
   require(
-      object.isValid(),
+      object.isValid() && secondObject.isValid(),
       "selective unsubscription registration returned an invalid handle");
   waitFor(
       subscriber,
@@ -75,11 +77,22 @@ void scenarioSelectiveAttributeUnsubscription(
       [&] { return retainedSubscriber.recorder().hasDiscovery(object); },
       options,
       "retained subscriber object discovery");
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().hasDiscovery(secondObject); },
+      options,
+      "selective unsubscription second object discovery");
+  waitFor(
+      retainedSubscriber,
+      [&] { return retainedSubscriber.recorder().hasDiscovery(secondObject); },
+      options,
+      "retained subscriber second object discovery");
 
   std::vector<std::uint8_t> const firstValue{0x53U, 0x45U, 0x4CU, 0x31U};
   std::vector<std::uint8_t> const firstOtherValue{0x52U, 0x45U, 0x4DU, 0x31U};
   std::vector<std::uint8_t> const firstTag{0x49U, 0x4EU, 0x49U};
-  auto sendUpdate = [&](std::vector<std::uint8_t> const& value,
+  auto sendUpdate = [&](rti::ObjectInstanceHandle const& target,
+                        std::vector<std::uint8_t> const& value,
                         std::vector<std::uint8_t> const& otherValue,
                         std::vector<std::uint8_t> const& tagBytes) {
     rti::AttributeHandleValueMap const values{
@@ -88,9 +101,9 @@ void scenarioSelectiveAttributeUnsubscription(
         {publisherSecondAttribute,
          rti::VariableLengthData(otherValue.data(), otherValue.size())}};
     rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
-    publisher.rtiAmbassador().updateAttributeValues(object, values, tag);
+    publisher.rtiAmbassador().updateAttributeValues(target, values, tag);
   };
-  sendUpdate(firstValue, firstOtherValue, firstTag);
+  sendUpdate(object, firstValue, firstOtherValue, firstTag);
   waitFor(
       subscriber,
       [&] { return !subscriber.recorder().reflections().empty(); },
@@ -119,43 +132,126 @@ void scenarioSelectiveAttributeUnsubscription(
 
   subscriber.recorder().clearReflection();
   retainedSubscriber.recorder().clearReflection();
+  sendUpdate(secondObject, firstValue, firstOtherValue, firstTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().reflection().present; },
+      options,
+      "second object's initial two-attribute subscription reflection");
+  waitFor(
+      retainedSubscriber,
+      [&] { return retainedSubscriber.recorder().reflection().present; },
+      options,
+      "second object's retained-subscriber reflection");
+  auto const secondObjectInitialReflection = subscriber.recorder().reflection();
+  auto const secondObjectRetainedInitialReflection =
+      retainedSubscriber.recorder().reflection();
+  require(
+      secondObjectInitialReflection.object == secondObject &&
+          secondObjectInitialReflection.values.size() == 2U &&
+          secondObjectInitialReflection.values.count(subscriberFirstAttribute) == 1U &&
+          secondObjectInitialReflection.values.count(subscriberSecondAttribute) == 1U,
+      "second object was not in scope for both subscribed attributes before unsubscription");
+  require(
+      secondObjectRetainedInitialReflection.object == secondObject &&
+          secondObjectRetainedInitialReflection.values.size() == 2U &&
+          secondObjectRetainedInitialReflection.values.count(retainedFirstAttribute) == 1U &&
+          secondObjectRetainedInitialReflection.values.count(retainedSecondAttribute) == 1U,
+      "retained subscriber did not receive both second-object attributes before unsubscription");
+
+  subscriber.recorder().clearReflection();
+  retainedSubscriber.recorder().clearReflection();
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberClass, unsubscribedAttributes);
   std::vector<std::uint8_t> const secondValue{0x53U, 0x45U, 0x4CU, 0x32U};
   std::vector<std::uint8_t> const secondOtherValue{0x52U, 0x45U, 0x4DU, 0x32U};
   std::vector<std::uint8_t> const secondTag{0x41U, 0x46U, 0x54U};
-  sendUpdate(secondValue, secondOtherValue, secondTag);
-  waitFor(
-      subscriber,
-      [&] { return subscriber.recorder().reflection().present; },
-      options,
-      "remaining-attribute reflection after selective unsubscription");
-  waitFor(
-      retainedSubscriber,
-      [&] { return retainedSubscriber.recorder().reflection().present; },
-      options,
-      "retained subscription reflection after another federate unsubscribes");
-  auto const remainingReflection = subscriber.recorder().reflection();
-  auto const retainedReflection = retainedSubscriber.recorder().reflection();
-  require(
-      remainingReflection.object == object &&
-          remainingReflection.values.size() == 1U &&
-          remainingReflection.values.count(subscriberFirstAttribute) == 0U &&
-          remainingReflection.values.count(subscriberSecondAttribute) == 1U &&
-          copyBytes(remainingReflection.values.at(subscriberSecondAttribute)) ==
-              secondOtherValue &&
-          remainingReflection.tag == secondTag,
-      "unsubscribing one attribute removed another subscribed attribute or delivered the removed value");
-  require(
-      retainedReflection.object == object &&
-          retainedReflection.values.size() == 2U &&
-          retainedReflection.values.count(retainedFirstAttribute) == 1U &&
-          retainedReflection.values.count(retainedSecondAttribute) == 1U &&
-          copyBytes(retainedReflection.values.at(retainedFirstAttribute)) == secondValue &&
-          copyBytes(retainedReflection.values.at(retainedSecondAttribute)) ==
-              secondOtherValue &&
-          retainedReflection.tag == secondTag,
-      "one federate's attribute unsubscription changed another federate's subscription");
+  auto verifyRemainingAttributeScope = [&](
+      rti::ObjectInstanceHandle const& target,
+      std::vector<std::uint8_t> const& value,
+      std::vector<std::uint8_t> const& otherValue,
+      std::vector<std::uint8_t> const& tag) {
+    subscriber.recorder().clearReflection();
+    retainedSubscriber.recorder().clearReflection();
+    sendUpdate(target, value, otherValue, tag);
+    waitFor(
+        subscriber,
+        [&] { return subscriber.recorder().reflection().present; },
+        options,
+        "remaining-attribute reflection after selective unsubscription");
+    waitFor(
+        retainedSubscriber,
+        [&] { return retainedSubscriber.recorder().reflection().present; },
+        options,
+        "retained subscription reflection after another federate unsubscribes");
+    auto const remainingReflection = subscriber.recorder().reflection();
+    auto const retainedReflection = retainedSubscriber.recorder().reflection();
+    require(
+        remainingReflection.object == target &&
+            remainingReflection.values.size() == 1U &&
+            remainingReflection.values.count(subscriberFirstAttribute) == 0U &&
+            remainingReflection.values.count(subscriberSecondAttribute) == 1U &&
+            copyBytes(remainingReflection.values.at(subscriberSecondAttribute)) ==
+                otherValue &&
+            remainingReflection.tag == tag,
+        "unsubscribing one attribute removed another subscribed attribute or delivered the removed value");
+    require(
+        retainedReflection.object == target &&
+            retainedReflection.values.size() == 2U &&
+            retainedReflection.values.count(retainedFirstAttribute) == 1U &&
+            retainedReflection.values.count(retainedSecondAttribute) == 1U &&
+            copyBytes(retainedReflection.values.at(retainedFirstAttribute)) == value &&
+            copyBytes(retainedReflection.values.at(retainedSecondAttribute)) ==
+                otherValue &&
+            retainedReflection.tag == tag,
+        "one federate's attribute unsubscription changed another federate's subscription");
+  };
+  verifyRemainingAttributeScope(object, secondValue, secondOtherValue, secondTag);
+  std::vector<std::uint8_t> const thirdValue{0x53U, 0x45U, 0x4CU, 0x34U};
+  std::vector<std::uint8_t> const thirdOtherValue{0x52U, 0x45U, 0x4DU, 0x34U};
+  std::vector<std::uint8_t> const thirdTag{0x41U, 0x46U, 0x54U, 0x34U};
+  verifyRemainingAttributeScope(
+      secondObject, thirdValue, thirdOtherValue, thirdTag);
+
+  std::vector<std::uint8_t> const isolatedValue{0x53U, 0x45U, 0x4CU, 0x33U};
+  std::vector<std::uint8_t> const isolatedTag{0x41U, 0x46U, 0x54U, 0x33U};
+  auto verifyUnsubscribedInstanceAttributeIsOutOfScope = [&]
+      (rti::ObjectInstanceHandle const& target,
+       std::vector<std::uint8_t> const& value,
+       std::vector<std::uint8_t> const& tagBytes) {
+    subscriber.recorder().clearReflection();
+    retainedSubscriber.recorder().clearReflection();
+    rti::AttributeHandleValueMap const isolatedUnsubscribedValue{
+        {publisherFirstAttribute,
+         rti::VariableLengthData(value.data(), value.size())}};
+    rti::VariableLengthData const userTag(tagBytes.data(), tagBytes.size());
+    publisher.rtiAmbassador().updateAttributeValues(
+        target, isolatedUnsubscribedValue, userTag);
+    waitFor(
+        retainedSubscriber,
+        [&] { return !retainedSubscriber.recorder().reflections().empty(); },
+        options,
+        "isolated update reaches the unaffected retained subscriber");
+    for (int pass = 0; pass != 8; ++pass) {
+      subscriber.pump();
+    }
+    auto const retainedReflection = retainedSubscriber.recorder().reflection();
+    require(
+        retainedReflection.object == target &&
+            retainedReflection.values.size() == 1U &&
+            retainedReflection.values.count(retainedFirstAttribute) == 1U &&
+            copyBytes(retainedReflection.values.at(retainedFirstAttribute)) == value &&
+            retainedReflection.tag == tagBytes,
+        "isolated update was not delivered to the unaffected retained subscriber");
+    require(
+        subscriber.recorder().reflections().empty(),
+        "the unsubscribed instance attribute remained in scope for the invoking federate");
+  };
+  verifyUnsubscribedInstanceAttributeIsOutOfScope(object, isolatedValue, isolatedTag);
+  std::vector<std::uint8_t> const secondIsolatedValue{0x53U, 0x45U, 0x4CU, 0x35U};
+  std::vector<std::uint8_t> const secondIsolatedTag{0x41U, 0x46U, 0x54U, 0x35U};
+  verifyUnsubscribedInstanceAttributeIsOutOfScope(
+      secondObject, secondIsolatedValue, secondIsolatedTag);
 
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributes(
       subscriberClass,

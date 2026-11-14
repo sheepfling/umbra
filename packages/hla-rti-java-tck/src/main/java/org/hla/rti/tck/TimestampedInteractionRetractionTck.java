@@ -102,12 +102,20 @@ final class TimestampedInteractionRetractionTck {
          LogicalTime firstReceiverTime = offset(constrained.queryLogicalTime(), lookahead, 3);
          JavaTckSupport.check(firstTime.equals(firstReceiverTime),
             "publisher and constrained receiver began at different logical times");
+         byte[] unissuedRetractionEncoding = new byte[] {
+            0x00, 0x00, 0x00, 0x08, 0x51, 0x26, 0x73, 0x19,
+            0x44, 0x62, 0x35, 0x07
+         };
          MessageRetractionHandle invalidRetraction =
-            JavaTckSupport.invalidHandle(MessageRetractionHandle.class);
+            publisher.getMessageRetractionHandleFactory().decode(unissuedRetractionEncoding, 0);
          JavaTckSupport.expectFailure(() -> publisher.retract(invalidRetraction),
             "InvalidMessageRetractionHandle", "timestamped interaction retract with invalid handle");
+         byte[] unissuedInteractionEncoding = new byte[] {
+            0x00, 0x00, 0x00, 0x08, 0x36, 0x54, 0x72, 0x18,
+            0x27, 0x45, 0x63, 0x09
+         };
          InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+            publisher.getInteractionClassHandleFactory().decode(unissuedInteractionEncoding, 0);
          JavaTckSupport.expectFailure(() -> publisher.sendInteraction(invalidInteraction,
                publisher.getParameterHandleValueMapFactory().create(0), new byte[0], firstTime),
             "InteractionClassNotDefined", "timestamped interaction send with invalid class");
@@ -119,7 +127,7 @@ final class TimestampedInteractionRetractionTck {
             "first timestamped Send Interaction returned no valid retraction handle");
          JavaTckSupport.drain(immediate);
          JavaTckSupport.drain(constrained);
-         checkInteraction(immediateRecorder, 0, immediateClass, immediateParameter,
+         checkInteraction(immediate, immediateRecorder, 0, immediateClass, immediateParameter,
             firstPayload, firstTag, producer, firstTime, first.handle, OrderType.RECEIVE,
             "immediate recipient");
          JavaTckSupport.check(constrainedRecorder.interactions.isEmpty(),
@@ -155,7 +163,7 @@ final class TimestampedInteractionRetractionTck {
          JavaTckSupport.check(second != null && second.retractionHandleIsValid && second.handle != null,
             "second timestamped Send Interaction returned no valid retraction handle");
          JavaTckSupport.drain(immediate);
-         checkInteraction(immediateRecorder, 1, immediateClass, immediateParameter,
+         checkInteraction(immediate, immediateRecorder, 1, immediateClass, immediateParameter,
             secondPayload, secondTag, producer, secondTime, second.handle, OrderType.RECEIVE,
             "second immediate delivery");
          JavaTckSupport.check(immediateRecorder.retractions.size() == 1,
@@ -166,7 +174,8 @@ final class TimestampedInteractionRetractionTck {
          publisher.timeAdvanceRequest(secondTime);
          JavaTckSupport.drain(constrained);
          JavaTckSupport.drain(publisher);
-         checkInteraction(constrainedRecorder, 0, constrainedClass, constrainedParameter,
+         checkInteraction(constrained, constrainedRecorder, 0, constrainedClass,
+            constrainedParameter,
             secondPayload, secondTag, producer, secondTime, second.handle, OrderType.TIMESTAMP,
             "constrained delivery");
          JavaTckSupport.check(constrainedRecorder.callbackOrder.equals(
@@ -175,6 +184,9 @@ final class TimestampedInteractionRetractionTck {
          JavaTckSupport.check(secondTime.equals(constrainedRecorder.timeAdvanceGrant)
                && secondTime.equals(constrained.queryLogicalTime()),
             "constrained grant or logical-time query returned the wrong time");
+         JavaTckSupport.check(immediateRecorder.retractions.size() == 1
+               && constrainedRecorder.retractions.isEmpty(),
+            "unretracted second interaction changed Request Retraction callback state");
          expectException(() -> publisher.retract(second.handle), "MessageCanNoLongerBeRetracted",
             "retracting the already delivered timestamped interaction");
       } finally {
@@ -223,11 +235,11 @@ final class TimestampedInteractionRetractionTck {
       return result;
    }
 
-   private static void checkInteraction(Recorder recorder, int index,
+   private static void checkInteraction(RTIambassador inspector, Recorder recorder, int index,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          byte[] expectedPayload, byte[] expectedTag, FederateHandle expectedProducer,
          LogicalTime<?, ?> expectedTime, MessageRetractionHandle expectedRetraction,
-         OrderType expectedOrder, String description) {
+         OrderType expectedOrder, String description) throws Exception {
       JavaTckSupport.check(recorder.interactions.size() == index + 1,
          description + " received the wrong number of interactions");
       Interaction interaction = recorder.interactions.get(index);
@@ -246,6 +258,9 @@ final class TimestampedInteractionRetractionTck {
       JavaTckSupport.check(expectedRetraction.equals(interaction.retraction)
             && interaction.transportation != null,
          description + " did not preserve its retraction or transportation handle");
+      String transportationName = inspector.getTransportationTypeName(interaction.transportation);
+      JavaTckSupport.check(transportationName != null && !transportationName.isEmpty(),
+         description + " returned an unresolvable transportation type");
    }
 
    private static void expectException(CheckedOperation operation, String expected,

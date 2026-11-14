@@ -2,19 +2,117 @@
 <objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
-    <tags><updateReflectTag>
-        <dataType>TckTagReferenceFixture</dataType>
-        <semantics>Permitted user-supplied tag data type.</semantics>
-    </updateReflectTag></tags>
-    <synchronizations><synchronizationPoint>
-        <label>TckTagFixtureSynchronization</label>
-        <dataType>HLAinteger64Time</dataType>
-        <semantics>Permitted synchronization tag data type.</semantics>
-    </synchronizationPoint></synchronizations>
-    <dataTypes><referenceDataTypes><referenceDataType>
-        <name>TckTagReferenceFixture</name><representation>HLAtoken</representation>
-        <referenceClass>HLAobjectRoot</referenceClass>
-        <referencedAttribute>HLAprivilegeToDeleteObject</referencedAttribute>
-        <semantics>Reference data type used by the portable tag test.</semantics>
-    </referenceDataType></referenceDataTypes></dataTypes>
+    <tags>
+        <updateReflectTag>
+            <dataType>TckTagReferenceFixture</dataType>
+            <semantics>Permitted reference-type update tag.</semantics>
+        </updateReflectTag>
+        <sendReceiveTag>
+            <dataType>TckTagSimpleFixture</dataType>
+            <semantics>Permitted simple send/receive tag.</semantics>
+        </sendReceiveTag>
+        <deleteRemoveTag>
+            <dataType>TckTagEnumeratedFixture</dataType>
+            <semantics>Permitted enumerated delete/remove tag.</semantics>
+        </deleteRemoveTag>
+        <divestitureRequestTag>
+            <dataType>TckTagArrayFixture</dataType>
+            <semantics>Permitted array divestiture-request tag.</semantics>
+        </divestitureRequestTag>
+        <divestitureCompletionTag>
+            <dataType>TckTagFixedRecordFixture</dataType>
+            <semantics>Permitted fixed-record divestiture-completion tag.</semantics>
+        </divestitureCompletionTag>
+        <acquisitionRequestTag>
+            <dataType>TckTagVariantFixture</dataType>
+            <semantics>Permitted variant-record acquisition-request tag.</semantics>
+        </acquisitionRequestTag>
+        <requestUpdateTag>
+            <dataType>TckTagSimpleFixture</dataType>
+            <semantics>Permitted simple request-update tag.</semantics>
+        </requestUpdateTag>
+    </tags>
+    <synchronizations>
+        <synchronizationPoint>
+            <label>TckTagSimpleSynchronization</label>
+            <dataType>TckTagSimpleFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted simple synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagEnumeratedSynchronization</label>
+            <dataType>TckTagEnumeratedFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted enumerated synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagReferenceSynchronization</label>
+            <dataType>TckTagReferenceFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted reference synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagArraySynchronization</label>
+            <dataType>TckTagArrayFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted array synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagFixedRecordSynchronization</label>
+            <dataType>TckTagFixedRecordFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted fixed-record synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagVariantSynchronization</label>
+            <dataType>TckTagVariantFixture</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted variant-record synchronization tag data type.</semantics>
+        </synchronizationPoint>
+        <synchronizationPoint>
+            <label>TckTagFixtureSynchronization</label>
+            <dataType>HLAinteger64Time</dataType>
+            <capability>NA</capability>
+            <semantics>Permitted MIM simple synchronization tag data type.</semantics>
+        </synchronizationPoint>
+    </synchronizations>
+    <dataTypes>
+        <simpleDataTypes><simpleData>
+            <name>TckTagSimpleFixture</name>
+            <representation>HLAinteger32BE</representation>
+        </simpleData></simpleDataTypes>
+        <referenceDataTypes><referenceDataType>
+            <name>TckTagReferenceFixture</name>
+            <representation>HLAtoken</representation>
+            <referenceClass>HLAobjectRoot</referenceClass>
+            <referencedAttribute>HLAprivilegeToDeleteObject</referencedAttribute>
+            <semantics>Reference data type used by the portable tag test.</semantics>
+        </referenceDataType></referenceDataTypes>
+        <enumeratedDataTypes><enumeratedData>
+            <name>TckTagEnumeratedFixture</name>
+            <representation>HLAinteger32BE</representation>
+            <enumerator><name>TckTagReady</name><value>1</value></enumerator>
+        </enumeratedData></enumeratedDataTypes>
+        <arrayDataTypes><arrayData>
+            <name>TckTagArrayFixture</name>
+            <dataType>TckTagSimpleFixture</dataType>
+            <cardinality>2</cardinality>
+            <encoding>HLAfixedArray</encoding>
+        </arrayData></arrayDataTypes>
+        <fixedRecordDataTypes><fixedRecordData>
+            <name>TckTagFixedRecordFixture</name>
+            <field><name>Value</name><dataType>TckTagSimpleFixture</dataType></field>
+        </fixedRecordData></fixedRecordDataTypes>
+        <variantRecordDataTypes><variantRecordData>
+            <name>TckTagVariantFixture</name>
+            <discriminant>Kind</discriminant>
+            <dataType>HLAboolean</dataType>
+            <alternative>
+                <enumerator>HLAtrue</enumerator>
+                <name>Value</name>
+                <dataType>TckTagSimpleFixture</dataType>
+            </alternative>
+            <encoding>HLAvariantRecord</encoding>
+        </variantRecordData></variantRecordDataTypes>
+    </dataTypes>
 </objectModel>

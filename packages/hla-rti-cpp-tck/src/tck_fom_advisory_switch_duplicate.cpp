@@ -45,9 +45,27 @@ void runAdvisorySwitchDuplicate(Options const& options,
     member.resign(rti::NO_ACTION);
     creator.rtiAmbassador().destroyFederationExecution(federation);
   };
-  checkPair(disabled, second, false);
-  if (orderConflict || omitted) {
-    checkPair(second, disabled, orderConflict);
+  if (orderConflict) {
+    auto rejectConflictThenRetry = [&](std::wstring const& first,
+                                       std::wstring const& last,
+                                       bool expected) {
+      requireException(
+          [&] { create({first, last}); }, L"InconsistentFOM",
+          "different definitions of the same named advisory switch");
+      create({first});
+      member.join(options.memberFederateName, options.federateType, federation);
+      require(member.rtiAmbassador().getAdvisoriesUseKnownClassSwitch() == expected,
+              "Valid retry did not preserve its single advisory-switch definition");
+      member.resign(rti::NO_ACTION);
+      creator.rtiAmbassador().destroyFederationExecution(federation);
+    };
+    rejectConflictThenRetry(disabled, second, false);
+    rejectConflictThenRetry(second, disabled, true);
+  } else {
+    checkPair(disabled, second, false);
+    if (omitted) {
+      checkPair(second, disabled, false);
+    }
   }
   member.disconnect();
   creator.disconnect();

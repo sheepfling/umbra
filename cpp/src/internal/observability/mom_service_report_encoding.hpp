@@ -30,6 +30,31 @@ enum class MomServiceType : std::uint16_t {
   support_services = 6,
 };
 
+// Table 5 FactoryClass is an internal service-report value, not a public
+// IEEE 1516.1-2025 C++ binding type. Keep the closed list private and serialize
+// its exact standard enumerant spellings for service-report arguments.
+enum class MomFactoryClass : std::uint8_t {
+  attribute_handle_factory,
+  attribute_handle_set_factory,
+  attribute_handle_value_map_factory,
+  attribute_set_region_set_pair_list_factory,
+  dimension_handle_factory,
+  dimension_handle_set_factory,
+  federate_ambassador,
+  federate_handle_factory,
+  federate_handle_set_factory,
+  interaction_class_handle_factory,
+  object_class_handle_factory,
+  object_instance_handle_factory,
+  parameter_handle_factory,
+  parameter_handle_value_map_factory,
+  region_handle_set_factory,
+  transportation_type_handle_factory,
+  region_handle_factory,
+  message_retraction_handle_factory,
+  logical_time_factory,
+};
+
 struct MomServiceReportCredentials final {
   std::wstring type;
   std::vector<std::uint8_t> data;
@@ -46,7 +71,8 @@ struct MomServiceReportCredentials final {
 // MessageRetractionHandle, Number, ObjectClassHandle, ObjectInstanceHandle,
 // OrderType, ParameterHandleValueMap, RegionHandle, RegionHandleSet,
 // ServiceGroup, String, StringSet,
-// SaveFailureReason, FederateHandleSaveStatusPairSet, FederateRestoreStatusSet,
+// SaveFailureReason, RestoreFailureReason, FederateHandleSaveStatusPairSet,
+// FederateRestoreStatusSet,
 // SynchronizationPointFailureReason, and
 // TransportationTypeHandle; retaining those MIM values keeps future service
 // wrappers byte-compatible without conflating these display values with C++
@@ -62,10 +88,15 @@ enum class MomArgumentType : std::int32_t {
   credentials = 9,
   dimension_handle = 10,
   dimension_handle_set = 11,
+  factory_class = 12,
   federate_handle = 15,
   federate_handle_save_status_pair_set = 17,
   federate_handle_set = 18,
   federate_restore_status_set = 20,
+  federation_execution_information = 21,
+  federation_execution_information_set = 22,
+  federation_execution_member = 23,
+  federation_execution_member_set = 24,
   interaction_class_handle = 27,
   interaction_class_handle_set = 28,
   logical_time = 31,
@@ -82,17 +113,22 @@ enum class MomArgumentType : std::int32_t {
   region_handle = 42,
   region_handle_set = 43,
   resign_action = 44,
+  restore_failure_reason = 45,
   save_failure_reason = 48,
   service_group = 50,
   string = 53,
   string_set = 54,
   synchronization_point_failure_reason = 56,
+  time_interval_query_return = 57,
+  time_query_return = 58,
   transportation_type_handle = 59,
   // The 2025 standard MIM uses 60 for UserSuppliedTag in HLAreportServiceInvocation.
   user_supplied_tag = 60,
-  // Table 5's service-report file record uses 63 for the same logical argument.
-  // Keep the file-report literal distinct; the MOM interaction encoder maps it
-  // to the MIM value above.
+  // The Table 5 ServiceReportRecord example on p.301 uses 63 for
+  // UserSuppliedTag; the generic HLAargument example on p.298 instead uses 58,
+  // while Table 14 and the MIM enumerate UserSuppliedTag as 60 (RL-399). Keep
+  // the p.301 file example separate from the MIM interaction value, but do not
+  // treat the numeric relationship as fully resolved or validated.
   table_5_user_supplied_tag = 63,
 };
 
@@ -128,6 +164,13 @@ struct MomServiceReportInitialRecord {
   std::vector<std::wstring> federateFomModuleDesignators;
 };
 
+// Table 5's FederationExecutionInformation is a two-string record. Keep it
+// private to service-report encoding; it is not an additional public API type.
+struct MomFederationExecutionInformation final {
+  std::wstring federationExecutionName;
+  std::wstring logicalTimeImplementationName;
+};
+
 // Table 5 textual forms used in HLAargumentValue.  These helpers keep the
 // JSON-like representation private to MOM reporting; they are not a general
 // JSON API or an application data encoding facility.
@@ -135,6 +178,16 @@ struct MomServiceReportInitialRecord {
 [[nodiscard]] std::wstring formatMomBoolean(bool value);
 [[nodiscard]] std::wstring formatMomNumber(std::wstring const& value);
 [[nodiscard]] std::wstring formatMomString(std::wstring const& value);
+[[nodiscard]] std::wstring formatMomFederationExecutionInformation(
+    MomFederationExecutionInformation const& value);
+[[nodiscard]] std::wstring formatMomFederationExecutionInformationSet(
+    std::vector<MomFederationExecutionInformation> const& values);
+// FederationExecutionMemberInformation is an official 2025 binding type;
+// keep the Table 5 serializer on that public value rather than mirroring it.
+[[nodiscard]] std::wstring formatMomFederationExecutionMemberInformation(
+    rti1516_2025::FederationExecutionMemberInformation const& value);
+[[nodiscard]] std::wstring formatMomFederationExecutionMemberInformationVector(
+    rti1516_2025::FederationExecutionMemberInformationVector const& values);
 // Table 5 encodes ConfigurationResult as a record with the four named public
 // fields. The HLAstandardMIM-2025 HLAargumentType code for ConfigurationResult
 // is 8, represented by MomArgumentType::configuration_result above.
@@ -157,6 +210,14 @@ struct MomServiceReportInitialRecord {
 // its own diagnostic representation.
 [[nodiscard]] std::wstring formatMomLogicalTimeInterval(
     rti1516_2025::LogicalTimeInterval const& value);
+// Table 5 represents successful time and time-interval queries with these
+// composite HLAargumentValue records, not with bare LogicalTime values.
+[[nodiscard]] std::wstring formatMomTimeIntervalQueryReturn(
+    bool intervalIsValid,
+    rti1516_2025::LogicalTimeInterval const& interval);
+[[nodiscard]] std::wstring formatMomTimeQueryReturn(
+    bool timeIsValid,
+    rti1516_2025::LogicalTime const& time);
 // Table 5 specifies FederateHandle as a String containing the exact value
 // returned by the handle's standard toString() operation.
 [[nodiscard]] std::wstring formatMomFederateHandle(
@@ -280,6 +341,13 @@ struct MomServiceReportInitialRecord {
 // diagnostic toString() form. Keep the source-backed report representation
 // separate from the public handle's presentation method.
 [[nodiscard]] std::wstring formatMomMessageRetractionHandle(std::uint64_t value);
+// Table 5's MessageRetractionReturn is a private record, not a public C++ API
+// return type: the official RTIambassador::retract operation returns void.
+// Preserve the two-field file-record representation without exposing a
+// homegrown public type.
+[[nodiscard]] std::wstring formatMomMessageRetractionReturn(
+    bool retractionHandleIsValid,
+    std::uint64_t handleValue);
 // Table 5 explicitly renders ResignAction as the C++ enum spelling inside a
 // JSON-like String. Keep this closed mapping next to the other Table 5 forms
 // so successful-void report wrappers cannot substitute MIM wire enumerators.
@@ -295,6 +363,10 @@ struct MomServiceReportInitialRecord {
 // not accidentally emit a numeric or implementation-local value.
 [[nodiscard]] std::wstring formatMomSaveFailureReason(
     rti1516_2025::SaveFailureReason reason);
+// Table 5 renders RestoreFailureReason as the quoted public enumeration
+// spelling. Keep this encoding separate from restore callback/lifecycle logic.
+[[nodiscard]] std::wstring formatMomRestoreFailureReason(
+    rti1516_2025::RestoreFailureReason reason);
 // Table 5 renders SaveStatus as the quoted public enumeration spelling. Keep
 // the closed mapping separate from the status-pair formatter so no numeric or
 // implementation-local value can enter a service report.
@@ -307,6 +379,10 @@ struct MomServiceReportInitialRecord {
 // service-report arguments retain the source-defined indicator names.
 [[nodiscard]] std::wstring formatMomServiceGroup(
     rti1516_2025::ServiceGroup serviceGroup);
+// Table 5 depicts FactoryClass as a quoted enumeration value. The unusual
+// PARAMETERHANDLEFACTORY spelling is preserved exactly as printed in the 2025
+// source, rather than normalized to an invented C++-style spelling.
+[[nodiscard]] std::wstring formatMomFactoryClass(MomFactoryClass factoryClass);
 // Table 5 renders OrderType as the quoted MIM spelling RECEIVE or TIMESTAMP.
 // Keep this closed mapping separate from the MIM wire enumeration so report
 // writers cannot accidentally emit the numeric representation.
@@ -317,6 +393,12 @@ struct MomServiceReportInitialRecord {
 // because the rendered Table 5 example wraps the return value in an array.
 [[nodiscard]] std::wstring formatMomServiceArgumentRecord(
     MomServiceArgument const& argument);
+// Table 5 HLAreturnedArgument is not an HLAargument: its file-record form has
+// HLAargumentType and HLAargumentValue only. The descriptive HLAargumentName
+// belongs to the public interaction's returned-argument parameter, not here.
+[[nodiscard]] std::wstring formatMomReturnedArgumentRecord(
+    MomArgumentType type,
+    std::wstring const& value);
 [[nodiscard]] std::wstring formatMomServiceReportInitialRecord(
     MomServiceReportInitialRecord const& record);
 // Table 5 explicitly gives [null] as the returned-argument representation for
@@ -326,8 +408,8 @@ struct MomServiceReportInitialRecord {
     std::uint32_t serialNumber,
     std::wstring const& service,
     std::vector<MomServiceArgument> const& suppliedArguments);
-// ServiceReportRecord's non-void returned argument follows the rendered 2025
-// Table 5 ReturnArgument example: one HLAreturnedArgument record in an array.
+// ServiceReportRecord's non-void return uses the two-field Table 5
+// HLAreturnedArgument record in an array; do not serialize HLAargumentName.
 // The public HLAreportServiceInvocation interaction continues to use the MIM's
 // fixed HLAargument parameter encoding via encodeMomServiceInvocation().
 [[nodiscard]] std::wstring formatMomSuccessfulServiceReportRecord(

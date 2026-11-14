@@ -25,6 +25,20 @@ target_link_libraries(umbra_rti_package_smoke PRIVATE
   umbra::authorizer
 )
 
+if(UMBRA_PACKAGE_EXPECT_SHARED_LIBRARIES)
+  add_executable(umbra_rti_package_library_nomenclature library_nomenclature.cpp)
+  target_compile_features(umbra_rti_package_library_nomenclature PRIVATE cxx_std_20)
+  target_compile_definitions(umbra_rti_package_library_nomenclature PRIVATE
+    "UMBRA_PACKAGE_COMPILER_MARKER=\"${umbra_rti_HLA_COMPILER_VERSION_MARKER}\""
+    "UMBRA_PACKAGE_COMPILER_MARKER_SOURCE=\"${umbra_rti_HLA_COMPILER_VERSION_MARKER_SOURCE}\""
+    "UMBRA_PACKAGE_32BIT_MARKER=\"${umbra_rti_HLA_LIBRARY_32BIT_MARKER}\""
+    "UMBRA_PACKAGE_DEBUG_BUILD=$<IF:$<CONFIG:Debug>,1,0>"
+    "UMBRA_PACKAGE_RTI_LIBRARY_PATH=\"$<TARGET_FILE:umbra::rti>\""
+    "UMBRA_PACKAGE_FEDTIME_LIBRARY_PATH=\"$<TARGET_FILE:umbra::fedtime>\""
+    "UMBRA_PACKAGE_AUTHORIZER_LIBRARY_PATH=\"$<TARGET_FILE:umbra::authorizer>\""
+  )
+endif()
+
 get_filename_component(UMBRA_PACKAGE_RESTAURANT_FOM
   "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml"
   ABSOLUTE)
@@ -55,6 +69,7 @@ if(UMBRA_PACKAGE_PROCESS_SMOKE)
   target_compile_features(umbra_rti_package_process_smoke PRIVATE cxx_std_20)
   target_compile_definitions(umbra_rti_package_process_smoke PRIVATE
     UMBRA_PROCESS_SERVICE_PROBE_PATH="${UMBRA_PROCESS_SERVICE_PROBE_PATH}"
+    UMBRA_PACKAGE_RESTAURANT_FOM="${UMBRA_PACKAGE_RESTAURANT_FOM}"
   )
   target_link_libraries(umbra_rti_package_process_smoke PRIVATE
     umbra::rti
@@ -121,6 +136,22 @@ endif()
 include(CTest)
 if(BUILD_TESTING)
   add_test(NAME umbra_rti_package_consumer COMMAND umbra_rti_package_smoke)
+  if(TARGET umbra_rti_package_library_nomenclature)
+    add_test(
+      NAME umbra_rti_package_library_nomenclature
+      COMMAND umbra_rti_package_library_nomenclature
+    )
+    set(_umbra_library_nomenclature_labels
+      "installable-package"
+      "library-nomenclature"
+      "hla-1516.1-2025-clause-12.12.1.1"
+      "requirement-candidate-content-clauses-11-management-object-model-page-379-l62-19"
+    )
+    set_tests_properties(umbra_rti_package_library_nomenclature PROPERTIES
+      LABELS "${_umbra_library_nomenclature_labels}"
+    )
+    unset(_umbra_library_nomenclature_labels)
+  endif()
   if(TARGET umbra_rti_package_subscribe_discovery_catch2)
     add_test(
       NAME umbra_rti_package_subscribe_discovery_consumer
@@ -183,6 +214,13 @@ if(BUILD_TESTING)
     )
     set_tests_properties(umbra_rti_package_process_connection_loss_consumer
       PROPERTIES LABELS package-process-connection-loss
+    )
+    add_test(
+      NAME umbra_rti_package_process_forced_resignation_consumer
+      COMMAND umbra_rti_package_process_smoke forced-resignation
+    )
+    set_tests_properties(umbra_rti_package_process_forced_resignation_consumer
+      PROPERTIES LABELS "package-process;federate.callback.federate-resigned"
     )
     add_test(
       NAME umbra_rti_package_process_connection_loss_delete_objects_consumer

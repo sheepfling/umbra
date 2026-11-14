@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This C++ TCK pair checks the §9.8.3 Invalid region rule for Subscribe Object Class Attributes With Regions. It supplies a default-invalid public RegionHandle as a regional designator and requires the standard InvalidRegion exception. It does not generalize to every invalid region lifecycle or region-context error.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-234-l161-49",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l161-49",
+      "clause_id": "clause-9.8.3",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 234, line 161",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "The subscriber supplies a RegionHandle that does not designate a region specification to Subscribe Object Class Attributes With Regions and verifies that the service throws InvalidRegion.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    }
+  ]
+}

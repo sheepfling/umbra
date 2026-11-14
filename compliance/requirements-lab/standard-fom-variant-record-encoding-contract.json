@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.20 public-API witness for the predefined Variant Record Encoding rule at p. 95 l. 78. Public Create accepts HLAvariantRecord; the schema-valid negative changes only the Encoding field to the predefined HLAfixedRecord marker and must be rejected as InconsistentFOM. This covers the tested predefined marker mismatch only, not every encoding or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-variant-record-encoding",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_variant_record_encoding.cpp::scenarioFomVariantRecordEncodingContract"
+      ]
+    }
+  ]
+}

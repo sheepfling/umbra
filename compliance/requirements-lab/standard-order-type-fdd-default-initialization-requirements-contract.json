@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This C++ TCK trace covers one FDD-declared object attribute and one later federate join. It does not establish every FDD class-attribute order declaration, all time-management interactions, or conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-fdd-class-attribute-order-default-initialization",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
+      "clause_id": "clause-8.25",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Class-attribute default order initialized from current FDD",
+      "statement": "For each federate when joining, a class attribute’s default order type shall be initialized from the corresponding class attribute description in the current FDD.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioFddAttributeOrderDefaultInitialization",
+        "packages/hla-rti-cpp-tck/src/tck_order_type_controls.cpp::scenarioFddAttributeOrderDefaultInitializationContract"
+      ]
+    }
+  ]
+}

@@ -164,6 +164,47 @@ std::wstring formatMomConfigurationResult(
       formatMomString(value.message) + L"}";
 }
 
+std::wstring formatMomFederationExecutionInformation(
+    MomFederationExecutionInformation const& value) {
+  return std::wstring{L"{\"federationExecutionName\":"} +
+      formatMomString(value.federationExecutionName) +
+      L",\"logicalTimeImplementationName\":" +
+      formatMomString(value.logicalTimeImplementationName) + L"}";
+}
+
+std::wstring formatMomFederationExecutionInformationSet(
+    std::vector<MomFederationExecutionInformation> const& values) {
+  std::wstring result = L"[";
+  for (std::size_t index = 0; index < values.size(); ++index) {
+    if (index != 0U) {
+      result.push_back(L',');
+    }
+    result += formatMomFederationExecutionInformation(values[index]);
+  }
+  result.push_back(L']');
+  return result;
+}
+
+std::wstring formatMomFederationExecutionMemberInformation(
+    rti1516_2025::FederationExecutionMemberInformation const& value) {
+  return std::wstring{L"{\"federateName\":"} +
+      formatMomString(value.federateName) + L",\"federateType\":" +
+      formatMomString(value.federateType) + L"}";
+}
+
+std::wstring formatMomFederationExecutionMemberInformationVector(
+    rti1516_2025::FederationExecutionMemberInformationVector const& values) {
+  std::wstring result = L"[";
+  for (std::size_t index = 0; index < values.size(); ++index) {
+    if (index != 0U) {
+      result.push_back(L',');
+    }
+    result += formatMomFederationExecutionMemberInformation(values[index]);
+  }
+  result.push_back(L']');
+  return result;
+}
+
 std::wstring formatMomStringSet(std::set<std::wstring> const& values) {
   std::vector<std::wstring> orderedValues;
   orderedValues.reserve(values.size());
@@ -186,6 +227,22 @@ std::wstring formatMomLogicalTimeInterval(
   // The standard API deliberately leaves that diagnostic representation to the
   // selected logical-time implementation, so preserve it verbatim.
   return formatMomString(value.toString());
+}
+
+std::wstring formatMomTimeIntervalQueryReturn(
+    bool intervalIsValid,
+    rti1516_2025::LogicalTimeInterval const& interval) {
+  return std::wstring{L"{"} + formatMomJsonKey(L"intervalIsValid") +
+      formatMomBoolean(intervalIsValid) + L"," +
+      formatMomJsonKey(L"interval") + formatMomLogicalTimeInterval(interval) + L"}";
+}
+
+std::wstring formatMomTimeQueryReturn(
+    bool timeIsValid,
+    rti1516_2025::LogicalTime const& time) {
+  return std::wstring{L"{"} + formatMomJsonKey(L"timeIsValid") +
+      formatMomBoolean(timeIsValid) + L"," + formatMomJsonKey(L"time") +
+      formatMomLogicalTime(time) + L"}";
 }
 
 std::wstring formatMomFederateHandle(rti1516_2025::FederateHandle const& value) {
@@ -503,6 +560,16 @@ std::wstring formatMomMessageRetractionHandle(std::uint64_t value) {
       L"MessageRetractionHandle<" + std::to_wstring(value) + L">");
 }
 
+std::wstring formatMomMessageRetractionReturn(
+    bool retractionHandleIsValid,
+    std::uint64_t handleValue) {
+  // The pinned Table 5 row is a two-field Record: a Boolean validity flag and
+  // the standard textual MessageRetractionHandle representation.
+  return L"{\"retractionHandleIsValid\":" +
+      formatMomBoolean(retractionHandleIsValid) + L",\"handle\":" +
+      formatMomMessageRetractionHandle(handleValue) + L"}";
+}
+
 std::wstring formatMomResignAction(rti1516_2025::ResignAction action) {
   // Table 5's ResignAction row uses the C++ enum spellings, not the distinct
   // HLAresignAction enumerator names used on the MIM wire.
@@ -553,6 +620,24 @@ std::wstring formatMomSaveFailureReason(rti1516_2025::SaveFailureReason reason) 
   }
   throw rti1516_2025::EncoderException(
       L"The supplied SaveFailureReason has no Table 5 textual representation.");
+}
+
+std::wstring formatMomRestoreFailureReason(
+    rti1516_2025::RestoreFailureReason reason) {
+  switch (reason) {
+    case rti1516_2025::RTI_UNABLE_TO_RESTORE:
+      return formatMomString(L"RTI_UNABLE_TO_RESTORE");
+    case rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE:
+      return formatMomString(L"FEDERATE_REPORTED_FAILURE_DURING_RESTORE");
+    case rti1516_2025::FEDERATE_RESIGNED_DURING_RESTORE:
+      return formatMomString(L"FEDERATE_RESIGNED_DURING_RESTORE");
+    case rti1516_2025::RTI_DETECTED_FAILURE_DURING_RESTORE:
+      return formatMomString(L"RTI_DETECTED_FAILURE_DURING_RESTORE");
+    case rti1516_2025::RESTORE_ABORTED:
+      return formatMomString(L"RESTORE_ABORTED");
+  }
+  throw rti1516_2025::EncoderException(
+      L"The supplied RestoreFailureReason has no Table 5 textual representation.");
 }
 
 std::wstring formatMomSaveStatus(rti1516_2025::SaveStatus status) {
@@ -610,6 +695,51 @@ std::wstring formatMomServiceGroup(rti1516_2025::ServiceGroup serviceGroup) {
       L"The supplied ServiceGroup has no Table 5 textual representation.");
 }
 
+std::wstring formatMomFactoryClass(MomFactoryClass factoryClass) {
+  switch (factoryClass) {
+    case MomFactoryClass::attribute_handle_factory:
+      return formatMomString(L"ATTRIBUTE_HANDLE_FACTORY");
+    case MomFactoryClass::attribute_handle_set_factory:
+      return formatMomString(L"ATTRIBUTE_HANDLE_SET_FACTORY");
+    case MomFactoryClass::attribute_handle_value_map_factory:
+      return formatMomString(L"ATTRIBUTE_HANDLE_VALUE_MAP_FACTORY");
+    case MomFactoryClass::attribute_set_region_set_pair_list_factory:
+      return formatMomString(L"ATTRIBUTE_SET_REGION_SET_PAIR_LIST_FACTORY");
+    case MomFactoryClass::dimension_handle_factory:
+      return formatMomString(L"DIMENSION_HANDLE_FACTORY");
+    case MomFactoryClass::dimension_handle_set_factory:
+      return formatMomString(L"DIMENSION_HANDLE_SET_FACTORY");
+    case MomFactoryClass::federate_ambassador:
+      return formatMomString(L"FederateAmbassador");
+    case MomFactoryClass::federate_handle_factory:
+      return formatMomString(L"FEDERATE_HANDLE_FACTORY");
+    case MomFactoryClass::federate_handle_set_factory:
+      return formatMomString(L"FEDERATE_HANDLE_SET_FACTORY");
+    case MomFactoryClass::interaction_class_handle_factory:
+      return formatMomString(L"INTERACTION_CLASS_HANDLE_FACTORY");
+    case MomFactoryClass::object_class_handle_factory:
+      return formatMomString(L"OBJECT_CLASS_HANDLE_FACTORY");
+    case MomFactoryClass::object_instance_handle_factory:
+      return formatMomString(L"OBJECT_INSTANCE_HANDLE_FACTORY");
+    case MomFactoryClass::parameter_handle_factory:
+      return formatMomString(L"PARAMETERHANDLEFACTORY");
+    case MomFactoryClass::parameter_handle_value_map_factory:
+      return formatMomString(L"PARAMETER_HANDLE_VALUE_MAP_FACTORY");
+    case MomFactoryClass::region_handle_set_factory:
+      return formatMomString(L"REGION_HANDLE_SET_FACTORY");
+    case MomFactoryClass::transportation_type_handle_factory:
+      return formatMomString(L"TRANSPORTATION_TYPE_HANDLE_FACTORY");
+    case MomFactoryClass::region_handle_factory:
+      return formatMomString(L"REGION_HANDLE_FACTORY");
+    case MomFactoryClass::message_retraction_handle_factory:
+      return formatMomString(L"MESSAGE_RETRACTION_HANDLE_FACTORY");
+    case MomFactoryClass::logical_time_factory:
+      return formatMomString(L"LOGICAL_TIME_FACTORY");
+  }
+  throw rti1516_2025::EncoderException(
+      L"The supplied FactoryClass has no Table 5 textual representation.");
+}
+
 std::wstring formatMomOrderType(rti1516_2025::OrderType orderType) {
   switch (orderType) {
     case rti1516_2025::RECEIVE:
@@ -629,6 +759,16 @@ std::wstring formatMomServiceArgumentRecord(MomServiceArgument const& argument) 
       formatMomString(argument.name) +
       L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::argument_value) +
       argument.value + L"}";
+}
+
+std::wstring formatMomReturnedArgumentRecord(
+    MomArgumentType type,
+    std::wstring const& value) {
+  return std::wstring{L"{"} +
+      formatMomJsonKey(umbra::detail::hla::wide::mom::argument_type) +
+      std::to_wstring(static_cast<std::int32_t>(type)) +
+      L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::argument_value) +
+      value + L"}";
 }
 
 std::wstring formatMomServiceReportInitialRecord(
@@ -702,7 +842,7 @@ std::wstring formatMomSuccessfulServiceReportRecord(
       formatMomJsonKey(umbra::detail::hla::wide::mom::serial_number) +
       formatMomNumber(std::to_wstring(serialNumber)) +
       L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::returned_argument) + L"[" +
-      formatMomServiceArgumentRecord(returnedArgument) +
+      formatMomReturnedArgumentRecord(returnedArgument.type, returnedArgument.value) +
       L"]," + formatMomJsonKey(umbra::detail::hla::wide::mom::service) +
       formatMomString(service) +
       L"," + formatMomJsonKey(umbra::detail::hla::wide::mom::supplied_arguments) +

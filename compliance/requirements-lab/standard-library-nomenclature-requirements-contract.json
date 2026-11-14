@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-siso-marker-evidence-not-conformance",
+  "notes": "Maps the IEEE 1516.1-2025 §12.12.1.1 library-naming requirement to a C++ downstream package smoke test, not to a public-service TCK case. The focused check validates all three installed shared-library basenames and package metadata under 64-bit MinGW GCC 15.2 Debug. SISO-REF-080-2023 defines gcc12 for GCC 12 and later; Umbra now publishes gcc12 (source SISO-REF-080-2023), the 64-bit form without _32, the Debug d marker, and the Windows .dll extension. The GNU package smoke configure check rejects a divergent automatic GCC marker/source while allowing an explicitly user-configured marker. Applying SISO's compiler-family marker to MinGW is an implementation interpretation; the platform is separately distinguished by the Windows library extension. Evidence: CTest umbra_rti_package_library_nomenclature passed in out/mgw/shared/package-smoke-nomenclature-check-20261106. This is focused package-format evidence for this toolchain only, not cross-platform verification, third-party interoperability, or overall conformance.",
+  "requirements": [
+    {
+      "id": "umbra-hla-cpp-shared-library-nomenclature",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-379-l62-19",
+      "clause_id": "clause-12.12.1.1",
+      "standard_section": "hla-1516.1-2025:clause-12.12.1.1",
+      "source": "CMakeLists.txt",
+      "source_symbol": "umbra_configure_2025_library_abi",
+      "related_source_symbols": [
+        "cmake/package-smoke/library_nomenclature.cpp::main"
+      ],
+      "tests": [
+        "CTest: umbra_rti_package_library_nomenclature",
+        "cmake/package-smoke/library_nomenclature.cpp::main"
+      ]
+    }
+  ]
+}

@@ -84,8 +84,8 @@ FederateTimeState::FederateTimeState(FederateTimeState const& other) {
   timeConstrained_ = other.timeConstrained_;
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
-  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
-      other.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_;
+  allowEqualTimeTsoAfterAvailableGrant_ =
+      other.allowEqualTimeTsoAfterAvailableGrant_;
   active_ = other.active_;
   timeAdvancing_ = other.timeAdvancing_;
   momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
@@ -119,8 +119,8 @@ FederateTimeState& FederateTimeState::operator=(FederateTimeState const& other) 
   timeConstrained_ = other.timeConstrained_;
   asynchronousDeliveryEnabled_ = other.asynchronousDeliveryEnabled_;
   minimumTimestampIsExclusive_ = other.minimumTimestampIsExclusive_;
-  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
-      other.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_;
+  allowEqualTimeTsoAfterAvailableGrant_ =
+      other.allowEqualTimeTsoAfterAvailableGrant_;
   active_ = other.active_;
   timeAdvancing_ = other.timeAdvancing_;
   momGrantedMilliseconds_ = momDurations.grantedMilliseconds;
@@ -189,8 +189,8 @@ void FederateTimeState::restoreFromSnapshot(FederateTimeSnapshot const& snapshot
   timeConstrained_ = snapshot.timeConstrained;
   asynchronousDeliveryEnabled_ = snapshot.asynchronousDeliveryEnabled;
   minimumTimestampIsExclusive_ = snapshot.minimumTimestampIsExclusive;
-  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
-      snapshot.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant;
+  allowEqualTimeTsoAfterAvailableGrant_ =
+      snapshot.allowEqualTimeTsoAfterAvailableGrant;
   active_ = snapshot.active;
   timeAdvancing_ = snapshot.timeAdvancePending;
   momGrantedMilliseconds_ = 0U;
@@ -237,8 +237,8 @@ FederateTimeSnapshot FederateTimeState::snapshot() const {
       .pendingTimeConstrainedGeneration = pendingTimeConstrainedGeneration_,
       .nextGeneration = nextGeneration_,
       .minimumTimestampIsExclusive = minimumTimestampIsExclusive_,
-      .allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant =
-          allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_,
+      .allowEqualTimeTsoAfterAvailableGrant =
+          allowEqualTimeTsoAfterAvailableGrant_,
       .currentTime = currentTime_,
       .optimisticTime = optimisticTime_,
       .requestedTime = pendingTime_,
@@ -404,7 +404,8 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grant(
 
 std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
     std::uint64_t generation) {
-  if (!active_ || !pendingTime_ || generation == 0 || generation != pendingGeneration_) {
+  if (!active_ || !currentTime_ || !pendingTime_ || generation == 0 ||
+      generation != pendingGeneration_) {
     return nullptr;
   }
 
@@ -415,9 +416,17 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
   // currentTime_ or the pending-generation fields have already been mutated
   // would strand the federate in a state with no matching grant callback.
   bool clearsOptimisticFloor = false;
+  bool logicalTimeAdvances = false;
   if (optimisticTime_) {
     try {
       clearsOptimisticFloor = *pendingTime_ >= *optimisticTime_;
+      logicalTimeAdvances = *pendingTime_ > *currentTime_;
+    } catch (rti1516_2025::Exception const&) {
+      return nullptr;
+    }
+  } else {
+    try {
+      logicalTimeAdvances = *pendingTime_ > *currentTime_;
     } catch (rti1516_2025::Exception const&) {
       return nullptr;
     }
@@ -484,9 +493,17 @@ std::shared_ptr<rti1516_2025::LogicalTime const> FederateTimeState::grantImpl(
       lookahead_ = std::move(revisedLookahead);
     }
   }
-  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ =
-      advanceMode_ == FederateTimeAdvanceMode::time_advance_request_available &&
-      pendingTimeRegulationGeneration_ == 0U;
+  if (pendingTimeRegulationGeneration_ == 0U && logicalTimeAdvances) {
+    if (advanceMode_ ==
+            FederateTimeAdvanceMode::time_advance_request_available ||
+        advanceMode_ ==
+            FederateTimeAdvanceMode::next_message_request_available) {
+      allowEqualTimeTsoAfterAvailableGrant_ = true;
+    } else if (advanceMode_ == FederateTimeAdvanceMode::time_advance_request ||
+               advanceMode_ == FederateTimeAdvanceMode::next_message_request) {
+      allowEqualTimeTsoAfterAvailableGrant_ = false;
+    }
+  }
   pendingAdvanceRequestTime_.reset();
   advanceMode_ = FederateTimeAdvanceMode::none;
   pendingGeneration_ = 0;
@@ -619,6 +636,7 @@ FederateTimeState::grantTimeRegulationIfCurrent(
   lookahead_ = std::move(pendingLookahead_);
   pendingModifiedLookahead_.reset();
   minimumTimestampIsExclusive_ = false;
+  allowEqualTimeTsoAfterAvailableGrant_ = false;
   pendingTimeRegulationGeneration_ = 0;
   return currentTime_;
 }
@@ -636,6 +654,7 @@ FederateTimeDisableStatus FederateTimeState::disableTimeRegulation() {
   lookahead_.reset();
   pendingModifiedLookahead_.reset();
   minimumTimestampIsExclusive_ = false;
+  allowEqualTimeTsoAfterAvailableGrant_ = false;
   return FederateTimeDisableStatus::applied;
 }
 
@@ -881,7 +900,7 @@ void FederateTimeState::deactivate() noexcept {
   timeConstrained_ = false;
   asynchronousDeliveryEnabled_ = false;
   minimumTimestampIsExclusive_ = false;
-  allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant_ = false;
+  allowEqualTimeTsoAfterAvailableGrant_ = false;
   deferredAsynchronousReceives_.clear();
 }
 

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-focused-java-provider-runtime-not-conformance",
+  "notes": "Focused Java public-API evidence for IEEE 1516.1-2025 §12.11.4 Table 22. The scenario invokes setValue twice on each of the 25 basic data-element interfaces and checks getValue after each assignment. It verifies Java value accessors, not C++ assignment/conversion operators, encoded wire forms, exhaustive Annex C behavior, interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-java-table-22-basic-data-element-value-operations",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-362-l44-14",
+      "clause_id": "clause-12.11.4",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/BasicDataElementValueOperationsTck.java",
+      "source_symbol": "BasicDataElementValueOperationsTck.run",
+      "tests": [
+        "org.hla.rti.tck.RtiTckMain#basicDataElementValueOperations"
+      ]
+    }
+  ]
+}

@@ -153,6 +153,10 @@ struct FederationDefinition {
   std::shared_ptr<FomCatalog const> catalog;
   std::shared_ptr<MaterializedFdd const> fdd;
   FomStandardEdition standardEdition = FomStandardEdition::ieee1516_2025;
+  // Provider-profile capability input. Names stay in the composed FOM for
+  // handle lookup, while effective services fall back by reliability when
+  // the configured RTI/infrastructure profile cannot carry them.
+  std::set<std::string> unsupportedTransportationTypeNames;
 };
 
 struct FederateMembership {
@@ -782,6 +786,13 @@ enum class JoinedFederateMomObjectStatus {
 // common namespace but remains outside the federate-created ObjectInstance map
 // so RTI-owned discovery/reflection and ownership state cannot be confused
 // with a federate-produced instance.
+struct PendingJoinedFederateMomAttributeOwnershipAcquisition {
+  std::uint64_t requestingFederateId = 0;
+  std::uint64_t requestSequence = 0;
+  std::set<std::uint64_t> desiredAttributeHandles;
+  std::vector<unsigned char> userSuppliedTag;
+};
+
 struct JoinedFederateMomObjectSnapshot {
   std::uint64_t objectInstanceHandle = 0;
   std::uint64_t joinedFederateId = 0;
@@ -811,6 +822,17 @@ struct JoinedFederateMomObjectSnapshot {
   // embedded HLA_IMMEDIATE scheduler; remaining dynamic values remain later
   // layers.
   std::set<std::uint64_t> effectiveAttributeHandles;
+  // Attributes originating in the MIM remain RTI-owned. Attributes added by
+  // FOM composition are intentionally excluded: §11.2.1(b) says the RTI shall
+  // never acquire ownership of those attributes.
+  std::set<std::uint64_t> rtiOwnedAttributeHandles;
+  // Ownership and values for FOM-added attributes use the same logical MOM
+  // object identity while remaining separate from federate-created objects.
+  std::map<std::uint64_t, std::uint64_t> attributeOwnersByHandle;
+  std::map<std::uint64_t, rti1516_2025::VariableLengthData>
+      applicationAttributeValues;
+  std::map<std::uint64_t, PendingJoinedFederateMomAttributeOwnershipAcquisition>
+      pendingAttributeOwnershipAcquisitionRequests;
   // MIM updateType metadata is retained as handles so HLAsetTiming can
   // schedule the exact Periodic subset without inventing a second attribute
   // table in the runtime.
@@ -1381,6 +1403,12 @@ struct JoinedFederateMomAttributeValueUpdateRecipient {
   std::uint64_t objectInstanceHandle = 0;
   std::map<std::uint64_t, rti1516_2025::VariableLengthData> attributeValues;
   ObjectInstanceCallbackRoute callbackRoute;
+  // Table 8 HLAfederate reflections use the RTI-owned point region. These
+  // source identifiers are private keys for callback-scoped copies, not
+  // federate-created RegionHandles.
+  bool conveyUpdateRegion = false;
+  std::set<std::uint64_t> updateRegionSourceHandles;
+  std::map<std::uint64_t, RegionSpecificationSnapshot> updateRegionSnapshots;
 };
 
 struct JoinedFederateMomAttributeValueUpdatePlan {

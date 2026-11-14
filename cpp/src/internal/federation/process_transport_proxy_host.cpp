@@ -126,6 +126,9 @@ void ProcessTransportProxyHost::acceptLoop() noexcept {
       }
       return;
     }
+    if (!downstream) {
+      continue;
+    }
 
     auto worker = std::make_unique<Worker>(downstream);
     auto* workerPointer = worker.get();
@@ -194,7 +197,16 @@ void ProcessTransportProxyHost::relayFrames(
     std::shared_ptr<ProcessTransportConnection> const& destination) noexcept {
   for (;;) {
     TransportFrame frame;
-    if (!source->receiveFrame(frame) || !destination->sendFrame(frame)) {
+    if (!source->receiveFrame(frame)) {
+      break;
+    }
+    if (isTransportServiceFrameKind(frame.kind)) {
+      // A proxy bridges two independently handshaken socket sessions. Bind
+      // the frame to the destination hop while preserving the end-to-end
+      // service sequence, acknowledgement, and payload.
+      frame.sessionId = destination->sessionId();
+    }
+    if (!destination->sendFrame(frame)) {
       break;
     }
   }

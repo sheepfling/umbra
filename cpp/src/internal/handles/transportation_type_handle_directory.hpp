@@ -8,14 +8,17 @@
 namespace umbra::detail {
 
 class FomCatalog;
+class FomHandleAllocator;
 
-// Private, per-federation TransportationTypeHandle allocation. The two
-// mandatory standard names retain their official values; FOM-declared names
-// receive execution-scoped values that are never reassigned when a compatible
-// additional-FOM join extends the catalog.
+// Private transportation handle lookup. The predefined standard pair uses
+// Umbra's stable values even when an FDD omits their declarations; user-defined
+// names use the execution-wide opaque allocator and retain values across a
+// compatible additional-FOM join.
 class TransportationTypeHandleDirectory final {
  public:
-  [[nodiscard]] bool reconcile(FomCatalog const* catalog);
+  [[nodiscard]] bool reconcile(
+      FomCatalog const* catalog,
+      FomHandleAllocator& handleAllocator);
 
   [[nodiscard]] std::optional<std::uint64_t> handleFor(
       std::string const& transportationTypeName) const;
@@ -24,7 +27,6 @@ class TransportationTypeHandleDirectory final {
  private:
   std::map<std::string, std::uint64_t> handlesByName_;
   std::map<std::uint64_t, std::string> namesByHandle_;
-  std::uint64_t nextHandle_ = 3;
 };
 
 }  // namespace umbra::detail

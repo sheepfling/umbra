@@ -68,7 +68,7 @@ final class CallbackControlsDeclarationAdvisoriesTck {
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          publisher.disableCallbacks();
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "start-registration");
          JavaTckSupport.check(publisherRecorder.registrationStarts.isEmpty(),
             "disabled callbacks exposed a start-registration advisory");
 
@@ -82,7 +82,7 @@ final class CallbackControlsDeclarationAdvisoriesTck {
 
          publisher.disableCallbacks();
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "stop-registration");
          JavaTckSupport.check(publisherRecorder.registrationStops.isEmpty(),
             "disabled callbacks exposed a stop-registration advisory");
          publisher.enableCallbacks();
@@ -97,7 +97,7 @@ final class CallbackControlsDeclarationAdvisoriesTck {
          publisher.disableCallbacks();
          subscriber.subscribeInteractionClass(subscriberInteraction);
          publisher.publishInteractionClass(publisherInteraction);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "interaction turn-on");
          JavaTckSupport.check(publisherRecorder.interactionsOn.isEmpty(),
             "disabled callbacks exposed an interaction turn-on advisory");
          publisher.enableCallbacks();
@@ -110,7 +110,7 @@ final class CallbackControlsDeclarationAdvisoriesTck {
 
          publisher.disableCallbacks();
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "interaction turn-off");
          JavaTckSupport.check(publisherRecorder.interactionsOff.isEmpty(),
             "disabled callbacks exposed an interaction turn-off advisory");
          publisher.enableCallbacks();
@@ -162,6 +162,16 @@ final class CallbackControlsDeclarationAdvisoriesTck {
          ambassador.evokeMultipleCallbacks(0.0, 0.01);
       } else {
          ambassador.getObjectClassHandle(objectClassName);
+      }
+   }
+
+   private static void servicePending(RTIambassador ambassador, CallbackModel model,
+         String objectClassName, String advisory) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.check(ambassador.evokeMultipleCallbacks(0.0, 0.01),
+            "evoked callback control did not admit the pending " + advisory + " advisory");
+      } else {
+         service(ambassador, model, objectClassName);
       }
    }
 

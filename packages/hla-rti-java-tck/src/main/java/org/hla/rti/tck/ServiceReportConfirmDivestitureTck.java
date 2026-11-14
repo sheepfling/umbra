@@ -159,7 +159,7 @@ final class ServiceReportConfirmDivestitureTck {
          JavaTckSupport.check(observerRecorder.interactions.size() == 1,
             "ConfirmDivestiture produced an unexpected MOM report count");
          verifyReport(observer, ownerFederate, observerRecorder.interactions.get(0), encoder,
-            reportClass, reportParameters, reliable, object, ownerAttribute, confirmationTag);
+            reportClass, reportParameters, reliable, confirmationTag);
          JavaTckSupport.check(observerRecorder.timestampedInteractions.isEmpty(),
             "receive-order ConfirmDivestiture report used the timestamped callback overload");
 
@@ -198,7 +198,7 @@ final class ServiceReportConfirmDivestitureTck {
    private static void verifyReport(RTIambassador observer, FederateHandle expectedFederate,
          Interaction event, EncoderFactory encoder, InteractionClassHandle reportClass,
          Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable,
-         ObjectInstanceHandle object, AttributeHandle attribute, byte[] confirmationTag)
+         byte[] confirmationTag)
          throws Exception {
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETERS.length && event.tag.length == 0
@@ -233,10 +233,10 @@ final class ServiceReportConfirmDivestitureTck {
       supplied.decode(event.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 3,
          "ConfirmDivestiture report returned the wrong supplied-argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator",
-         quoted(object.toString()), "ConfirmDivestiture object argument");
-      verifyArgument(supplied.get(1), 1, "Set of attribute designators",
-         "[" + quoted(attribute.toString()) + "]", "ConfirmDivestiture attribute-set argument");
+      verifyQuotedHandleArgument(supplied.get(0), 37, "Object instance designator",
+         "ConfirmDivestiture object argument");
+      verifyQuotedHandleSetArgument(supplied.get(1), 1, "Set of attribute designators",
+         "ConfirmDivestiture attribute-set argument");
       String encodedTag = Base64.getEncoder().encodeToString(confirmationTag);
       verifyArgument(supplied.get(2), 60, "User-supplied tag", quoted(encodedTag),
          "ConfirmDivestiture confirmation-tag argument");
@@ -260,6 +260,37 @@ final class ServiceReportConfirmDivestitureTck {
             && name.equals(((HLAunicodeString) record.get(1)).getValue())
             && value.equals(((HLAunicodeString) record.get(2)).getValue()),
          description + " had the wrong type, name, or value");
+   }
+
+   private static void verifyQuotedHandleArgument(HLAfixedRecord record, int type,
+         String name, String description) throws Exception {
+      HLAinteger32BE argumentType = (HLAinteger32BE) record.get(0);
+      HLAunicodeString argumentName = (HLAunicodeString) record.get(1);
+      HLAunicodeString argumentValue = (HLAunicodeString) record.get(2);
+      // The Java API exposes opaque handles without a portable text encoding.
+      JavaTckSupport.check(record.size() == 3 && argumentType.getValue() == type
+            && name.equals(argumentName.getValue())
+            && isQuotedHandleText(argumentValue.getValue()),
+         description + " had the wrong type, name, or quoted handle text shape");
+   }
+
+   private static void verifyQuotedHandleSetArgument(HLAfixedRecord record, int type,
+         String name, String description) throws Exception {
+      HLAinteger32BE argumentType = (HLAinteger32BE) record.get(0);
+      HLAunicodeString argumentName = (HLAunicodeString) record.get(1);
+      HLAunicodeString argumentValue = (HLAunicodeString) record.get(2);
+      String value = argumentValue.getValue();
+      JavaTckSupport.check(record.size() == 3 && argumentType.getValue() == type
+            && name.equals(argumentName.getValue()) && value.length() >= 5
+            && value.startsWith("[\"") && value.endsWith("\"]")
+            && value.substring(2, value.length() - 2).indexOf('"') < 0,
+         description + " had the wrong type, name, or one-item quoted set shape");
+   }
+
+   private static boolean isQuotedHandleText(String value) {
+      return value.length() >= 3 && value.charAt(0) == '"'
+         && value.charAt(value.length() - 1) == '"'
+         && value.substring(1, value.length() - 1).indexOf('"') < 0;
    }
 
    private static String quoted(String value) { return "\"" + value + "\""; }

@@ -5,24 +5,17 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(TransportationType, transportationType)
-
-namespace {
-
-constexpr std::uint64_t kHlaReliableTransportationType = 1;
-constexpr std::uint64_t kHlaBestEffortTransportationType = 2;
-
-}  // namespace
+UMBRA_2025_DEFINE_HANDLE(TransportationType, transportationType, TransportationType)
 
 namespace umbra_binding_detail {
 
 std::optional<std::uint64_t> standardTransportationTypeValue(
     std::wstring_view name) noexcept {
   if (name == L"HLAreliable") {
-    return kHlaReliableTransportationType;
+    return kHlaReliableTransportationTypeValue;
   }
   if (name == L"HLAbestEffort") {
-    return kHlaBestEffortTransportationType;
+    return kHlaBestEffortTransportationTypeValue;
   }
   return std::nullopt;
 }
@@ -30,9 +23,9 @@ std::optional<std::uint64_t> standardTransportationTypeValue(
 std::optional<std::wstring_view> standardTransportationTypeName(
     std::uint64_t value) noexcept {
   switch (value) {
-    case kHlaReliableTransportationType:
+    case kHlaReliableTransportationTypeValue:
       return L"HLAreliable";
-    case kHlaBestEffortTransportationType:
+    case kHlaBestEffortTransportationTypeValue:
       return L"HLAbestEffort";
     default:
       return std::nullopt;

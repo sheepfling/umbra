@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>DDM Available Attribute Test</name>
+        <type>FOM</type>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>UmbraAvailableAttributeBase</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>UmbraAvailableAttributeDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>BaseValue</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>Fixture update.</updateCondition>
+                    <valueRequired>true</valueRequired>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Attribute available on the base class.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>UmbraAvailableAttributeDerived</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <dimensions>
+                        <dimension>UmbraAvailableAttributeDimension</dimension>
+                    </dimensions>
+                    <attribute>
+                        <name>DerivedOnlyValue</name>
+                        <dataType>HLAunicodeString</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>Fixture update.</updateCondition>
+                        <valueRequired>true</valueRequired>
+                        <ownership>NoTransfer</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Attribute available only on the derived class.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dimensions>
+        <dimension>
+            <name>UmbraAvailableAttributeDimension</name>
+            <inputDataTypes>
+                <dataType>HLAcount</dataType>
+            </inputDataTypes>
+            <inputDataDescription>Fixture coordinate.</inputDataDescription>
+            <upperBound>10</upperBound>
+            <normalization>linear fixture coordinate</normalization>
+            <outputDataSemantics>Fixture coordinate.</outputDataSemantics>
+            <value>[0..10)</value>
+        </dimension>
+    </dimensions>
+</objectModel>

@@ -209,15 +209,21 @@ void runMixedOrderAttributePasselScenario(
             timestampOrder != deliveries.end() &&
             receiveOrder != timestampOrder &&
             receiveOrder->object == object &&
+            receiveOrder->values.size() == 1U &&
+            receiveOrder->values.count(receiverReceiveOrder) == 1U &&
             copyBytes(receiveOrder->values.at(receiverReceiveOrder)) ==
                 receiveOrderBytes &&
-            receiveOrder->sentOrder == rti::RECEIVE &&
+            timestampOrder->object == object &&
+            timestampOrder->values.size() == 1U &&
+            timestampOrder->values.count(receiverTimestamped) == 1U &&
+            copyBytes(timestampOrder->values.at(receiverTimestamped)) ==
+                timestampedBytes,
+        "An attribute element changed passel membership or was combined with the other passel");
+    require(
+        receiveOrder->sentOrder == rti::RECEIVE &&
             receiveOrder->receivedOrder == rti::RECEIVE &&
             receiveOrder->tag == tagBytes &&
             !receiveOrder->retractionPresent &&
-            timestampOrder->object == object &&
-            copyBytes(timestampOrder->values.at(receiverTimestamped)) ==
-                timestampedBytes &&
             timestampOrder->sentOrder == rti::TIMESTAMP &&
             timestampOrder->receivedOrder == rti::TIMESTAMP &&
             timestampOrder->time == encodeTime(*updateTime) &&
@@ -225,7 +231,7 @@ void runMixedOrderAttributePasselScenario(
             timestampOrder->retractionPresent &&
             receiver.recorder().reflections().empty() &&
             receiver.recorder().timeAdvanceGrants().size() == 1U,
-        "A mixed-order timestamped update was not delivered as two distinct attribute-only passel messages");
+        "Mixed-order passel callbacks did not preserve sent order, receive order, tag, timestamp, or grant boundary");
   }
 
   receiver.resign(rti::NO_ACTION);

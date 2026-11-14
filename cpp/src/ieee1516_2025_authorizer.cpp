@@ -4,14 +4,24 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+
+#include "internal/runtime/authorizer_factory_provider.hpp"
 
 namespace rti1516_2025 {
 
 std::unique_ptr<AuthorizerFactory> AuthorizerFactoryFactory::getAuthorizerFactory(
     std::wstring const& authorizerName) {
-  // The standard library-level entry point is intentionally only a forwarding
-  // boundary. Custom authorizer-library loading remains a later RID/DLC slice;
-  // unknown names therefore receive the reference factory's null result.
+  auto provider =
+      umbra::detail::makeAuthorizerFactoryFromProviderLibrary(authorizerName);
+  if (provider.factory) {
+    return std::move(provider.factory);
+  }
+  if (provider.configured && !provider.available) {
+    return {};
+  }
+  // The standard library boundary delegates unsupported names to the
+  // reference implementation, as required by AuthorizerFactoryFactory.
   return HLAauthorizerFactoryFactory::getAuthorizerFactory(authorizerName);
 }
 

@@ -7,7 +7,7 @@ std::filesystem::path const& requiredFom(Options const& options,
                                          std::string const& key) {
   auto const found = options.scenarioFoms.find(key);
   require(found != options.scenarioFoms.end(),
-          "Tag data-type category requires an adapter-supplied FOM");
+          "Tag data-type/capability case requires an adapter-supplied FOM");
   return found->second;
 }
 
@@ -29,7 +29,8 @@ void scenarioFomTagDataTypeCategories(Options const& options,
   create(valid);
   creator.rtiAmbassador().destroyFederationExecution(federation);
   for (auto const& key : {"tag-data-type-basic-user",
-                          "tag-data-type-basic-synchronization"}) {
+                          "tag-data-type-basic-synchronization",
+                          "tag-synchronization-capability-register"}) {
     auto const& invalid = requiredFom(options, key);
     requireException([&] { create(invalid); }, L"InconsistentFOM", key);
     create(valid);

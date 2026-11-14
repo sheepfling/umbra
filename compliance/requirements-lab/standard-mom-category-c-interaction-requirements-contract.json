@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This candidate trace covers one FOM-added interaction class directly beneath HLAmanager.HLAfederate, outside the §11.3.1 RTI-send HLAreport branch and RTI-receive HLAadjust/HLArequest/HLAservice branches. The public-API case confirms ordinary federate-to-federate routing and that the RTI does not process the switch-shaped parameter as HLAsetSwitches. Its §11.4.1 mapping is limited to this one observable absence of a MOM side effect; it does not establish the broad prohibition exhaustively. It does not enumerate all possible category-c classes, inspect the RTI's internal subscription set, or claim conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-category-c-interaction-not-sent-or-received",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l75-24",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Category-c MOM interaction send/receive exclusion",
+      "statement": "Classes of interaction in this category shall be neither sent nor received by the RTI.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_mom_category_c_interaction.cpp::scenarioFederateMomCategoryCInteraction"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-category-c-interaction-ignored",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l78-25",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Category-c MOM interaction ignore behavior",
+      "statement": "These classes of interaction shall be ignored by the RTI and may be formed in any way that is consistent with IEEE 1516.2 federation object model (FOM) development.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_mom_category_c_interaction.cpp::scenarioFederateMomCategoryCInteraction"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-mom-category-c-no-unrelated-mom-activity",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l74-24",
+      "clause_id": "clause-11.4.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "No other RTI activity with regard to MOM",
+      "statement": "Other than registering and deleting object instances, updating instance attributes, and sending and receiving interactions, the RTI shall not engage in any other activity with regard to MOM.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_mom_category_c_interaction.cpp::scenarioFederateMomCategoryCInteraction"
+      ]
+    }
+  ]
+}

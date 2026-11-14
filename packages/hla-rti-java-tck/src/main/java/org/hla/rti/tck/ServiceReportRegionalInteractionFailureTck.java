@@ -1,11 +1,13 @@
 package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
@@ -41,9 +43,11 @@ final class ServiceReportRegionalInteractionFailureTck {
 
    private ServiceReportRegionalInteractionFailureTck() { }
 
-   static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String interactionName, String parameterName, String firstDimensionName,
-         String secondDimensionName, CallbackModel callbackModel) throws Exception {
+   static void run(RtiFactory factory, String fom, String foreignFom, String mim,
+         String timeImplementation,
+         String objectClassName, String attributeName, String interactionName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
+         String foreignInteractionName, CallbackModel callbackModel) throws Exception {
       JavaTckSupport.check(fom != null && !fom.isEmpty(),
          "adapter-supplied dimensional FOM is required");
       JavaTckSupport.check(mim != null && !mim.isEmpty(),
@@ -52,15 +56,20 @@ final class ServiceReportRegionalInteractionFailureTck {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder publisherCallbacks = new Recorder();
       Recorder receiverCallbacks = new Recorder();
       Recorder observerCallbacks = new Recorder();
+      Recorder foreignCallbacks = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-regional-interaction-failure-"
          + UUID.randomUUID();
-      boolean[] connected = new boolean[3];
+      String foreignFederation =
+         "java-tck-service-report-regional-interaction-failure-foreign-" + UUID.randomUUID();
+      boolean[] connected = new boolean[4];
       boolean created = false;
-      boolean[] joined = new boolean[3];
+      boolean foreignCreated = false;
+      boolean[] joined = new boolean[4];
       boolean published = false;
       boolean receiverSubscribed = false;
       boolean reportSubscribed = false;
@@ -76,15 +85,23 @@ final class ServiceReportRegionalInteractionFailureTck {
          connected[1] = true;
          observer.connect(observerCallbacks.proxy(), callbackModel);
          connected[2] = true;
+         foreign.connect(foreignCallbacks.proxy(), callbackModel);
+         connected[3] = true;
          publisher.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         publisher.joinFederationExecution("regional-failure-publisher", "java-tck", federation);
+         foreign.createFederationExecution(foreignFederation, foreignFom, timeImplementation);
+         foreignCreated = true;
+         FederateHandle publisherHandle = publisher.joinFederationExecution(
+            "regional-failure-publisher", "java-tck", federation);
          joined[0] = true;
          receiver.joinFederationExecution("regional-failure-receiver", "java-tck", federation);
          joined[1] = true;
          observer.joinFederationExecution("regional-failure-observer", "java-tck", federation);
          joined[2] = true;
+         foreign.joinFederationExecution(
+            "regional-failure-foreign", "java-tck", foreignFederation);
+         joined[3] = true;
 
          publisher.setServiceReportingSwitch(false);
          publisher.setSendServiceReportsToFileSwitch(false);
@@ -93,8 +110,16 @@ final class ServiceReportRegionalInteractionFailureTck {
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
 
+         ObjectClassHandle publisherObjectClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle receiverObjectClass = receiver.getObjectClassHandle(objectClassName);
+         AttributeHandle publisherAttribute =
+            publisher.getAttributeHandle(publisherObjectClass, attributeName);
+         AttributeHandle receiverAttribute =
+            receiver.getAttributeHandle(receiverObjectClass, attributeName);
          publisherInteraction = publisher.getInteractionClassHandle(interactionName);
          receiverInteraction = receiver.getInteractionClassHandle(interactionName);
+         InteractionClassHandle foreignInteraction =
+            foreign.getInteractionClassHandle(foreignInteractionName);
          ParameterHandle publisherParameter =
             publisher.getParameterHandle(publisherInteraction, parameterName);
          ParameterHandle receiverParameter =
@@ -103,16 +128,41 @@ final class ServiceReportRegionalInteractionFailureTck {
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle receiverFirst = receiver.getDimensionHandle(firstDimensionName);
          DimensionHandle receiverSecond = receiver.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(publisherInteraction.equals(receiverInteraction)
+         JavaTckSupport.check(publisherObjectClass != null && receiverObjectClass != null
+               && publisherAttribute != null && receiverAttribute != null
+               && publisherInteraction != null && receiverInteraction != null
+               && publisherParameter != null && receiverParameter != null
+               && publisherFirst != null && publisherSecond != null
+               && receiverFirst != null && receiverSecond != null
+               && !publisherFirst.equals(publisherSecond)
+               && publisherInteraction.equals(receiverInteraction)
                && publisherParameter.equals(receiverParameter)
+               && foreignInteraction != null
+               && foreignInteractionName.equals(
+                  foreign.getInteractionClassName(foreignInteraction))
+               && !interactionName.equals(foreignInteractionName)
                && publisher.getInteractionClassName(publisherInteraction).equals(interactionName)
                && publisher.getParameterName(publisherInteraction, publisherParameter)
-                  .equals(parameterName),
-            "adapter FOM interaction/parameter declarations did not round-trip");
-         JavaTckSupport.check(publisher.getAvailableDimensionsForInteractionClass(
+                  .equals(parameterName)
+               && firstDimensionName.equals(publisher.getDimensionName(publisherFirst))
+               && secondDimensionName.equals(publisher.getDimensionName(publisherSecond)),
+            "adapter FOM object/attribute/interaction/parameter/dimension lookups did not round-trip");
+         JavaTckSupport.expectFailure(
+            () -> publisher.getInteractionClassName(foreignInteraction),
+            "InvalidInteractionClassHandle",
+            "lookup of an interaction-class handle from a different federation execution");
+         JavaTckSupport.check(publisher.getAvailableDimensionsForObjectClass(publisherObjectClass)
+                  .contains(publisherFirst)
+               && publisher.getAvailableDimensionsForObjectClass(publisherObjectClass)
+                  .contains(publisherSecond)
+               && publisher.getAvailableDimensionsForInteractionClass(
                   publisherInteraction).contains(publisherFirst)
                && publisher.getAvailableDimensionsForInteractionClass(publisherInteraction)
                   .contains(publisherSecond)
+               && receiver.getAvailableDimensionsForObjectClass(receiverObjectClass)
+                  .contains(receiverFirst)
+               && receiver.getAvailableDimensionsForObjectClass(receiverObjectClass)
+                  .contains(receiverSecond)
                && receiver.getAvailableDimensionsForInteractionClass(receiverInteraction)
                   .contains(receiverFirst)
                && receiver.getAvailableDimensionsForInteractionClass(receiverInteraction)
@@ -136,6 +186,20 @@ final class ServiceReportRegionalInteractionFailureTck {
          TransportationTypeHandle reliable = observer.getTransportationTypeHandle("HLAreliable");
          JavaTckSupport.check("HLAreliable".equals(observer.getTransportationTypeName(reliable)),
             "standard reliable transportation handle did not round-trip");
+         InteractionClassHandle publisherReportClass =
+            publisher.getInteractionClassHandle(REPORT_CLASS);
+         ParameterHandle foreignParameter = publisher.getParameterHandle(
+            publisherReportClass, "HLAservice");
+         JavaTckSupport.check(publisherReportClass != null && foreignParameter != null
+               && !publisherInteraction.equals(publisherReportClass)
+               && "HLAservice".equals(
+                  publisher.getParameterName(publisherReportClass, foreignParameter)),
+            "standard MIM HLAservice parameter lookup/name round-trip failed");
+         final InteractionClassHandle sourceInteraction = publisherInteraction;
+         JavaTckSupport.expectFailure(
+            () -> publisher.getParameterName(sourceInteraction, foreignParameter),
+            "InteractionParameterNotDefined",
+            "using a standard MIM parameter with the application interaction");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
 
@@ -143,6 +207,9 @@ final class ServiceReportRegionalInteractionFailureTck {
          published = true;
          sourceRegion = createRegion(publisher, publisherFirst, publisherSecond, 1, 5, 1, 5);
          receiverRegion = createRegion(receiver, receiverFirst, receiverSecond, 2, 6, 2, 6);
+         RegionHandle staleRegion = createRegion(
+            publisher, publisherFirst, publisherSecond, 1, 5, 1, 5);
+         publisher.deleteRegion(staleRegion);
          RegionHandleSet sourceRegions = regionSet(publisher, sourceRegion);
          RegionHandleSet receiverRegions = regionSet(receiver, receiverRegion);
          receiver.setConveyRegionDesignatorSetsSwitch(true);
@@ -157,28 +224,23 @@ final class ServiceReportRegionalInteractionFailureTck {
          byte[] tag = new byte[] {0x46, 0x41, 0x49};
          ParameterHandleValueMap values = publisher.getParameterHandleValueMapFactory().create(1);
          values.put(publisherParameter, value.clone());
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
-         expectReportedFailure(publisher, receiver, observer, receiverCallbacks,
-            observerCallbacks, callbackModel, encoder, reportClass, reportParameters, reliable,
-            invalidInteraction, values, sourceRegions, tag, "InteractionClassNotDefined", 0,
-            "invalid interaction-class regional send");
-
-         ParameterHandle invalidParameter = JavaTckSupport.invalidHandle(ParameterHandle.class);
          ParameterHandleValueMap invalidValues =
             publisher.getParameterHandleValueMapFactory().create(1);
-         invalidValues.put(invalidParameter, value.clone());
+         invalidValues.put(foreignParameter, value.clone());
          expectReportedFailure(publisher, receiver, observer, receiverCallbacks,
-            observerCallbacks, callbackModel, encoder, reportClass, reportParameters, reliable,
-            publisherInteraction, invalidValues, sourceRegions, tag,
-            "InteractionParameterNotDefined", 1, "invalid-parameter regional send");
+            observerCallbacks, publisherHandle, callbackModel, encoder, reportClass,
+            reportParameters, reliable, foreignInteraction, values, sourceRegions, tag,
+            "InteractionClassNotDefined", 0, "foreign-interaction-class regional send");
+         expectReportedFailure(publisher, receiver, observer, receiverCallbacks,
+            observerCallbacks, publisherHandle, callbackModel, encoder, reportClass,
+            reportParameters, reliable, publisherInteraction, invalidValues, sourceRegions, tag,
+            "InteractionParameterNotDefined", 1, "foreign-parameter regional send");
 
-         RegionHandleSet invalidRegions = publisher.getRegionHandleSetFactory().create();
-         invalidRegions.add(JavaTckSupport.invalidHandle(RegionHandle.class));
          expectReportedFailure(publisher, receiver, observer, receiverCallbacks,
-            observerCallbacks, callbackModel, encoder, reportClass, reportParameters, reliable,
-            publisherInteraction, values, invalidRegions, tag, "InvalidRegion", 2,
-            "invalid-region regional send");
+            observerCallbacks, publisherHandle, callbackModel, encoder, reportClass,
+            reportParameters, reliable, publisherInteraction, values,
+            regionSet(publisher, staleRegion), tag, "InvalidRegion", 2,
+            "deleted-region regional send");
 
          publisher.setServiceReportingSwitch(false);
          publisher.setSendServiceReportsToFileSwitch(false);
@@ -225,8 +287,13 @@ final class ServiceReportRegionalInteractionFailureTck {
          if (joined[2]) resign(observer);
          if (joined[1]) resign(receiver);
          if (joined[0]) resign(publisher);
+         if (joined[3]) resign(foreign);
          if (created) {
             try { publisher.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
          }
          if (connected[2]) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -237,12 +304,16 @@ final class ServiceReportRegionalInteractionFailureTck {
          if (connected[0]) {
             try { publisher.disconnect(); } catch (Exception ignored) { }
          }
+         if (connected[3]) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
+         }
       }
    }
 
    private static void expectReportedFailure(RTIambassador publisher, RTIambassador receiver,
          RTIambassador observer, Recorder receiverCallbacks, Recorder observerCallbacks,
-         CallbackModel callbackModel, EncoderFactory encoder, InteractionClassHandle reportClass,
+         FederateHandle publisherHandle, CallbackModel callbackModel, EncoderFactory encoder,
+         InteractionClassHandle reportClass,
          Map<String, ParameterHandle> reportParameters, TransportationTypeHandle reliable,
          InteractionClassHandle interaction, ParameterHandleValueMap values,
          RegionHandleSet regions, byte[] tag, String exceptionName, int serialNumber,
@@ -254,18 +325,20 @@ final class ServiceReportRegionalInteractionFailureTck {
          description + " HLAreportServiceInvocation callback");
       JavaTckSupport.check(observerCallbacks.interactions.size() == 1,
          description + " produced more than one service report");
-      verifyFailureReport(observerCallbacks.lastInteraction(), reportClass, reportParameters,
-         encoder, reliable, exceptionName, serialNumber, description);
+      verifyFailureReport(observer, observerCallbacks.lastInteraction(), reportClass,
+         reportParameters, encoder, reliable, publisherHandle, interaction, exceptionName,
+         serialNumber, description);
       observerCallbacks.interactions.clear();
       settle(receiver, callbackModel);
       JavaTckSupport.check(receiverCallbacks.interactions.isEmpty(),
          description + " delivered an application interaction");
    }
 
-   private static void verifyFailureReport(Interaction report,
+   private static void verifyFailureReport(RTIambassador observer, Interaction report,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> reportParameters,
-         EncoderFactory encoder, TransportationTypeHandle reliable, String expectedException,
-         int expectedSerial, String description) throws Exception {
+         EncoderFactory encoder, TransportationTypeHandle reliable, FederateHandle publisher,
+         InteractionClassHandle sentInteraction, String expectedException, int expectedSerial,
+         String description) throws Exception {
       JavaTckSupport.check(reportClass.equals(report.interaction)
             && report.parameters.size() == reportParameters.size()
             && report.producer == null && report.tag.length == 0 && report.regionsEmpty
@@ -275,6 +348,10 @@ final class ServiceReportRegionalInteractionFailureTck {
          JavaTckSupport.check(report.parameters.containsKey(handle),
             description + " report omitted a standard parameter");
       }
+      FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(
+         report.parameters.get(reportParameters.get("HLAfederate")), 0);
+      JavaTckSupport.check(publisher.equals(reportedFederate),
+         description + " report identified the wrong publisher federate");
       HLAunicodeString service = encoder.createHLAunicodeString();
       service.decode(report.parameters.get(reportParameters.get("HLAservice")));
       JavaTckSupport.check("SendInteractionWithRegions".equals(service.getValue()),
@@ -305,6 +382,12 @@ final class ServiceReportRegionalInteractionFailureTck {
                && names[index].equals(((HLAunicodeString) argument.get(1)).getValue()),
             description + " report returned the wrong supplied-argument shape at " + index);
       }
+      HLAfixedRecord classArgument = arguments.get(0);
+      String classDesignator =
+         ((HLAunicodeString) classArgument.get(2)).getValue();
+      JavaTckSupport.check(("\"" + sentInteraction.toString() + "\"")
+            .equals(classDesignator),
+         description + " report returned a different interaction-class designator");
 
       HLAfixedRecord returned = fixedRecordPrototype(encoder);
       returned.decode(report.parameters.get(reportParameters.get("HLAreturnedArgument")));

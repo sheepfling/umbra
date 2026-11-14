@@ -81,7 +81,8 @@ final class RestoreLiveTsoDirectedInteractionTck {
          publisher.publishObjectClassAttributes(publisherClass, publishedAttributes);
          receiver.subscribeObjectClassAttributes(receiverClass, subscribedAttributes);
          publisher.publishObjectClassDirectedInteractions(publisherClass, publishedDirected);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass, subscribedDirected);
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(
+            receiverClass, subscribedDirected);
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
          await(members, () -> receiverEvents.discoveries.contains(target),
@@ -94,7 +95,7 @@ final class RestoreLiveTsoDirectedInteractionTck {
          LogicalTime<?, ?> time1 = offset(initial, epsilon, 1);
          LogicalTime<?, ?> time6 = offset(initial, epsilon, 6);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          ParameterHandleValueMap empty = publisher.getParameterHandleValueMapFactory().create(0);
@@ -146,16 +147,18 @@ final class RestoreLiveTsoDirectedInteractionTck {
                && Arrays.equals(delivered.tag, tag)
                && delivered.transportation.equals(reliable)
                && delivered.producer.equals(publisherHandle)
-               && delivered.time.equals(time6)
+               && Arrays.equals(encodeTime(delivered.time), encodeTime(time6))
                && delivered.sentOrder == OrderType.TIMESTAMP
                && delivered.receivedOrder == OrderType.TIMESTAMP
-               && delivered.retraction.equals(saved.handle)
+               && Arrays.equals(encodeHandle(delivered.retraction),
+                  encodeHandle(saved.handle))
                && receiverEvents.order.equals(List.of("directed", "flush-grant")),
             "restored directed callback changed public fields or ordering");
          publisher.retract(saved.handle);
          await(members, () -> receiverEvents.retractions.size() == 1,
             "restored directed request-retraction callback");
-         JavaTckSupport.check(receiverEvents.retractions.get(0).equals(saved.handle),
+         JavaTckSupport.check(Arrays.equals(
+               encodeHandle(receiverEvents.retractions.get(0)), encodeHandle(saved.handle)),
             "restored directed retraction callback returned a different handle");
          JavaTckSupport.expectFailure(() -> publisher.retract(saved.handle),
             "MessageCanNoLongerBeRetracted", "restored terminal directed handle");
@@ -203,6 +206,18 @@ final class RestoreLiveTsoDirectedInteractionTck {
       for (int index = 1; index < steps; ++index)
          result = (LogicalTimeInterval) result.add(epsilon);
       return result;
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static final class Delivery {

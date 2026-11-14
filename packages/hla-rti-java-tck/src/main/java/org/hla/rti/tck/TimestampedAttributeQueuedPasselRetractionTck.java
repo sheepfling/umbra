@@ -99,9 +99,6 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
             "timestamped queued-passel members selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          LogicalTime publisherInitial = publisher.queryLogicalTime();
-         LogicalTime receiverInitial = receiver.queryLogicalTime();
-         JavaTckSupport.check(publisherInitial.equals(receiverInitial),
-            "timestamped queued-passel members began at different logical times");
          LogicalTime lookaheadTarget = offset(publisherInitial, epsilon, 5);
          LogicalTimeInterval lookahead = (LogicalTimeInterval) lookaheadTarget.distance(publisherInitial);
 
@@ -138,10 +135,11 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
          publisher.retract(first.handle);
          publisher.timeAdvanceRequest(firstUpdateTime);
          awaitBoth(publisher, receiver, callbackModel,
-            () -> publisherRecorder.timeAdvanceGrantTimes.size() == 1
-                  && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 1
+                  && receiverRecorder.timeAdvanceGrantTimes.size() >= 1,
             "grant after retracting first passel");
-         JavaTckSupport.check(receiverRecorder.reflections.isEmpty()
+         JavaTckSupport.check(receiverRecorder.timeAdvanceGrantTimes.size() == 1
+               && receiverRecorder.reflections.isEmpty()
                && receiverRecorder.retractionCallbacks.isEmpty(),
             "retracted queued passel leaked a reflection or retraction callback");
 
@@ -152,13 +150,12 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
          publisher.timeAdvanceRequest(secondUpdateTime);
          awaitBoth(publisher, receiver, callbackModel,
             () -> receiverRecorder.reflections.size() >= 1
-                  && receiverRecorder.timeAdvanceGrantTimes.size() == 2
-                  && publisherRecorder.timeAdvanceGrantTimes.size() == 2,
+                  && receiverRecorder.timeAdvanceGrantTimes.size() >= 2,
             "second passel delivery and grants");
 
          List<Reflection> reflections = receiverRecorder.reflections;
-         JavaTckSupport.check(!reflections.isEmpty(),
-            "second queued passel returned no timestamped reflections");
+         JavaTckSupport.check(reflections.size() == 1,
+            "second queued passel did not produce exactly one timestamped passel reflection");
          List<String> callbackOrder = receiverRecorder.callbackOrder;
          JavaTckSupport.check(callbackOrder.size() >= 3
                && "timeAdvanceGrant".equals(callbackOrder.get(0))
@@ -166,41 +163,23 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
                && callbackOrder.contains("reflectAttributeValues"),
             "queued passel returned the wrong callback ordering");
 
-         boolean firstReported = false;
-         boolean secondReported = false;
-         for (Reflection reflection : reflections) {
-            JavaTckSupport.check(object.equals(reflection.object)
-                  && reflection.values != null && !reflection.values.isEmpty()
-                  && Arrays.equals(tag, reflection.tag)
-                  && producer.equals(reflection.producer)
-                  && secondUpdateTime.equals(reflection.time)
-                  && reflection.sentOrder == OrderType.TIMESTAMP
-                  && reflection.receivedOrder == OrderType.TIMESTAMP
-                  && second.handle.equals(reflection.retraction)
-                  && reflection.transportation != null
-                  && (reflection.regions == null || reflection.regions.isEmpty()),
-               "queued passel reflection returned incorrect standard metadata");
-            JavaTckSupport.check(!receiver.getTransportationTypeName(
-                  reflection.transportation).isEmpty(),
-               "queued passel reflection transportation handle did not resolve");
-            if (reflection.values.containsKey(receiverFirst)) {
-               JavaTckSupport.check(!firstReported
-                     && Arrays.equals(firstValue, reflection.values.get(receiverFirst)),
-                  "queued passel first attribute was duplicated or had the wrong value");
-               firstReported = true;
-            }
-            if (reflection.values.containsKey(receiverSecond)) {
-               JavaTckSupport.check(!secondReported
-                     && Arrays.equals(secondValue, reflection.values.get(receiverSecond)),
-                  "queued passel second attribute was duplicated or had the wrong value");
-               secondReported = true;
-            }
-            JavaTckSupport.check(reflection.values.containsKey(receiverFirst)
-                  || reflection.values.containsKey(receiverSecond),
-               "queued passel reflection contained an unknown attribute");
-         }
-         JavaTckSupport.check(firstReported && secondReported,
-            "queued passel did not deliver both attribute values");
+         Reflection reflection = reflections.get(0);
+         JavaTckSupport.check(object.equals(reflection.object)
+               && reflection.values != null && reflection.values.size() == 2
+               && reflection.values.containsKey(receiverFirst)
+               && reflection.values.containsKey(receiverSecond)
+               && Arrays.equals(firstValue, reflection.values.get(receiverFirst))
+               && Arrays.equals(secondValue, reflection.values.get(receiverSecond))
+               && Arrays.equals(tag, reflection.tag)
+               && producer.equals(reflection.producer)
+               && secondUpdateTime.equals(reflection.time)
+               && reflection.sentOrder == OrderType.TIMESTAMP
+               && reflection.receivedOrder == OrderType.TIMESTAMP
+               && second.handle.equals(reflection.retraction)
+               && reflection.transportation != null && reflection.regions == null
+               && "HLAreliable".equals(receiver.getTransportationTypeName(
+                  reflection.transportation)),
+            "timestamped queued passel did not preserve both values in one reliable, regionless callback");
          JavaTckSupport.expectFailure(() -> publisher.retract(second.handle),
             "MessageCanNoLongerBeRetracted", "retracting the delivered queued passel");
       } finally {
@@ -223,7 +202,9 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
             catch (Exception ignored) { }
          }
          if (publisherJoined) {
-            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            try {
+               publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+            }
             catch (Exception ignored) { }
          }
          if (created) {
@@ -404,7 +385,8 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
             catch (Exception ignored) { }
          }
          if (publisherJoined) {
-            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            try { publisher.resignFederationExecution(
+               ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
             catch (Exception ignored) { }
          }
          if (created) {
@@ -719,8 +701,13 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
          publisher.enableTimeRegulation(lookahead);
          regulating = true;
          awaitBoth(publisher, receiver, callbackModel,
-            () -> publisherRecorder.timeRegulationEnabled,
+            () -> !publisherRecorder.timeRegulationEnabledTimes.isEmpty(),
             "publisher time-regulation callback");
+         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledTimes.size() == 1
+               && publisherInitial.equals(publisherRecorder.timeRegulationEnabledTimes.get(0))
+               && publisherInitial.equals(publisher.queryLogicalTime())
+               && lookahead.equals(publisher.queryLookahead()),
+            "Time Regulation Enabled did not report the assigned initial time and requested lookahead");
          byte[] secondValue = new byte[] {0x54, 0x53, 0x4f};
          byte[] secondTag = new byte[] {0x32};
          AttributeHandleValueMap secondValues =
@@ -777,7 +764,7 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
             catch (Exception ignored) { }
          }
          if (publisherJoined) {
-            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            try { publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
             catch (Exception ignored) { }
          }
          if (created) {
@@ -836,6 +823,8 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
    private static final class Recorder {
       private volatile boolean timeRegulationEnabled;
       private volatile boolean timeConstrainedEnabled;
+      private final List<LogicalTime<?, ?>> timeRegulationEnabledTimes =
+         new CopyOnWriteArrayList<>();
       private volatile ObjectInstanceHandle discoveredObject;
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final List<MessageRetractionHandle> retractionCallbacks = new CopyOnWriteArrayList<>();
@@ -849,6 +838,9 @@ final class TimestampedAttributeQueuedPasselRetractionTck {
                String name = method.getName();
                if ("timeRegulationEnabled".equals(name)) {
                   timeRegulationEnabled = true;
+                  if (arguments != null && arguments.length == 1) {
+                     timeRegulationEnabledTimes.add((LogicalTime<?, ?>) arguments[0]);
+                  }
                } else if ("timeConstrainedEnabled".equals(name)) {
                   timeConstrainedEnabled = true;
                } else if ("discoverObjectInstance".equals(name)

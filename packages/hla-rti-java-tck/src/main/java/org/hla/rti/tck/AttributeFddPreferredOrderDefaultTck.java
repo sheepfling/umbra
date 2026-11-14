@@ -211,6 +211,225 @@ final class AttributeFddPreferredOrderDefaultTck {
       }
    }
 
+   static void runDefaultInitialization(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador initialFederate = factory.getRtiAmbassador();
+      RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador lateFederate = factory.getRtiAmbassador();
+      Recorder initialCallbacks = new Recorder();
+      Recorder observerCallbacks = new Recorder();
+      Recorder lateCallbacks = new Recorder();
+      String federation = "java-tck-fdd-attribute-order-initialization-" + UUID.randomUUID();
+      boolean initialConnected = false;
+      boolean observerConnected = false;
+      boolean lateConnected = false;
+      boolean created = false;
+      boolean initialJoined = false;
+      boolean observerJoined = false;
+      boolean lateJoined = false;
+      boolean initialPublished = false;
+      boolean observerSubscribed = false;
+      boolean latePublished = false;
+      boolean initialRegulating = false;
+      boolean lateRegulating = false;
+      ObjectClassHandle initialClass = null;
+      ObjectClassHandle observerClass = null;
+      ObjectClassHandle lateClass = null;
+      AttributeHandleSet initialAttributes = null;
+      AttributeHandleSet observerAttributes = null;
+      AttributeHandleSet lateAttributes = null;
+      try {
+         initialFederate.connect(initialCallbacks.proxy(), callbackModel);
+         initialConnected = true;
+         observer.connect(observerCallbacks.proxy(), callbackModel);
+         observerConnected = true;
+         lateFederate.connect(lateCallbacks.proxy(), callbackModel);
+         lateConnected = true;
+         initialFederate.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         FederateHandle initialProducer = initialFederate.joinFederationExecution(
+            "java-tck-fdd-order-initial", federation);
+         initialJoined = true;
+         observer.joinFederationExecution("java-tck-fdd-order-observer", federation);
+         observerJoined = true;
+
+         initialClass = initialFederate.getObjectClassHandle(objectClassName);
+         observerClass = observer.getObjectClassHandle(objectClassName);
+         AttributeHandle initialAttribute = initialFederate.getAttributeHandle(
+            initialClass, attributeName);
+         AttributeHandle observerAttribute = observer.getAttributeHandle(
+            observerClass, attributeName);
+         JavaTckSupport.check(initialClass != null && observerClass != null
+               && initialClass.equals(observerClass) && initialAttribute != null
+               && initialAttribute.equals(observerAttribute),
+            "FDD order-default fixture returned inconsistent class or attribute handles");
+         initialAttributes = initialFederate.getAttributeHandleSetFactory().create();
+         initialAttributes.add(initialAttribute);
+         observerAttributes = observer.getAttributeHandleSetFactory().create();
+         observerAttributes.add(observerAttribute);
+         initialFederate.publishObjectClassAttributes(initialClass, initialAttributes);
+         initialPublished = true;
+         observer.subscribeObjectClassAttributes(observerClass, observerAttributes);
+         observerSubscribed = true;
+
+         LogicalTimeFactory<?, ?> initialFactory = initialFederate.getTimeFactory();
+         LogicalTimeInterval initialEpsilon =
+            (LogicalTimeInterval) initialFactory.makeEpsilon();
+         LogicalTime<?, ?> initialTime = initialFederate.queryLogicalTime();
+         initialFederate.enableTimeRegulation(initialEpsilon);
+         initialRegulating = true;
+         await(initialFederate, callbackModel, () -> initialCallbacks.timeRegulationEnabled,
+            "initial federate FDD-default time-regulation callback");
+
+         ObjectInstanceHandle initialObject =
+            initialFederate.registerObjectInstance(initialClass);
+         JavaTckSupport.check(initialObject != null,
+            "initial federate could not register its FDD-default object");
+         await(observer, callbackModel,
+            () -> observerCallbacks.discoveries.contains(initialObject),
+            "initial federate FDD-default object discovery");
+         sendTimestampedAndObserve(initialFederate, initialProducer, initialTime,
+            initialEpsilon, initialObject, initialAttribute, observerAttribute, observer,
+            observerCallbacks, callbackModel, 5, 0x51, 0xA1, OrderType.RECEIVE,
+            "initial federate FDD RECEIVE default");
+
+         initialFederate.changeDefaultAttributeOrderType(
+            initialClass, initialAttributes, OrderType.TIMESTAMP);
+         ObjectInstanceHandle changedDefaultObject =
+            initialFederate.registerObjectInstance(initialClass);
+         JavaTckSupport.check(changedDefaultObject != null,
+            "initial federate could not register after changing its class default");
+         await(observer, callbackModel,
+            () -> observerCallbacks.discoveries.contains(changedDefaultObject),
+            "changed-default timestamp object discovery");
+         sendTimestampedAndObserve(initialFederate, initialProducer, initialTime,
+            initialEpsilon, changedDefaultObject, initialAttribute, observerAttribute, observer,
+            observerCallbacks, callbackModel, 6, 0x52, 0xA2, OrderType.TIMESTAMP,
+            "changed federate TIMESTAMP default positive control");
+
+         FederateHandle lateProducer = lateFederate.joinFederationExecution(
+            "java-tck-fdd-order-late-joiner", federation);
+         lateJoined = true;
+         lateClass = lateFederate.getObjectClassHandle(objectClassName);
+         AttributeHandle lateAttribute = lateFederate.getAttributeHandle(lateClass, attributeName);
+         JavaTckSupport.check(lateClass != null && lateClass.equals(initialClass)
+               && lateAttribute != null && lateAttribute.equals(initialAttribute),
+            "late federate resolved an inconsistent FDD class-attribute identity");
+         lateAttributes = lateFederate.getAttributeHandleSetFactory().create();
+         lateAttributes.add(lateAttribute);
+         lateFederate.publishObjectClassAttributes(lateClass, lateAttributes);
+         latePublished = true;
+         LogicalTimeFactory<?, ?> lateFactory = lateFederate.getTimeFactory();
+         JavaTckSupport.check(initialFactory.getName().equals(lateFactory.getName()),
+            "late federate selected a different logical-time factory");
+         LogicalTimeInterval lateEpsilon = (LogicalTimeInterval) lateFactory.makeEpsilon();
+         LogicalTime<?, ?> lateInitialTime = lateFederate.queryLogicalTime();
+         lateFederate.enableTimeRegulation(lateEpsilon);
+         lateRegulating = true;
+         await(lateFederate, callbackModel, () -> lateCallbacks.timeRegulationEnabled,
+            "late federate FDD-default time-regulation callback");
+         ObjectInstanceHandle lateObject = lateFederate.registerObjectInstance(lateClass);
+         JavaTckSupport.check(lateObject != null,
+            "late federate could not register its FDD-default object");
+         await(observer, callbackModel, () -> observerCallbacks.discoveries.contains(lateObject),
+            "late federate FDD-default object discovery");
+         sendTimestampedAndObserve(lateFederate, lateProducer, lateInitialTime,
+            lateEpsilon, lateObject, lateAttribute, observerAttribute, observer,
+            observerCallbacks, callbackModel, 7, 0x53, 0xA3, OrderType.RECEIVE,
+            "late federate retained the FDD RECEIVE default after another federate changed its default");
+      } finally {
+         if (initialRegulating && initialJoined) {
+            try { initialFederate.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (lateRegulating && lateJoined) {
+            try { lateFederate.disableTimeRegulation(); } catch (Exception ignored) { }
+         }
+         if (observerSubscribed && observerJoined && observerClass != null
+               && observerAttributes != null) {
+            try { observer.unsubscribeObjectClassAttributes(observerClass, observerAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (latePublished && lateJoined && lateClass != null && lateAttributes != null) {
+            try { lateFederate.unpublishObjectClassAttributes(lateClass, lateAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (initialPublished && initialJoined && initialClass != null
+               && initialAttributes != null) {
+            try { initialFederate.unpublishObjectClassAttributes(initialClass, initialAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (observerJoined) {
+            try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (lateJoined) {
+            try {
+               lateFederate.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+            } catch (Exception ignored) { }
+         }
+         if (initialJoined) {
+            try {
+               initialFederate.resignFederationExecution(
+                  ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+            } catch (Exception ignored) { }
+         }
+         if (created) {
+            try { initialFederate.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (observerConnected) {
+            try { observer.disconnect(); } catch (Exception ignored) { }
+         }
+         if (lateConnected) {
+            try { lateFederate.disconnect(); } catch (Exception ignored) { }
+         }
+         if (initialConnected) {
+            try { initialFederate.disconnect(); } catch (Exception ignored) { }
+         }
+      }
+   }
+
+   private static void sendTimestampedAndObserve(RTIambassador producer,
+         FederateHandle producerHandle, LogicalTime<?, ?> initialTime,
+         LogicalTimeInterval epsilon, ObjectInstanceHandle object,
+         AttributeHandle producerAttribute, AttributeHandle observerAttribute,
+         RTIambassador observer, Recorder observerCallbacks, CallbackModel callbackModel,
+         int timeStep, int value, int tagByte, OrderType expectedSentOrder, String description)
+         throws Exception {
+      LogicalTime<?, ?> updateTime = offset(initialTime, epsilon, timeStep);
+      byte[] valueBytes = {(byte) value};
+      byte[] tag = {(byte) tagByte};
+      AttributeHandleValueMap values = producer.getAttributeHandleValueMapFactory().create(1);
+      values.put(producerAttribute, valueBytes.clone());
+      int ordinaryBefore = observerCallbacks.receiveOrder.size();
+      int timestampedBefore = observerCallbacks.timestamped.size();
+      MessageRetractionReturn retraction = producer.updateAttributeValues(
+         object, values, tag.clone(), updateTime);
+      boolean timestampOrder = expectedSentOrder == OrderType.TIMESTAMP;
+      JavaTckSupport.check(retraction != null
+            && retraction.retractionHandleIsValid == timestampOrder
+            && (timestampOrder ? retraction.handle != null : retraction.handle == null),
+         description + " returned retraction state inconsistent with the FDD/default order");
+      await(observer, callbackModel,
+         () -> observerCallbacks.receiveOrder.size() > ordinaryBefore
+            || observerCallbacks.timestamped.size() > timestampedBefore,
+         description + " reflection");
+
+      Reflection delivery = observerCallbacks.timestamped.stream()
+         .filter(item -> object.equals(item.object) && Arrays.equals(tag, item.tag))
+         .findFirst().orElse(null);
+      boolean ordinaryDelivery = observerCallbacks.receiveOrder.stream()
+         .anyMatch(item -> object.equals(item.object) && Arrays.equals(tag, item.tag));
+      JavaTckSupport.check(observerCallbacks.receiveOrder.size() == ordinaryBefore
+            && observerCallbacks.timestamped.size() == timestampedBefore + 1
+            && !ordinaryDelivery && delivery != null,
+         description + " did not preserve the timestamped-update callback");
+      checkDelivery(observer, delivery, object, observerAttribute, producerHandle, updateTime,
+         expectedSentOrder, valueBytes, tag,
+         timestampOrder ? retraction.handle : null, description);
+   }
+
    private static void checkDelivery(RTIambassador receiver, Reflection delivery,
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
          LogicalTime<?, ?> expectedTime, OrderType expectedSentOrder, byte[] value, byte[] tag,
@@ -267,7 +486,7 @@ final class AttributeFddPreferredOrderDefaultTck {
          tag = ((byte[]) arguments[2]).clone();
          transportation = (TransportationTypeHandle) arguments[3];
          producer = (FederateHandle) arguments[4];
-         regionsEmpty = ((RegionHandleSet) arguments[5]).isEmpty();
+         regionsEmpty = arguments[5] == null || ((RegionHandleSet) arguments[5]).isEmpty();
          time = (LogicalTime<?, ?>) arguments[6];
          sentOrder = (OrderType) arguments[7];
          receivedOrder = (OrderType) arguments[8];
@@ -289,7 +508,7 @@ final class AttributeFddPreferredOrderDefaultTck {
          tag = ((byte[]) arguments[2]).clone();
          transportation = (TransportationTypeHandle) arguments[3];
          producer = (FederateHandle) arguments[4];
-         regionsEmpty = ((RegionHandleSet) arguments[5]).isEmpty();
+         regionsEmpty = arguments[5] == null || ((RegionHandleSet) arguments[5]).isEmpty();
       }
    }
 

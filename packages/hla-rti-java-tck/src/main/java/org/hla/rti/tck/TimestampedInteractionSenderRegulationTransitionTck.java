@@ -116,7 +116,7 @@ final class TimestampedInteractionSenderRegulationTransitionTck {
          LogicalTime<?, ?> messageTime = offset(senderInitial, senderEpsilon, 6);
          LogicalTime<?, ?> receiverTarget = offset(receiverInitial, receiverEpsilon, 6);
          LogicalTime<?, ?> senderTarget = offset(senderInitial, senderEpsilon, 2);
-         LogicalTime<?, ?> regulatorTarget = offset(regulatorInitial, regulatorEpsilon, 1);
+         LogicalTime<?, ?> regulatorTarget = offset(regulatorInitial, regulatorEpsilon, 2);
 
          receiver.enableTimeConstrained();
          constrained = true;

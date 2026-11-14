@@ -149,10 +149,13 @@ final class TimestampedDirectedInteractionsTck {
          universalConstrained = true;
          publisher.enableTimeRegulation(epsilon);
          publisherRegulating = true;
-         await(model, publisher, objectClassName,
-            () -> publisherEvents.timeRegulationEnabled != null, "publisher regulation");
-         await(model, universal, objectClassName,
-            () -> universalEvents.timeConstrainedEnabled != null, "universal time constraint");
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
+             () -> !publisherEvents.timeRegulationEnabled.isEmpty()
+                && !universalEvents.timeConstrainedEnabled.isEmpty(),
+             "publisher regulation and universal time constraint");
+          JavaTckSupport.check(publisherEvents.timeRegulationEnabled.size() == 1
+                && universalEvents.timeConstrainedEnabled.size() == 1,
+             "timestamped directed time-role callback was delivered more than once");
 
          LogicalTime publisherInitial = publisher.queryLogicalTime();
          LogicalTime targetedInitial = targeted.queryLogicalTime();
@@ -166,20 +169,31 @@ final class TimestampedDirectedInteractionsTck {
          byte[] firstValue = new byte[] {0x41, 0x42, 0x43};
          byte[] firstTag = new byte[] {0x51, 0x52};
 
-         MessageRetractionHandle invalidRetraction =
-            JavaTckSupport.invalidHandle(MessageRetractionHandle.class);
+          byte[] unissuedRetractionEncoding = new byte[] {
+             0x00, 0x00, 0x00, 0x08, 0x51, 0x26, 0x73, 0x19,
+             0x44, 0x62, 0x35, 0x07
+          };
+          MessageRetractionHandle invalidRetraction =
+             publisher.getMessageRetractionHandleFactory().decode(unissuedRetractionEncoding, 0);
          JavaTckSupport.expectFailure(() -> publisher.retract(invalidRetraction),
             "InvalidMessageRetractionHandle", "invalid directed retraction handle");
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+          byte[] unissuedInteractionEncoding = new byte[] {
+             0x00, 0x00, 0x00, 0x08, 0x36, 0x54, 0x72, 0x18,
+             0x27, 0x45, 0x63, 0x09
+          };
+          InteractionClassHandle invalidInteraction =
+             publisher.getInteractionClassHandleFactory().decode(unissuedInteractionEncoding, 0);
          LogicalTime invalidSendTime = offset(publisherInitial, epsilon, 3);
          JavaTckSupport.expectFailure(() -> publisher.sendDirectedInteraction(
                invalidInteraction, target,
                publisher.getParameterHandleValueMapFactory().create(0), new byte[0],
                invalidSendTime),
             "InteractionClassNotDefined", "timestamped directed send with invalid class");
-         ObjectInstanceHandle invalidTarget =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+          byte[] unissuedTargetEncoding = JavaTckSupport.encode(
+             target.encodedLength(), target::encode);
+          unissuedTargetEncoding[unissuedTargetEncoding.length - 1] ^= 0x01;
+          ObjectInstanceHandle invalidTarget =
+             publisher.getObjectInstanceHandleFactory().decode(unissuedTargetEncoding, 0);
          JavaTckSupport.expectFailure(() -> publisher.sendDirectedInteraction(
                publisherInteraction, invalidTarget,
                publisher.getParameterHandleValueMapFactory().create(0), new byte[0],
@@ -190,8 +204,8 @@ final class TimestampedDirectedInteractionsTck {
             publisherParameter, target, firstValue, firstTag, firstTime);
          JavaTckSupport.check(first != null && first.retractionHandleIsValid && first.handle != null,
             "first timestamped directed send returned no valid retraction handle");
-         await(model, targeted, objectClassName,
-            () -> targetedEvents.interactions.size() >= 1,
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
+             () -> targetedEvents.interactions.size() >= 1,
             "non-constrained directed target receive-order delivery");
          JavaTckSupport.check(targetedEvents.interactions.size() == 1,
             "target received duplicate receive-order directed delivery");
@@ -203,7 +217,7 @@ final class TimestampedDirectedInteractionsTck {
             "first directed send reached a constrained universal or non-owner recipient early");
 
          publisher.retract(first.handle);
-         await(model, targeted, objectClassName,
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
             () -> targetedEvents.retractions.size() >= 1,
             "target retraction callback");
          JavaTckSupport.check(targetedEvents.retractions.size() == 1
@@ -213,17 +227,21 @@ final class TimestampedDirectedInteractionsTck {
 
          targeted.enableTimeConstrained();
          targetedConstrained = true;
-         await(model, targeted, objectClassName,
-            () -> targetedEvents.timeConstrainedEnabled != null,
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
+             () -> !targetedEvents.timeConstrainedEnabled.isEmpty(),
             "target time constraint");
+          JavaTckSupport.check(targetedEvents.timeConstrainedEnabled.size() == 1,
+             "timestamped directed target time-constrained callback was delivered more than once");
          targeted.timeAdvanceRequest(firstTargetedTime);
          universal.timeAdvanceRequest(firstUniversalTime);
          publisher.timeAdvanceRequest(firstTime);
-         awaitPair(model, publisher, targeted, universal, objectClassName,
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
             () -> publisherEvents.grants.size() >= 1 && targetedEvents.grants.size() >= 1
                && universalEvents.grants.size() >= 1,
             "first directed time-advance grants");
-         JavaTckSupport.check(firstTargetedTime.equals(targetedEvents.grants.get(0))
+          JavaTckSupport.check(publisherEvents.grants.size() == 1
+                && targetedEvents.grants.size() == 1 && universalEvents.grants.size() == 1
+                && firstTargetedTime.equals(targetedEvents.grants.get(0))
                && firstUniversalTime.equals(universalEvents.grants.get(0))
                && firstTime.equals(publisherEvents.grants.get(0))
                && targetedEvents.interactions.size() == 1
@@ -244,12 +262,14 @@ final class TimestampedDirectedInteractionsTck {
          targeted.timeAdvanceRequest(secondTargetedTime);
          universal.timeAdvanceRequest(secondUniversalTime);
          publisher.timeAdvanceRequest(secondTime);
-         awaitPair(model, publisher, targeted, universal, objectClassName,
+          awaitAll(model, publisher, targeted, universal, nonOwner, objectClassName,
             () -> publisherEvents.grants.size() >= 2 && targetedEvents.grants.size() >= 2
                && universalEvents.grants.size() >= 2 && targetedEvents.interactions.size() >= 2
                && universalEvents.interactions.size() >= 1,
             "second directed delivery and time-advance grants");
-         JavaTckSupport.check(nonOwnerEvents.interactions.isEmpty()
+          JavaTckSupport.check(publisherEvents.grants.size() == 2
+                && targetedEvents.grants.size() == 2 && universalEvents.grants.size() == 2
+                && nonOwnerEvents.interactions.isEmpty()
                && targetedEvents.interactions.size() == 2
                && universalEvents.interactions.size() == 1,
             "directed send did not select exactly the owner and universal subscribers");
@@ -365,25 +385,16 @@ final class TimestampedDirectedInteractionsTck {
       else ambassador.getObjectClassHandle(objectClassName);
    }
 
-   private static void await(CallbackModel model, RTIambassador ambassador,
-         String objectClassName, Condition condition, String description) throws Exception {
-      long deadline = System.nanoTime() + 10_000_000_000L;
-      while (System.nanoTime() < deadline) {
-         service(ambassador, model, objectClassName);
-         if (condition.isTrue()) return;
-         Thread.yield();
-      }
-      throw new AssertionError("timed out waiting for " + description);
-   }
-
-   private static void awaitPair(CallbackModel model, RTIambassador publisher,
-         RTIambassador targeted, RTIambassador universal, String objectClassName,
+    private static void awaitAll(CallbackModel model, RTIambassador publisher,
+          RTIambassador targeted, RTIambassador universal, RTIambassador nonOwner,
+          String objectClassName,
          Condition condition, String description) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline) {
          service(publisher, model, objectClassName);
          service(targeted, model, objectClassName);
          service(universal, model, objectClassName);
+          service(nonOwner, model, objectClassName);
          if (condition.isTrue()) return;
          Thread.yield();
       }
@@ -433,8 +444,8 @@ final class TimestampedDirectedInteractionsTck {
    }
 
    private static final class Recorder {
-      LogicalTime<?, ?> timeRegulationEnabled;
-      LogicalTime<?, ?> timeConstrainedEnabled;
+       final List<LogicalTime<?, ?>> timeRegulationEnabled = new CopyOnWriteArrayList<>();
+       final List<LogicalTime<?, ?>> timeConstrainedEnabled = new CopyOnWriteArrayList<>();
       final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       final List<Directed> interactions = new CopyOnWriteArrayList<>();
       final List<MessageRetractionHandle> retractions = new CopyOnWriteArrayList<>();
@@ -448,9 +459,9 @@ final class TimestampedDirectedInteractionsTck {
                if ("discoverObjectInstance".equals(name) && a.length >= 1) {
                   discoveries.add((ObjectInstanceHandle) a[0]);
                } else if ("timeRegulationEnabled".equals(name) && a.length == 1) {
-                  timeRegulationEnabled = (LogicalTime<?, ?>) a[0];
+                   timeRegulationEnabled.add((LogicalTime<?, ?>) a[0]);
                } else if ("timeConstrainedEnabled".equals(name) && a.length == 1) {
-                  timeConstrainedEnabled = (LogicalTime<?, ?>) a[0];
+                   timeConstrainedEnabled.add((LogicalTime<?, ?>) a[0]);
                } else if ("receiveDirectedInteraction".equals(name) && a.length == 10) {
                   Directed event = new Directed(a);
                   interactions.add(event);

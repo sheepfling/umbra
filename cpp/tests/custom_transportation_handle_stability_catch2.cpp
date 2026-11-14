@@ -80,9 +80,18 @@ TEST_CASE(
 
   auto const existing = member->getTransportationTypeHandle(
       fixture_hla::fixture::umbra_transportation_fixture);
+  auto const reliable = member->getTransportationTypeHandle(L"HLAreliable");
+  auto const bestEffort = member->getTransportationTypeHandle(L"HLAbestEffort");
   REQUIRE(existing.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  REQUIRE(reliable != bestEffort);
+  REQUIRE(existing != reliable);
+  REQUIRE(existing != bestEffort);
   REQUIRE(member->getTransportationTypeName(existing) ==
       fixture_hla::fixture::umbra_transportation_fixture);
+  REQUIRE(member->getTransportationTypeName(reliable) == L"HLAreliable");
+  REQUIRE(member->getTransportationTypeName(bestEffort) == L"HLAbestEffort");
 
   REQUIRE_NOTHROW(extension->joinFederationExecution(
       L"transport-stable-extension",
@@ -95,8 +104,12 @@ TEST_CASE(
   // must preserve it for every already-joined and newly-joined federate.
   REQUIRE(member->getTransportationTypeHandle(
       fixture_hla::fixture::umbra_transportation_fixture) == existing);
+  REQUIRE(member->getTransportationTypeHandle(L"HLAreliable") == reliable);
+  REQUIRE(member->getTransportationTypeHandle(L"HLAbestEffort") == bestEffort);
   REQUIRE(member->getTransportationTypeName(existing) ==
       fixture_hla::fixture::umbra_transportation_fixture);
+  REQUIRE(extension->getTransportationTypeHandle(L"HLAreliable") == reliable);
+  REQUIRE(extension->getTransportationTypeHandle(L"HLAbestEffort") == bestEffort);
   REQUIRE(extension->getTransportationTypeHandle(
       fixture_hla::fixture::umbra_transportation_fixture) == existing);
   REQUIRE(extension->getTransportationTypeName(existing) ==
@@ -105,6 +118,8 @@ TEST_CASE(
   auto const earlier = extension->getTransportationTypeHandle(earlierTransportation);
   REQUIRE(earlier.isValid());
   REQUIRE(earlier != existing);
+  REQUIRE(earlier != reliable);
+  REQUIRE(earlier != bestEffort);
   REQUIRE(extension->getTransportationTypeName(earlier) == earlierTransportation);
   REQUIRE(member->getTransportationTypeHandle(earlierTransportation) == earlier);
   REQUIRE(member->getTransportationTypeName(earlier) == earlierTransportation);

@@ -136,15 +136,29 @@ final class ServiceReportObjectDeletionTck {
 
          byte[] tag = failureBoundaries
             ? new byte[] {0x72, 0x65, 0x67} : new byte[] {0x44, 0x45, 0x4c};
+         final ObjectInstanceHandle staleObjectForUnknownCase = failureBoundaries
+            ? subject.registerObjectInstance(objectClass) : null;
+         if (failureBoundaries) {
+            await(observer, callbackModel, () -> recorder.discoveries.size() == 2,
+               "discovery of the object used for the unknown-object boundary");
+            JavaTckSupport.check(staleObjectForUnknownCase.equals(recorder.discoveries.get(1)),
+               "observer discovered the wrong boundary-test object");
+            subject.deleteObjectInstance(staleObjectForUnknownCase, tag);
+            await(observer, callbackModel, () -> recorder.removals.stream().anyMatch(removal ->
+                  staleObjectForUnknownCase.equals(removal.object)
+                     && Arrays.equals(tag, removal.tag)
+                     && subjectHandle.equals(removal.producer)),
+               "removal of the object used for the unknown-object boundary");
+            recorder.interactions.clear();
+            recorder.removals.clear();
+         }
          subject.setServiceReportingSwitch(true);
          if (failureBoundaries) {
-            ObjectInstanceHandle invalidObject =
-               JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
             JavaTckSupport.expectFailure(
-               () -> subject.deleteObjectInstance(invalidObject, tag),
-               "ObjectInstanceNotKnown", "deleteObjectInstance with an unknown object");
+               () -> subject.deleteObjectInstance(staleObjectForUnknownCase, tag),
+               "ObjectInstanceNotKnown", "deleteObjectInstance with an unknown stale object");
             verifyFailureReport(observer, recorder, reportClass, reportParameters, reliable,
-               subjectHandle, encoder, invalidObject.toString(), 0, callbackModel);
+               subjectHandle, encoder, staleObjectForUnknownCase.toString(), 0, callbackModel);
          }
          subject.deleteObjectInstance(object, tag);
          await(observer, callbackModel, () -> !recorder.interactions.isEmpty(),

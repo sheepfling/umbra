@@ -1104,6 +1104,66 @@ void scenarioServiceReportFederateSaveBegunContractPortable(
   scenarioServiceReportFederateSaveBegunContract(options, model);
 }
 
+void scenarioServiceReportSaveFailureReasonFilePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSaveFailureReasonFile(options, model);
+}
+
+void scenarioServiceReportSaveFailureReasonFileContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSaveFailureReasonFileContract(options, model);
+}
+
+void scenarioServiceReportSaveStatusFilePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSaveStatusFile(options, model);
+}
+
+void scenarioServiceReportSaveStatusFileContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportSaveStatusFileContract(options, model);
+}
+
+void scenarioServiceReportServiceGroupFilePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportServiceGroupFile(options, model);
+}
+
+void scenarioServiceReportServiceGroupFileContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportServiceGroupFileContract(options, model);
+}
+
+void scenarioServiceReportFederationExecutionInformationFilePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederationExecutionInformationFile(options, model);
+}
+
+void scenarioServiceReportFederationExecutionInformationFileContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederationExecutionInformationFileContract(options, model);
+}
+
+void scenarioServiceReportFederationExecutionMembersFilePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederationExecutionMembersFile(options, model);
+}
+
+void scenarioServiceReportFederationExecutionMembersFileContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioServiceReportFederationExecutionMembersFileContract(options, model);
+}
+
 void scenarioServiceReportTimestampedAttributeUpdatePortable(
     Options const& options,
     rti::CallbackModel model) {

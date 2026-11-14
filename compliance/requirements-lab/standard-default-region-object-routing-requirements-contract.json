@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK default-region object-routing pair exercises §9.1.3.2 source-region behavior, §9.1.5 default-region behavior, and §9.1.1 default-region bounds. It also directly witnesses §9.8 no-interference in both directions: adding a disjoint regional declaration leaves ordinary subscription routing intact, and ordinary unsubscribe removes the default route while a distinct explicit regional subscription remains active. The observations are bounded to the tested object class, attribute, and regions; they are not conformance evidence.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-220-l14-4",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 14-18",
+      "source_symbol": "scenarioDefaultRegionObjectRouting",
+      "statement": "A joined federate shall use a region for update of an instance attribute to assert properties of that instance attribute. The TCK associates a non-default source region for Update Attribute Values and checks the resulting regional reflection path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRouting",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l17-5",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l17-5",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 17-21",
+      "source_symbol": "scenarioDefaultRegionObjectRouting",
+      "statement": "These properties shall be used to limit reflection of the instance attributes when the joined federate invokes the Update Attribute Values service. With an explicit source region, the TCK observes a reflection at the overlapping regional subscriber and no additional reflection at the disjoint regional route.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRouting",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-220-l107-35",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l107-35",
+      "clause_id": "clause-9.1.3.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 220, lines 104-111",
+      "source_symbol": "scenarioDefaultRegionObjectRouting",
+      "statement": "Subsequently invoking the Unsubscribe Object Class Attributes service for the same object class and attribute shall cause the default region not to be used for subscription of that class attribute. The TCK unsubscribes the ordinary subscription, sends a default-source update, and verifies the receiver remains silent while another receiver with a matching explicit regional subscription receives it.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRouting",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l57-16",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l57-16",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 57-59",
+      "source_symbol": "scenarioDefaultRegionObjectRouting",
+      "statement": "Adding the disjoint regional declaration leaves the existing ordinary Subscribe Object Class Attributes route active; the TCK confirms the ordinary subscriber still discovers and receives through its default-region subscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRouting",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRoutingContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l63-18",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l63-18",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 63-65",
+      "source_symbol": "scenarioDefaultRegionObjectRouting",
+      "statement": "After ordinary Unsubscribe Object Class Attributes removes the default-region route, the matching explicit regional subscription continues to receive the update; the TCK therefore distinguishes ordinary and regional subscription state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRouting",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioDefaultRegionObjectRoutingContract"
+      ]
+    }
+  ]
+}

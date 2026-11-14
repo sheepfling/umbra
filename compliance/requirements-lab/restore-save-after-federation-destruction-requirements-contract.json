@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors the existing candidate mapping in cpp-tck.restore-save-after-federation-destruction. The Java case verifies one saved, explicit, unachieved synchronization point across federation-execution destruction and recreation; it does not claim complete save-image coverage or persistence across an RTI-process restart.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-04-federation-management-page-044-l36-11",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l36-11",
+      "clause_id": "clause-4.1.2",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.restore-save-after-federation-destruction.requirement_mappings",
+      "statement": "The saved federation state remains restorable after destruction and recreation of its federation execution, witnessed by completion of one explicit two-member synchronization point that was unachieved at save time.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_restore_save_after_federation_destruction.cpp#scenarioRestoreSaveAfterFederationDestruction",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreSaveAfterFederationDestructionTck.java#run"
+      ]
+    }
+  ]
+}

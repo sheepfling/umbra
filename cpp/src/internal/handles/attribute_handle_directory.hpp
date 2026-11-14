@@ -9,6 +9,7 @@
 namespace umbra::detail {
 
 class FomCatalog;
+class FomHandleAllocator;
 
 // Private, per-federation AttributeHandle allocation. A key represents the
 // class that declares an attribute rather than each subclass that inherits it,
@@ -17,7 +18,9 @@ class FomCatalog;
 // no name-derived hash is used.
 class AttributeHandleDirectory final {
  public:
-  [[nodiscard]] bool reconcile(FomCatalog const* catalog);
+  [[nodiscard]] bool reconcile(
+      FomCatalog const* catalog,
+      FomHandleAllocator& handleAllocator);
 
   [[nodiscard]] std::optional<std::uint64_t> handleFor(
       FomCatalog const* catalog,
@@ -38,7 +41,6 @@ class AttributeHandleDirectory final {
 
   std::map<AttributeKey, std::uint64_t> handlesByDefinition_;
   std::map<std::uint64_t, AttributeKey> definitionsByHandle_;
-  std::uint64_t nextHandle_ = 1;
 };
 
 }  // namespace umbra::detail

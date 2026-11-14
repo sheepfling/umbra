@@ -475,3 +475,30 @@ TEST_CASE(
   CHECK(decodedUngrouped.event->tsoCallbackGroupPosition ==
         GroupPosition::ungrouped);
 }
+
+TEST_CASE(
+    "Private process Create Federation Execution codec preserves HLA time type names",
+    "[unit][internal][transport][process-boundary][2025][federation-management][time-management][time-representation-name-wire][rti.service.create-federation-execution]") {
+  using umbra::detail::ProcessFederationCreateRequest;
+  using umbra::detail::decodeProcessFederationCreateRequest;
+  using umbra::detail::encodeProcessFederationCreateRequest;
+
+  for (std::wstring const implementationName :
+       {L"HLAinteger64Time", L"HLAfloat64Time"}) {
+    ProcessFederationCreateRequest requestValue;
+    requestValue.federationName = L"time-representation-federation";
+    requestValue.fomModules = {L"file:///fom.xml"};
+    requestValue.logicalTimeImplementationName = implementationName;
+    requestValue.hasFomInputs = true;
+
+    auto const encodedRequest =
+        encodeProcessFederationCreateRequest(requestValue);
+    auto const decodedRequest =
+        decodeProcessFederationCreateRequest(encodedRequest);
+
+    REQUIRE(decodedRequest.hasFomInputs);
+    CHECK(decodedRequest.federationName == requestValue.federationName);
+    CHECK(decodedRequest.fomModules == requestValue.fomModules);
+    CHECK(decodedRequest.logicalTimeImplementationName == implementationName);
+  }
+}

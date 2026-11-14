@@ -36,7 +36,8 @@ void queueMomObjectInstanceCountsReport(
   sentParameters.emplace_back(
       report.routing.objectInstanceCountsParameterHandle,
       std::move(encodedCounts));
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       transportationContext);
 
@@ -169,7 +170,8 @@ void queueMomObjectInstanceInformationReport(
         makeObjectClassHandle(report.knownObjectClassHandle).encode());
   }
 
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportObjectInstanceInformation transportation.");
   for (auto const &plannedRecipient : report.recipients) {

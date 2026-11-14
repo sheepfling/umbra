@@ -19,10 +19,10 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Preserves queued timestamped attribute delivery after its source resigns. */
 final class TimestampedAttributeSourceResignationTck {
@@ -63,6 +63,9 @@ final class TimestampedAttributeSourceResignationTck {
          ObjectClassHandle survivorClass = survivor.getObjectClassHandle(objectClassName);
          AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
          AttributeHandle survivorAttribute = survivor.getAttributeHandle(survivorClass, attributeName);
+         check(ownerClass != null && survivorClass != null
+               && ownerAttribute != null && survivorAttribute != null,
+            "source-resignation lookup returned a null object or attribute handle");
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          AttributeHandleSet survivorAttributes = JavaTckSupport.attributeSet(
             survivor, survivorAttribute);
@@ -74,18 +77,25 @@ final class TimestampedAttributeSourceResignationTck {
          owner.changeDefaultAttributeOrderType(ownerClass, ownerAttributes, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
+         check(object != null, "source-resignation registration returned a null object handle");
          await(() -> survivorRecorder.discovered.contains(object), survivor,
             "source-resignation object discovery");
 
-         LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
-         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTimeFactory<?, ?> ownerTimeFactory = owner.getTimeFactory();
+         LogicalTimeFactory<?, ?> survivorTimeFactory = survivor.getTimeFactory();
+         LogicalTimeFactory<?, ?> clockTimeFactory = clock.getTimeFactory();
+         check(ownerTimeFactory.getName().equals(survivorTimeFactory.getName())
+               && ownerTimeFactory.getName().equals(clockTimeFactory.getName()),
+            "source-resignation members selected different logical-time factories");
+         LogicalTimeInterval ownerEpsilon = (LogicalTimeInterval) ownerTimeFactory.makeEpsilon();
+         LogicalTimeInterval survivorEpsilon =
+            (LogicalTimeInterval) survivorTimeFactory.makeEpsilon();
+         LogicalTimeInterval clockEpsilon = (LogicalTimeInterval) clockTimeFactory.makeEpsilon();
          LogicalTime ownerInitial = owner.queryLogicalTime();
          LogicalTime survivorInitial = survivor.queryLogicalTime();
          LogicalTime clockInitial = clock.queryLogicalTime();
-         check(ownerInitial.equals(survivorInitial) && ownerInitial.equals(clockInitial),
-            "source-resignation members began at different logical times");
-         LogicalTimeInterval ownerLookahead = intervalOffset(epsilon, 5);
-         LogicalTimeInterval clockLookahead = intervalOffset(epsilon, 5);
+         LogicalTimeInterval ownerLookahead = intervalOffset(ownerEpsilon, 5);
+         LogicalTimeInterval clockLookahead = intervalOffset(clockEpsilon, 5);
 
          survivor.enableTimeConstrained();
          await(() -> survivorRecorder.timeConstrainedEnabled, survivor,
@@ -97,9 +107,9 @@ final class TimestampedAttributeSourceResignationTck {
          await(() -> clockRecorder.timeRegulationEnabled, clock,
             "clock timeRegulationEnabled callback");
 
-         LogicalTime messageTime = offset(ownerInitial, epsilon, 5);
-         LogicalTime survivorTarget = offset(survivorInitial, epsilon, 5);
-         LogicalTime clockTarget = offset(clockInitial, epsilon, 2);
+         LogicalTime messageTime = offset(ownerInitial, ownerEpsilon, 5);
+         LogicalTime survivorTarget = offset(survivorInitial, survivorEpsilon, 5);
+         LogicalTime clockTarget = offset(clockInitial, clockEpsilon, 2);
          byte[] value = new byte[] {(byte) 0xCA, (byte) 0xFE};
          byte[] updateTag = new byte[] {0x52, 0x45, 0x53, 0x49, 0x47, 0x4E};
          byte[] acquisitionTag = new byte[] {0x41, 0x43, 0x51, 0x2D, 0x52};
@@ -117,7 +127,7 @@ final class TimestampedAttributeSourceResignationTck {
          await(() -> !survivorRecorder.assumptions.isEmpty(), survivor,
             "ownership assumption after source resignation");
          OwnershipEvent assumption = survivorRecorder.assumptions.get(0);
-         check(object.equals(assumption.object) && assumption.attributes.size() == 1
+         check(object.equals(assumption.object)
                && assumption.attributes.contains(survivorAttribute),
             "source-resignation assumption callback returned incorrect metadata");
 
@@ -139,9 +149,9 @@ final class TimestampedAttributeSourceResignationTck {
          survivor.timeAdvanceRequest(survivorTarget);
          clock.timeAdvanceRequest(clockTarget);
          await(() -> !survivorRecorder.reflections.isEmpty()
-               && survivorRecorder.grants.size() == 1, survivor,
+               && !survivorRecorder.grants.isEmpty(), survivor,
             "queued update after source resignation");
-         await(() -> clockRecorder.grants.size() == 1, clock,
+         await(() -> !clockRecorder.grants.isEmpty(), clock,
             "regulating clock advance after source resignation");
 
          check(survivorRecorder.reflections.size() == 1,
@@ -151,7 +161,7 @@ final class TimestampedAttributeSourceResignationTck {
                && Arrays.equals(value, reflection.values.get(survivorAttribute)),
             "source-resignation reflection returned the wrong object or attribute value");
          check(Arrays.equals(updateTag, reflection.tag) && producer.equals(reflection.producer)
-               && messageTime.equals(reflection.time),
+               && messageTime.equals(reflection.time) && !reflection.timeText.isEmpty(),
             "source-resignation reflection changed tag, producer, or timestamp");
          check(reflection.transportation != null
                && !survivor.getTransportationTypeName(reflection.transportation).isEmpty(),
@@ -278,12 +288,13 @@ final class TimestampedAttributeSourceResignationTck {
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
       private final LogicalTime<?, ?> time;
+      private final String timeText;
       private final OrderType sentOrder;
       private final OrderType receivedOrder;
       private final MessageRetractionHandle retraction;
       private Reflection(ObjectInstanceHandle object, AttributeHandleValueMap values, byte[] tag,
             TransportationTypeHandle transportation, FederateHandle producer,
-            LogicalTime<?, ?> time, OrderType sentOrder, OrderType receivedOrder,
+            LogicalTime<?, ?> time, String timeText, OrderType sentOrder, OrderType receivedOrder,
             MessageRetractionHandle retraction) {
          this.object = object;
          this.values = values;
@@ -291,6 +302,7 @@ final class TimestampedAttributeSourceResignationTck {
          this.transportation = transportation;
          this.producer = producer;
          this.time = time;
+         this.timeText = timeText;
          this.sentOrder = sentOrder;
          this.receivedOrder = receivedOrder;
          this.retraction = retraction;
@@ -298,14 +310,14 @@ final class TimestampedAttributeSourceResignationTck {
    }
 
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discovered = new ArrayList<>();
-      private final List<OwnershipEvent> assumptions = new ArrayList<>();
-      private final List<OwnershipEvent> acquisitions = new ArrayList<>();
-      private final List<Reflection> reflections = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
+      private final List<ObjectInstanceHandle> discovered = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> assumptions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -322,17 +334,20 @@ final class TimestampedAttributeSourceResignationTck {
                } else if ("requestAttributeOwnershipAssumption".equals(name)
                      && arguments != null && arguments.length == 3) {
                   assumptions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1], ((byte[]) arguments[2]).clone()));
+                     ((AttributeHandleSet) arguments[1]).clone(),
+                     ((byte[]) arguments[2]).clone()));
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length == 3) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1], ((byte[]) arguments[2]).clone()));
+                     ((AttributeHandleSet) arguments[1]).clone(),
+                     ((byte[]) arguments[2]).clone()));
                } else if ("reflectAttributeValues".equals(name) && arguments != null
                      && arguments.length == 10) {
+                  LogicalTime<?, ?> time = (LogicalTime<?, ?>) arguments[6];
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
                      ((AttributeHandleValueMap) arguments[1]).clone(),
                      ((byte[]) arguments[2]).clone(), (TransportationTypeHandle) arguments[3],
-                     (FederateHandle) arguments[4], (LogicalTime<?, ?>) arguments[6],
+                     (FederateHandle) arguments[4], time, time.toString(),
                      (OrderType) arguments[7], (OrderType) arguments[8],
                      (MessageRetractionHandle) arguments[9]));
                   callbackOrder.add(name);

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors the exact three existing mappings in cpp-tck.dimension-handle-name-lookup. RL-421 records the page-259 candidate's incorrect preceding-clause/API crosswalk, and RL-423 documents the incorrect preceding .6 crosswalk assignment for Get Dimension Name; local mappings use canonical service clauses and the Requirements Lab export remains unchanged.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-259-l144-44",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-259-l144-44",
+      "clause_id": "clause-10.23",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.dimension-handle-name-lookup.requirement_mappings",
+      "statement": "A defined adapter-selected dimension name resolves to a dimension handle.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioDimensionHandleNameLookup",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleNameLookupTck.java#run"
+      ]
+    },
+    {
+      "id": "requirement-service-flow-get-dimension-handle-name-not-found",
+      "requirements_lab_requirement_id": "requirement-service-flow-get-dimension-handle-name-not-found",
+      "clause_id": "clause-10.23.5",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.dimension-handle-name-lookup.requirement_mappings",
+      "statement": "Looking up an undefined dimension name reports NameNotFound.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioDimensionHandleNameLookup",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleNameLookupTck.java#run"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-260-l80-23",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-260-l80-23",
+      "clause_id": "clause-10.24",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.dimension-handle-name-lookup.requirement_mappings",
+      "statement": "The dimension handle resolves to its associated dimension name.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioDimensionHandleNameLookup",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleNameLookupTck.java#run"
+      ]
+    }
+  ]
+}

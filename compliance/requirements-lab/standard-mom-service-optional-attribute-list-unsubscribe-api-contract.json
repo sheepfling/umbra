@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair exercises the public RTIambassador API and standard HLAstandardMIM interaction for an omitted optional HLAattributeList in HLAunsubscribeObjectClassAttributes. It observes the resulting subscription effect through public reflection callbacks in both callback models. Adapter configuration supplies the package, endpoint, application FOM, standard MIM, and logical-time implementation. This is bounded API behavior evidence, not conformance evidence.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-mom-service-optional-attribute-list-unsubscribe",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join, object/attribute and interaction/parameter lookup, publication, subscription, object registration, attribute update, receive-order interaction invocation, callback service, resignation, and federation lifecycle; FederateAmbassador discovery/reflection observation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::publishObjectClassAttributes, RTIambassador::subscribeObjectClassAttributes, RTIambassador::registerObjectInstance, RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::sendInteraction, RTIambassador::updateAttributeValues, RTIambassador::evokeCallback, RTIambassador::resignFederationExecution, RTIambassador::destroyFederationExecution; FederateAmbassador::discoverObjectInstance, FederateAmbassador::reflectAttributeValues",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mom_service_optional_attribute_list_unsubscribe.cpp::scenarioMomServiceOptionalAttributeListUnsubscribe",
+        "packages/hla-rti-cpp-tck/src/tck_mom_service_optional_attribute_list_unsubscribe.cpp::scenarioMomServiceOptionalAttributeListUnsubscribeContract"
+      ]
+    }
+  ]
+}

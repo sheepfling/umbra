@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "Four schema-valid adapter FOMs exercise fixed-record Field Type and variant-record Alternative Type categories at public Create Federation Execution. A named simple type and omitted incomplete member types are accepted; separate raw basic-data member types are rejected as InconsistentFOM. The variant discriminant uses a valid enumerated type so its rejected branch isolates Alternative Type. Two pinned Requirements Lab candidates have broad clause-4 metadata (RL-047); no fabricated subsection mapping, Java provider runtime, interoperability, or conformance is claimed.",
+  "notes": "Schema-valid adapter FOMs exercise fixed-record Field Type and variant-record Alternative Type categories at public Create Federation Execution. A named simple type and omitted incomplete member types are accepted; separate raw basic-data member types are rejected as InconsistentFOM. The valid all-categories fixed-record fixture contains simple, enumerated, reference, nested fixed-record, array, and variant-record fields, and the fixed-record name cases check selected mixed-case HLA/NA reserved forms. These bounded assertions map to IEEE 1516.2-2025 §4.14.7; the variant discriminant uses a valid enumerated type so its rejected branch isolates Alternative Type. Two other pinned Requirements Lab candidates have broad clause-4 metadata (RL-047); no exhaustive table, Java provider runtime, interoperability, or conformance claim is made.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-record-member-category",

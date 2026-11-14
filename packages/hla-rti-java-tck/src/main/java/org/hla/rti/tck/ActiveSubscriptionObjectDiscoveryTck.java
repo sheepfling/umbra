@@ -4,6 +4,7 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ResignAction;
@@ -16,6 +17,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Checks discovery for matching objects present at subscription and registered afterward. */
 final class ActiveSubscriptionObjectDiscoveryTck {
+   private static final long DUPLICATE_CALLBACK_WINDOW_NANOS = 150_000_000L;
+
    private ActiveSubscriptionObjectDiscoveryTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
@@ -41,12 +44,18 @@ final class ActiveSubscriptionObjectDiscoveryTck {
       try {
          publisher.connect(publisherRecorder.proxy(), callbackModel);
          publisherConnected = true;
+         subscriber.connect(subscriberRecorder.proxy(), callbackModel);
+         subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         publisher.joinFederationExecution("java-tck-active-discovery-publisher", federation);
+         FederateHandle publisherFederate = publisher.joinFederationExecution(
+            "java-tck-active-discovery-publisher", federation);
          publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-active-discovery-subscriber", federation);
+         subscriberJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
          AttributeHandle publisherAttribute = publisher.getAttributeHandle(
             publisherClass, attributeName);
          AttributeHandle publisherSecondAttribute = publisher.getAttributeHandle(
@@ -56,6 +65,17 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          publisherAttributes.add(publisherSecondAttribute);
          JavaTckSupport.check(publisherAttributes.size() == 2,
             "adapter FOM must provide two distinct attributes for this scenario");
+
+         AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(
+            subscriberClass, attributeName);
+         AttributeHandle subscriberSecondAttribute = subscriber.getAttributeHandle(
+            subscriberClass, secondAttributeName);
+         subscriberAttributes = subscriber.getAttributeHandleSetFactory().create();
+         subscriberAttributes.add(subscriberAttribute);
+         subscriberAttributes.add(subscriberSecondAttribute);
+         JavaTckSupport.check(subscriberAttributes.size() == 2,
+            "adapter FOM must provide two distinct attributes for this scenario");
+
          publisher.publishObjectClassAttributes(publisherClass, publisherAttributes);
          published = true;
 
@@ -66,34 +86,23 @@ final class ActiveSubscriptionObjectDiscoveryTck {
          JavaTckSupport.check(existingName != null && !existingName.isEmpty(),
             "pre-subscription registration did not return a valid object identity");
 
-         subscriber.connect(subscriberRecorder.proxy(), callbackModel);
-         subscriberConnected = true;
-         subscriber.joinFederationExecution("java-tck-active-discovery-subscriber", federation);
-         subscriberJoined = true;
-         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
-         AttributeHandle subscriberAttribute = subscriber.getAttributeHandle(
-            subscriberClass, attributeName);
-         AttributeHandle subscriberSecondAttribute = subscriber.getAttributeHandle(
-            subscriberClass, secondAttributeName);
-         subscriberAttributes = subscriber.getAttributeHandleSetFactory().create();
-         subscriberAttributes.add(subscriberAttribute);
-         subscriberAttributes.add(subscriberSecondAttribute);
-         JavaTckSupport.check(subscriberAttributes.size() == 2,
-            "adapter FOM must provide two distinct attributes for this scenario");
          observeNoDiscovery(subscriber, subscriberRecorder);
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
          subscribed = true;
          awaitDiscoveryCount(subscriber, subscriberRecorder, 1);
-         JavaTckSupport.drain(subscriber);
+         settle(subscriber);
          Discovery existingDiscovery = findDiscovery(subscriberRecorder.discoveries, existingName);
          ObjectInstanceHandle existingLocal = subscriber.getObjectInstanceHandle(existingName);
          JavaTckSupport.check(subscriberRecorder.discoveries.size() == 1
                && existingDiscovery != null
+               && publisherFederate.equals(existingDiscovery.producer)
+               && existingObject.equals(existingLocal)
+               && existingObject.equals(existingDiscovery.object)
                && subscriberClass.equals(existingDiscovery.objectClass)
-               && existingLocal.equals(existingDiscovery.object)
-               && existingName.equals(subscriber.getObjectInstanceName(existingLocal))
-               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(existingLocal)),
+               && existingName.equals(existingDiscovery.name)
+               && existingName.equals(subscriber.getObjectInstanceName(existingObject))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(existingObject)),
             "active subscription did not produce exactly one matching discovery for the existing object");
 
          ObjectInstanceHandle laterObject = publisher.registerObjectInstance(publisherClass);
@@ -104,16 +113,21 @@ final class ActiveSubscriptionObjectDiscoveryTck {
                && laterName != null && !laterName.isEmpty() && !laterName.equals(existingName),
             "post-subscription registration did not return a distinct object identity");
          awaitDiscoveryCount(subscriber, subscriberRecorder, 2);
-         JavaTckSupport.drain(subscriber);
+         settle(subscriber);
          Discovery laterDiscovery = findDiscovery(subscriberRecorder.discoveries, laterName);
          ObjectInstanceHandle laterLocal = subscriber.getObjectInstanceHandle(laterName);
          JavaTckSupport.check(subscriberRecorder.discoveries.size() == 2
                && laterDiscovery != null
+               && publisherFederate.equals(laterDiscovery.producer)
+               && laterObject.equals(laterLocal)
+               && laterObject.equals(laterDiscovery.object)
                && subscriberClass.equals(laterDiscovery.objectClass)
-               && laterLocal.equals(laterDiscovery.object)
                && !laterLocal.equals(existingLocal)
-               && laterName.equals(subscriber.getObjectInstanceName(laterLocal))
-               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(laterLocal)),
+               && laterName.equals(laterDiscovery.name)
+               && laterName.equals(subscriber.getObjectInstanceName(laterObject))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(laterObject))
+               && existingName.equals(subscriber.getObjectInstanceName(existingObject))
+               && subscriberClass.equals(subscriber.getKnownObjectClassHandle(existingObject)),
             "active subscription did not discover the later object exactly once with matching identity");
 
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributes);
@@ -172,6 +186,14 @@ final class ActiveSubscriptionObjectDiscoveryTck {
       }
    }
 
+   private static void settle(RTIambassador subscriber) throws Exception {
+      long deadline = System.nanoTime() + DUPLICATE_CALLBACK_WINDOW_NANOS;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(subscriber);
+         Thread.sleep(1L);
+      }
+   }
+
    private static Discovery findDiscovery(List<Discovery> discoveries,
          String objectName) {
       for (Discovery discovery : discoveries) {
@@ -184,12 +206,14 @@ final class ActiveSubscriptionObjectDiscoveryTck {
       private final ObjectInstanceHandle object;
       private final ObjectClassHandle objectClass;
       private final String name;
+      private final FederateHandle producer;
 
       private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass,
-            String name) {
+            String name, FederateHandle producer) {
          this.object = object;
          this.objectClass = objectClass;
          this.name = name;
+         this.producer = producer;
       }
    }
 
@@ -203,9 +227,10 @@ final class ActiveSubscriptionObjectDiscoveryTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)
-                     && arguments != null && arguments.length >= 3) {
+                     && arguments != null && arguments.length == 4) {
                   discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
-                     (ObjectClassHandle) arguments[1], (String) arguments[2]));
+                     (ObjectClassHandle) arguments[1], (String) arguments[2],
+                     (FederateHandle) arguments[3]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK active subscription discoveries";

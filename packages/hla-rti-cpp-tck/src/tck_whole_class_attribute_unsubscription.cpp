@@ -80,6 +80,19 @@ void scenarioWholeClassAttributeUnsubscription(
 
   subscriber.recorder().clearReflection();
   subscriber.rtiAmbassador().unsubscribeObjectClass(subscriberClass);
+
+  auto const laterObject = publisher.rtiAmbassador().registerObjectInstance(
+      publisherClass);
+  require(
+      laterObject.isValid(),
+      "whole-class unsubscription follow-up registration returned an invalid handle");
+  for (int pass = 0; pass != 8; ++pass) {
+    subscriber.pump();
+  }
+  require(
+      !subscriber.recorder().hasDiscovery(laterObject),
+      "whole-class unsubscription still notified the federate of object discovery");
+
   sendUpdate(0x32U);
   for (int pass = 0; pass != 8; ++pass) {
     subscriber.pump();

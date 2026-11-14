@@ -172,7 +172,7 @@ foreach ($directory in Get-ChildItem -LiteralPath $buildRoot -Directory -Force) 
     throw "Refusing package prefix containing a reparse point: $resolved"
   }
   $hasUmbraLibrary = $files | Where-Object {
-    $_.Name -match '(?i)^libumbra_rti\.(a|dll\.a|so|dylib)$'
+    $_.Name -match '(?i)^lib(?:umbra_rti|rti1516_2023[a-z0-9]+(?:_32)?d?)\.(?:a|dll(?:\.a)?|so(?:\..*)?|dylib)$'
   } | Select-Object -First 1
   if (-not $hasUmbraLibrary) { continue }
   $latestWrite = ($files | Measure-Object -Property LastWriteTime -Maximum).Maximum

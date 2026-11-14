@@ -639,4 +639,672 @@ void scenarioOrderTypeControls(Options const& options, rti::CallbackModel model)
   scopedPublisher.disconnect();
 }
 
+namespace {
+
+void runInheritedAttributeDefaultScope(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "Inherited attribute-order scope requires the adapter known-class FOM and logical time");
+  require(
+      !options.knownClassObjectClassName.empty() &&
+          !options.knownClassDerivedObjectClassName.empty() &&
+          !options.knownClassKnownAttributeName.empty(),
+      "Inherited attribute-order scope requires the base/derived object fixture names");
+
+  Session publisher(options, model, "owner");
+  Session peer(options, model, "member");
+  Session receiver(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "inherited-attribute-default-order-scope");
+  publisher.connect();
+  peer.connect();
+  receiver.connect();
+  publisher.rtiAmbassador().createFederationExecution(
+      federation,
+      options.knownClassFom.wstring(),
+      options.logicalTimeImplementationName);
+  publisher.join(
+      options.ownerFederateName + L"-inherited-order-publisher",
+      options.federateType,
+      federation);
+  peer.join(
+      options.memberFederateName + L"-inherited-order-peer",
+      options.federateType,
+      federation);
+  receiver.join(
+      options.memberFederateName + L"-inherited-order-receiver",
+      options.federateType,
+      federation);
+
+  auto const publisherBaseClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const publisherDerivedClass = publisher.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  auto const peerBaseClass = peer.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const receiverBaseClass = receiver.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const publisherBaseAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherBaseClass,
+      options.knownClassKnownAttributeName);
+  auto const publisherDerivedAttribute = publisher.rtiAmbassador().getAttributeHandle(
+      publisherDerivedClass,
+      options.knownClassKnownAttributeName);
+  auto const peerBaseAttribute = peer.rtiAmbassador().getAttributeHandle(
+      peerBaseClass,
+      options.knownClassKnownAttributeName);
+  auto const receiverBaseAttribute = receiver.rtiAmbassador().getAttributeHandle(
+      receiverBaseClass,
+      options.knownClassKnownAttributeName);
+  require(
+      publisherBaseClass.isValid() && publisherDerivedClass.isValid() &&
+          peerBaseClass.isValid() && receiverBaseClass.isValid() &&
+          publisherBaseAttribute.isValid() && publisherDerivedAttribute.isValid() &&
+          peerBaseAttribute.isValid() && receiverBaseAttribute.isValid() &&
+          publisherBaseAttribute == publisherDerivedAttribute &&
+          publisherBaseAttribute == peerBaseAttribute &&
+          publisherBaseAttribute == receiverBaseAttribute,
+      "Inherited attribute-order fixture returned inconsistent class or attribute handles");
+
+  rti::AttributeHandleSet const publisherBaseAttributes{publisherBaseAttribute};
+  rti::AttributeHandleSet const publisherDerivedAttributes{publisherDerivedAttribute};
+  rti::AttributeHandleSet const peerBaseAttributes{peerBaseAttribute};
+  rti::AttributeHandleSet const receiverBaseAttributes{receiverBaseAttribute};
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherBaseClass,
+      publisherBaseAttributes);
+  publisher.rtiAmbassador().publishObjectClassAttributes(
+      publisherDerivedClass,
+      publisherDerivedAttributes);
+  peer.rtiAmbassador().publishObjectClassAttributes(
+      peerBaseClass,
+      peerBaseAttributes);
+  receiver.rtiAmbassador().subscribeObjectClassAttributes(
+      receiverBaseClass,
+      receiverBaseAttributes,
+      true);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto peerTime = makeTimeContext(peer);
+  require(
+      publisherTime.factory->getName() == peerTime.factory->getName(),
+      "Inherited attribute-order federates selected different logical-time factories");
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Inherited attribute-order publisher time-regulation callback");
+  auto const existingReceiveObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherBaseClass);
+  require(
+      existingReceiveObject.isValid(),
+      "Inherited attribute-order baseline registration returned an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(existingReceiveObject); },
+      options,
+      "Inherited attribute-order baseline discovery");
+
+  auto const sendAndObserve = [&](Session& producer,
+                                  TimeContext const& producerTime,
+                                  rti::ObjectInstanceHandle const& object,
+                                  rti::AttributeHandle const& attribute,
+                                  std::size_t timeStep,
+                                  std::uint8_t value,
+                                  std::vector<std::uint8_t> const& tagBytes,
+                                  bool timestampOrderExpected,
+                                  std::string const& description) {
+    auto const updateTime = timeAfter(
+        *producerTime.factory,
+        *producerTime.initial,
+        *producerTime.epsilon,
+        timeStep);
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        attribute,
+        rti::VariableLengthData(&value, sizeof(value)));
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    auto const ordinaryBefore = receiver.recorder().reflections().size();
+    auto const timestampedBefore = receiver.recorder().timedReflections().size();
+    bool retractionPresent = false;
+    if (timestampOrderExpected) {
+      auto const retraction = producer.rtiAmbassador().updateAttributeValues(
+          object,
+          values,
+          tag,
+          *updateTime);
+      retractionPresent = retraction.isValid();
+      require(
+          retractionPresent,
+          description + " did not return a TSO retraction handle");
+    } else {
+      producer.rtiAmbassador().updateAttributeValues(object, values, tag);
+    }
+    waitFor(
+        receiver,
+        [&] {
+          return receiver.recorder().reflections().size() > ordinaryBefore ||
+              receiver.recorder().timedReflections().size() > timestampedBefore;
+        },
+        options,
+        description + " reflection");
+
+    auto const ordinaryRecords = receiver.recorder().reflections();
+    auto const timestampedRecords = receiver.recorder().timedReflections();
+    auto const ordinary = std::find_if(
+        ordinaryRecords.begin(),
+        ordinaryRecords.end(),
+        [&](auto const& reflection) {
+          return reflection.object == object && reflection.tag == tagBytes;
+        });
+    auto const timestamped = std::find_if(
+        timestampedRecords.begin(),
+        timestampedRecords.end(),
+        [&](auto const& reflection) {
+          return reflection.object == object && reflection.tag == tagBytes;
+        });
+    if (timestampOrderExpected) {
+      require(
+          ordinary == ordinaryRecords.end() &&
+              timestamped != timestampedRecords.end(),
+          description + " did not use the timestamped reflection callback");
+      require(
+          timestamped->values.size() == 1U &&
+              timestamped->values.count(receiverBaseAttribute) == 1U &&
+              copyBytes(timestamped->values.at(receiverBaseAttribute)) ==
+                  std::vector<std::uint8_t>{value},
+          description + " reflection did not carry the expected attribute value");
+      require(
+          timestamped->tag == tagBytes &&
+              timestamped->time == encodeTime(*updateTime) &&
+              timestamped->producer == producer.federateHandle() &&
+              timestamped->sentOrder == rti::TIMESTAMP &&
+              timestamped->receivedOrder == rti::RECEIVE &&
+              timestamped->retractionPresent &&
+              timestamped->regions == std::nullopt,
+          description + " timestamped reflection metadata was incorrect");
+    } else {
+      require(
+          ordinary != ordinaryRecords.end() &&
+              timestamped == timestampedRecords.end(),
+          description + " did not use the receive-order reflection callback");
+      require(
+          ordinary->values.size() == 1U &&
+              ordinary->values.count(receiverBaseAttribute) == 1U &&
+              copyBytes(ordinary->values.at(receiverBaseAttribute)) ==
+                  std::vector<std::uint8_t>{value} &&
+              ordinary->tag == tagBytes &&
+              !retractionPresent,
+          description + " receive-order reflection metadata was incorrect");
+    }
+  };
+
+  // The adapter known-class fixture declares Name with FDD default RECEIVE.
+  // An existing instance remains RECEIVE when the inherited default is
+  // changed through the derived class handle, while a new base instance is TSO.
+  auto const initialTag = std::vector<std::uint8_t>{0xA1U};
+  sendAndObserve(
+      publisher,
+      publisherTime,
+      existingReceiveObject,
+      publisherBaseAttribute,
+      5U,
+      0x11U,
+      initialTag,
+      false,
+      "Inherited attribute-order FDD-default baseline");
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherDerivedClass,
+      publisherDerivedAttributes,
+      rti::TIMESTAMP);
+  auto const futureBaseTimestampObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherBaseClass);
+  require(
+      futureBaseTimestampObject.isValid(),
+      "Derived-handle order-default change returned an invalid base instance");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(futureBaseTimestampObject); },
+      options,
+      "Inherited attribute-order future base-instance discovery");
+  sendAndObserve(
+      publisher,
+      publisherTime,
+      futureBaseTimestampObject,
+      publisherBaseAttribute,
+      6U,
+      0x12U,
+      {0xA2U},
+      true,
+      "Derived-handle default change on future base instance");
+  sendAndObserve(
+      publisher,
+      publisherTime,
+      existingReceiveObject,
+      publisherBaseAttribute,
+      7U,
+      0x13U,
+      {0xA3U},
+      false,
+      "Existing base instance after derived-handle default change");
+
+  auto const peerReceiveObject =
+      peer.rtiAmbassador().registerObjectInstance(peerBaseClass);
+  require(
+      peerReceiveObject.isValid(),
+      "Unmodified federate order-default registration returned an invalid object");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(peerReceiveObject); },
+      options,
+      "Inherited attribute-order peer-object discovery");
+  sendAndObserve(
+      peer,
+      peerTime,
+      peerReceiveObject,
+      peerBaseAttribute,
+      8U,
+      0x14U,
+      {0xA4U},
+      false,
+      "Other federate default after publisher change");
+
+  // Reverse the class-handle direction: a base-handle change controls a
+  // future derived instance, while the already timestamp-ordered base instance
+  // keeps its prior order.
+  publisher.rtiAmbassador().changeDefaultAttributeOrderType(
+      publisherBaseClass,
+      publisherBaseAttributes,
+      rti::RECEIVE);
+  auto const futureDerivedReceiveObject =
+      publisher.rtiAmbassador().registerObjectInstance(publisherDerivedClass);
+  require(
+      futureDerivedReceiveObject.isValid(),
+      "Base-handle order-default change returned an invalid derived instance");
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().hasDiscovery(futureDerivedReceiveObject); },
+      options,
+      "Inherited attribute-order future derived-instance discovery");
+  sendAndObserve(
+      publisher,
+      publisherTime,
+      futureDerivedReceiveObject,
+      publisherDerivedAttribute,
+      9U,
+      0x15U,
+      {0xA5U},
+      false,
+      "Base-handle default change on future derived instance");
+  sendAndObserve(
+      publisher,
+      publisherTime,
+      futureBaseTimestampObject,
+      publisherBaseAttribute,
+      10U,
+      0x16U,
+      {0xA6U},
+      true,
+      "Existing timestamp instance after base-handle default change");
+
+  receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
+      receiverBaseClass,
+      receiverBaseAttributes);
+  receiver.resign(rti::NO_ACTION);
+  peer.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+  peer.disconnect();
+  publisher.disconnect();
+}
+
+void runFddAttributeOrderDefaultInitialization(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.knownClassFom.empty() &&
+          !options.logicalTimeImplementationName.empty(),
+      "FDD order-default initialization requires an adapter-supplied FOM and logical time");
+  require(
+      !options.knownClassObjectClassName.empty() &&
+          !options.knownClassKnownAttributeName.empty(),
+      "FDD order-default initialization requires an object class and attribute");
+
+  Session initialFederate(options, model, "owner");
+  Session observer(options, model, "member");
+  Session lateFederate(options, model, "member");
+  auto const federation = federationName(
+      options,
+      "fdd-attribute-order-default-initialization");
+  initialFederate.connect();
+  observer.connect();
+  lateFederate.connect();
+  initialFederate.rtiAmbassador().createFederationExecution(
+      federation,
+      options.knownClassFom.wstring(),
+      options.logicalTimeImplementationName);
+  initialFederate.join(
+      options.ownerFederateName + L"-fdd-order-initial",
+      options.federateType,
+      federation);
+  observer.join(
+      options.memberFederateName + L"-fdd-order-observer",
+      options.federateType,
+      federation);
+
+  auto const initialClass = initialFederate.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const initialAttribute = initialFederate.rtiAmbassador().getAttributeHandle(
+      initialClass,
+      options.knownClassKnownAttributeName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const observerAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.knownClassKnownAttributeName);
+  require(
+      initialClass.isValid() && initialAttribute.isValid() &&
+          observerClass.isValid() && observerAttribute.isValid() &&
+          initialAttribute == observerAttribute,
+      "FDD order-default fixture returned inconsistent class or attribute handles");
+  rti::AttributeHandleSet const initialAttributes{initialAttribute};
+  rti::AttributeHandleSet const observerAttributes{observerAttribute};
+  initialFederate.rtiAmbassador().publishObjectClassAttributes(
+      initialClass,
+      initialAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true);
+
+  auto const initialTime = makeTimeContext(initialFederate);
+  initialFederate.rtiAmbassador().enableTimeRegulation(*initialTime.epsilon);
+  waitFor(
+      initialFederate,
+      [&] { return initialFederate.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "FDD order-default initial federate time-regulation callback");
+
+  auto const sendTimestampedAndObserve = [&](Session& producer,
+                                              TimeContext const& producerTime,
+                                              rti::ObjectInstanceHandle const& object,
+                                              rti::AttributeHandle const& attribute,
+                                              std::size_t timeStep,
+                                              std::uint8_t value,
+                                              std::vector<std::uint8_t> const& tagBytes,
+                                              rti::OrderType expectedSentOrder,
+                                              std::string const& description) {
+    auto const updateTime = timeAfter(
+        *producerTime.factory,
+        *producerTime.initial,
+        *producerTime.epsilon,
+        timeStep);
+    rti::AttributeHandleValueMap values;
+    values.emplace(
+        attribute,
+        rti::VariableLengthData(&value, sizeof(value)));
+    rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+    auto const ordinaryBefore = observer.recorder().reflections().size();
+    auto const timestampedBefore = observer.recorder().timedReflections().size();
+    auto const retraction = producer.rtiAmbassador().updateAttributeValues(
+        object,
+        values,
+        tag,
+        *updateTime);
+    require(
+        retraction.isValid() == (expectedSentOrder == rti::TIMESTAMP),
+        description + " returned retraction state inconsistent with the FDD/default order");
+    waitFor(
+        observer,
+        [&] {
+          return observer.recorder().reflections().size() > ordinaryBefore ||
+              observer.recorder().timedReflections().size() > timestampedBefore;
+        },
+        options,
+        description + " reflection");
+
+    auto const ordinaryRecords = observer.recorder().reflections();
+    auto const timestampedRecords = observer.recorder().timedReflections();
+    auto const ordinary = std::find_if(
+        ordinaryRecords.begin(),
+        ordinaryRecords.end(),
+        [&](auto const& reflection) {
+          return reflection.object == object && reflection.tag == tagBytes;
+        });
+    auto const timestamped = std::find_if(
+        timestampedRecords.begin(),
+        timestampedRecords.end(),
+        [&](auto const& reflection) {
+          return reflection.object == object && reflection.tag == tagBytes;
+        });
+    require(
+        ordinary == ordinaryRecords.end() &&
+            timestamped != timestampedRecords.end(),
+        description + " did not preserve the timestamped-update callback");
+    require(
+        timestamped->values.size() == 1U &&
+            timestamped->values.count(observerAttribute) == 1U &&
+            copyBytes(timestamped->values.at(observerAttribute)) ==
+                std::vector<std::uint8_t>{value} &&
+            timestamped->tag == tagBytes &&
+            timestamped->time == encodeTime(*updateTime) &&
+            timestamped->producer == producer.federateHandle() &&
+            timestamped->sentOrder == expectedSentOrder &&
+            timestamped->receivedOrder == rti::RECEIVE &&
+            timestamped->retractionPresent ==
+                (expectedSentOrder == rti::TIMESTAMP) &&
+            timestamped->regions == std::nullopt,
+        description + " reflection did not preserve order, value, or metadata");
+  };
+
+  auto const initialObject =
+      initialFederate.rtiAmbassador().registerObjectInstance(initialClass);
+  require(
+      initialObject.isValid(),
+      "Initial federate could not register its FDD-default object");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(initialObject); },
+      options,
+      "Initial federate FDD-default object discovery");
+  sendTimestampedAndObserve(
+      initialFederate,
+      initialTime,
+      initialObject,
+      initialAttribute,
+      5U,
+      0x51U,
+      {0xA1U},
+      rti::RECEIVE,
+      "Initial federate FDD RECEIVE default");
+
+  initialFederate.rtiAmbassador().changeDefaultAttributeOrderType(
+      initialClass,
+      initialAttributes,
+      rti::TIMESTAMP);
+  auto const changedDefaultObject =
+      initialFederate.rtiAmbassador().registerObjectInstance(initialClass);
+  require(
+      changedDefaultObject.isValid(),
+      "Initial federate could not register after changing its class default");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(changedDefaultObject); },
+      options,
+      "Changed-default timestamp object discovery");
+  sendTimestampedAndObserve(
+      initialFederate,
+      initialTime,
+      changedDefaultObject,
+      initialAttribute,
+      6U,
+      0x52U,
+      {0xA2U},
+      rti::TIMESTAMP,
+      "Changed federate TIMESTAMP default positive control");
+
+  lateFederate.join(
+      options.memberFederateName + L"-fdd-order-late-joiner",
+      options.federateType,
+      federation);
+  auto const lateClass = lateFederate.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const lateAttribute = lateFederate.rtiAmbassador().getAttributeHandle(
+      lateClass,
+      options.knownClassKnownAttributeName);
+  require(
+      lateClass.isValid() && lateAttribute.isValid() &&
+          lateAttribute == initialAttribute,
+      "Late federate resolved an inconsistent FDD class-attribute identity");
+  rti::AttributeHandleSet const lateAttributes{lateAttribute};
+  lateFederate.rtiAmbassador().publishObjectClassAttributes(
+      lateClass,
+      lateAttributes);
+  auto const lateTime = makeTimeContext(lateFederate);
+  require(
+      initialTime.factory->getName() == lateTime.factory->getName(),
+      "Late federate selected a different logical-time factory");
+  lateFederate.rtiAmbassador().enableTimeRegulation(*lateTime.epsilon);
+  waitFor(
+      lateFederate,
+      [&] { return lateFederate.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Late federate FDD-default time-regulation callback");
+  auto const lateObject =
+      lateFederate.rtiAmbassador().registerObjectInstance(lateClass);
+  require(
+      lateObject.isValid(),
+      "Late federate could not register its FDD-default object");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(lateObject); },
+      options,
+      "Late federate FDD-default object discovery");
+  sendTimestampedAndObserve(
+      lateFederate,
+      lateTime,
+      lateObject,
+      lateAttribute,
+      7U,
+      0x53U,
+      {0xA3U},
+      rti::RECEIVE,
+      "Late federate retained the FDD RECEIVE default after another federate changed its default");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  observer.resign(rti::NO_ACTION);
+  lateFederate.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  initialFederate.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  initialFederate.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  lateFederate.disconnect();
+  initialFederate.disconnect();
+}
+
+void runDefaultOrderAttributeClassHandleValidation(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.ddmFom.empty() && !options.logicalTimeImplementationName.empty(),
+      "Default-order class-handle validation requires an adapter FOM and logical time");
+  require(
+      !options.knownClassObjectClassName.empty() &&
+          !options.knownClassDerivedObjectClassName.empty() &&
+          !options.knownClassDerivedAttributeName.empty(),
+      "Default-order class-handle validation requires a derived-only attribute fixture");
+
+  Session subject(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "default-order-attribute-class-handle-validation");
+  subject.connect();
+  subject.rtiAmbassador().createFederationExecution(
+      federation,
+      options.ddmFom.wstring(),
+      options.logicalTimeImplementationName);
+  subject.join(
+      options.ownerFederateName + L"-default-order-class-handle",
+      options.federateType,
+      federation);
+
+  auto const baseClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.knownClassObjectClassName);
+  auto const derivedClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.knownClassDerivedObjectClassName);
+  require(
+      baseClass.isValid() && derivedClass.isValid(),
+      "Default-order class-handle fixture returned an invalid class handle");
+  auto const derivedOnlyAttribute = subject.rtiAmbassador().getAttributeHandle(
+      derivedClass,
+      options.knownClassDerivedAttributeName);
+  require(
+      derivedOnlyAttribute.isValid(),
+      "Default-order fixture did not resolve its derived-only attribute");
+  rti::AttributeHandleSet const derivedOnlyAttributes{derivedOnlyAttribute};
+
+  requireException(
+      [&] {
+        subject.rtiAmbassador().changeDefaultAttributeOrderType(
+            baseClass,
+            derivedOnlyAttributes,
+            rti::TIMESTAMP);
+      },
+      L"AttributeNotDefined",
+      "changing an order default for a derived-only attribute through its base class");
+  subject.rtiAmbassador().changeDefaultAttributeOrderType(
+      derivedClass,
+      derivedOnlyAttributes,
+      rti::TIMESTAMP);
+
+  subject.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  subject.rtiAmbassador().destroyFederationExecution(federation);
+  subject.disconnect();
+}
+
+}  // namespace
+
+void scenarioInheritedAttributeDefaultOrderScope(
+    Options const& options,
+    rti::CallbackModel model) {
+  runInheritedAttributeDefaultScope(options, model);
+}
+
+void scenarioInheritedAttributeDefaultOrderScopeContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runInheritedAttributeDefaultScope(options, model);
+}
+
+void scenarioFddAttributeOrderDefaultInitialization(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFddAttributeOrderDefaultInitialization(options, model);
+}
+
+void scenarioFddAttributeOrderDefaultInitializationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runFddAttributeOrderDefaultInitialization(options, model);
+}
+
+void scenarioDefaultOrderAttributeClassHandleValidation(
+    Options const& options,
+    rti::CallbackModel model) {
+  runDefaultOrderAttributeClassHandleValidation(options, model);
+}
+
+void scenarioDefaultOrderAttributeClassHandleValidationContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  runDefaultOrderAttributeClassHandleValidation(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

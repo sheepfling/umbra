@@ -1,5 +1,7 @@
+#if !defined(UMBRA_FEDTIME_PROVIDER_PLUGIN)
 #include "ieee1516_2025_federation_management_test_support.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+#endif
 
 #include <RTI/libfedtime/LogicalTimeFactoryFactory.h>
 #include <RTI/time/HLAinteger64Interval.h>
@@ -8,6 +10,13 @@
 #include <RTI/time/HLAinteger64TimeFactory.h>
 
 #include <cstdint>
+#include <memory>
+#include <string>
+#include <string_view>
+
+#if defined(UMBRA_FEDTIME_PROVIDER_PLUGIN)
+#include "internal/time/federation_time_factory_plugin.hpp"
+#endif
 
 namespace {
 constexpr std::wstring_view customTimeName = L"UmbraTestInteger64Time";
@@ -264,21 +273,33 @@ class TaggedCustomInteger64TimeFactory final
 };
 }  // namespace
 
+#if defined(STATIC_FEDTIME) || defined(UMBRA_FEDTIME_PROVIDER_PLUGIN)
 namespace rti1516_2025 {
 std::unique_ptr<LogicalTimeFactory> LogicalTimeFactoryFactory::makeLogicalTimeFactory(
     std::wstring const& implementationName) {
-  if (implementationName.empty()) {
-    return HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(implementationName);
-  }
   if (implementationName == customTimeName) {
     return std::make_unique<CustomInteger64TimeFactory>();
   }
   if (implementationName == taggedTimeName) {
     return std::make_unique<TaggedCustomInteger64TimeFactory>();
   }
-  return {};
+  return HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(implementationName);
 }
 }  // namespace rti1516_2025
+#endif
+
+#if defined(UMBRA_FEDTIME_PROVIDER_PLUGIN)
+extern "C" UMBRA_FEDTIME_PROVIDER_EXPORT
+rti1516_2025::LogicalTimeFactory* umbra_fedtime_factory_v1(
+    wchar_t const* implementationName) {
+  if (implementationName == nullptr) {
+    return nullptr;
+  }
+  auto factory = rti1516_2025::LogicalTimeFactoryFactory::makeLogicalTimeFactory(
+      implementationName);
+  return factory.release();
+}
+#else
 
 TEST_CASE(
     "Embedded RTI uses the federation-supplied custom logical-time factory",
@@ -310,7 +331,8 @@ TEST_CASE(
   REQUIRE(factory);
   REQUIRE(factory->getName() == customTimeName);
   auto initial = factory->makeInitial();
-  auto* customInitial = dynamic_cast<CustomInteger64Time*>(initial.get());
+  auto* customInitial =
+      dynamic_cast<rti1516_2025::HLAinteger64Time*>(initial.get());
   REQUIRE(customInitial != nullptr);
   REQUIRE(customInitial->isInitial());
   REQUIRE(customInitial->implementationName() == customTimeName);
@@ -378,17 +400,20 @@ TEST_CASE(
   REQUIRE(currentTime);
   REQUIRE_NOTHROW(rti->queryLogicalTime(*currentTime));
   auto const* taggedCurrent =
-      dynamic_cast<TaggedCustomInteger64Time const*>(currentTime.get());
+      dynamic_cast<rti1516_2025::HLAinteger64Time const*>(currentTime.get());
   REQUIRE(taggedCurrent != nullptr);
   REQUIRE(taggedCurrent->isInitial());
-  REQUIRE(taggedCurrent->timeType() == TaggedTimeType::logical);
+  REQUIRE((static_cast<std::uint64_t>(taggedCurrent->getTime()) &
+           taggedTimeTypeField) == 0U);
+  REQUIRE(taggedCurrent->implementationName() == taggedTimeName);
 
   auto finalTime = factory->makeFinal();
   auto const* taggedFinal =
-      dynamic_cast<TaggedCustomInteger64Time const*>(finalTime.get());
+      dynamic_cast<rti1516_2025::HLAinteger64Time const*>(finalTime.get());
   REQUIRE(taggedFinal != nullptr);
   REQUIRE(taggedFinal->isFinal());
-  REQUIRE(taggedFinal->timeType() == TaggedTimeType::logical);
+  REQUIRE((static_cast<std::uint64_t>(taggedFinal->getTime()) &
+           taggedTimeTypeField) == 0U);
 
   TaggedCustomInteger64Time logicalTime{TaggedTimeType::logical, 41};
   TaggedCustomInteger64Time wallClockTime{TaggedTimeType::wallClock, 41};
@@ -402,19 +427,23 @@ TEST_CASE(
 
   auto decodedLogical = factory->decodeLogicalTime(logicalEncoding);
   auto const* taggedLogical =
-      dynamic_cast<TaggedCustomInteger64Time const*>(decodedLogical.get());
+      dynamic_cast<rti1516_2025::HLAinteger64Time const*>(decodedLogical.get());
   REQUIRE(taggedLogical != nullptr);
-  REQUIRE(taggedLogical->timeType() == TaggedTimeType::logical);
-  REQUIRE(taggedLogical->logicalValue() == 41);
+  REQUIRE((static_cast<std::uint64_t>(taggedLogical->getTime()) &
+           taggedTimeTypeField) == 0U);
+  REQUIRE((static_cast<std::uint64_t>(taggedLogical->getTime()) &
+           taggedTimeValueMask) == 41U);
   REQUIRE(taggedLogical->implementationName() == taggedTimeName);
 
   auto decodedWallClock = factory->decodeLogicalTime(
       wallClockEncoding.data(), wallClockEncoding.size());
   auto const* taggedWallClock =
-      dynamic_cast<TaggedCustomInteger64Time const*>(decodedWallClock.get());
+      dynamic_cast<rti1516_2025::HLAinteger64Time const*>(decodedWallClock.get());
   REQUIRE(taggedWallClock != nullptr);
-  REQUIRE(taggedWallClock->timeType() == TaggedTimeType::wallClock);
-  REQUIRE(taggedWallClock->logicalValue() == 41);
+  REQUIRE((static_cast<std::uint64_t>(taggedWallClock->getTime()) &
+           taggedTimeTypeField) != 0U);
+  REQUIRE((static_cast<std::uint64_t>(taggedWallClock->getTime()) &
+           taggedTimeValueMask) == 41U);
   REQUIRE(taggedWallClock->implementationName() == taggedTimeName);
   auto const decodedTimeKindsCompareUnequal =
       decodedLogical->operator==(*decodedWallClock);
@@ -428,3 +457,4 @@ TEST_CASE(
   REQUIRE_NOTHROW(rti->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(rti->disconnect());
 }
+#endif

@@ -103,26 +103,60 @@ final class ServiceReportFederateObjectClassLookupTck {
                && objectClass.equals(objectClassByName)
                && objectClassName.equals(resolvedObjectClassName),
             "federate/object-class lookup did not round-trip the adapter-supplied names");
+
+         ObjectClassHandle invalidObjectClass =
+            JavaTckSupport.invalidHandle(ObjectClassHandle.class);
+         FederateHandle invalidFederate = JavaTckSupport.invalidHandle(FederateHandle.class);
+         String unknownObjectClassName = objectClassName + "-missing";
+         String unknownFederateName = subjectName + "-missing";
+         JavaTckSupport.expectFailure(() -> subject.getObjectClassName(invalidObjectClass),
+            "InvalidObjectClassHandle", "reported invalid object-class-name lookup");
+         JavaTckSupport.expectFailure(() -> subject.getObjectClassHandle(unknownObjectClassName),
+            "NameNotFound", "reported unknown object-class lookup");
+         JavaTckSupport.expectFailure(() -> subject.getFederateHandle(unknownFederateName),
+            "NameNotFound", "reported unknown federate lookup");
+         JavaTckSupport.expectFailure(() -> subject.getFederateName(invalidFederate),
+            "InvalidFederateHandle", "reported invalid federate-name lookup");
          await(observer, recorder, callbackModel);
-         JavaTckSupport.check(recorder.events.size() == 4,
+         JavaTckSupport.check(recorder.events.size() == 8,
             "federate/object-class lookups produced an unexpected report count");
 
          verifyReport(observer, subjectFederate, recorder.events.get(0), encoder, reportClass,
             reportParameters, reliable, "GetFederateHandle",
             new Argument[] {new Argument(53, "Federate name", quoted(subjectName))},
-            new Argument(15, "Federate handle", quoted(federateByName.toString())), 0);
+            new Argument(15, "Federate handle", quoted(federateByName.toString())), 0,
+            true, "");
          verifyReport(observer, subjectFederate, recorder.events.get(1), encoder, reportClass,
             reportParameters, reliable, "GetFederateName",
             new Argument[] {new Argument(15, "Federate handle", quoted(subjectFederate.toString()))},
-            new Argument(53, "Federate name", quoted(resolvedFederateName)), 1);
+            new Argument(53, "Federate name", quoted(resolvedFederateName)), 1, true, "");
          verifyReport(observer, subjectFederate, recorder.events.get(2), encoder, reportClass,
             reportParameters, reliable, "GetObjectClassHandle",
             new Argument[] {new Argument(53, "Object class name", quoted(objectClassName))},
-            new Argument(36, "Object class handle", quoted(objectClassByName.toString())), 2);
+            new Argument(36, "Object class handle", quoted(objectClassByName.toString())), 2,
+            true, "");
          verifyReport(observer, subjectFederate, recorder.events.get(3), encoder, reportClass,
             reportParameters, reliable, "GetObjectClassName",
             new Argument[] {new Argument(36, "Object class handle", quoted(objectClass.toString()))},
-            new Argument(53, "Object class name", quoted(resolvedObjectClassName)), 3);
+            new Argument(53, "Object class name", quoted(resolvedObjectClassName)), 3,
+            true, "");
+         verifyReport(observer, subjectFederate, recorder.events.get(4), encoder, reportClass,
+            reportParameters, reliable, "GetObjectClassName",
+            new Argument[] {new Argument(36, "Object class handle", null)},
+            new Argument(34, "", "null"), 4, false, "InvalidObjectClassHandle");
+         verifyReport(observer, subjectFederate, recorder.events.get(5), encoder, reportClass,
+            reportParameters, reliable, "GetObjectClassHandle",
+            new Argument[] {
+               new Argument(53, "Object class name", quoted(unknownObjectClassName))
+            }, new Argument(34, "", "null"), 5, false, "NameNotFound");
+         verifyReport(observer, subjectFederate, recorder.events.get(6), encoder, reportClass,
+            reportParameters, reliable, "GetFederateHandle",
+            new Argument[] {new Argument(53, "Federate name", quoted(unknownFederateName))},
+            new Argument(34, "", "null"), 6, false, "NameNotFound");
+         verifyReport(observer, subjectFederate, recorder.events.get(7), encoder, reportClass,
+            reportParameters, reliable, "GetFederateName",
+            new Argument[] {new Argument(15, "Federate handle", null)},
+            new Argument(34, "", "null"), 7, false, "InvalidFederateHandle");
 
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
@@ -153,8 +187,8 @@ final class ServiceReportFederateObjectClassLookupTck {
    private static void verifyReport(RTIambassador observer, FederateHandle expectedFederate,
          Interaction event, EncoderFactory encoder, InteractionClassHandle reportClass,
          Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable,
-         String service, Argument[] expectedSupplied, Argument expectedReturned, int serial)
-         throws Exception {
+         String service, Argument[] expectedSupplied, Argument expectedReturned, int serial,
+         boolean expectedSuccess, String expectedException) throws Exception {
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETERS.length
             && event.tag.length == 0 && event.producer == null && event.regionsEmpty
@@ -175,8 +209,10 @@ final class ServiceReportFederateObjectClassLookupTck {
       HLAinteger32BE serialNumber = encoder.createHLAinteger32BE();
       serialNumber.decode(event.parameters.get(parameters.get("HLAserialNumber")));
       JavaTckSupport.check(service.equals(decodedService.getValue())
-            && serviceType.getValue() == 6 && success.getValue()
-            && exception.getValue().isEmpty() && serialNumber.getValue() == serial,
+            && serviceType.getValue() == 6 && success.getValue() == expectedSuccess
+            && (expectedSuccess ? exception.getValue().isEmpty()
+               : exception.getValue().contains(expectedException))
+            && serialNumber.getValue() == serial,
          service + " report returned incorrect status, exception, or serial number");
       FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(
          event.parameters.get(parameters.get("HLAfederate")), 0);
@@ -200,11 +236,21 @@ final class ServiceReportFederateObjectClassLookupTck {
 
    private static void verifyArgument(HLAfixedRecord record, Argument expected,
          String description) throws Exception {
-      JavaTckSupport.check(record.size() == 3
-            && ((HLAinteger32BE) record.get(0)).getValue() == expected.type
-            && expected.name.equals(((HLAunicodeString) record.get(1)).getValue())
-            && expected.value.equals(((HLAunicodeString) record.get(2)).getValue()),
-         description + " had the wrong argument type, name, or value");
+      JavaTckSupport.check(record.size() == 3,
+         description + " expected three fields but received " + record.size());
+      int actualType = ((HLAinteger32BE) record.get(0)).getValue();
+      String actualName = ((HLAunicodeString) record.get(1)).getValue();
+      String actualValue = ((HLAunicodeString) record.get(2)).getValue();
+      boolean valueMatches = expected.value == null
+         ? actualValue.length() >= 2 && actualValue.startsWith("\"")
+            && actualValue.endsWith("\"")
+         : expected.value.equals(actualValue);
+      JavaTckSupport.check(actualType == expected.type
+            && expected.name.equals(actualName) && valueMatches,
+         description + " expected=(" + expected.type + ", " + expected.name + ", "
+            + (expected.value == null ? "quoted provider handle" : expected.value)
+            + ") actual=(" + actualType + ", " + actualName + ", "
+            + actualValue + ")");
    }
 
    private static HLAfixedRecord argumentPrototype(EncoderFactory encoder) {
@@ -220,11 +266,11 @@ final class ServiceReportFederateObjectClassLookupTck {
    private static void await(RTIambassador observer, Recorder recorder, CallbackModel model)
          throws Exception {
       long deadline = System.nanoTime() + TIMEOUT_NANOS;
-      while (recorder.events.size() < 4 && System.nanoTime() < deadline) {
+      while (recorder.events.size() < 8 && System.nanoTime() < deadline) {
          if (model == CallbackModel.HLA_EVOKED) observer.evokeCallback(0.01);
          else Thread.yield();
       }
-      JavaTckSupport.check(recorder.events.size() >= 4,
+      JavaTckSupport.check(recorder.events.size() >= 8,
          "timed out waiting for federate/object-class lookup service reports");
    }
 

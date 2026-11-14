@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification><name>TCK Transportation Description Different</name><type>FOM</type></modelIdentification>
+  <transportations><transportation>
+    <name>TckMergeTransport</name>
+    <reliable>No</reliable>
+    <semantics>This text differs and is not FDD data.</semantics>
+  </transportation></transportations>
+</objectModel>

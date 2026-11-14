@@ -35,17 +35,17 @@ final class FederationMomFomModuleDesignatorListTck {
    }
 
    static void run(RtiFactory factory, String fom, String mim, String[] additionalFoms,
-         String timeImplementation, CallbackModel callbackModel, String federateType)
-         throws Exception {
+         String dataTypeProviderFom, String timeImplementation, CallbackModel callbackModel,
+         String federateType) throws Exception {
       runWithDesignator(factory, fom, mim, additionalFoms, timeImplementation,
-         callbackModel, federateType, true);
+         callbackModel, federateType, true, dataTypeProviderFom);
    }
 
    static void runFileUrl(RtiFactory factory, String fom, String mim,
          String[] additionalFoms, String timeImplementation,
          CallbackModel callbackModel, String federateType) throws Exception {
       runWithDesignator(factory, fom, mim, additionalFoms, timeImplementation,
-         callbackModel, federateType, false);
+         callbackModel, federateType, false, null);
    }
 
    private static String localFileUrl(String fom) {
@@ -69,25 +69,40 @@ final class FederationMomFomModuleDesignatorListTck {
 
    private static void runWithDesignator(RtiFactory factory, String fom, String mim,
          String[] additionalFoms, String timeImplementation,
-         CallbackModel callbackModel, String federateType, boolean withExplicitMim)
-         throws Exception {
+         CallbackModel callbackModel, String federateType, boolean withExplicitMim,
+         String dataTypeProviderFom) throws Exception {
       check(additionalFoms != null && additionalFoms.length > 0,
          "at least one adapter-supplied additional FOM module is required");
+      if (withExplicitMim) {
+         check(dataTypeProviderFom != null && !dataTypeProviderFom.isEmpty(),
+            "the designator filtering test requires an adapter-supplied data-type-only FOM module");
+      }
       String baseDesignator = withExplicitMim ? fom : localFileUrl(fom);
+      String[] createDesignators = new String[] {baseDesignator};
+      if (withExplicitMim) {
+         String duplicateContentDesignator = localFileUrl(fom);
+         check(!baseDesignator.equals(duplicateContentDesignator),
+            "identical FOM content test requires distinct module designators");
+         createDesignators = new String[] {baseDesignator, duplicateContentDesignator};
+      }
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador extension = factory.getRtiAmbassador();
+      RTIambassador dataTypeOnly = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-fom-designators-" + UUID.randomUUID();
       boolean ownerConnected = false;
       boolean observerConnected = false;
       boolean extensionConnected = false;
+      boolean dataTypeOnlyConnected = false;
       boolean ownerJoined = false;
       boolean observerJoined = false;
       boolean extensionJoined = false;
+      boolean dataTypeOnlyJoined = false;
       boolean created = false;
       boolean subscribed = false;
+      boolean currentFddSubscribed = false;
       try {
          check(owner.connect(callbacks(), callbackModel) != null,
             "FOM-designator owner connect returned null ConfigurationResult");
@@ -101,7 +116,7 @@ final class FederationMomFomModuleDesignatorListTck {
 
          if (withExplicitMim) {
             owner.createFederationExecutionWithMIM(
-               federation, new String[] {baseDesignator}, mim, timeImplementation);
+               federation, createDesignators, mim, timeImplementation);
          } else {
             owner.createFederationExecution(
                federation, new String[] {baseDesignator}, timeImplementation);
@@ -149,6 +164,40 @@ final class FederationMomFomModuleDesignatorListTck {
          check(initial.size() == 1,
             "created federation FOM-module designator list had an unexpected size");
 
+         if (!withExplicitMim) {
+            AttributeHandle mimDesignatorAttribute = observer.getAttributeHandle(
+               federationClass, "HLAMIMdesignator");
+            check(mimDesignatorAttribute != null && "HLAMIMdesignator".equals(
+                  observer.getAttributeName(federationClass, mimDesignatorAttribute)),
+               "automatic federation-MOM MIM-designator lookup returned an invalid handle");
+            AttributeHandleSet mimDesignatorAttributes =
+               JavaTckSupport.attributeSet(observer, mimDesignatorAttribute);
+            observer.subscribeObjectClassAttributes(
+               federationClass, mimDesignatorAttributes);
+            recorder.clearReflection();
+            observer.requestAttributeValueUpdate(
+               federationObject, mimDesignatorAttributes, new byte[0]);
+            await(observer, callbackModel,
+               () -> recorder.reflectedValues != null
+                  && recorder.reflectedValues.containsKey(mimDesignatorAttribute),
+               "federation MOM report for the automatically supplied standard MIM designator");
+            check(federationObject.equals(recorder.reflectedObject)
+                  && recorder.reflectedValues.size() == 1
+                  && recorder.reflectionTag != null && recorder.reflectionTag.length == 0
+                  && reliable.equals(recorder.reflectionTransportation)
+                  && recorder.reflectionCallbackArity == 6
+                  && (recorder.reflectionRegions == null || recorder.reflectionRegions.isEmpty()),
+               "automatic standard-MIM designator reflection returned incomplete or non-standard metadata");
+            JavaTckSupport.requireNoProducingFederate(observer, recorder.reflectionProducer,
+               "automatic standard-MIM designator reflection");
+            HLAunicodeString mimDesignator = encoder.createHLAunicodeString();
+            mimDesignator.decode(recorder.reflectedValues.get(mimDesignatorAttribute));
+            check("HLAstandardMIM".equals(mimDesignator.getValue()),
+               "the automatically supplied standard MIM did not use its required HLAstandardMIM designator");
+            observer.unsubscribeObjectClassAttributes(
+               federationClass, mimDesignatorAttributes);
+         }
+
          java.util.List<String> allModules = new ArrayList<>();
          allModules.add(baseDesignator);
          java.util.Collections.addAll(allModules, additionalFoms);
@@ -181,6 +230,48 @@ final class FederationMomFomModuleDesignatorListTck {
             reliable, allExpected, "requested federation FOM-module designator list after composition");
          check(requestedAfterJoin.equals(joinedValue),
             "requested designator list disagreed with the join-triggered update");
+
+         if (withExplicitMim) {
+            AttributeHandle currentFddAttribute = observer.getAttributeHandle(
+               federationClass, "HLAcurrentFDD");
+            check(currentFddAttribute != null,
+               "current-FDD lookup returned a null standard handle");
+            AttributeHandleSet currentFddAttributes =
+               JavaTckSupport.attributeSet(observer, currentFddAttribute);
+            observer.subscribeObjectClassAttributes(federationClass, currentFddAttributes);
+            currentFddSubscribed = true;
+            String currentFddBeforeJoin = requestCurrentFdd(observer, recorder, encoder,
+               callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
+               "current FDD before the data-type-only join");
+            check(!currentFddBeforeJoin.contains("TckMergeValue"),
+               "current FDD unexpectedly contained the data-type-only module's declaration before Join");
+
+            check(dataTypeOnly.connect(callbacks(), callbackModel) != null,
+               "data-type-only federate connect returned null ConfigurationResult");
+            dataTypeOnlyConnected = true;
+            dataTypeOnly.joinFederationExecution("java-tck-designators-data-type-only",
+               federateType, federation, new String[] {dataTypeProviderFom});
+            dataTypeOnlyJoined = true;
+
+            String currentFddAfterJoin = requestCurrentFdd(observer, recorder, encoder,
+               callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
+               "current FDD after the data-type-only join");
+            check(currentFddAfterJoin.contains("TckMergeValue"),
+               "current FDD omitted the data-type-only module's merged declaration");
+            Set<String> designatorsAfterDataTypeJoin = requestDesignators(observer, recorder,
+               encoder, callbackModel, federationObject, designatorAttribute,
+               designatorAttributes, reliable, allExpected,
+               "FOM-module designator list after the data-type-only join");
+            check(designatorsAfterDataTypeJoin.equals(allExpected),
+               "a data-type-only module was incorrectly included in HLAFOMmoduleDesignatorList");
+
+            observer.unsubscribeObjectClassAttributes(federationClass, currentFddAttributes);
+            currentFddSubscribed = false;
+            dataTypeOnly.resignFederationExecution(ResignAction.NO_ACTION);
+            dataTypeOnlyJoined = false;
+            dataTypeOnly.disconnect();
+            dataTypeOnlyConnected = false;
+         }
       } finally {
          if (subscribed && observerJoined) {
             try {
@@ -193,6 +284,18 @@ final class FederationMomFomModuleDesignatorListTck {
             } catch (Exception ignored) {
             }
          }
+         if (currentFddSubscribed && observerJoined) {
+            try {
+               observer.unsubscribeObjectClassAttributes(
+                  observer.getObjectClassHandle("HLAobjectRoot.HLAmanager.HLAfederation"),
+                  JavaTckSupport.attributeSet(observer,
+                     observer.getAttributeHandle(
+                        observer.getObjectClassHandle("HLAobjectRoot.HLAmanager.HLAfederation"),
+                        "HLAcurrentFDD")));
+            } catch (Exception ignored) {
+            }
+         }
+         if (dataTypeOnlyJoined) resign(dataTypeOnly);
          if (extensionJoined) resign(extension);
          if (observerJoined) resign(observer);
          if (ownerJoined) resign(owner);
@@ -203,9 +306,30 @@ final class FederationMomFomModuleDesignatorListTck {
             }
          }
          if (extensionConnected) disconnect(extension);
+         if (dataTypeOnlyConnected) disconnect(dataTypeOnly);
          if (observerConnected) disconnect(observer);
          if (ownerConnected) disconnect(owner);
       }
+   }
+
+   private static String requestCurrentFdd(RTIambassador observer, Recorder recorder,
+         EncoderFactory encoder, CallbackModel callbackModel,
+         ObjectInstanceHandle federationObject, AttributeHandle currentFddAttribute,
+         AttributeHandleSet currentFddAttributes, String description) throws Exception {
+      recorder.clearReflection();
+      observer.requestAttributeValueUpdate(
+         federationObject, currentFddAttributes, new byte[0]);
+      await(observer, callbackModel,
+         () -> federationObject.equals(recorder.reflectedObject)
+            && recorder.reflectedValues != null
+            && recorder.reflectedValues.containsKey(currentFddAttribute),
+         description);
+      check(federationObject.equals(recorder.reflectedObject)
+            && recorder.reflectedValues.containsKey(currentFddAttribute),
+         description + " reported the wrong MOM object or attribute");
+      HLAunicodeString currentFdd = encoder.createHLAunicodeString();
+      currentFdd.decode(recorder.reflectedValues.get(currentFddAttribute));
+      return currentFdd.getValue();
    }
 
    private static Set<String> requestDesignators(RTIambassador observer, Recorder recorder,

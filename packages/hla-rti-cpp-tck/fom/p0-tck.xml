@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-FDD-2025.xsd">
     <modelIdentification>
         <name>Portable HLA C++ TCK P0 FOM</name>
         <type>FOM</type>
@@ -76,6 +76,8 @@
         <interactionClass>
             <name>HLAinteractionRoot</name>
             <sharing>Neither</sharing>
+            <transportation>HLAreliable</transportation>
+            <order>TimeStamp</order>
             <interactionClass>
                 <name>TckInteraction</name>
                 <sharing>PublishSubscribe</sharing>
@@ -122,6 +124,13 @@
             </interactionClass>
         </interactionClass>
     </interactions>
+    <dimensions/>
+    <transportations>
+        <transportation>
+            <name>HLAreliable</name>
+            <reliable>Yes</reliable>
+        </transportation>
+    </transportations>
     <switches>
         <autoProvide isEnabled="false"/>
         <attributeRelevanceAdvisory isEnabled="true"/>

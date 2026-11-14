@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-focused-java-provider-runtime-not-conformance",
+  "notes": "Focused Java public-API evidence for IEEE 1516.1-2025 §12.12.4.2. The scenario creates each of the 25 standard basic data-element interfaces through EncoderFactory, encodes each of two values with toByteArray(), decodes into a fresh helper with DataElement.decode(byte[]), and checks the decoded value. It verifies Java basic-data-element round trips; it does not claim exact wire representations, exhaustive Annex C behavior, independent-provider behavior, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-java-basic-data-element-encode-decode-round-trips",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/BasicDataElementEncodeDecodeContractTck.java",
+      "source_symbol": "BasicDataElementEncodeDecodeContractTck.run",
+      "tests": [
+        "org.hla.rti.tck.RtiTckMain#basicDataElementEncodeDecodeContract"
+      ]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 #include "internal/handles/parameter_handle_directory.hpp"
 
 #include "internal/fom/fom_catalog.hpp"
+#include "internal/handles/fom_handle_allocator.hpp"
 
-#include <limits>
 #include <set>
 #include <utility>
 
@@ -32,7 +32,9 @@ ParameterHandleDirectory::resolveDefinition(
   return std::nullopt;
 }
 
-bool ParameterHandleDirectory::reconcile(FomCatalog const* catalog) {
+bool ParameterHandleDirectory::reconcile(
+    FomCatalog const* catalog,
+    FomHandleAllocator& handleAllocator) {
   if (catalog == nullptr) {
     return true;
   }
@@ -52,11 +54,13 @@ bool ParameterHandleDirectory::reconcile(FomCatalog const* catalog) {
       if (handlesByDefinition_.contains(key)) {
         continue;
       }
-      if (nextHandle_ == 0) {
+      auto const allocatedHandle = handleAllocator.allocate(
+          "parameter", interactionClassName, parameterName);
+      if (!allocatedHandle) {
         return false;
       }
 
-      std::uint64_t const handle = nextHandle_;
+      std::uint64_t const handle = *allocatedHandle;
       auto [definitionPosition, insertedDefinition] = handlesByDefinition_.emplace(key, handle);
       if (!insertedDefinition) {
         continue;
@@ -72,10 +76,6 @@ bool ParameterHandleDirectory::reconcile(FomCatalog const* catalog) {
         handlesByDefinition_.erase(definitionPosition);
         throw;
       }
-
-      nextHandle_ = handle == std::numeric_limits<std::uint64_t>::max()
-          ? 0
-          : handle + 1;
     }
   }
   return true;

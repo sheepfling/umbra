@@ -139,6 +139,13 @@ EmbeddedFederationRegistry::changeDefaultAttributeTransportationType(
           transportationName)) {
     return AttributeTransportationTypeDefaultStatus::invalid_transportation_type;
   }
+  auto const effectiveTransportationName = effectiveTransportationTypeName(
+      federation->second,
+      transportationName);
+  if (!effectiveTransportationName) {
+    return AttributeTransportationTypeDefaultStatus::invalid_transportation_type;
+  }
+  transportationName = *effectiveTransportationName;
   if (!validObjectClassAttributes(
           federation->second,
           objectClassHandle,
@@ -366,6 +373,13 @@ EmbeddedFederationRegistry::planInteractionTransportationTypeChange(
       transportationName)) {
     return {InteractionTransportationTypeChangeStatus::invalid_transportation_type};
   }
+  auto const effectiveTransportationName = effectiveTransportationTypeName(
+      federation->second,
+      transportationName);
+  if (!effectiveTransportationName) {
+    return {InteractionTransportationTypeChangeStatus::invalid_transportation_type};
+  }
+  transportationName = *effectiveTransportationName;
   auto declarations = federation->second.interactionDeclarations.find(requestingFederateId);
   bool published =
       declarations != federation->second.interactionDeclarations.end() &&
@@ -560,6 +574,13 @@ EmbeddedFederationRegistry::planInteractionTransportationTypeQuery(
       transportationName = overrideType->second;
     }
   }
+  auto const effectiveTransportationName = effectiveTransportationTypeName(
+      federation->second,
+      transportationName);
+  if (!effectiveTransportationName) {
+    return {InteractionTransportationTypeQueryStatus::inconsistent_catalog};
+  }
+  transportationName = *effectiveTransportationName;
   auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
       requestingFederateId);
   if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "This focused portable trace covers only standard HLAreportException delivery and its Exception Reporting switch gate. It does not claim complete service-exception reporting, error-text normalization across RTIs, or overall MOM conformance.",
+  "notes": "This focused portable trace covers standard HLAreportException delivery, its Exception Reporting switch gate, callback region metadata, and the HLAreliable/Receive transport-order behavior defined for that interaction in the standard MIM. For the exercised Get Object Class Handle failure, it checks one region, its sole HLAfederate dimension, the normalized federate point range, reliable transport, and non-timestamped callback delivery. The l. 47/l. 53/l. 56/l. 87 evidence is limited to this report class and service path; it does not establish the rules for every Table 7 report, MOM attribute, or interaction class, complete service-exception reporting, error-text normalization across RTIs, or overall MOM conformance.",
   "requirements": [
     {
       "id": "cpp-1516.1-tck-exception-reporting-switch-gate",
@@ -24,6 +24,54 @@
       "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException",
       "source_lines": "1745-1774",
       "statement": "When Exception Reporting is enabled, the RTI sends the standard HLAreportException interaction when a service invocation at the indicated joined federate raises an exception; the interaction supplies service and exception text and the reported federate identity.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l47-15",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, line 47",
+      "source_symbol": "Table 7 HLAfederate HLAreport update-region set",
+      "statement": "For the exercised Table 7 HLAreportException callback, the TCK enables callback region conveyance and requires exactly one region designator. This is bounded evidence for this report class and Get Object Class Handle failure only; it does not establish the rule for every other Table 7 HLAfederate report interaction.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l53-17",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, line 53",
+      "source_symbol": "HLAreportException update-region dimension set",
+      "statement": "For the exercised HLAreportException callback region, the TCK queries the callback-scoped region with the official API and requires its specified dimension set to equal exactly {HLAfederate}.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l56-18",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, line 56",
+      "source_symbol": "HLAreportException update-region HLAfederate range",
+      "statement": "For the exercised HLAreportException callback, the TCK requires the half-open point range [n, n + 1) on HLAfederate, where n equals RTIambassador.normalizeFederateHandle of the HLAfederate parameter in that interaction.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDelivery",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-transport",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1 and IEEE 1516.2-2025 HLAstandardMIM-2025.xml",
+      "source_lines": "page 291, line 87; standard MIM HLAreportException transportation/order",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException",
+      "statement": "The standard MIM declares HLAreportException with HLAreliable transportation and Receive order. For the tested Get Object Class Handle failure, the TCK verifies reliable transport and that the report is observed through the receive-order receiveInteraction callback, not a timestamped callback. This is a bounded witness for HLAreportException only; it does not establish the no-modification rule for every MOM attribute or interaction class.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDelivery",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateExceptionReportDeliveryContract"

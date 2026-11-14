@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
-/** Checks timestamped directed delivery for by-ownership and universal selectors. */
+/** Checks timestamped directed subscription delivery and retraction-handle uniqueness. */
 final class TimestampedDirectedInteractionSubscriptionKindTck {
    private TimestampedDirectedInteractionSubscriptionKindTck() { }
 

@@ -22,7 +22,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer.cpp",
       "source_symbol": "FomCatalogBuilder::build",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition treats omitted switch booleans as their schema default"
       ]
     }
   ]

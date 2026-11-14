@@ -1,11 +1,13 @@
 package org.hla.rti.tck;
 
+import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
@@ -41,8 +43,9 @@ final class ServiceReportRegionalInteractionTck {
    private ServiceReportRegionalInteractionTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String interactionName, String parameterName, String firstDimensionName,
-         String secondDimensionName, CallbackModel callbackModel) throws Exception {
+         String objectClassName, String attributeName, String interactionName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
       JavaTckSupport.check(fom != null && !fom.isEmpty(),
          "adapter-supplied dimensional FOM is required");
       JavaTckSupport.check(mim != null && !mim.isEmpty(),
@@ -85,6 +88,17 @@ final class ServiceReportRegionalInteractionTck {
          observer.joinFederationExecution("regional-report-observer", "java-tck", federation);
          joined[2] = true;
 
+         ObjectClassHandle publisherObjectClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle receiverObjectClass = receiver.getObjectClassHandle(objectClassName);
+         JavaTckSupport.check(publisherObjectClass != null && receiverObjectClass != null,
+            "adapter FOM object-class lookup returned an invalid handle");
+         AttributeHandle publisherAttribute = publisher.getAttributeHandle(
+            publisherObjectClass, attributeName);
+         AttributeHandle receiverAttribute = receiver.getAttributeHandle(
+            receiverObjectClass, attributeName);
+         JavaTckSupport.check(publisherAttribute != null && receiverAttribute != null,
+            "adapter FOM attribute lookup returned an invalid handle");
+
          publisher.setServiceReportingSwitch(false);
          publisher.setSendServiceReportsToFileSwitch(false);
          receiver.setServiceReportingSwitch(false);
@@ -111,8 +125,15 @@ final class ServiceReportRegionalInteractionTck {
                && receiver.getParameterName(receiverInteraction, receiverParameter)
                   .equals(parameterName),
             "adapter FOM interaction/parameter declarations did not round-trip");
-         JavaTckSupport.check(publisherFirst.equals(receiverFirst)
+         JavaTckSupport.check(!publisherFirst.equals(publisherSecond)
+               && publisherFirst.equals(receiverFirst)
                && publisherSecond.equals(receiverSecond)
+               && firstDimensionName.equals(publisher.getDimensionName(publisherFirst))
+               && secondDimensionName.equals(publisher.getDimensionName(publisherSecond))
+               && publisher.getAvailableDimensionsForObjectClass(publisherObjectClass)
+                  .contains(publisherFirst)
+               && publisher.getAvailableDimensionsForObjectClass(publisherObjectClass)
+                  .contains(publisherSecond)
                && publisher.getAvailableDimensionsForInteractionClass(publisherInteraction)
                   .contains(publisherFirst)
                && publisher.getAvailableDimensionsForInteractionClass(publisherInteraction)
@@ -162,6 +183,21 @@ final class ServiceReportRegionalInteractionTck {
          publisherCallbacks.interactions.clear();
          receiverCallbacks.interactions.clear();
          observerCallbacks.interactions.clear();
+         receiverCallbacks.setInteractionInspection(delivery -> {
+            JavaTckSupport.check(delivery.regions != null && delivery.regions.size() == 1,
+               "regional application callback did not convey exactly one source-region copy");
+            RegionHandle callbackRegion = delivery.regions.iterator().next();
+            DimensionHandleSet callbackDimensions = receiver.getDimensionHandleSet(callbackRegion);
+            JavaTckSupport.check(callbackDimensions.size() == 2
+                  && callbackDimensions.contains(receiverFirst)
+                  && callbackDimensions.contains(receiverSecond),
+               "regional application callback source-region copy returned the wrong dimension set");
+            RangeBounds firstCallbackBounds = receiver.getRangeBounds(callbackRegion, receiverFirst);
+            RangeBounds secondCallbackBounds = receiver.getRangeBounds(callbackRegion, receiverSecond);
+            JavaTckSupport.check(firstCallbackBounds.lower == 1 && firstCallbackBounds.upper == 5
+                  && secondCallbackBounds.lower == 1 && secondCallbackBounds.upper == 5,
+               "regional application callback source-region copy returned the wrong range bounds");
+         });
          byte[] value = new byte[] {0x52, 0x45, 0x47};
          byte[] tag = new byte[] {0x52, 0x53, 0x52};
          ParameterHandleValueMap values =
@@ -172,6 +208,11 @@ final class ServiceReportRegionalInteractionTck {
          awaitBoth(receiver, observer, callbackModel,
             () -> !receiverCallbacks.interactions.isEmpty()
                && !observerCallbacks.interactions.isEmpty());
+         JavaTckSupport.check(receiverCallbacks.interactions.size() == 1,
+            "regional application callback did not arrive exactly once");
+         JavaTckSupport.check(receiverCallbacks.inspectionFailure() == null,
+            "regional application callback region inspection failed: "
+               + receiverCallbacks.inspectionFailure());
 
          Interaction report = observerCallbacks.lastInteraction();
          JavaTckSupport.check(reportClass.equals(report.interaction)
@@ -211,10 +252,8 @@ final class ServiceReportRegionalInteractionTck {
                && Arrays.equals(tag, delivery.tag)
                && publisherFederate.equals(delivery.producer)
                && delivery.transportation != null
-               && !receiver.getTransportationTypeName(delivery.transportation).isEmpty()
-               && delivery.regions != null && delivery.regions.size() == 1
-               && delivery.regions.contains(sourceRegion),
-            "regional application callback did not preserve payload and source-region metadata");
+               && !receiver.getTransportationTypeName(delivery.transportation).isEmpty(),
+            "regional application callback did not preserve payload or ordinary interaction metadata");
 
          publisher.setServiceReportingSwitch(false);
          publisher.setSendServiceReportsToFileSwitch(false);
@@ -359,6 +398,16 @@ final class ServiceReportRegionalInteractionTck {
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private volatile InteractionInspection interactionInspection;
+      private volatile Throwable interactionInspectionFailure;
+
+      private void setInteractionInspection(InteractionInspection inspection) {
+         interactionInspection = inspection;
+      }
+
+      private Throwable inspectionFailure() {
+         return interactionInspectionFailure;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -367,7 +416,16 @@ final class ServiceReportRegionalInteractionTck {
                String name = method.getName();
                if ("receiveInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
-                  interactions.add(new Interaction(arguments));
+                  Interaction event = new Interaction(arguments);
+                  interactions.add(event);
+                  InteractionInspection inspection = interactionInspection;
+                  if (inspection != null) {
+                     try {
+                        inspection.inspect(event);
+                     } catch (Throwable error) {
+                        interactionInspectionFailure = error;
+                     }
+                  }
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK regional service-report callbacks";
@@ -381,5 +439,10 @@ final class ServiceReportRegionalInteractionTck {
       private Interaction lastInteraction() {
          return interactions.get(interactions.size() - 1);
       }
+   }
+
+   @FunctionalInterface
+   private interface InteractionInspection {
+      void inspect(Interaction interaction) throws Exception;
    }
 }

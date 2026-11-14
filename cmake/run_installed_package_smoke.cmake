@@ -87,6 +87,11 @@ if(NOT EXISTS "${installed_rti_header}")
     "Installed package does not provide the common RTI/ header directory: ${installed_rti_header}"
   )
 endif()
+umbra_run_checked("verify installed IEEE 1516.1-2025 C++ API headers"
+  "${UMBRA_PYTHON_EXECUTABLE}"
+  "${UMBRA_SOURCE_DIRECTORY}/tools/verify_ieee_headers.py"
+  --include-root "${install_prefix}/${UMBRA_INSTALL_INCLUDEDIR}"
+)
 
 if(NOT DEFINED UMBRA_EXPECT_SHARED_LIBRARIES)
   set(UMBRA_EXPECT_SHARED_LIBRARIES OFF)
@@ -162,6 +167,9 @@ set(configure_command
   "-DCMAKE_PREFIX_PATH=${install_prefix}"
   "-DUMBRA_PACKAGE_EXPECT_SHARED_LIBRARIES=${UMBRA_EXPECT_SHARED_LIBRARIES}"
 )
+if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
+  list(APPEND configure_command "-DCMAKE_BUILD_TYPE=${UMBRA_CONFIGURATION}")
+endif()
 if(DEFINED UMBRA_GENERATOR AND NOT "${UMBRA_GENERATOR}" STREQUAL "")
   list(APPEND configure_command -G "${UMBRA_GENERATOR}")
 endif()
@@ -239,11 +247,10 @@ if(DEFINED UMBRA_CONFIGURATION AND NOT "${UMBRA_CONFIGURATION}" STREQUAL "")
   list(APPEND ctest_command -C "${UMBRA_CONFIGURATION}")
 endif()
 if(UMBRA_EXPECT_SHARED_LIBRARIES)
-  # This profile's package proof is deliberately bounded to the downstream
-  # executable that links and loads all three installed shared artifacts.
-  # Other package behavior lanes remain independently exercised by the normal
-  # package test profile and are not evidence for dynamic-library packaging.
-  list(APPEND ctest_command -R "^umbra_rti_package_consumer$")
+  # Keep shared-package verification bounded to the downstream consumer and
+  # the C++ artifact-name check; broader package behavior lanes run separately.
+  list(APPEND ctest_command
+    -R "^(umbra_rti_package_consumer|umbra_rti_package_library_nomenclature)$")
   if(NOT DEFINED UMBRA_INSTALL_BINDIR OR "${UMBRA_INSTALL_BINDIR}" STREQUAL "")
     set(UMBRA_INSTALL_BINDIR bin)
   endif()

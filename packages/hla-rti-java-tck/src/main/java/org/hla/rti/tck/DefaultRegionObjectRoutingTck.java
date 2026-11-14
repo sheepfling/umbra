@@ -225,6 +225,329 @@ final class DefaultRegionObjectRoutingTck {
       }
    }
 
+   static void registrationAtomicity(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador overlap = factory.getRtiAmbassador();
+      RTIambassador disjoint = factory.getRtiAmbassador();
+      Recorder overlapCallbacks = new Recorder();
+      Recorder disjointCallbacks = new Recorder();
+      String federation = "java-tck-regional-registration-atomicity-" + UUID.randomUUID();
+      boolean ownerConnected = false, overlapConnected = false, disjointConnected = false;
+      boolean created = false, ownerJoined = false, overlapJoined = false, disjointJoined = false;
+      boolean published = false, overlapSubscribed = false, disjointSubscribed = false;
+      boolean sourceAssociated = false;
+      ObjectClassHandle ownerClass = null, overlapClass = null, disjointClass = null;
+      AttributeHandle ownerAttribute = null, overlapAttribute = null, disjointAttribute = null;
+      AttributeHandleSet ownerAttributes = null, overlapAttributes = null, disjointAttributes = null;
+      AttributeSetRegionSetPairList sourcePair = null, overlapPair = null, disjointPair = null;
+      RegionHandle sourceRegion = null, overlapRegion = null, disjointRegion = null;
+      ObjectInstanceHandle object = null;
+      try {
+         owner.connect(noopFederateAmbassador(), callbackModel);
+         ownerConnected = true;
+         overlap.connect(overlapCallbacks.proxy(), callbackModel);
+         overlapConnected = true;
+         disjoint.connect(disjointCallbacks.proxy(), callbackModel);
+         disjointConnected = true;
+         owner.createFederationExecution(federation, fom);
+         created = true;
+         owner.joinFederationExecution("java-tck-registration-atomicity-owner", federation);
+         ownerJoined = true;
+         overlap.joinFederationExecution("java-tck-registration-atomicity-overlap", federation);
+         overlapJoined = true;
+         disjoint.joinFederationExecution("java-tck-registration-atomicity-disjoint", federation);
+         disjointJoined = true;
+
+         ownerClass = owner.getObjectClassHandle(objectClassName);
+         overlapClass = overlap.getObjectClassHandle(objectClassName);
+         disjointClass = disjoint.getObjectClassHandle(objectClassName);
+         ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         overlapAttribute = overlap.getAttributeHandle(overlapClass, attributeName);
+         disjointAttribute = disjoint.getAttributeHandle(disjointClass, attributeName);
+         DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
+         DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
+         DimensionHandle overlapFirst = overlap.getDimensionHandle(firstDimensionName);
+         DimensionHandle overlapSecond = overlap.getDimensionHandle(secondDimensionName);
+         DimensionHandle disjointFirst = disjoint.getDimensionHandle(firstDimensionName);
+         DimensionHandle disjointSecond = disjoint.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(ownerClass.equals(overlapClass)
+               && ownerClass.equals(disjointClass)
+               && ownerAttribute.equals(overlapAttribute)
+               && ownerAttribute.equals(disjointAttribute)
+               && ownerFirst.equals(overlapFirst) && ownerFirst.equals(disjointFirst)
+               && ownerSecond.equals(overlapSecond) && ownerSecond.equals(disjointSecond),
+            "adapter DDM FOM handles changed across registration-atomicity federates");
+         checkDimensions(owner, ownerClass, ownerFirst, ownerSecond);
+         checkDimensions(overlap, overlapClass, overlapFirst, overlapSecond);
+         checkDimensions(disjoint, disjointClass, disjointFirst, disjointSecond);
+
+         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         overlapAttributes = JavaTckSupport.attributeSet(overlap, overlapAttribute);
+         disjointAttributes = JavaTckSupport.attributeSet(disjoint, disjointAttribute);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         published = true;
+         sourceRegion = createRegion(owner, ownerFirst, ownerSecond, 1, 5);
+         overlapRegion = createRegion(overlap, overlapFirst, overlapSecond, 2, 6);
+         disjointRegion = createRegion(disjoint, disjointFirst, disjointSecond, 7, 9);
+         sourcePair = association(owner, ownerAttributes, sourceRegion);
+         overlapPair = association(overlap, overlapAttributes, overlapRegion);
+         disjointPair = association(disjoint, disjointAttributes, disjointRegion);
+         overlap.subscribeObjectClassAttributesWithRegions(overlapClass, overlapPair);
+         overlapSubscribed = true;
+         disjoint.subscribeObjectClassAttributesWithRegions(disjointClass, disjointPair);
+         disjointSubscribed = true;
+
+         object = owner.registerObjectInstanceWithRegions(ownerClass, sourcePair);
+         sourceAssociated = true;
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "region-qualified registration returned an invalid object handle");
+         ObjectInstanceHandle registered = object;
+         await(overlap, disjoint, callbackModel,
+            () -> overlapCallbacks.discoveries.contains(registered),
+            "overlapping regional discovery after atomic registration");
+         pumpSeveral(overlap, disjoint, callbackModel);
+         JavaTckSupport.check(overlapCallbacks.discoveries.size() == 1
+               && disjointCallbacks.discoveries.isEmpty(),
+            "region-qualified registration exposed the object to a disjoint subscriber");
+      } finally {
+         if (ownerJoined && sourceAssociated && object != null && sourcePair != null) try {
+            owner.unassociateRegionsForUpdates(object, sourcePair);
+         } catch (Exception ignored) { }
+         if (overlapJoined && overlapSubscribed && overlapPair != null) try {
+            overlap.unsubscribeObjectClassAttributesWithRegions(overlapClass, overlapPair);
+         } catch (Exception ignored) { }
+         if (disjointJoined && disjointSubscribed && disjointPair != null) try {
+            disjoint.unsubscribeObjectClassAttributesWithRegions(disjointClass, disjointPair);
+         } catch (Exception ignored) { }
+         if (ownerJoined && published && ownerAttributes != null) try {
+            owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+         } catch (Exception ignored) { }
+         if (ownerJoined && sourceRegion != null) deleteRegion(owner, sourceRegion);
+         if (overlapJoined && overlapRegion != null) deleteRegion(overlap, overlapRegion);
+         if (disjointJoined && disjointRegion != null) deleteRegion(disjoint, disjointRegion);
+         if (overlapJoined) try { overlap.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (disjointJoined) try { disjoint.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (ownerJoined) try { owner.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         if (created) try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (disjointConnected) try { disjoint.disconnect(); } catch (Exception ignored) { }
+         if (overlapConnected) try { overlap.disconnect(); } catch (Exception ignored) { }
+         if (ownerConnected) try { owner.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
+   static void registrationOmittedAttributeDefaultRegion(RtiFactory factory, String fom,
+         String objectClassName, String explicitlyAssociatedAttributeName,
+         String omittedAttributeName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder callbacks = new Recorder();
+      String federation = "java-tck-registration-omitted-attribute-default-region-"
+         + UUID.randomUUID();
+      boolean ownerConnected = false, subscriberConnected = false, created = false;
+      boolean ownerJoined = false, subscriberJoined = false, published = false;
+      boolean subscribed = false, sourceAssociated = false;
+      ObjectClassHandle ownerClass = null, subscriberClass = null;
+      AttributeHandle ownerExplicit = null, ownerOmitted = null;
+      AttributeHandle subscriberExplicit = null, subscriberOmitted = null;
+      AttributeHandleSet ownerAttributes = null, subscriberAttributes = null;
+      AttributeSetRegionSetPairList sourcePair = null, subscriptionPair = null;
+      RegionHandle sourceRegion = null, subscriptionRegion = null;
+      ObjectInstanceHandle object = null;
+      try {
+         owner.connect(noopFederateAmbassador(), callbackModel);
+         ownerConnected = true;
+         subscriber.connect(callbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         owner.createFederationExecution(federation, fom);
+         created = true;
+         FederateHandle producer = owner.joinFederationExecution(
+            "java-tck-registration-omitted-owner", federation);
+         ownerJoined = true;
+         subscriber.joinFederationExecution("java-tck-registration-omitted-subscriber", federation);
+         subscriberJoined = true;
+
+         ownerClass = owner.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         ownerExplicit = owner.getAttributeHandle(ownerClass, explicitlyAssociatedAttributeName);
+         ownerOmitted = owner.getAttributeHandle(ownerClass, omittedAttributeName);
+         subscriberExplicit = subscriber.getAttributeHandle(
+            subscriberClass, explicitlyAssociatedAttributeName);
+         subscriberOmitted = subscriber.getAttributeHandle(subscriberClass, omittedAttributeName);
+         DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
+         DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
+         DimensionHandle subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
+         DimensionHandle subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(ownerClass.equals(subscriberClass)
+               && ownerExplicit.equals(subscriberExplicit) && ownerOmitted.equals(subscriberOmitted)
+               && !ownerExplicit.equals(ownerOmitted)
+               && ownerFirst.equals(subscriberFirst) && ownerSecond.equals(subscriberSecond),
+            "adapter multi-attribute DDM handles changed across registration federates");
+         checkDimensions(owner, ownerClass, ownerFirst, ownerSecond);
+         checkDimensions(subscriber, subscriberClass, subscriberFirst, subscriberSecond);
+
+         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerExplicit, ownerOmitted);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         published = true;
+         sourceRegion = createRegion(owner, ownerFirst, ownerSecond, 1, 5);
+         subscriptionRegion = createRegion(subscriber, subscriberFirst, subscriberSecond, 7, 9);
+         sourcePair = association(owner, JavaTckSupport.attributeSet(owner, ownerExplicit),
+            sourceRegion);
+         subscriptionPair = association(subscriber,
+            JavaTckSupport.attributeSet(subscriber, subscriberOmitted), subscriptionRegion);
+         subscriber.subscribeObjectClassAttributesWithRegions(subscriberClass, subscriptionPair);
+         subscribed = true;
+
+         object = owner.registerObjectInstanceWithRegions(ownerClass, sourcePair);
+         sourceAssociated = true;
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "region-qualified registration returned an invalid object handle");
+         ObjectInstanceHandle registered = object;
+         await(owner, subscriber, callbackModel,
+            () -> callbacks.discoveries.contains(registered),
+            "discovery through an omitted attribute's default region");
+         JavaTckSupport.check(callbacks.discoveries.size() == 1,
+            "omitted-attribute default-region discovery produced duplicate callbacks");
+
+         byte[] value = new byte[] {0x73, 0x52, 0x31};
+         byte[] tag = new byte[] {0x44, 0x52};
+         update(owner, object, ownerOmitted, value, tag);
+         await(owner, subscriber, callbackModel, () -> !callbacks.reflections.isEmpty(),
+            "reflection through the omitted attribute's default region");
+         JavaTckSupport.check(callbacks.reflections.size() == 1,
+            "omitted-attribute default-region update produced duplicate reflections");
+         Reflection reflection = callbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
+               && Arrays.equals(value, reflection.values.get(subscriberOmitted))
+               && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
+            "default-region reflection changed the object, omitted attribute value, tag, or producer");
+      } finally {
+         if (ownerJoined && sourceAssociated && object != null && sourcePair != null) try {
+            owner.unassociateRegionsForUpdates(object, sourcePair);
+         } catch (Exception ignored) { }
+         if (subscriberJoined && subscribed && subscriptionPair != null) try {
+            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriberClass, subscriptionPair);
+         } catch (Exception ignored) { }
+         if (ownerJoined && published && ownerAttributes != null) try {
+            owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+         } catch (Exception ignored) { }
+         if (ownerJoined && sourceRegion != null) deleteRegion(owner, sourceRegion);
+         if (subscriberJoined && subscriptionRegion != null) deleteRegion(subscriber, subscriptionRegion);
+         if (subscriberJoined) try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (ownerJoined) try { owner.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         if (created) try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (subscriberConnected) try { subscriber.disconnect(); } catch (Exception ignored) { }
+         if (ownerConnected) try { owner.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
+   static void registrationEmptyRegionSetDefaultRegion(RtiFactory factory, String fom,
+         String objectClassName, String attributeName, String firstDimensionName,
+         String secondDimensionName, CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder callbacks = new Recorder();
+      String federation = "java-tck-registration-empty-region-set-default-region-"
+         + UUID.randomUUID();
+      boolean ownerConnected = false, subscriberConnected = false, created = false;
+      boolean ownerJoined = false, subscriberJoined = false, published = false, subscribed = false;
+      ObjectClassHandle ownerClass = null, subscriberClass = null;
+      AttributeHandle ownerAttribute = null, subscriberAttribute = null;
+      AttributeHandleSet ownerAttributes = null, subscriberAttributes = null;
+      AttributeSetRegionSetPairList sourcePair = null, subscriptionPair = null;
+      RegionHandle subscriptionRegion = null;
+      ObjectInstanceHandle object = null;
+      try {
+         owner.connect(noopFederateAmbassador(), callbackModel);
+         ownerConnected = true;
+         subscriber.connect(callbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         owner.createFederationExecution(federation, fom);
+         created = true;
+         FederateHandle producer = owner.joinFederationExecution(
+            "java-tck-registration-empty-regions-owner", federation);
+         ownerJoined = true;
+         subscriber.joinFederationExecution(
+            "java-tck-registration-empty-regions-subscriber", federation);
+         subscriberJoined = true;
+
+         ownerClass = owner.getObjectClassHandle(objectClassName);
+         subscriberClass = subscriber.getObjectClassHandle(objectClassName);
+         ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         subscriberAttribute = subscriber.getAttributeHandle(subscriberClass, attributeName);
+         DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
+         DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
+         DimensionHandle subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
+         DimensionHandle subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(ownerClass.equals(subscriberClass)
+               && ownerAttribute.equals(subscriberAttribute)
+               && ownerFirst.equals(subscriberFirst) && ownerSecond.equals(subscriberSecond),
+            "adapter multi-attribute DDM handles changed across empty-region-set federates");
+         checkDimensions(owner, ownerClass, ownerFirst, ownerSecond);
+         checkDimensions(subscriber, subscriberClass, subscriberFirst, subscriberSecond);
+
+         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         subscriberAttributes = JavaTckSupport.attributeSet(subscriber, subscriberAttribute);
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         published = true;
+         subscriptionRegion = createRegion(subscriber, subscriberFirst, subscriberSecond, 7, 9);
+         RegionHandleSet emptyRegions = owner.getRegionHandleSetFactory().create();
+         sourcePair = owner.getAttributeSetRegionSetPairListFactory().create(1);
+         sourcePair.add(new AttributeRegionAssociation(ownerAttributes, emptyRegions));
+         subscriptionPair = association(subscriber, subscriberAttributes, subscriptionRegion);
+         subscriber.subscribeObjectClassAttributesWithRegions(subscriberClass, subscriptionPair);
+         subscribed = true;
+
+         object = owner.registerObjectInstanceWithRegions(ownerClass, sourcePair);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "empty-region-set registration returned an invalid object handle");
+         ObjectInstanceHandle registered = object;
+         await(owner, subscriber, callbackModel,
+            () -> callbacks.discoveries.contains(registered),
+            "discovery through an empty region set's default-region association");
+         JavaTckSupport.check(callbacks.discoveries.size() == 1,
+            "empty-region-set default-region discovery produced duplicate callbacks");
+
+         byte[] value = new byte[] {0x45, 0x52, 0x53};
+         byte[] tag = new byte[] {0x45, 0x52};
+         update(owner, object, ownerAttribute, value, tag);
+         await(owner, subscriber, callbackModel, () -> !callbacks.reflections.isEmpty(),
+            "reflection through an empty region set's default-region association");
+         JavaTckSupport.check(callbacks.reflections.size() == 1,
+            "empty-region-set default-region update produced duplicate reflections");
+         Reflection reflection = callbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
+               && Arrays.equals(value, reflection.values.get(subscriberAttribute))
+               && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
+            "empty-region-set reflection changed the object, attribute value, tag, or producer");
+      } finally {
+         if (subscriberJoined && subscribed && subscriptionPair != null) try {
+            subscriber.unsubscribeObjectClassAttributesWithRegions(subscriberClass, subscriptionPair);
+         } catch (Exception ignored) { }
+         if (ownerJoined && published && ownerAttributes != null) try {
+            owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+         } catch (Exception ignored) { }
+         if (subscriberJoined && subscriptionRegion != null) deleteRegion(subscriber, subscriptionRegion);
+         if (subscriberJoined) try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (ownerJoined) try { owner.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         if (created) try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (subscriberConnected) try { subscriber.disconnect(); } catch (Exception ignored) { }
+         if (ownerConnected) try { owner.disconnect(); } catch (Exception ignored) { }
+      }
+   }
+
    private static void checkDimensions(RTIambassador ambassador, ObjectClassHandle objectClass,
          DimensionHandle first, DimensionHandle second) throws Exception {
       DimensionHandleSet available = ambassador.getAvailableDimensionsForObjectClass(objectClass);

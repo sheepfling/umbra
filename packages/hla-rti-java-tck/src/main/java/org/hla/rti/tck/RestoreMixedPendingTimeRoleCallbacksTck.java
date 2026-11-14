@@ -9,6 +9,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -47,8 +48,7 @@ final class RestoreMixedPendingTimeRoleCallbacksTck {
          constrainedJoined = true;
 
          LogicalTimeFactory<?, ?> timeFactory = regulator.getTimeFactory();
-         LogicalTime<?, ?> regulatorInitial = regulator.queryLogicalTime();
-         LogicalTime<?, ?> constrainedInitial = constrained.queryLogicalTime();
+         LogicalTime<?, ?> initial = regulator.queryLogicalTime();
          LogicalTimeInterval<?> epsilon = timeFactory.makeEpsilon();
          if (model == CallbackModel.HLA_IMMEDIATE) {
             regulator.disableCallbacks();
@@ -56,7 +56,7 @@ final class RestoreMixedPendingTimeRoleCallbacksTck {
             constrained.disableCallbacks();
             constrainedDisabled = true;
          }
-         regulator.enableTimeRegulation(doubleInterval(epsilon));
+         regulator.enableTimeRegulation(epsilon);
          constrained.enableTimeConstrained();
          JavaTckSupport.check(regulatorEvents.regulationTimes.isEmpty()
                && constrainedEvents.constrainedTimes.isEmpty(),
@@ -102,9 +102,11 @@ final class RestoreMixedPendingTimeRoleCallbacksTck {
                && constrainedEvents.restoredCount.get() == 1
                && constrainedEvents.constrainedTimes.size() == 1,
             "both federates' saved, restored, and time-role callbacks");
-         JavaTckSupport.check(regulatorEvents.regulationTimes.equals(List.of(regulatorInitial))
+         JavaTckSupport.check(regulatorEvents.regulationTimes.size() == 1
+               && Arrays.equals(encode(regulatorEvents.regulationTimes.get(0)), encode(initial))
                && regulatorEvents.constrainedTimes.isEmpty()
-               && constrainedEvents.constrainedTimes.equals(List.of(constrainedInitial))
+               && constrainedEvents.constrainedTimes.size() == 1
+               && Arrays.equals(encode(constrainedEvents.constrainedTimes.get(0)), encode(initial))
                && constrainedEvents.regulationTimes.isEmpty()
                && regulatorEvents.savedCount.get() == 1
                && constrainedEvents.savedCount.get() == 1
@@ -138,10 +140,10 @@ final class RestoreMixedPendingTimeRoleCallbacksTck {
       }
    }
 
-   @SuppressWarnings({"rawtypes", "unchecked"})
-   private static LogicalTimeInterval doubleInterval(LogicalTimeInterval epsilon)
-         throws Exception {
-      return (LogicalTimeInterval) epsilon.add(epsilon);
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void drain(RTIambassador member) throws Exception {

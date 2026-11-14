@@ -607,7 +607,8 @@ TEST_CASE(
                   if (request.operation != operation) {
                     throw std::runtime_error(description);
                   }
-                  return handler(request);
+                  auto response = handler(request);
+                  return response;
                 })) {
           throw std::runtime_error(description);
         }
@@ -821,6 +822,8 @@ TEST_CASE(
       service.detach(receiver);
       senderConnection->close();
       receiverConnection->close();
+    } catch (std::exception const& error) {
+      serverError = std::current_exception();
     } catch (...) {
       serverError = std::current_exception();
     }
@@ -1008,7 +1011,7 @@ TEST_CASE(
       // The process event is admitted while callbacks are disabled, but the
       // official FederateAmbassador must not observe it until the switch is
       // re-enabled. HLA_IMMEDIATE drains on Enable Callbacks; HLA_EVOKED
-      // retains the event for the next Evoke Multiple call.
+      // retains the event for the next Evoke Callback call.
       if (callbackModel == HLA_IMMEDIATE) {
         static_cast<void>(receiverRti->getObjectClassHandle(objectClassName));
         REQUIRE_FALSE(receiverFederate.received);

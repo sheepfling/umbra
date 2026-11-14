@@ -102,15 +102,20 @@ point's federate/status roster. The pinned MIM defines both as reliable,
 receive-order Subscribe requests that specify one paired report ([list
 request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2559),
 [status request](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L2569)).
-In the reviewed embedded path, each request
-plans and queues a report rather than announcing, achieving, or completing the
-point. The focused test observes the active-point list, a participant's status
-changing from 2 to 3 after achievement, and an empty roster for an unknown
+In the reviewed embedded path, each request forms a report snapshot during
+request handling and queues that report for later callback delivery; it does
+not announce, achieve, or complete the point. Treat the values as request-time
+state, not a read performed when the callback runs. A state change between
+snapshot formation and callback delivery would require another query to
+observe, though the focused test does not force that exact interleaving. It
+observes the active-point list, a participant's status changing from 2 to 3
+across separate requests after achievement, and an empty roster for an unknown
 label. This is an embedded source/test example, not a universal pipeline or a
 configured-process parity claim; that query path remains unverified. See the
 [synchronization-query flow](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-synchronization-queries-active-point-list-and-roster-status),
 [points-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L649),
 [status-request handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp#L681),
+[list and status report planners](../../cpp/src/internal/federation/federation_registry_mom_synchronization_reporting.cpp#L22),
 [list response test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L109),
 [status transition test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L158),
 and [unknown-label test](../../cpp/tests/ieee1516_2025_federation_mom_synchronization_reports_catch2.cpp#L172).
@@ -247,7 +252,7 @@ all services alike.
 | --- | --- | --- |
 | Static federation policy, getter only | `Advisories Use Known Class`, `Delay Subscription Evaluation`, `Allow Relaxed DDM`, and `Non-Regulated Grant` | The RTIambassador exposes getters but no setters for these four switches; the 2025 MIM marks each corresponding attribute `Static` ([API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2228), [MIM](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L845)). See the [relevance](HLA-2025-RELEVANCE-ADVISORY-FLOW-GUIDE.md), [DSE](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md), [DDM](RELAXED-DDM-POLICY.md), and [time](HLA-2025-TIME-MANAGEMENT-GUIDE.md#grant-decision-flow) guides for their distinct effects. The embedded NRG case is not a universal FDD-merge rule. |
 | Federation-wide value, changed through federation MOM in this Umbra profile | Auto Provide | The API exposes [`getAutoProvideSwitch()`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2218); the MIM describes `HLAautoProvide` as federation-wide and `Conditional` ([MIM](../../third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml#L833)). Umbra's embedded federation `HLAsetSwitches` path changes it; see the [Auto Provide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md#switch-state-is-federation-wide) and [federation MOM](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#creation-time-federation-policy-versus-per-member-switch-seeding) guides. This is not a member-local setter and does not establish process or 2010 parity. |
-| FDD-seeded, then member-overridable | `HLAautomaticResignAction` / `getAutomaticResignDirective()` | The [membership path](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L389) seeds the joining member; the [lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#the-automatic-directive-is-seeded-per-member-then-overridden-per-member) traces the cleanup effect. The focused [support-switch scenario](../../cpp/tests/support_switch_state_catch2.cpp#L4) changes one member's directive and observes the peer's value remain unchanged. |
+| FDD-seeded, then member-overridable | `HLAautomaticResignAction` / `getAutomaticResignDirective()` | The [membership path](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L406) seeds the joining member; the [lifecycle guide](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#the-automatic-directive-is-seeded-per-member-then-overridden-per-member) traces the cleanup effect. The focused [support-switch scenario](../../cpp/tests/support_switch_state_catch2.cpp#L4) changes one member's directive and observes the peer's value remain unchanged. |
 | Member-local direct RTIambassador setter, embedded path | `ConveyRegionDesignatorSets`, service/exception reporting, and object-class/interaction relevance | The API declares member-facing setters ([support/reporting](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2125), [object-class relevance](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2045), [interaction relevance](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2105)); the focused [support-switch scenario](../../cpp/tests/support_switch_state_catch2.cpp#L4) exercises peer isolation. The relevance setters use the embedded registry and plan Conditional MOM updates ([object-class](../../cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp#L212), [interaction](../../cpp/src/internal/runtime/umbra_rti_ambassador_advisory_switches.cpp#L466)); focused reflection cases cover both ([object-class](../../cpp/tests/ieee1516_2025_joined_federate_mom_conditional_reflections_catch2.cpp#L326), [interaction](../../cpp/tests/ieee1516_2025_joined_federate_mom_conditional_reflections_catch2.cpp#L338)). The [DDM guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md) shows the callback-metadata effect; the [exception](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md) and [service-reporting](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md) guides own their routes. |
 | Member-local values changed through process Federate MOM | Object-class and interaction-relevance advisory | In the selected process endpoint path, `HLAsetSwitches` stores these values on the member and public getters read them back. That is distinct from automatic Conditional MOM reflection: this handler does not enqueue reflection for these fields, while an explicit value-update request can return their current projection. See the [Federation MOM trace](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#switch-storage-current-mom-projection-and-conditional-reflection-are-separate) and its focused [process test](../../cpp/tests/ieee1516_2025_connection_process_mom_set_switches_catch2.cpp#L349). This is source/test evidence for that path, not a 2010 or backend-parity claim. |
 
@@ -264,7 +269,7 @@ whether already-pending work is reconsidered. The following are bounded
   undefined. Joining later with an additional module neither changes the
   queried value nor releases the already-pending TAR. See the
   [time-management rule map](HLA-2025-TIME-MANAGEMENT-GUIDE.md#grant-decision-flow)
-  and [focused scenario](../../cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp#L4).
+  and [focused scenario](../../cpp/tests/ieee1516_2025_non_regulated_grant_switch_catch2.cpp#L114).
 - The automatic-resign default is copied into each member at Join; after a
   member override, the connection-loss path reads that member's current
   directive when handling the loss. The
@@ -505,13 +510,13 @@ follow their separate grant and callback boundaries.
 The pinned [asynchronous-delivery](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1295)
 and [callback-control API](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2265)
 surfaces remain distinct. Evidence: [`FederateTimeState` receive-order predicate](../../cpp/src/internal/time/federate_time_state.cpp#L711)
-and [deferred-queue extraction](../../cpp/src/internal/time/federate_time_state.cpp#L725),
+and [deferred-queue extraction](../../cpp/src/internal/time/federate_time_state.cpp#L816),
 [asynchronous flush](../../cpp/src/internal/runtime/umbra_rti_ambassador_asynchronous_delivery.cpp#L18),
 [callback dispatcher enable gate](../../cpp/src/internal/callbacks/callback_dispatcher.cpp#L82),
 [temporal-state predicate and matching-grant case](../../cpp/tests/federate_time_state_catch2.cpp#L145),
 [public pre-grant asynchronous-delivery case](../../cpp/tests/ieee1516_2025_asynchronous_delivery_temporal_state_catch2.cpp#L101),
-the [disabled-work dispatcher case](../../cpp/tests/callback_dispatcher_catch2.cpp#L288),
-and the [evoked-work-while-disabled case](../../cpp/tests/callback_dispatcher_catch2.cpp#L315).
+the [disabled-work dispatcher case](../../cpp/tests/callback_dispatcher_catch2.cpp#L313),
+and the [evoked-work-while-disabled case](../../cpp/tests/callback_dispatcher_catch2.cpp#L369).
 The async and dispatcher tests are separate layers, not one end-to-end
 cross-gate regression.
 
@@ -535,55 +540,57 @@ cross-implementation parity claims.
 ## Participant-set changes are protocol-specific
 
 The following comparison is about selected 2025 Umbra embedded-registry paths,
-not a universal HLA rule. In particular, synchronization-point membership is a
-mutable barrier set in this implementation, while restore first validates the
-saved participant roster and save/restore resignation fails an operation that
-has already begun:
+not a universal HLA rule. Synchronization points maintain a mutable barrier
+set. Restore first validates the saved participant roster, and resignation
+during an active save or restore fails that operation. The diagrams separate
+these protocol-specific transitions while showing how connection loss reaches
+their distinct resignation paths:
 
 As a reusable reading model, treat each protocol's participant cohort as its
 own state: one operation may snapshot and expand it, another may revalidate it
 at admission, and an in-flight operation may have a defined failure on
 departure. Do not infer one protocol's membership rule from another's.
 
+### Synchronization-point cohort
+
 ```mermaid
 flowchart TD
-  subgraph SYNC["Synchronization point"]
-    REGISTER["Register the point"] --> INITIAL["Initial cohort:<br/>supplied nonempty set;<br/>otherwise current joined members"]
-    INITIAL --> OMITTED{"Was the participant set omitted?"}
-    OMITTED -->|Yes| EXPANDABLE["Record late-Join expansion enabled"]
-    OMITTED -->|No| FIXED["No late-Join expansion,<br/>even when an empty set was supplied"]
-    JOIN["A member joins while the point is pending"] --> JOINCHECK{"Was expansion enabled?"}
-    EXPANDABLE --> JOINCHECK
-    FIXED --> JOINCHECK
-    JOINCHECK -->|Yes| ADD["Add and announce the new member"]
-    JOINCHECK -->|No| NOADD["Keep this point's participant set unchanged"]
-    LEAVE["A participant resigns"] --> REMOVE["Remove the leaver from this barrier<br/>and its pending results"]
-    REMOVE --> RESULTS{"Has every remaining member reported an outcome?"}
-    RESULTS -->|No| PENDING["The point remains pending"]
-    RESULTS -->|Yes, including no remaining members| CLOSE["Close the point;<br/>notify only remaining member routes"]
-    CLOSE --> FAILED["Failure set: only remaining members<br/>with recorded unsuccessful reports"]
-  end
+  REGISTER["Register the point"] --> INITIAL["Initial cohort:<br/>supplied nonempty set;<br/>otherwise current joined members"]
+  INITIAL --> OMITTED{"Was the participant set omitted?"}
+  OMITTED -->|Yes| EXPANDABLE["Record late-Join expansion enabled"]
+  OMITTED -->|No| FIXED["No late-Join expansion,<br/>even when an empty set was supplied"]
+  JOIN["A member joins while the point is pending"] --> JOINCHECK{"Was expansion enabled?"}
+  EXPANDABLE --> JOINCHECK
+  FIXED --> JOINCHECK
+  JOINCHECK -->|Yes| ADD["Add and announce the new member"]
+  JOINCHECK -->|No| NOADD["Keep this point's participant set unchanged"]
+  LEAVE["A participant resigns"] --> REMOVE["Remove the leaver from this barrier<br/>and its pending results"]
+  REMOVE --> RESULTS{"Has every remaining member reported an outcome?"}
+  RESULTS -->|No| PENDING["The point remains pending"]
+  RESULTS -->|Yes, including no remaining members| CLOSE["Close the point;<br/>notify only remaining member routes"]
+  CLOSE --> FAILED["Failure set: only remaining members<br/>with recorded unsuccessful reports"]
+  LOSS["A member's connection is lost"] --> FORCED["Enter forced-resignation cleanup"]
+  FORCED -. "removes leaver from barrier" .-> REMOVE
+```
 
-  subgraph SAVE_RESTORE["Save and restore"]
-    SAVE["Save is in progress"] --> SAVELEAVE["A participant resigns"]
-    SAVELEAVE --> SAVEFAIL["Fail save for survivors;<br/>do not route its failure callback to the leaver"]
-    RESTOREREQ["Restore request"] --> ROSTER{"Do saved and current participant identities match?"}
-    ROSTER -->|No| REJECT["Fail the request before restore begins"]
-    ROSTER -->|Yes| RESTORE["Restore is admitted and begins"]
-    RESTORE --> RESTORELEAVE["A participant resigns"]
-    RESTORELEAVE --> RESTOREFAIL["Fail restore for survivors;<br/>discard queued public restore callbacks to the leaver"]
-    SAVE --> JOINATTEMPT["A different federate attempts Join during the operation"]
-    RESTORE --> JOINATTEMPT
-    JOINATTEMPT --> JOINGATE["Pinned 2025 Join API lists both in-progress exceptions;<br/>inspected paths show no matching state gate"]
-    JOINGATE --> JOINUNKNOWN["Open edge:<br/>Join outcome and effect on the active<br/>participant cohort are unverified"]
-  end
+### Save/restore cohort
 
-  subgraph CONNECTION["Connection loss"]
-    LOSS["A member's connection is lost"] --> FORCED["Enter forced-resignation cleanup"]
-  end
-  FORCED -. "shared source cleanup path" .-> REMOVE
-  FORCED -. "shared source cleanup path" .-> SAVELEAVE
-  FORCED -. "shared source cleanup path" .-> RESTORELEAVE
+```mermaid
+flowchart TD
+  SAVE["Save is in progress"] --> SAVELEAVE["A participant resigns"]
+  SAVELEAVE --> SAVEFAIL["Fail save for survivors;<br/>do not route its failure callback to the leaver"]
+  RESTOREREQ["Restore request"] --> ROSTER{"Do saved and current participant identities match?"}
+  ROSTER -->|No| REJECT["Fail the request before restore begins"]
+  ROSTER -->|Yes| RESTORE["Restore is admitted and begins"]
+  RESTORE --> RESTORELEAVE["A participant resigns"]
+  RESTORELEAVE --> RESTOREFAIL["Fail restore for survivors;<br/>discard queued public restore callbacks to the leaver"]
+  SAVE --> JOINATTEMPT["A different federate attempts Join during the operation"]
+  RESTORE --> JOINATTEMPT
+  JOINATTEMPT --> JOINGATE["Pinned 2025 Join API lists both in-progress exceptions;<br/>inspected paths show no matching state gate"]
+  JOINGATE --> JOINUNKNOWN["Open edge:<br/>Join outcome and effect on the active<br/>participant cohort are unverified"]
+  LOSS["A member's connection is lost"] --> FORCED["Enter forced-resignation cleanup"]
+  FORCED -. "fails an active save" .-> SAVELEAVE
+  FORCED -. "fails an active restore" .-> RESTORELEAVE
 ```
 
 The synchronization distinction is subtle: this registry uses the current
@@ -624,14 +631,23 @@ and obtain focused runtime evidence before calling it a conformance defect.
 Do not extend any of these selected 2025 embedded results to the separate 2010
 stream or claim process-endpoint parity.
 
+The official IEEE SA [1516.1-2025 listing](https://standards.ieee.org/ieee/1516.1/6688/)
+offers purchase or subscription access. IEEE also advertises free account-based
+read access to selected standards through its [Standards Reading Room](https://standards.ieee.org/access-standards/),
+but its public pages do not confirm whether 1516.1-2025 is included. The linked
+[public downloads archive](https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip)
+contains API and HLA model/schema assets, but not the standard document. No
+authorized clause text was available for this review, so the exact §4.11 rule
+remains open and no Join acceptance or rejection outcome is inferred.
+
 | Evidence slice | Source and focused evidence |
 | --- | --- |
-| Omitted versus supplied synchronization sets; late Join | [Registration and expansion mode](../../cpp/src/internal/federation/federation_registry.cpp#L188), [Join expansion hook](../../cpp/src/internal/federation/federation_registry.cpp#L246). The source distinguishes omission even though an empty request initially defaults to current membership; the specific late-join test interleaving is source-derived. |
-| Resignation closes a synchronization point | [Resignation cleanup](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L920), [focused HLA_EVOKED resignation case](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L131). The test checks report-before-evoke and an empty failed set for its two-member case. |
-| Restore roster admission | [Saved/current roster check](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L335) and the [save/restore guide's early-rejection boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#early-rejection-versus-begun-failure). The exact set-check edge is source-derived in this comparison. |
-| Join while save/restore is active | Pinned 2025 API exception lists for the [first overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L204) and [named-federate overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L226); [embedded Join adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364), [shared registry Join transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L238), [process Join handler](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L193), [save participant statuses](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L40), and [restore participant statuses](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L375). The [representative interlock test](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34) joins before save and does not attempt Join during the active operation. This is an apparent API/source gap, not an established runtime outcome. |
-| Resignation during an active save or restore | [Shared save/restore resignation transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L442), [active-save callback resignation test](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L4), and [active-restore resignation test](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L486). Both tests cover selected embedded evoked-callback paths. |
-| Connection loss | [Lifecycle guide's forced-resignation path](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#connection-loss-forced-resignation-is-a-different-entry-path), [Connection Lost source entry](../../cpp/src/internal/federation/federation_registry.cpp#L410). Pending synchronization/save/restore outcomes on loss are not independently exercised by the focused cases above. |
+| Omitted versus supplied synchronization sets; late Join | [Registration and expansion mode](../../cpp/src/internal/federation/federation_registry.cpp#L190), [Join expansion hook](../../cpp/src/internal/federation/federation_registry.cpp#L249). The source distinguishes omission even though an empty request initially defaults to current membership; the specific late-join test interleaving is source-derived. |
+| Resignation closes a synchronization point | [Resignation cleanup](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L928), [focused HLA_EVOKED resignation case](../../cpp/tests/service_report_file_federation_synchronized_resignation_catch2.cpp#L131). The test checks report-before-evoke and an empty failed set for its two-member case. |
+| Restore roster admission | [Saved/current member identity mapping](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L52), called during restore preflight at [the set comparison](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1208), and the [save/restore guide's early-rejection boundary](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#early-rejection-versus-begun-failure). The exact set-check edge is source-derived in this comparison. |
+| Join while save/restore is active | Pinned 2025 API exception lists for the [first overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L204) and [named-federate overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L226); [embedded Join adapter](../../cpp/src/internal/runtime/umbra_rti_ambassador_federation_lifecycle.cpp#L364), [shared registry Join transaction](../../cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp#L241), [current process `handleJoin`](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L302), [process registry call](../../cpp/src/internal/federation/process_federation_service_lifecycle.cpp#L650), [save participant statuses](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L64), and [restore participant statuses](../../cpp/src/internal/federation/federation_registry_restore_control.cpp#L1300). The [representative interlock test](../../cpp/tests/ieee1516_2025_representative_save_restore_interlock_catch2.cpp#L34) joins before save and does not attempt Join during the active operation. This is an apparent API/source gap, not an established runtime outcome. |
+| Resignation during an active save or restore | [Shared save/restore resignation transition](../../cpp/src/internal/federation/federation_registry_resign_lifecycle.cpp#L438), [active-save callback resignation test](../../cpp/tests/ieee1516_2025_save_active_callback_resignation_guard_catch2.cpp#L4), and [active-restore resignation test](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L769). Both tests cover selected embedded evoked-callback paths. |
+| Connection loss | [Lifecycle guide's forced-resignation path](HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md#connection-loss-forced-resignation-is-a-different-entry-path), [Connection Lost source entry](../../cpp/src/internal/federation/federation_registry.cpp#L426). Pending synchronization/save/restore outcomes on loss are not independently exercised by the focused cases above. |
 
 ## Milestones to annotate in a service flow
 
@@ -695,7 +711,7 @@ or claims about the separate 2010 stream:
 
 | Case | Distinct traces visible in the evidence | Evidence boundary |
 | --- | --- | --- |
-| Process `GetObjectClassHandle` fails | The source calls the best-effort `HLAreportException` hook before requesting a failed `HLAreportServiceInvocation` record. Failure in the first hook is suppressed; failure in the later process service-report request can surface as `RTIinternalError` instead of the original `NameNotFound`. | [Catch path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98), [noexcept exception hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184), and [failed-report writer path](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L252). The focused exception-report and service-report tests exercise the two controls separately; the combined two-switch scenario and replacement outcome are source-derived. See the [combined-report guide section](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#when-both-process-report-routes-apply). |
+| Process `GetObjectClassHandle` fails | The source calls the best-effort `HLAreportException` hook before requesting a failed `HLAreportServiceInvocation` record. Failure in the first hook is suppressed; failure in the later process service-report request can surface as `RTIinternalError` instead of the original `NameNotFound`. | [Catch path](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_class_lookup.cpp#L98), [noexcept exception hook](../../cpp/src/internal/runtime/umbra_rti_ambassador_mom_service_report_interaction.cpp#L184), and [failed-report writer path](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_report_writers.cpp#L253). The focused exception-report and service-report tests exercise the two controls separately; the combined two-switch scenario and replacement outcome are source-derived. See the [combined-report guide section](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#when-both-process-report-routes-apply). |
 | Embedded `setExceptionReportingSwitch(true)` with file reporting selected | The registry commits the Exception Reporting switch before the successful invocation record is appended. An append error can therefore escape as `RTIinternalError` while a later query still observes Exception Reporting as true. | [Switch service](../../cpp/src/internal/runtime/umbra_rti_ambassador_service_reporting_switches.cpp#L219) and [injected writer test](../../cpp/tests/service_report_writer_failure_catch2.cpp#L132). The test body encodes the state assertion, but its last recorded run failed during federation creation before those assertions; treat the state edge as source-derived, not runtime-verified. See the [report-append case study](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#a-failed-report-append-leaves-exception-reporting-enabled). |
 | Embedded timestamped `UpdateAttributeValues` with file reporting | TSO work is admitted before the successful service report is appended. The catch path can then attempt exception/failure reporting and rethrow without returning a retraction handle; the cited source has no compensating dequeue at that boundary. | [TSO admission](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L687), [failed-report catch](../../cpp/src/internal/runtime/umbra_rti_ambassador_attribute_update_services.cpp#L790), and the [successful-path focused test](../../cpp/tests/ieee1516_2025_timestamped_update_attribute_values_service_report_catch2.cpp#L5). Queue retention on the injected append-failure schedule and whether that work later reaches a callback are not tested. See the [TSO/report boundary](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#timestamped-update-admission-precedes-report-persistence). |
 
@@ -755,7 +771,7 @@ The [name-reservation guide](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUID
 and its [focused test](../../cpp/tests/object_instance_name_reservation_catch2.cpp#L95)
 show per-name reservation outcomes but all-or-nothing bulk release. The
 [FOM-composition guide](HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#join-with-additional-fom-modules-replace-definition-and-add-member-together)
-and [atomicity test](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L29)
+and [atomicity test](../../cpp/tests/ieee1516_2025_embedded_fom_preparation_atomicity_catch2.cpp#L30)
 show a prepared replacement definition and membership committed together.
 The [ownership guide's edge-case notes](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#edge-cases-worth-remembering)
 warn that an attribute set is not one ownership unit.
@@ -881,12 +897,13 @@ flowchart TD
 This is a reading aid, not a prescribed RTI algorithm or one shared HLA
 cancellation rule. “Observed” must be defined for the service being read; the
 diagram deliberately separates callback entry from committed/query-visible
-state. Six 2025 implementation examples show why the work item and its phase
+state. Seven 2025 implementation examples show why the work item and its phase
 matter:
 
 | Example | What is scoped independently | What the focused guide establishes | Boundary |
 | --- | --- | --- | --- |
 | [Attribute subscription changes](HLA-2025-OBJECT-ATTRIBUTE-SUBSCRIPTION-STATE-FLOW-GUIDE.md) and [DSE recipient evaluation](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#recipient-state-machine) | Each selected attribute's active/passive declaration versus one service's retained recipient candidate | Selected embedded tests show that changing one attribute's mode preserves other declarations and changes later projections. Separately, DSE may defer an ineligible recipient's service-specific check; a later unsubscribe can suppress that candidate before its callback or TSO boundary. | Future per-attribute projection, DSE deferral, and discovery-time initial reflection are separate questions—not a general undo/replay rule or a process-parity claim. |
+| [Regional DDM, Attribute Scope, and RAVU](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#process-boundary-case-send-time-source-snapshot-receive-time-receiver-projection), [scope advisory checkpoints](HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md#process-event-transport-has-two-stale-work-checkpoints), and [regional provider requests](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md#configured-process-path-region-check-before-event-routing) | A send-time source-region snapshot, the receiver's current regional declaration, a scope-advisory transition, and a provider/object solicitation group are different work items. | The selected guides show different recheck boundaries: receive-order process reflection uses saved source scope with current receiver scope; a queued scope advisory is rechecked at server dequeue, while the pushed path has no later registry check shown; RAVU filters provider groups before queue/push, with no later process region check shown after routing. | These are bounded 2025 Umbra paths, not one HLA-wide stale-event or cancellation rule. Focused tests do not cover region changes after every process checkpoint; callback-race outcomes remain untested. |
 | [Accepted object deletion](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#object-removal-delete-callback-and-per-receiver-cleanup) | The delete transition, deleting member's local knowledge, other members' removal reservations, and pending per-object work | In the selected 2025 receive-order path, accepting deletion clears the deleting member's knowledge and invalidates pending discovery, value-update, and ownership work; each receiver's removal transition is separately revalidated before its callback. | Evidence is split across focused scenarios and source. It does not assert every ledger cleanup, global recipient order, process-push behavior, or 2010 behavior; see the guide's [deletion evidence map](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#evidence-map-implementation-versus-exercised-scenarios). |
 | [Interaction publication withdrawal](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#embedded-ordinary-interaction-unpublication-and-already-accepted-work) versus [directed publication withdrawal](HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md#receive-order-send-validate-fan-out-then-dispatch) | Ordinary send admission versus directed sender-pair callback fencing | Current embedded source checks ordinary publication before acceptance and rechecks receiver eligibility at delivery; it does not use later ordinary unpublication to fence that queued route. The separate directed path rechecks its publication pair, with a focused stale-work case. | Ordinary send → unpublish → evoke is not directly tested; do not infer normative, process-endpoint, or 2010 parity from either path. |
 | [Resignation with pending ownership work](HLA-2025-OWNERSHIP-PERSISTENCE-AND-RESIGNATION-FLOW-GUIDE.md) | The departing member's requests/candidates and callbacks versus another member's independent candidate | A covered cancellation action removes the departing member's acquisition-side work and invalidates work tied to it; other candidates survive. Other covered actions reject before cleanup when pending work blocks resignation. | Selected 2025 embedded behavior, not the complete normative ResignAction matrix or process parity. |

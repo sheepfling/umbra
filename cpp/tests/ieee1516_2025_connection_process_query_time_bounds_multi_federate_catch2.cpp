@@ -490,7 +490,7 @@ void requireIgnoredConfiguration(ConfigurationResult const& result) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassadors expose defined GALT and LITS across configured process federates",
-    "[integration][foundation][time-management][galt][lits][multi-federate][callback-immediate][transport][process-boundary][public-endpoint][rti.service.enable-time-regulation][rti.service.query-galt][rti.service.query-lits][federate.callback.time-regulation-enabled][2025]") {
+    "[integration][foundation][time-management][galt][lits][multi-federate][callback-immediate][transport][process-boundary][public-endpoint][rti.service.enable-time-regulation][rti.service.query-galt][rti.service.query-lits][federate.callback.time-regulation-enabled][service-report-table5-time-query-return][2025]") {
   constexpr wchar_t const* federationName =
       L"process-time-bounds-multi-federate-execution";
   auto const serviceReportDirectory = temporaryServiceReportDirectory();
@@ -661,18 +661,22 @@ TEST_CASE(
                                    .withRtiAddress(
                                        L"tcp://127.0.0.1:" + std::to_wstring(port));
   std::exception_ptr clientError;
+  std::string clientStage = "regulator connection";
   bool regulatorJoined = false;
   bool observerJoined = false;
   try {
     auto const regulatorConnection = regulator->connect(
         regulatorFederate, HLA_IMMEDIATE, regulatorConfiguration);
     REQUIRE(regulatorConnection.addressUsed);
+    clientStage = "federation creation";
     REQUIRE_NOTHROW(regulator->createFederationExecution(
         federationName, L"server-owned-fom.xml"));
+    clientStage = "regulator join";
     auto const regulatorHandle = regulator->joinFederationExecution(
         L"process-time-bounds-multi-federate-regulator", federationName);
     REQUIRE(regulatorHandle.isValid());
     regulatorJoined = true;
+    clientStage = "time-regulation enablement";
     REQUIRE_NOTHROW(
         regulator->enableTimeRegulation(rti1516_2025::HLAinteger64Interval(1)));
     REQUIRE(regulatorFederate.timeRegulationEnabledCount == 1U);
@@ -683,17 +687,20 @@ TEST_CASE(
     auto const observerConnection = observer->connect(
         observerFederate, HLA_IMMEDIATE, observerConfiguration);
     REQUIRE(observerConnection.addressUsed);
+    clientStage = "observer join";
     auto const observerHandle = observer->joinFederationExecution(
         L"process-time-bounds-multi-federate-observer", federationName);
     REQUIRE(observerHandle.isValid());
     REQUIRE(regulatorHandle != observerHandle);
     observerJoined = true;
+    clientStage = "service-report switch enablement";
     REQUIRE_NOTHROW(regulator->setServiceReportingSwitch(true));
     REQUIRE_NOTHROW(regulator->setSendServiceReportsToFileSwitch(true));
     REQUIRE_NOTHROW(observer->setServiceReportingSwitch(true));
     REQUIRE_NOTHROW(observer->setSendServiceReportsToFileSwitch(true));
 
     rti1516_2025::HLAinteger64Interval regulatorLookahead(99);
+    clientStage = "time-query services";
     REQUIRE_NOTHROW(regulator->queryLookahead(regulatorLookahead));
     REQUIRE(regulatorLookahead.getInterval() == 1);
 
@@ -714,6 +721,7 @@ TEST_CASE(
     std::vector<std::string> queryGaltRecords;
     std::vector<std::string> queryLitsRecords;
     std::vector<std::string> queryLookaheadRecords;
+    clientStage = "Table 5 time-query file records";
     for (auto const& entry : std::filesystem::directory_iterator(serviceReportDirectory)) {
       if (!entry.is_regular_file()) {
         continue;
@@ -741,35 +749,58 @@ TEST_CASE(
     REQUIRE(std::any_of(
         queryGaltRecords.begin(), queryGaltRecords.end(), [](auto const& record) {
           return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
-                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentName":"","HLAargumentValue":null}])") != std::string::npos;
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentValue":null}])") != std::string::npos;
         }));
     REQUIRE(std::any_of(
         queryGaltRecords.begin(), queryGaltRecords.end(), [](auto const& record) {
           return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
-                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":31,"HLAargumentName":"GALT","HLAargumentValue":"1"}])") != std::string::npos;
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":58,"HLAargumentValue":{"timeIsValid":true,"time":"1"}}])") != std::string::npos;
         }));
     REQUIRE(std::any_of(
         queryLitsRecords.begin(), queryLitsRecords.end(), [](auto const& record) {
           return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
-                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentName":"","HLAargumentValue":null}])") != std::string::npos;
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":34,"HLAargumentValue":null}])") != std::string::npos;
         }));
     REQUIRE(std::any_of(
         queryLitsRecords.begin(), queryLitsRecords.end(), [](auto const& record) {
           return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
-                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":31,"HLAargumentName":"LITS","HLAargumentValue":"1"}])") != std::string::npos;
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":58,"HLAargumentValue":{"timeIsValid":true,"time":"1"}}])") != std::string::npos;
         }));
     REQUIRE(std::any_of(
         queryLookaheadRecords.begin(), queryLookaheadRecords.end(), [](auto const& record) {
           return record.find(R"("HLAsuccessIndicator":true)") != std::string::npos &&
-                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":32,"HLAargumentName":"Lookahead","HLAargumentValue":"1"}])") != std::string::npos;
+                 record.find(R"("HLAreturnedArgument":[{"HLAargumentType":57,"HLAargumentValue":{"intervalIsValid":true,"interval":"1"}}])") != std::string::npos;
         }));
 
+    clientStage = "federate resignation and disconnect";
     REQUIRE_NOTHROW(observer->resignFederationExecution(NO_ACTION));
     observerJoined = false;
     REQUIRE_NOTHROW(observer->disconnect());
     REQUIRE_NOTHROW(regulator->resignFederationExecution(NO_ACTION));
     regulatorJoined = false;
     REQUIRE_NOTHROW(regulator->disconnect());
+  } catch (Catch::TestFailureException const&) {
+    clientError = std::current_exception();
+    if (observerJoined) {
+      try {
+        observer->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    if (regulatorJoined) {
+      try {
+        regulator->resignFederationExecution(NO_ACTION);
+      } catch (...) {
+      }
+    }
+    try {
+      observer->disconnect();
+    } catch (...) {
+    }
+    try {
+      regulator->disconnect();
+    } catch (...) {
+    }
   } catch (...) {
     clientError = std::current_exception();
     if (observerJoined) {
@@ -794,13 +825,25 @@ TEST_CASE(
     }
   }
   if (listener) {
-    listener.reset();
+    listener->close();
   }
   if (server.joinable()) {
     server.join();
   }
+  listener.reset();
   if (clientError) {
-    std::rethrow_exception(clientError);
+    try {
+      std::rethrow_exception(clientError);
+    } catch (Catch::TestFailureException const&) {
+      return;
+    } catch (rti1516_2025::Exception const& error) {
+      auto const message = error.name() + L": " + error.what();
+      throw std::runtime_error(
+          "RTI exception during " + clientStage + ": " +
+          std::string(message.begin(), message.end()));
+    } catch (...) {
+      std::rethrow_exception(clientError);
+    }
   }
   REQUIRE_FALSE(serverError);
 }

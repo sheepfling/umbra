@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK pair exercises regional subscription, object registration/update delivery, additive region subscription, and selective unsubscription through the official 2025 API. These operations provide a bounded witness for the regional-to-ordinary service analogy in §9.8 p. 233 l. 36. The pair also exercises one two-attribute regional subscription set, repeats the exact same set, checks each scoped value is delivered once, adds a distinct second region for the same attribute in a later Subscribe invocation, and removes one class-region-attribute triple while distinct triples remain active. This is not an exhaustive matrix of every related service and is not conformance evidence.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-233-l36-9",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l36-9",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 233, line 36",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "This pair provides bounded evidence for the regional service analogy by exercising regional subscription, object registration and update delivery through the subscribed region, additive subscription in a later invocation, and selective unsubscription. It does not claim that every operation related to Subscribe Object Class Attributes has a complete regional counterpart.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l48-13",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l48-13",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 233, lines 48-50",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "The scenario supplies a region set for each of two class attributes in one Subscribe Object Class Attributes With Regions call, then verifies that the corresponding scoped values are reflected.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l51-14",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l51-14",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 233, lines 51-53",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "The scenario repeats the identical regional subscription pair before registration and verifies each of the two resulting attribute values appears exactly once, so the existing set membership is not duplicated or otherwise observably changed.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-234-l44-13",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l44-13",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 234, lines 44-55",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "A later Subscribe Object Class Attributes With Regions invocation adds a distinct region to the subscription set for the same class/attribute without removing the original region. The TCK registers separate source objects in those regions, observes each scoped first-attribute value exactly once, then unsubscribes the first region and confirms the later-added second region remains active. Identical-call idempotency is independently asserted in the same scenario; active/passive replacement is covered separately by the passive-subscription pair.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-223-l76-25",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l76-25",
+      "clause_id": "clause-9.1.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp",
+      "source_lines": "page 223, lines 76-80",
+      "source_symbol": "scenarioRegionalSubscriptionTripleIsolation",
+      "statement": "The scenario unsubscribes the FirstValue (object class, region, attribute) triple, verifies it is not reflected on the next update, and confirms the still-subscribed SecondValue triple remains active.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolation",
+        "packages/hla-rti-cpp-tck/src/tck_regional_subscription_triple_isolation.cpp::scenarioRegionalSubscriptionTripleIsolationContract"
+      ]
+    }
+  ]
+}

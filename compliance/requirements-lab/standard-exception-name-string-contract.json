@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "standard_sections": [
+    "hla-1516.1-2025:clause-12.13.3.3"
+  ],
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-12-programming-language-mappings-page-397-l60-19"
+  ],
+  "requirement_section_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-397-l60-19",
+      "standard_section": "hla-1516.1-2025:clause-12.13.3.3"
+    }
+  ],
+  "notes": "This contract records one bounded public C++ RTI exception-name check. The portable TCK constructs an RTIambassador and invokes getObjectClassHandle before Connect, catches the API-declared NotConnected exception through the public Exception base, and checks that Exception::name() returns the exact name string NotConnected. This does not establish every exception's name string, exception precedence, all programming-language mappings, or conformance; it is provider-specific test evidence for the explicitly exercised case only.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-exception-name-string",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::getObjectClassHandle and Exception::name",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h and third_party/ieee1516.1-2025/include/RTI/Exception.h",
+      "source_symbol": "RTIambassador::getObjectClassHandle and rti::Exception::name",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_api_foundation.cpp::scenarioExceptionNameString"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 #include "tck_fqr_undefined_galt_nrg.hpp"
-
 #include <array>
 #include <cstdint>
 #include <optional>
@@ -9,11 +8,18 @@
 namespace hla_rti_cpp_tck::detail {
 namespace {
 
-void runOne(Options const& options, rti::CallbackModel model, bool queued) {
+void runOne(
+    Options const& options,
+    rti::CallbackModel model,
+    bool queued,
+    bool expectedNrgEnabled) {
   Session requester(options, model, "fqr-undefined-galt-requester");
   Session producer(options, model, "fqr-undefined-galt-producer");
+  auto const switchName = expectedNrgEnabled ? "nrg-enabled" : "nrg-disabled";
   auto const federation = federationName(
-      options, queued ? "fqr-undefined-galt-queued" : "fqr-undefined-galt-empty");
+      options,
+      std::string("fqr-undefined-galt-") + switchName +
+          (queued ? "-queued" : "-empty"));
   requester.connect();
   producer.connect();
   requester.rtiAmbassador().createFederationExecution(
@@ -21,6 +27,8 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
   requester.join(options.ownerFederateName, options.federateType, federation);
   producer.join(options.memberFederateName, options.federateType, federation);
   auto const nrgEnabled = requester.rtiAmbassador().getNonRegulatedGrantSwitch();
+  require(nrgEnabled == expectedNrgEnabled,
+          "adapter FOM did not match the scenario's expected NRG switch");
   require(producer.rtiAmbassador().getNonRegulatedGrantSwitch() == nrgEnabled,
           "federates disagreed on the adapter FOM non-regulated grant switch");
 
@@ -131,11 +139,24 @@ void runOne(Options const& options, rti::CallbackModel model, bool queued) {
   requester.disconnect();
 }
 
-void runMatrix(Options const& options, rti::CallbackModel model) {
-  require(!options.fom.empty() && !options.logicalTimeImplementationName.empty(),
+void runMatrix(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(!options.logicalTimeImplementationName.empty(),
           "undefined-GALT FQR requires adapter FOM and logical-time implementation");
-  runOne(options, model, false);
-  runOne(options, model, true);
+  auto const disabledFom = options.scenarioFoms.find("fqr-undefined-galt-nrg-disabled");
+  auto const enabledFom = options.scenarioFoms.find("fqr-undefined-galt-nrg-enabled");
+  require(disabledFom != options.scenarioFoms.end() && !disabledFom->second.empty() &&
+              enabledFom != options.scenarioFoms.end() && !enabledFom->second.empty(),
+          "undefined-GALT FQR requires adapter FOMs with NRG disabled and enabled");
+  auto disabledOptions = options;
+  disabledOptions.fom = disabledFom->second;
+  runOne(disabledOptions, model, false, false);
+  runOne(disabledOptions, model, true, false);
+  auto enabledOptions = options;
+  enabledOptions.fom = enabledFom->second;
+  runOne(enabledOptions, model, false, true);
+  runOne(enabledOptions, model, true, true);
 }
 
 }  // namespace

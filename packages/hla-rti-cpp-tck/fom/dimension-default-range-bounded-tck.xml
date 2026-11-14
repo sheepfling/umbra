@@ -26,6 +26,24 @@
       </objectClass>
     </objectClass>
   </objects>
+  <interactions>
+    <interactionClass>
+      <name>HLAinteractionRoot</name>
+      <sharing>Neither</sharing>
+      <interactionClass>
+        <name>TckBoundedDefaultInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <dimensions><dimension>TckBoundedDefaultDimension</dimension></dimensions>
+        <transportation>HLAreliable</transportation>
+        <order>Receive</order>
+        <parameter>
+          <name>Value</name>
+          <dataType>HLAbyte</dataType>
+          <semantics>Value used to verify the interaction's FOM-supplied dimension range.</semantics>
+        </parameter>
+      </interactionClass>
+    </interactionClass>
+  </interactions>
   <dimensions><dimension>
     <name>TckBoundedDefaultDimension</name>
     <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>

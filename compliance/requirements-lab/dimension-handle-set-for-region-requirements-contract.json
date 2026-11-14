@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors the existing candidate mapping in cpp-tck.dimension-handle-set-for-region. RL-424 documents that this statement belongs to canonical §10.26, not the preceding §10.25.6 reference-state chart; the Requirements Lab export remains unchanged.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-261-l141-43",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-261-l141-43",
+      "clause_id": "clause-10.26",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.dimension-handle-set-for-region.requirement_mappings",
+      "statement": "Get Dimension Handle Set returns exactly the dimensions with which each adapter-selected region was created.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioDimensionHandleSetForRegion",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DimensionHandleSetForRegionTck.java#run"
+      ]
+    }
+  ]
+}

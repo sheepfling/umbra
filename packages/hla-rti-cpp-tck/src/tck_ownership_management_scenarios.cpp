@@ -2247,6 +2247,37 @@ void scenarioOwnershipTransferRegionalUpdate(
       ownerAttributes,
       rti::RegionHandleSet{ownerRegion},
   }};
+  auto const unrelatedDimension = owner.rtiAmbassador().getDimensionHandle(
+      options.ddmUnrelatedDimensionName);
+  require(
+      unrelatedDimension.isValid(),
+      "ownership transfer/update-region scenario could not resolve the unrelated dimension");
+  auto const availableObjectDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForObjectClass(ownerHandles.objectClass);
+  require(
+      availableObjectDimensions.count(unrelatedDimension) == 0U,
+      "unrelated dimension unexpectedly belongs to the object class");
+  auto const invalidUpdateRegion = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{unrelatedDimension});
+  owner.rtiAmbassador().setRangeBounds(
+      invalidUpdateRegion,
+      unrelatedDimension,
+      rti::RangeBounds(1UL, 3UL));
+  owner.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{invalidUpdateRegion});
+  rti::AttributeHandleSetRegionHandleSetPairVector const invalidOwnerPair{{
+      ownerAttributes,
+      rti::RegionHandleSet{invalidUpdateRegion},
+  }};
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().registerObjectInstanceWithRegions(
+            ownerHandles.objectClass,
+            invalidOwnerPair));
+      },
+      L"InvalidRegionContext",
+      "Register Object Instance With Regions for an unavailable instance-attribute dimension");
+  owner.rtiAmbassador().deleteRegion(invalidUpdateRegion);
   rti::AttributeHandleSetRegionHandleSetPairVector const newOwnerPair{{
       newOwnerAttributes,
       rti::RegionHandleSet{newOwnerRegion},
@@ -2260,6 +2291,10 @@ void scenarioOwnershipTransferRegionalUpdate(
   require(
       receiver.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
       "ownership transfer receiver did not enable region designator callbacks");
+  receiver.rtiAmbassador().setAttributeScopeAdvisorySwitch(true);
+  require(
+      receiver.rtiAmbassador().getAttributeScopeAdvisorySwitch(),
+      "ownership transfer receiver did not enable attribute scope advisories");
   using RegionRange = std::pair<unsigned long, unsigned long>;
   using RegionBoundsSnapshot = std::pair<RegionRange, RegionRange>;
   std::vector<RegionBoundsSnapshot> inspectedRegionBounds;
@@ -2358,6 +2393,7 @@ void scenarioOwnershipTransferRegionalUpdate(
               RegionBoundsSnapshot{{1UL, 3UL}, {1UL, 3UL}},
       "ownership transfer/update-region initial reflection lost the source region");
 
+  receiver.recorder().clearScopeAdvisories();
   newOwner.recorder().clearOwnershipRecords();
   rti::AttributeHandleSet divestedAttributes;
   // HLA_IMMEDIATE reports an unavailable If Available request inline. Use a
@@ -2402,6 +2438,24 @@ void scenarioOwnershipTransferRegionalUpdate(
           acquisition->attributes == newOwnerAttributes &&
           acquisition->tag == divestitureTagBytes,
       "ownership transfer/update-region acquisition callback returned the wrong data");
+  require(
+      receiver.recorder().attributesInScope().empty() &&
+          receiver.recorder().attributesOutOfScope().empty(),
+      "Divestiture If Wanted caused a transient attribute scope transition");
+
+  // Make the old owner's region disjoint from every receiver subscription.
+  // The new owner has not associated a replacement yet, so delivery below
+  // must use the default region rather than the former owner's source region.
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(7UL, 9UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(7UL, 9UL));
+  receiver.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{receiverOwnerRegion});
 
   receiver.recorder().clearReflection();
   requireException(
@@ -2485,6 +2539,266 @@ void scenarioOwnershipTransferRegionalUpdate(
           inspectedRegionBounds.back() ==
               RegionBoundsSnapshot{{6UL, 8UL}, {6UL, 8UL}},
       "new owner replacement association did not supply its source region");
+
+  owner.recorder().clearOwnershipRecords();
+  newOwner.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      ownerAttributes,
+      acquisitionTag);
+  waitFor(
+      newOwner,
+      [&] { return newOwner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "ownership transfer/update-region reacquisition release request");
+  auto const reacquisitionRelease = newOwner.recorder().ownershipReleaseRequest();
+  require(
+      reacquisitionRelease->object == object &&
+          reacquisitionRelease->attributes == newOwnerAttributes &&
+          reacquisitionRelease->tag == acquisitionTagBytes,
+      "ownership transfer/update-region reacquisition release request returned the wrong data");
+  rti::AttributeHandleSet reacquiredDivestedAttributes;
+  newOwner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      object,
+      newOwnerAttributes,
+      divestitureTag,
+      reacquiredDivestedAttributes);
+  require(
+      reacquiredDivestedAttributes == newOwnerAttributes &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerHandles.attribute) &&
+          !newOwner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              newOwnerHandles.attribute),
+      "ownership transfer/update-region reacquisition did not restore ownership to the former owner");
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "ownership transfer/update-region reacquisition notification");
+  auto const reacquisition = owner.recorder().ownershipAcquisition();
+  require(
+      reacquisition->object == object &&
+          reacquisition->attributes == ownerAttributes &&
+          reacquisition->tag == divestitureTagBytes,
+      "ownership transfer/update-region reacquisition callback returned the wrong data");
+
+  // The receiver's subscriptions remain disjoint from the original owner's
+  // [1,3] region. Reacquisition alone must not restore that lost association.
+  std::vector<std::uint8_t> const reacquiredDefaultValue{
+      0x52U,
+      0x45U,
+      0x41U,
+      0x43U};
+  rti::AttributeHandleValueMap reacquiredDefaultValues;
+  reacquiredDefaultValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(
+          reacquiredDefaultValue.data(),
+          reacquiredDefaultValue.size()));
+  receiver.recorder().clearReflection();
+  owner.rtiAmbassador().updateAttributeValues(
+      object,
+      reacquiredDefaultValues,
+      acquisitionTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "ownership transfer/update-region reacquired default-source reflection");
+  auto const reacquiredDefaultReflection = receiver.recorder().reflection();
+  require(
+      reacquiredDefaultReflection.object == object &&
+          reacquiredDefaultReflection.values.size() == 1U &&
+          reacquiredDefaultReflection.values.count(receiverHandles.attribute) == 1U &&
+          copyBytes(
+              reacquiredDefaultReflection.values.at(receiverHandles.attribute)) ==
+              reacquiredDefaultValue &&
+          reacquiredDefaultReflection.tag == acquisitionTagBytes &&
+          reacquiredDefaultReflection.producer == owner.federateHandle() &&
+          reacquiredDefaultReflection.transportation.isValid(),
+      "ownership transfer/update-region reacquired default-source reflection returned the wrong metadata");
+  require(
+      !reacquiredDefaultReflection.regions.has_value() ||
+          reacquiredDefaultReflection.regions->empty(),
+      "the former owner's lost region association was restored on reacquisition");
+  require(
+      callbacksWithoutSourceRegions == 2U,
+      "ownership transfer/update-region reacquisition did not use the default source region");
+
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(1UL, 3UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(1UL, 3UL));
+  receiver.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{receiverOwnerRegion});
+  owner.rtiAmbassador().associateRegionsForUpdates(object, ownerPair);
+  std::vector<std::uint8_t> const reassociatedValue{
+      0x52U,
+      0x45U,
+      0x41U,
+      0x53U};
+  rti::AttributeHandleValueMap reassociatedValues;
+  reassociatedValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(reassociatedValue.data(), reassociatedValue.size()));
+  receiver.recorder().clearReflection();
+  owner.rtiAmbassador().updateAttributeValues(
+      object,
+      reassociatedValues,
+      divestitureTag);
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().reflection().present; },
+      options,
+      "ownership transfer/update-region explicitly reassociated reflection");
+  auto const reassociatedReflection = receiver.recorder().reflection();
+  require(
+      reassociatedReflection.object == object &&
+          reassociatedReflection.values.size() == 1U &&
+          reassociatedReflection.values.count(receiverHandles.attribute) == 1U &&
+          copyBytes(reassociatedReflection.values.at(receiverHandles.attribute)) ==
+              reassociatedValue &&
+          reassociatedReflection.tag == divestitureTagBytes &&
+          reassociatedReflection.producer == owner.federateHandle() &&
+          reassociatedReflection.transportation.isValid(),
+      "ownership transfer/update-region explicitly reassociated reflection returned the wrong metadata");
+  require(
+      reassociatedReflection.regions.has_value() &&
+          reassociatedReflection.regions->size() == 1U &&
+          inspectedRegionBounds.size() == 3U &&
+          inspectedRegionBounds.back() ==
+              RegionBoundsSnapshot{{1UL, 3UL}, {1UL, 3UL}},
+      "explicit reassociation did not restore the former owner's source region");
+  require(
+      callbacksWithoutSourceRegions == 2U,
+      "explicit reassociation changed the recorded default-source callback count");
+
+  receiver.recorder().clearScopeAdvisories();
+  owner.recorder().clearOwnershipRecords();
+  newOwner.recorder().clearOwnershipRecords();
+  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
+      object,
+      ownerAttributes,
+      divestitureTag);
+  newOwner.rtiAmbassador().attributeOwnershipAcquisition(
+      object,
+      newOwnerAttributes,
+      acquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
+      options,
+      "ownership transfer/update-region negotiated divestiture confirmation");
+  auto const scopeTransferConfirmation = owner.recorder().divestitureConfirmation();
+  require(
+      scopeTransferConfirmation->object == object &&
+          scopeTransferConfirmation->attributes == ownerAttributes &&
+          scopeTransferConfirmation->tag == acquisitionTagBytes,
+      "ownership transfer/update-region negotiated divestiture confirmation returned the wrong data");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerHandles.attribute) &&
+          !newOwner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              newOwnerHandles.attribute),
+      "negotiated divestiture changed ownership before confirmation");
+  require(
+      receiver.recorder().attributesInScope().empty() &&
+          receiver.recorder().attributesOutOfScope().empty(),
+      "pending Negotiated Attribute Ownership Divestiture caused a scope transition");
+  owner.rtiAmbassador().confirmDivestiture(
+      object,
+      ownerAttributes,
+      divestitureTag);
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          ownerHandles.attribute) &&
+          newOwner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              newOwnerHandles.attribute),
+      "negotiated divestiture did not transfer ownership immediately when confirmed");
+  waitFor(
+      newOwner,
+      [&] { return newOwner.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "ownership transfer/update-region negotiated acquisition notification");
+  auto const negotiatedAcquisition = newOwner.recorder().ownershipAcquisition();
+  require(
+      negotiatedAcquisition->object == object &&
+          negotiatedAcquisition->attributes == newOwnerAttributes &&
+          negotiatedAcquisition->tag == divestitureTagBytes &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              ownerHandles.attribute) &&
+          newOwner.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              newOwnerHandles.attribute),
+      "negotiated ownership transfer returned the wrong notification or owner");
+  require(
+      receiver.recorder().attributesInScope().empty() &&
+          receiver.recorder().attributesOutOfScope().empty(),
+      "Negotiated Attribute Ownership Divestiture caused a transient attribute scope transition");
+
+  newOwner.rtiAmbassador().associateRegionsForUpdates(object, newOwnerPair);
+  receiver.recorder().clearScopeAdvisories();
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(8UL, 10UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverOwnerRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(8UL, 10UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverReplacementRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(0UL, 1UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverReplacementRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(0UL, 1UL));
+  receiver.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{receiverOwnerRegion, receiverReplacementRegion});
+  waitFor(
+      receiver,
+      [&] { return !receiver.recorder().attributesOutOfScope().empty(); },
+      options,
+      "ownership transfer/update-region live out-of-scope advisory control");
+  auto const outOfScope = receiver.recorder().attributesOutOfScope();
+  require(
+      outOfScope.size() == 1U && outOfScope.front().object == object &&
+          outOfScope.front().attributes == receiverAttributes &&
+          receiver.recorder().attributesInScope().empty(),
+      "ownership transfer/update-region out-of-scope control returned the wrong callback");
+  receiver.recorder().clearScopeAdvisories();
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverReplacementRegion,
+      receiverHandles.firstDimension,
+      rti::RangeBounds(6UL, 8UL));
+  receiver.rtiAmbassador().setRangeBounds(
+      receiverReplacementRegion,
+      receiverHandles.secondDimension,
+      rti::RangeBounds(6UL, 8UL));
+  receiver.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{receiverReplacementRegion});
+  waitFor(
+      receiver,
+      [&] { return !receiver.recorder().attributesInScope().empty(); },
+      options,
+      "ownership transfer/update-region live in-scope advisory control");
+  auto const inScope = receiver.recorder().attributesInScope();
+  require(
+      inScope.size() == 1U && inScope.front().object == object &&
+          inScope.front().attributes == receiverAttributes &&
+          receiver.recorder().attributesOutOfScope().empty(),
+      "ownership transfer/update-region in-scope control returned the wrong callback");
+  receiver.rtiAmbassador().setAttributeScopeAdvisorySwitch(false);
 
   receiver.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       receiverHandles.objectClass,
@@ -2925,6 +3239,16 @@ void scenarioNegotiatedDivestitureNoAccepter(
       object,
       ownerAttributes,
       offerTag);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipAssumption().has_value(); },
+      options,
+      "negotiated divestiture ownership-assumption request to an eligible publisher");
+  auto const assumptionRequest = requester.recorder().ownershipAssumption();
+  require(
+      assumptionRequest->object == object &&
+          assumptionRequest->attributes == requesterAttributes,
+      "negotiated divestiture did not request assumption at the eligible publisher");
   if (model == rti::HLA_EVOKED) {
     static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
   }

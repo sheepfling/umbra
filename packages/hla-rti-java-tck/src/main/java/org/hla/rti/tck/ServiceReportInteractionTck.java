@@ -3,15 +3,18 @@ package org.hla.rti.tck;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.InteractionClassHandleSet;
 import hla.rti1516_2025.ObjectClassHandle;
+import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TimeQueryReturn;
@@ -27,6 +30,10 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +43,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Verifies an ordinary successful service invocation's standard MOM report. */
 final class ServiceReportInteractionTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 10_000_000_000L;
+   private static final String FEDERATE_MOM_CLASS_NAME =
+      "HLAobjectRoot.HLAmanager.HLAfederate";
+   private static final String REPORT_DIRECTORY_SETTING = "serviceReportDirectory=";
    private static final String REPORT_CLASS_NAME =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation";
    private static final String[] REPORT_PARAMETER_NAMES = {
@@ -46,10 +56,15 @@ final class ServiceReportInteractionTck {
    private ServiceReportInteractionTck() { }
 
    static void runQueryGalt(RtiFactory factory, String fom, String mim,
-         String timeImplementation, CallbackModel callbackModel) throws Exception {
+         String timeImplementation, CallbackModel callbackModel,
+         RtiConfiguration subjectConfiguration, String additionalSettings,
+         String serviceReportDirectory) throws Exception {
+      validateServiceReportDirectory(
+         subjectConfiguration, additionalSettings, serviceReportDirectory);
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador regulator = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      Recorder subjectRecorder = new Recorder();
       Recorder regulatorRecorder = new Recorder();
       Recorder observerRecorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
@@ -57,11 +72,15 @@ final class ServiceReportInteractionTck {
       boolean subjectConnected = false, regulatorConnected = false, observerConnected = false;
       boolean created = false;
       boolean subjectJoined = false, regulatorJoined = false, observerJoined = false;
-      boolean reportSubscribed = false;
+      boolean reportSubscribed = false, federateMomSubscribed = false;
       InteractionClassHandle reportClass = null;
+      ObjectClassHandle federateMomClass = null;
+      AttributeHandleSet federateMomAttributes = null;
       FederateHandle subjectHandle = null;
+      boolean subjectRegulating = false;
+      String subjectName = "java-tck-query-galt-subject-" + UUID.randomUUID();
       try {
-         subject.connect(callbacks(), callbackModel);
+         subject.connect(subjectRecorder.proxy(), callbackModel, subjectConfiguration);
          subjectConnected = true;
          regulator.connect(regulatorRecorder.proxy(), callbackModel);
          regulatorConnected = true;
@@ -70,13 +89,33 @@ final class ServiceReportInteractionTck {
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
-         subjectHandle = subject.joinFederationExecution(
-            "java-tck-query-galt-subject", "tck-type", federation);
+         subjectHandle = subject.joinFederationExecution(subjectName, "tck-type", federation);
          subjectJoined = true;
          regulator.joinFederationExecution("java-tck-query-galt-regulator", "tck-type", federation);
          regulatorJoined = true;
          observer.joinFederationExecution("java-tck-query-galt-observer", "tck-type", federation);
          observerJoined = true;
+
+         federateMomClass = observer.getObjectClassHandle(FEDERATE_MOM_CLASS_NAME);
+         AttributeHandle federateNameAttribute = observer.getAttributeHandle(
+            federateMomClass, "HLAfederateName");
+         AttributeHandle reportFileAttribute = observer.getAttributeHandle(
+            federateMomClass, "HLAreportServiceFile");
+         JavaTckSupport.check(federateMomClass != null && federateNameAttribute != null
+               && reportFileAttribute != null
+               && FEDERATE_MOM_CLASS_NAME.equals(
+                  observer.getObjectClassName(federateMomClass))
+               && "HLAfederateName".equals(
+                  observer.getAttributeName(federateMomClass, federateNameAttribute))
+               && "HLAreportServiceFile".equals(
+                  observer.getAttributeName(federateMomClass, reportFileAttribute)),
+            "standard Federate MOM report-file handles did not round-trip by public name");
+         federateMomAttributes = observer.getAttributeHandleSetFactory().create();
+         federateMomAttributes.add(federateNameAttribute);
+         federateMomAttributes.add(reportFileAttribute);
+         observer.subscribeObjectClassAttributes(
+            federateMomClass, federateMomAttributes, "");
+         federateMomSubscribed = true;
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
@@ -104,6 +143,28 @@ final class ServiceReportInteractionTck {
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
 
+         long momDeadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+         Reflection subjectMom = federateMomReflection(
+            observerRecorder, encoder, federateNameAttribute, reportFileAttribute, subjectName);
+         while (subjectMom == null && System.nanoTime() < momDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+            else Thread.yield();
+            subjectMom = federateMomReflection(
+               observerRecorder, encoder, federateNameAttribute, reportFileAttribute, subjectName);
+         }
+         JavaTckSupport.check(subjectMom != null,
+            "timed out waiting for subject HLAreportServiceFile reflection");
+         String reportFileName = decodeUnicode(
+            encoder, subjectMom.values.get(reportFileAttribute));
+         JavaTckSupport.check(reportFileName != null && !reportFileName.trim().isEmpty(),
+            "subject HLAreportServiceFile reflection did not contain a file name");
+         Path reportFile = Path.of(reportFileName);
+         JavaTckSupport.check(Files.isRegularFile(reportFile),
+            "subject HLAreportServiceFile did not identify an existing file");
+         String fileBeforeQuery = Files.readString(reportFile, StandardCharsets.UTF_8);
+         JavaTckSupport.check(!fileBeforeQuery.isEmpty(),
+            "subject HLAreportServiceFile did not identify a file with its initial record");
+
          LogicalTimeFactory<?, ?> timeFactory = regulator.getTimeFactory();
          LogicalTime<?, ?> initial = (LogicalTime<?, ?>) timeFactory.makeInitial();
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
@@ -118,16 +179,20 @@ final class ServiceReportInteractionTck {
          TimeQueryReturn actualGalt = subject.queryGALT();
          JavaTckSupport.check(actualGalt.timeIsValid && expectedGalt.equals(actualGalt.time),
             "Query GALT did not return the active regulator's current time plus lookahead");
-         awaitReport(observer, observerRecorder, callbackModel);
-
-         JavaTckSupport.check(observerRecorder.events.size() == 1,
-            "successful Query GALT did not produce exactly one HLAreportServiceInvocation");
-         Interaction event = observerRecorder.events.get(0);
+         Interaction event = awaitServiceReport(observer, observerRecorder, reportParameters,
+            encoder, "QueryGALT", callbackModel);
+         String reportedTransportation = describeTransportationType(event.transportation);
          JavaTckSupport.check(reportClass.equals(event.interaction)
                && event.parameters.size() == REPORT_PARAMETER_NAMES.length
                && event.tag.length == 0 && reliable.equals(event.transportation)
                && event.regionsEmpty,
-            "Query GALT service report returned invalid interaction or callback metadata");
+            "Query GALT service report returned invalid interaction or callback metadata: class="
+               + reportClass.equals(event.interaction) + ", parameterCount="
+               + event.parameters.size() + ", tagLength=" + event.tag.length + ", transport="
+               + reliable.equals(event.transportation) + " (expected "
+               + describeTransportationType(reliable)
+               + ", received " + reportedTransportation + "), regionsEmpty="
+               + event.regionsEmpty);
          for (String name : REPORT_PARAMETER_NAMES) {
             JavaTckSupport.check(event.parameters.containsKey(reportParameters.get(name)),
                "Query GALT service report omitted standard parameter " + name);
@@ -150,7 +215,8 @@ final class ServiceReportInteractionTck {
          HLAinteger32BE serial = encoder.createHLAinteger32BE();
          serial.decode(event.parameters.get(reportParameters.get("HLAserialNumber")));
          JavaTckSupport.check(exception.getValue().isEmpty() && serial.getValue() == 0,
-            "successful Query GALT report returned an exception or wrong initial serial");
+            "successful Query GALT report returned exception [" + exception.getValue()
+               + "] or wrong initial serial " + serial.getValue());
 
          HLAfixedRecord argumentPrototype = fixedRecordPrototype(encoder);
          HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
@@ -163,18 +229,75 @@ final class ServiceReportInteractionTck {
          returnedArgument.add(encoder.createHLAunicodeString());
          returnedArgument.add(encoder.createHLAunicodeString());
          returnedArgument.decode(event.parameters.get(reportParameters.get("HLAreturnedArgument")));
-         JavaTckSupport.check(returnedArgument.size() == 3
-               && ((HLAinteger32BE) returnedArgument.get(0)).getValue() == 31
-               && "GALT".equals(((HLAunicodeString) returnedArgument.get(1)).getValue())
-               && quoted(expectedGalt.toString()).equals(
-                  ((HLAunicodeString) returnedArgument.get(2)).getValue()),
-            "Query GALT report did not preserve its standard logical-time return argument");
+         JavaTckSupport.check(returnedArgument.size() == 3,
+            "Query GALT report returned a malformed TimeQueryReturn argument");
+         String expectedGaltJson = "{\"timeIsValid\":true,\"time\":"
+            + quoted(expectedGalt.toString()) + "}";
+         int reportedArgumentType = ((HLAinteger32BE) returnedArgument.get(0)).getValue();
+         String reportedArgumentName = ((HLAunicodeString) returnedArgument.get(1)).getValue();
+         String reportedGaltJson = ((HLAunicodeString) returnedArgument.get(2)).getValue();
+         JavaTckSupport.check(reportedArgumentType == 58
+               && "GALT".equals(reportedArgumentName)
+               && expectedGaltJson.equals(reportedGaltJson),
+            "Query GALT report did not preserve its standard TimeQueryReturn fields: expected type 58, name GALT, value "
+               + expectedGaltJson + "; received type " + reportedArgumentType + ", name "
+               + reportedArgumentName + ", value " + reportedGaltJson);
+
+         int interactionCount = observerRecorder.events.size();
+         subject.setServiceReportingSwitch(false);
+         subject.setSendServiceReportsToFileSwitch(true);
+         subject.setServiceReportingSwitch(true);
+         JavaTckSupport.check(subject.getServiceReportingSwitch()
+               && subject.getSendServiceReportsToFileSwitch(),
+            "Query GALT file-reporting switches did not retain their enabled state");
+         TimeQueryReturn fileReportedGalt = subject.queryGALT();
+         JavaTckSupport.check(fileReportedGalt.timeIsValid
+               && expectedGalt.equals(fileReportedGalt.time),
+            "Query GALT returned a wrong or undefined value while file reporting was selected");
+         String fileAfterQuery = Files.readString(reportFile, StandardCharsets.UTF_8);
+         JavaTckSupport.check(fileAfterQuery.length() > fileBeforeQuery.length(),
+            "Query GALT did not append a service-report file record");
+         String appendedGaltRecord = appendedRecord(
+            fileBeforeQuery, fileAfterQuery, "QueryGALT");
+         JavaTckSupport.check(appendedGaltRecord.contains("\"timeIsValid\":true")
+               && appendedGaltRecord.contains(
+                  "\"time\":" + quoted(expectedGalt.toString())),
+            "Query GALT Table 5 file record omitted its valid time-query fields");
+
+         LogicalTimeInterval subjectLookahead = (LogicalTimeInterval) epsilon.add(epsilon);
+         subjectLookahead = (LogicalTimeInterval) subjectLookahead.add(epsilon);
+         subject.enableTimeRegulation(subjectLookahead);
+         subjectRegulating = true;
+         awaitSingleRegulationCallback(subject, subjectRecorder, callbackModel);
+         String fileBeforeLookaheadQuery = Files.readString(reportFile, StandardCharsets.UTF_8);
+         LogicalTimeInterval queriedLookahead = subject.queryLookahead();
+         JavaTckSupport.check(subjectLookahead.equals(queriedLookahead),
+            "Query Lookahead returned an interval different from the active regulator's lookahead");
+         String fileAfterLookaheadQuery = Files.readString(reportFile, StandardCharsets.UTF_8);
+         String appendedLookaheadRecord = appendedRecord(
+            fileBeforeLookaheadQuery, fileAfterLookaheadQuery, "QueryLookahead");
+         JavaTckSupport.check(appendedLookaheadRecord.contains("\"intervalIsValid\":true")
+               && appendedLookaheadRecord.contains(
+                  "\"interval\":" + quoted(subjectLookahead.toString())),
+            "Query Lookahead Table 5 file record omitted its valid interval-query fields");
+         JavaTckSupport.check(observerRecorder.events.size() == interactionCount,
+            "time-query file reporting unexpectedly delivered an interaction report");
       } finally {
          if (observerJoined && reportSubscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); } catch (Exception ignored) { }
          }
+         if (observerJoined && federateMomSubscribed) {
+            try {
+               observer.unsubscribeObjectClassAttributes(federateMomClass, federateMomAttributes);
+            } catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
+            try { subject.setSendServiceReportsToFileSwitch(false); }
+            catch (Exception ignored) { }
+            if (subjectRegulating) {
+               try { subject.disableTimeRegulation(); } catch (Exception ignored) { }
+            }
          }
          if (regulatorJoined) {
             try { regulator.disableTimeRegulation(); } catch (Exception ignored) { }
@@ -310,10 +433,8 @@ final class ServiceReportInteractionTck {
          observerRecorder.events.clear();
          subject.setServiceReportingSwitch(true);
          subject.nextMessageRequestAvailable(requestBoundary);
-         awaitReport(observer, observerRecorder, callbackModel);
-         JavaTckSupport.check(observerRecorder.events.size() == 1,
-            "successful Next Message Request Available did not produce exactly one MOM report");
-         Interaction report = observerRecorder.events.get(0);
+         Interaction report = awaitServiceReport(observer, observerRecorder, reportParameters,
+            encoder, "NextMessageRequestAvailable", callbackModel);
          JavaTckSupport.check(reportClass.equals(report.interaction)
                && report.parameters.size() == REPORT_PARAMETER_NAMES.length
                && report.tag.length == 0 && reliable.equals(report.transportation)
@@ -515,7 +636,9 @@ final class ServiceReportInteractionTck {
          }
          JavaTckSupport.check(event.tag.length == 0 && reliable.equals(event.transportation)
                && event.regionsEmpty,
-            "service-report callback did not preserve empty tag, reliable transport, and no regions");
+            "service-report callback returned invalid tag, transport, or region metadata");
+         JavaTckSupport.check(event.producer == null,
+            "RTI-originated service-report callback returned a producer federate");
 
          FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(
             event.parameters.get(reportParameters.get("HLAfederate")), 0);
@@ -606,16 +729,20 @@ final class ServiceReportInteractionTck {
       }
    }
 
-   static void runPublication(RtiFactory factory, String fom, String mim,
-         String interactionName, String timeImplementation, CallbackModel callbackModel)
-         throws Exception {
+   static void runPublication(RtiFactory factory, String fom, String foreignInteractionFom,
+         String mim, String interactionName, String timeImplementation,
+         String foreignInteractionName, CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-interaction-publication-" + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      String foreignFederation = "java-tck-service-report-interaction-foreign-" + UUID.randomUUID();
+      boolean subjectConnected = false, observerConnected = false, foreignConnected = false;
+      boolean created = false, foreignCreated = false;
+      boolean subjectJoined = false, observerJoined = false, foreignJoined = false;
+      boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null, sourceClass = null;
       FederateHandle subjectHandle = null;
       try {
@@ -623,20 +750,34 @@ final class ServiceReportInteractionTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(callbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(
+            foreignFederation, foreignInteractionFom, timeImplementation);
+         foreignCreated = true;
          subjectHandle = subject.joinFederationExecution(
             "java-tck-interaction-publication-subject", "tck-type", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-interaction-publication-observer", "tck-type", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-interaction-publication-foreign", "tck-type", foreignFederation);
+         foreignJoined = true;
 
          sourceClass = subject.getInteractionClassHandle(interactionName);
          JavaTckSupport.check(sourceClass != null
                && interactionName.equals(subject.getInteractionClassName(sourceClass)),
             "adapter-supplied interaction class lookup/name round-trip failed");
+         InteractionClassHandle foreignClass =
+            foreign.getInteractionClassHandle(foreignInteractionName);
+         JavaTckSupport.check(foreignClass != null
+               && foreignInteractionName.equals(foreign.getInteractionClassName(foreignClass))
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign interaction class lookup failed or aliases the primary name");
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
                && REPORT_CLASS_NAME.equals(observer.getInteractionClassName(reportClass)),
@@ -658,36 +799,33 @@ final class ServiceReportInteractionTck {
          subject.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> subject.getInteractionClassName(foreignClass), "InvalidInteractionClassHandle",
+            "lookup of an interaction-class handle from a different federation execution");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
          subject.setServiceReportingSwitch(true);
 
-         String invalidHandle = JavaTckSupport.invalidHandle(
-            InteractionClassHandle.class).toString();
          JavaTckSupport.expectFailure(
-            () -> subject.publishInteractionClass(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class)),
-            "InteractionClassNotDefined", "publishInteractionClass with an invalid handle");
+            () -> subject.publishInteractionClass(foreignClass), "InteractionClassNotDefined",
+            "publishing an interaction class from a different federation execution");
          verifyPublicationReport(observer, recorder, reportClass, reportParameters,
-            reliable, encoder, subjectHandle, 0, "PublishInteractionClass", invalidHandle, false,
-            "InteractionClassNotDefined", callbackModel);
-
+            reliable, encoder, subjectHandle, 0, "PublishInteractionClass",
+            foreignClass.toString(), false, "InteractionClassNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
-            () -> subject.unpublishInteractionClass(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class)),
-            "InteractionClassNotDefined", "unpublishInteractionClass with an invalid handle");
+            () -> subject.unpublishInteractionClass(foreignClass), "InteractionClassNotDefined",
+            "unpublishing an interaction class from a different federation execution");
          verifyPublicationReport(observer, recorder, reportClass, reportParameters,
-            reliable, encoder, subjectHandle, 1, "UnpublishInteractionClass", invalidHandle, false,
-            "InteractionClassNotDefined", callbackModel);
-
+            reliable, encoder, subjectHandle, 1, "UnpublishInteractionClass",
+            foreignClass.toString(), false, "InteractionClassNotDefined", callbackModel);
          subject.publishInteractionClass(sourceClass);
          verifyPublicationReport(observer, recorder, reportClass, reportParameters,
-            reliable, encoder, subjectHandle, 2, "PublishInteractionClass", sourceClass.toString(), true,
-            "", callbackModel);
+            reliable, encoder, subjectHandle, 2, "PublishInteractionClass",
+            sourceClass.toString(), true, "", callbackModel);
          subject.unpublishInteractionClass(sourceClass);
          verifyPublicationReport(observer, recorder, reportClass, reportParameters,
-            reliable, encoder, subjectHandle, 3, "UnpublishInteractionClass", sourceClass.toString(), true,
-            "", callbackModel);
+            reliable, encoder, subjectHandle, 3, "UnpublishInteractionClass",
+            sourceClass.toString(), true, "", callbackModel);
       } finally {
          if (subjectJoined) {
             try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
@@ -699,12 +837,23 @@ final class ServiceReportInteractionTck {
             try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (created) {
             try { subject.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
          if (observerConnected) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -715,16 +864,21 @@ final class ServiceReportInteractionTck {
       }
    }
 
-   static void runSubscription(RtiFactory factory, String fom, String mim,
-         String interactionName, String timeImplementation, CallbackModel callbackModel)
-         throws Exception {
+   static void runSubscription(RtiFactory factory, String fom, String foreignInteractionFom,
+         String mim, String interactionName, String timeImplementation,
+         String foreignInteractionName, CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-interaction-subscription-" + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      String foreignFederation =
+         "java-tck-service-report-interaction-subscription-foreign-" + UUID.randomUUID();
+      boolean subjectConnected = false, observerConnected = false, foreignConnected = false;
+      boolean created = false, foreignCreated = false;
+      boolean subjectJoined = false, observerJoined = false, foreignJoined = false;
+      boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null, sourceClass = null;
       FederateHandle subjectHandle = null;
       try {
@@ -732,20 +886,39 @@ final class ServiceReportInteractionTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(callbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(
+            foreignFederation, foreignInteractionFom, timeImplementation);
+         foreignCreated = true;
          subjectHandle = subject.joinFederationExecution(
             "java-tck-interaction-subscription-subject", "tck-type", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-interaction-subscription-observer", "tck-type", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-interaction-subscription-foreign", "tck-type", foreignFederation);
+         foreignJoined = true;
 
          sourceClass = subject.getInteractionClassHandle(interactionName);
          JavaTckSupport.check(sourceClass != null
                && interactionName.equals(subject.getInteractionClassName(sourceClass)),
             "adapter-supplied interaction class lookup/name round-trip failed");
+         InteractionClassHandle foreignClass =
+            foreign.getInteractionClassHandle(foreignInteractionName);
+         JavaTckSupport.check(foreignClass != null
+               && foreignInteractionName.equals(foreign.getInteractionClassName(foreignClass))
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign interaction class lookup failed or aliases the primary name");
+         InteractionClassHandle subjectReportClass =
+            subject.getInteractionClassHandle(REPORT_CLASS_NAME);
+         JavaTckSupport.check(subjectReportClass != null
+               && REPORT_CLASS_NAME.equals(subject.getInteractionClassName(subjectReportClass)),
+            "subject HLAreportServiceInvocation lookup/name round-trip failed");
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
                && REPORT_CLASS_NAME.equals(observer.getInteractionClassName(reportClass)),
@@ -767,36 +940,52 @@ final class ServiceReportInteractionTck {
          subject.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> subject.getInteractionClassName(foreignClass), "InvalidInteractionClassHandle",
+            "lookup of an interaction-class handle from a different federation execution");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
          subject.setServiceReportingSwitch(true);
 
-         String invalidHandle = JavaTckSupport.invalidHandle(
-            InteractionClassHandle.class).toString();
          JavaTckSupport.expectFailure(
-            () -> subject.subscribeInteractionClassPassively(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class)),
-            "InteractionClassNotDefined", "passive subscribeInteractionClass with invalid handle");
+            () -> subject.subscribeInteractionClass(subjectReportClass),
+            "FederateServiceInvocationsAreBeingReportedViaMOM",
+            "subscribeInteractionClass for HLAreportServiceInvocation while reporting is enabled");
          verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
-            encoder, subjectHandle, 0, "SubscribeInteractionClass", invalidHandle, true, false,
-            "InteractionClassNotDefined", callbackModel);
+            encoder, subjectHandle, 0, "SubscribeInteractionClass", subjectReportClass.toString(),
+            false, false, "FederateServiceInvocationsAreBeingReportedViaMOM", callbackModel);
 
          JavaTckSupport.expectFailure(
-            () -> subject.unsubscribeInteractionClass(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class)),
-            "InteractionClassNotDefined", "unsubscribeInteractionClass with an invalid handle");
+            () -> subject.subscribeInteractionClassPassively(foreignClass),
+            "InteractionClassNotDefined",
+            "passive subscription to an interaction class from a different federation execution");
          verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
-            encoder, subjectHandle, 1, "UnsubscribeInteractionClass", invalidHandle, false, false,
-            "InteractionClassNotDefined", callbackModel);
+            encoder, subjectHandle, 1, "SubscribeInteractionClass", foreignClass.toString(), true,
+            false, "InteractionClassNotDefined", callbackModel);
+         JavaTckSupport.expectFailure(
+            () -> subject.unsubscribeInteractionClass(foreignClass), "InteractionClassNotDefined",
+            "unsubscription of an interaction class from a different federation execution");
+         verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
+            encoder, subjectHandle, 2, "UnsubscribeInteractionClass", foreignClass.toString(),
+            false, false, "InteractionClassNotDefined", callbackModel);
 
-         subject.subscribeInteractionClass(sourceClass);
+         subject.subscribeInteractionClassPassively(sourceClass);
          verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
-            encoder, subjectHandle, 2, "SubscribeInteractionClass", sourceClass.toString(), false,
+            encoder, subjectHandle, 3, "SubscribeInteractionClass", sourceClass.toString(), true,
             true, "", callbackModel);
          subject.unsubscribeInteractionClass(sourceClass);
          verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
-            encoder, subjectHandle, 3, "UnsubscribeInteractionClass", sourceClass.toString(),
-            false, false, "", callbackModel);
+            encoder, subjectHandle, 4, "UnsubscribeInteractionClass", sourceClass.toString(),
+            false, true, "", callbackModel);
+
+         subject.subscribeInteractionClass(sourceClass);
+         verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
+            encoder, subjectHandle, 5, "SubscribeInteractionClass", sourceClass.toString(), false,
+            true, "", callbackModel);
+         subject.unsubscribeInteractionClass(sourceClass);
+         verifySubscriptionReport(observer, recorder, reportClass, reportParameters, reliable,
+            encoder, subjectHandle, 6, "UnsubscribeInteractionClass", sourceClass.toString(),
+            false, true, "", callbackModel);
       } finally {
          if (subjectJoined) {
             try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
@@ -808,12 +997,23 @@ final class ServiceReportInteractionTck {
             try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (created) {
             try { subject.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
          if (observerConnected) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -824,16 +1024,22 @@ final class ServiceReportInteractionTck {
       }
    }
 
-   static void runDirectedDeclaration(RtiFactory factory, String fom, String mim,
-         String objectClassName, String interactionName, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+   static void runDirectedDeclaration(RtiFactory factory, String fom, String foreignFom,
+         String mim, String objectClassName, String interactionName,
+         String foreignObjectClassName, String foreignInteractionName,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-directed-declaration-" + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      String foreignFederation =
+         "java-tck-service-report-directed-declaration-foreign-" + UUID.randomUUID();
+      boolean subjectConnected = false, observerConnected = false, foreignConnected = false;
+      boolean created = false, foreignCreated = false;
+      boolean subjectJoined = false, observerJoined = false, foreignJoined = false;
+      boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null;
       FederateHandle subjectHandle = null;
       try {
@@ -841,15 +1047,22 @@ final class ServiceReportInteractionTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(callbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(foreignFederation, foreignFom, timeImplementation);
+         foreignCreated = true;
          subjectHandle = subject.joinFederationExecution(
             "java-tck-directed-declaration-subject", "tck-type", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-directed-declaration-observer", "tck-type", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-directed-declaration-foreign", "tck-type", foreignFederation);
+         foreignJoined = true;
 
          ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
          InteractionClassHandle interactionClass = subject.getInteractionClassHandle(interactionName);
@@ -857,6 +1070,17 @@ final class ServiceReportInteractionTck {
                && objectClassName.equals(subject.getObjectClassName(objectClass))
                && interactionName.equals(subject.getInteractionClassName(interactionClass)),
             "adapter-supplied directed-declaration object/interaction lookup failed");
+         ObjectClassHandle foreignObjectClass =
+            foreign.getObjectClassHandle(foreignObjectClassName);
+         InteractionClassHandle foreignInteractionClass =
+            foreign.getInteractionClassHandle(foreignInteractionName);
+         JavaTckSupport.check(foreignObjectClass != null && foreignInteractionClass != null
+               && foreignObjectClassName.equals(foreign.getObjectClassName(foreignObjectClass))
+               && foreignInteractionName.equals(
+                  foreign.getInteractionClassName(foreignInteractionClass))
+               && !objectClassName.equals(foreignObjectClassName)
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign object/interaction class lookup failed or aliases the primary name");
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
                && REPORT_CLASS_NAME.equals(observer.getInteractionClassName(reportClass)),
@@ -878,54 +1102,57 @@ final class ServiceReportInteractionTck {
          subject.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> subject.getObjectClassName(foreignObjectClass), "InvalidObjectClassHandle",
+            "lookup of an object-class handle from a different federation execution");
+         JavaTckSupport.expectFailure(
+            () -> subject.getInteractionClassName(foreignInteractionClass),
+            "InvalidInteractionClassHandle",
+            "lookup of an interaction-class handle from a different federation execution");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
          subject.setServiceReportingSwitch(true);
 
-         ObjectClassHandle invalidObject = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
          InteractionClassHandleSet emptySet =
             subject.getInteractionClassHandleSetFactory().create();
          InteractionClassHandleSet invalidSet =
             subject.getInteractionClassHandleSetFactory().create();
-         invalidSet.add(invalidInteraction);
+         invalidSet.add(foreignInteractionClass);
          InteractionClassHandleSet validSet =
             subject.getInteractionClassHandleSetFactory().create();
          validSet.add(interactionClass);
-         String emptySetText = "[]";
-         String invalidSetText = "[\"" + invalidInteraction + "\"]";
+         String invalidSetText = "[\"" + foreignInteractionClass + "\"]";
          String validSetText = "[\"" + interactionClass + "\"]";
 
          JavaTckSupport.expectFailure(
-            () -> subject.subscribeObjectClassDirectedInteractions(
-               invalidObject, emptySet),
-            "ObjectClassNotDefined", "directed subscribe for an invalid object class");
+            () -> subject.subscribeObjectClassDirectedInteractions(foreignObjectClass, emptySet),
+            "ObjectClassNotDefined",
+            "directed subscription for an object class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 0, "SubscribeObjectClassDirectedInteractions",
-            invalidObject.toString(), emptySetText, false, false, "ObjectClassNotDefined",
+            foreignObjectClass.toString(), "[]", false, false, "ObjectClassNotDefined",
             callbackModel);
-
          JavaTckSupport.expectFailure(
             () -> subject.subscribeObjectClassDirectedInteractionsUniversally(
                objectClass, invalidSet),
-            "InteractionClassNotDefined", "universal directed subscribe with invalid interaction");
+            "InteractionClassNotDefined",
+            "directed subscription containing an interaction class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 1, "SubscribeObjectClassDirectedInteractions",
             objectClass.toString(), invalidSetText, true, false, "InteractionClassNotDefined",
             callbackModel);
-
          JavaTckSupport.expectFailure(
-            () -> subject.unsubscribeObjectClassDirectedInteractions(invalidObject, emptySet),
-            "ObjectClassNotDefined", "directed unsubscribe for an invalid object class");
+            () -> subject.unsubscribeObjectClassDirectedInteractions(foreignObjectClass, emptySet),
+            "ObjectClassNotDefined",
+            "directed unsubscription for an object class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 2, "UnsubscribeObjectClassDirectedInteractions",
-            invalidObject.toString(), emptySetText, null, false, "ObjectClassNotDefined",
+            foreignObjectClass.toString(), "[]", null, false, "ObjectClassNotDefined",
             callbackModel);
-
          JavaTckSupport.expectFailure(
             () -> subject.unsubscribeObjectClassDirectedInteractions(objectClass, invalidSet),
-            "InteractionClassNotDefined", "directed unsubscribe with invalid interaction");
+            "InteractionClassNotDefined",
+            "directed unsubscription containing an interaction class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 3, "UnsubscribeObjectClassDirectedInteractions",
             objectClass.toString(), invalidSetText, null, false, "InteractionClassNotDefined",
@@ -954,12 +1181,23 @@ final class ServiceReportInteractionTck {
             try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (created) {
             try { subject.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
          if (observerConnected) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -970,18 +1208,27 @@ final class ServiceReportInteractionTck {
       }
    }
 
-   static void runObjectAttributeDeclaration(RtiFactory factory, String fom, String mim,
-         String objectClassName, String attributeName, String timeImplementation,
+   static void runObjectAttributeDeclaration(RtiFactory factory, String fom,
+         String multiAttributeFom, String foreignObjectFom, String mim,
+         String objectClassName, String attributeName,
+         String timeImplementation, String multiAttributeObjectClassName,
+         String multiAttributeFirstName, String multiAttributeSecondName,
+         String foreignObjectClassName,
          CallbackModel callbackModel) throws Exception {
       String updateRateName = JavaTckSupport.updateRateName();
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-object-attribute-declaration-"
          + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      String foreignFederation = "java-tck-service-report-object-attribute-foreign-"
+         + UUID.randomUUID();
+      boolean subjectConnected = false, observerConnected = false, foreignConnected = false;
+      boolean created = false, foreignCreated = false;
+      boolean subjectJoined = false, observerJoined = false, foreignJoined = false;
+      boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null;
       FederateHandle subjectHandle = null;
       try {
@@ -989,15 +1236,23 @@ final class ServiceReportInteractionTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(callbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
-            federation, new String[] {fom}, mim, timeImplementation);
+            federation, new String[] {fom, multiAttributeFom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(
+            foreignFederation, foreignObjectFom, timeImplementation);
+         foreignCreated = true;
          subjectHandle = subject.joinFederationExecution(
             "java-tck-object-attribute-declaration-subject", "tck-type", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-object-attribute-declaration-observer", "tck-type", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-object-attribute-declaration-foreign", "tck-type", foreignFederation);
+         foreignJoined = true;
 
          ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
          AttributeHandle attribute = subject.getAttributeHandle(objectClass, attributeName);
@@ -1005,6 +1260,30 @@ final class ServiceReportInteractionTck {
                && objectClassName.equals(subject.getObjectClassName(objectClass))
                && attributeName.equals(subject.getAttributeName(objectClass, attribute)),
             "adapter-supplied object class/attribute lookup failed");
+         ObjectClassHandle publicationClass =
+            subject.getObjectClassHandle(multiAttributeObjectClassName);
+         AttributeHandle firstPublicationAttribute =
+            subject.getAttributeHandle(publicationClass, multiAttributeFirstName);
+         AttributeHandle secondPublicationAttribute =
+            subject.getAttributeHandle(publicationClass, multiAttributeSecondName);
+         JavaTckSupport.check(publicationClass != null && firstPublicationAttribute != null
+               && secondPublicationAttribute != null
+               && !firstPublicationAttribute.equals(secondPublicationAttribute)
+               && !publicationClass.equals(objectClass)
+               && !firstPublicationAttribute.equals(attribute)
+               && multiAttributeObjectClassName.equals(
+                  subject.getObjectClassName(publicationClass))
+               && multiAttributeFirstName.equals(
+                  subject.getAttributeName(publicationClass, firstPublicationAttribute))
+               && multiAttributeSecondName.equals(
+                  subject.getAttributeName(publicationClass, secondPublicationAttribute)),
+            "adapter-supplied multi-attribute publication lookup failed");
+         ObjectClassHandle foreignObjectClass =
+            foreign.getObjectClassHandle(foreignObjectClassName);
+         JavaTckSupport.check(foreignObjectClass != null
+               && foreignObjectClassName.equals(
+                  foreign.getObjectClassName(foreignObjectClass)),
+            "adapter-supplied foreign object-class lookup failed");
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
                && REPORT_CLASS_NAME.equals(observer.getInteractionClassName(reportClass)),
@@ -1026,56 +1305,66 @@ final class ServiceReportInteractionTck {
          subject.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> subject.getObjectClassName(foreignObjectClass), "InvalidObjectClassHandle",
+            "lookup of an object-class handle from a different federation execution");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
          subject.setServiceReportingSwitch(true);
 
-         ObjectClassHandle invalidObject = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-         AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
-         AttributeHandleSet emptySet = subject.getAttributeHandleSetFactory().create();
-         AttributeHandleSet invalidSet = subject.getAttributeHandleSetFactory().create();
-         invalidSet.add(invalidAttribute);
-         AttributeHandleSet validSet = subject.getAttributeHandleSetFactory().create();
-         validSet.add(attribute);
-         String invalidObjectText = invalidObject.toString();
-         String objectText = objectClass.toString();
-         String invalidSetText = "[\"" + invalidAttribute + "\"]";
-         String validSetText = "[\"" + attribute + "\"]";
-
+         AttributeHandleSet emptyAttributes = subject.getAttributeHandleSetFactory().create();
+         AttributeHandleSet unrelatedAttributes =
+            subject.getAttributeHandleSetFactory().create();
+         unrelatedAttributes.add(firstPublicationAttribute);
+         String emptyAttributeSetText = "[]";
+         String unrelatedAttributeSetText = "[\"" + firstPublicationAttribute + "\"]";
          JavaTckSupport.expectFailure(
             () -> subject.subscribeObjectClassAttributesPassively(
-               invalidObject, emptySet, updateRateName),
-            "ObjectClassNotDefined", "passive attribute subscribe for invalid object class");
+               foreignObjectClass, emptyAttributes, "High"),
+            "ObjectClassNotDefined",
+            "passive subscription with an object class from a different federation execution");
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 0, "SubscribeObjectClassAttributes",
-            invalidObjectText, "[]", true, updateRateName, false, "ObjectClassNotDefined",
-            callbackModel);
+            foreignObjectClass.toString(), emptyAttributeSetText, true, "High", false,
+            "ObjectClassNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
             () -> subject.subscribeObjectClassAttributesPassively(
-               objectClass, invalidSet, updateRateName),
-            "AttributeNotDefined", "passive attribute subscribe with invalid attribute");
+               objectClass, unrelatedAttributes, "High"),
+            "AttributeNotDefined",
+            "passive subscription with an attribute from a different object class");
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 1, "SubscribeObjectClassAttributes",
-            objectText, invalidSetText, true, updateRateName, false, "AttributeNotDefined",
-            callbackModel);
+            objectClass.toString(), unrelatedAttributeSetText, true, "High", false,
+            "AttributeNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
-            () -> subject.unsubscribeObjectClassAttributes(invalidObject, emptySet),
-            "ObjectClassNotDefined", "attribute unsubscribe for invalid object class");
+            () -> subject.unsubscribeObjectClassAttributes(foreignObjectClass, emptyAttributes),
+            "ObjectClassNotDefined",
+            "attribute-set unsubscription with an object class from a different federation execution");
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 2, "UnsubscribeObjectClassAttributes",
-            invalidObjectText, "[]", null, null, false, "ObjectClassNotDefined", callbackModel);
+            foreignObjectClass.toString(), emptyAttributeSetText, null, null, false,
+            "ObjectClassNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
-            () -> subject.unsubscribeObjectClassAttributes(objectClass, invalidSet),
-            "AttributeNotDefined", "attribute unsubscribe with invalid attribute");
+            () -> subject.unsubscribeObjectClassAttributes(objectClass, unrelatedAttributes),
+            "AttributeNotDefined",
+            "attribute-set unsubscription with an attribute from a different object class");
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 3, "UnsubscribeObjectClassAttributes",
-            objectText, invalidSetText, null, null, false, "AttributeNotDefined", callbackModel);
+            objectClass.toString(), unrelatedAttributeSetText, null, null, false,
+            "AttributeNotDefined", callbackModel);
+
          JavaTckSupport.expectFailure(
-            () -> subject.unsubscribeObjectClass(invalidObject),
-            "ObjectClassNotDefined", "whole object-class unsubscribe with invalid class");
+            () -> subject.unsubscribeObjectClass(foreignObjectClass), "ObjectClassNotDefined",
+            "whole-class unsubscription with an object class from a different federation execution");
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 4, "UnsubscribeObjectClassAttributes",
-            invalidObjectText, null, null, null, false, "ObjectClassNotDefined", callbackModel);
+            foreignObjectClass.toString(), null, null, null, false, "ObjectClassNotDefined",
+            callbackModel);
+
+         AttributeHandleSet validSet = subject.getAttributeHandleSetFactory().create();
+         validSet.add(attribute);
+         String objectText = objectClass.toString();
+         String validSetText = "[\"" + attribute + "\"]";
 
          subject.subscribeObjectClassAttributesPassively(objectClass, validSet, updateRateName);
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
@@ -1089,6 +1378,18 @@ final class ServiceReportInteractionTck {
          verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 7, "UnsubscribeObjectClassAttributes",
             objectText, null, null, null, true, "", callbackModel);
+
+         AttributeHandleSet publicationAttributes =
+            subject.getAttributeHandleSetFactory().create();
+         publicationAttributes.add(firstPublicationAttribute);
+         publicationAttributes.add(secondPublicationAttribute);
+         JavaTckSupport.check(publicationAttributes.size() == 2,
+            "adapter multi-attribute FOM did not provide two distinct publication handles");
+         subject.publishObjectClassAttributes(publicationClass, publicationAttributes);
+         verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
+            reliable, encoder, subjectHandle, 8, "PublishObjectClassAttributes",
+            publicationClass.toString(), null, null, null, true, "", callbackModel,
+            firstPublicationAttribute.toString(), secondPublicationAttribute.toString());
       } finally {
          if (subjectJoined) {
             try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
@@ -1100,12 +1401,23 @@ final class ServiceReportInteractionTck {
             try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (created) {
             try { subject.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
          if (observerConnected) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -1122,6 +1434,18 @@ final class ServiceReportInteractionTck {
          int serialNumber, String serviceName, String objectHandle, String attributeSet,
          Boolean passive, String updateRate, boolean expectedSuccess, String expectedException,
          CallbackModel callbackModel) throws Exception {
+      verifyObjectAttributeReport(observer, recorder, reportClass, reportParameters,
+         reliable, encoder, subjectHandle, serialNumber, serviceName, objectHandle, attributeSet,
+         passive, updateRate, expectedSuccess, expectedException, callbackModel, null, null);
+   }
+
+   private static void verifyObjectAttributeReport(RTIambassador observer, Recorder recorder,
+         InteractionClassHandle reportClass, Map<String, ParameterHandle> reportParameters,
+         TransportationTypeHandle reliable, EncoderFactory encoder, FederateHandle subjectHandle,
+         int serialNumber, String serviceName, String objectHandle, String attributeSet,
+         Boolean passive, String updateRate, boolean expectedSuccess, String expectedException,
+         CallbackModel callbackModel, String expectedSetMemberOne,
+         String expectedSetMemberTwo) throws Exception {
       long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
       while (recorder.events.isEmpty() && System.nanoTime() < deadline) {
          if (callbackModel == CallbackModel.HLA_EVOKED) {
@@ -1135,7 +1459,8 @@ final class ServiceReportInteractionTck {
       Interaction event = recorder.events.get(0);
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETER_NAMES.length
-            && event.tag.length == 0 && reliable.equals(event.transportation)
+            && event.producer == null && event.tag.length == 0
+            && reliable.equals(event.transportation)
             && event.regionsEmpty,
          "object-attribute declaration report had invalid identity or callback metadata");
       for (String name : REPORT_PARAMETER_NAMES) {
@@ -1173,12 +1498,18 @@ final class ServiceReportInteractionTck {
          index -> fixedRecordPrototype(encoder), argumentPrototype);
       suppliedArguments.decode(event.parameters.get(
          reportParameters.get("HLAsuppliedArguments")));
-      int expectedCount = attributeSet == null ? 2 : (passive == null ? 2 : 4);
+      boolean expectSetMembers = expectedSetMemberOne != null || expectedSetMemberTwo != null;
+      JavaTckSupport.check((expectedSetMemberOne == null) == (expectedSetMemberTwo == null),
+         "object-attribute declaration expected set must contain either zero or two members");
+      int expectedCount = expectSetMembers || attributeSet == null || passive == null ? 2 : 4;
       JavaTckSupport.check(suppliedArguments.size() == expectedCount,
          "object-attribute declaration report returned the wrong argument count");
       verifyArgument(suppliedArguments.get(0), 36, "Object class designator",
          quoted(objectHandle));
-      if (attributeSet == null) {
+      if (expectSetMembers) {
+         verifyHandleSetArgument(suppliedArguments.get(1), expectedSetMemberOne,
+            expectedSetMemberTwo);
+      } else if (attributeSet == null) {
          verifyArgument(suppliedArguments.get(1), 34,
             "Optional set of attribute designators", "null");
       } else {
@@ -1207,16 +1538,41 @@ final class ServiceReportInteractionTck {
       recorder.events.clear();
    }
 
-   static void runDirectedPublication(RtiFactory factory, String fom, String mim,
-         String objectClassName, String interactionName, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+   private static void verifyHandleSetArgument(HLAfixedRecord argument, String memberOne,
+         String memberTwo) throws Exception {
+      JavaTckSupport.check(argument.size() == 3
+            && argument.get(0) instanceof HLAinteger32BE
+            && argument.get(1) instanceof HLAunicodeString
+            && argument.get(2) instanceof HLAunicodeString,
+         "object-attribute publication set argument did not contain three typed fields");
+      HLAinteger32BE type = (HLAinteger32BE) argument.get(0);
+      HLAunicodeString name = (HLAunicodeString) argument.get(1);
+      HLAunicodeString value = (HLAunicodeString) argument.get(2);
+      String expectedForward = "[" + quoted(memberOne) + "," + quoted(memberTwo) + "]";
+      String expectedReverse = "[" + quoted(memberTwo) + "," + quoted(memberOne) + "]";
+      JavaTckSupport.check(type.getValue() == 1
+            && "Set of attribute designators".equals(name.getValue())
+            && (expectedForward.equals(value.getValue())
+               || expectedReverse.equals(value.getValue())),
+         "object-attribute publication report did not encode both handles in its set array");
+   }
+
+   static void runDirectedPublication(RtiFactory factory, String fom, String foreignFom,
+         String mim, String objectClassName, String interactionName,
+         String foreignObjectClassName, String foreignInteractionName,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-directed-publication-" + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      String foreignFederation =
+         "java-tck-service-report-directed-publication-foreign-" + UUID.randomUUID();
+      boolean subjectConnected = false, observerConnected = false, foreignConnected = false;
+      boolean created = false, foreignCreated = false;
+      boolean subjectJoined = false, observerJoined = false, foreignJoined = false;
+      boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null;
       FederateHandle subjectHandle = null;
       try {
@@ -1224,15 +1580,22 @@ final class ServiceReportInteractionTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(callbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(foreignFederation, foreignFom, timeImplementation);
+         foreignCreated = true;
          subjectHandle = subject.joinFederationExecution(
             "java-tck-directed-publication-subject", "tck-type", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-directed-publication-observer", "tck-type", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-directed-publication-foreign", "tck-type", foreignFederation);
+         foreignJoined = true;
 
          ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
          InteractionClassHandle interactionClass = subject.getInteractionClassHandle(interactionName);
@@ -1240,6 +1603,17 @@ final class ServiceReportInteractionTck {
                && objectClassName.equals(subject.getObjectClassName(objectClass))
                && interactionName.equals(subject.getInteractionClassName(interactionClass)),
             "adapter-supplied directed-publication object/interaction lookup failed");
+         ObjectClassHandle foreignObjectClass =
+            foreign.getObjectClassHandle(foreignObjectClassName);
+         InteractionClassHandle foreignInteractionClass =
+            foreign.getInteractionClassHandle(foreignInteractionName);
+         JavaTckSupport.check(foreignObjectClass != null && foreignInteractionClass != null
+               && foreignObjectClassName.equals(foreign.getObjectClassName(foreignObjectClass))
+               && foreignInteractionName.equals(
+                  foreign.getInteractionClassName(foreignInteractionClass))
+               && !objectClassName.equals(foreignObjectClassName)
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign object/interaction class lookup failed or aliases the primary name");
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
                && REPORT_CLASS_NAME.equals(observer.getInteractionClassName(reportClass)),
@@ -1261,49 +1635,57 @@ final class ServiceReportInteractionTck {
          subject.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> subject.getObjectClassName(foreignObjectClass), "InvalidObjectClassHandle",
+            "lookup of an object-class handle from a different federation execution");
+         JavaTckSupport.expectFailure(
+            () -> subject.getInteractionClassName(foreignInteractionClass),
+            "InvalidInteractionClassHandle",
+            "lookup of an interaction-class handle from a different federation execution");
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
          subject.setServiceReportingSwitch(true);
 
-         ObjectClassHandle invalidObject = JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
          InteractionClassHandleSet emptySet =
             subject.getInteractionClassHandleSetFactory().create();
          InteractionClassHandleSet invalidSet =
             subject.getInteractionClassHandleSetFactory().create();
-         invalidSet.add(invalidInteraction);
+         invalidSet.add(foreignInteractionClass);
          InteractionClassHandleSet validSet =
             subject.getInteractionClassHandleSetFactory().create();
          validSet.add(interactionClass);
          String emptySetText = "[]";
-         String invalidSetText = "[\"" + invalidInteraction + "\"]";
+         String invalidSetText = "[\"" + foreignInteractionClass + "\"]";
          String validSetText = "[\"" + interactionClass + "\"]";
 
          JavaTckSupport.expectFailure(
-            () -> subject.publishObjectClassDirectedInteractions(invalidObject, emptySet),
-            "ObjectClassNotDefined", "directed publish for an invalid object class");
+            () -> subject.publishObjectClassDirectedInteractions(foreignObjectClass, emptySet),
+            "ObjectClassNotDefined",
+            "directed publish for an object class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 0, "PublishObjectClassDirectedInteractions",
-            invalidObject.toString(), emptySetText, null, false, "ObjectClassNotDefined",
-            callbackModel);
+            foreignObjectClass.toString(), emptySetText, null, false,
+            "ObjectClassNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
             () -> subject.publishObjectClassDirectedInteractions(objectClass, invalidSet),
-            "InteractionClassNotDefined", "directed publish with an invalid interaction");
+            "InteractionClassNotDefined",
+            "directed publish with an interaction class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 1, "PublishObjectClassDirectedInteractions",
             objectClass.toString(), invalidSetText, null, false, "InteractionClassNotDefined",
             callbackModel);
          JavaTckSupport.expectFailure(
-            () -> subject.unpublishObjectClassDirectedInteractions(invalidObject, emptySet),
-            "ObjectClassNotDefined", "directed unpublish for an invalid object class");
+            () -> subject.unpublishObjectClassDirectedInteractions(foreignObjectClass, emptySet),
+            "ObjectClassNotDefined",
+            "directed unpublish for an object class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 2, "UnpublishObjectClassDirectedInteractions",
-            invalidObject.toString(), emptySetText, null, false, "ObjectClassNotDefined",
-            callbackModel);
+            foreignObjectClass.toString(), emptySetText, null, false,
+            "ObjectClassNotDefined", callbackModel);
          JavaTckSupport.expectFailure(
             () -> subject.unpublishObjectClassDirectedInteractions(objectClass, invalidSet),
-            "InteractionClassNotDefined", "directed unpublish with an invalid interaction");
+            "InteractionClassNotDefined",
+            "directed unpublish with an interaction class from a different federation execution");
          verifyDirectedDeclarationReport(observer, recorder, reportClass, reportParameters,
             reliable, encoder, subjectHandle, 3, "UnpublishObjectClassDirectedInteractions",
             objectClass.toString(), invalidSetText, null, false, "InteractionClassNotDefined",
@@ -1332,12 +1714,23 @@ final class ServiceReportInteractionTck {
             try { observer.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (subjectJoined) {
             try { subject.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
          if (created) {
             try { subject.destroyFederationExecution(federation); } catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
          if (observerConnected) {
             try { observer.disconnect(); } catch (Exception ignored) { }
@@ -1367,6 +1760,7 @@ final class ServiceReportInteractionTck {
       Interaction event = recorder.events.get(0);
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETER_NAMES.length
+            && event.producer == null
             && event.tag.length == 0 && reliable.equals(event.transportation)
             && event.regionsEmpty,
          "directed-interaction declaration report had invalid identity or callback metadata");
@@ -1465,6 +1859,7 @@ final class ServiceReportInteractionTck {
       Interaction event = recorder.events.get(0);
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETER_NAMES.length
+            && event.producer == null
             && event.tag.length == 0 && reliable.equals(event.transportation)
             && event.regionsEmpty,
          "interaction subscription report had invalid identity or callback metadata");
@@ -1543,6 +1938,7 @@ final class ServiceReportInteractionTck {
       Interaction event = recorder.events.get(0);
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETER_NAMES.length
+            && event.producer == null
             && event.tag.length == 0 && reliable.equals(event.transportation)
             && event.regionsEmpty,
          "interaction publication report had invalid identity or callback metadata");
@@ -1678,6 +2074,97 @@ final class ServiceReportInteractionTck {
          "Query GALT HLAreportServiceInvocation callback did not arrive");
    }
 
+   private static Interaction awaitServiceReport(RTIambassador observer, Recorder recorder,
+         Map<String, ParameterHandle> reportParameters, EncoderFactory encoder, String serviceName,
+         CallbackModel callbackModel) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      Interaction event = findServiceReport(recorder, reportParameters, encoder, serviceName);
+      while (event == null && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+         else Thread.yield();
+         event = findServiceReport(recorder, reportParameters, encoder, serviceName);
+      }
+      JavaTckSupport.check(event != null,
+         serviceName + " HLAreportServiceInvocation callback did not arrive");
+      return event;
+   }
+
+   private static Interaction findServiceReport(Recorder recorder,
+         Map<String, ParameterHandle> reportParameters, EncoderFactory encoder, String serviceName)
+         throws Exception {
+      ParameterHandle serviceParameter = reportParameters.get("HLAservice");
+      for (Interaction event : recorder.events) {
+         byte[] encodedService = event.parameters.get(serviceParameter);
+         if (encodedService == null) continue;
+         HLAunicodeString service = encoder.createHLAunicodeString();
+         service.decode(encodedService);
+         if (serviceName.equals(service.getValue())) return event;
+      }
+      return null;
+   }
+
+   private static void validateServiceReportDirectory(RtiConfiguration subjectConfiguration,
+         String additionalSettings, String serviceReportDirectory) {
+      JavaTckSupport.check(subjectConfiguration != null,
+         "Query GALT service-report configuration is required");
+      JavaTckSupport.check(serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+            && Files.isDirectory(Path.of(serviceReportDirectory)),
+         "adapter-supplied Query GALT service-report directory must exist");
+      String expectedSetting = REPORT_DIRECTORY_SETTING + Path.of(serviceReportDirectory);
+      JavaTckSupport.check(additionalSettings != null
+            && Arrays.asList(additionalSettings.split(";")).contains(expectedSetting),
+         "adapter did not configure the expected Query GALT service-report directory");
+   }
+
+   private static Reflection federateMomReflection(Recorder recorder, EncoderFactory encoder,
+         AttributeHandle federateNameAttribute, AttributeHandle reportFileAttribute,
+         String subjectName) throws Exception {
+      ObjectInstanceHandle subjectMomObject = null;
+      for (Reflection reflection : recorder.reflections) {
+         byte[] encodedName = reflection.values.get(federateNameAttribute);
+         if (encodedName != null && subjectName.equals(decodeUnicode(encoder, encodedName))) {
+            subjectMomObject = reflection.object;
+            break;
+         }
+      }
+      if (subjectMomObject == null) return null;
+      Map<AttributeHandle, byte[]> values = new LinkedHashMap<>();
+      for (Reflection reflection : recorder.reflections) {
+         if (subjectMomObject.equals(reflection.object)) values.putAll(reflection.values);
+      }
+      if (!values.containsKey(reportFileAttribute)) return null;
+      Reflection result = new Reflection();
+      result.object = subjectMomObject;
+      result.values = values;
+      return result;
+   }
+
+   private static String decodeUnicode(EncoderFactory encoder, byte[] bytes) throws Exception {
+      JavaTckSupport.check(bytes != null,
+         "HLAreportServiceFile reflection omitted its value");
+      HLAunicodeString value = encoder.createHLAunicodeString();
+      value.decode(bytes);
+      return value.getValue();
+   }
+
+   private static String describeTransportationType(TransportationTypeHandle handle) {
+      if (handle == null) return "<null>";
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return handle.getClass().getSimpleName() + " " + Arrays.toString(encoded);
+   }
+
+   private static String appendedRecord(String before, String after, String service) {
+      String marker = "\"HLAservice\":\"" + service + "\"";
+      int servicePosition = after.indexOf(marker, before.length());
+      JavaTckSupport.check(servicePosition >= before.length(),
+         "HLAreportServiceFile did not append " + service);
+      int lineBreak = after.lastIndexOf('\n', servicePosition);
+      int recordStart = lineBreak < 0 ? 0 : lineBreak + 1;
+      int recordEnd = after.indexOf('\n', servicePosition);
+      return after.substring(recordStart, recordEnd < 0 ? after.length() : recordEnd);
+   }
+
    private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {
       HLAfixedRecord result = encoder.createHLAfixedRecord();
       result.add(encoder.createHLAinteger32BE());
@@ -1688,11 +2175,22 @@ final class ServiceReportInteractionTck {
 
    private static void verifyArgument(HLAfixedRecord argument, int type, String name,
          String value) throws Exception {
-      JavaTckSupport.check(argument.size() == 3
+      boolean matches = argument.size() == 3
             && ((HLAinteger32BE) argument.get(0)).getValue() == type
             && name.equals(((HLAunicodeString) argument.get(1)).getValue())
-            && value.equals(((HLAunicodeString) argument.get(2)).getValue()),
-         "service-report supplied argument did not match standard type/name/value: " + name);
+            && value.equals(((HLAunicodeString) argument.get(2)).getValue());
+      if (!matches) {
+         String actualType = argument.size() > 0 && argument.get(0) instanceof HLAinteger32BE
+            ? Integer.toString(((HLAinteger32BE) argument.get(0)).getValue()) : "<missing-or-wrong-type>";
+         String actualName = argument.size() > 1 && argument.get(1) instanceof HLAunicodeString
+            ? ((HLAunicodeString) argument.get(1)).getValue() : "<missing-or-wrong-type>";
+         String actualValue = argument.size() > 2 && argument.get(2) instanceof HLAunicodeString
+            ? ((HLAunicodeString) argument.get(2)).getValue() : "<missing-or-wrong-type>";
+         JavaTckSupport.check(false,
+            "service-report supplied argument mismatch: expected type=" + type + ", name=[" + name
+               + "], value=[" + value + "]; actual size=" + argument.size() + ", type=" + actualType
+               + ", name=[" + actualName + "], value=[" + actualValue + "]");
+      }
    }
 
    private static String quoted(String value) {
@@ -1721,8 +2219,14 @@ final class ServiceReportInteractionTck {
       private FederateHandle producer;
    }
 
+   private static final class Reflection {
+      private ObjectInstanceHandle object;
+      private Map<AttributeHandle, byte[]> values;
+   }
+
    private static final class Recorder {
       private final List<Interaction> events = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private volatile int timeRegulationEnabled;
       private volatile int timeConstrainedEnabled;
       private volatile int timedInteractionCount;
@@ -1733,7 +2237,19 @@ final class ServiceReportInteractionTck {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
-               if ("receiveInteraction".equals(method.getName())
+               if ("reflectAttributeValues".equals(method.getName())
+                     && arguments != null && arguments.length >= 2
+                     && arguments[0] instanceof ObjectInstanceHandle
+                     && arguments[1] instanceof AttributeHandleValueMap) {
+                  Reflection event = new Reflection();
+                  event.object = (ObjectInstanceHandle) arguments[0];
+                  AttributeHandleValueMap source = (AttributeHandleValueMap) arguments[1];
+                  event.values = new LinkedHashMap<>();
+                  for (AttributeHandle handle : source.keySet()) {
+                     event.values.put(handle, source.get(handle).clone());
+                  }
+                  reflections.add(event);
+               } else if ("receiveInteraction".equals(method.getName())
                      && arguments != null && arguments.length == 6) {
                   Interaction event = new Interaction();
                   event.interaction = (InteractionClassHandle) arguments[0];

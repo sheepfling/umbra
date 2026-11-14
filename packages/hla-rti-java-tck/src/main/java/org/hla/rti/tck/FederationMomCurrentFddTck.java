@@ -141,6 +141,8 @@ final class FederationMomCurrentFddTck {
             "base current-FDD value omitted the adapter FOM declaration");
          check(!baseFdd.contains(extensionDeclaration),
             "base current-FDD value already contained the extension declaration");
+         requireFddNames(baseFdd, "HLAserviceReporting", "HLAsetSwitches",
+            "HLAreportServiceInvocation");
          if (expectedBaseUsage != null) {
             check(disconnectServiceUsed(baseFdd) == expectedBaseUsage.booleanValue(),
                "base current FDD reported the wrong disconnect service usage");
@@ -170,6 +172,26 @@ final class FederationMomCurrentFddTck {
             reliable, "post-composition current-FDD request");
          check(refreshedFdd.equals(requestedFdd),
             "direct current-FDD request disagreed with the join-triggered refresh");
+
+         extension.resignFederationExecution(ResignAction.NO_ACTION);
+         extensionJoined = false;
+         String retainedFdd = requestCurrentFdd(observer, observerRecorder, encoder,
+            callbackModel, federationObject, currentFddAttribute, currentFddAttributes,
+            reliable, "current-FDD request after the supplying federate resigned");
+         requireFddNames(retainedFdd, extensionDeclaration, "ExtensionValue",
+            "TckExtensionInteger");
+         ObjectClassHandle retainedClass = observer.getObjectClassHandle(
+            "HLAobjectRoot." + extensionDeclaration);
+         check(retainedClass != null,
+            "the public FDD lookup surface lost its extension class after resignation");
+         AttributeHandle retainedAttribute = observer.getAttributeHandle(
+            retainedClass, "ExtensionValue");
+         check(retainedClass != null && retainedAttribute != null
+               && ("HLAobjectRoot." + extensionDeclaration).equals(
+                  observer.getObjectClassName(retainedClass))
+               && "ExtensionValue".equals(
+                  observer.getAttributeName(retainedClass, retainedAttribute)),
+            "the public FDD lookup surface lost an extension declaration after its supplying federate resigned");
       } finally {
          if (extensionJoined) resign(extension);
          if (observerJoined) resign(observer);
@@ -210,6 +232,22 @@ final class FederationMomCurrentFddTck {
       builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
       builder.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
       return builder.newDocumentBuilder().parse(new InputSource(new StringReader(fdd)));
+   }
+
+   private static void requireFddNames(String fdd, String... expectedNames)
+         throws Exception {
+      NodeList names = parseFdd(fdd).getElementsByTagNameNS("*", "name");
+      for (String expected : expectedNames) {
+         boolean found = false;
+         for (int index = 0; index < names.getLength(); index++) {
+            Element name = (Element) names.item(index);
+            if (expected.equals(name.getTextContent().trim())) {
+               found = true;
+               break;
+            }
+         }
+         check(found, "current FDD omitted selected element " + expected);
+      }
    }
 
    static void requireDistinctReferencedNotes(String fdd) throws Exception {

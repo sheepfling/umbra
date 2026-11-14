@@ -1,5 +1,8 @@
 #include "internal/federation/federation_state_image_codec_support.hpp"
 
+#include <set>
+#include <tuple>
+
 namespace umbra::detail {
 using namespace federation_state_image_codec_support;
 
@@ -2152,7 +2155,50 @@ FederationStateImage FederationStateImageCodec::decode(std::string_view payload)
   }
   validateObjectClassAttributeDeclarationVector(image.objectClassAttributeDeclarations);
   image.objectClassAttributeDeclarationsPresent = true;
-  auto const saveHistoryMarker = cursor.line();
+  auto saveHistoryMarker = cursor.line();
+  constexpr std::string_view fomHandlesPrefix = "fomHandles=";
+  if (saveHistoryMarker.starts_with(fomHandlesPrefix)) {
+    auto const fomHandleCount = parseInteger<std::size_t>(
+        saveHistoryMarker.substr(fomHandlesPrefix.size()),
+        "FOM handle identity count");
+    image.fomHandles.reserve(fomHandleCount);
+    std::set<std::tuple<std::uint32_t, std::string, std::string>> identities;
+    std::set<std::pair<std::uint32_t, std::uint64_t>> handles;
+    for (std::size_t index = 0U; index < fomHandleCount; ++index) {
+      auto const fields = split(cursor.valueFor("fomHandle"));
+      if (fields.size() != 4U) {
+        throw std::runtime_error(
+            "Malformed semantic FOM handle identity in Umbra state image.");
+      }
+      auto const kind = parseInteger<std::uint32_t>(
+          fields[0], "FOM handle kind");
+      if (kind < static_cast<std::uint32_t>(
+                     FederationStateImageFomHandleKind::object_class) ||
+          kind > static_cast<std::uint32_t>(
+                     FederationStateImageFomHandleKind::dimension)) {
+        throw std::runtime_error(
+            "Unknown semantic FOM handle kind in Umbra state image.");
+      }
+      FederationStateImageFomHandle handle;
+      handle.kind = static_cast<FederationStateImageFomHandleKind>(kind);
+      handle.name = hexDecode(fields[1]);
+      handle.containingName = hexDecode(fields[2]);
+      handle.handle = parseInteger<std::uint64_t>(fields[3], "FOM handle value");
+      bool const needsContainingName =
+          handle.kind == FederationStateImageFomHandleKind::attribute ||
+          handle.kind == FederationStateImageFomHandleKind::parameter;
+      if (handle.name.empty() || handle.handle == 0U ||
+          needsContainingName != !handle.containingName.empty() ||
+          !identities.emplace(kind, handle.containingName, handle.name).second ||
+          !handles.emplace(kind, handle.handle).second) {
+        throw std::runtime_error(
+            "Invalid or duplicate semantic FOM handle identity in Umbra state image.");
+      }
+      image.fomHandles.push_back(std::move(handle));
+    }
+    image.fomHandlesPresent = true;
+    saveHistoryMarker = cursor.line();
+  }
   if (saveHistoryMarker == "end") {
     cursor.finish();
     return image;

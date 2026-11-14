@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This portable C++ TCK case uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard encoding elements, the standard MIM, and adapter-supplied provider/FOM/endpoint/callback configuration. It sends HLArequestSynchronizationPointStatus without its declared HLAsyncPointName parameter and observes the standard HLAreportMOMexception. It does not constrain synchronous exception type or text and uses no provider-specific names, headers, registries, or internal state.",
+  "notes": "This portable C++ TCK case uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard encoding elements, the standard MIM, and adapter-supplied provider/FOM/endpoint/callback configuration. It sends HLArequestSynchronizationPointStatus without its declared HLAsyncPointName parameter and HLAsetSwitches with zero parameters, then observes the standard HLAreportMOMexception for both malformed interactions. It does not constrain synchronous exception type or text and uses no provider-specific names, headers, registries, or internal state.",
   "api_surfaces": [
     {
       "id": "standard-cpp-federate-mom-exception-missing-parameter",
@@ -13,6 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "RTIambassador::getInteractionClassHandle, RTIambassador::getParameterHandle, RTIambassador::getTransportationTypeHandle, RTIambassador::getFederateHandle, RTIambassador::subscribeInteractionClass, RTIambassador::sendInteraction, RTIambassador::evokeCallback, RTIambassador::unsubscribeInteractionClass, FederateAmbassador::receiveInteraction",
       "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameter",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameterContract"
       ]
     }

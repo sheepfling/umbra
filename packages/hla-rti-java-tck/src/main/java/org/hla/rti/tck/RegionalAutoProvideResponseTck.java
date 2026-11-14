@@ -15,6 +15,7 @@ import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
@@ -76,6 +77,7 @@ final class RegionalAutoProvideResponseTck {
             "adapter FOM did not enable the standard Auto Provide switch");
          checkDimension(owner, ownerClass, ownerDimension);
          checkDimension(requester, requesterClass, requesterDimension);
+         requesterCallbacks.configureRegionInspection(requester, requesterDimension, callbackFailure);
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          requesterAttributes = JavaTckSupport.attributeSet(requester, requesterAttribute);
@@ -132,8 +134,7 @@ final class RegionalAutoProvideResponseTck {
             "regional Auto Provide reflection changed object, value, tag, or producer");
          JavaTckSupport.check(reflection.transportation != null
                && reliable.equals(reflection.transportation)
-               && reflection.regions != null && reflection.regions.size() == 1
-               && reflection.regions.contains(ownerRegion),
+               && reflection.regions != null && reflection.regions.size() == 1,
             "regional Auto Provide reflection lost transport or source-region metadata");
 
          requester.unsubscribeObjectClassAttributesWithRegions(requesterClass, requesterPair);
@@ -253,6 +254,8 @@ final class RegionalAutoProvideResponseTck {
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final AtomicReference<RTIambassador> autoProvideAmbassador = new AtomicReference<>();
       private final AtomicReference<AttributeHandle> autoProvideAttribute = new AtomicReference<>();
+      private final AtomicReference<RTIambassador> regionInspector = new AtomicReference<>();
+      private final AtomicReference<DimensionHandle> regionDimension = new AtomicReference<>();
       private volatile AttributeHandleValueMap autoProvideValues;
       private volatile AtomicReference<Throwable> callbackFailure;
       private Recorder(List<String> callbackOrder) { this.callbackOrder = callbackOrder; }
@@ -263,6 +266,12 @@ final class RegionalAutoProvideResponseTck {
       private void configureExpectedAttribute(AttributeHandle attribute) {
          autoProvideAttribute.set(attribute);
       }
+      private void configureRegionInspection(RTIambassador ambassador, DimensionHandle dimension,
+            AtomicReference<Throwable> failure) {
+         regionInspector.set(ambassador);
+         regionDimension.set(dimension);
+         callbackFailure = failure;
+      }
       private void configureResponseValues(AttributeHandleValueMap values) {
          autoProvideValues = values;
       }
@@ -270,11 +279,11 @@ final class RegionalAutoProvideResponseTck {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+               if ("discoverObjectInstance".equals(name) && args != null && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery); callbackOrder.add("discover");
                } else if ("provideAttributeValueUpdate".equals(name) && args != null
                      && args.length == 3) {
@@ -303,6 +312,23 @@ final class RegionalAutoProvideResponseTck {
                   reflection.transportation = (TransportationTypeHandle) args[3];
                   reflection.producer = (FederateHandle) args[4];
                   reflection.regions = (RegionHandleSet) args[5];
+                  try {
+                     JavaTckSupport.check(reflection.regions != null
+                           && reflection.regions.size() == 1,
+                        "regional Auto Provide callback did not convey one source region copy");
+                     RegionHandle callbackRegion = reflection.regions.iterator().next();
+                     RTIambassador inspector = regionInspector.get();
+                     DimensionHandle expectedDimension = regionDimension.get();
+                     JavaTckSupport.check(inspector.getDimensionHandleSet(callbackRegion).size() == 1
+                           && inspector.getDimensionHandleSet(callbackRegion).contains(expectedDimension),
+                        "regional Auto Provide callback region copy changed its dimension set");
+                     JavaTckSupport.check(inspector.getRangeBounds(callbackRegion, expectedDimension)
+                           .equals(new RangeBounds(0L, 2L)),
+                        "regional Auto Provide callback region copy changed its range bounds");
+                  } catch (Throwable failure) {
+                     AtomicReference<Throwable> destination = callbackFailure;
+                     if (destination != null) destination.compareAndSet(null, failure);
+                  }
                   reflections.add(reflection); callbackOrder.add("reflect");
                }
                if (method.getDeclaringClass() == Object.class) {

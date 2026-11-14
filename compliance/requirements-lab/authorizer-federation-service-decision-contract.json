@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK contract for the IEEE 1516.1-2025 §12.5 p. 356 l. 293 federation-operation decision path. The current-package adapter supplies a custom Authorizer provider and protected RTI Initialization Data profile. Installed-package MinGW/Ninja CTest passed 2/2 for this scenario across HLA_EVOKED/HLA_IMMEDIATE; direct public-TCK evidence passed for both callback models, and the paired built-in Connect authorization scenario passed in the same run. The TCK observes public AuthorizerFactoryFactory selection and factory/authorizer creation, Unauthorized from a denied Create Federation Execution, confirms the denied federation remains absent by attempting Join, and verifies an allowed Create/Destroy path. Evidence: out/mgw/cpp-tck/authorizer-service-decisions-tck-20261102.json. This is bounded service-behavior evidence, not full §12.5 conformance or authorizer-library interoperability evidence.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-authorizer-federation-service-decision",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l293-97",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerFederationServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerFederationServiceDecision"
+      ]
+    }
+  ]
+}

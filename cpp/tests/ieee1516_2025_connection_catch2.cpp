@@ -53,7 +53,7 @@ CATCH_TRANSLATE_EXCEPTION(rti1516_2025::Exception const& error) {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
 TEST_CASE(
     "RTIambassador selects a configured tcp process endpoint through the official address field",
-    "[integration][foundation][connection][transport][process-boundary][public-endpoint]") {
+    "[integration][foundation][connection][transport][process-boundary][public-endpoint][tcp][2025][tcp-public-rtiambassador-connect]") {
   using umbra::detail::ProcessTransportListener;
 
   auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});

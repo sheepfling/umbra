@@ -132,16 +132,29 @@ final class ServiceReportLocalDeleteTck {
          JavaTckSupport.check(object.equals(requesterRecorder.discoveries.get(0)),
             "requester discovered the wrong object instance");
 
+         final ObjectInstanceHandle unknownObject;
+         if (failureBoundaries) {
+            unknownObject = owner.registerObjectInstance(ownerClass);
+            JavaTckSupport.check(unknownObject != null,
+               "local-delete unknown-object setup returned an invalid handle");
+            await(requester, callbackModel, () -> requesterRecorder.discoveries.size() == 2,
+               "second object discovery before local-delete failure boundaries");
+            JavaTckSupport.check(unknownObject.equals(requesterRecorder.discoveries.get(1)),
+               "requester discovered the wrong second object instance");
+            // Produce a stale API-issued handle while reporting is disabled.
+            requester.localDeleteObjectInstance(unknownObject);
+         } else {
+            unknownObject = null;
+         }
+
          ownerRecorder.interactions.clear();
          requester.setServiceReportingSwitch(true);
          if (failureBoundaries) {
-            ObjectInstanceHandle invalidObject =
-               JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
             JavaTckSupport.expectFailure(
-               () -> requester.localDeleteObjectInstance(invalidObject),
+               () -> requester.localDeleteObjectInstance(unknownObject),
                "ObjectInstanceNotKnown", "localDeleteObjectInstance with an unknown object");
             verifyFailureReport(owner, ownerRecorder, reportClass, reportParameters,
-               reliable, requesterHandle, encoder, invalidObject.toString(), 0, callbackModel);
+               reliable, requesterHandle, encoder, 0, callbackModel);
          }
          requester.localDeleteObjectInstance(object);
          await(owner, callbackModel, () -> !ownerRecorder.interactions.isEmpty(),
@@ -184,7 +197,7 @@ final class ServiceReportLocalDeleteTck {
                () -> requester.localDeleteObjectInstance(object),
                "ObjectInstanceNotKnown", "localDeleteObjectInstance with a stale object");
             verifyFailureReport(owner, ownerRecorder, reportClass, reportParameters,
-               reliable, requesterHandle, encoder, object.toString(), 2, callbackModel);
+               reliable, requesterHandle, encoder, 2, callbackModel);
          }
       } finally {
          if (requesterJoined) {
@@ -224,7 +237,7 @@ final class ServiceReportLocalDeleteTck {
    private static void verifyFailureReport(RTIambassador owner, Recorder recorder,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> parameters,
          TransportationTypeHandle reliable, FederateHandle requester, EncoderFactory encoder,
-         String objectDesignator, int serialNumber, CallbackModel callbackModel) throws Exception {
+         int serialNumber, CallbackModel callbackModel) throws Exception {
       await(owner, callbackModel, () -> !recorder.interactions.isEmpty(),
          "local-delete failure HLAreportServiceInvocation callback");
       JavaTckSupport.check(recorder.interactions.size() == 1,
@@ -266,12 +279,13 @@ final class ServiceReportLocalDeleteTck {
       JavaTckSupport.check(supplied.size() == 1,
          "local-delete failure report returned the wrong supplied-argument count");
       HLAfixedRecord argument = supplied.get(0);
-      JavaTckSupport.check(((HLAinteger32BE) argument.get(0)).getValue() == 37
+      HLAunicodeString objectValue = (HLAunicodeString) argument.get(2);
+      JavaTckSupport.check(argument.size() == 3
+            && ((HLAinteger32BE) argument.get(0)).getValue() == 37
             && "Object instance designator".equals(
                ((HLAunicodeString) argument.get(1)).getValue())
-            && ("\"" + objectDesignator + "\"").equals(
-               ((HLAunicodeString) argument.get(2)).getValue()),
-         "local-delete failure report returned the wrong object argument");
+            && isQuotedHandleText(objectValue.getValue()),
+         "local-delete failure report returned the wrong object argument shape");
       HLAfixedRecord returned = fixedRecordPrototype(encoder);
       returned.decode(event.parameters.get(parameters.get("HLAreturnedArgument")));
       JavaTckSupport.check(((HLAinteger32BE) returned.get(0)).getValue() == 34
@@ -279,6 +293,12 @@ final class ServiceReportLocalDeleteTck {
             && "null".equals(((HLAunicodeString) returned.get(2)).getValue()),
          "local-delete failure report returned the wrong Null result");
       recorder.interactions.clear();
+   }
+
+   private static boolean isQuotedHandleText(String value) {
+      return value.length() >= 3 && value.charAt(0) == '"'
+         && value.charAt(value.length() - 1) == '"'
+         && value.substring(1, value.length() - 1).indexOf('"') < 0;
    }
 
    private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {

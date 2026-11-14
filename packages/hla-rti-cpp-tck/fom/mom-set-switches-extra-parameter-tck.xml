@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLAsetSwitches Extension Parameter TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Exercise the IEEE 1516.1-2025 HLAsetSwitches extension-parameter rule.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds one extension-only parameter to the standard HLAsetSwitches interaction.</description>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>HLAmanager</name>
+                <interactionClass>
+                    <name>HLAfederate</name>
+                    <interactionClass>
+                        <name>HLAadjust</name>
+                        <interactionClass>
+                            <name>HLAsetSwitches</name>
+                            <parameter>
+                                <name>TckExtensionSwitchPayload</name>
+                                <dataType>HLAopaqueData</dataType>
+                                <semantics>Fixture extension parameter that the standard RTI HLAsetSwitches behavior ignores.</semantics>
+                            </parameter>
+                        </interactionClass>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

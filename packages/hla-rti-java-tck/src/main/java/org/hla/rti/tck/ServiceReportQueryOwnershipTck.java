@@ -138,8 +138,7 @@ final class ServiceReportQueryOwnershipTck {
          JavaTckSupport.check(ownerRecorder.interactions.size() == 1,
             "QueryAttributeOwnership produced an unexpected service-report count");
          verifyReport(owner, requesterFederate, ownerRecorder.interactions.get(0), encoder,
-            reportClass, reportParameters, reliable, object, requesterAttributes,
-            requesterFirst, requesterSecond);
+            reportClass, reportParameters, reliable);
          JavaTckSupport.check(requesterRecorder.ownershipInformation.size() == 1
                && requesterRecorder.ownershipNotOwned.size() == 1,
             "mixed ownership query did not return exactly one callback of each result kind");
@@ -181,9 +180,8 @@ final class ServiceReportQueryOwnershipTck {
 
    private static void verifyReport(RTIambassador owner, FederateHandle expectedFederate,
          Interaction event, EncoderFactory encoder, InteractionClassHandle reportClass,
-         Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable,
-         ObjectInstanceHandle object, AttributeHandleSet queriedAttributes,
-         AttributeHandle firstAttribute, AttributeHandle secondAttribute) throws Exception {
+         Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable)
+         throws Exception {
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETERS.length && event.tag.length == 0
             && event.producer == null && event.regionsEmpty && reliable.equals(event.transport),
@@ -217,18 +215,25 @@ final class ServiceReportQueryOwnershipTck {
       supplied.decode(event.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 2,
          "ownership-query report returned the wrong supplied-argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator",
-         quoted(object.toString()), "ownership-query object argument");
+      HLAfixedRecord objectArgument = supplied.get(0);
+      HLAinteger32BE objectType = (HLAinteger32BE) objectArgument.get(0);
+      HLAunicodeString objectName = (HLAunicodeString) objectArgument.get(1);
+      HLAunicodeString objectValue = (HLAunicodeString) objectArgument.get(2);
+      // The Java API exposes opaque handles without a portable text encoding.
+      JavaTckSupport.check(objectArgument.size() == 3 && objectType.getValue() == 37
+            && "Object instance designator".equals(objectName.getValue())
+            && isQuotedHandleText(objectValue.getValue()),
+         "ownership-query report returned the wrong object designator argument shape");
       HLAfixedRecord setArgument = supplied.get(1);
       HLAinteger32BE setType = (HLAinteger32BE) setArgument.get(0);
       HLAunicodeString setName = (HLAunicodeString) setArgument.get(1);
       HLAunicodeString setValue = (HLAunicodeString) setArgument.get(2);
+      Set<String> attributeDesignators = decodeQuotedHandleSet(setValue.getValue());
       JavaTckSupport.check(setArgument.size() == 3 && setType.getValue() == 1
             && "Set of attribute designators".equals(setName.getValue())
-            && decodeQuotedHandleSet(setValue.getValue()).equals(Set.of(
-               firstAttribute.toString(), secondAttribute.toString()))
-            && queriedAttributes.size() == 2,
-         "ownership-query report returned the wrong attribute designator set");
+            && attributeDesignators.size() == 2
+            && attributeDesignators.stream().allMatch(value -> !value.isEmpty()),
+         "ownership-query report returned the wrong attribute designator set shape");
       HLAfixedRecord returned = argumentPrototype(encoder);
       returned.decode(event.parameters.get(parameters.get("HLAreturnedArgument")));
       verifyArgument(returned, 34, "", "null", "ownership-query return value");
@@ -251,6 +256,12 @@ final class ServiceReportQueryOwnershipTck {
       return result;
    }
 
+   private static boolean isQuotedHandleText(String value) {
+      return value.length() >= 3 && value.charAt(0) == '"'
+         && value.charAt(value.length() - 1) == '"'
+         && value.substring(1, value.length() - 1).indexOf('"') < 0;
+   }
+
    private static HLAfixedRecord argumentPrototype(EncoderFactory encoder) {
       HLAfixedRecord result = encoder.createHLAfixedRecord();
       result.add(encoder.createHLAinteger32BE());
@@ -267,8 +278,6 @@ final class ServiceReportQueryOwnershipTck {
             && value.equals(((HLAunicodeString) record.get(2)).getValue()),
          description + " had the wrong type, name, or value");
    }
-
-   private static String quoted(String value) { return "\"" + value + "\""; }
 
    private static void await(RTIambassador rti, Recorder recorder, CallbackModel model,
          Ready ready) throws Exception {

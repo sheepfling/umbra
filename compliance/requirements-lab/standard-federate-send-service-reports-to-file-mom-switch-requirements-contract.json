@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "This narrow trace maps only the joined-federate switch update and public getter checks to IEEE 1516.1-2025 MOM clause 11.4.1 and the pinned IEEE 1516.2-2025 standard MIM. It does not claim that service reports are delivered to subscribers or written to a file.",
+  "notes": "This trace maps the HLAsetSwitches interaction shape to IEEE 1516.1-2025 §11.4.1 and the joined-federate Send Service Reports to File switch effect to the exact §11.6 source-refinement requirement. The public getter confirms the provided values and peer isolation. It does not claim that service reports are delivered to subscribers or written to a file.",
   "requirements": [
     {
       "id": "cpp-1516.1-tck-federate-send-service-reports-to-file-mom-switch",
@@ -13,8 +13,20 @@
       "source_lines": "984-989, 1047-1052",
       "statement": "The standard federate-level HLAsetSwitches interaction permits a joined federate to send individual declared parameters; HLAsendServiceReportsToFile sets that joined federate's destination switch to the provided value and selects whether service-report interactions are sent to subscribers or logged to a file.",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateSendServiceReportsToFileMomSwitch",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateSendServiceReportsToFileMomSwitchContract"
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateSendServiceReportsToFileMomSwitch",
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateSendServiceReportsToFileMomSwitchContract"
+      ]
+    },
+    {
+      "id": "requirement-source-refinement-mom-service-report-file",
+      "clause_id": "clause-11.6",
+      "source": "content/clauses/11-management-object-model-page-344.tex",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches.HLAsendServiceReportsToFile",
+      "source_lines": "57-60",
+      "statement": "Set the joined federate's Send Service Reports to File Switch to the provided value.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateSendServiceReportsToFileMomSwitch",
+        "packages/hla-rti-cpp-tck/src/tck_service_report_interaction_execution_scenarios.cpp::scenarioFederateSendServiceReportsToFileMomSwitchContract"
       ]
     }
   ]

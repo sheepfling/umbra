@@ -91,13 +91,15 @@ final class RestoreTsoDirectedMultiRecipientTck {
 
          first.enableTimeConstrained();
          second.enableTimeConstrained();
+         first.evokeCallback(0.0);
+         second.evokeCallback(0.0);
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTime<?, ?> initial = publisher.queryLogicalTime();
          LogicalTimeInterval<?> epsilon = timeFactory.makeEpsilon();
          LogicalTime<?, ?> time1 = offset(initial, epsilon, 1);
          LogicalTime<?, ?> time8 = offset(initial, epsilon, 8);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          ParameterHandleValueMap empty = publisher.getParameterHandleValueMapFactory().create(0);
@@ -126,7 +128,7 @@ final class RestoreTsoDirectedMultiRecipientTck {
          MessageRetractionReturn discarded = publisher.sendDirectedInteraction(
             publisherInteraction, target, empty, tag.clone(), time8);
          JavaTckSupport.check(valid(discarded)
-               && !saved.handle.equals(discarded.handle),
+               && !Arrays.equals(encodeHandle(saved.handle), encodeHandle(discarded.handle)),
             "post-save directed designator reused the saved handle");
          publisher.retract(discarded.handle);
          first.evokeCallback(0.0);
@@ -175,8 +177,10 @@ final class RestoreTsoDirectedMultiRecipientTck {
          await(members, () -> firstEvents.retractions.size() == 1
                && secondEvents.retractions.size() == 1,
             "both restored directed request-retraction callbacks");
-         JavaTckSupport.check(saved.handle.equals(firstEvents.retractions.get(0))
-               && saved.handle.equals(secondEvents.retractions.get(0)),
+         JavaTckSupport.check(Arrays.equals(encodeHandle(saved.handle),
+               encodeHandle(firstEvents.retractions.get(0)))
+               && Arrays.equals(encodeHandle(saved.handle),
+                  encodeHandle(secondEvents.retractions.get(0))),
             "recipient retraction callbacks returned a different designator");
          JavaTckSupport.expectFailure(() -> publisher.retract(saved.handle),
             "MessageCanNoLongerBeRetracted", "saved terminal designator");
@@ -215,7 +219,8 @@ final class RestoreTsoDirectedMultiRecipientTck {
       handles.directed = recipient.getInteractionClassHandleSetFactory().create();
       handles.directed.add(handles.interaction);
       recipient.subscribeObjectClassAttributes(handles.objectClass, handles.attributes);
-      recipient.subscribeObjectClassDirectedInteractions(handles.objectClass, handles.directed);
+      recipient.subscribeObjectClassDirectedInteractionsUniversally(
+         handles.objectClass, handles.directed);
       return handles;
    }
 
@@ -229,23 +234,35 @@ final class RestoreTsoDirectedMultiRecipientTck {
    private static void checkDelivery(Recorder events, RecipientHandles handles,
          ObjectInstanceHandle target, FederateHandle publisher,
          TransportationTypeHandle reliable, MessageRetractionHandle saved,
-         LogicalTime<?, ?> time8, byte[] tag) {
+         LogicalTime<?, ?> time8, byte[] tag) throws Exception {
       Delivery delivered = events.deliveries.get(0);
       JavaTckSupport.check(delivered.interaction.equals(handles.interaction)
             && delivered.object.equals(target) && delivered.parameters.isEmpty()
             && Arrays.equals(delivered.tag, tag)
             && delivered.transportation.equals(reliable)
             && delivered.producer.equals(publisher)
-            && delivered.time.equals(time8)
+            && Arrays.equals(encodeTime(delivered.time), encodeTime(time8))
             && delivered.sentOrder == OrderType.TIMESTAMP
             && delivered.receivedOrder == OrderType.TIMESTAMP
-            && delivered.retraction.equals(saved)
+            && Arrays.equals(encodeHandle(delivered.retraction), encodeHandle(saved))
             && events.order.equals(List.of("directed", "flush-grant")),
          "restored directed callback changed public fields or ordering");
    }
 
    private static boolean valid(MessageRetractionReturn result) {
       return result != null && result.retractionHandleIsValid && result.handle != null;
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(List<RTIambassador> members,

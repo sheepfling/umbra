@@ -17,6 +17,27 @@ void create(Session& creator, std::wstring const& federation,
       federation, modules, options.logicalTimeImplementationName);
 }
 
+void runDisjointEnumeratorMerge(Options const& options,
+                                rti::CallbackModel model) {
+  require(!options.logicalTimeImplementationName.empty(),
+          "Enumerated data-type merge requires adapter-supplied logical time");
+  auto const& first = requiredFom(options, "enumerated-value-merge-first");
+  auto const& second = requiredFom(options, "enumerated-value-merge-second");
+  Session creator(options, model, "enumerated-value-merge-creator");
+  auto const federation =
+      federationName(options, "fom-enumerated-value-module-merge");
+  creator.connect();
+
+  for (auto const& module : {first.wstring(), second.wstring()}) {
+    create(creator, federation, options, {module});
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  }
+  create(creator, federation, options,
+         {first.wstring(), second.wstring()});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  creator.disconnect();
+}
+
 void runConflict(Options const& options, rti::CallbackModel model,
                  bool nonextendableVariant) {
   require(!options.logicalTimeImplementationName.empty(),
@@ -52,6 +73,7 @@ void runConflict(Options const& options, rti::CallbackModel model,
 
 void scenarioFomEnumeratedValueCollision(Options const& options,
                                           rti::CallbackModel model) {
+  runDisjointEnumeratorMerge(options, model);
   runConflict(options, model, false);
 }
 

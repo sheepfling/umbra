@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "This focused public C++ TCK contract exercises IEEE 1516.1-2025 §4.1.7 p. 50 l. 78-25, §4.2 p. 51 l. 33-6, and §12.5 p. 356 l. 293 and l. 383-127 through Connect. The protected current-process adapter selects the standard HLAauthorizer with a global password. The TCK passes HLAnoCredentials, a wrong HLAplainTextPassword, and the matching password as Connect arguments; it requires Unauthorized for the first two and successful Connect/Disconnect for the matching password. For §4.2, this directly witnesses Connect requiring credentials with valid type and data when authorization is enabled; it does not generalize beyond Connect. The test also verifies that HLAauthorizer recognizes the predefined no-credentials type before applying its policy. Installed-package MinGW CTest and direct evidence pass in HLA_EVOKED and HLA_IMMEDIATE. This is limited to authorizeRtiOperation/Connect and is not provider conformance or full conformance evidence.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-authorizer-connect-service-decision",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l293-97",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-hlaauthorizer-supports-no-credentials",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l383-127",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-connect-supplies-credentials-when-authorization-required",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l78-25",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-requires-valid-credentials-when-authorization-enabled",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-051-l33-6",
+      "clause_id": "clause-4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-connect-supplies-credentials-when-authorization-required",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l78-25",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-auth-service-evaluates-service-invocation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l84-27",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-denied-service-invocation-fails",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l123-40",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    },
+    {
+      "id": "umbra-cpp-denied-service-invocation-throws-exception",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l123-40-exception",
+      "clause_id": "clause-4.1.7",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerConnectServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerConnectServiceDecision"
+      ]
+    }
+  ]
+}

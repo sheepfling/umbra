@@ -12,7 +12,13 @@ TEST_CASE(
     "[rti.service.send-interaction-with-regions]"
     "[federate.callback.receive-interaction]") {
   verifyProcessTsoRegionalInteraction(
-      RegionalInteractionAdvance::unregulated_timestamp);
+      RegionalInteractionAdvance::unregulated_timestamp,
+      nullptr,
+      rti1516_2025::HLA_EVOKED);
+  verifyProcessTsoRegionalInteraction(
+      RegionalInteractionAdvance::unregulated_timestamp,
+      nullptr,
+      rti1516_2025::HLA_IMMEDIATE);
 }
 
 TEST_CASE(

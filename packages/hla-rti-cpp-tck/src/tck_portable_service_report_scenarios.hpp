@@ -61,6 +61,16 @@ void scenarioServiceReportSynchronizationPortable(Options const&, rti::CallbackM
 void scenarioServiceReportSynchronizationContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportFederateSaveBegunPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportFederateSaveBegunContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportSaveFailureReasonFilePortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportSaveFailureReasonFileContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportSaveStatusFilePortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportSaveStatusFileContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportServiceGroupFilePortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportServiceGroupFileContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederationExecutionInformationFilePortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederationExecutionInformationFileContractPortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederationExecutionMembersFilePortable(Options const&, rti::CallbackModel);
+void scenarioServiceReportFederationExecutionMembersFileContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdatePortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedAttributeUpdateContractPortable(Options const&, rti::CallbackModel);
 void scenarioServiceReportTimestampedDeleteObjectInstancePortable(Options const&, rti::CallbackModel);

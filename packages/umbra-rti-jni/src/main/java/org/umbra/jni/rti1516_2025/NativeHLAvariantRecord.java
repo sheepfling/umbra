@@ -2,6 +2,7 @@ package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.encoding.DataElement;
 import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderException;
 import hla.rti1516_2025.encoding.HLAvariantRecord;
 import java.lang.ref.Cleaner;
 import java.util.Base64;
@@ -72,9 +73,12 @@ final class NativeHLAvariantRecord implements HLAvariantRecord {
          NativeBridge.nativeHLAvariantRecordDiscriminantEncoding(nativeHandle.require()));
    }
 
-   @Override public DataElement getValue() {
+   @Override public DataElement getValue() throws EncoderException {
       DataElement value = variants.get(key(getDiscriminant()));
-      if (value == null) return null;
+      if (value == null) {
+         throw new EncoderException(
+            "HLAvariantRecord discriminant is not mapped to an alternative");
+      }
       return NativeDataElementEncoding.decode(
          value, NativeBridge.nativeHLAvariantRecordValueEncoding(nativeHandle.require()));
    }

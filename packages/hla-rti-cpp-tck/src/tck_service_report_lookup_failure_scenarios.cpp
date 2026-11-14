@@ -7,20 +7,44 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
     rti::CallbackModel model) {
   require(
       !options.modelFom.empty(),
-      "Federate lookup failure service-report testing requires an adapter-supplied model FOM");
+      "Federate/object-class lookup failure service-report testing requires "
+      "an adapter-supplied model FOM");
   require(
       !options.mimFom.empty(),
-      "Federate lookup failure service-report testing requires an adapter-supplied standard MIM");
+      "Federate/object-class lookup failure service-report testing requires "
+      "an adapter-supplied standard MIM");
+  require(
+      !options.typedObjectClassName.empty(),
+      "Federate/object-class lookup failure service-report testing requires "
+      "an adapter-supplied object class name");
 
   Session subject(options, model, "service-report-federate-lookup-failure-subject");
   Session observer(options, model, "service-report-federate-lookup-failure-observer");
+  Session foreignCreator(
+      options,
+      model,
+      "service-report-federate-lookup-failure-foreign-creator");
+  Session foreignMember(
+      options,
+      model,
+      "service-report-federate-lookup-failure-foreign-member");
   auto const federation = federationName(
       options,
       "service-report-federate-object-class-lookup-failures");
+  auto const foreignFederation = federationName(
+      options,
+      "service-report-federate-object-class-lookup-failures-foreign");
   subject.connect();
   observer.connect();
+  foreignCreator.connect();
+  foreignMember.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
       federation,
+      std::vector<std::wstring>{options.modelFom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  foreignCreator.rtiAmbassador().createFederationExecutionWithMIM(
+      foreignFederation,
       std::vector<std::wstring>{options.modelFom.wstring()},
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
@@ -31,12 +55,23 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
       options.memberFederateName + L"-service-report-federate-lookup-failure-observer",
       options.federateType,
       federation);
+  auto const foreignFederateName =
+      options.memberFederateName + L"-service-report-federate-lookup-failure-foreign";
+  foreignMember.join(
+      foreignFederateName,
+      options.federateType,
+      foreignFederation);
+  auto const foreignFederateHandle = foreignMember.federateHandle();
+  require(
+      foreignFederateHandle.isValid(),
+      "Federate/object-class service-report setup returned an invalid foreign federate handle");
 
   auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
   require(
       reportClass.isValid(),
-      "Federate lookup failure service-report returned an invalid report class handle");
+      "Federate/object-class lookup failure service-report returned "
+      "an invalid report class handle");
   std::vector<rti::ParameterHandle> const reportParameters = [&] {
     std::vector<rti::ParameterHandle> result;
     for (auto const& name : {
@@ -51,7 +86,8 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
       auto const parameter = observer.rtiAmbassador().getParameterHandle(reportClass, name);
       require(
           parameter.isValid(),
-          "Federate lookup failure service-report returned an invalid parameter handle");
+          "Federate/object-class lookup failure service-report returned "
+          "an invalid parameter handle");
       result.push_back(parameter);
     }
     return result;
@@ -63,11 +99,21 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
   observer.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
   observer.rtiAmbassador().subscribeInteractionClass(reportClass);
 
+  auto const objectClass = subject.rtiAmbassador().getObjectClassHandle(
+      options.typedObjectClassName);
+  require(
+      objectClass.isValid(),
+      "Federate/object-class lookup failure service-report setup returned "
+      "an invalid object-class handle");
+
   auto const subjectFederate = subject.federateHandle();
   require(
       subjectFederate.isValid(),
-      "Federate lookup failure service-report setup returned an invalid federate handle");
+      "Federate/object-class lookup failure service-report setup returned "
+      "an invalid federate handle");
   auto const missingFederateName = std::wstring{L"TckMissingFederate"};
+  auto const missingObjectClassName =
+      std::wstring{L"HLAobjectRoot.TckMissingObjectClass"};
   subject.rtiAmbassador().setServiceReportingSwitch(true);
   requireException(
       [&] { subject.rtiAmbassador().getFederateHandle(missingFederateName); },
@@ -77,27 +123,47 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
       [&] { subject.rtiAmbassador().getFederateName(rti::FederateHandle{}); },
       L"InvalidFederateHandle",
       "invalid federate handle lookup with service reporting enabled");
+  requireException(
+      [&] { subject.rtiAmbassador().getObjectClassHandle(missingObjectClassName); },
+      L"NameNotFound",
+      "missing object-class name lookup with service reporting enabled");
+  requireException(
+      [&] { subject.rtiAmbassador().getObjectClassName(rti::ObjectClassHandle{}); },
+      L"InvalidObjectClassHandle",
+      "invalid object-class handle lookup with service reporting enabled");
   auto const federateByName =
       subject.rtiAmbassador().getFederateHandle(subjectName);
   auto const federateName =
       subject.rtiAmbassador().getFederateName(subjectFederate);
+  auto const objectClassByName =
+      subject.rtiAmbassador().getObjectClassHandle(options.typedObjectClassName);
+  auto const objectClassName =
+      subject.rtiAmbassador().getObjectClassName(objectClass);
   require(
-      federateByName == subjectFederate && federateName == subjectName,
-      "Federate lookup did not recover after reported failures");
+      federateByName == subjectFederate && federateName == subjectName &&
+          objectClassByName == objectClass &&
+          objectClassName == options.typedObjectClassName,
+      "Federate/object-class lookup did not recover after reported failures");
+  requireException(
+      [&] {
+        subject.rtiAmbassador().getFederateName(foreignFederateHandle);
+      },
+      L"FederateHandleNotKnown",
+      "foreign federate handle lookup with service reporting enabled");
   waitFor(
       subject,
       observer,
-      [&] { return observer.recorder().interactions().size() == 4U; },
+      [&] { return observer.recorder().interactions().size() == 9U; },
       options,
-      "federate lookup failure service-report callbacks");
+      "federate/object-class lookup failure service-report callbacks");
 
   auto const quoted = [](std::wstring const& value) {
     return std::wstring{L"\""} + value + L"\"";
   };
   auto const reports = observer.recorder().interactions();
   require(
-      reports.size() == 4U,
-      "Federate lookup failure service-report count was unstable");
+      reports.size() == 9U,
+      "Federate/object-class lookup failure service-report count was unstable");
   requirePortableServiceReportFailure(
       observer,
       reports.at(0U),
@@ -118,29 +184,84 @@ void scenarioServiceReportFederateObjectClassLookupFailures(
       L"InvalidFederateHandle",
       1,
       "GetFederateName failure service report");
-  requirePortableServiceReport(
+  requirePortableServiceReportFailure(
       observer,
       reports.at(2U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassHandle",
+      {{53, L"Object class name", quoted(missingObjectClassName)}},
+      L"NameNotFound",
+      2,
+      "GetObjectClassHandle failure service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(3U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassName",
+      {{36, L"Object class handle",
+        quoted(rti::ObjectClassHandle{}.toString())}},
+      L"InvalidObjectClassHandle",
+      3,
+      "GetObjectClassName failure service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(4U),
       reportClass,
       reportParameters,
       L"GetFederateHandle",
       {{53, L"Federate name", quoted(subjectName)}},
       {15, L"Federate handle", quoted(federateByName.toString())},
-      2,
+      4,
       "GetFederateHandle recovery service report");
   requirePortableServiceReport(
       observer,
-      reports.at(3U),
+      reports.at(5U),
       reportClass,
       reportParameters,
       L"GetFederateName",
       {{15, L"Federate handle", quoted(subjectFederate.toString())}},
       {53, L"Federate name", quoted(federateName)},
-      3,
+      5,
       "GetFederateName recovery service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(6U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassHandle",
+      {{53, L"Object class name", quoted(options.typedObjectClassName)}},
+      {36, L"Object class handle", quoted(objectClassByName.toString())},
+      6,
+      "GetObjectClassHandle recovery service report");
+  requirePortableServiceReport(
+      observer,
+      reports.at(7U),
+      reportClass,
+      reportParameters,
+      L"GetObjectClassName",
+      {{36, L"Object class handle", quoted(objectClass.toString())}},
+      {53, L"Object class name", quoted(objectClassName)},
+      7,
+      "GetObjectClassName recovery service report");
+  requirePortableServiceReportFailure(
+      observer,
+      reports.at(8U),
+      reportClass,
+      reportParameters,
+      L"GetFederateName",
+      {{15, L"Federate handle", quoted(foreignFederateHandle.toString())}},
+      L"FederateHandleNotKnown",
+      8,
+      "foreign federate handle failure service report");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   subject.rtiAmbassador().setServiceReportingSwitch(false);
+  foreignMember.resign(rti::NO_ACTION);
+  foreignCreator.rtiAmbassador().destroyFederationExecution(foreignFederation);
+  foreignMember.disconnect();
+  foreignCreator.disconnect();
   observer.resign(rti::NO_ACTION);
   subject.resign(rti::NO_ACTION);
   subject.rtiAmbassador().destroyFederationExecution(federation);

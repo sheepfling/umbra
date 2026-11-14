@@ -275,6 +275,10 @@ void ProcessFederationClient::dispatchPendingPushedEvents() {
   dispatchPendingPushedEvents(false);
 }
 
+bool ProcessFederationClient::hasPendingFederateResignedEvent() const noexcept {
+  return pendingEventCount<PendingFederateResigned>() != 0U;
+}
+
 void ProcessFederationClient::dispatchPendingPushedEvents(
     bool allowRequestOwnedSuppression) {
   std::unique_lock lock(transactionMutex_);
@@ -299,16 +303,19 @@ void ProcessFederationClient::dispatchPendingPushedEvents(
            (allowRequestOwnedSuppression ||
             callbackDispatchSuppressionDepth_ == 0U)) {
       auto bridge = callbackBridge_;
-      auto event = std::move(pendingEvents_.front());
+      auto queuedEvent = std::move(pendingEvents_.front());
       pendingEvents_.pop_front();
+      auto event = std::move(queuedEvent.event);
+      auto const callbackRequestSequenceNumber =
+          queuedEvent.callbackRequestSequenceNumber;
       bool const fenceReceivePoll =
           !std::holds_alternative<PendingRequestRetraction>(event);
       if (fenceReceivePoll) {
         ++dataCallbackAdmissionDepth_;
       }
       lock.unlock();
-      try {
-        std::visit([&bridge](auto value) {
+      auto dispatchEvent = [&] {
+        std::visit([this, &bridge](auto value) {
           using Event = std::decay_t<decltype(value)>;
           if constexpr (std::is_same_v<Event, ProcessFederationInteractionEvent>) {
             bridge->submitReceiveOrder(std::move(value));
@@ -387,7 +394,43 @@ void ProcessFederationClient::dispatchPendingPushedEvents(
           else if constexpr (std::is_same_v<Event, PendingRequestRetraction>) {
             bridge->submitRequestRetraction(value.messageId);
           }
+          else if constexpr (std::is_same_v<Event, PendingFederateResigned>) {
+            if (!forcedResignationHandler_ ||
+                !forcedResignationHandler_(std::move(value.reason))) {
+              throw ProcessFederationClientError(
+                  "The process federation client could not apply the forced resignation event.");
+            }
+          }
+          else if constexpr (std::is_same_v<Event, PendingCallbackResponseOnly>) {
+            // The corresponding federate callback was suppressed before user
+            // code ran; the protocol response is sent by the dispatch owner.
+          }
         }, std::move(event));
+      };
+      try {
+        if (callbackRequestSequenceNumber &&
+            std::holds_alternative<PendingCallbackResponseOnly>(event)) {
+          sendCallbackResponse(*callbackRequestSequenceNumber, {});
+        } else if (callbackRequestSequenceNumber &&
+                   std::holds_alternative<PendingFederateResigned>(event)) {
+          try {
+            dispatchEvent();
+          } catch (...) {
+            sendCallbackResponse(
+                *callbackRequestSequenceNumber, std::current_exception());
+            throw;
+          }
+          sendCallbackResponse(*callbackRequestSequenceNumber, {});
+        } else if (callbackRequestSequenceNumber) {
+          CallbackCompletionScope completion(
+              [this, sequenceNumber = *callbackRequestSequenceNumber](
+                  std::exception_ptr callbackFailure) {
+                sendCallbackResponse(sequenceNumber, callbackFailure);
+              });
+          dispatchEvent();
+        } else {
+          dispatchEvent();
+        }
       } catch (...) {
         lock.lock();
         if (fenceReceivePoll) {
@@ -617,14 +660,30 @@ ProcessFederationClient::connection() const noexcept {
   return connection_;
 }
 
-void ProcessFederationClient::close() noexcept {
+void ProcessFederationClient::interrupt() noexcept {
   closing_.store(true, std::memory_order_release);
-  // This immutable shared owner is intentionally closed before taking the
-  // transaction lock: a request may be holding that lock while blocked in a
-  // socket receive, and closing the socket is what releases that request.
-  auto const shutdownConnection = shutdownConnection_;
-  if (shutdownConnection) {
-    shutdownConnection->close();
+  {
+    std::scoped_lock lock(heartbeatMutex_);
+    heartbeatChanged_.notify_all();
+  }
+  // Close both the active socket and any socket currently negotiating resume,
+  // without taking transactionMutex_ while either one may be blocking there.
+  std::shared_ptr<ProcessTransportConnection> activeConnection;
+  std::shared_ptr<ProcessTransportConnection> recoveryAttemptConnection;
+  {
+    std::scoped_lock lock(connectionLifecycleMutex_);
+    activeConnection = activeShutdownConnection_;
+    recoveryAttemptConnection = recoveryAttemptConnection_;
+  }
+  if (activeConnection) {
+    activeConnection->close();
+  }
+  if (recoveryAttemptConnection &&
+      recoveryAttemptConnection != activeConnection) {
+    recoveryAttemptConnection->close();
+  }
+  if (shutdownConnection_ && shutdownConnection_ != activeConnection) {
+    shutdownConnection_->close();
   }
   // Closing is published before socket shutdown so a blocked send/receive can
   // unwind. Synchronize with each wait mutex *after* shutdown: otherwise a
@@ -634,15 +693,76 @@ void ProcessFederationClient::close() noexcept {
     std::scoped_lock lock(responseMutex_);
     responseAvailable_.notify_all();
   }
-  {
-    std::scoped_lock lock(transactionMutex_);
-    callbackEventsAvailable_.notify_all();
+  // Do not wait for transactionMutex_ before joining the transport workers:
+  // the reader can hold it while a reconnect exchange is unwinding. Closing
+  // the sockets above interrupts that exchange; the callback worker observes
+  // closing_ through its bounded condition-variable wait if this notification
+  // races its transition into wait().
+  callbackEventsAvailable_.notify_all();
+}
+
+bool ProcessFederationClient::terminateSession() noexcept {
+  if (closing_.load(std::memory_order_acquire)) {
+    return false;
   }
+  terminating_.store(true, std::memory_order_release);
+  {
+    std::scoped_lock lock(heartbeatMutex_);
+    heartbeatChanged_.notify_all();
+  }
+
+  try {
+    std::unique_lock exchangeLock(exchangeMutex_);
+    bool sent = false;
+    {
+      std::scoped_lock transactionLock(transactionMutex_);
+      auto activeConnection = connection_;
+      if (!activeConnection || !activeConnection->open() || !session_) {
+        return false;
+      }
+      sent = activeConnection->sendSequencedFrame(
+          [this, &activeConnection](std::uint32_t sequenceNumber) {
+            {
+              std::scoped_lock lock(responseMutex_);
+              terminationSequenceNumber_ = sequenceNumber;
+              sessionTerminatedReceived_ = false;
+            }
+            return makeTransportCloseRequest(
+                activeConnection->sessionId(),
+                sequenceNumber,
+                activeConnection->messageHistory().lastReceivedSequenceNumber());
+          });
+    }
+    if (!sent) {
+      return false;
+    }
+    exchangeLock.unlock();
+
+    std::unique_lock lock(responseMutex_);
+    auto const completed = responseAvailable_.wait_for(
+        lock,
+        federateHeartbeatTimeout_,
+        [this] {
+          return sessionTerminatedReceived_ || streamReaderStopped_ ||
+              closing_.load(std::memory_order_acquire);
+        });
+    return completed && sessionTerminatedReceived_;
+  } catch (...) {
+    return false;
+  }
+}
+
+void ProcessFederationClient::close() noexcept {
+  interrupt();
 
   auto const currentThread = std::this_thread::get_id();
   if (streamReaderThread_.joinable() &&
       streamReaderThread_.get_id() != currentThread) {
     streamReaderThread_.join();
+  }
+  if (heartbeatThread_.joinable() &&
+      heartbeatThread_.get_id() != currentThread) {
+    heartbeatThread_.join();
   }
   if (callbackDispatchThread_.joinable() &&
       callbackDispatchThread_.get_id() != currentThread) {

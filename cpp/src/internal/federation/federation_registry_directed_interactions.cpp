@@ -704,6 +704,17 @@ EmbeddedFederationRegistry::removeInteractionClassRegionalSubscription(
     auto regional = declarations->second.regionalSubscribedInteractionClasses.find(
         interactionClassHandle);
     if (regional != declarations->second.regionalSubscribedInteractionClasses.end()) {
+      auto const allSpecifiedRegionsAreSubscribed = std::all_of(
+          regionHandles.begin(),
+          regionHandles.end(),
+          [&regional](std::uint64_t const regionHandle) {
+            return regional->second.contains(regionHandle);
+          });
+      if (!allSpecifiedRegionsAreSubscribed) {
+        // §9.11 leaves the entire subscription set unchanged when any
+        // specified region is absent; do not partially apply a mixed request.
+        return RegionalInteractionClassDeclarationStatus::applied;
+      }
       for (std::uint64_t const regionHandle : regionHandles) {
         regional->second.erase(regionHandle);
       }

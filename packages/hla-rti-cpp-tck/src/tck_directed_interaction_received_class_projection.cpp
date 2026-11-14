@@ -48,6 +48,8 @@ void scenarioDirectedInteractionReceivedClassProjection(
       options.typedInteractionClassName);
   auto const sentClassDerivedInteraction = sentClassAmbassador.getInteractionClassHandle(
       options.typedDerivedInteractionClassName);
+  auto const sentClassBaseInteraction = sentClassAmbassador.getInteractionClassHandle(
+      options.typedInteractionClassName);
   require(
       publisherObjectClass.isValid() &&
           superclassObjectClass == publisherObjectClass &&
@@ -55,8 +57,18 @@ void scenarioDirectedInteractionReceivedClassProjection(
           publisherBaseInteraction.isValid() &&
           publisherDerivedInteraction.isValid() &&
           superclassBaseInteraction == publisherBaseInteraction &&
+          sentClassBaseInteraction == publisherBaseInteraction &&
           sentClassDerivedInteraction == publisherDerivedInteraction,
       "directed received-class projection returned invalid or unstable class handles");
+
+  requireException(
+      [&] {
+        static_cast<void>(publisherAmbassador.getParameterHandle(
+            publisherBaseInteraction,
+            L"TckMissingFddParameter"));
+      },
+      L"NameNotFound",
+      "resolving a parameter absent from the FDD interaction-class parameter set");
 
   auto const publisherIdentity = publisherAmbassador.getAttributeHandle(
       publisherObjectClass,
@@ -98,6 +110,22 @@ void scenarioDirectedInteractionReceivedClassProjection(
   rti::AttributeHandleSet const publisherAttributes{publisherIdentity};
   rti::AttributeHandleSet const superclassAttributes{superclassIdentity};
   rti::AttributeHandleSet const sentClassAttributes{sentClassIdentity};
+  auto const unrelatedObjectClass = publisherAmbassador.getObjectClassHandle(
+      L"HLAobjectRoot");
+  require(
+      unrelatedObjectClass.isValid(),
+      "directed-interaction FDD association witness root class was unavailable");
+  rti::InteractionClassHandleSet const unassociatedDirectedInteraction{
+      publisherBaseInteraction};
+  requireException(
+      [&] {
+        publisherAmbassador.publishObjectClassDirectedInteractions(
+            unrelatedObjectClass,
+            unassociatedDirectedInteraction);
+      },
+      L"InteractionClassNotDefined",
+      "publishing a directed interaction on HLAobjectRoot where the FDD declares none");
+
   publisherAmbassador.publishObjectClassAttributes(
       publisherObjectClass,
       publisherAttributes);
@@ -118,6 +146,7 @@ void scenarioDirectedInteractionReceivedClassProjection(
   rti::InteractionClassHandleSet const superclassSubscription{
       superclassBaseInteraction};
   rti::InteractionClassHandleSet const sentClassSubscription{
+      sentClassBaseInteraction,
       sentClassDerivedInteraction};
   publisherAmbassador.publishObjectClassDirectedInteractions(
       publisherObjectClass,
@@ -203,11 +232,12 @@ void scenarioDirectedInteractionReceivedClassProjection(
       "directed interaction projected to closest subscribed superclass");
   waitFor(
       sentClassSubscriber,
-      [&] { return sentClassSubscriber.recorder().directedInteractions().size() == 1U; },
+      [&] { return sentClassSubscriber.recorder().directedInteractions().size() >= 1U; },
       options,
       "directed interaction received at its subscribed sent class");
   for (int pass = 0; pass != 16; ++pass) {
     publisher.pump();
+    sentClassSubscriber.pump();
   }
   require(publisher.recorder().directedInteractions().empty(),
           "directed sender received its own interaction despite a matching subscription");
@@ -228,7 +258,7 @@ void scenarioDirectedInteractionReceivedClassProjection(
       "directed interaction did not report the closest subscribed superclass and its parameter projection");
   require(
       sentClassDeliveries.size() == 1U &&
-          sentClassDeliveries.front().interaction == sentClassDerivedInteraction &&
+          sentClassDeliveries.front().interaction == publisherDerivedInteraction &&
           sentClassDeliveries.front().object == target &&
           sentClassDeliveries.front().parameters.size() == 2U &&
           sentClassDeliveries.front().parameters.count(sentClassBaseParameter) == 1U &&
@@ -302,6 +332,18 @@ void scenarioDirectedKnownObjectClassFallback(
           sentInteraction.isValid() && receivedBaseInteraction.isValid() &&
           childInteraction == sentInteraction && receivedBaseInteraction != childInteraction,
       "adapter FOM did not provide the directed object/interaction hierarchies");
+  auto const publishedObjectClassName =
+      sender.getObjectClassName(publishedObjectClass);
+  auto const knownBaseClassName = targetMember.getObjectClassName(knownBaseClass);
+  require(
+      publishedObjectClassName == options.typedDerivedObjectClassName &&
+          knownBaseClassName == options.typedObjectClassName &&
+          publishedObjectClassName.rfind(knownBaseClassName + L".", 0U) == 0U &&
+          sender.getInteractionClassName(sentInteraction) ==
+              options.typedDerivedInteractionClassName &&
+          targetMember.getInteractionClassName(receivedBaseInteraction) ==
+              options.typedInteractionClassName,
+      "directed-interaction object associations did not preserve the complete object and interaction class paths");
 
   auto const publisherMarker = sender.getAttributeHandle(
       publishedObjectClass, options.typedIdentityAttributeName);

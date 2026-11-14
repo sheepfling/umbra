@@ -25,6 +25,22 @@ ProcessFederationLogicalTime ProcessFederationClient::queryLogicalTime(
   return decodeProcessFederationQueryLogicalTimeResult(response.payload).time;
 }
 
+ProcessFederationNonRegulatedGrantSwitchResult
+ProcessFederationClient::getNonRegulatedGrantSwitch(
+    std::wstring federationName,
+    std::uint64_t federateId) {
+  auto response = request(
+      TransportServiceOperation::get_non_regulated_grant_switch,
+      encodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          ProcessFederationAttributeScopeAdvisorySwitchRequest{
+              std::move(federationName), federateId, false}));
+  if (response.status != TransportServiceStatus::ok) {
+    throw ProcessFederationClientError(
+        requestFailure(response.operation, response.status));
+  }
+  return decodeProcessFederationNonRegulatedGrantSwitchResult(response.payload);
+}
+
 ProcessFederationQueryLookaheadResult ProcessFederationClient::queryLookahead(
     std::wstring federationName,
     std::uint64_t federateId) {

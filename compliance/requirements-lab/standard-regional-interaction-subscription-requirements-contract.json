@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair provides bounded evidence for §9.10 regional interaction subscription. It shows that an active regional declaration selects the interaction class and delivery subject to region overlap. It also contrasts ordinary and regional declarations and sends to exercise the tested regional-to-ordinary analogy, and verifies that removing the ordinary declaration leaves the regional declaration effective. It does not claim that every related Subscribe Interaction Class service has exhaustive regional coverage.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-236-l161-48",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l161-48",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 161",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "The scenario adds one explicit region to an initially empty interaction-class regional subscription set and verifies that an interaction sent through an overlapping source region is delivered. It does not assert that multiple later calls accumulate distinct regions.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l143-42",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l143-42",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 143",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "The scenario publishes an interaction class, subscribes to it with a nonempty region set, and demonstrates that an interaction is delivered when its source region overlaps the subscription region; disjoint regional interaction delivery is suppressed.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l164-49",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l164-49",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 164",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "The scenario repeats the exact same single-region interaction subscription before the matching send, then drains callbacks and verifies that the matching interaction is delivered exactly once.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l170-51",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l170-51",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 170",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "The scenario establishes an ordinary interaction subscription and a distinct regional subscription, then removes only the ordinary declaration and verifies that an overlapping region-qualified interaction is still delivered through the regional subscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l176-53",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l176-53",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 176",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "After establishing a nonempty regional interaction subscription, the scenario adds an ordinary Subscribe Interaction Class declaration and confirms an overlapping region-qualified send still produces exactly one callback; it then removes the ordinary declaration and confirms the same regional send still produces exactly one callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l182-55",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l182-55",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 182",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "With no ordinary subscription present, the scenario submits an empty regional subscription set and verifies that neither an ordinary interaction nor an interaction with an empty region set is delivered.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l16-4",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l16-4",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 16",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "With interaction-relevance advisories enabled at the publisher, the scenario invokes the regional interaction subscription with active=false, pumps the publisher's callback service, and asserts that no Turn Interactions On callback is delivered to that other joined federate; an active subscription afterward produces exactly one callback as a positive control.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l28-8",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l28-8",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 28",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "After an active regional interaction subscription produces Turn Interactions On, the scenario repeats the same regional subscription with active=false and verifies that the other joined federate receives Turn Interactions Off; it then reactivates and unsubscribes as positive controls.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l43-13",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l43-13",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 43",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "The scenario uses two distinct regions for one interaction class: making the second region passive leaves the first region's active advisory state unchanged, and after the first region is made passive/unsubscribed, the second region can be activated and unsubscribed independently.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l49-15",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l49-15",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 49",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "For each of two region pairs on one interaction class, the scenario alternates passive and active calls and observes mutually exclusive interaction-relevance transitions: passive removes active relevance, while active establishes it.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l64-20",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l64-20",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 64",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "For one interaction class and two region pairs, the scenario exercises active=false, active=true, and an omitted active argument; callback transitions confirm the explicit mode and the API's omitted-argument active default for each specified pair.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l76-24",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l76-24",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 76",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "Existing class/region pairs are resubmitted with changed active/passive indicators; publisher Turn Interactions On/Off transitions confirm that each existing pair takes the effect of the current invocation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l88-28",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l88-28",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 88",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "While a regional interaction pair is active, the scenario invokes the same subscription service with an empty region set and active=false, pumps callbacks, and confirms the existing pair remains active with no Turn Interactions Off callback.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-237-l94-30",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-237-l94-30",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 237, line 94",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "After the subscriber already has one active regional subscription, the scenario adds a previously absent second region using active=false, then sends region-qualified interactions overlapping both the new passive region and the original region. Both sends are delivered with the expected interaction class, parameter value, and tag, evidencing that the new region was added without dropping the existing region.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-238-l76-23",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-238-l76-23",
+      "clause_id": "clause-9.10.3",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 238, line 76",
+      "source_symbol": "scenarioRegionalDeclarationRelevanceAdvisories",
+      "statement": "After deleting a formerly valid regional interaction-subscription region, the scenario attempts to subscribe with that stale region designator and verifies the public API throws InvalidRegion.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisories",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalDeclarationRelevanceAdvisoriesContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-236-l149-44",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-236-l149-44",
+      "clause_id": "clause-9.10",
+      "source": "packages/hla-rti-cpp-tck/src/main.cpp",
+      "source_lines": "page 236, line 149",
+      "source_symbol": "scenarioRegionalInteractionSubscriptionFiltering",
+      "statement": "The scenario contrasts ordinary and regional interaction subscriptions, verifies that a regional send is not delivered through an ordinary declaration when it has no matching explicit regional subscription, then confirms the active explicit regional declaration routes the overlapping interaction after the ordinary declaration is removed. This is bounded evidence for those corresponding service operations, not a claim about every related service.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFiltering",
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalInteractionSubscriptionFilteringContract"
+      ]
+    }
+  ]
+}

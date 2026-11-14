@@ -27,6 +27,7 @@ using rti1516_2025::DELETE_OBJECTS;
 using rti1516_2025::NullFederateAmbassador;
 using rti1516_2025::AttributeHandleValueMap;
 using rti1516_2025::IllegalName;
+using rti1516_2025::FederateNotExecutionMember;
 using rti1516_2025::ObjectInstanceNameInUse;
 using rti1516_2025::ObjectInstanceNotKnown;
 using rti1516_2025::ParameterHandleValueMap;
@@ -74,6 +75,11 @@ class ReceiverFederateAmbassador final : public NullFederateAmbassador {
   void connectionLost(std::wstring const& faultDescription) override {
     connectionLostCalled = true;
     connectionLostDescription = faultDescription;
+  }
+
+  void federateResigned(std::wstring const& reason) override {
+    ++federateResignedCount;
+    federateResignedReason = reason;
   }
 
   void initiateFederateSave(std::wstring const& label) override {
@@ -338,6 +344,8 @@ class ReceiverFederateAmbassador final : public NullFederateAmbassador {
   rti1516_2025::MessageRetractionHandle requestRetractionHandle;
   bool connectionLostCalled = false;
   std::wstring connectionLostDescription;
+  std::size_t federateResignedCount = 0U;
+  std::wstring federateResignedReason;
   std::size_t saveInitiateCount = 0U;
   std::wstring saveLabel;
   std::size_t saveCompleteCount = 0U;
@@ -458,7 +466,8 @@ int run(
     bool federationSaveRestore,
     bool federationSaveRestoreFailure,
     bool federationSaveRestoreAbort,
-    bool federationSaveRestoreStatus) {
+    bool federationSaveRestoreStatus,
+    bool forcedResignation) {
 #ifndef UMBRA_PROCESS_SERVICE_PROBE_PATH
   throw std::runtime_error("The package process smoke probe path is not configured.");
 #else
@@ -505,7 +514,9 @@ int run(
                         : (federationSaveRestoreAbort
                                ? "public-server-save-restore-abort"
                                : "public-server-save-restore")))
-          : (directedRetraction
+          : (forcedResignation
+                 ? "public-server-forced-resignation"
+                 : (directedRetraction
                  ? "public-server-directed-retraction"
                  : (namedRegistration
                         ? "public-server-named-registration"
@@ -517,7 +528,7 @@ int run(
                                              ? "public-server-attribute-update"
                                              : (parameterized
                                                     ? "public-server-parameterized"
-                                                    : "public-server"))))));
+                                                    : "public-server")))))));
   auto server = launch(serverRole);
   std::unique_ptr<RTIambassador> sender;
   std::unique_ptr<RTIambassador> receiver;
@@ -558,7 +569,10 @@ int run(
       }
     }
 
-    sender->createFederationExecution(kFederationName, L"server-owned-fom.xml");
+    sender->createFederationExecution(
+        kFederationName,
+        std::filesystem::path{UMBRA_PACKAGE_RESTAURANT_FOM}.wstring(),
+        L"HLAinteger64Time");
     static_cast<void>(sender->joinFederationExecution(
         L"package-process-sender",
         L"package-process-type",
@@ -572,6 +586,49 @@ int run(
         throw std::runtime_error(
             "The installed receiver Join returned an invalid handle.");
       }
+    }
+
+    if (forcedResignation) {
+      writeText(directory / "federate-resigned-ready.ok", "ready\n");
+      auto const callbackDeadline = std::chrono::steady_clock::now() +
+          std::chrono::seconds(30);
+      while (receiverAmbassador.federateResignedCount == 0U &&
+             std::chrono::steady_clock::now() < callbackDeadline) {
+        static_cast<void>(receiver->evokeMultipleCallbacks(0.0, 0.05));
+        if (receiverAmbassador.federateResignedCount == 0U) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+      }
+      if (receiverAmbassador.federateResignedCount != 1U ||
+          receiverAmbassador.federateResignedReason !=
+              L"process-profile forced departure") {
+        throw std::runtime_error(
+            "The process-profile RTI did not deliver exactly one Federate Resigned callback with the forced-departure reason.");
+      }
+      try {
+        static_cast<void>(receiver->getFederateHandle(
+            L"package-process-receiver"));
+        throw std::runtime_error(
+            "The process-profile RTI left the forced federate in Joined state.");
+      } catch (FederateNotExecutionMember const&) {
+      }
+      auto const rejoinedHandle = receiver->joinFederationExecution(
+          L"package-process-receiver",
+          L"package-process-type",
+          kFederationName);
+      if (!rejoinedHandle.isValid()) {
+        throw std::runtime_error(
+            "The process-profile RTI did not allow a fresh Join after Federate Resigned.");
+      }
+      receiver->resignFederationExecution(NO_ACTION);
+      sender->resignFederationExecution(NO_ACTION);
+      receiver->disconnect();
+      sender->disconnect();
+      if (server.get() != 0 || !std::filesystem::exists(directory / "server.ok")) {
+        throw std::runtime_error(
+            "The process-profile forced-resignation fixture did not complete cleanly.");
+      }
+      return 0;
     }
 
     if (saveRestore) {
@@ -1326,6 +1383,7 @@ int main(int argc, char** argv) {
   bool federationSaveRestoreFailure = false;
   bool federationSaveRestoreAbort = false;
   bool federationSaveRestoreStatus = false;
+  bool forcedResignation = false;
   if (argc > 2) {
     return 2;
   }
@@ -1338,6 +1396,8 @@ int main(int argc, char** argv) {
     } else if (mode == "connection-loss-delete-objects") {
       connectionLoss = true;
       automaticDeleteObjects = true;
+    } else if (mode == "forced-resignation") {
+      forcedResignation = true;
     } else if (mode == "parameterized") {
       parameterized = true;
     } else if (mode == "object-registration") {
@@ -1373,7 +1433,8 @@ int main(int argc, char** argv) {
         federationSaveRestore,
         federationSaveRestoreFailure,
         federationSaveRestoreAbort,
-        federationSaveRestoreStatus);
+        federationSaveRestoreStatus,
+        forcedResignation);
   } catch (std::exception const& error) {
     std::cerr << error.what() << '\n';
     return 1;

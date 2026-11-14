@@ -170,15 +170,15 @@ final class RestorePendingTsoNmraAttributeTck {
                && publisherCallbacks.savedCount == 1
                && regulatorCallbacks.savedCount == 1
                && receiverCallbacks.savedCount == 1
-               && publisherCallbacks.grants.equals(List.of(regulatorTarget))
-               && regulatorCallbacks.grants.equals(List.of(regulatorTarget))
-               && receiverCallbacks.grants.equals(List.of(time5))
+               && grantsMatch(publisherCallbacks.grants, regulatorTarget)
+               && grantsMatch(regulatorCallbacks.grants, regulatorTarget)
+               && grantsMatch(receiverCallbacks.grants, time5)
                && receiverCallbacks.reflections.size() == 1,
             "pending-TSO NMRA attribute save boundary or first delivery was incomplete");
          TimedReflection original = receiverCallbacks.reflections.get(0);
          JavaTckSupport.check(original.object.equals(object)
                && original.producer.equals(publisherHandle)
-               && original.time.equals(time5)
+               && Arrays.equals(encode(time5), encode(original.time))
                && original.sentOrder == OrderType.TIMESTAMP
                && original.receivedOrder == OrderType.TIMESTAMP
                && original.retraction != null
@@ -205,7 +205,7 @@ final class RestorePendingTsoNmraAttributeTck {
          }
          JavaTckSupport.check(publisherCallbacks.grants.size() == 2
                && regulatorCallbacks.grants.size() == 2
-               && receiverCallbacks.grants.equals(List.of(time5, time9))
+               && grantsMatch(receiverCallbacks.grants, time5, time9)
                && time9.equals(publisher.queryLogicalTime())
                && time9.equals(regulator.queryLogicalTime())
                && time9.equals(receiver.queryLogicalTime()),
@@ -237,12 +237,12 @@ final class RestorePendingTsoNmraAttributeTck {
                && receiverCallbacks.restoredCount == 1
                && receiverCallbacks.reflections.size() == 2
                && receiverCallbacks.grants.size() == 3
-               && time5.equals(receiverCallbacks.grants.get(2)),
+               && grantsMatch(receiverCallbacks.grants, time5, time9, time5),
             "restore did not replay one attribute reflection before restored NMRA grant");
          TimedReflection replayed = receiverCallbacks.reflections.get(1);
          JavaTckSupport.check(replayed.object.equals(original.object)
                && replayed.producer.equals(original.producer)
-               && replayed.time.equals(original.time)
+               && Arrays.equals(encode(original.time), encode(replayed.time))
                && replayed.sentOrder == original.sentOrder
                && replayed.receivedOrder == original.receivedOrder
                && (replayed.retraction != null) == (original.retraction != null)
@@ -325,6 +325,21 @@ final class RestorePendingTsoNmraAttributeTck {
          for (RTIambassador member : members) member.evokeCallback(0.0);
       }
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static boolean grantsMatch(List<LogicalTime<?, ?>> grants,
+         LogicalTime<?, ?>... expected) throws Exception {
+      if (grants.size() != expected.length) return false;
+      for (int index = 0; index < expected.length; ++index) {
+         if (!Arrays.equals(encode(expected[index]), encode(grants.get(index)))) return false;
+      }
+      return true;
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})

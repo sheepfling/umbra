@@ -90,8 +90,21 @@ TransportServiceMessage ProcessFederationService::handleReceiveInteraction(
   {
     std::scoped_lock lock(mutex_);
     auto const state = sessions_.find(&session);
-    if (state == sessions_.end() ||
-        !state->second.federationName.has_value() ||
+    if (state == sessions_.end()) {
+      return rejected(request);
+    }
+    if (!state->second.federationName.has_value() ||
+        state->second.federateId == 0U) {
+      // This private callback poll can race the forced-departure event on the
+      // same stream. Once membership is cleared, an empty poll lets the event
+      // reach the official callback dispatcher without turning the still-live
+      // transport into a spurious service failure.
+      return responseFor(
+          request,
+          TransportServiceStatus::ok,
+          encodeProcessFederationReceiveInteractionResult(result));
+    }
+    if (
         *state->second.federationName != receiveRequest.federationName ||
         state->second.federateId != receiveRequest.receivingFederateId ||
         !registry_.memberById(

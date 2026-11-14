@@ -9,10 +9,12 @@ void scenarioFomArrayElementCategory(Options const& options,
   auto const valid = options.scenarioFoms.find("array-element-valid");
   auto const omitted = options.scenarioFoms.find("array-element-omitted");
   auto const basic = options.scenarioFoms.find("array-element-basic");
+  auto const invalidName = options.scenarioFoms.find("array-element-invalid-name");
   require(valid != options.scenarioFoms.end() &&
               omitted != options.scenarioFoms.end() &&
-              basic != options.scenarioFoms.end(),
-          "Array Element Type requires adapter-supplied FOM modules");
+              basic != options.scenarioFoms.end() &&
+              invalidName != options.scenarioFoms.end(),
+          "Array Element Type requires valid, omitted, raw-basic, and invalid-name adapter FOM modules");
 
   Session creator(options, model, "array-element-creator");
   auto const federation = federationName(options, "fom-array-element-category");
@@ -27,6 +29,18 @@ void scenarioFomArrayElementCategory(Options const& options,
   create(omitted->second);
   rti.destroyFederationExecution(federation);
 
+  // HLAUserArray is a valid XML NCName, but its nonstandard HLA prefix is reserved.
+  bool rejectedInvalidArrayName = false;
+  try {
+    create(invalidName->second);
+  } catch (rti::InconsistentFOM const&) {
+    rejectedInvalidArrayName = true;
+  } catch (rti::InvalidFOM const&) {
+    rejectedInvalidArrayName = true;
+  }
+  require(
+      rejectedInvalidArrayName,
+      "an array data type name with a reserved, nonstandard HLA prefix was accepted");
   requireException([&] { create(basic->second); }, L"InconsistentFOM",
                    "raw basic-data array Element Type");
   create(valid->second);

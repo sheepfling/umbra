@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "kind": "navigation-crosswalk-not-validation-or-conformance-evidence",
+  "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+  "standard": "IEEE 1516.1-2025",
+  "clause": "11.4.1",
+  "table": 7,
+  "selection_rule": "Leaf interaction classes below HLAmanager whose pinned 1516.2-2025 MIM declaration has sharing=Publish; compared against the 1516.1-2025 Table 7 P designation.",
+  "mim_source": "third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml",
+  "catch2_plan_is_authoritative": true,
+  "interpretation": "case_ids identify public Catch2 evidence mapped to the clause-level requirement; they do not establish that the whole Table 7 set is validated or conformant. Private process cases are deliberately excluded from public coverage.",
+  "cpp_tck_mapping_policy": "public_cpp_tck_scenario_ids are leaf-level navigation to direct public TCK witnesses. Partial leaf witnesses are not assigned as direct coverage of the all-P-leaves clause requirement until every exact-name P leaf is accounted for; the unresolved RL-393 name conflict remains separate.",
+  "summary": {
+    "p_leaf_classes": 25,
+    "public_catch2_case_mapped": 24,
+    "unresolved_cross_source_name_conflicts": 1,
+    "public_cpp_tck_p_leaf_classes_mapped": 24,
+    "public_cpp_tck_p_leaf_classes_unmapped": 0
+  },
+  "classes": [
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectClassPublication",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-publications-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-publication-query", "cpp-tck.federate-mom-publication-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the joined federate's HLAreportObjectClassPublication response, including the class and attribute list.",
+      "scope_note": "The case exercises the object-class publication report leaf."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionPublication",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-publications-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-publication-query", "cpp-tck.federate-mom-publication-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the joined federate's HLAreportInteractionPublication interaction-class list.",
+      "scope_note": "The case exercises the ordinary interaction publication report leaf."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionPublication",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-publications-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-publication-query", "cpp-tck.federate-mom-publication-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the joined federate's HLAreportDirectedInteractionPublication response and the empty directed-publications case.",
+      "scope_note": "The case exercises the directed-interaction publication report leaf."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectClassSubscription",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-request-subscriptions-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-subscription-query", "cpp-tck.federate-mom-subscription-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the joined federate's object-class subscription response, including active state.",
+      "scope_note": "The case exercises active/passive object-class subscription reports."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionSubscription",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-request-subscriptions-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-subscription-query", "cpp-tck.federate-mom-subscription-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the joined federate's interaction-class subscription and active-state parameters.",
+      "scope_note": "The case exercises interaction-subscription class/active reports."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionSubscription",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-request-subscriptions-report-integration"],
+      "public_cpp_tck_scenario_ids": ["cpp-tck.federate-mom-subscription-query", "cpp-tck.federate-mom-subscription-query-contract"],
+      "cpp_tck_scope_note": "The public TCK requests and checks the empty directed-interaction subscription report response.",
+      "scope_note": "The case exercises directed object-class subscription reports."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesThatCanBeDeleted",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-object-instances-that-can-be-deleted-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report",
+        "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK requests and receives the standard deletable-object report, including the empty-count response path."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesUpdated",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-object-instances-updated-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-object-instances-updated-report",
+        "cpp-tck.joined-federate-mom-object-instances-updated-report-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK requests and decodes HLAreportObjectInstancesUpdated for known instances and checks the NULL/empty response case."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstancesReflected",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-object-instances-reflected-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-object-instances-reflected-report",
+        "cpp-tck.joined-federate-mom-object-instances-reflected-report-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK requests and decodes HLAreportObjectInstancesReflected for known instances and checks the NULL/empty response case."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportUpdatesSent",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-updates-sent-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-updates-sent-counts",
+        "cpp-tck.joined-federate-mom-updates-sent-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK verifies HLAreportUpdatesSent for updated attribute values and the empty-count response."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportReflectionsReceived",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-reflections-received-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-reflections-received-counts",
+        "cpp-tck.joined-federate-mom-reflections-received-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK verifies HLAreportReflectionsReceived for reflected attributes and the empty-count response."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionsSent",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-interactions-sent-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-interactions-sent-counts",
+        "cpp-tck.joined-federate-mom-interactions-sent-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK sends interactions, subscribes to HLAreportInteractionsSent, and verifies its report parameter/count records."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportInteractionsReceived",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-interactions-received-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-interactions-received-counts",
+        "cpp-tck.joined-federate-mom-interactions-received-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK verifies HLAreportInteractionsReceived for received interactions and the empty-count response."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionsSent",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-directed-interactions-sent-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
+        "cpp-tck.joined-federate-mom-directed-interactions-sent-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK validates HLAreportDirectedInteractionsSent for transmitted directed interactions and the empty-count case."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionsReceived",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-directed-interactions-received-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
+        "cpp-tck.joined-federate-mom-directed-interactions-received-counts-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK validates HLAreportDirectedInteractionsReceived for directed interactions delivered to the reporter and the empty-count case."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstanceInformation",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-object-instance-information-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federate-mom-object-instance-information",
+        "cpp-tck.federate-mom-object-instance-information-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK sends HLArequestObjectInstanceInformation and checks the resulting HLAreportObjectInstanceInformation callback."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportException",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-public-hlareport-exception-api-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federate-exception-report-delivery",
+        "cpp-tck.federate-exception-report-delivery-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK verifies HLAreportException suppression while disabled, delivery while enabled, and suppression after disabling again.",
+      "scope_note": "The public API case checks switch suppression/enabling, the originating joined federate, and the exact Table 9 parameter set."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-mom-report-single-region"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.service-report-interaction",
+        "cpp-tck.service-report-interaction-contract",
+        "cpp-tck.service-report-dimension-handle-set",
+        "cpp-tck.service-report-dimension-handle-set-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK directly receives successful-service reports; the dimension-handle-set pair additionally checks its single callback region and normalized point ranges. This is not coverage of every service-report path.",
+      "scope_note": "The public case directly observes this report while checking its federate/service-group region designator."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-federation-mom-exception-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federate-mom-exception-missing-parameter",
+        "cpp-tck.federate-mom-exception-missing-parameter-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK sends malformed HLAresignAction and HLAserviceReporting values and checks the resulting HLAreportMOMexception callbacks and standard parameters.",
+      "scope_note": "Private process exception-report cases are not used as public evidence."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-connection-lost-federate-lost-mom-interaction-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federate-lost-mom-report",
+        "cpp-tck.federate-lost-mom-report-contract"
+      ],
+      "cpp_tck_scope_note": "The primary and contract C++ TCK cases passed in HLA_EVOKED and HLA_IMMEDIATE modes against the installed Umbra package using the adapter-managed process-failure fixture. They verify delivery of HLAreportFederateLost, all four standard parameters, lost-federate identity/name, timestamp decoding, fault description, and reliable transportation. Evidence: out/mgw/federate-lost-installed-package-fixture-20261031.json. This is current Umbra package evidence for one P leaf, not independent-provider or all-P-leaf conformance."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFOMmoduleData",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-joined-federate-mom-fom-module-data-report-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federate-mom-fom-module-content-report",
+        "cpp-tck.federate-mom-fom-module-content-report-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK requests one joined federate's FOM-module contents through HLAreportFOMmoduleData. This does not cover the separate federation-scoped leaf.",
+      "scope_note": "This is the joined-federate report leaf; the federation-scoped leaf is listed separately."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPoints",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-federation-mom-synchronization-reports-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federation-mom-synchronization-queries",
+        "cpp-tck.federation-mom-synchronization-queries-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK checks HLAreportSynchronizationPoints carries exactly the synchronization point labels returned by the MOM query."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPointStatus",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-federation-mom-synchronization-reports-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federation-mom-synchronization-queries",
+        "cpp-tck.federation-mom-synchronization-queries-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK checks HLAreportSynchronizationPointStatus includes the label and federate status values and returns an empty status array for a missing label."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportFOMmoduleData",
+      "status": "public-catch2-case-mapped",
+      "case_ids": ["umbra-cpp-federation-mom-content-reports-focused-integration"],
+      "public_cpp_tck_scenario_ids": [
+        "cpp-tck.federation-mom-content-reports",
+        "cpp-tck.federation-mom-content-reports-contract"
+      ],
+      "cpp_tck_scope_note": "The public TCK requests federation FOM-module content and checks the HLAreportFOMmoduleData response; separate MIMdata name-conflict evidence is not counted here."
+    },
+    {
+      "interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportMIMData",
+      "mim_1516_2_interaction_class": "HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportMIMdata",
+      "status": "unresolved-cross-source-name-conflict",
+      "issue_id": "RL-393",
+      "related_case_ids": ["umbra-cpp-federation-mom-content-reports-focused-integration"],
+      "scope_note": "The case verifies the lowercase name from the bundled 1516.2 MIM. It is not counted as exact-name coverage of the uppercase 1516.1 Table 7 leaf; do not add aliases or silently rewrite the source."
+    }
+  ],
+  "next_action": "Verified 2026-10-31: current-source primary and contract C++ TCK runs pass for HLAreportFederateLost in HLA_EVOKED and HLA_IMMEDIATE modes (4/4); the focused internal process-recovery CTest lane also passes 4/4. There are now 24 public TCK witnesses among the 25 Table 7 P leaves; the sole remaining discrepancy is the separate RL-393 HLAreportMIMData/HLAreportMIMdata cross-source name conflict. Do not count the broad all-P-leaves requirement as complete or TCK-validated until that source conflict is resolved, and do not claim full conformance."
+}

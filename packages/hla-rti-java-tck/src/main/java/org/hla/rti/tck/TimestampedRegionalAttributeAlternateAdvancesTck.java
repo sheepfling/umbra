@@ -17,6 +17,7 @@ import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
@@ -115,6 +116,22 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
                subscribed[i] = true;
             }
          }
+         if (!defaultRegion) {
+            for (int i = 1; i < 4; ++i) {
+               int receiver = i;
+               recorders[receiver].reflectionHook = reflection -> {
+                  if (reflection.regions != null && reflection.regions.size() == 1) {
+                     RegionHandle conveyedRegion = reflection.regions.iterator().next();
+                     reflection.regionDimensions =
+                        ambassadors[receiver].getDimensionHandleSet(conveyedRegion);
+                     reflection.firstBounds = ambassadors[receiver].getRangeBounds(
+                        conveyedRegion, first[receiver]);
+                     reflection.secondBounds = ambassadors[receiver].getRangeBounds(
+                        conveyedRegion, second[receiver]);
+                  }
+               };
+            }
+         }
          ObjectInstanceHandle object = defaultRegion
             ? ambassadors[0].registerObjectInstance(classes[0])
             : ambassadors[0].registerObjectInstanceWithRegions(classes[0], pairs[0]);
@@ -185,9 +202,13 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
          for (int i = 1; i < 4; ++i) {
             JavaTckSupport.check(recorders[i].reflections.size() == 1,
                "regional alternate recipient got the wrong reflection count");
+            if (recorders[i].callbackFailure != null) {
+               throw new AssertionError("regional alternate callback metadata query failed",
+                  recorders[i].callbackFailure);
+            }
             assertReflection(ambassadors[i], recorders[i].reflections.get(0), object,
                attributes[i], producer, value, tag, messageTime, retraction.handle,
-               defaultRegion, regions[0]);
+               defaultRegion, first[i], second[i]);
          }
          JavaTckSupport.check(recorders[0].grants.size() == 1
                && publisherTarget.equals(recorders[0].grants.get(0)),
@@ -328,16 +349,39 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
    private static void assertReflection(RTIambassador ambassador, Reflection actual,
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
          byte[] value, byte[] tag, LogicalTime<?, ?> time,
-         MessageRetractionHandle retraction, boolean defaultRegion, RegionHandle sourceRegion)
+         MessageRetractionHandle retraction, boolean defaultRegion,
+         DimensionHandle firstDimension, DimensionHandle secondDimension)
          throws Exception {
-      JavaTckSupport.check(object.equals(actual.object) && actual.values.size() == 1
-            && Arrays.equals(value, actual.values.get(attribute)) && Arrays.equals(tag, actual.tag)
-            && producer.equals(actual.producer) && time.equals(actual.time)
-            && actual.sentOrder == OrderType.TIMESTAMP && actual.receivedOrder == OrderType.TIMESTAMP
-            && retraction.equals(actual.retraction) && actual.regions != null
-            && (defaultRegion ? actual.regions.isEmpty()
-               : actual.regions.size() == 1 && actual.regions.contains(sourceRegion)),
-         "regional alternate reflection returned incorrect value or metadata");
+      JavaTckSupport.check(object.equals(actual.object) && actual.values.size() == 1,
+         "regional alternate reflection returned the wrong object or attribute set");
+      JavaTckSupport.check(Arrays.equals(value, actual.values.get(attribute))
+            && Arrays.equals(tag, actual.tag),
+         "regional alternate reflection did not preserve value or tag");
+      JavaTckSupport.check(producer.equals(actual.producer) && time.equals(actual.time),
+         "regional alternate reflection returned the wrong producer or time");
+      JavaTckSupport.check(actual.sentOrder == OrderType.TIMESTAMP
+            && actual.receivedOrder == OrderType.TIMESTAMP,
+         "regional alternate reflection returned the wrong order metadata");
+      JavaTckSupport.check(retraction.equals(actual.retraction),
+         "regional alternate reflection omitted the message retraction handle");
+      JavaTckSupport.check(actual.regions != null,
+         "regional alternate reflection omitted the source region designator set");
+      if (defaultRegion) {
+         JavaTckSupport.check(actual.regions.isEmpty(),
+            "regional alternate reflection returned a designator for the default region");
+      } else {
+         JavaTckSupport.check(actual.regions.size() == 1,
+            "regional alternate reflection returned " + actual.regions.size()
+               + " source region designators");
+         JavaTckSupport.check(actual.regionDimensions != null
+               && actual.regionDimensions.size() == 2
+               && actual.regionDimensions.contains(firstDimension)
+               && actual.regionDimensions.contains(secondDimension)
+               && actual.firstBounds != null && actual.firstBounds.lower == 1
+               && actual.firstBounds.upper == 5 && actual.secondBounds != null
+               && actual.secondBounds.lower == 1 && actual.secondBounds.upper == 5,
+            "regional alternate reflection changed the copied source region ranges");
+      }
       TransportationTypeHandle transportation = actual.transportation;
       JavaTckSupport.check(transportation != null
             && !ambassador.getTransportationTypeName(transportation).isEmpty(),
@@ -388,6 +432,8 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
       private RegionHandleSet regions;
+      private DimensionHandleSet regionDimensions;
+      private RangeBounds firstBounds, secondBounds;
       private LogicalTime<?, ?> time;
       private OrderType sentOrder, receivedOrder;
       private MessageRetractionHandle retraction;
@@ -402,6 +448,8 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
    }
 
    private static final class Recorder {
+      private volatile Throwable callbackFailure;
+      private volatile ReflectionHook reflectionHook;
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
@@ -428,13 +476,22 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
                   reflection.tag = ((byte[]) arguments[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) arguments[3];
                   reflection.producer = (FederateHandle) arguments[4];
-                  reflection.regions = (RegionHandleSet) arguments[5];
+                  reflection.regions = arguments[5] == null ? null
+                     : ((RegionHandleSet) arguments[5]).clone();
                   reflection.time = (LogicalTime<?, ?>) arguments[6];
                   reflection.sentOrder = (OrderType) arguments[7];
                   reflection.receivedOrder = (OrderType) arguments[8];
                   reflection.retraction = (MessageRetractionHandle) arguments[9];
                   reflections.add(reflection);
                   callbackOrder.add("reflect");
+                  ReflectionHook hook = reflectionHook;
+                  if (hook != null) {
+                     try {
+                        hook.inspect(reflection);
+                     } catch (Throwable failure) {
+                        callbackFailure = failure;
+                     }
+                  }
                } else if ("timeAdvanceGrant".equals(name) && arguments != null) {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
                   callbackOrder.add("grant");
@@ -454,4 +511,7 @@ final class TimestampedRegionalAttributeAlternateAdvancesTck {
             });
       }
    }
+
+   @FunctionalInterface
+   private interface ReflectionHook { void inspect(Reflection reflection) throws Exception; }
 }

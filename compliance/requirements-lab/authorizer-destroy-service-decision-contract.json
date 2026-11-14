@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK contract for the IEEE 1516.1-2025 §12.5 p. 356 l. 293 federation-operation decision path. The current-package adapter supplies a custom Authorizer provider and protected RTI Initialization Data profile. The TCK creates a federation, requires Unauthorized from a denied Destroy Federation Execution, joins the same federation to prove it remains available, resigns, retries Destroy successfully, and disconnects. This bounded local service-behavior evidence is not full §12.5 conformance or provider interoperability evidence.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-authorizer-destroy-service-decision",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-356-l293-97",
+      "clause_id": "clause-12.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp",
+      "source_symbol": "scenarioAuthorizerDestroyServiceDecision",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_configuration_authorization.cpp::scenarioAuthorizerDestroyServiceDecision"
+      ]
+    }
+  ]
+}

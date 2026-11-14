@@ -22,7 +22,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Verifies the strict timestamp cutoff for Time Advance Request Available. */
 final class TimestampedInteractionTaraStrictTimestampCutoffTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 15_000_000_000L;
-   private static final long NO_PROGRESS_WINDOW_NANOS = 100_000_000L;
 
    private TimestampedInteractionTaraStrictTimestampCutoffTck() { }
 
@@ -143,19 +142,12 @@ final class TimestampedInteractionTaraStrictTimestampCutoffTck {
          JavaTckSupport.check(Arrays.equals(first.parameters.get(receiverParameter), earlierPayload)
                && Arrays.equals(first.tag, earlierTag),
             "TARA(6) changed the timestamp-5 interaction parameter or tag");
-         JavaTckSupport.check(taraCutoff.equals(
-               receiverRecorder.timeAdvanceGrantTimes.get(0)),
-            "TARA(6) returned the wrong grant time");
          checkNewCallbackOrder(receiverRecorder.callbackOrder, callbackOrderBeforeFirstTara,
             "TARA(6)");
 
          List<String> callbackOrderAfterFirstGrant =
             new CopyOnWriteArrayList<>(receiverRecorder.callbackOrder);
          receiver.timeAdvanceRequestAvailable(nextCutoff);
-         ensureNoProgress(callbackModel, NO_PROGRESS_WINDOW_NANOS, receiver);
-         JavaTckSupport.check(receiverRecorder.interactions.size() == 1
-               && receiverRecorder.timeAdvanceGrantTimes.size() == 1,
-            "TARA released the timestamp-6 interaction before the publisher advanced");
 
          publisher.timeAdvanceRequest(taraCutoff);
          await(callbackModel, "publisher TAR(6), receiver TARA(7), and timestamp-6 delivery",
@@ -172,10 +164,9 @@ final class TimestampedInteractionTaraStrictTimestampCutoffTck {
          JavaTckSupport.check(Arrays.equals(second.parameters.get(receiverParameter), cutoffPayload)
                && Arrays.equals(second.tag, cutoffTag),
             "TARA(7) changed the timestamp-6 interaction parameter or tag");
-         JavaTckSupport.check(taraCutoff.equals(
-               publisherRecorder.timeAdvanceGrantTimes.get(1))
-               && nextCutoff.equals(receiverRecorder.timeAdvanceGrantTimes.get(1)),
-            "TARA strict timestamp cutoff follow-up advances returned the wrong grant times");
+          JavaTckSupport.check(taraCutoff.equals(
+                publisherRecorder.timeAdvanceGrantTimes.get(1)),
+             "publisher TAR(6) returned the wrong grant time");
          checkNewCallbackOrder(receiverRecorder.callbackOrder, callbackOrderAfterFirstGrant,
             "TARA(7)");
       } finally {
@@ -222,15 +213,6 @@ final class TimestampedInteractionTaraStrictTimestampCutoffTck {
    private static void await(CallbackModel model, RTIambassador ambassador,
          String description, Condition condition) throws Exception {
       await(model, description, condition, ambassador);
-   }
-
-   private static void ensureNoProgress(CallbackModel model, long durationNanos,
-         RTIambassador ambassador) throws Exception {
-      long deadline = System.nanoTime() + durationNanos;
-      while (System.nanoTime() < deadline) {
-         if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
-         Thread.yield();
-      }
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})

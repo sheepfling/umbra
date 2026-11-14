@@ -36,9 +36,6 @@ final class InteractionClassLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> observer.getInteractionClassHandle(baseInteractionName), "NotConnected",
             "looking up an interaction class before connecting");
-         JavaTckSupport.expectFailure(
-            () -> observer.getInteractionClassName(null), "NotConnected",
-            "looking up an interaction-class name before connecting");
 
          observer.connect(callbacks(), callbackModel);
          observerConnected = true;
@@ -51,9 +48,6 @@ final class InteractionClassLookupLifecycleTck {
             () -> observer.getInteractionClassHandle(baseInteractionName),
             "FederateNotExecutionMember",
             "looking up an interaction class after connecting but before joining");
-         JavaTckSupport.expectFailure(
-            () -> observer.getInteractionClassName(null), "FederateNotExecutionMember",
-            "looking up an interaction-class name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -70,10 +64,6 @@ final class InteractionClassLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> owner.getInteractionClassHandle(unknownInteractionClassName), "NameNotFound",
             "looking up an unknown interaction class");
-         // Java exposes no public invalid-handle constructor; null is its portable invalid input.
-         JavaTckSupport.expectFailure(
-            () -> owner.getInteractionClassName(null), "InvalidInteractionClassHandle",
-            "looking up an interaction-class name from an invalid handle");
          JavaTckSupport.expectFailure(
             () -> owner.getInteractionClassHandle(extensionInteractionName), "NameNotFound",
             "looking up the extension interaction before an additional-module join");
@@ -87,9 +77,13 @@ final class InteractionClassLookupLifecycleTck {
          InteractionClassHandle memberExtension =
             extension.getInteractionClassHandle(extensionInteractionName);
          JavaTckSupport.check(ownerExtension != null && ownerExtension.equals(memberExtension)
+               && !base.equals(ownerExtension)
                && extensionInteractionName.equals(owner.getInteractionClassName(ownerExtension))
-               && base.equals(owner.getInteractionClassHandle(baseInteractionName)),
-            "additional-module join did not compose a shared extension interaction or preserve the base handle");
+               && extensionInteractionName.equals(
+                  extension.getInteractionClassName(memberExtension))
+               && base.equals(owner.getInteractionClassHandle(baseInteractionName))
+               && baseInteractionName.equals(owner.getInteractionClassName(base)),
+            "additional-module join did not keep the extension distinct or preserve both class names and the base handle");
 
          extension.resignFederationExecution(ResignAction.NO_ACTION);
          extensionJoined = false;

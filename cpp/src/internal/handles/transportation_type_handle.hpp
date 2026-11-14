@@ -8,6 +8,11 @@
 
 namespace rti1516_2025::umbra_binding_detail {
 
+// Stable Umbra handle values used by the process callback bridge; the IEEE
+// standard does not prescribe these numeric representations.
+inline constexpr std::uint64_t kHlaReliableTransportationTypeValue = 1U;
+inline constexpr std::uint64_t kHlaBestEffortTransportationTypeValue = 2U;
+
 // Private construction and mandatory-name boundary for the official
 // TransportationTypeHandle value type. IEEE 1516.1-2025 requires every RTI to
 // support HLAreliable and HLAbestEffort. Additional transportation types are

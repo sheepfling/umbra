@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification>
+    <name>Portable TCK additional FOM with conflicting current-FDD interaction order</name>
+    <type>FOM</type>
+    <version>1.0</version>
+  </modelIdentification>
+  <interactions>
+    <interactionClass>
+      <name>HLAinteractionRoot</name>
+      <sharing>Neither</sharing>
+      <interactionClass>
+        <name>TckInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <transportation>HLAreliable</transportation>
+        <order>TimeStamp</order>
+        <parameter>
+          <name>Payload</name>
+          <dataType>HLAbyte</dataType>
+          <semantics>Portable ordinary P0 parameter.</semantics>
+        </parameter>
+      </interactionClass>
+    </interactionClass>
+  </interactions>
+</objectModel>

@@ -89,13 +89,15 @@ bool EmbeddedFederationRegistry::validDefinition(
 
 EmbeddedFederationRegistry::EmbeddedFederationRegistry(
     std::shared_ptr<RuntimeInstrumentation> instrumentation,
-    std::shared_ptr<FederationSaveCommitStore> saveCommitStore)
+    std::shared_ptr<FederationSaveCommitStore> saveCommitStore,
+    FomHandleAllocator::RandomValueProvider fomHandleRandomValueProvider)
     : instrumentation_(
           instrumentation ? std::move(instrumentation)
                            : std::make_shared<RuntimeInstrumentation>()),
       saveCommitStore_(
           saveCommitStore ? std::move(saveCommitStore)
-                          : std::make_shared<MemoryFederationSaveCommitStore>()) {}
+                          : std::make_shared<MemoryFederationSaveCommitStore>()),
+      fomHandleAllocator_(std::move(fomHandleRandomValueProvider)) {}
 
 bool EmbeddedFederationRegistry::configureSaveCommitStoreBeforeFederations(
     std::shared_ptr<FederationSaveCommitStore> saveCommitStore) {
@@ -539,6 +541,7 @@ void EmbeddedFederationRegistry::appendRestoreCompletionNotifications(
         route == federation.interactionCallbackRoutes.end() || !route->second) {
       continue;
     }
+    auto const reportRoute = federation.serviceReportRoutes.find(federateId);
     auto const publicReportRoute = federation.publicServiceReportRoutes.find(federateId);
     FederationRestoreNotification notification;
     notification.kind = FederationRestoreNotificationKind::completed;
@@ -550,6 +553,10 @@ void EmbeddedFederationRegistry::appendRestoreCompletionNotifications(
     notification.successful = successful;
     notification.failureReason = failureReason;
     notification.callbackRoute = route->second;
+    notification.serviceReportRoute =
+        reportRoute == federation.serviceReportRoutes.end()
+        ? FederateServiceReportRoute{}
+        : reportRoute->second;
     notification.publicServiceReportRoute =
         publicReportRoute == federation.publicServiceReportRoutes.end()
         ? FederatePublicServiceReportRoute{}
@@ -582,8 +589,16 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
   if (acceptedAttributeValues != nullptr) {
     auto const objectInstance = federation->second.objectInstances.find(
         objectInstanceHandle);
-    if (objectInstance == federation->second.objectInstances.end() ||
-        objectInstance->second.deleteAccepted) {
+    auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+        objectInstanceHandle);
+    bool const applicationObjectExists =
+        objectInstance != federation->second.objectInstances.end() &&
+        !objectInstance->second.deleteAccepted;
+    bool const momObjectExists =
+        momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end() &&
+        !momObject->second.federationExecutionObject &&
+        momObject->second.knownFederateIds.contains(federateId);
+    if (!applicationObjectExists && !momObjectExists) {
       return FederationRegistryStatus::invalid_request;
     }
     std::set<std::uint64_t> valueHandles;
@@ -593,11 +608,21 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
           !valueHandles.insert(attributeHandle).second) {
         return FederationRegistryStatus::invalid_request;
       }
-      auto const owner = objectInstance->second.attributeOwnersByHandle.find(
-          attributeHandle);
-      if (owner == objectInstance->second.attributeOwnersByHandle.end() ||
-          owner->second != federateId) {
-        return FederationRegistryStatus::invalid_request;
+      if (applicationObjectExists) {
+        auto const owner = objectInstance->second.attributeOwnersByHandle.find(
+            attributeHandle);
+        if (owner == objectInstance->second.attributeOwnersByHandle.end() ||
+            owner->second != federateId) {
+          return FederationRegistryStatus::invalid_request;
+        }
+      } else {
+        auto const owner = momObject->second.attributeOwnersByHandle.find(
+            attributeHandle);
+        if (owner == momObject->second.attributeOwnersByHandle.end() ||
+            owner->second != federateId ||
+            momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle)) {
+          return FederationRegistryStatus::invalid_request;
+        }
       }
     }
   }
@@ -605,9 +630,19 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
   // application-value ledger is mutated, keeping this accepted boundary
   // atomic for callers that retain the copied value vector.
   if (acceptedAttributeValues != nullptr) {
-    auto& objectInstance = federation->second.objectInstances.at(objectInstanceHandle);
-    for (auto const& [attributeHandle, value] : *acceptedAttributeValues) {
-      objectInstance.attributeValues.insert_or_assign(attributeHandle, value);
+    auto const objectInstance = federation->second.objectInstances.find(
+        objectInstanceHandle);
+    if (objectInstance != federation->second.objectInstances.end() &&
+        !objectInstance->second.deleteAccepted) {
+      for (auto const& [attributeHandle, value] : *acceptedAttributeValues) {
+        objectInstance->second.attributeValues.insert_or_assign(attributeHandle, value);
+      }
+    } else {
+      auto& momObject = federation->second.rtiOwnedJoinedFederateMomObjects.at(
+          objectInstanceHandle);
+      for (auto const& [attributeHandle, value] : *acceptedAttributeValues) {
+        momObject.applicationAttributeValues.insert_or_assign(attributeHandle, value);
+      }
     }
   }
   if (member->second.successfulUpdateAttributeValuesCount !=
@@ -622,10 +657,17 @@ EmbeddedFederationRegistry::recordSuccessfulUpdateAttributeValues(
   // objects only.
   auto const objectInstance = federation->second.objectInstances.find(
       objectInstanceHandle);
-  if (registeredObjectClassHandle == 0U &&
-      objectInstance != federation->second.objectInstances.end() &&
-      !objectInstance->second.deleteAccepted) {
-    registeredObjectClassHandle = objectInstance->second.registeredObjectClassHandle;
+  if (registeredObjectClassHandle == 0U) {
+    if (objectInstance != federation->second.objectInstances.end() &&
+        !objectInstance->second.deleteAccepted) {
+      registeredObjectClassHandle = objectInstance->second.registeredObjectClassHandle;
+    } else {
+      auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+          objectInstanceHandle);
+      if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+        registeredObjectClassHandle = momObject->second.objectClassHandle;
+      }
+    }
   }
   if (registeredObjectClassHandle != 0U) {
     member->second.successfullyUpdatedObjectInstanceClassHandles.insert_or_assign(
@@ -918,8 +960,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
               break;
             }
             for (std::uint64_t const associatedRegionHandle : associated->second) {
-              if (regionOverlapsDefault(
+              if (objectAttributeRegionOverlapsDefault(
                       federation,
+                      objectInstance.registeredObjectClassHandle,
+                      ownedAttributeHandle,
                       associatedRegionHandle,
                       regionOverrides)) {
                 activeSubscriptionEstablished = true;
@@ -938,8 +982,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
               continue;
             }
             if (!hasExplicitUpdateRegion) {
-              if (regionOverlapsDefault(
+              if (objectAttributeRegionOverlapsDefault(
                       federation,
+                      objectInstance.registeredObjectClassHandle,
+                      ownedAttributeHandle,
                       subscribedRegionHandle,
                       regionOverrides)) {
                 activeSubscriptionEstablished = true;
@@ -948,8 +994,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
               continue;
             }
             for (std::uint64_t const associatedRegionHandle : associated->second) {
-              if (regionsOverlap(
+              if (objectAttributeRegionsOverlap(
                       federation,
+                      objectInstance.registeredObjectClassHandle,
+                      ownedAttributeHandle,
                       subscribedRegionHandle,
                       associatedRegionHandle,
                       regionOverrides)) {
@@ -1039,8 +1087,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             return currentClassHandle;
           }
           for (std::uint64_t const associatedRegionHandle : associated->second) {
-            if (regionOverlapsDefault(
+            if (objectAttributeRegionOverlapsDefault(
                     federation,
+                    objectInstance.registeredObjectClassHandle,
+                    ownedAttributeHandle,
                     associatedRegionHandle,
                     regionOverrides)) {
               return currentClassHandle;
@@ -1055,8 +1105,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             continue;
           }
           if (!hasExplicitUpdateRegion) {
-            if (regionOverlapsDefault(
+            if (objectAttributeRegionOverlapsDefault(
                     federation,
+                    objectInstance.registeredObjectClassHandle,
+                    ownedAttributeHandle,
                     subscribedRegionHandle,
                     regionOverrides)) {
               return currentClassHandle;
@@ -1064,8 +1116,10 @@ EmbeddedFederationRegistry::candidateObjectInstanceDiscoveryClass(
             continue;
           }
           for (std::uint64_t const associatedRegionHandle : associated->second) {
-            if (regionsOverlap(
+            if (objectAttributeRegionsOverlap(
                     federation,
+                    objectInstance.registeredObjectClassHandle,
+                    ownedAttributeHandle,
                     subscribedRegionHandle,
                     associatedRegionHandle,
                     regionOverrides)) {
@@ -1101,6 +1155,17 @@ EmbeddedFederationRegistry::knownObjectInstanceSnapshot(
 bool EmbeddedFederationRegistry::canPurgeDeletedObjectInstance(
     Federation::ObjectInstance const& objectInstance) noexcept {
   return objectInstance.deleteAccepted &&
+         objectInstance.knownObjectClassHandlesByFederate.empty() &&
+         objectInstance.pendingDiscoveryFederates.empty() &&
+         objectInstance.pendingRemovalFederates.empty() &&
+         !objectInstance.pendingTimestampedDeletionMessageId.has_value() &&
+         objectInstance.pendingTimestampedRemovalFederates.empty();
+}
+
+bool EmbeddedFederationRegistry::canPurgeOrphanObjectInstance(
+    Federation::ObjectInstance const& objectInstance) noexcept {
+  return !objectInstance.deleteAccepted &&
+         objectInstance.attributeOwnersByHandle.empty() &&
          objectInstance.knownObjectClassHandlesByFederate.empty() &&
          objectInstance.pendingDiscoveryFederates.empty() &&
          objectInstance.pendingRemovalFederates.empty() &&
@@ -1481,7 +1546,16 @@ EmbeddedFederationRegistry::candidateAttributeOwnershipQueryRecipient(
       continue;
     }
     std::optional<std::uint64_t> ownerId;
-    if (!rtiOwnedMomObject) {
+    if (rtiOwnedMomObject) {
+      if (momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle)) {
+        ownerId = 0U;
+      } else {
+        auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+        if (owner != momObject->second.attributeOwnersByHandle.end()) {
+          ownerId = owner->second;
+        }
+      }
+    } else {
       auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
       if (owner != instance->second.attributeOwnersByHandle.end()) {
         ownerId = owner->second;
@@ -1489,20 +1563,19 @@ EmbeddedFederationRegistry::candidateAttributeOwnershipQueryRecipient(
     }
     switch (reportKind) {
       case AttributeOwnershipQueryReportKind::federate:
-        if (!rtiOwnedMomObject &&
-            ownerId && *ownerId == owningFederateId &&
+        if (ownerId && *ownerId == owningFederateId &&
             federation.members.contains(owningFederateId)) {
           recipient.attributeHandles.insert(attributeHandle);
         }
         break;
       case AttributeOwnershipQueryReportKind::unowned:
-        if (!rtiOwnedMomObject &&
-            !ownerId) {
+        if (!ownerId) {
           recipient.attributeHandles.insert(attributeHandle);
         }
         break;
       case AttributeOwnershipQueryReportKind::rti:
-        if (rtiOwnedMomObject) {
+        if (rtiOwnedMomObject &&
+            momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle)) {
           recipient.attributeHandles.insert(attributeHandle);
         }
         break;
@@ -1551,6 +1624,39 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
       federation.definition.catalog->interactionClass(*sentClassName) == nullptr) {
     return std::nullopt;
   }
+  auto const availableDimensions = availableInteractionDimensions(
+      federation,
+      sentInteractionClassHandle);
+  if (!availableDimensions) {
+    return std::nullopt;
+  }
+  std::map<std::uint64_t, RegionSpecificationSnapshot> realizedRegionOverrides;
+  if (regionOverrides != nullptr) {
+    realizedRegionOverrides = *regionOverrides;
+  }
+  auto realizeInteractionRegion = [&](std::uint64_t regionHandle) {
+    RegionSpecificationSnapshot snapshot;
+    auto const overrideRegion = realizedRegionOverrides.find(regionHandle);
+    if (overrideRegion != realizedRegionOverrides.end()) {
+      snapshot = overrideRegion->second;
+    } else {
+      auto const region = federation.regions.find(regionHandle);
+      if (region == federation.regions.end()) {
+        return false;
+      }
+      snapshot = RegionSpecificationSnapshot{
+          region->second.dimensionHandles,
+          region->second.committedRangeBounds,
+          region->second.specificationCommitted};
+    }
+    realizedRegionOverrides.insert_or_assign(
+        regionHandle,
+        realizeRegionForAvailableDimensions(
+            federation,
+            snapshot,
+            *availableDimensions));
+    return true;
+  };
 
   auto const declarations = federation.interactionDeclarations.find(receivingFederateId);
   if (declarations == federation.interactionDeclarations.end()) {
@@ -1636,17 +1742,23 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
     // Keep the explicit-source distinction here instead of treating every
     // non-null sent-region set as a default-fallback suppression: a positive-
     // dimensional Send Interaction With Regions remains eligible for an
-    // ordinary subscription once any shadowing regional declaration is gone.
+    // ordinary subscription even when a separate regional subscription is
+    // disjoint.
     bool const explicitSentRegionOverlapsDefault =
         hasExplicitSentRegion &&
         std::any_of(
             sentRegionHandles->begin(),
             sentRegionHandles->end(),
-            [&federation, regionOverrides](std::uint64_t regionHandle) {
-              return regionOverlapsDefault(federation, regionHandle, regionOverrides);
+            [&federation, &realizeInteractionRegion, &realizedRegionOverrides](
+                std::uint64_t regionHandle) {
+              return realizeInteractionRegion(regionHandle) &&
+                  regionOverlapsDefault(
+                      federation,
+                      regionHandle,
+                      &realizedRegionOverrides);
             });
-    // §9.1.5 treats ordinary DM and With Regions subscription effects as
-    // independent declarations. A disjoint regional declaration must not
+    // This planner treats ordinary DM and With Regions subscription effects
+    // as independent declarations. A disjoint regional declaration must not
     // shadow the ordinary subscription's default-region route.
     bool const subscribedWithoutRegion =
         ordinarySubscription != declarations->second.subscribedInteractionClasses.end() &&
@@ -1656,10 +1768,12 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
     if (!subscribedWithoutRegion && hasExplicitSubscriptionRegion) {
       if (sentRegionHandles == nullptr) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if ((active || activeSubscriptionEstablished) && regionOverlapsDefault(
-                                                           federation,
-                                                           subscribedRegionHandle,
-                                                           regionOverrides)) {
+          if ((active || activeSubscriptionEstablished) &&
+              realizeInteractionRegion(subscribedRegionHandle) &&
+              regionOverlapsDefault(
+                  federation,
+                  subscribedRegionHandle,
+                  &realizedRegionOverrides)) {
             subscribedWithRegion = true;
             break;
           }
@@ -1670,8 +1784,13 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
             continue;
           }
           for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
-            if (regionsOverlap(
-                    federation, subscribedRegionHandle, sentRegionHandle, regionOverrides)) {
+            if (realizeInteractionRegion(subscribedRegionHandle) &&
+                realizeInteractionRegion(sentRegionHandle) &&
+                regionsOverlap(
+                    federation,
+                    subscribedRegionHandle,
+                    sentRegionHandle,
+                    &realizedRegionOverrides)) {
               subscribedWithRegion = true;
               break;
             }
@@ -1709,6 +1828,12 @@ EmbeddedFederationRegistry::candidateReceiveOrderInteractionRecipient(
                 parameterHandle)) {
           recipient.receivedParameterHandles.insert(parameterHandle);
         }
+      }
+      if (producingSource.kind() == InteractionProducer::Kind::rti &&
+          recipient.conveyRegionDesignatorSets && sentRegionHandles != nullptr &&
+          !sentRegionHandles->empty() && regionOverrides != nullptr) {
+        recipient.sentRegionHandles = *sentRegionHandles;
+        recipient.sentRegionSnapshots = *regionOverrides;
       }
       return recipient;
     }
@@ -1827,6 +1952,10 @@ ExceptionReportPlan EmbeddedFederationRegistry::planExceptionReport(
         &endpointRegionHandles,
         &endpointOverride);
     if (recipient) {
+      if (recipient->conveyRegionDesignatorSets) {
+        recipient->sentRegionHandles = endpointRegionHandles;
+        recipient->sentRegionSnapshots = endpointOverride;
+      }
       result.recipients.push_back(std::move(*recipient));
     }
   }
@@ -1865,7 +1994,7 @@ EmbeddedFederationRegistry::exceptionReportRecipientFor(
   std::set<std::uint64_t> const endpointRegionHandles{
       routing->endpointRegionHandle,
   };
-  return candidateReceiveOrderInteractionRecipient(
+  auto recipient = candidateReceiveOrderInteractionRecipient(
       federation->second,
       InteractionProducer::rti(),
       receivingFederateId,
@@ -1873,6 +2002,11 @@ EmbeddedFederationRegistry::exceptionReportRecipientFor(
       sentParameterHandles,
       &endpointRegionHandles,
       &endpointOverride);
+  if (recipient && recipient->conveyRegionDesignatorSets) {
+    recipient->sentRegionHandles = endpointRegionHandles;
+    recipient->sentRegionSnapshots = endpointOverride;
+  }
+  return recipient;
 }
 
 

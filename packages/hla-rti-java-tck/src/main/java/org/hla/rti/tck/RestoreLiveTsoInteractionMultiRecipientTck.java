@@ -95,7 +95,7 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
          LogicalTime<?, ?> time7 = offset(initial, epsilon, 7);
          LogicalTime<?, ?> time10 = offset(initial, epsilon, 10);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          MessageRetractionReturn saved = publisher.sendInteraction(
@@ -113,8 +113,9 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
                && firstEvents.timeGrants.size() == 1
                && secondEvents.timeGrants.size() == 1,
             "three-member save initiation and time-one grants");
-         JavaTckSupport.check(firstEvents.timeGrants.get(0).equals(time1)
-               && secondEvents.timeGrants.get(0).equals(time1),
+         JavaTckSupport.check(Arrays.equals(encodeTime(firstEvents.timeGrants.get(0)),
+               encodeTime(time1))
+               && Arrays.equals(encodeTime(secondEvents.timeGrants.get(0)), encodeTime(time1)),
             "a constrained recipient did not reach time one before save");
          publisher.federateSaveBegun();
          first.federateSaveBegun();
@@ -173,8 +174,10 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
          await(members, () -> firstEvents.retractions.size() == 1
                && secondEvents.retractions.size() == 1,
             "both restored request-retraction callbacks");
-         JavaTckSupport.check(firstEvents.retractions.get(0).equals(saved.handle)
-               && secondEvents.retractions.get(0).equals(saved.handle)
+         JavaTckSupport.check(Arrays.equals(encodeHandle(firstEvents.retractions.get(0)),
+               encodeHandle(saved.handle))
+               && Arrays.equals(encodeHandle(secondEvents.retractions.get(0)),
+                  encodeHandle(saved.handle))
                && firstEvents.order.equals(List.of("request-retraction"))
                && secondEvents.order.equals(List.of("request-retraction")),
             "restored retraction callbacks differed between recipients");
@@ -206,7 +209,7 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
          InteractionClassHandle interaction, ParameterHandle parameter,
          FederateHandle publisher, MessageRetractionHandle saved,
          LogicalTime<?, ?> time7, LogicalTime<?, ?> time5,
-         byte[] payload, byte[] tag) {
+         byte[] payload, byte[] tag) throws Exception {
       Delivery delivered = events.deliveries.get(0);
       FlushGrant grant = events.flushGrants.get(0);
       JavaTckSupport.check(delivered.interaction.equals(interaction)
@@ -214,12 +217,13 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
             && Arrays.equals(delivered.parameters.get(parameter), payload)
             && Arrays.equals(delivered.tag, tag)
             && delivered.producer.equals(publisher)
-            && delivered.time.equals(time7)
+            && Arrays.equals(encodeTime(delivered.time), encodeTime(time7))
             && delivered.sentOrder == OrderType.TIMESTAMP
             && delivered.receivedOrder == OrderType.TIMESTAMP
             && (delivered.regions == null || delivered.regions.isEmpty())
-            && delivered.retraction.equals(saved)
-            && grant.time.equals(time5) && grant.optimisticTime.equals(time7)
+            && Arrays.equals(encodeHandle(delivered.retraction), encodeHandle(saved))
+            && Arrays.equals(encodeTime(grant.time), encodeTime(time5))
+            && Arrays.equals(encodeTime(grant.optimisticTime), encodeTime(time7))
             && events.order.equals(List.of("interaction", "flush-grant")),
          "restored recipient interaction, grant, or callback ordering changed");
    }
@@ -230,6 +234,18 @@ final class RestoreLiveTsoInteractionMultiRecipientTck {
       while (!condition.getAsBoolean() && System.nanoTime() < deadline)
          for (RTIambassador member : members) member.evokeCallback(0.0);
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})

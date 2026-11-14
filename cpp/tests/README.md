@@ -3086,6 +3086,17 @@ to one object at one distinct count, and decodes the nested
     cmake --build .build --config Release --target umbra_joined_federate_mom_object_instances_updated_report_catch2
     ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instances_updated_report\.catch2\.Embedded MOM requestObjectInstancesUpdated reports class-grouped counts$" --output-on-failure
 
+The same executable has a focused no-update NULL-response case. It requests
+`HLAreportObjectInstancesUpdated` for a joined subject with no successful
+updates and checks the callback-gated, single-parameter empty/undefined result
+against the direct §11.4.1(d) requirement anchor:
+
+    python tools/query_rti_work.py focus joined-federate-mom-object-instances-updated-null-response --summary --compact
+    python tools/query_rti_work.py trace "Embedded MOM requestObjectInstancesUpdated returns NULL when no update information exists" --summary --compact
+    python tools/query_rti_work.py check --lane joined-federate-mom-object-instances-updated-null-response --summary --compact
+    cmake --build .build --config Release --target umbra_joined_federate_mom_object_instances_updated_report_catch2
+    ctest --test-dir .build -C Release -R "^umbra\.joined_federate_mom_object_instances_updated_report\.catch2\.Embedded MOM requestObjectInstancesUpdated returns NULL when no update information exists$" --output-on-failure
+
 HLA_IMMEDIATE, transport/timestamp variants, the remaining MOM request/report
 families, and promotion evidence remain separate lanes.
 

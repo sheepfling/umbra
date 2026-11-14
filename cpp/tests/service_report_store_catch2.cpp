@@ -27,12 +27,34 @@
 #include <thread>
 #include <vector>
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 namespace {
 
 std::filesystem::path temporaryDirectory() {
   static std::atomic_uint64_t next{0};
-  return std::filesystem::temp_directory_path() /
-      ("umbra-service-report-store-" + std::to_string(++next));
+#if defined(_WIN32)
+  auto const processId = ::GetCurrentProcessId();
+#else
+  auto const processId = ::getpid();
+#endif
+  for (;;) {
+    auto const candidate = std::filesystem::temp_directory_path() /
+        ("umbra-service-report-store-" + std::to_string(processId) + "-" +
+         std::to_string(++next));
+    std::error_code error;
+    if (std::filesystem::create_directory(candidate, error)) {
+      return candidate;
+    }
+    if (error && error != std::errc::file_exists) {
+      throw std::filesystem::filesystem_error(
+          "Unable to create a unique service-report test directory",
+          candidate,
+          error);
+    }
+  }
 }
 
 #if defined(_WIN32)
@@ -654,7 +676,7 @@ TEST_CASE(
       1U, L"Connect", {}, returnedArgument);
   REQUIRE(record ==
           L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{"
-          L"\"HLAargumentType\":8,\"HLAargumentName\":\"Connect result\","
+          L"\"HLAargumentType\":8,"
           L"\"HLAargumentValue\":{\"configurationUsed\":true,"
           L"\"addressUsed\":false,\"additionalSettingsResultCode\":"
           L"\"SETTINGS_APPLIED\",\"message\":\"\"}}],"

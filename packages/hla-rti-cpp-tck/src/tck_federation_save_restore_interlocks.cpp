@@ -78,6 +78,17 @@ void scenarioFederationSaveRestoreInterlocks(
       "save/restore interlock setup returned no working logical time");
 
   std::wstring const saveLabel = L"tck-save-restore-interlocks";
+  auto checkNormalActivityGuard = [&](std::wstring const& expected,
+                                      std::string const& phase) {
+    requireException(
+        [&] {
+          owner.rtiAmbassador().publishObjectClassAttributes(
+              ownerHandles.objectClass,
+              ownerAttributes);
+        },
+        expected,
+        "publishing object-class attributes during " + phase);
+  };
   auto checkInterlocks = [&](std::wstring const& expected,
                              std::string const& phase) {
     auto check = [&](auto operation, std::string const& description) {
@@ -87,13 +98,7 @@ void scenarioFederationSaveRestoreInterlocks(
           description + " during " + phase);
     };
 
-    check(
-        [&] {
-          owner.rtiAmbassador().publishObjectClassAttributes(
-              ownerHandles.objectClass,
-              ownerAttributes);
-        },
-        "publishing object-class attributes");
+    checkNormalActivityGuard(expected, phase);
     check(
         [&] {
           owner.rtiAmbassador().requestFederationRestore(saveLabel);
@@ -533,10 +538,16 @@ void scenarioFederationSaveRestoreInterlocks(
       },
       options,
       "save/restore interlock save initiation callbacks");
+  checkNormalActivityGuard(
+      L"SaveInProgress",
+      "federate instructed to save");
   owner.rtiAmbassador().federateSaveBegun();
   peer.rtiAmbassador().federateSaveBegun();
   checkInterlocks(L"SaveInProgress", "federation save");
   owner.rtiAmbassador().federateSaveComplete();
+  checkNormalActivityGuard(
+      L"SaveInProgress",
+      "federate waiting for federation to save");
   peer.rtiAmbassador().federateSaveComplete();
   waitForSessions(
       {&owner, &peer},
@@ -552,6 +563,22 @@ void scenarioFederationSaveRestoreInterlocks(
       "save/restore interlock save reported a failure");
 
   owner.rtiAmbassador().requestFederationRestore(saveLabel);
+  if (model == rti::HLA_EVOKED) {
+    checkNormalActivityGuard(
+        L"RestoreInProgress",
+        "federate waiting for restore to begin");
+    waitForSessions(
+        {&owner, &peer},
+        [&] {
+          return owner.federationRestoreBegunCount() >= 1U &&
+              peer.federationRestoreBegunCount() >= 1U;
+        },
+        options,
+        "save/restore interlock restore-begun callbacks");
+    checkNormalActivityGuard(
+        L"RestoreInProgress",
+        "federate prepared to restore");
+  }
   waitForSessions(
       {&owner, &peer},
       [&] {
@@ -565,6 +592,9 @@ void scenarioFederationSaveRestoreInterlocks(
       "save/restore interlock restore initiation callbacks");
   checkInterlocks(L"RestoreInProgress", "federation restore");
   owner.rtiAmbassador().federateRestoreComplete();
+  checkNormalActivityGuard(
+      L"RestoreInProgress",
+      "federate waiting for federation to restore");
   peer.rtiAmbassador().federateRestoreComplete();
   waitForSessions(
       {&owner, &peer},

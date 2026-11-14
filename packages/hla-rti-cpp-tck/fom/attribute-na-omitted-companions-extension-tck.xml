@@ -6,5 +6,6 @@
         <name>TckNaCompletedAcrossModules</name>
         <updateType>NA</updateType><updateCondition>NA</updateCondition>
         <transportation>HLAreliable</transportation><order>Receive</order>
+        <semantics>Partial NA attribute completed by a later FOM module.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

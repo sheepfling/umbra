@@ -21,6 +21,11 @@
     {
       "requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-040-l18-3",
       "standard_section": "hla-1516.2-2025:clause-4.2.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-091-l74-11",
+      "standard_section": "hla-1516.2-2025:clause-6.2.2",
+      "note": "The public C++ scenarios exercise selected local-name constraints only; they do not exhaust §3.3 naming rules or claim full OMT object-class-table coverage."
     }
   ]
 }

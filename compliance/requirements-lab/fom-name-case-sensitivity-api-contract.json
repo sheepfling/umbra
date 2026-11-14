@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java case performs public FOM name lookups against a P0 module and a second module with omitted root-class declarations. It checks bounded NameNotFound outcomes, exact name/handle round-trips, and root/subclass name resolution.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-fom-name-case-sensitivity",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "ObjectClassHandle getObjectClassHandle(String name) throws NameNotFound",
+        "String getObjectClassName(ObjectClassHandle objectClass) throws InvalidObjectClassHandle",
+        "AttributeHandle getAttributeHandle(ObjectClassHandle objectClass, String name) throws NameNotFound, InvalidObjectClassHandle",
+        "String getAttributeName(ObjectClassHandle objectClass, AttributeHandle attribute) throws AttributeNotDefined, InvalidAttributeHandle, InvalidObjectClassHandle",
+        "InteractionClassHandle getInteractionClassHandle(String name) throws NameNotFound",
+        "String getInteractionClassName(InteractionClassHandle interactionClass) throws InvalidInteractionClassHandle",
+        "ParameterHandle getParameterHandle(InteractionClassHandle interactionClass, String name) throws NameNotFound, InvalidInteractionClassHandle",
+        "String getParameterName(InteractionClassHandle interactionClass, ParameterHandle parameter) throws InteractionParameterNotDefined, InvalidParameterHandle, InvalidInteractionClassHandle"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runP0Fom",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FomNameCaseSensitivityTck.java#runRootlessFom"
+      ]
+    }
+  ]
+}

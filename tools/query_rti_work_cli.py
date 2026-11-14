@@ -17,6 +17,9 @@ if __package__:
         contract_drift_report,
         cpp_tck_requirement_gap_inventory,
         cpp_tck_requirement_gap_summary_data,
+        cpp_tck_requirement_ids_for_query,
+        cpp_tck_requirement_mapping_evidence,
+        cpp_tck_scenario_mappings_for_query,
         dashboard_snapshot,
         filtered_plan_sections,
         focused_lane_result,
@@ -94,6 +97,9 @@ else:
         contract_drift_report,
         cpp_tck_requirement_gap_inventory,
         cpp_tck_requirement_gap_summary_data,
+        cpp_tck_requirement_ids_for_query,
+        cpp_tck_requirement_mapping_evidence,
+        cpp_tck_scenario_mappings_for_query,
         dashboard_snapshot,
         filtered_plan_sections,
         focused_lane_result,
@@ -161,6 +167,47 @@ else:
         validate_index,
     )
     from query_rti_work_parser import build_parser
+
+
+def print_cpp_tck_mapping_evidence(evidence: JsonObject | None) -> None:
+    """Render portable TCK traceability separately from Catch2 evidence."""
+
+    if not isinstance(evidence, dict) or not evidence.get("scenario_count"):
+        return
+    promotion_counts = evidence.get("promotion_counts")
+    promotion_text = ""
+    if isinstance(promotion_counts, dict):
+        promotion_text = ", ".join(
+            f"{name}={count}" for name, count in promotion_counts.items()
+        )
+    print(
+        "Portable C++ TCK catalog evidence (mapping only; not execution/pass results): "
+        f"{evidence.get('scenario_count', 0)} scenario(s), "
+        f"{evidence.get('mapping_count', 0)} direct mapping(s)"
+        + (f"; {promotion_text}" if promotion_text else "")
+    )
+    for scenario in evidence.get("scenarios", []):
+        if not isinstance(scenario, dict):
+            continue
+        print(
+            f"- {scenario.get('id', '<unnamed>')}: "
+            f"{compact_prose(scenario.get('title'), 140)} "
+            f"[promotion={scenario.get('promotion', 'unspecified')}; "
+            f"runner={scenario.get('runner_id') or '<not specified>'}; "
+            f"cpp_test={scenario.get('cpp_test') or '<not specified>'}]"
+        )
+        mappings = scenario.get("requirement_mappings", [])
+        if isinstance(mappings, list) and mappings:
+            mapping_text = ", ".join(
+                f"{mapping.get('requirement_id')} -> "
+                f"{mapping.get('standard_section') or '<unresolved>'}"
+                for mapping in mappings
+                if isinstance(mapping, dict)
+            )
+            remaining = scenario.get("remaining_requirement_mapping_count", 0)
+            if remaining:
+                mapping_text += f", ... (+{remaining})"
+            print(f"  requirement mappings: {mapping_text}")
 
 
 def main() -> int:
@@ -497,13 +544,28 @@ def main() -> int:
 
         latest = result.get("latest_completed_slice")
         if isinstance(latest, dict):
+            latest_metrics: list[str] = []
+            assertions = latest.get("assertions")
+            if isinstance(assertions, int) and not isinstance(assertions, bool):
+                latest_metrics.append(f"{assertions} assertions")
+            requirements = latest.get("requirements")
+            if isinstance(requirements, int) and not isinstance(requirements, bool):
+                latest_metrics.append(
+                    f"{requirements} requirement{'s' if requirements != 1 else ''}"
+                )
+            sections = latest.get("standard_sections")
+            if isinstance(sections, int) and not isinstance(sections, bool):
+                latest_metrics.append(
+                    f"{sections} standard section{'s' if sections != 1 else ''}"
+                )
+            latest_summary = (
+                f" ({'; '.join(latest_metrics)})" if latest_metrics else ""
+            )
             print(
                 "Latest: "
                 f"{latest.get('lane', '<unnamed>')} - "
-                f"{compact_prose(latest.get('test_case'), 180)} "
-                f"({latest.get('assertions', '?')} assertions; "
-                f"{latest.get('requirements', '?')} requirements; "
-                f"{latest.get('standard_sections', '?')} sections)"
+                f"{compact_prose(latest.get('test_case'), 180)}"
+                f"{latest_summary}"
             )
         handles = result.get("handles")
         if isinstance(handles, dict):
@@ -589,14 +651,33 @@ def main() -> int:
             )
         latest = result.get("latest_completed_slice")
         if isinstance(latest, dict):
+            latest_metrics: list[str] = []
+            assertions = latest.get("assertions")
+            if isinstance(assertions, int) and not isinstance(assertions, bool):
+                latest_metrics.append(f"{assertions} assertions")
+            requirements = latest.get("requirements")
+            if isinstance(requirements, int) and not isinstance(requirements, bool):
+                latest_metrics.append(
+                    f"{requirements} requirement{'s' if requirements != 1 else ''}"
+                )
+            sections = latest.get("standard_sections")
+            if isinstance(sections, int) and not isinstance(sections, bool):
+                latest_metrics.append(
+                    f"{sections} standard section{'s' if sections != 1 else ''}"
+                )
+            api_surfaces = latest.get("api_surfaces")
+            if isinstance(api_surfaces, int) and not isinstance(api_surfaces, bool):
+                latest_metrics.append(
+                    f"{api_surfaces} API surface{'s' if api_surfaces != 1 else ''}"
+                )
+            latest_summary = (
+                f" ({'; '.join(latest_metrics)})" if latest_metrics else ""
+            )
             print(
                 "Latest: "
                 f"{latest.get('lane', '<unnamed>')} - "
-                f"{compact_prose(latest.get('test_case'), 180)} "
-                f"({latest.get('assertions', '?')} assertions; "
-                f"{latest.get('requirements', '?')} requirements; "
-                f"{latest.get('standard_sections', '?')} sections; "
-                f"{latest.get('api_surfaces', '?')} APIs)"
+                f"{compact_prose(latest.get('test_case'), 180)}"
+                f"{latest_summary}"
             )
             for handle_name in (
                 "case_command",
@@ -3607,9 +3688,12 @@ def main() -> int:
             f"{result['total_requirement_count']} mapped "
             f"({result['coverage_percent']:.2f}%); "
             f"{result['uncovered_requirement_count']} absent from direct catalog mappings; "
+            f"{result['dispositioned_requirement_count']} dispositioned "
+            f"({result['actionable_uncovered_requirement_count']} without mapping or disposition); "
             f"{result['promoted_requirement_count']} promoted, "
             f"{result['candidate_only_requirement_count']} candidate-only; "
             f"{result['invalid_mapping_count']} unresolved Lab mapping(s); "
+            f"{result['invalid_disposition_count']} invalid requirement disposition(s); "
             f"{result['section_disagreement_count']} section crosswalk review(s); "
             f"{result['non_lab_mapping_count']} non-Lab references catalog-wide"
         )
@@ -3628,7 +3712,9 @@ def main() -> int:
                     f"{group['total_requirement_count']} total; "
                     f"direct={group['mapped_requirement_count']}, "
                     f"promoted={group['promoted_requirement_count']}, "
-                    f"candidate-only={group['candidate_only_requirement_count']}; "
+                    f"candidate-only={group['candidate_only_requirement_count']}, "
+                    f"dispositioned={group['dispositioned_requirement_count']}, "
+                    f"actionable={group['actionable_uncovered_requirement_count']}; "
                     f"sample={', '.join(group.get('uncovered_requirement_ids', []))}"
                 )
         if not (arguments.summary or arguments.compact):
@@ -3668,6 +3754,67 @@ def main() -> int:
                             "  statement="
                             + compact_prose(requirement.get("statement"), 320)
                         )
+        dispositions = result.get("dispositions", [])
+        if dispositions:
+            if arguments.summary:
+                disposition_preview_limit = 5
+                disposition_preview = dispositions[:disposition_preview_limit]
+                suffix = (
+                    f"; showing {len(disposition_preview)} of "
+                    f"{result['dispositioned_requirement_count']}"
+                    if len(disposition_preview)
+                    < result["dispositioned_requirement_count"]
+                    else ""
+                )
+                print(
+                    "Disposition preview (not direct TCK test coverage)"
+                    + suffix
+                    + ":"
+                )
+                for disposition in disposition_preview:
+                    print(
+                        f"- {disposition['requirement_id']} -> "
+                        f"{disposition['standard_section']}: "
+                        f"status={disposition['status']}, "
+                        f"scope={disposition['owner_role']}"
+                    )
+                if len(dispositions) > len(disposition_preview):
+                    print(
+                        "  use an exact requirement query for rationale and "
+                        "evidence boundary"
+                    )
+            else:
+                suffix = (
+                    f"; showing {len(dispositions)} of "
+                    f"{result['dispositioned_requirement_count']}"
+                    if result["shown_disposition_count"]
+                    < result["dispositioned_requirement_count"]
+                    else ""
+                )
+                print(
+                    "Requirement dispositions (not direct TCK test coverage)"
+                    + suffix
+                    + ":"
+                )
+                for disposition in dispositions:
+                    print(
+                        f"- {disposition['requirement_id']} -> "
+                        f"{disposition['standard_section']}: "
+                        f"status={disposition['status']}, "
+                        f"scope={disposition['owner_role']}"
+                    )
+                    print("  rationale=" + compact_prose(disposition["rationale"], 320))
+                    print(
+                        "  boundary="
+                        + compact_prose(disposition["evidence_boundary"], 240)
+                    )
+        if result["invalid_disposition_count"] and not arguments.summary:
+            print("Invalid portable C++ TCK requirement dispositions:")
+            for finding in result.get("invalid_dispositions", []):
+                print(
+                    f"- {finding.get('requirement_id')}: "
+                    f"{', '.join(finding.get('issues', [])) or finding.get('issue')}"
+                )
         if result["invalid_mapping_count"] and not arguments.summary:
             print("Unresolved Lab catalog mappings:")
             for finding in result.get("invalid_mappings", []):
@@ -3754,7 +3901,7 @@ def main() -> int:
                 f"{result['covered_requirement_count']} globally covered "
                 f"({result['coverage_percent']:.2f}% mapped)"
             )
-        print("2025 requirement gaps" + scope_text + ": " + coverage_text)
+        print("2025 Catch2-plan requirement gaps" + scope_text + ": " + coverage_text)
         groups = result.get("groups", [])
         if groups:
             suffix = (
@@ -3763,9 +3910,9 @@ def main() -> int:
                 else ""
             )
             heading = (
-                "Family-local uncovered subsections"
+                "Family-local uncovered Catch2-plan subsections"
                 if arguments.family
-                else "Globally uncovered subsections"
+                else "Globally uncovered Catch2-plan subsections"
             )
             print(heading + suffix + ":")
             for group in groups:
@@ -3786,6 +3933,13 @@ def main() -> int:
                     f"{global_coverage}; "
                     f"sample={', '.join(group.get('uncovered_requirement_ids', []))}"
                 )
+        if arguments.family == "portable-cpp-tck-2025":
+            print(
+                "Scope note: gap counts above include Catch2 plan mappings only; "
+                "portable C++ TCK catalog mappings are a separate traceability-only "
+                "evidence class, not execution/pass results. Use exact requirement "
+                "or matrix queries to inspect those mappings."
+            )
         requirements = [] if arguments.summary else result.get("requirements", [])
         if requirements:
             suffix = (
@@ -4126,15 +4280,40 @@ def main() -> int:
             "tests": selected,
         }
     elif arguments.command == "requirement":
+        try:
+            tck_catalog = load_json(arguments.tck_catalog)
+        except (TypeError, ValueError, OSError) as error:
+            print(f"query_rti_work: {error}", file=sys.stderr)
+            return 2
         selected = select_tests(tests, arguments.query, "requirement")
         matched_count = len(selected)
         if arguments.limit:
             selected = selected[: arguments.limit]
+        tck_requirement_ids = set(
+            cpp_tck_requirement_ids_for_query(
+                standard_requirements,
+                arguments.query,
+                match_kind="requirement",
+            )
+        )
+        if not tck_requirement_ids:
+            for test in selected:
+                tck_requirement_ids.update(
+                    identifier
+                    for identifier in strings(test.get("lab_requirement_ids"))
+                    if identifier in standard_requirements
+                )
         result = {
             "query": arguments.query,
             "count": matched_count,
             "shown_count": len(selected),
             "tests": selected,
+            "portable_cpp_tck": cpp_tck_requirement_mapping_evidence(
+                tck_catalog,
+                tck_requirement_ids,
+                limit=5 if arguments.limit is None else arguments.limit,
+                include_scenarios=not arguments.summary,
+            ),
         }
         if not selected:
             # A requirement lookup is also the reverse entry point for an
@@ -4200,6 +4379,11 @@ def main() -> int:
                 ],
             }
     elif arguments.command == "matrix":
+        try:
+            tck_catalog = load_json(arguments.tck_catalog)
+        except (TypeError, ValueError, OSError) as error:
+            print(f"query_rti_work: {error}", file=sys.stderr)
+            return 2
         query = arguments.query
         active_lane = None
         if query is None:
@@ -4217,18 +4401,48 @@ def main() -> int:
         else:
             match_kind, matches = resolve_matrix_query(index, tests, query)
         matches = sorted(matches, key=source_location_sort_key)
+        tck_scenario_ids, scenario_requirement_ids = (
+            cpp_tck_scenario_mappings_for_query(tck_catalog, query)
+        )
+        tck_requirement_ids = set(
+            cpp_tck_requirement_ids_for_query(
+                standard_requirements,
+                query,
+                match_kind=match_kind,
+            )
+        )
+        tck_requirement_ids.update(
+            identifier
+            for identifier in scenario_requirement_ids
+            if identifier in standard_requirements
+        )
+        if not tck_requirement_ids:
+            for test in matches:
+                tck_requirement_ids.update(
+                    identifier
+                    for identifier in strings(test.get("lab_requirement_ids"))
+                    if identifier in standard_requirements
+                )
+        tck_evidence = cpp_tck_requirement_mapping_evidence(
+            tck_catalog,
+            tck_requirement_ids,
+            limit=5 if arguments.limit is None else arguments.limit,
+            include_scenarios=not arguments.summary,
+            scenario_ids=tck_scenario_ids or None,
+        )
         if arguments.group_by == "test":
             selected = matches if not arguments.limit else matches[: arguments.limit]
             result = {
                 "query": query,
                 "requested_query": arguments.query,
                 "active_lane": active_lane,
-                "found": bool(matches),
+                "found": bool(matches) or bool(tck_evidence.get("scenario_count")),
                 "match_kind": match_kind,
                 "group_by": "test",
                 "count": len(matches),
                 "shown_count": len(selected),
                 "tests": [matrix_summary_data(test, index) for test in selected],
+                "portable_cpp_tck": tck_evidence,
             }
         else:
             crosswalk = matrix_crosswalk_rows(
@@ -4244,13 +4458,14 @@ def main() -> int:
                 "query": query,
                 "requested_query": arguments.query,
                 "active_lane": active_lane,
-                "found": bool(crosswalk),
+                "found": bool(crosswalk) or bool(tck_evidence.get("scenario_count")),
                 "match_kind": match_kind,
                 "group_by": arguments.group_by,
                 "count": len(crosswalk),
                 "shown_count": len(selected),
                 "rows": selected,
                 "matched_test_count": len(matches),
+                "portable_cpp_tck": tck_evidence,
             }
     elif arguments.command == "search":
         search_terms = [str(term) for term in arguments.query]
@@ -4393,7 +4608,19 @@ def main() -> int:
         kind = result.get("match_kind") or "handle"
         query = result.get("query") or "<active indexed lane>"
         group_by = result.get("group_by") or "test"
-        if shown_count == result["count"]:
+        tck_evidence = result.get("portable_cpp_tck")
+        tck_scenario_count = (
+            tck_evidence.get("scenario_count", 0)
+            if isinstance(tck_evidence, dict)
+            else 0
+        )
+        if not result["count"] and tck_scenario_count:
+            print(
+                f"Traceability matrix ({kind}; {query}; group_by={group_by}): "
+                "no Catch2 rows; "
+                f"{tck_scenario_count} portable TCK catalog scenario(s)."
+            )
+        elif shown_count == result["count"]:
             print(
                 f"Traceability matrix ({kind}; {query}; group_by={group_by}): "
                 f"{result['count']} matched."
@@ -4417,7 +4644,9 @@ def main() -> int:
             rendered = "\n".join(
                 text_matrix_crosswalk_row(row) for row in result.get("rows", [])
             )
-        print(rendered)
+        if rendered:
+            print(rendered)
+        print_cpp_tck_mapping_evidence(tck_evidence)
         return 0
 
     if arguments.command == "unplanned":
@@ -4528,6 +4757,18 @@ def main() -> int:
                         f"  ... (+{len(records) - len(shown_records)}); "
                         "use --json or a narrower query for the remaining records"
                     )
+            if arguments.command == "requirement":
+                print_cpp_tck_mapping_evidence(result.get("portable_cpp_tck"))
+            return 0
+        elif (
+            arguments.command == "requirement"
+            and isinstance(result.get("portable_cpp_tck"), dict)
+            and result["portable_cpp_tck"].get("scenario_count", 0)
+        ):
+            print(
+                f"No mapped Catch2 cases matched requirement query {arguments.query!r}."
+            )
+            print_cpp_tck_mapping_evidence(result.get("portable_cpp_tck"))
             return 0
         elif arguments.command == "lane" and result.get("lane_handles"):
             print(
@@ -4664,4 +4905,6 @@ def main() -> int:
             arguments.compact,
         )
     print("\n".join(renderer(test) for test in result["tests"]))
+    if arguments.command == "requirement":
+        print_cpp_tck_mapping_evidence(result.get("portable_cpp_tck"))
     return 0

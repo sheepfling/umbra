@@ -1,21 +1,141 @@
 #include "tck_portable_member_control_scenarios.hpp"
+#include "tck_service_report_file_support.hpp"
+
+#include <filesystem>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace hla_rti_cpp_tck::detail {
+
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setObjectClassRelevanceAdvisorySwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Object Class Relevance Advisory Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setAttributeRelevanceAdvisorySwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Attribute Relevance Advisory Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getAttributeScopeAdvisorySwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Attribute Scope Advisory Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setAttributeScopeAdvisorySwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Attribute Scope Advisory Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getInteractionRelevanceAdvisorySwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Interaction Relevance Advisory Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setInteractionRelevanceAdvisorySwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Interaction Relevance Advisory Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getConveyRegionDesignatorSetsSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Convey Region Designator Sets Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setConveyRegionDesignatorSetsSwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Convey Region Designator Sets Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getAutomaticResignDirective),
+        rti::ResignAction (rti::RTIambassador::*)()>,
+    "IEEE 1516.1-2025 Get Automatic Resign Directive returns ResignAction");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setAutomaticResignDirective),
+        void (rti::RTIambassador::*)(rti::ResignAction)>,
+    "IEEE 1516.1-2025 Set Automatic Resign Directive takes ResignAction");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getServiceReportingSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Service Reporting Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setServiceReportingSwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Service Reporting Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getExceptionReportingSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Exception Reporting Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setExceptionReportingSwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Exception Reporting Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getSendServiceReportsToFileSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Send Service Reports to File Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::setSendServiceReportsToFileSwitch),
+        void (rti::RTIambassador::*)(bool)>,
+    "IEEE 1516.1-2025 Set Send Service Reports to File Switch takes bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getAutoProvideSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Auto Provide Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getDelaySubscriptionEvaluationSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Delay Subscription Evaluation Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getAllowRelaxedDDMSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Allow Relaxed DDM Switch returns bool");
+static_assert(
+    std::is_same_v<
+        decltype(&rti::RTIambassador::getNonRegulatedGrantSwitch),
+        bool (rti::RTIambassador::*)() const>,
+    "IEEE 1516.1-2025 Get Non Regulated Grant Switch returns bool");
+
+std::filesystem::path const& supportSwitchGetterLifecycleFom(
+    Options const& options) {
+  auto const fixture =
+      options.scenarioFoms.find("support-switch-getter-lifecycle");
+  require(
+      fixture != options.scenarioFoms.end() && !fixture->second.empty(),
+      "Support-switch getter lifecycle testing requires its adapter-supplied isolated FOM");
+  return fixture->second;
+}
 
 void scenarioSupportSwitchGetterLifecycleBoundariesPortable(
     Options const& options,
     rti::CallbackModel model) {
   require(
-      !options.fom.empty(),
-      "Support-switch getter lifecycle testing requires an adapter-supplied FOM");
+      !options.serviceReportDirectory.empty(),
+      "Send Service Reports to File getter testing requires a configured report directory");
 
   Session subject(options, model, "support-switch-getters-lifecycle-subject");
   auto const federation =
       federationName(options, "support-switch-getter-lifecycle-boundaries");
-  subject.connect();
+  std::vector<std::wstring> fomModules{
+      supportSwitchGetterLifecycleFom(options).wstring()};
+  constexpr bool allowRelaxedDdmEnabled = true;
+  service_report_file_support::connectWithServiceReportDirectory(subject, options);
   subject.rtiAmbassador().createFederationExecution(
       federation,
-      options.fom.wstring(),
+      fomModules,
       options.logicalTimeImplementationName);
   subject.join(
       options.ownerFederateName + L"-support-switch-getter-lifecycle-subject",
@@ -28,14 +148,56 @@ void scenarioSupportSwitchGetterLifecycleBoundariesPortable(
   static_cast<void>(ambassador.getAttributeScopeAdvisorySwitch());
   static_cast<void>(ambassador.getInteractionRelevanceAdvisorySwitch());
   static_cast<void>(ambassador.getConveyRegionDesignatorSetsSwitch());
-  static_cast<void>(ambassador.getServiceReportingSwitch());
-  static_cast<void>(ambassador.getExceptionReportingSwitch());
-  static_cast<void>(ambassador.getSendServiceReportsToFileSwitch());
+  bool const initialServiceReporting = ambassador.getServiceReportingSwitch();
+  ambassador.setServiceReportingSwitch(false);
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "Service Reporting getter did not return FALSE when disabled");
+  ambassador.setServiceReportingSwitch(true);
+  require(
+      ambassador.getServiceReportingSwitch(),
+      "Service Reporting getter did not return TRUE when enabled");
+  ambassador.setServiceReportingSwitch(initialServiceReporting);
+  require(
+      ambassador.getServiceReportingSwitch() == initialServiceReporting,
+      "Service Reporting getter did not return the restored value");
+  bool const initialExceptionReporting =
+      ambassador.getExceptionReportingSwitch();
+  ambassador.setExceptionReportingSwitch(false);
+  require(
+      !ambassador.getExceptionReportingSwitch(),
+      "Exception Reporting getter did not return FALSE when disabled");
+  ambassador.setExceptionReportingSwitch(true);
+  require(
+      ambassador.getExceptionReportingSwitch(),
+      "Exception Reporting getter did not return TRUE when enabled");
+  ambassador.setExceptionReportingSwitch(initialExceptionReporting);
+  require(
+      ambassador.getExceptionReportingSwitch() == initialExceptionReporting,
+      "Exception Reporting getter did not return the restored value");
+  bool const initialFileReporting =
+      ambassador.getSendServiceReportsToFileSwitch();
+  ambassador.setSendServiceReportsToFileSwitch(false);
+  require(
+      !ambassador.getSendServiceReportsToFileSwitch(),
+      "Send Service Reports to File getter did not return FALSE when disabled");
+  ambassador.setSendServiceReportsToFileSwitch(true);
+  require(
+      ambassador.getSendServiceReportsToFileSwitch(),
+      "Send Service Reports to File getter did not return TRUE when enabled");
+  ambassador.setSendServiceReportsToFileSwitch(initialFileReporting);
+  require(
+      ambassador.getSendServiceReportsToFileSwitch() == initialFileReporting,
+      "Send Service Reports to File getter did not return the restored value");
   static_cast<void>(ambassador.getAutoProvideSwitch());
   static_cast<void>(ambassador.getDelaySubscriptionEvaluationSwitch());
   static_cast<void>(ambassador.getAdvisoriesUseKnownClassSwitch());
-  static_cast<void>(ambassador.getAllowRelaxedDDMSwitch());
-  static_cast<void>(ambassador.getNonRegulatedGrantSwitch());
+  require(
+      ambassador.getAllowRelaxedDDMSwitch() == allowRelaxedDdmEnabled,
+      "Get Allow Relaxed DDM Switch did not match the explicit FOM configuration");
+  require(
+      ambassador.getNonRegulatedGrantSwitch() == allowRelaxedDdmEnabled,
+      "Get Non Regulated Grant Switch did not match the explicit FOM configuration");
 
   auto requireBoundary = [&](auto&& getter,
                              wchar_t const* exceptionName,
@@ -164,11 +326,14 @@ void scenarioSupportSwitchSetterLifecycleBoundariesPortable(
   require(
       !options.fom.empty(),
       "Support-switch setter lifecycle testing requires an adapter-supplied FOM");
+  require(
+      !options.serviceReportDirectory.empty(),
+      "Send Service Reports to File setter testing requires a configured report directory");
 
   Session subject(options, model, "support-switch-setters-lifecycle-subject");
   auto const federation =
       federationName(options, "support-switch-setter-lifecycle-boundaries");
-  subject.connect();
+  service_report_file_support::connectWithServiceReportDirectory(subject, options);
   subject.rtiAmbassador().createFederationExecution(
       federation,
       options.fom.wstring(),
@@ -179,43 +344,55 @@ void scenarioSupportSwitchSetterLifecycleBoundariesPortable(
       federation);
 
   auto& ambassador = subject.rtiAmbassador();
-  auto requireAccepted = [&](auto&& getter, auto&& setter, char const* context) {
-    auto const value = getter();
-    setter(value);
-    require(getter() == value, context);
+  auto requireBooleanValues = [&](auto&& getter,
+                                  auto&& setter,
+                                  char const* switchName) {
+    bool const initialValue = getter();
+    setter(false);
+    require(
+        !getter(),
+        std::string(switchName) + " setter did not apply FALSE");
+    setter(true);
+    require(
+        getter(),
+        std::string(switchName) + " setter did not apply TRUE");
+    setter(initialValue);
+    require(
+        getter() == initialValue,
+        std::string(switchName) + " setter did not restore the original value");
   };
-  requireAccepted(
+  requireBooleanValues(
       [&] { return ambassador.getObjectClassRelevanceAdvisorySwitch(); },
       [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
-      "Object Class Relevance Advisory setter did not preserve its observed value");
-  requireAccepted(
+      "Object Class Relevance Advisory");
+  requireBooleanValues(
       [&] { return ambassador.getAttributeRelevanceAdvisorySwitch(); },
       [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
-      "Attribute Relevance Advisory setter did not preserve its observed value");
-  requireAccepted(
+      "Attribute Relevance Advisory");
+  requireBooleanValues(
       [&] { return ambassador.getAttributeScopeAdvisorySwitch(); },
       [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
-      "Attribute Scope Advisory setter did not preserve its observed value");
-  requireAccepted(
+      "Attribute Scope Advisory");
+  requireBooleanValues(
       [&] { return ambassador.getInteractionRelevanceAdvisorySwitch(); },
       [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
-      "Interaction Relevance Advisory setter did not preserve its observed value");
-  requireAccepted(
+      "Interaction Relevance Advisory");
+  requireBooleanValues(
       [&] { return ambassador.getConveyRegionDesignatorSetsSwitch(); },
       [&](bool value) { ambassador.setConveyRegionDesignatorSetsSwitch(value); },
-      "Convey Region Designator Sets setter did not preserve its observed value");
-  requireAccepted(
+      "Convey Region Designator Sets");
+  requireBooleanValues(
       [&] { return ambassador.getServiceReportingSwitch(); },
       [&](bool value) { ambassador.setServiceReportingSwitch(value); },
-      "Service Reporting setter did not preserve its observed value");
-  requireAccepted(
+      "Service Reporting");
+  requireBooleanValues(
       [&] { return ambassador.getExceptionReportingSwitch(); },
       [&](bool value) { ambassador.setExceptionReportingSwitch(value); },
-      "Exception Reporting setter did not preserve its observed value");
-  requireAccepted(
+      "Exception Reporting");
+  requireBooleanValues(
       [&] { return ambassador.getSendServiceReportsToFileSwitch(); },
       [&](bool value) { ambassador.setSendServiceReportsToFileSwitch(value); },
-      "Send Service Reports to File setter did not preserve its observed value");
+      "Send Service Reports to File");
 
   auto requireBoundary = [&](auto&& setter,
                              wchar_t const* exceptionName,
@@ -431,38 +608,147 @@ void scenarioAdvisorySwitchValueRoundTripsPortable(
       options.ownerFederateName + L"-advisory-switch",
       options.federateType,
       federation);
+  Session member(options, model, "advisory-switch-values-member");
+  member.connect();
+  member.join(
+      options.memberFederateName + L"-advisory-switch",
+      options.federateType,
+      federation);
 
   auto& ambassador = subject.rtiAmbassador();
-  auto requireToggle = [&](auto&& getter,
-                           auto&& setter,
-                           char const* context) {
-    bool const original = getter();
-    bool const changed = !original;
-    setter(changed);
-    require(getter() == changed, context);
-    setter(original);
-    require(getter() == original, context);
-  };
-  requireToggle(
-      [&] { return ambassador.getObjectClassRelevanceAdvisorySwitch(); },
-      [&](bool value) { ambassador.setObjectClassRelevanceAdvisorySwitch(value); },
-      "Object Class Relevance Advisory switch did not follow the value set");
-  requireToggle(
-      [&] { return ambassador.getAttributeRelevanceAdvisorySwitch(); },
-      [&](bool value) { ambassador.setAttributeRelevanceAdvisorySwitch(value); },
-      "Attribute Relevance Advisory switch did not follow the value set");
-  requireToggle(
-      [&] { return ambassador.getAttributeScopeAdvisorySwitch(); },
-      [&](bool value) { ambassador.setAttributeScopeAdvisorySwitch(value); },
-      "Attribute Scope Advisory switch did not follow the value set");
-  requireToggle(
-      [&] { return ambassador.getInteractionRelevanceAdvisorySwitch(); },
-      [&](bool value) { ambassador.setInteractionRelevanceAdvisorySwitch(value); },
-      "Interaction Relevance Advisory switch did not follow the value set");
+  auto& memberAmbassador = member.rtiAmbassador();
+  bool const memberObjectClassRelevance =
+      memberAmbassador.getObjectClassRelevanceAdvisorySwitch();
+  bool const memberAttributeRelevance =
+      memberAmbassador.getAttributeRelevanceAdvisorySwitch();
+  bool const memberAttributeScope =
+      memberAmbassador.getAttributeScopeAdvisorySwitch();
+  bool const memberInteractionRelevance =
+      memberAmbassador.getInteractionRelevanceAdvisorySwitch();
+  bool const memberConveyRegionDesignatorSets =
+      memberAmbassador.getConveyRegionDesignatorSetsSwitch();
+  bool const originalObjectClassRelevance =
+      ambassador.getObjectClassRelevanceAdvisorySwitch();
+  ambassador.setObjectClassRelevanceAdvisorySwitch(false);
+  require(
+      !ambassador.getObjectClassRelevanceAdvisorySwitch(),
+      "Object Class Relevance Advisory switch getter did not return false");
+  require(
+      memberAmbassador.getObjectClassRelevanceAdvisorySwitch() ==
+          memberObjectClassRelevance,
+      "changing the subject's Object Class Relevance Advisory switch changed the member's value");
+  ambassador.setObjectClassRelevanceAdvisorySwitch(true);
+  require(
+      ambassador.getObjectClassRelevanceAdvisorySwitch(),
+      "Object Class Relevance Advisory switch getter did not return true");
+  require(
+      memberAmbassador.getObjectClassRelevanceAdvisorySwitch() ==
+          memberObjectClassRelevance,
+      "enabling the subject's Object Class Relevance Advisory switch changed the member's value");
+  ambassador.setObjectClassRelevanceAdvisorySwitch(originalObjectClassRelevance);
+  require(
+      ambassador.getObjectClassRelevanceAdvisorySwitch() ==
+          originalObjectClassRelevance,
+      "Object Class Relevance Advisory switch getter did not return the restored value");
+
+  bool const originalAttributeRelevance =
+      ambassador.getAttributeRelevanceAdvisorySwitch();
+  ambassador.setAttributeRelevanceAdvisorySwitch(false);
+  require(
+      !ambassador.getAttributeRelevanceAdvisorySwitch(),
+      "Attribute Relevance Advisory switch getter did not return false when disabled");
+  require(
+      memberAmbassador.getAttributeRelevanceAdvisorySwitch() ==
+          memberAttributeRelevance,
+      "changing the subject's Attribute Relevance Advisory switch changed the member's value");
+  ambassador.setAttributeRelevanceAdvisorySwitch(true);
+  require(
+      ambassador.getAttributeRelevanceAdvisorySwitch(),
+      "Attribute Relevance Advisory switch getter did not return true when enabled");
+  require(
+      memberAmbassador.getAttributeRelevanceAdvisorySwitch() ==
+          memberAttributeRelevance,
+      "enabling the subject's Attribute Relevance Advisory switch changed the member's value");
+  ambassador.setAttributeRelevanceAdvisorySwitch(originalAttributeRelevance);
+  require(
+      ambassador.getAttributeRelevanceAdvisorySwitch() ==
+          originalAttributeRelevance,
+      "Attribute Relevance Advisory switch getter did not return the restored value");
+
+  bool const originalAttributeScope =
+      ambassador.getAttributeScopeAdvisorySwitch();
+  ambassador.setAttributeScopeAdvisorySwitch(false);
+  require(
+      !ambassador.getAttributeScopeAdvisorySwitch(),
+      "Attribute Scope Advisory getter did not return FALSE when disabled");
+  require(
+      memberAmbassador.getAttributeScopeAdvisorySwitch() == memberAttributeScope,
+      "changing the subject's Attribute Scope Advisory switch changed the member's value");
+  ambassador.setAttributeScopeAdvisorySwitch(true);
+  require(
+      ambassador.getAttributeScopeAdvisorySwitch(),
+      "Attribute Scope Advisory getter did not return TRUE when enabled");
+  require(
+      memberAmbassador.getAttributeScopeAdvisorySwitch() == memberAttributeScope,
+      "enabling the subject's Attribute Scope Advisory switch changed the member's value");
+  ambassador.setAttributeScopeAdvisorySwitch(originalAttributeScope);
+  require(
+      ambassador.getAttributeScopeAdvisorySwitch() == originalAttributeScope,
+      "Attribute Scope Advisory getter did not return the restored value");
+  bool const originalInteractionRelevance =
+      ambassador.getInteractionRelevanceAdvisorySwitch();
+  ambassador.setInteractionRelevanceAdvisorySwitch(false);
+  require(
+      !ambassador.getInteractionRelevanceAdvisorySwitch(),
+      "Interaction Relevance Advisory getter did not return FALSE when disabled");
+  require(
+      memberAmbassador.getInteractionRelevanceAdvisorySwitch() ==
+          memberInteractionRelevance,
+      "changing the subject's Interaction Relevance Advisory switch changed the member's value");
+  ambassador.setInteractionRelevanceAdvisorySwitch(true);
+  require(
+      ambassador.getInteractionRelevanceAdvisorySwitch(),
+      "Interaction Relevance Advisory getter did not return TRUE when enabled");
+  require(
+      memberAmbassador.getInteractionRelevanceAdvisorySwitch() ==
+          memberInteractionRelevance,
+      "enabling the subject's Interaction Relevance Advisory switch changed the member's value");
+  ambassador.setInteractionRelevanceAdvisorySwitch(originalInteractionRelevance);
+  require(
+      ambassador.getInteractionRelevanceAdvisorySwitch() ==
+          originalInteractionRelevance,
+      "Interaction Relevance Advisory getter did not return the restored value");
+
+  bool const originalConveyRegionDesignatorSets =
+      ambassador.getConveyRegionDesignatorSetsSwitch();
+  ambassador.setConveyRegionDesignatorSetsSwitch(false);
+  require(
+      !ambassador.getConveyRegionDesignatorSetsSwitch(),
+      "Convey Region Designator Sets getter did not return FALSE when disabled");
+  require(
+      memberAmbassador.getConveyRegionDesignatorSetsSwitch() ==
+          memberConveyRegionDesignatorSets,
+      "changing the subject's Convey Region Designator Sets switch changed the member's value");
+  ambassador.setConveyRegionDesignatorSetsSwitch(true);
+  require(
+      ambassador.getConveyRegionDesignatorSetsSwitch(),
+      "Convey Region Designator Sets getter did not return TRUE when enabled");
+  require(
+      memberAmbassador.getConveyRegionDesignatorSetsSwitch() ==
+          memberConveyRegionDesignatorSets,
+      "enabling the subject's Convey Region Designator Sets switch changed the member's value");
+  ambassador.setConveyRegionDesignatorSetsSwitch(
+      originalConveyRegionDesignatorSets);
+  require(
+      ambassador.getConveyRegionDesignatorSetsSwitch() ==
+          originalConveyRegionDesignatorSets,
+      "Convey Region Designator Sets getter did not return the restored value");
 
   subject.resign(rti::NO_ACTION);
+  member.resign(rti::NO_ACTION);
   ambassador.destroyFederationExecution(federation);
   subject.disconnect();
+  member.disconnect();
 }
 
 void scenarioAdvisorySwitchValueRoundTripsContractPortable(

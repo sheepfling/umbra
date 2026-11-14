@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.5 public-API witness for the attribute-table nonblank-field rule at p. 92 l. 90. The selected schema-valid DIF has one attribute row whose Semantics element is empty; public Create Federation Execution is expected to reject it as InconsistentFOM. This tests the Semantics text cell only, not every remaining table field, arbitrary FOMs, interoperability, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-attribute-nonblank-semantics",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_attribute_required_text.cpp::scenarioFomAttributeTableNonblankSemanticsContract"
+      ]
+    }
+  ]
+}

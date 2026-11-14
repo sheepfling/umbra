@@ -37,26 +37,32 @@ final class ServiceReportInteractionFailureTck {
 
    private ServiceReportInteractionFailureTck() { }
 
-   static void run(RtiFactory factory, String fom, String mim, String interactionName,
-         String parameterName, String timeImplementation, CallbackModel callbackModel)
-         throws Exception {
+   static void run(RtiFactory factory, String fom, String foreignFom, String mim,
+         String interactionName, String parameterName, String timeImplementation,
+         String foreignInteractionName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder receiverRecorder = new Recorder();
       Recorder observerRecorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-interaction-failure-" + UUID.randomUUID();
+      String foreignFederation =
+         "java-tck-service-report-interaction-failure-foreign-" + UUID.randomUUID();
       String publisherName = "java-tck-failure-publisher-" + UUID.randomUUID();
       String receiverName = "java-tck-failure-receiver-" + UUID.randomUUID();
       String observerName = "java-tck-failure-observer-" + UUID.randomUUID();
       boolean publisherConnected = false;
       boolean receiverConnected = false;
       boolean observerConnected = false;
+      boolean foreignConnected = false;
       boolean created = false;
+      boolean foreignCreated = false;
       boolean publisherJoined = false;
       boolean receiverJoined = false;
       boolean observerJoined = false;
+      boolean foreignJoined = false;
       boolean observerSubscribed = false;
       boolean receiverSubscribed = false;
       boolean publisherPublished = false;
@@ -70,24 +76,41 @@ final class ServiceReportInteractionFailureTck {
          receiverConnected = true;
          observer.connect(observerRecorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(emptyCallbacks(), callbackModel);
+         foreignConnected = true;
          publisher.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(foreignFederation, foreignFom, timeImplementation);
+         foreignCreated = true;
          publisherHandle = publisher.joinFederationExecution(publisherName, "java-tck", federation);
          publisherJoined = true;
          receiver.joinFederationExecution(receiverName, "java-tck", federation);
          receiverJoined = true;
          observer.joinFederationExecution(observerName, "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-failure-foreign-" + UUID.randomUUID(), "java-tck", foreignFederation);
+         foreignJoined = true;
 
          sourceClass = publisher.getInteractionClassHandle(interactionName);
          ParameterHandle sourceParameter = publisher.getParameterHandle(sourceClass, parameterName);
          final InteractionClassHandle publisherClass = sourceClass;
          InteractionClassHandle receiverClass = receiver.getInteractionClassHandle(interactionName);
          ParameterHandle receiverParameter = receiver.getParameterHandle(receiverClass, parameterName);
+         InteractionClassHandle foreignClass =
+            foreign.getInteractionClassHandle(foreignInteractionName);
          JavaTckSupport.check(sourceClass != null && sourceParameter != null
                && sourceClass.equals(receiverClass) && sourceParameter.equals(receiverParameter),
             "adapter-supplied interaction declarations did not resolve consistently");
+         JavaTckSupport.check(foreignClass != null
+               && foreignInteractionName.equals(foreign.getInteractionClassName(foreignClass))
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign interaction declaration did not round-trip");
+         JavaTckSupport.expectFailure(
+            () -> publisher.getInteractionClassName(foreignClass),
+            "InvalidInteractionClassHandle",
+            "looking up a foreign-execution interaction class in the primary execution");
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
@@ -101,6 +124,15 @@ final class ServiceReportInteractionFailureTck {
                "standard service-report parameter lookup/name round-trip failed for " + name);
             reportParameters.put(name, handle);
          }
+      InteractionClassHandle publisherReportClass =
+         publisher.getInteractionClassHandle(REPORT_CLASS_NAME);
+      ParameterHandle foreignParameter = publisher.getParameterHandle(
+         publisherReportClass, "HLAservice");
+      JavaTckSupport.check(publisherReportClass != null && foreignParameter != null
+            && !publisherClass.equals(publisherReportClass)
+            && "HLAservice".equals(
+               publisher.getParameterName(publisherReportClass, foreignParameter)),
+         "standard MIM service-report parameter lookup/name round-trip failed");
          TransportationTypeHandle reliable = observer.getTransportationTypeHandle("HLAreliable");
          JavaTckSupport.check(reliable != null
                && "HLAreliable".equals(observer.getTransportationTypeName(reliable)),
@@ -112,6 +144,10 @@ final class ServiceReportInteractionFailureTck {
          receiver.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.expectFailure(
+            () -> publisher.getParameterName(publisherClass, foreignParameter),
+            "InteractionParameterNotDefined",
+            "using an MIM parameter handle with an unrelated interaction class");
          observer.subscribeInteractionClass(reportClass);
          observerSubscribed = true;
          publisher.publishInteractionClass(sourceClass);
@@ -128,25 +164,23 @@ final class ServiceReportInteractionFailureTck {
          validValues.put(sourceParameter, payload);
 
          JavaTckSupport.expectFailure(
-            () -> publisher.sendInteraction(
-               JavaTckSupport.invalidHandle(InteractionClassHandle.class), validValues, tag),
-            "InteractionClassNotDefined", "sendInteraction with an invalid class handle");
+            () -> publisher.sendInteraction(foreignClass, validValues, tag),
+            "InteractionClassNotDefined", "sendInteraction with a foreign interaction class");
          verifyFailureReport(observer, observerRecorder, reportClass, reportParameters,
             reliable, encoder, publisherHandle, 0, "InteractionClassNotDefined",
-            "invalid interaction-class send", callbackModel);
+            "foreign-interaction-class send", callbackModel);
          assertNoApplicationDelivery(receiverRecorder, callbackModel, receiver,
-            "invalid interaction-class send");
+            "foreign-interaction-class send");
 
          ParameterHandleValueMap invalidValues =
             publisher.getParameterHandleValueMapFactory().create(1);
-         invalidValues.put(JavaTckSupport.invalidHandle(ParameterHandle.class), payload);
+         invalidValues.put(foreignParameter, payload);
          JavaTckSupport.expectFailure(
             () -> publisher.sendInteraction(publisherClass, invalidValues, tag),
             "InteractionParameterNotDefined", "sendInteraction with an invalid parameter");
          verifyFailureReport(observer, observerRecorder, reportClass, reportParameters,
             reliable, encoder, publisherHandle, 1, "InteractionParameterNotDefined",
-            "invalid-parameter send",
-            callbackModel);
+            "invalid-parameter send", callbackModel);
          assertNoApplicationDelivery(receiverRecorder, callbackModel, receiver,
             "invalid-parameter send");
 
@@ -159,8 +193,7 @@ final class ServiceReportInteractionFailureTck {
             "InteractionClassNotPublished", "sendInteraction with an unpublished class");
          verifyFailureReport(observer, observerRecorder, reportClass, reportParameters,
             reliable, encoder, publisherHandle, 2, "InteractionClassNotPublished",
-            "unpublished-class send",
-            callbackModel);
+            "unpublished-class send", callbackModel);
          assertNoApplicationDelivery(receiverRecorder, callbackModel, receiver,
             "unpublished-class send");
       } finally {
@@ -193,8 +226,16 @@ final class ServiceReportInteractionFailureTck {
             try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (created) {
             try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
             catch (Exception ignored) { }
          }
          if (observerConnected) {
@@ -209,6 +250,10 @@ final class ServiceReportInteractionFailureTck {
             try { publisher.disconnect(); }
             catch (Exception ignored) { }
          }
+         if (foreignConnected) {
+            try { foreign.disconnect(); }
+            catch (Exception ignored) { }
+         }
       }
    }
 
@@ -216,15 +261,14 @@ final class ServiceReportInteractionFailureTck {
          InteractionClassHandle reportClass, Map<String, ParameterHandle> reportParameters,
          TransportationTypeHandle reliable, EncoderFactory encoder, FederateHandle publisher,
          int serialNumber,
-         String exception, String description,
-         CallbackModel callbackModel) throws Exception {
+         String exception, String description, CallbackModel callbackModel) throws Exception {
       await(observer, observerRecorder, callbackModel, description);
       Interaction report = observerRecorder.events.remove(0);
       JavaTckSupport.check(reportClass.equals(report.interaction)
             && report.parameters.size() == REPORT_PARAMETER_NAMES.length
-            && report.producer == null
             && report.tag.length == 0
             && reliable.equals(report.transportation)
+            && report.producer == null
             && report.regionsEmpty,
          description + " report had incorrect interaction or callback metadata");
       FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(

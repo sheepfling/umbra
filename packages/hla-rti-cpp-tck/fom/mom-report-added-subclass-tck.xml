@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable MOM Report Subclass TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Exercise the IEEE 1516.1-2025 MOM report-class extension rule.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds a publishable report-interaction subclass with an extension parameter for standard-API delivery checks.</description>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>HLAmanager</name>
+                <interactionClass>
+                    <name>HLAfederate</name>
+                    <interactionClass>
+                        <name>HLAreport</name>
+                        <interactionClass>
+                            <name>HLAreportServiceInvocation</name>
+                            <interactionClass>
+                                <name>TckReportServiceInvocationExtension</name>
+                                <sharing>PublishSubscribe</sharing>
+                                <transportation>HLAreliable</transportation>
+                                <order>Receive</order>
+                                <semantics>Test-only extension class. The RTI does not originate reports with this subclass identity; joined federates may publish and subscribe to exercise inherited and extension parameter delivery.</semantics>
+                                <parameter>
+                                    <name>TckReportServiceInvocationExtensionPayload</name>
+                                    <dataType>HLAbyte</dataType>
+                                    <semantics>One-octet payload used to verify delivery of an added subclass parameter.</semantics>
+                                </parameter>
+                            </interactionClass>
+                        </interactionClass>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>

@@ -149,6 +149,184 @@ final class NegotiatedDivestitureNoAccepterTck {
       }
    }
 
+   static void runWhileOwnerWaits(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador owner = factory.getRtiAmbassador();
+      RTIambassador requester = factory.getRtiAmbassador();
+      Recorder ownerRecorder = new Recorder();
+      Recorder requesterRecorder = new Recorder();
+      String federation = "java-tck-owner-waits-for-new-owner-" + UUID.randomUUID();
+      boolean ownerConnected = false;
+      boolean requesterConnected = false;
+      boolean created = false;
+      boolean ownerJoined = false;
+      boolean requesterJoined = false;
+      boolean ownerPublished = false;
+      boolean requesterPublished = false;
+      boolean requesterSubscribed = false;
+      ObjectClassHandle ownerClass = null;
+      ObjectClassHandle requesterClass = null;
+      AttributeHandleSet ownerAttributes = null;
+      AttributeHandleSet requesterAttributes = null;
+      try {
+         owner.connect(ownerRecorder.proxy(), callbackModel);
+         ownerConnected = true;
+         requester.connect(requesterRecorder.proxy(), callbackModel);
+         requesterConnected = true;
+         owner.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         owner.joinFederationExecution("java-tck-waiting-owner", federation);
+         ownerJoined = true;
+         requester.joinFederationExecution("java-tck-waiting-requester", federation);
+         requesterJoined = true;
+
+         ownerClass = owner.getObjectClassHandle(objectClassName);
+         requesterClass = requester.getObjectClassHandle(objectClassName);
+         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName);
+         AttributeHandle requesterAttribute = requester.getAttributeHandle(
+            requesterClass, attributeName);
+         JavaTckSupport.check(ownerClass != null && ownerClass.equals(requesterClass)
+               && ownerAttribute != null && ownerAttribute.equals(requesterAttribute),
+            "adapter FOM did not resolve matching waiting-owner class and attribute handles");
+         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         requesterAttributes = JavaTckSupport.attributeSet(requester, requesterAttribute);
+
+         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
+         ownerPublished = true;
+         requester.subscribeObjectClassAttributes(requesterClass, requesterAttributes);
+         requesterSubscribed = true;
+         ObjectInstanceHandle ownerObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(ownerObject != null,
+            "waiting-owner registration returned a null object handle");
+         await(requester, callbackModel, () -> !requesterRecorder.discoveries.isEmpty(),
+            "waiting-owner object discovery");
+         ObjectInstanceHandle requesterObject = requesterRecorder.discoveries.get(0);
+         requester.publishObjectClassAttributes(requesterClass, requesterAttributes);
+         requesterPublished = true;
+         ownerRecorder.clearOwnershipEvents();
+         requesterRecorder.clearOwnershipEvents();
+
+         byte[] divestitureTag = new byte[] {(byte) 0xd7, 0x18, 0x01};
+         byte[] acquisitionTag = new byte[] {(byte) 0xa7, 0x18, 0x02};
+         byte[] confirmationTag = new byte[] {(byte) 0xc7, 0x18, 0x03};
+         byte[] denialTag = new byte[] {(byte) 0xd9, 0x18, 0x04};
+         owner.negotiatedAttributeOwnershipDivestiture(
+            ownerObject, ownerAttributes, divestitureTag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.confirmations.isEmpty()
+               && ownerRecorder.releaseRequests.isEmpty()
+               && owner.isAttributeOwnedByFederate(ownerObject,
+                  owner.getAttributeHandle(ownerClass, attributeName)),
+            "negotiated divestiture did not leave the owner waiting with ownership intact");
+
+         requester.attributeOwnershipAcquisition(
+            requesterObject, requesterAttributes, acquisitionTag);
+         await(owner, callbackModel, () -> !ownerRecorder.confirmations.isEmpty(),
+            "request divestiture confirmation from waiting owner");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.confirmations.size() == 1
+               && ownerRecorder.releaseRequests.isEmpty(),
+            "waiting-owner acquisition did not produce exactly one confirmation request");
+         checkEvent(ownerRecorder.confirmations.get(0), ownerObject, ownerAttributes,
+            acquisitionTag, "waiting-owner confirmation request");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(ownerObject, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(requesterObject, requesterAttribute)
+               && requesterRecorder.acquisitions.isEmpty(),
+            "waiting-owner acquisition transferred ownership before confirmation");
+
+         owner.confirmDivestiture(ownerObject, ownerAttributes, confirmationTag);
+         await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
+            "acquisition notification after owner confirmation");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1,
+            "confirmed waiting-owner divestiture did not produce exactly one acquisition notification");
+         checkEvent(requesterRecorder.acquisitions.get(0), requesterObject,
+            requesterAttributes, confirmationTag,
+            "acquisition notification after owner confirmation");
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(ownerObject, ownerAttribute)
+               && requester.isAttributeOwnedByFederate(requesterObject, requesterAttribute),
+            "confirmed waiting-owner divestiture did not transfer ownership");
+
+         owner.attributeOwnershipAcquisition(ownerObject, ownerAttributes, acquisitionTag);
+         await(requester, callbackModel, () -> !requesterRecorder.releaseRequests.isEmpty(),
+            "release request before acquisition denial");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.releaseRequests.size() == 1,
+            "reacquisition did not produce exactly one release request");
+         checkEvent(requesterRecorder.releaseRequests.get(0), requesterObject,
+            requesterAttributes, acquisitionTag, "release request before acquisition denial");
+         requester.attributeOwnershipReleaseDenied(
+            requesterObject, requesterAttributes, denialTag);
+         await(owner, callbackModel, () -> !ownerRecorder.unavailable.isEmpty(),
+            "acquisition-unavailable callback after denial");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.unavailable.size() == 1,
+            "denied reacquisition did not produce exactly one unavailable callback");
+         checkEvent(ownerRecorder.unavailable.get(0), ownerObject, ownerAttributes,
+            denialTag, "acquisition-unavailable callback after denial");
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(ownerObject, ownerAttribute)
+               && requester.isAttributeOwnedByFederate(requesterObject, requesterAttribute)
+               && ownerRecorder.acquisitions.isEmpty()
+               && requesterRecorder.acquisitions.size() == 1,
+            "denied reacquisition changed ownership or emitted an acquisition notification");
+
+         owner.attributeOwnershipAcquisition(ownerObject, ownerAttributes, acquisitionTag);
+         await(requester, callbackModel,
+            () -> requesterRecorder.releaseRequests.size() >= 2,
+            "release request before acquisition cancellation");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(requester);
+         JavaTckSupport.check(requesterRecorder.releaseRequests.size() == 2,
+            "second reacquisition did not produce exactly one release request");
+         checkEvent(requesterRecorder.releaseRequests.get(1), requesterObject,
+            requesterAttributes, acquisitionTag, "release request before acquisition cancellation");
+         owner.cancelAttributeOwnershipAcquisition(ownerObject, ownerAttributes);
+         await(owner, callbackModel, () -> !ownerRecorder.cancellations.isEmpty(),
+            "acquisition-cancellation confirmation");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         JavaTckSupport.check(ownerRecorder.cancellations.size() == 1
+               && ownerRecorder.unavailable.size() == 1
+               && ownerRecorder.acquisitions.isEmpty()
+               && requesterRecorder.acquisitions.size() == 1
+               && !owner.isAttributeOwnedByFederate(ownerObject, ownerAttribute)
+               && requester.isAttributeOwnedByFederate(requesterObject, requesterAttribute),
+            "canceled reacquisition changed ownership or produced an unavailable/acquisition callback");
+         checkEvent(ownerRecorder.cancellations.get(0), ownerObject, ownerAttributes, null,
+            "acquisition-cancellation confirmation");
+      } finally {
+         if (requesterJoined && requesterSubscribed && requesterClass != null
+               && requesterAttributes != null) {
+            try { requester.unsubscribeObjectClassAttributes(requesterClass, requesterAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (requesterJoined && requesterPublished && requesterClass != null
+               && requesterAttributes != null) {
+            try { requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined && ownerPublished && ownerClass != null && ownerAttributes != null) {
+            try { owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes); }
+            catch (Exception ignored) { }
+         }
+         if (requesterJoined) {
+            try { requester.resignFederationExecution(
+               ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES); }
+            catch (Exception ignored) { }
+         }
+         if (ownerJoined) {
+            try { owner.resignFederationExecution(
+               ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
+            catch (Exception ignored) { }
+         }
+         if (created) { try { owner.destroyFederationExecution(federation); }
+            catch (Exception ignored) { } }
+         if (requesterConnected) { try { requester.disconnect(); }
+            catch (Exception ignored) { } }
+         if (ownerConnected) { try { owner.disconnect(); }
+            catch (Exception ignored) { } }
+      }
+   }
+
    static void runConcurrentAssumption(RtiFactory factory, String fom,
          String timeImplementation, String objectClassName, String attributeName,
          CallbackModel callbackModel) throws Exception {
@@ -549,15 +727,18 @@ final class NegotiatedDivestitureNoAccepterTck {
             byte[] tag) {
          this.object = object;
          this.attributes = new HashSet<>(attributes);
-         this.tag = tag.clone();
+         this.tag = tag == null ? null : tag.clone();
       }
    }
 
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> confirmations = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> assumptions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> cancellations = new CopyOnWriteArrayList<>();
       private final AtomicReference<Runnable> confirmationHook = new AtomicReference<>();
       private final AtomicReference<Throwable> callbackFailure = new AtomicReference<>();
 
@@ -579,10 +760,22 @@ final class NegotiatedDivestitureNoAccepterTck {
                         callbackFailure.set(failure);
                      }
                   }
+               } else if ("requestAttributeOwnershipRelease".equals(name)
+                     && arguments != null && arguments.length >= 3) {
+                  releaseRequests.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1], (byte[]) arguments[2]));
+               } else if ("attributeOwnershipUnavailable".equals(name)
+                     && arguments != null && arguments.length >= 3) {
+                  unavailable.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1], (byte[]) arguments[2]));
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length >= 3) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleSet) arguments[1], (byte[]) arguments[2]));
+               } else if ("confirmAttributeOwnershipAcquisitionCancellation".equals(name)
+                     && arguments != null && arguments.length >= 2) {
+                  cancellations.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1], null));
                } else if ("requestAttributeOwnershipAssumption".equals(name)
                      && arguments != null && arguments.length >= 3) {
                   assumptions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
@@ -601,8 +794,11 @@ final class NegotiatedDivestitureNoAccepterTck {
 
       private void clearOwnershipEvents() {
          confirmations.clear();
+         releaseRequests.clear();
+         unavailable.clear();
          acquisitions.clear();
          assumptions.clear();
+         cancellations.clear();
       }
    }
 }

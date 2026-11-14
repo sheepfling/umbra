@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-focused-java-provider-runtime-not-conformance",
+  "notes": "Focused Java public-API evidence for IEEE 1516.1-2025 §12.12.4.2. For fixed arrays, variable arrays, fixed records, variant records, and extendable variant records, the scenario encodes into a shared ByteWrapper after a prefix octet, decodes from that position into an empty receiver, checks the encoded value and cursor boundary, and decodes the following HLAoctet. This covers Java DataElement encode(ByteWrapper)/decode(ByteWrapper); it does not claim C++ encodeInto/decodeFrom, C++ pointer ownership, exact Annex C behavior, or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-java-composite-data-element-bytewrapper-cursor",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/CompositeDataElementByteWrapperCursorTck.java",
+      "source_symbol": "CompositeDataElementByteWrapperCursorTck.run",
+      "tests": [
+        "org.hla.rti.tck.RtiTckMain#encoderRoundTrip"
+      ]
+    }
+  ]
+}

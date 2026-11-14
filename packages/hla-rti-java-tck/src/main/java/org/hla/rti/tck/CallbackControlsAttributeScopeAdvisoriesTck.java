@@ -115,7 +115,7 @@ final class CallbackControlsAttributeScopeAdvisoriesTck {
             () -> memberRecorder.discoveries.contains(registeredObject),
             objectClassName, "regional object discovery");
 
-         serviceMemberCallbacks(member, callbackModel, objectClassName);
+         drainMemberCallbacks(member, callbackModel);
          memberRecorder.clearScopeAdvisories();
 
          moveOutOfScope(owner, object, sourcePair, alternateSourcePair);
@@ -280,11 +280,18 @@ final class CallbackControlsAttributeScopeAdvisoriesTck {
    private static void serviceMemberCallbacks(RTIambassador member,
          CallbackModel callbackModel, String objectClassName) throws Exception {
       if (callbackModel == CallbackModel.HLA_EVOKED) {
-         while (member.evokeMultipleCallbacks(0.0, 0.0)) {
-            // Drain callbacks queued while callbacks were disabled or just enabled.
-         }
+         member.evokeMultipleCallbacks(0.0, 0.0);
       } else {
          member.getObjectClassHandle(objectClassName);
+      }
+   }
+
+   private static void drainMemberCallbacks(RTIambassador member,
+         CallbackModel callbackModel) throws Exception {
+      if (callbackModel == CallbackModel.HLA_EVOKED) {
+         while (member.evokeMultipleCallbacks(0.0, 0.0)) {
+            // Drain enabled baseline callbacks before isolating scope transitions.
+         }
       }
    }
 
@@ -338,10 +345,10 @@ final class CallbackControlsAttributeScopeAdvisoriesTck {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                } else if ("attributesInScope".equals(name)) {
                   attributesInScope.add(new ScopeAdvisory(
-                     (ObjectInstanceHandle) arguments[0], (AttributeHandleSet) arguments[1]));
+                     (ObjectInstanceHandle) arguments[0], ((AttributeHandleSet) arguments[1]).clone()));
                } else if ("attributesOutOfScope".equals(name)) {
                   attributesOutOfScope.add(new ScopeAdvisory(
-                     (ObjectInstanceHandle) arguments[0], (AttributeHandleSet) arguments[1]));
+                     (ObjectInstanceHandle) arguments[0], ((AttributeHandleSet) arguments[1]).clone()));
                } else if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK attribute-scope callbacks";
                   if ("hashCode".equals(name)) return System.identityHashCode(proxy);

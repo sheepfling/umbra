@@ -86,7 +86,8 @@ bool UmbraRtiAmbassador::emitSelectedMomServiceReportInteraction(
   reportParameters.emplace_back(
       reservation.routing.reportParameterHandles[7],
       makeFederateHandle(*joinedFederateId_).encode());
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      *joinedFederationName_,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportServiceInvocation transportation.");
   // HLA_IMMEDIATE may enter the observer's Java/Python callback before this

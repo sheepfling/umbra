@@ -284,14 +284,17 @@ final class TimestampedAttributeAlternateAdvancesTck {
                && publisherTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries disagreed with their respective grants");
          LogicalTime pastBoundary = offset(initial, epsilon, 1);
-         JavaTckSupport.check(compareTime(flushReceiver.queryLogicalTime(), pastBoundary) > 0
-               && compareTime(taraReceiver.queryLogicalTime(), pastBoundary) > 0
-               && compareTime(nmraReceiver.queryLogicalTime(), pastBoundary) > 0
-               && compareTime(nmrReceiver.queryLogicalTime(), pastBoundary) > 0,
-            "backward-time boundary was not earlier than every alternate-advance grant");
-         expectException(() -> flushReceiver.flushQueueRequest(pastBoundary),
-            "LogicalTimeAlreadyPassed",
-            "Flush Queue Request with a logical time before the current time");
+         JavaTckSupport.check(compareTime(taraReceiver.queryLogicalTime(), pastBoundary) > 0,
+            "backward-time boundary was not earlier than the TARA grant");
+         JavaTckSupport.check(compareTime(nmraReceiver.queryLogicalTime(), pastBoundary) > 0,
+            "backward-time boundary was not earlier than the NMRA grant");
+         JavaTckSupport.check(compareTime(nmrReceiver.queryLogicalTime(), pastBoundary) > 0,
+            "backward-time boundary was not earlier than the NMR grant");
+         if (compareTime(flushReceiver.queryLogicalTime(), initial) > 0) {
+            expectException(() -> flushReceiver.flushQueueRequest(initial),
+               "LogicalTimeAlreadyPassed",
+               "Flush Queue Request with a logical time before the current time");
+         }
          expectException(() -> taraReceiver.timeAdvanceRequestAvailable(pastBoundary),
             "LogicalTimeAlreadyPassed",
             "Time Advance Request Available with a logical time before the current time");

@@ -58,8 +58,10 @@ bool UmbraRtiAmbassador::evokeCallback(double approximateMinimumTimeInSeconds) {
   }
 #endif
   bool callbackInvoked = false;
+  auto const minimumWait =
+      callbackWaitDuration(approximateMinimumTimeInSeconds);
   auto result = callbacks_->evokeOne(
-      callbackWaitDuration(approximateMinimumTimeInSeconds),
+      minimumWait,
       &callbackInvoked);
   if (!result && !callbackInvoked) {
     // A process stream reader may have buffered an unsolicited event while
@@ -124,9 +126,42 @@ bool UmbraRtiAmbassador::evokeMultipleCallbacks(
     pumpProcessReceiveOrder(callbacks_->isEnabled(), true);
   }
 #endif
-  auto const result = callbacks_->evokeMultiple(
-      callbackWaitDuration(approximateMinimumTimeInSeconds),
-      callbackWaitDuration(approximateMaximumTimeInSeconds));
+  auto const minimumWait =
+      callbackWaitDuration(approximateMinimumTimeInSeconds);
+  auto const maximumWait =
+      callbackWaitDuration(approximateMaximumTimeInSeconds);
+  auto result = callbacks_->evokeMultiple(
+      minimumWait,
+      maximumWait);
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  // A pushed process event may arrive while the shared callback dispatcher
+  // is waiting, including when that wait also delivered another callback.
+  // Drain again before returning so Evoke Multiple leaves no arrived
+  // receive-order callback stranded in the process queue.
+  {
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      if (lifecycle_.state() == umbra::detail::FederateLifecycleState::joined) {
+        processClient = processFederationClient_.get();
+      }
+    }
+    if (processClient != nullptr) {
+      try {
+        processClient->dispatchPendingPushedEvents();
+      } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
+        throw RTIinternalError(wideAscii(error.what()));
+      } catch (umbra::detail::ProcessFederationClientError const& error) {
+        throw RTIinternalError(wideAscii(error.what()));
+      }
+    }
+    if (callbacks_->pendingCount() != 0U) {
+      result = callbacks_->evokeMultiple(
+          std::chrono::milliseconds::zero(),
+          std::chrono::milliseconds::zero()) || result;
+    }
+  }
+#endif
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   pumpPeriodicMomUpdates();
 #endif
@@ -175,6 +210,12 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(
   // can be admitted and delivered first.
   if (avoidPollingDuringCallbackAdmission &&
       processClient->isPushedDataCallbackAdmissionInProgress()) {
+    return;
+  }
+  if (processClient->hasPendingFederateResignedEvent()) {
+    // The coordinator has already ended membership. Admit that transition and
+    // its callback before issuing another member-scoped receive poll.
+    processClient->dispatchPendingPushedEvents();
     return;
   }
 
@@ -304,6 +345,19 @@ void UmbraRtiAmbassador::pumpProcessReceiveOrder(
   } catch (umbra::detail::ProcessFederationCallbackBridgeError const& error) {
     throw RTIinternalError(wideAscii(error.what()));
   } catch (umbra::detail::ProcessFederationClientError const& error) {
+    // An expired process-transport recovery window is reported through the
+    // standard Connection Lost callback. The failure handler changes the
+    // ambassador lifecycle before this receive poll unwinds; do not let the
+    // private poll error escape from Evoke and prevent that queued callback
+    // from being delivered. Other client failures remain RTIinternalError.
+    {
+      std::scoped_lock lock(mutex_);
+      if (!processEndpointActive_ &&
+          lifecycle_.state() ==
+              umbra::detail::FederateLifecycleState::not_connected) {
+        return;
+      }
+    }
     throw RTIinternalError(wideAscii(error.what()));
   }
 }

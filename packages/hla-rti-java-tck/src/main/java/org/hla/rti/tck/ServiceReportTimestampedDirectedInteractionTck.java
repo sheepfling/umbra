@@ -137,7 +137,7 @@ final class ServiceReportTimestampedDirectedInteractionTck {
          receiverAttributesSubscribed = true;
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction));
          receiverDirectedSubscribed = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
@@ -159,6 +159,10 @@ final class ServiceReportTimestampedDirectedInteractionTck {
          receiver.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
+         JavaTckSupport.check(!publisher.getServiceReportingSwitch()
+               && !receiver.getServiceReportingSwitch()
+               && !observer.getServiceReportingSwitch(),
+            "timestamped directed-interaction report switches did not disable service reporting");
          observerRecorder.interactions.clear();
          receiverRecorder.directedInteractions.clear();
          receiverRecorder.grants.clear();
@@ -168,6 +172,9 @@ final class ServiceReportTimestampedDirectedInteractionTck {
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          JavaTckSupport.check(timeFactory.getName().equals(receiver.getTimeFactory().getName()),
             "federates selected different logical-time factories");
+         LogicalTime initial = timeFactory.makeInitial();
+         JavaTckSupport.check(initial != null,
+            "timestamped directed-interaction factory returned no initial logical time");
          receiver.enableTimeConstrained();
          await(receiver, callbackModel, () -> receiverRecorder.timeConstrainedEnabled,
             "timestamped directed-interaction time-constrained callback");
@@ -179,7 +186,6 @@ final class ServiceReportTimestampedDirectedInteractionTck {
          publisher.enableTimeRegulation(lookahead);
          await(publisher, callbackModel, () -> publisherRecorder.timeRegulationEnabled,
             "timestamped directed-interaction time-regulation callback");
-         LogicalTime initial = publisher.queryLogicalTime();
          LogicalTime timestamp = (LogicalTime) initial.add(lookahead).add(epsilon);
          byte[] tag = new byte[] {0x74, 0x73, 0x6f};
          publisher.setServiceReportingSwitch(true);
@@ -190,18 +196,36 @@ final class ServiceReportTimestampedDirectedInteractionTck {
                && retraction.handle != null,
             "timestamped directed-interaction send returned an invalid retraction handle");
 
-         await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
-            "timestamped directed-interaction service report");
+         if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
+            JavaTckSupport.check(!observerRecorder.interactions.isEmpty(),
+               "immediate timestamped directed-interaction report was not delivered synchronously");
+         } else {
+            JavaTckSupport.check(observerRecorder.interactions.isEmpty(),
+               "evoked timestamped directed-interaction report arrived before callback servicing");
+            await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
+               "timestamped directed-interaction service report");
+         }
+         String reportSequenceText = observerRecorder.interactions.size() == 1
+            ? "one report" : reportSequence(observerRecorder.interactions, encoder, reportParameters);
          JavaTckSupport.check(observerRecorder.interactions.size() == 1
                && receiverRecorder.directedInteractions.isEmpty()
                && receiverRecorder.grants.isEmpty(),
-            "timestamped directed send produced an early delivery or unexpected report count");
+            "timestamped directed send produced an early delivery or unexpected report count: "
+               + reportSequenceText);
          Interaction report = observerRecorder.interactions.get(0);
-         JavaTckSupport.check(report.interaction.equals(reportClass)
-               && report.parameters.size() == REPORT_PARAMETER_NAMES.length
-               && report.tag.length == 0 && report.producer == null && report.regionsEmpty
-               && observerReliable.equals(report.transportation),
-            "timestamped directed-interaction service report returned non-standard metadata");
+         boolean reportClassMatches = report.interaction.equals(reportClass);
+         boolean reportParameterCountMatches = report.parameters.size() == REPORT_PARAMETER_NAMES.length;
+         boolean reportTagIsEmpty = report.tag.length == 0;
+         boolean reportHasNoProducer = report.producer == null;
+         boolean reportHasNoRegions = report.regionsEmpty;
+         boolean reportUsesReliableTransportation = observerReliable.equals(report.transportation);
+         JavaTckSupport.check(reportClassMatches && reportParameterCountMatches && reportTagIsEmpty
+               && reportHasNoProducer && reportHasNoRegions && reportUsesReliableTransportation,
+            "timestamped directed-interaction service report returned non-standard metadata: class="
+               + reportClassMatches + ", parameters=" + reportParameterCountMatches
+               + ", emptyTag=" + reportTagIsEmpty + ", noProducer=" + reportHasNoProducer
+               + ", noRegions=" + reportHasNoRegions
+               + ", reliableTransportation=" + reportUsesReliableTransportation);
          for (String name : REPORT_PARAMETER_NAMES) {
             JavaTckSupport.check(report.parameters.containsKey(reportParameters.get(name)),
                "timestamped directed-interaction service report omitted " + name);
@@ -213,12 +237,22 @@ final class ServiceReportTimestampedDirectedInteractionTck {
          publisher.setSendServiceReportsToFileSwitch(false);
          receiver.timeAdvanceRequest(timestamp);
          LogicalTimeInterval publisherAdvanceInterval = (LogicalTimeInterval) epsilon.add(epsilon);
+         LogicalTime publisherAdvanceBeforeReceiverGrant =
+            (LogicalTime) initial.add(epsilon);
          LogicalTime publisherAdvance = (LogicalTime) initial.add(publisherAdvanceInterval);
-         publisher.timeAdvanceRequest(publisherAdvance);
+         publisher.timeAdvanceRequest(publisherAdvanceBeforeReceiverGrant);
          awaitPair(publisher, receiver, callbackModel,
             () -> !receiverRecorder.directedInteractions.isEmpty()
-               && !receiverRecorder.grants.isEmpty() && !publisherRecorder.grants.isEmpty(),
-            "timestamped directed delivery and matching time grants");
+               && !publisherRecorder.grants.isEmpty(),
+            "timestamped directed delivery before the receiver grant");
+         JavaTckSupport.check(receiverRecorder.grants.isEmpty()
+               && publisherRecorder.grants.size() == 1
+               && publisherAdvanceBeforeReceiverGrant.equals(publisherRecorder.grants.get(0)),
+            "timestamped directed interaction was not delivered while the receiver grant remained pending");
+         publisher.timeAdvanceRequest(publisherAdvance);
+         awaitPair(publisher, receiver, callbackModel,
+            () -> !receiverRecorder.grants.isEmpty() && publisherRecorder.grants.size() >= 2,
+            "timestamped directed receiver and publisher grants");
          Directed directed = receiverRecorder.directedInteractions.get(0);
          JavaTckSupport.check(receiverRecorder.directedInteractions.size() == 1
                && directed.interaction.equals(receiverInteraction)
@@ -231,9 +265,10 @@ final class ServiceReportTimestampedDirectedInteractionTck {
                && OrderType.TIMESTAMP.equals(directed.receivedOrder)
                && retraction.handle.equals(directed.retraction)
                && receiverRecorder.grants.size() == 1
-               && publisherRecorder.grants.size() == 1
+               && publisherRecorder.grants.size() == 2
                && timestamp.equals(receiverRecorder.grants.get(0))
-               && publisherAdvance.equals(publisherRecorder.grants.get(0)),
+               && publisherAdvanceBeforeReceiverGrant.equals(publisherRecorder.grants.get(0))
+               && publisherAdvance.equals(publisherRecorder.grants.get(1)),
             "timestamped directed-interaction callback or matching grant returned incorrect metadata");
          JavaTckSupport.check(receiverRecorder.callbackOrder.size() >= 2
                && "receiveDirectedInteraction".equals(receiverRecorder.callbackOrder.get(0))
@@ -344,6 +379,20 @@ final class ServiceReportTimestampedDirectedInteractionTck {
             && name.equals(((HLAunicodeString) argument.get(1)).getValue())
             && value.equals(((HLAunicodeString) argument.get(2)).getValue()),
          "timestamped directed-interaction report supplied the wrong argument " + name);
+   }
+
+   private static String reportSequence(List<Interaction> reports, EncoderFactory encoder,
+         Map<String, ParameterHandle> parameters) throws Exception {
+      StringBuilder sequence = new StringBuilder();
+      for (Interaction report : reports) {
+         HLAunicodeString service = encoder.createHLAunicodeString();
+         service.decode(report.parameters.get(parameters.get("HLAservice")));
+         HLAinteger32BE serial = encoder.createHLAinteger32BE();
+         serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
+         if (sequence.length() != 0) sequence.append(", ");
+         sequence.append(service.getValue()).append('#').append(serial.getValue());
+      }
+      return sequence.toString();
    }
 
    private static String quoted(String value) { return "\"" + value + "\""; }

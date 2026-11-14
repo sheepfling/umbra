@@ -35,4 +35,9 @@ final class NativeDimensionHandle implements DimensionHandle {
    public int hashCode() {
       return Arrays.hashCode(encoded);
    }
+
+   @Override
+   public String toString() {
+      return NativeHandleText.format("DimensionHandle", encoded);
+   }
 }

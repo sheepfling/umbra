@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java port sets and commits one configured DDM dimension's range, then verifies Get Range Bounds returns the exact current lower and upper values. It covers only this region/dimension pair.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-range-bounds-for-region",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "DimensionHandle getDimensionHandle(String name)",
+        "RegionHandle createRegion(DimensionHandleSet dimensions)",
+        "void setRangeBounds(RegionHandle region, DimensionHandle dimension, RangeBounds bounds)",
+        "void commitRegionModifications(RegionHandleSet regions)",
+        "RangeBounds getRangeBounds(RegionHandle region, DimensionHandle dimension)",
+        "long RangeBounds.lower",
+        "long RangeBounds.upper"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getRangeBounds",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RangeBoundsForRegionTck.java#run"
+      ]
+    }
+  ]
+}

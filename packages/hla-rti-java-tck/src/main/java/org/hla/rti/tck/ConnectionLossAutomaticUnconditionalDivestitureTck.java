@@ -4,18 +4,17 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
-import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
@@ -25,49 +24,51 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
    private ConnectionLossAutomaticUnconditionalDivestitureTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String interactionClassName,
-         CallbackModel callbackModel, String readyMarkerPath, String completionMarkerPath,
-         long timeoutMillis) throws Exception {
+         String objectClassName, String attributeName, CallbackModel callbackModel,
+         RtiConfiguration survivorConfiguration, RtiConfiguration lostConfiguration,
+         String federation, String survivorName, String lostName, String federateType,
+         String readyMarkerPath, String completionMarkerPath, long timeoutMillis)
+         throws Exception {
       JavaTckSupport.check(readyMarkerPath != null && !readyMarkerPath.isEmpty(),
          "adapter connection-loss readiness marker is required");
       JavaTckSupport.check(completionMarkerPath != null && !completionMarkerPath.isEmpty(),
          "adapter connection-loss completion marker is required");
       JavaTckSupport.check(timeoutMillis > 0, "connection-loss timeout must be positive");
+      JavaTckSupport.check(federation != null && !federation.isEmpty()
+            && survivorName != null && !survivorName.isEmpty()
+            && lostName != null && !lostName.isEmpty()
+            && federateType != null && !federateType.isEmpty(),
+         "adapter connection-loss federation and member names are required");
 
       RTIambassador survivor = factory.getRtiAmbassador();
       RTIambassador lost = factory.getRtiAmbassador();
       Recorder survivorCallbacks = new Recorder();
       AtomicReference<String> loss = new AtomicReference<>();
-      String federation = "java-tck-loss-divestiture-" + UUID.randomUUID();
       boolean survivorConnected = false;
-      boolean lostConnected = false;
-      boolean created = false;
       boolean survivorJoined = false;
       try {
-         survivor.connect(survivorCallbacks.proxy(), callbackModel);
+         survivor.connect(survivorCallbacks.proxy(), callbackModel, survivorConfiguration);
          survivorConnected = true;
-         lost.connect(connectionLossCallbacks(loss), callbackModel);
-         lostConnected = true;
+         lost.connect(connectionLossCallbacks(loss), callbackModel, lostConfiguration);
          survivor.createFederationExecution(federation, fom, timeImplementation);
-         created = true;
-         survivor.joinFederationExecution("loss-divest-survivor", federation);
+         survivor.joinFederationExecution(survivorName, federateType, federation);
          survivorJoined = true;
-         lost.joinFederationExecution("loss-divest-member", federation);
+         lost.joinFederationExecution(lostName, federateType, federation);
 
-         ObjectClassHandle survivorClass = survivor.getObjectClassHandle(objectClassName);
          ObjectClassHandle lostClass = lost.getObjectClassHandle(objectClassName);
+         ObjectClassHandle survivorClass = survivor.getObjectClassHandle(objectClassName);
+         JavaTckSupport.check(survivorClass != null && lostClass != null,
+            "automatic connection-loss object-class lookup returned no handle");
+         AttributeHandle lostAttribute = lost.getAttributeHandle(lostClass, attributeName);
          AttributeHandle survivorAttribute = survivor.getAttributeHandle(
             survivorClass, attributeName);
-         AttributeHandle lostAttribute = lost.getAttributeHandle(lostClass, attributeName);
-         AttributeHandle survivorPrivilege = survivor.getAttributeHandle(
-            survivorClass, "HLAprivilegeToDeleteObject");
          AttributeHandle lostPrivilege = lost.getAttributeHandle(
             lostClass, "HLAprivilegeToDeleteObject");
-         JavaTckSupport.check("HLAprivilegeToDeleteObject".equals(
-               survivor.getAttributeName(survivorClass, survivorPrivilege))
-               && "HLAprivilegeToDeleteObject".equals(
-                  lost.getAttributeName(lostClass, lostPrivilege)),
-            "standard privilege-to-delete attribute lookup did not round-trip");
+         AttributeHandle survivorPrivilege = survivor.getAttributeHandle(
+            survivorClass, "HLAprivilegeToDeleteObject");
+         JavaTckSupport.check(survivorAttribute != null && lostAttribute != null
+               && survivorPrivilege != null && lostPrivilege != null,
+            "automatic connection-loss attribute lookup returned no handle");
          AttributeHandleSet survivorAttributes =
             JavaTckSupport.attributeSet(survivor, survivorAttribute);
          AttributeHandleSet lostAttributes = JavaTckSupport.attributeSet(lost, lostAttribute);
@@ -85,24 +86,22 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
          JavaTckSupport.check(lost.getAutomaticResignDirective()
                == ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES,
             "automatic unconditional-divestiture directive did not round-trip");
-         InteractionClassHandle signalClass =
-            survivor.getInteractionClassHandle(interactionClassName);
-         JavaTckSupport.check(signalClass != null,
-            "survivor could not resolve the adapter-configured signal interaction");
-         survivor.publishInteractionClass(signalClass);
          writeMarker(Path.of(readyMarkerPath), "ready\n");
 
          long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
          while (loss.get() == null && System.nanoTime() < deadline) {
-            try {
-               lost.evokeMultipleCallbacks(0.0, 0.05);
-            } catch (Exception ignored) {
-               // The transport fixture can expose loss before queuing connectionLost.
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               try {
+                  lost.evokeMultipleCallbacks(0.0, 0.05);
+               } catch (Exception ignored) {
+                  // The transport fixture can expose loss before queuing connectionLost.
+               }
             }
             if (loss.get() == null) Thread.sleep(1L);
          }
          JavaTckSupport.check(loss.get() != null && !loss.get().isEmpty(),
             "timed out waiting for a non-empty connectionLost callback");
+         writeMarker(Path.of(completionMarkerPath), "callback-ok\n");
 
          await(() -> !survivorCallbacks.assumptions.isEmpty(), survivor, callbackModel,
             timeoutMillis, "automatic unconditional-divestiture assumption callback");
@@ -122,27 +121,9 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
          JavaTckSupport.check(!survivor.isAttributeOwnedByFederate(object, survivorAttribute)
                && !survivor.isAttributeOwnedByFederate(object, survivorPrivilege),
             "survivor unexpectedly owns an attribute offered by automatic divestiture");
-
-         // The adapter fixture uses this ordinary interaction as its completion handshake.
-         survivor.sendInteraction(signalClass,
-            survivor.getParameterHandleValueMapFactory().create(0), new byte[0]);
-         try {
-            lost.disconnect();
-         } catch (Exception ignored) {
-            // Local cleanup may already have followed the transport-loss callback.
-         }
-         lostConnected = false;
-         writeMarker(Path.of(completionMarkerPath), "callback-ok\n");
       } finally {
-         if (lostConnected) {
-            try { lost.disconnect(); } catch (Exception ignored) { }
-         }
          if (survivorJoined) {
             try { survivor.resignFederationExecution(ResignAction.NO_ACTION); }
-            catch (Exception ignored) { }
-         }
-         if (created) {
-            try { survivor.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
          if (survivorConnected) {

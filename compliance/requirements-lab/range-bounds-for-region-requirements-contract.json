@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "Mirrors cpp-tck.range-bounds-for-region while preserving the corrected canonical mapping recorded with RL-425 and RL-426. The focused case checks exact current bounds for owner- and member-created regions and verifies independent, distinct ranges for two dimensions in one region. It does not claim other range-bound conditions or conformance.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-262-l113-35",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-262-l113-35",
+      "clause_id": "clause-10.27",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.range-bounds-for-region.requirement_mappings",
+      "statement": "Get Range Bounds returns the current lower and upper bounds for the specified region and dimension.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioRangeBoundsForRegion",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RangeBoundsForRegionTck.java#run"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-263-l125-39",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-263-l125-39",
+      "clause_id": "clause-10.28",
+      "source": "compliance/catalogs/cpp-tck-scenario-catalog.json",
+      "source_symbol": "cpp-tck.range-bounds-for-region.requirement_mappings",
+      "statement": "Set Range Bounds changes the specified region dimension's range to the supplied lower and upper bounds.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp#scenarioRangeBoundsForRegion",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RangeBoundsForRegionTck.java#run"
+      ]
+    }
+  ]
+}

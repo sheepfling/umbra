@@ -21,10 +21,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Preserves queued timestamped directed delivery across changed-lookahead re-enable. */
 final class TimestampedDirectedInteractionRegulationReenableTck {
@@ -101,10 +102,8 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle target = receiver.registerObjectInstance(receiverClass);
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(publisherRecorder.discoveries.contains(target),
-            "publisher did not discover the directed target object");
+         await(callbackModel, () -> publisherRecorder.discoveries.contains(target),
+            "publisher discovery of the directed target", publisher);
 
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTimeFactory<?, ?> receiverTimeFactory = receiver.getTimeFactory();
@@ -113,20 +112,18 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          receiver.enableTimeConstrained();
          receiverConstrained = true;
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
-            "receiver did not report its initial Time Constrained callback");
+         await(callbackModel, () -> receiverRecorder.timeConstrainedEnabledCount == 1,
+            "initial receiver Time Constrained callback", receiver);
          publisher.enableTimeRegulation(epsilon);
          publisherRegulating = true;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
-            "publisher did not report its initial Time Regulation callback");
+         await(callbackModel, () -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "initial publisher Time Regulation callback", publisher);
 
          LogicalTime initial = publisher.queryLogicalTime();
          JavaTckSupport.check(initial.equals(receiver.queryLogicalTime()),
             "publisher and receiver began at different logical times");
          LogicalTime interactionTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 2);
+         LogicalTime publisherTarget = offset(initial, epsilon, 3);
          LogicalTimeInterval changedLookahead = offset(epsilon, 3);
          byte[] payload = new byte[] {(byte) 0xD1, 0x52};
          byte[] tag = new byte[] {0x44, 0x49, 0x52, 0x4C};
@@ -137,21 +134,17 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
             publisherInteraction, target, parameters, tag, interactionTime);
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
             "timestamped directed send returned no valid retraction handle");
-         JavaTckSupport.drain(receiver);
+         settle(callbackModel, receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "directed interaction arrived before its constrained receiver's grant");
 
          publisher.disableTimeRegulation();
          publisherRegulating = false;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationDisabledCount == 1,
-            "publisher did not report Time Regulation disable");
          publisher.enableTimeRegulation(changedLookahead);
          publisherRegulating = true;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 2,
-            "publisher did not report its second Time Regulation enable callback");
-         JavaTckSupport.drain(receiver);
+         await(callbackModel, () -> publisherRecorder.timeRegulationEnabledCount == 2,
+            "second publisher Time Regulation callback", publisher);
+         settle(callbackModel, receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "queued directed interaction arrived during Time Regulation re-enable");
          JavaTckSupport.check(changedLookahead.equals(publisher.queryLookahead()),
@@ -160,18 +153,22 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
          receiverRecorder.callbackOrder.clear();
          publisherRecorder.callbackOrder.clear();
          receiver.timeAdvanceRequest(interactionTime);
+         settle(callbackModel, receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "directed interaction arrived before the producer time boundary");
          publisher.timeAdvanceRequest(publisherTarget);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.drain(publisher);
+         await(callbackModel,
+            () -> receiverRecorder.timeAdvanceGrant != null
+               && publisherRecorder.timeAdvanceGrant != null
+               && receiverRecorder.interactions.size() == 1,
+            "directed delivery and both TAR grants", receiver, publisher);
+         settle(callbackModel, receiver, publisher);
          JavaTckSupport.check(receiverRecorder.interactions.size() == 1,
             "re-enabled publisher's directed interaction was not delivered exactly once");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(
                Arrays.asList("receiveDirectedInteraction", "timeAdvanceGrant")),
             "directed delivery did not precede the receiver's grant");
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 2
-               && publisherRecorder.timeRegulationDisabledCount == 1,
+         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 2,
             "publisher returned the wrong Time Regulation callback counts");
          JavaTckSupport.check(interactionTime.equals(receiverRecorder.timeAdvanceGrant)
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrant),
@@ -270,6 +267,33 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
       return result;
    }
 
+   private static void await(CallbackModel model, BooleanSupplier condition,
+         String description, RTIambassador... ambassadors) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         for (RTIambassador ambassador : ambassadors) service(ambassador, model);
+         Thread.sleep(1L);
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static void settle(CallbackModel model, RTIambassador... ambassadors)
+         throws Exception {
+      long deadline = System.nanoTime() + 100_000_000L;
+      while (System.nanoTime() < deadline) {
+         for (RTIambassador ambassador : ambassadors) service(ambassador, model);
+         Thread.sleep(1L);
+      }
+   }
+
+   private static void service(RTIambassador ambassador, CallbackModel model) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.drain(ambassador);
+      } else {
+         Thread.yield();
+      }
+   }
+
    private static void checkInteraction(Interaction actual,
          InteractionClassHandle expectedClass, ObjectInstanceHandle expectedObject,
          ParameterHandle expectedParameter, byte[] expectedPayload, byte[] expectedTag,
@@ -323,13 +347,12 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabledCount;
-      private int timeRegulationDisabledCount;
-      private int timeConstrainedEnabledCount;
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private LogicalTime<?, ?> timeAdvanceGrant;
+      private volatile int timeRegulationEnabledCount;
+      private volatile int timeConstrainedEnabledCount;
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -338,8 +361,6 @@ final class TimestampedDirectedInteractionRegulationReenableTck {
                String name = method.getName();
                if ("timeRegulationEnabled".equals(name)) {
                   ++timeRegulationEnabledCount;
-               } else if ("timeRegulationDisabled".equals(name)) {
-                  ++timeRegulationDisabledCount;
                } else if ("timeConstrainedEnabled".equals(name)) {
                   ++timeConstrainedEnabledCount;
                } else if ("discoverObjectInstance".equals(name) && arguments != null

@@ -19,5 +19,53 @@
             <order>Receive</order>
             <semantics>Partial row intentionally omitting Value Required.</semantics>
         </attribute>
+        <attribute>
+            <name>TckPublishedValueRequired</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>true</valueRequired>
+            <ownership>NoTransfer</ownership><sharing>Publish</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Published attribute explicitly requires an initial value.</semantics>
+        </attribute>
+        <attribute>
+            <name>TckOwnershipDivest</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>false</valueRequired>
+            <ownership>Divest</ownership><sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Attribute with divest-only ownership capability.</semantics>
+        </attribute>
+        <attribute>
+            <name>TckOwnershipAcquire</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>false</valueRequired>
+            <ownership>Acquire</ownership><sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Attribute with acquire-only ownership capability.</semantics>
+        </attribute>
+        <attribute>
+            <name>TckOwnershipDivestAcquire</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>false</valueRequired>
+            <ownership>DivestAcquire</ownership><sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Attribute with both ownership-transfer capabilities.</semantics>
+        </attribute>
+        <attribute>
+            <name>TckSharingSubscribe</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>false</valueRequired>
+            <ownership>NoTransfer</ownership><sharing>Subscribe</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Attribute with subscribe-only sharing.</semantics>
+        </attribute>
+        <attribute>
+            <name>TckSharingPublishSubscribe</name>
+            <dataType>HLAunicodeString</dataType><updateType>Static</updateType>
+            <updateCondition>NA</updateCondition><valueRequired>false</valueRequired>
+            <ownership>NoTransfer</ownership><sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Attribute with publish-and-subscribe sharing.</semantics>
+        </attribute>
     </objectClass></objects>
 </objectModel>

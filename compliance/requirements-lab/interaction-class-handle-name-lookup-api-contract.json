@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java port resolves one configured interaction class and verifies that Get Interaction Class Name returns its exact configured name. It covers only this valid FOM class; it does not test invalid names, invalid handles, or broader support-service behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-interaction-class-handle-name-lookup",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "InteractionClassHandle getInteractionClassHandle(String name)",
+        "String getInteractionClassName(InteractionClassHandle interactionClass)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getInteractionClassName",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/InteractionClassHandleNameLookupTck.java#run"
+      ]
+    }
+  ]
+}

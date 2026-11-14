@@ -184,7 +184,7 @@ EmbeddedFederationRegistry::momFomModuleDataReportRecipientFor(
   std::set<std::uint64_t> const endpointRegionHandles{
       kMomFomModuleDataEndpointRegionHandle,
   };
-  return candidateReceiveOrderInteractionRecipient(
+  auto recipient = candidateReceiveOrderInteractionRecipient(
       federation->second,
       InteractionProducer::rti(),
       receivingFederateId,
@@ -192,6 +192,7 @@ EmbeddedFederationRegistry::momFomModuleDataReportRecipientFor(
       {*moduleIndicatorParameterHandle, *moduleDataParameterHandle},
       &endpointRegionHandles,
       &endpointOverride);
+  return recipient;
 }
 
 }  // namespace umbra::detail

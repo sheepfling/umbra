@@ -89,4 +89,45 @@ void scenarioFomInteractionClassDimensionMergeContract(Options const& options,
   scenarioFomInteractionClassDimensionMerge(options, model);
 }
 
+void scenarioFomInteractionInheritedAvailableDimensions(
+    Options const& options, rti::CallbackModel model) {
+  require(!options.ddmFom.empty(),
+          "Inherited interaction dimensions require the portable DDM FOM");
+  Session owner(options, model, "inherited-interaction-dimensions-owner");
+  Session member(options, model, "inherited-interaction-dimensions-member");
+  auto const federation = federationName(
+      options, "fom-interaction-inherited-available-dimensions");
+  connectAndJoin(owner, member, options, federation, options.ddmFom);
+
+  auto& ambassador = member.rtiAmbassador();
+  auto const x = ambassador.getDimensionHandle(L"TckDimensionX");
+  auto const y = ambassador.getDimensionHandle(L"TckDimensionY");
+  auto const base = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.TckDimensionBaseInteraction");
+  auto const derived = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.TckDimensionBaseInteraction.TckDimensionDerivedInteraction");
+  require(x.isValid() && y.isValid() && base.isValid() && derived.isValid(),
+          "Inherited interaction dimension setup returned an invalid handle");
+
+  auto const baseDimensions =
+      ambassador.getAvailableDimensionsForInteractionClass(base);
+  require(baseDimensions == rti::DimensionHandleSet{x},
+          "Base interaction class did not expose exactly its FDD dimension X");
+  auto const derivedDimensions =
+      ambassador.getAvailableDimensionsForInteractionClass(derived);
+  require(derivedDimensions == rti::DimensionHandleSet{x, y},
+          "Derived interaction class did not inherit X and add FDD dimension Y");
+
+  member.resign(rti::NO_ACTION);
+  owner.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  member.disconnect();
+  owner.disconnect();
+}
+
+void scenarioFomInteractionInheritedAvailableDimensionsContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioFomInteractionInheritedAvailableDimensions(options, model);
+}
+
 }  // namespace hla_rti_cpp_tck::detail

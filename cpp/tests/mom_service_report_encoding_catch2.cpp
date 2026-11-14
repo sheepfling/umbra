@@ -12,6 +12,8 @@
 #include "internal/handles/transportation_type_handle.hpp"
 
 #include <RTI/auth/HLAplainTextPassword.h>
+#include <RTI/Enums.h>
+#include <RTI/Typedefs.h>
 #include <RTI/encoding/BasicDataElements.h>
 #include <RTI/time/HLAfloat64Interval.h>
 #include <RTI/time/HLAfloat64Time.h>
@@ -155,7 +157,23 @@ TEST_CASE(
 
 TEST_CASE(
     "MOM service-report files begin with the Table 5 initial record",
-    "[mom][encoding][service-reporting][unit]") {
+    "[mom][encoding][service-reporting][unit]"
+    "[requirement-candidate-table-5-p297-r008]"
+    "[requirement-candidate-table-5-p297-r009]"
+    "[requirement-candidate-table-5-p297-r010]"
+    "[requirement-candidate-table-5-p297-r011]"
+    "[requirement-candidate-table-5-p297-r012]"
+    "[requirement-candidate-table-5-p297-r013]"
+    "[requirement-candidate-table-5-p298-r007]"
+    "[requirement-candidate-table-5-p298-r008]"
+    "[service-report-fom-designator]"
+    "[requirement-candidate-table-5-p296-r031]"
+    "[requirement-candidate-table-5-p296-r032]"
+    "[requirement-candidate-table-5-p296-r033]"
+    "[requirement-candidate-table-5-p296-r034]"
+    "[service-report-table5-rti-configuration]"
+    "[requirement-candidate-table-5-p299-r015]"
+    "[requirement-candidate-table-5-p300-r016]") {
   using namespace umbra::detail;
 
   MomServiceReportInitialRecord record;
@@ -167,7 +185,10 @@ TEST_CASE(
   record.federationName = L"TestDogFight";
   record.rtiVersion = L"Umbra 0.1.0";
   record.mimDesignator = L"HLAstandardMIM";
-  record.federationFomModuleDesignators = {L"Restaurant.xml", L"Extensions.xml"};
+  record.federationFomModuleDesignators = {
+      L"http://www.sisostds.org/RPR.fom",
+      L"/foms/DogFightExtensions.xml",
+  };
   record.timeImplementationName = L"HLAfloat64Time";
   record.autoProvide = true;
   record.federateHandle = L"FederateHandle(21)";
@@ -177,29 +198,71 @@ TEST_CASE(
   record.federateFomModuleDesignators = record.federationFomModuleDesignators;
 
   REQUIRE(formatMomServiceReportInitialRecord(record) ==
-      L"{\"Configuration\":{\"CallbackModel\":\"HLA_EVOKED\",\"ConfigurationName\":\"embedded\",\"RTIaddress\":\"in-process\",\"AdditionalSettings\":\"serviceReportDirectory=C:\\\\logs\",\"OptionalInternalData\":{\"Process ID\":\"42\"}},\"HLAmanager.HLAfederation\":{\"HLAfederationName\":\"TestDogFight\",\"HLARTIversion\":\"Umbra 0.1.0\",\"HLAMIMDesignator\":\"HLAstandardMIM\",\"HLAFOMmoduleDesignatorList\":[\"Restaurant.xml\",\"Extensions.xml\"],\"HLAtimeImplementationName\":\"HLAfloat64Time\",\"HLAautoProvide\":true},\"HLAmanager.HLAfederate\":{\"HLAfederateHandle\":\"FederateHandle(21)\",\"HLAfederateName\":\"Fighter1\",\"HLAfederateType\":\"Fighter\",\"HLAfederateHost\":\"umbra-embedded\",\"HLAFOMmoduleDesignatorList\":[\"Restaurant.xml\",\"Extensions.xml\"]}}");
+      L"{\"Configuration\":{\"CallbackModel\":\"HLA_EVOKED\",\"ConfigurationName\":\"embedded\",\"RTIaddress\":\"in-process\",\"AdditionalSettings\":\"serviceReportDirectory=C:\\\\logs\",\"OptionalInternalData\":{\"Process ID\":\"42\"}},\"HLAmanager.HLAfederation\":{\"HLAfederationName\":\"TestDogFight\",\"HLARTIversion\":\"Umbra 0.1.0\",\"HLAMIMDesignator\":\"HLAstandardMIM\",\"HLAFOMmoduleDesignatorList\":[\"http://www.sisostds.org/RPR.fom\",\"/foms/DogFightExtensions.xml\"],\"HLAtimeImplementationName\":\"HLAfloat64Time\",\"HLAautoProvide\":true},\"HLAmanager.HLAfederate\":{\"HLAfederateHandle\":\"FederateHandle(21)\",\"HLAfederateName\":\"Fighter1\",\"HLAfederateType\":\"Fighter\",\"HLAfederateHost\":\"umbra-embedded\",\"HLAFOMmoduleDesignatorList\":[\"http://www.sisostds.org/RPR.fom\",\"/foms/DogFightExtensions.xml\"]}}");
 }
 
 TEST_CASE(
-    "MOM service-report initial-record PairList uses braced string pairs",
-    "[mom][encoding][service-reporting][unit][service-report-pair-list]") {
+    "MOM service-report ConfigurationResult uses Table 5 enumeration strings",
+    "[mom][encoding][service-reporting][unit]"
+    "[service-report-configuration-result]"
+    "[mom-service-report-argument-value-composite-forms]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites]") {
+  using namespace umbra::detail;
+
+  rti1516_2025::ConfigurationResult ignored{
+      false, false, rti1516_2025::SETTINGS_IGNORED, L""};
+  rti1516_2025::ConfigurationResult parseFailure{
+      false, false, rti1516_2025::SETTINGS_FAILED_TO_PARSE, L"invalid settings"};
+  rti1516_2025::ConfigurationResult applied{
+      true, true, rti1516_2025::SETTINGS_APPLIED, L"settings applied"};
+
+  REQUIRE(formatMomConfigurationResult(ignored) ==
+      L"{\"configurationUsed\":false,\"addressUsed\":false,"
+      L"\"additionalSettingsResultCode\":\"SETTINGS_IGNORED\",\"message\":\"\"}");
+  REQUIRE(formatMomConfigurationResult(parseFailure) ==
+      L"{\"configurationUsed\":false,\"addressUsed\":false,"
+      L"\"additionalSettingsResultCode\":\"SETTINGS_FAILED_TO_PARSE\","
+      L"\"message\":\"invalid settings\"}");
+  REQUIRE(formatMomConfigurationResult(applied) ==
+      L"{\"configurationUsed\":true,\"addressUsed\":true,"
+      L"\"additionalSettingsResultCode\":\"SETTINGS_APPLIED\","
+      L"\"message\":\"settings applied\"}");
+
+  MomServiceArgument const argument{
+      MomArgumentType::configuration_result,
+      L"ConfigurationResult",
+      formatMomConfigurationResult(applied)};
+  REQUIRE(formatMomServiceArgumentRecord(argument) ==
+      L"{\"HLAargumentType\":8,\"HLAargumentName\":\"ConfigurationResult\","
+      L"\"HLAargumentValue\":{\"configurationUsed\":true,"
+      L"\"addressUsed\":true,\"additionalSettingsResultCode\":"
+      L"\"SETTINGS_APPLIED\",\"message\":\"settings applied\"}}");
+}
+
+TEST_CASE(
+    "MOM service-report initial-record OptionalInternalData encodes the Table 5 PairList example",
+    "[mom][encoding][service-reporting][unit][service-report-pair-list]"
+    "[requirement-candidate-table-5-p299-r005]") {
   using namespace umbra::detail;
 
   MomServiceReportInitialRecord record;
   record.optionalInternalData = {
-      {L"Operation", L"CreateFederationExecution"},
-      {L"Outcome", L"Success"},
+      {L"Process ID", L"52525"},
+      {L"TimeOfDay", L"15:25"},
   };
 
   auto const encoded = formatMomServiceReportInitialRecord(record);
-  REQUIRE(encoded.find(
-              L"\"OptionalInternalData\":{\"Operation\":\"CreateFederationExecution\","
-              L"\"Outcome\":\"Success\"}") != std::wstring::npos);
+  std::wstring const pairListExample =
+      L"\"OptionalInternalData\":{\"Process ID\":\"52525\","
+      L"\"TimeOfDay\":\"15:25\"}";
+  REQUIRE(encoded.find(pairListExample) != std::wstring::npos);
 }
 
 TEST_CASE(
     "MOM service-report files format successful void records using Table 5",
-    "[mom][encoding][service-reporting][unit][service-report-boolean-table5]") {
+    "[mom][encoding][service-reporting][unit][service-report-boolean-table5]"
+    "[service-report-table5-service-record]"
+    "[requirement-candidate-table-5-p301-r001]") {
   using namespace umbra::detail;
 
   MomServiceArgument supplied{
@@ -235,6 +298,37 @@ TEST_CASE(
           L"\"HLAservice\":\"SetExceptionReportingSwitch\","
           L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":6,"
           L"\"HLAargumentName\":\"SwitchValue\",\"HLAargumentValue\":true}],"
+          L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
+}
+
+TEST_CASE(
+    "MOM service-report records encode ordered SuppliedArgumentList arrays",
+    "[mom][encoding][service-reporting][unit]"
+    "[service-report-table5-supplied-argument-list]"
+    "[requirement-candidate-table-5-p303-r001]") {
+  using namespace umbra::detail;
+
+  MomServiceArgument const first{
+      MomArgumentType::boolean,
+      L"First switch",
+      formatMomBoolean(false),
+  };
+  MomServiceArgument const second{
+      MomArgumentType::boolean,
+      L"Second switch",
+      formatMomBoolean(true),
+  };
+
+  REQUIRE(formatMomSuccessfulVoidServiceReportRecord(
+              8U,
+              L"SetExceptionReportingSwitch",
+              {first, second}) ==
+          L"{\"HLAserialNumber\":8,\"HLAreturnedArgument\":[null],"
+          L"\"HLAservice\":\"SetExceptionReportingSwitch\","
+          L"\"HLAsuppliedArguments\":["
+          L"{\"HLAargumentType\":6,\"HLAargumentName\":\"First switch\","
+          L"\"HLAargumentValue\":false},{\"HLAargumentType\":6,"
+          L"\"HLAargumentName\":\"Second switch\",\"HLAargumentValue\":true}],"
           L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
 }
 
@@ -280,7 +374,10 @@ TEST_CASE(
 
 TEST_CASE(
     "MOM service-report files use the Table 5 Commit Region Modifications argument form",
-    "[mom][encoding][service-reporting][unit][ddm][commit-region-modifications-service-report]") {
+    "[mom][encoding][service-reporting][unit][ddm][commit-region-modifications-service-report]"
+    "[service-report-table5-region-handle-set]"
+    "[requirement-candidate-table-5-p295-r009]"
+    "[requirement-candidate-table-5-p299-r011]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeRegionHandle;
 
@@ -313,7 +410,9 @@ TEST_CASE(
 
 TEST_CASE(
     "MOM service-report files use the Table 5 attribute-region association list form",
-    "[mom][encoding][service-reporting][unit][ddm][regional-object-attribute-association-service-report]") {
+    "[mom][encoding][service-reporting][unit][ddm][regional-object-attribute-association-service-report]"
+    "[mom-service-report-argument-value-composite-forms]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeAttributeHandle;
   using rti1516_2025::umbra_binding_detail::makeRegionHandle;
@@ -342,7 +441,9 @@ TEST_CASE(
 
 TEST_CASE(
     "MOM service-report files use the Table 5 Delete Region argument form",
-    "[mom][encoding][service-reporting][unit][ddm][delete-region-service-report]") {
+    "[mom][encoding][service-reporting][unit][ddm][delete-region-service-report]"
+    "[service-report-table5-region-handle]"
+    "[requirement-candidate-table-5-p299-r010]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeRegionHandle;
 
@@ -413,7 +514,7 @@ TEST_CASE(
     "MOM service-report files use the Table 5 Create Region and Get Range Bounds return forms",
     "[mom][encoding][service-reporting][unit][ddm]"
     "[create-region-service-report][get-range-bounds-service-report]"
-    "[dimension-handle-set-service-report]") {
+    "[dimension-handle-set-service-report][service-report-table5-range-bounds]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeDimensionHandle;
   using rti1516_2025::umbra_binding_detail::makeRegionHandle;
@@ -446,7 +547,7 @@ TEST_CASE(
               {createRegionSupplied},
               createRegionReturn) ==
           L"{\"HLAserialNumber\":0,\"HLAreturnedArgument\":[{\"HLAargumentType\":42,"
-          L"\"HLAargumentName\":\"Region designator\",\"HLAargumentValue\":"
+          L"\"HLAargumentValue\":"
           L"\"RegionHandle(23)\"}],\"HLAservice\":\"CreateRegion\","
           L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":11,"
           L"\"HLAargumentName\":\"Set of dimension designators\","
@@ -472,7 +573,7 @@ TEST_CASE(
               getRangeBoundsSupplied,
               getRangeBoundsReturn) ==
           L"{\"HLAserialNumber\":1,\"HLAreturnedArgument\":[{\"HLAargumentType\":41,"
-          L"\"HLAargumentName\":\"Range bounds\",\"HLAargumentValue\":"
+          L"\"HLAargumentValue\":"
           L"{\"lower\":3,\"upper\":19}}],\"HLAservice\":\"GetRangeBounds\","
           L"\"HLAsuppliedArguments\":[{\"HLAargumentType\":42,"
           L"\"HLAargumentName\":\"Region handle\",\"HLAargumentValue\":"
@@ -559,7 +660,12 @@ TEST_CASE(
 TEST_CASE(
     "MOM service-report files use Federation Save Status Response status-pair form",
     "[mom][encoding][service-reporting][unit][federation-management][save-restore]"
-    "[federation-save-status-response-service-report]") {
+    "[federation-save-status-response-service-report]"
+    "[service-report-table5-save-status]"
+    "[requirement-candidate-table-5-p300-r006]"
+    "[requirement-candidate-table-5-p296-r036]"
+    "[requirement-candidate-table-5-p296-r037]"
+    "[requirement-candidate-table-5-p297-r001]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeFederateHandle;
 
@@ -603,13 +709,19 @@ TEST_CASE(
 TEST_CASE(
     "MOM service-report files use Federation Restore Status Response descriptor form",
     "[mom][encoding][service-reporting][unit][federation-management][save-restore]"
-    "[federation-restore-status-response-service-report]") {
+    "[federation-restore-status-response-service-report]"
+    "[service-report-table5-restore-status]"
+    "[requirement-candidate-table-5-p299-r014]"
+    "[requirement-candidate-table-5-p297-r003]"
+    "[requirement-candidate-table-5-p297-r004]"
+    "[requirement-candidate-table-5-p297-r005]"
+    "[requirement-candidate-table-5-p297-r006]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeFederateHandle;
 
   // The public C++ vector is the MIM's type-20 FederateRestoreStatusSet.
   // Table 5's collection-name typo and malformed second example are recorded
-  // in RL-083; its valid singular record establishes these three fields.
+  // in RL-369; its valid singular record establishes these three fields.
   rti1516_2025::FederateRestoreStatusVector const statuses{
       {makeFederateHandle(12U), makeFederateHandle(0U), rti1516_2025::NO_RESTORE_IN_PROGRESS},
       {makeFederateHandle(14U),
@@ -1083,6 +1195,39 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "MOM service-report files encode the Table 5 TimeIntervalQueryReturn record",
+    "[mom][encoding][service-reporting][unit][time-management][service-report-table5-time-interval-query-return]") {
+  using namespace umbra::detail;
+
+  rti1516_2025::HLAinteger64Interval interval{7};
+  REQUIRE(static_cast<int>(MomArgumentType::time_interval_query_return) == 57);
+  REQUIRE(formatMomTimeIntervalQueryReturn(true, interval) ==
+          L"{\"intervalIsValid\":true,\"interval\":\"7\"}");
+}
+
+TEST_CASE(
+    "MOM service-report files encode the Table 5 TimeQueryReturn record",
+    "[mom][encoding][service-reporting][unit][time-management][service-report-table5-time-query-return]") {
+  using namespace umbra::detail;
+
+  rti1516_2025::HLAinteger64Time time{7};
+  REQUIRE(static_cast<int>(MomArgumentType::time_query_return) == 58);
+  REQUIRE(formatMomTimeQueryReturn(true, time) ==
+          L"{\"timeIsValid\":true,\"time\":\"7\"}");
+}
+
+TEST_CASE(
+    "MOM service-report UserSuppliedTag and VariableLengthData use Table 5 Binary Data encoding",
+    "[mom][encoding][service-reporting][unit][management-object-model][service-report-table5-binary-data]") {
+  using namespace umbra::detail;
+
+  unsigned char const tagBytes[] = {0x53U, 0x59U, 0x4eU, 0x43U};
+  rti1516_2025::VariableLengthData const tag(tagBytes, sizeof(tagBytes));
+  REQUIRE(formatMomBinaryData(tag) == L"\"U1lOQw==\"");
+  REQUIRE(formatMomUserSuppliedTag(tag) == L"\"U1lOQw==\"");
+}
+
+TEST_CASE(
     "MOM service-report files use the Table 5 LogicalTime argument form",
     "[mom][encoding][service-reporting][unit][time-management][time-advance-request]"
     "[time-advance-request-available][next-message-request]"
@@ -1264,9 +1409,37 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "MOM service-report ParameterHandleValueMap encodes Table 5 PairList values",
+    "[mom][encoding][service-reporting][unit][table-5]"
+    "[service-report-table5-parameter-handle-value-map]"
+    "[requirement-candidate-table-5-p299-r008]") {
+  using namespace umbra::detail;
+  using rti1516_2025::umbra_binding_detail::makeParameterHandle;
+
+  unsigned char const firstValueBytes[] = {0x01U, 0x02U};
+  unsigned char const secondValueBytes[] = {0xffU, 0x00U};
+  rti1516_2025::ParameterHandleValueMap values;
+  values.emplace(
+      makeParameterHandle(1002U),
+      rti1516_2025::VariableLengthData(secondValueBytes, sizeof(secondValueBytes)));
+  values.emplace(
+      makeParameterHandle(1001U),
+      rti1516_2025::VariableLengthData(firstValueBytes, sizeof(firstValueBytes)));
+
+  REQUIRE(formatMomParameterHandleValueMap(values) ==
+          L"{\"ParameterHandle(1001)\":\"AQI=\","
+          L"\"ParameterHandle(1002)\":\"/wA=\"}");
+
+  rti1516_2025::ParameterHandleValueMap const empty;
+  REQUIRE(formatMomParameterHandleValueMap(empty) == L"{}");
+}
+
+TEST_CASE(
     "MOM service-report files use the Table 5 Send Interaction argument forms",
     "[mom][encoding][service-reporting][unit][object-management]"
-    "[send-interaction]") {
+    "[send-interaction]"
+    "[mom-service-report-argument-value-composite-forms]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeInteractionClassHandle;
   using rti1516_2025::umbra_binding_detail::makeParameterHandle;
@@ -1660,7 +1833,8 @@ TEST_CASE(
     "[publish-object-class-directed-interactions]"
     "[unpublish-object-class-directed-interactions]"
     "[subscribe-object-class-directed-interactions]"
-    "[unsubscribe-object-class-directed-interactions]") {
+    "[unsubscribe-object-class-directed-interactions]"
+    "[requirement-candidate-table-5-p298-r015]") {
   using namespace umbra::detail;
   using rti1516_2025::umbra_binding_detail::makeInteractionClassHandle;
 
@@ -1675,6 +1849,16 @@ TEST_CASE(
           L"{\"HLAargumentType\":28,\"HLAargumentName\":"
           L"\"Set of interaction class designators\",\"HLAargumentValue\":["
           L"\"InteractionClassHandle(1)\",\"InteractionClassHandle(2)\"]}");
+
+  rti1516_2025::InteractionClassHandleSet const noInteractionClasses{};
+  MomServiceArgument emptyInteractionClassSetArgument{
+      MomArgumentType::interaction_class_handle_set,
+      L"Set of interaction class designators",
+      formatMomInteractionClassHandleSet(noInteractionClasses),
+  };
+  REQUIRE(formatMomServiceArgumentRecord(emptyInteractionClassSetArgument) ==
+          L"{\"HLAargumentType\":28,\"HLAargumentName\":"
+          L"\"Set of interaction class designators\",\"HLAargumentValue\":[]}");
 }
 
 TEST_CASE(
@@ -1948,7 +2132,8 @@ TEST_CASE(
 TEST_CASE(
     "MOM service-report files use Confirm Synchronization Point Registration result forms",
     "[mom][encoding][service-reporting][unit][federation-management]"
-    "[confirm-synchronization-point-registration-service-report]") {
+    "[confirm-synchronization-point-registration-service-report]"
+    "[service-report-table5-synchronization-point-failure-reason]") {
   using namespace umbra::detail;
 
   // Section 4.15 supplies label, success indicator, and an optional failure
@@ -2002,6 +2187,32 @@ TEST_CASE(
           L"\"HLAargumentValue\":false},"
           L"{\"HLAargumentType\":56,\"HLAargumentName\":\"Optional failure reason\","
           L"\"HLAargumentValue\":\"SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE\"}],"
+          L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
+
+  auto const failedSetMemberNotJoined = std::vector<MomServiceArgument>{
+      {MomArgumentType::string,
+       L"Synchronization point label",
+       formatMomString(L"startup")},
+      {MomArgumentType::boolean,
+       L"Registration-success indicator",
+       formatMomBoolean(false)},
+      {MomArgumentType::synchronization_point_failure_reason,
+       L"Optional failure reason",
+       formatMomSynchronizationPointFailureReason(
+           rti1516_2025::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED)},
+  };
+  REQUIRE(formatMomSuccessfulVoidServiceReportRecord(
+              4U, L"ConfirmSynchronizationPointRegistration",
+              failedSetMemberNotJoined) ==
+          L"{\"HLAserialNumber\":4,\"HLAreturnedArgument\":[null],"
+          L"\"HLAservice\":\"ConfirmSynchronizationPointRegistration\","
+          L"\"HLAsuppliedArguments\":["
+          L"{\"HLAargumentType\":53,\"HLAargumentName\":\"Synchronization point label\","
+          L"\"HLAargumentValue\":\"startup\"},"
+          L"{\"HLAargumentType\":6,\"HLAargumentName\":\"Registration-success indicator\","
+          L"\"HLAargumentValue\":false},"
+          L"{\"HLAargumentType\":56,\"HLAargumentName\":\"Optional failure reason\","
+          L"\"HLAargumentValue\":\"SYNCHRONIZATION_SET_MEMBER_NOT_JOINED\"}],"
           L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
 }
 
@@ -2126,8 +2337,25 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "MOM service-report records use the Table 5 MessageRetractionReturn form",
+    "[mom][encoding][service-reporting][unit][time-management][retract]"
+    "[requirement-candidate-table-5-p298-r019]"
+    "[requirement-candidate-table-5-p298-r020]") {
+  using namespace umbra::detail;
+
+  REQUIRE(formatMomMessageRetractionReturn(true, 2345U) ==
+          L"{\"retractionHandleIsValid\":true,"
+          L"\"handle\":\"MessageRetractionHandle<2345>\"}");
+  REQUIRE(formatMomMessageRetractionReturn(false, 2345U) ==
+          L"{\"retractionHandleIsValid\":false,"
+          L"\"handle\":\"MessageRetractionHandle<2345>\"}");
+}
+
+TEST_CASE(
     "MOM service-report records use Table 5 ResignAction spellings",
-    "[mom][encoding][service-reporting][unit][support-switches][resign-action]") {
+    "[mom][encoding][service-reporting][unit][support-switches][resign-action]"
+    "[service-report-table5-resign-action]"
+    "[requirement-candidate-table-5-p299-r012]") {
   using namespace umbra::detail;
 
   REQUIRE(formatMomResignAction(rti1516_2025::UNCONDITIONALLY_DIVEST_ATTRIBUTES) ==
@@ -2141,4 +2369,242 @@ TEST_CASE(
   REQUIRE(formatMomResignAction(rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST) ==
           L"\"CANCEL_THEN_DELETE_THEN_DIVEST\"");
   REQUIRE(formatMomResignAction(rti1516_2025::NO_ACTION) == L"\"NO_ACTION\"");
+}
+
+TEST_CASE(
+    "MOM service-report records use Table 5 RestoreFailureReason spellings",
+    "[mom][encoding][service-reporting][unit][save-restore]"
+    "[service-report-table5-restore-failure-reason]"
+    "[requirement-candidate-table-5-p299-r013]") {
+  using namespace umbra::detail;
+
+  REQUIRE(formatMomRestoreFailureReason(rti1516_2025::RTI_UNABLE_TO_RESTORE) ==
+          L"\"RTI_UNABLE_TO_RESTORE\"");
+  REQUIRE(formatMomRestoreFailureReason(
+              rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_RESTORE) ==
+          L"\"FEDERATE_REPORTED_FAILURE_DURING_RESTORE\"");
+  REQUIRE(formatMomRestoreFailureReason(
+              rti1516_2025::FEDERATE_RESIGNED_DURING_RESTORE) ==
+          L"\"FEDERATE_RESIGNED_DURING_RESTORE\"");
+  REQUIRE(formatMomRestoreFailureReason(
+              rti1516_2025::RTI_DETECTED_FAILURE_DURING_RESTORE) ==
+          L"\"RTI_DETECTED_FAILURE_DURING_RESTORE\"");
+  REQUIRE(formatMomRestoreFailureReason(rti1516_2025::RESTORE_ABORTED) ==
+          L"\"RESTORE_ABORTED\"");
+
+  MomServiceArgument const argument{
+      MomArgumentType::restore_failure_reason,
+      L"Optional failure reason",
+      formatMomRestoreFailureReason(rti1516_2025::RESTORE_ABORTED)};
+  REQUIRE(formatMomServiceArgumentRecord(argument) ==
+          L"{\"HLAargumentType\":45,\"HLAargumentName\":\"Optional failure reason\","
+          L"\"HLAargumentValue\":\"RESTORE_ABORTED\"}");
+}
+
+TEST_CASE(
+    "MOM service-report records use Table 5 SaveFailureReason spellings",
+    "[mom][encoding][service-reporting][unit][save-restore]"
+    "[service-report-table5-save-failure-reason]"
+    "[requirement-candidate-table-5-p300-r001]") {
+  using namespace umbra::detail;
+
+  REQUIRE(formatMomSaveFailureReason(rti1516_2025::RTI_UNABLE_TO_SAVE) ==
+          L"\"RTI_UNABLE_TO_SAVE\"");
+  REQUIRE(formatMomSaveFailureReason(
+              rti1516_2025::FEDERATE_REPORTED_FAILURE_DURING_SAVE) ==
+          L"\"FEDERATE_REPORTED_FAILURE_DURING_SAVE\"");
+  REQUIRE(formatMomSaveFailureReason(
+              rti1516_2025::FEDERATE_RESIGNED_DURING_SAVE) ==
+          L"\"FEDERATE_RESIGNED_DURING_SAVE\"");
+  REQUIRE(formatMomSaveFailureReason(
+              rti1516_2025::RTI_DETECTED_FAILURE_DURING_SAVE) ==
+          L"\"RTI_DETECTED_FAILURE_DURING_SAVE\"");
+  REQUIRE(formatMomSaveFailureReason(
+              rti1516_2025::SAVE_TIME_CANNOT_BE_HONORED) ==
+          L"\"SAVE_TIME_CANNOT_BE_HONORED\"");
+  REQUIRE(formatMomSaveFailureReason(rti1516_2025::SAVE_ABORTED) ==
+          L"\"SAVE_ABORTED\"");
+}
+
+TEST_CASE(
+    "MOM service-report records use Table 5 ServiceGroup spellings",
+    "[mom][encoding][service-reporting][unit]"
+    "[service-report-table5-service-group]"
+    "[requirement-candidate-table-5-p300-r010]") {
+  using namespace umbra::detail;
+
+  REQUIRE(formatMomServiceGroup(rti1516_2025::FEDERATION_MANAGEMENT) ==
+          L"\"FEDERATION_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::DECLARATION_MANAGEMENT) ==
+          L"\"DECLARATION_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::OBJECT_MANAGEMENT) ==
+          L"\"OBJECT_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::OWNERSHIP_MANAGEMENT) ==
+          L"\"OWNERSHIP_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::TIME_MANAGEMENT) ==
+          L"\"TIME_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::DATA_DISTRIBUTION_MANAGEMENT) ==
+          L"\"DATA_DISTRIBUTION_MANAGEMENT\"");
+  REQUIRE(formatMomServiceGroup(rti1516_2025::SUPPORT_SERVICES) ==
+          L"\"SUPPORT_SERVICES\"");
+}
+
+TEST_CASE(
+    "MOM service-report FactoryClass uses Table 5 enumeration spellings",
+    "[mom][encoding][service-reporting][unit]"
+    "[mom-service-report-factory-class-table5]") {
+  using namespace umbra::detail;
+
+  REQUIRE(static_cast<std::int32_t>(MomArgumentType::factory_class) == 12);
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::attribute_handle_factory) ==
+          L"\"ATTRIBUTE_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::attribute_handle_set_factory) ==
+          L"\"ATTRIBUTE_HANDLE_SET_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::attribute_handle_value_map_factory) ==
+          L"\"ATTRIBUTE_HANDLE_VALUE_MAP_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::attribute_set_region_set_pair_list_factory) ==
+          L"\"ATTRIBUTE_SET_REGION_SET_PAIR_LIST_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::dimension_handle_factory) ==
+          L"\"DIMENSION_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::dimension_handle_set_factory) ==
+          L"\"DIMENSION_HANDLE_SET_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::federate_ambassador) ==
+          L"\"FederateAmbassador\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::federate_handle_factory) ==
+          L"\"FEDERATE_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::federate_handle_set_factory) ==
+          L"\"FEDERATE_HANDLE_SET_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::interaction_class_handle_factory) ==
+          L"\"INTERACTION_CLASS_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::object_class_handle_factory) ==
+          L"\"OBJECT_CLASS_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::object_instance_handle_factory) ==
+          L"\"OBJECT_INSTANCE_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::parameter_handle_factory) ==
+          L"\"PARAMETERHANDLEFACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::parameter_handle_value_map_factory) ==
+          L"\"PARAMETER_HANDLE_VALUE_MAP_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::region_handle_set_factory) ==
+          L"\"REGION_HANDLE_SET_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::transportation_type_handle_factory) ==
+          L"\"TRANSPORTATION_TYPE_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::region_handle_factory) ==
+          L"\"REGION_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::message_retraction_handle_factory) ==
+          L"\"MESSAGE_RETRACTION_HANDLE_FACTORY\"");
+  REQUIRE(formatMomFactoryClass(MomFactoryClass::logical_time_factory) ==
+          L"\"LOGICAL_TIME_FACTORY\"");
+  REQUIRE_THROWS_AS(
+      formatMomFactoryClass(static_cast<MomFactoryClass>(255U)),
+      rti1516_2025::EncoderException);
+}
+
+TEST_CASE(
+    "MOM service-report FederationExecutionInformation uses Table 5 record and array forms",
+    "[mom][encoding][service-reporting][unit]"
+    "[mom-service-report-federation-execution-information-table5]"
+    "[requirement-candidate-table-5-p297-r014]"
+    "[requirement-candidate-table-5-p297-r015]"
+    "[requirement-candidate-table-5-p297-r016]"
+    "[requirement-candidate-table-5-p298-r001]") {
+  using namespace umbra::detail;
+
+  MomFederationExecutionInformation const example{
+      L"Federation1", L"HLAfloat64Time"};
+  REQUIRE(formatMomFederationExecutionInformation(example) ==
+          L"{\"federationExecutionName\":\"Federation1\","
+          L"\"logicalTimeImplementationName\":\"HLAfloat64Time\"}");
+
+  MomFederationExecutionInformation const escaped{
+      L"Federation\"One\\West", L"Time\nType"};
+  REQUIRE(formatMomFederationExecutionInformation(escaped) ==
+          L"{\"federationExecutionName\":\"Federation\\\"One\\\\West\","
+          L"\"logicalTimeImplementationName\":\"Time\\nType\"}");
+
+  std::vector<MomFederationExecutionInformation> const values{
+      {L"Federation1", L"HLAfloat64Time"},
+      {L"Federation2", L"HLAinteger64Time"},
+  };
+  REQUIRE(formatMomFederationExecutionInformationSet(values) ==
+          L"[{\"federationExecutionName\":\"Federation1\","
+          L"\"logicalTimeImplementationName\":\"HLAfloat64Time\"},"
+          L"{\"federationExecutionName\":\"Federation2\","
+          L"\"logicalTimeImplementationName\":\"HLAinteger64Time\"}]");
+}
+
+TEST_CASE(
+    "MOM service-report FederationExecutionMemberInformation uses Table 5 record and array forms",
+    "[mom][encoding][service-reporting][unit]"
+    "[mom-service-report-federation-execution-member-information-table5]"
+    "[requirement-candidate-table-5-p298-r002]"
+    "[requirement-candidate-table-5-p298-r003]"
+    "[requirement-candidate-table-5-p298-r004]"
+    "[requirement-candidate-table-5-p298-r005]"
+    "[requirement-candidate-table-5-p298-r006]") {
+  using namespace umbra::detail;
+
+  rti1516_2025::FederationExecutionMemberInformation const member{
+      L"Federate1", L"Logger"};
+  REQUIRE(formatMomFederationExecutionMemberInformation(member) ==
+          L"{\"federateName\":\"Federate1\",\"federateType\":\"Logger\"}");
+
+  rti1516_2025::FederationExecutionMemberInformationVector const members{
+      member,
+      {L"Federate2", L"Aircraft Simulator"},
+  };
+  REQUIRE(formatMomFederationExecutionMemberInformationVector(members) ==
+          L"[{\"federateName\":\"Federate1\",\"federateType\":\"Logger\"},"
+          L"{\"federateName\":\"Federate2\","
+          L"\"federateType\":\"Aircraft Simulator\"}]");
+
+  rti1516_2025::FederationExecutionMemberInformation const escaped{
+      L"Federate\"A\\B", L"Aircraft\nSimulator"};
+  REQUIRE(formatMomFederationExecutionMemberInformation(escaped) ==
+          L"{\"federateName\":\"Federate\\\"A\\\\B\","
+          L"\"federateType\":\"Aircraft\\nSimulator\"}");
+}
+
+TEST_CASE(
+    "MOM service-report HLAargument uses the Table 5 three-field record",
+    "[mom][encoding][service-reporting][unit]"
+    "[mom-service-report-hlaargument-table5]"
+    "[requirement-candidate-table-5-p298-r009]"
+    "[requirement-candidate-table-5-p298-r010]"
+    "[requirement-candidate-table-5-p298-r011]") {
+  using namespace umbra::detail;
+
+  MomServiceArgument const argument{
+      MomArgumentType::string,
+      L"Message",
+      formatMomString(L"ready"),
+  };
+  REQUIRE(formatMomServiceArgumentRecord(argument) ==
+          L"{\"HLAargumentType\":53,\"HLAargumentName\":\"Message\","
+          L"\"HLAargumentValue\":\"ready\"}");
+}
+
+TEST_CASE(
+    "MOM service-report HLAreturnedArgument uses the Table 5 two-field record",
+    "[mom][encoding][service-reporting][unit]"
+    "[mom-service-report-hla-returned-argument-table5]"
+    "[requirement-candidate-table-5-p298-r012]"
+    "[requirement-candidate-table-5-p298-r013]") {
+  using namespace umbra::detail;
+
+  auto const returnedValue = formatMomString(L"ready");
+  REQUIRE(formatMomReturnedArgumentRecord(
+              MomArgumentType::string, returnedValue) ==
+          L"{\"HLAargumentType\":53,\"HLAargumentValue\":\"ready\"}");
+
+  MomServiceArgument const returnedArgument{
+      MomArgumentType::string,
+      L"descriptive name is not serialized",
+      returnedValue,
+  };
+  REQUIRE(formatMomSuccessfulServiceReportRecord(
+              9U, L"GetMessage", {}, returnedArgument) ==
+          L"{\"HLAserialNumber\":9,\"HLAreturnedArgument\":[{"
+          L"\"HLAargumentType\":53,\"HLAargumentValue\":\"ready\"}],"
+          L"\"HLAservice\":\"GetMessage\",\"HLAsuppliedArguments\":[],"
+          L"\"HLAsuccessIndicator\":true,\"HLAexception\":null}");
 }

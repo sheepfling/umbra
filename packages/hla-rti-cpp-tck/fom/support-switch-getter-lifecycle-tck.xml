@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK support-switch getter lifecycle</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-10</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Isolated IEEE 1516.1-2025 support-switch getter coverage</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>
+            Enables only the two FDD switches asserted by the support-switch
+            getter lifecycle scenario, without conflicting with the portable
+            P0 FOM's disabled values.
+        </description>
+    </modelIdentification>
+    <switches>
+        <nonRegulatedGrant isEnabled="true"/>
+        <allowRelaxedDDM isEnabled="true"/>
+    </switches>
+</objectModel>

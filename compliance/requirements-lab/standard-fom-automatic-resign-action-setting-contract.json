@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "The adapter supplies one deliberately schema-invalid resignAction value plus six schema-valid FOM modules, one per value listed in IEEE 1516.2-2025 §6.2.13. All six valid fixtures pass the pinned DIF XSD; public Create rejects the unsupported setting with InvalidFOM, one of the documented Create Federation Execution exceptions; each allowed module can be created and joined, and getAutomaticResignDirective returns the exact corresponding standard ResignAction enum. The focused installed-package C++ TCK run passed 8/8 CTests and 8 direct callback-model executions across the primary/contract pair in HLA_EVOKED and HLA_IMMEDIATE (out/mgw/cpp-tck-clause-6_1-service-spine-mingw-20261107/tck-results/switch-table-20261108.json). The SOM-only Setting=NA rule has no public RTI API trigger and is separately dispositioned to the SOM module author; no Java provider runtime, interoperability, or conformance is claimed.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-automatic-resign-action-setting",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecutionWithMIM, joinFederationExecution, getAutomaticResignDirective, resignFederationExecution, destroyFederationExecution",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation and Automatic Resign Action query services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_switch_duplicate.cpp::scenarioFomAutomaticResignActionSetting",
+        "packages/hla-rti-cpp-tck/src/tck_fom_switch_duplicate.cpp::scenarioFomAutomaticResignActionSettingContract"
+      ]
+    }
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l10-1",
+      "standard_section": "hla-1516.2-2025:clause-6.2.13"
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-094-l14-2",
+      "standard_section": "hla-1516.2-2025:clause-6.2.13"
+    }
+  ]
+}

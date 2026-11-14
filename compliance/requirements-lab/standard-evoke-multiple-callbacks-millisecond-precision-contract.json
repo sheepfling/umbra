@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-10-support-services-page-284-l170-53"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-10.58"
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-284-l170-53",
+      "standard_section": "hla-1516.1-2025:clause-10.58"
+    }
+  ],
+  "mapping_note": "RL-422 records that the pinned Lab candidate is incorrectly labeled §10.57.6 and bound to evokeCallback. The candidate's source belongs to §10.58 Evoke Multiple Callbacks; this contract preserves the candidate ID while mapping the tested public API behavior to canonical §10.58.",
+  "notes": "This bounded HLA_EVOKED public-API witness samples empty-queue minimum waits at 0, 1, and 4 ms and compares accumulated durations; it then checks that a preloaded callback backlog responds differently to 1 ms and 4 ms maximum arguments. A short CPU-bound test-recorder callback provides repeatable work at millisecond scale. The checks establish observable millisecond-scale argument handling, not exact wall-clock scheduling accuracy. They do not establish HLA_IMMEDIATE behavior, Java parity, independent-provider interoperability, or RTI conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-evoke-multiple-callbacks-millisecond-precision",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::evokeMultipleCallbacks(double approximateMinimumTimeInSeconds, double approximateMaximumTimeInSeconds)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::evokeMultipleCallbacks (10.58)",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_evoke_multiple_callbacks_millisecond_precision.cpp::scenarioEvokeMultipleCallbacksMillisecondPrecision"
+      ]
+    }
+  ]
+}

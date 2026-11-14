@@ -111,7 +111,8 @@ def validate_index(
         if not isinstance(active_handoff, dict):
             errors.append("roadmap index active_handoff must be an object")
         else:
-            for field in (
+            family_id = active_handoff.get("family")
+            required_fields = (
                 "id",
                 "state",
                 "family",
@@ -120,13 +121,13 @@ def validate_index(
                 "test_case",
                 "source_target",
                 "mapping_seed_plan_id",
-                "ctest_target",
-                "ctest_filter",
-            ):
+            )
+            if family_id != "portable-cpp-tck-2025":
+                required_fields += ("ctest_target", "ctest_filter")
+            for field in required_fields:
                 value = active_handoff.get(field)
                 if not isinstance(value, str) or not value.strip():
                     errors.append(f"active_handoff {field} must be a non-empty string")
-            family_id = active_handoff.get("family")
             if isinstance(family_id, str) and family_id not in known_family_ids:
                 errors.append(
                     "active_handoff family is absent from the roadmap index: "
@@ -155,6 +156,16 @@ def validate_index(
             ):
                 errors.append(
                     "active_handoff commands must be an object of non-empty strings"
+                )
+            focused_tck_command = (
+                commands.get("focused_tck") if isinstance(commands, dict) else None
+            )
+            if family_id == "portable-cpp-tck-2025" and (
+                not isinstance(focused_tck_command, str)
+                or not focused_tck_command.strip()
+            ):
+                errors.append(
+                    "portable C++ TCK active_handoff requires commands.focused_tck"
                 )
             acceptance = active_handoff.get("acceptance")
             if acceptance is not None and (

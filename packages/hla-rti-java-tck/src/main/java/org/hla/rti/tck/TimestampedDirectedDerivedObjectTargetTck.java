@@ -31,7 +31,7 @@ import java.util.UUID;
 final class TimestampedDirectedDerivedObjectTargetTck {
    private TimestampedDirectedDerivedObjectTargetTck() { }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
+   static void run(RtiFactory factory, String modelFom, String timeImplementation,
          String objectClassName, String identityAttributeName, String interactionClassName,
          String integerParameterName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -51,7 +51,7 @@ final class TimestampedDirectedDerivedObjectTargetTck {
          publisher.connect(publisherRec.proxy(), callbackModel); publisherConnected = true;
          targeted.connect(targetedRec.proxy(), callbackModel); targetedConnected = true;
          observer.connect(observerRec.proxy(), callbackModel); observerConnected = true;
-         publisher.createFederationExecution(federation, fom, timeImplementation); created = true;
+         publisher.createFederationExecution(federation, modelFom, timeImplementation); created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-directed-derived-publisher", federation); publisherJoined = true;
          targeted.joinFederationExecution("java-tck-directed-derived-subscriber", federation);
@@ -94,13 +94,15 @@ final class TimestampedDirectedDerivedObjectTargetTck {
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction));
          directedPublished = true;
-         targeted.subscribeObjectClassDirectedInteractions(targetedClass,
+         targeted.subscribeObjectClassDirectedInteractionsUniversally(targetedClass,
             JavaTckSupport.interactionSet(targeted, targetedInteraction));
          directedSubscribed = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle target = publisher.registerObjectInstance(publisherClass);
-         JavaTckSupport.drain(targeted); JavaTckSupport.drain(observer);
+         awaitCallbacks(publisher, targeted, observer,
+            () -> targetedRec.discoveries.size() >= 1 && observerRec.discoveries.size() >= 1,
+            "timestamped directed derived-target object discovery");
          checkDiscovery(targetedRec, target, publisherClass, producer, "targeted subscriber");
          checkDiscovery(observerRec, target, publisherClass, producer, "non-directed observer");
 
@@ -115,14 +117,17 @@ final class TimestampedDirectedDerivedObjectTargetTck {
          LogicalTimeInterval lookahead = intervalOffset(epsilon, 5);
          targeted.enableTimeConstrained(); constrained = true;
          publisher.enableTimeRegulation(lookahead); regulating = true;
-         JavaTckSupport.drain(publisher); JavaTckSupport.drain(targeted);
+         awaitCallbacks(publisher, targeted, observer,
+            () -> publisherRec.timeRegulationEnabled >= 1
+               && targetedRec.timeConstrainedEnabled >= 1,
+            "timestamped directed derived-target time-role callbacks");
          JavaTckSupport.check(publisherRec.timeRegulationEnabled == 1
                && targetedRec.timeConstrainedEnabled == 1,
             "publisher or targeted subscriber missed its time-role callback");
 
          LogicalTime sentTime = timeOffset(initial, epsilon, 7);
          LogicalTime targetAdvanceTime = timeOffset(initial, epsilon, 7);
-         LogicalTime publisherAdvanceTime = timeOffset(initial, epsilon, 2);
+         LogicalTime publisherAdvanceTime = timeOffset(initial, epsilon, 3);
          HLAinteger32BE encodedValue = factory.getEncoderFactory().createHLAinteger32BE(0x13579bdf);
          byte[] payload = encodedValue.toByteArray();
          byte[] tag = new byte[] {0x54, 0x44, 0x44, 0x4F, 0x31};
@@ -140,7 +145,10 @@ final class TimestampedDirectedDerivedObjectTargetTck {
 
          targeted.timeAdvanceRequest(targetAdvanceTime);
          publisher.timeAdvanceRequest(publisherAdvanceTime);
-         JavaTckSupport.drain(publisher); JavaTckSupport.drain(targeted); JavaTckSupport.drain(observer);
+         awaitCallbacks(publisher, targeted, observer,
+            () -> targetedRec.interactions.size() >= 1
+               && targetedRec.grants.size() >= 1 && publisherRec.grants.size() >= 1,
+            "timestamped directed derived-target delivery and time advance grants");
          JavaTckSupport.check(targetedRec.interactions.size() == 1
                && targetedRec.grants.size() == 1 && publisherRec.grants.size() == 1,
             "TAR did not release exactly one directed callback and one grant");
@@ -157,12 +165,20 @@ final class TimestampedDirectedDerivedObjectTargetTck {
       } finally {
          if (constrained) try { targeted.disableTimeConstrained(); } catch (Exception ignored) { }
          if (regulating && publisherJoined) try { publisher.disableTimeRegulation(); } catch (Exception ignored) { }
-         if (directedSubscribed && targetedJoined) try { targeted.unsubscribeObjectClassDirectedInteractions(
-            targeted.getObjectClassHandle(objectClassName)); } catch (Exception ignored) { }
+          if (directedSubscribed && targetedJoined) try {
+             ObjectClassHandle cls = targeted.getObjectClassHandle(objectClassName);
+             InteractionClassHandle interaction = targeted.getInteractionClassHandle(interactionClassName);
+             targeted.unsubscribeObjectClassDirectedInteractions(cls,
+                JavaTckSupport.interactionSet(targeted, interaction));
+          } catch (Exception ignored) { }
          if (targetedAttributesSubscribed && targetedJoined) unsubscribe(targeted, objectClassName, identityAttributeName);
          if (observerAttributesSubscribed && observerJoined) unsubscribe(observer, objectClassName, identityAttributeName);
-         if (directedPublished && publisherJoined) try { publisher.unpublishObjectClassDirectedInteractions(
-            publisher.getObjectClassHandle(objectClassName)); } catch (Exception ignored) { }
+          if (directedPublished && publisherJoined) try {
+             ObjectClassHandle cls = publisher.getObjectClassHandle(objectClassName);
+             InteractionClassHandle interaction = publisher.getInteractionClassHandle(interactionClassName);
+             publisher.unpublishObjectClassDirectedInteractions(cls,
+                JavaTckSupport.interactionSet(publisher, interaction));
+          } catch (Exception ignored) { }
          if (attributesPublished && publisherJoined) try {
             ObjectClassHandle cls = publisher.getObjectClassHandle(objectClassName);
             publisher.unpublishObjectClassAttributes(cls,
@@ -190,6 +206,22 @@ final class TimestampedDirectedDerivedObjectTargetTck {
       JavaTckSupport.check(object.equals(discovery.object)
             && objectClass.equals(discovery.objectClass) && producer.equals(discovery.producer),
          role + " discovery returned incorrect object, class, or producer metadata");
+   }
+
+   @FunctionalInterface
+   private interface Condition { boolean isTrue() throws Exception; }
+
+   private static void awaitCallbacks(RTIambassador publisher, RTIambassador targeted,
+         RTIambassador observer, Condition condition, String description) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         publisher.evokeCallback(0.0);
+         targeted.evokeCallback(0.0);
+         observer.evokeCallback(0.0);
+         if (condition.isTrue()) return;
+         Thread.sleep(1);
+      }
+      throw new AssertionError("timed out waiting for " + description);
    }
 
    private static void unsubscribe(RTIambassador rti, String className, String attributeName) {
@@ -268,11 +300,11 @@ final class TimestampedDirectedDerivedObjectTargetTck {
                String name = method.getName();
                if ("timeRegulationEnabled".equals(name)) ++timeRegulationEnabled;
                else if ("timeConstrainedEnabled".equals(name)) ++timeConstrainedEnabled;
-               else if ("discoverObjectInstance".equals(name) && arguments != null && arguments.length >= 3) {
+               else if ("discoverObjectInstance".equals(name) && arguments != null && arguments.length >= 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) arguments[0];
                   discovery.objectClass = (ObjectClassHandle) arguments[1];
-                  discovery.producer = (FederateHandle) arguments[2];
+                  discovery.producer = (FederateHandle) arguments[3];
                   discoveries.add(discovery);
                } else if ("receiveDirectedInteraction".equals(name)
                      && arguments != null && arguments.length == 10) {

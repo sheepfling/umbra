@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records provider- and FOM-independent API checks for the official IEEE 1516.1 exception hierarchy. The C++ test verifies imported derived-exception construction, name/message accessors, copy/assignment, polymorphism, and stream output. The Java test verifies the 100 same-named standard derived exceptions exposed in the official Java API JAR through RTIexception, name(), and getMessage(). Java copy/assignment and stream behavior are not part of the parity claim, nor are C++ exception types without direct Java counterparts. These are API contract checks only and do not claim provider behavior or cross-RTI interoperability.",
+  "notes": "This contract records provider- and FOM-independent API checks for the official IEEE 1516.1 exception hierarchy. The C++ test verifies imported derived-exception construction, name/message accessors, copy/assignment, polymorphism, and stream output; a compile-time probe that implements what() but not name() remains abstract, directly anchoring IEEE 1516.1-2025 §12.12.6.3 p. 388 l. 4. The Java test verifies the 100 same-named standard derived exceptions exposed in the official Java API JAR through RTIexception, name(), and getMessage(). Java copy/assignment and stream behavior are not part of the parity claim, nor are C++ exception types without direct Java counterparts. These are API contract checks only and do not claim provider behavior or cross-RTI interoperability.",
   "api_surfaces": [
     {
       "id": "standard-cpp-exception-hierarchy",
@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI/Exception.h",
       "source_symbol": "rti::Exception",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardExceptionHierarchyContract"
+        "packages/hla-rti-cpp-tck/src/tck_api_foundation.cpp::verifyStandardExceptionHierarchyContract"
       ]
     },
     {

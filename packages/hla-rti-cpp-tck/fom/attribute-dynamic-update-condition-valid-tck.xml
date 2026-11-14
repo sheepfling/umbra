@@ -7,15 +7,18 @@
             <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
             <updateCondition>At caller request</updateCondition>
             <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Updated when the federate supplies a value.</semantics>
         </attribute>
         <attribute><name>TckPeriodicCondition</name>
             <dataType>HLAunicodeString</dataType><updateType>Periodic</updateType>
             <updateCondition>10 updates/minute</updateCondition>
             <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Updated at the documented periodic rate.</semantics>
         </attribute>
         <attribute><name>TckPartialConditionalCondition</name>
             <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
             <transportation>HLAreliable</transportation><order>Receive</order>
+            <semantics>Conditional attribute completed by a later FOM module.</semantics>
         </attribute>
     </objectClass></objects>
 </objectModel>

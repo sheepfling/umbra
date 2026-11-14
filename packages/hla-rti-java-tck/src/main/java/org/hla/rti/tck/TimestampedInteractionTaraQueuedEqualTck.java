@@ -209,7 +209,7 @@ final class TimestampedInteractionTaraQueuedEqualTck {
          interaction = (InteractionClassHandle) arguments[0];
          values = ((ParameterHandleValueMap) arguments[1]).clone();
          tag = ((byte[]) arguments[2]).clone();
-         sentOrder = (OrderType) arguments[3];
+         sentOrder = (OrderType) arguments[7];
          time = (LogicalTime<?, ?>) arguments[6];
          receivedOrder = (OrderType) arguments[8];
          retraction = (MessageRetractionHandle) arguments[9];

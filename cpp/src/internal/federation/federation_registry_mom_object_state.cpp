@@ -13,8 +13,10 @@
 #include "internal/time/federation_time_grant_policy.hpp"
 #include "internal/handles/handle_variable_array_encoding.hpp"
 #include "internal/runtime/utf8_string.hpp"
+#include "internal/encoding/composite_2025.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAvariableArray.h>
 #include <RTI/time/HLAlogicalTimeFactoryFactory.h>
 
 #include <algorithm>
@@ -110,13 +112,20 @@ void appendDataElement(
 rti1516_2025::VariableLengthData encodeModuleDesignatorList(
     std::vector<PrevalidatedFomModule> const& modules) {
   std::set<std::filesystem::path> seenSources;
+  std::set<std::wstring> seen2025ModuleContents;
   std::vector<std::wstring> designators;
   designators.reserve(modules.size());
   for (auto const& module : modules) {
-    // Federation-management preparation canonicalizes every FOM source
-    // before it reaches this descriptor. Use that identity so the first
-    // supplied designator represents repeated references to one module.
-    if (seenSources.insert(module.sourcePath).second) {
+    if (module.standardEdition == FomStandardEdition::ieee1516_2025) {
+      // IEEE 1516.1-2025 lists only modules that changed the specified FOM
+      // areas. When qualifying modules have identical validated content, the
+      // first designator represents that content, independent of its path.
+      if (module.contributesToFomModuleDesignatorList &&
+          seen2025ModuleContents.insert(module.contents).second) {
+        designators.push_back(module.designator);
+      }
+    } else if (seenSources.insert(module.sourcePath).second) {
+      // Preserve the separate legacy 2010 source-identity behavior.
       designators.push_back(module.designator);
     }
   }
@@ -171,19 +180,64 @@ rti1516_2025::VariableLengthData encodeFederateReferenceList(
         L"The federation contains too many joined federate references.");
   }
 
+  using EncodedFederateHandle =
+      rti1516_2025::HLAvariableArrayT<rti1516_2025::HLAbyte>;
+  EncodedFederateHandle referencePrototype;
+  auto const referenceBoundary = referencePrototype.getOctetBoundary();
+  auto const arrayBoundary = std::max(4U, referenceBoundary);
+  std::size_t leadingPadding = 0U;
+  if (referenceBoundary == 0U ||
+      !composite2025::tryPaddingToBoundary(4U, arrayBoundary, leadingPadding)) {
+    throw rti1516_2025::EncoderException(
+        L"The federation MOM reference list has an invalid array boundary.");
+  }
+
   std::vector<rti1516_2025::Octet> bytes;
   rti1516_2025::HLAinteger32BE count{
       static_cast<rti1516_2025::Integer32>(federateIds.size())};
   appendDataElement(bytes, count);
-  for (std::uint64_t const federateId : federateIds) {
+  composite2025::appendZeroPadding(bytes, leadingPadding);
+  for (std::size_t index = 0U; index < federateIds.size(); ++index) {
+    std::uint64_t const federateId = federateIds[index];
     auto const encodedHandle =
-        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(federateId);
+        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(
+            federateId,
+            rti1516_2025::umbra_binding_detail::HlaHandleType::Federate);
+    auto const elementStart = bytes.size();
     bytes.insert(bytes.end(), encodedHandle.begin(), encodedHandle.end());
+    if (index + 1U != federateIds.size()) {
+      std::size_t padding = 0U;
+      if (!composite2025::tryPaddingToBoundary(
+              bytes.size() - elementStart, referenceBoundary, padding)) {
+        throw rti1516_2025::EncoderException(
+            L"The federation MOM reference has an invalid array boundary.");
+      }
+      composite2025::appendZeroPadding(bytes, padding);
+    }
   }
   return rti1516_2025::VariableLengthData(bytes.data(), bytes.size());
 }
 
 }  // namespace
+
+std::optional<std::uint64_t>
+EmbeddedFederationRegistry::allocateRtiOwnedObjectInstanceHandle(
+    Federation& federation) noexcept {
+  auto sequence = federation.nextRtiOwnedObjectInstanceHandle;
+  auto constexpr lastAvailableSequence =
+      kRtiOwnedObjectInstanceHandleDomainBit - 1U;
+  while (sequence != 0U && sequence < lastAvailableSequence) {
+    auto const candidate =
+        kRtiOwnedObjectInstanceHandleDomainBit | sequence;
+    if (!federation.objectInstances.contains(candidate) &&
+        !federation.rtiOwnedJoinedFederateMomObjects.contains(candidate)) {
+      federation.nextRtiOwnedObjectInstanceHandle = sequence + 1U;
+      return candidate;
+    }
+    ++sequence;
+  }
+  return std::nullopt;
+}
 
 JoinedFederateMomObjectStatus
 EmbeddedFederationRegistry::establishJoinedFederateMomObject(
@@ -235,6 +289,7 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
 
   std::map<std::string, std::uint64_t> attributeHandlesByName;
   std::set<std::uint64_t> effectiveAttributeHandles;
+  std::set<std::uint64_t> rtiOwnedAttributeHandles;
   std::set<std::uint64_t> periodicAttributeHandles;
   for (auto const& [attributeName, attribute] : *effectiveAttributes) {
     auto const attributeHandle = federation->second.attributeHandles->handleFor(
@@ -244,6 +299,11 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
     if (!attributeHandle || !effectiveAttributeHandles.insert(*attributeHandle).second ||
         !attributeHandlesByName.emplace(attributeName, *attributeHandle).second) {
       return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+    if (federation->second.definition.catalog->mimDefinesObjectClassAttribute(
+            kJoinedFederateMomObjectClassName,
+            attributeName)) {
+      rtiOwnedAttributeHandles.insert(*attributeHandle);
     }
     if (attribute.updateType == "Periodic") {
       periodicAttributeHandles.insert(*attributeHandle);
@@ -299,7 +359,9 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
   };
   try {
     auto const encodedFederateHandle =
-        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(federateId);
+        rti1516_2025::umbra_binding_detail::encodeUmbraHandleVariableArray(
+            federateId,
+            rti1516_2025::umbra_binding_detail::HlaHandleType::Federate);
     if (!addInitialValue(
             "HLAfederateHandle",
             rti1516_2025::VariableLengthData(
@@ -328,16 +390,12 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
     return JoinedFederateMomObjectStatus::invalid_descriptor;
   }
 
-  std::uint64_t objectInstanceHandle = federation->second.nextObjectInstanceHandle;
-  while (objectInstanceHandle == 0 ||
-         objectInstanceHandle == std::numeric_limits<std::uint64_t>::max() ||
-         federation->second.objectInstances.contains(objectInstanceHandle) ||
-         federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
-    if (objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
-      return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
-    }
-    ++objectInstanceHandle;
+  auto const allocatedObjectInstanceHandle =
+      allocateRtiOwnedObjectInstanceHandle(federation->second);
+  if (!allocatedObjectInstanceHandle) {
+    return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
   }
+  auto const objectInstanceHandle = *allocatedObjectInstanceHandle;
 
   auto const normalizedFederate = normalizedHandleValue(
       federation->second.normalizationSeed,
@@ -354,6 +412,7 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
       true,
   };
   object.effectiveAttributeHandles = std::move(effectiveAttributeHandles);
+  object.rtiOwnedAttributeHandles = std::move(rtiOwnedAttributeHandles);
   object.periodicAttributeHandles = std::move(periodicAttributeHandles);
   object.initialAttributeValues = std::move(initialAttributeValues);
   object.fomModuleContents = moduleContentsForJoin(
@@ -366,7 +425,6 @@ EmbeddedFederationRegistry::establishJoinedFederateMomObject(
   if (!inserted) {
     return JoinedFederateMomObjectStatus::inconsistent_catalog;
   }
-  federation->second.nextObjectInstanceHandle = objectInstanceHandle + 1U;
   return JoinedFederateMomObjectStatus::applied;
 }
 
@@ -404,6 +462,7 @@ EmbeddedFederationRegistry::establishFederationMomObject(
 
   std::map<std::string, std::uint64_t> attributeHandlesByName;
   std::set<std::uint64_t> effectiveAttributeHandles;
+  std::set<std::uint64_t> rtiOwnedAttributeHandles;
   for (auto const& [attributeName, attribute] : *effectiveAttributes) {
     auto const attributeHandle = federation->second.attributeHandles->handleFor(
         federation->second.definition.catalog.get(),
@@ -412,6 +471,11 @@ EmbeddedFederationRegistry::establishFederationMomObject(
     if (!attributeHandle || !effectiveAttributeHandles.insert(*attributeHandle).second ||
         !attributeHandlesByName.emplace(attributeName, *attributeHandle).second) {
       return JoinedFederateMomObjectStatus::inconsistent_catalog;
+    }
+    if (federation->second.definition.catalog->mimDefinesObjectClassAttribute(
+            kFederationMomObjectClassName,
+            attributeName)) {
+      rtiOwnedAttributeHandles.insert(*attributeHandle);
     }
   }
   for (std::size_t index = 0; index < std::size(kFederationMomStaticAttributeNames); ++index) {
@@ -468,21 +532,18 @@ EmbeddedFederationRegistry::establishFederationMomObject(
     return JoinedFederateMomObjectStatus::invalid_descriptor;
   }
 
-  std::uint64_t objectInstanceHandle = federation->second.nextObjectInstanceHandle;
-  while (objectInstanceHandle == 0 ||
-         objectInstanceHandle == std::numeric_limits<std::uint64_t>::max() ||
-         federation->second.objectInstances.contains(objectInstanceHandle) ||
-         federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
-    if (objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
-      return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
-    }
-    ++objectInstanceHandle;
+  auto const allocatedObjectInstanceHandle =
+      allocateRtiOwnedObjectInstanceHandle(federation->second);
+  if (!allocatedObjectInstanceHandle) {
+    return JoinedFederateMomObjectStatus::object_instance_handle_exhausted;
   }
+  auto const objectInstanceHandle = *allocatedObjectInstanceHandle;
   JoinedFederateMomObjectSnapshot object;
   object.objectInstanceHandle = objectInstanceHandle;
   object.objectClassHandle = *objectClassHandle;
   object.federationExecutionObject = true;
   object.effectiveAttributeHandles = std::move(effectiveAttributeHandles);
+  object.rtiOwnedAttributeHandles = std::move(rtiOwnedAttributeHandles);
   object.initialAttributeValues = std::move(initialAttributeValues);
   auto const [position, inserted] =
       federation->second.rtiOwnedJoinedFederateMomObjects.emplace(
@@ -491,7 +552,6 @@ EmbeddedFederationRegistry::establishFederationMomObject(
   if (!inserted) {
     return JoinedFederateMomObjectStatus::inconsistent_catalog;
   }
-  federation->second.nextObjectInstanceHandle = objectInstanceHandle + 1U;
   return JoinedFederateMomObjectStatus::applied;
 }
 
@@ -614,6 +674,10 @@ EmbeddedFederationRegistry::joinedFederateMomObjectAttributeValue(
   auto const initial = object.initialAttributeValues.find(attributeHandle);
   if (initial != object.initialAttributeValues.end()) {
     return initial->second;
+  }
+  auto const applicationValue = object.applicationAttributeValues.find(attributeHandle);
+  if (applicationValue != object.applicationAttributeValues.end()) {
+    return applicationValue->second;
   }
   if (!federation.definition.catalog ||
       !federation.objectClassHandles ||

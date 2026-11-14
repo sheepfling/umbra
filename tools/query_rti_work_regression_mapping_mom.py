@@ -24,7 +24,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected assertion total drifted"
         )
-    if object_instances_reflected_report_focus.get("requirement_count") != 1:
+    if object_instances_reflected_report_focus.get("requirement_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected requirement total drifted"
         )
@@ -34,7 +34,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         )
     if (
         object_instances_reflected_report_focus.get("requirement_section_pair_count")
-        != 1
+        != 2
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected direct pair drifted"
@@ -80,7 +80,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation row is not mapped"
         )
-    if len(object_instance_information_report.get("lab_requirement_ids", [])) != 1:
+    if len(object_instance_information_report.get("lab_requirement_ids", [])) != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation requirement mapping drifted"
         )
@@ -110,7 +110,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation assertion total drifted"
         )
-    if object_instance_information_focus.get("requirement_count") != 1:
+    if object_instance_information_focus.get("requirement_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation requirement total drifted"
         )
@@ -118,7 +118,7 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation section total drifted"
         )
-    if object_instance_information_focus.get("requirement_section_pair_count") != 1:
+    if object_instance_information_focus.get("requirement_section_pair_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation direct pair drifted"
         )

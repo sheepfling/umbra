@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "The portable TCK scenario is mapped only to the cited standard clauses and standard MIM object/attribute definitions. Its filesystem, host, RTI-version, private-snapshot, and provider-specific behaviors are excluded rather than treated as normative requirements. The resignation-triggered removal observation is included in the paired lifecycle test, but is not assigned a separate Requirements Lab normative ID because the available native mapping does not independently map that edge.",
+  "notes": "The portable TCK scenario is mapped only to the cited standard clauses and standard MIM object/attribute definitions. Its filesystem, host, RTI-version, private-snapshot, and provider-specific behaviors are excluded rather than treated as normative requirements. With region-designator callback conveyance enabled, each tested Table 8 initial reflection, known-object response, and complete P-set response checks one callback-scoped region, exactly the HLAfederate dimension, and the half-open unit range [Normalize Federate Handle(object.HLAfederateHandle), Normalize Federate Handle(object.HLAfederateHandle) + 1); this does not cover every periodic or conditional update. This slice also checks empty tags/no timestamped callbacks on selected attribute updates and resignation-triggered removals. These are the attribute-update/deletion legs of p. 290 l. 165; paired Table 7 S-leaf TCK cases cover sent interactions. It witnesses only the expressly referenced HLAfederate-attribute DDM update path for the §11.4.1 DDM restriction and is not an exhaustive prohibition audit. The C++ TCK also supplies a FOM subclass of a standard-MIM class in the same Create Federation Execution With MIM call and resolves the subclass after composition, providing one bounded §4.5 MIM-before-FOM witness. Combined evidence is bounded, not a universal metadata audit or conformance claim.",
   "requirements": [
     {
       "id": "standard-joined-federate-mom-active-subscription-discovery",
@@ -56,6 +56,78 @@
       ]
     },
     {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l75-24-value-request",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1; pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 75",
+      "source_symbol": "RTIambassador::requestAttributeValueUpdate(ObjectClassHandle, AttributeHandleSet, VariableLengthData)",
+      "statement": "The scenario invokes the object-class Request Attribute Value Update overload for HLAmanager.HLAfederate and requires the complete requested Table 8 P set for a joined-federate MOM instance to arrive through the ordinary untimed reflectAttributeValues mechanism. This is a bounded public C++ API witness for the class-wide MOM request path; it does not establish every MOM attribute's value or update condition.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l42-13",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1(a); pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 42",
+      "source_symbol": "RTIambassador::publishObjectClassAttributes and registerObjectInstance(ObjectClassHandle)",
+      "statement": "The adapter FOM adds HLAobjectRoot.HLAmanager.HLAfederate.TckFederateExtension. The joined federate publishes inherited Table 8 attributes and the extension class attribute, then registers an instance; the observing federate verifies that its discovered object handle and known class handle are distinct from those of the RTI-registered base HLAfederate MOM object. This is bounded evidence for subclass-instance separation only.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l45-14",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1(a); pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 45",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes, publishObjectClassAttributes, registerObjectInstance(ObjectClassHandle), and evokeMultipleCallbacks; FederateAmbassador::reflectAttributeValues",
+      "statement": "The observer subscribes to all 42 inherited Table 8 P attributes on the FOM-added HLAfederate.TckFederateExtension subclass. The joined federate publishes those inherited attributes and registers an instance before a second federate joins. After the join-triggered MOM update and available evoked callbacks are processed, the observer requires that no reflection containing an inherited predefined attribute targets the subclass instance. This is bounded negative evidence for this join-triggered path; it does not establish that no inherited attribute is updated by any other RTI service or under every state.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l66-21",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1(b); pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 66",
+      "source_symbol": "RTIambassador::subscribeObjectClassAttributes, publishObjectClassAttributes, attributeOwnershipAcquisition, and updateAttributeValues; FederateAmbassador::discoverObjectInstance and reflectAttributeValues",
+      "statement": "The adapter FOM adds TckFederateAddedValue directly to HLAobjectRoot.HLAmanager.HLAfederate. An updater subscribes to the new attribute and HLAfederateHandle, discovers the RTI-registered MOM instance for a target federate, acquires the added attribute's ownership, and updates it using the discovered object handle. A third federate observes the value on the same object name/class. This is bounded public C++ evidence for one HLAfederate added-attribute path, not every MOM class or attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstance",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstanceContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l69-22",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1(b); pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 69",
+      "source_symbol": "RTIambassador::queryAttributeOwnership and isAttributeOwnedByFederate; FederateAmbassador::attributeIsNotOwned and attributeIsOwnedByRTI",
+      "statement": "For the FOM-added HLAfederate attribute, queryAttributeOwnership reports the attribute as not owned before any application acquisition and does not report it as owned by the RTI; after application acquisition the updater is the owner. This is bounded evidence for the RTI-never-acquires rule on this added MOM attribute.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstance",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstanceContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-10-support-services-page-288-l9-2",
+      "clause_id": "clause-11.2.1",
+      "source": "IEEE 1516.1-2025 §11.2.1; pinned Requirements Lab candidate",
+      "source_lines": "page 288, line 9",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, joinFederationExecution, subscribeObjectClassAttributes, and requestAttributeValueUpdate; FederateAmbassador::discoverObjectInstance and reflectAttributeValues",
+      "statement": "The combined joined-federate MOM scenario exercises the RTI-registered HLAfederate object and the standard HLAfederation object. It resolves and observes the predefined Table 8 P attributes, discovers each RTI-registered instance, requests values, and checks ordinary reflections. This is bounded evidence for both required class families and their tested predefined attributes, not exhaustive coverage of every attribute or update condition.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
       "id": "standard-joined-federate-mom-static-attributes",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
       "clause_id": "clause-11.5.2",
@@ -75,6 +147,101 @@
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
       ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l102-33",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1(b), Table 8; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 102",
+      "source_symbol": "HLAfederate P/S attribute designations",
+      "statement": "Table 8 designates all 42 listed HLAfederate attributes as published by the RTI. The TCK scenario resolves the 42 standard handles and requests the complete set for each of two joined-federate MOM instances, verifying that all requested P-designated values are returned. HLAreportServiceFile is tested only as a requested P value; initial-update behavior is excluded because RL-041 records a Static/Conditional source conflict.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l96-31",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1(a), RTI-owned MOM object-class publication; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 96",
+      "source_symbol": "RTI-owned HLAfederate MOM object-class instances",
+      "statement": "The TCK scenario discovers the RTI-owned HLAfederate MOM instance for each of two joined federates through the standard leaf object-class handle and ordinary discovery callbacks.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1, Table 8; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 174",
+      "source_symbol": "Joined-federate HLAfederate attribute update region set",
+      "statement": "The RTI updates all HLAfederate Table 8 attributes using an update region set containing a single region. The portable TCK enables conveyance of region-designator sets and checks one region on each tested initial reflection, known-object response, and complete 42-attribute P-set response for two joined-federate MOM objects. This is direct evidence for these paths only; it does not establish every periodic or conditional update path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l180-59",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 180",
+      "source_symbol": "Dimension set of the joined-federate MOM update region",
+      "statement": "The region used with each instance attribute shall contain only the HLAfederate dimension as a specified dimension. With region-designator conveyance enabled, the portable TCK queries the callback-scoped region copy through RTIambassador.getDimensionHandleSet and requires that its dimension set equal exactly {HLAfederate} for the tested initial, known-object, and complete Table 8 request reflections. This does not establish every periodic or conditional update path.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l165-54",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 165",
+      "source_symbol": "Table 8 instance attribute updates and joined-federate MOM object deletion callbacks",
+      "statement": "For selected joined-federate Table 8 initial reflections, known-object responses, and full P-set request responses, the TCK requires empty user tags and no timestamped reflection callback. For resignation-triggered removal of each of two joined-federate MOM objects, it requires an empty user tag and no timestamped removal callback. This covers the attribute-update and deletion callback categories only; the paired Table 7 S-leaf scenarios cover sent interactions. The evidence is bounded to these exercised paths.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l183-60",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 183",
+      "source_symbol": "HLAfederate MOM update-region point bounds",
+      "statement": "For each tested initial, known-object, and complete Table 8 P-set reflection of two joined-federate MOM objects, the portable TCK inspects the callback-scoped region using RTIambassador.getRangeBounds and requires the half-open unit point range [n, n + 1), where n is RTIambassador.normalizeFederateHandle(the reflected HLAfederateHandle).",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1; pinned Requirements Lab candidate",
+      "source_lines": "page 291, lines 93-99",
+      "source_symbol": "DDM use with MOM instance attributes and interaction classes",
+      "statement": "An RTI shall not use DDM services with MOM instance attributes or interaction classes except as noted in §11.4. This TCK pair supplies bounded evidence for the expressly referenced joined-federate HLAfederate attribute update path: each tested initial, known-object, and complete Table 8 request reflection uses exactly one callback-scoped region with exactly the HLAfederate dimension and the normalized half-open federate point. It does not prove that no other MOM DDM use occurs.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "cpp-tck-create-with-mim-composes-fom-subclass-of-mim-class",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l50-8-before-fom",
+      "clause_id": "clause-4.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp",
+      "source_symbol": "scenarioJoinedFederateMomObjectLifecycle",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle"
+      ],
+      "scope": "The public Create Federation Execution With MIM call supplies the standard MIM and a FOM module that adds TckFederateExtension below MIM-defined HLAfederate, then resolves the extension class. This is one bounded class-parent composition witness, not exhaustive load ordering or conformance."
     }
   ]
 }

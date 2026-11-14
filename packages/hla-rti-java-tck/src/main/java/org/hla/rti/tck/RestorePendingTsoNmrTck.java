@@ -182,15 +182,15 @@ final class RestorePendingTsoNmrTck {
                && publisherCallbacks.savedCount == 1
                && regulatorCallbacks.savedCount == 1
                && receiverCallbacks.savedCount == 1
-               && publisherCallbacks.grants.equals(List.of(regulatorTarget))
-               && regulatorCallbacks.grants.equals(List.of(regulatorTarget))
-               && receiverCallbacks.grants.equals(List.of(time5))
+               && grantsMatch(publisherCallbacks.grants, regulatorTarget)
+               && grantsMatch(regulatorCallbacks.grants, regulatorTarget)
+               && grantsMatch(receiverCallbacks.grants, time5)
                && receiverCallbacks.interactions.size() == 1,
             "pending-TSO NMR save boundary or first delivery was incomplete");
          TimedInteraction original = receiverCallbacks.interactions.get(0);
          JavaTckSupport.check(original.interaction.equals(recvInteraction)
                && original.producer.equals(publisherHandle)
-               && original.time.equals(time5)
+               && Arrays.equals(encode(time5), encode(original.time))
                && original.sentOrder == OrderType.TIMESTAMP
                && original.receivedOrder == OrderType.TIMESTAMP
                && original.retraction != null
@@ -217,7 +217,7 @@ final class RestorePendingTsoNmrTck {
          }
          JavaTckSupport.check(publisherCallbacks.grants.size() == 2
                && regulatorCallbacks.grants.size() == 2
-               && receiverCallbacks.grants.equals(List.of(time5, time9))
+               && grantsMatch(receiverCallbacks.grants, time5, time9)
                && time9.equals(publisher.queryLogicalTime())
                && time9.equals(regulator.queryLogicalTime())
                && time9.equals(receiver.queryLogicalTime()),
@@ -249,12 +249,12 @@ final class RestorePendingTsoNmrTck {
                && receiverCallbacks.restoredCount == 1
                && receiverCallbacks.interactions.size() == 2
                && receiverCallbacks.grants.size() == 3
-               && time5.equals(receiverCallbacks.grants.get(2)),
+               && grantsMatch(receiverCallbacks.grants, time5, time9, time5),
             "restore did not replay one interaction before restored NMR grant");
          TimedInteraction replayed = receiverCallbacks.interactions.get(1);
          JavaTckSupport.check(replayed.interaction.equals(original.interaction)
                && replayed.producer.equals(original.producer)
-               && replayed.time.equals(original.time)
+               && Arrays.equals(encode(original.time), encode(replayed.time))
                && replayed.sentOrder == original.sentOrder
                && replayed.receivedOrder == original.receivedOrder
                && (replayed.retraction != null) == (original.retraction != null)
@@ -333,6 +333,21 @@ final class RestorePendingTsoNmrTck {
          for (RTIambassador member : members) member.evokeCallback(0.0);
       }
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static boolean grantsMatch(List<LogicalTime<?, ?>> grants,
+         LogicalTime<?, ?>... expected) throws Exception {
+      if (grants.size() != expected.length) return false;
+      for (int index = 0; index < expected.length; ++index) {
+         if (!Arrays.equals(encode(expected[index]), encode(grants.get(index)))) return false;
+      }
+      return true;
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})

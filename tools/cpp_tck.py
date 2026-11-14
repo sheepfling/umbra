@@ -12,6 +12,10 @@ from typing import Any, TypedDict, cast
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "cpp-tck-scenario-catalog.json"
 SOURCE_ROOT = ROOT / "packages" / "hla-rti-cpp-tck"
+CPP_TCK_STANDARD = "IEEE 1516.1-2025"
+CPP_API_LANGUAGE = "C++"
+CPP_API_PROFILE = "IEEE 1516.1-2025 C++ API"
+CPP_API_METHOD_MAPPING_SOURCE = "catalog-declared-mapping-not-call-trace"
 EXPECTED_ADAPTER_MANAGED_SKIPS = {
     (
         "cpp-tck.connection-loss-cleanup",
@@ -80,12 +84,17 @@ PLATFORM_INCLUDES = {
 
 
 LOCAL_TCK_HEADERS = {
+    "tck_argument_file.hpp",
+    "tck_federate_mom_object_instance_information.hpp",
     "tck_scenario_fom.hpp",
     "tck_nmr_regional_timestamped_interaction.hpp",
     "tck_timestamped_tso_message_set_router.hpp",
     "pending_negotiated_restore_tck.hpp",
     "service_report_creation_failure_tck.hpp",
     "tck_harness.hpp",
+    "tck_allow_relaxed_ddm_overlap_superset.hpp",
+    "tck_service_report_file_support.hpp",
+    "tck_scenario_dispatch.hpp",
     "tck_directed_retraction_mixed_fanout.hpp",
     "tck_ownership_cancellation_idle.hpp",
     "tck_ownership_denial_idle.hpp",
@@ -99,6 +108,7 @@ LOCAL_TCK_HEADERS = {
     "tck_timed_restore_regional_attribute_multi_recipient.hpp",
     "tck_data_encoding.hpp",
     "tck_api_foundation.hpp",
+    "tck_language_api_transparency.hpp",
     "tck_configuration_authorization.hpp",
     "tck_federation_mom_save_conditionals.hpp",
     "tck_federation_mom_save_status.hpp",
@@ -144,6 +154,7 @@ LOCAL_TCK_HEADERS = {
     "tck_receive_order_callback_cancellation.hpp",
     "tck_attribute_value_update_request_response.hpp",
     "tck_update_rate_scenarios.hpp",
+    "tck_federate_update_threshold_scenarios.hpp",
     "tck_federation_mom_content_scenarios.hpp",
     "tck_federation_synchronization_mom_queries.hpp",
     "tck_multi_attribute_delivery_scenarios.hpp",
@@ -163,6 +174,7 @@ LOCAL_TCK_HEADERS = {
     "tck_timed_save_per_member_tso.hpp",
     "tck_timed_save_flush_queue_admission.hpp",
     "tck_timed_save_available_admission.hpp",
+    "tck_untimed_save_time_constrained_admission.hpp",
     "tck_timed_save_next_message_admission.hpp",
     "tck_timed_save_available_next_message_member_admission.hpp",
     "tck_timed_save_resigned_constrained_member.hpp",
@@ -175,6 +187,7 @@ LOCAL_TCK_HEADERS = {
     "tck_restore_pending_tso_nmra_attribute.hpp",
     "tck_restore_pending_tso_nmra_delete.hpp",
     "tck_restore_mixed_tso_four_member.hpp",
+    "tck_restore_save_after_federation_destruction.hpp",
     "tck_restore_terminal_tso_attribute.hpp",
     "tck_restore_terminal_tso_interaction.hpp",
     "tck_restore_terminal_tso_directed_interaction.hpp",
@@ -196,6 +209,8 @@ LOCAL_TCK_HEADERS = {
     "tck_restore_regional_interaction_multi_recipient.hpp",
     "tck_restore_live_tso_object_deletion.hpp",  # Draft source; not catalog-promoted.
     "tck_joined_federate_mom_reflections_received_counts.hpp",
+    "tck_federate_save_timestamp_eligibility.hpp",
+    "tck_federation_save_request_replacement.hpp",
     "tck_main_scenarios.hpp",
     "tck_regional_auto_provide_scenarios.hpp",
     "tck_portable_mom_interaction_counts.hpp",
@@ -222,8 +237,12 @@ LOCAL_TCK_HEADERS = {
     "tck_nmr_future_timestamped_object_deletion.hpp",
     "tck_nmra_future_timestamped_object_deletion.hpp",
     "tck_tara_future_timestamped_object_deletion.hpp",
+    "tck_tara_future_timestamped_interaction.hpp",
     "tck_portable_scenario_runner.hpp",
     "tck_timestamped_attribute_tara_router.hpp",
+    "tck_nmra_galt_boundary_router.hpp",
+    "tck_nmr_message_set_router.hpp",
+    "tck_nmr_process_coordination.hpp",
     "tck_timestamped_attribute_pending_tara.hpp",
     "tck_named_update_rate_subscription.hpp",
     "tck_default_rate_no_reduction.hpp",
@@ -245,6 +264,7 @@ OFFICIAL_API_HEADERS = {
     "RTI/RTIambassadorFactory.h",
     "RTI/RangeBounds.h",
     "RTI/RtiConfiguration.h",
+    "RTI/SpecificConfig.h",
     "RTI/Typedefs.h",
     "RTI/VariableLengthData.h",
     "RTI/auth/AuthorizationResult.h",
@@ -254,7 +274,10 @@ OFFICIAL_API_HEADERS = {
     "RTI/auth/HLAnoCredentials.h",
     "RTI/auth/HLAauthorizerFactoryFactory.h",
     "RTI/auth/HLAplainTextPassword.h",
+    "RTI/libauth/AuthorizerFactoryFactory.h",
     "RTI/encoding/BasicDataElements.h",
+    "RTI/encoding/DataElement.h",
+    "RTI/encoding/EncodingConfig.h",
     "RTI/encoding/EncodingExceptions.h",
     "RTI/encoding/HLAextendableVariantRecord.h",
     "RTI/encoding/HLAfixedArray.h",
@@ -293,11 +316,22 @@ class _ScenarioIdentity(TypedDict):
 
 class CppTckScenario(_ScenarioIdentity, total=False):
     callback_models: Sequence[str]
+    api_methods: Sequence[str]
+
+
+class CppTckRequirementDisposition(TypedDict):
+    requirement_id: str
+    standard_section: str
+    status: str
+    owner_role: str
+    rationale: str
+    evidence_boundary: str
 
 
 class CppTckCatalog(TypedDict):
     scenarios: list[CppTckScenario]
     source_boundary: str
+    requirement_dispositions: list[CppTckRequirementDisposition]
 
 
 class _EvidenceResultFields(TypedDict):
@@ -326,6 +360,25 @@ class CppTckValidationSummary(TypedDict):
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def is_lab_requirement_identifier(value: object) -> bool:
+    """Recognize stable Lab IDs from both corpus and API-baseline exports."""
+    return isinstance(value, str) and value.startswith(("requirement-", "req-"))
+
+
+def is_hla_framework_summary_requirement_identifier(value: object) -> bool:
+    """Recognize canonical federation/federate summary rules from IEEE 1516-2025."""
+    return isinstance(value, str) and value in {
+        *(f"summary-rule-{number}" for number in range(1, 11))
+    }
+
+
+def is_hla_detailed_rule_identifier(value: object) -> bool:
+    """Recognize canonical detailed rules from the IEEE 1516-2025 standard."""
+    return isinstance(value, str) and value in {
+        *(f"detailed-rule-{number}" for number in range(1, 11))
+    }
 
 
 def callback_models_for_scenario(scenario: CppTckScenario) -> tuple[str, ...]:
@@ -360,6 +413,78 @@ def load_catalog(path: Path) -> CppTckCatalog:
         or not catalog["promotion_rule"]
     ):
         raise ValueError("C++ TCK catalog must document its promotion rule")
+    dispositions = catalog.get("requirement_dispositions", [])
+    if not isinstance(dispositions, list):
+        raise TypeError("C++ TCK requirement_dispositions must be an array")
+    directly_mapped_requirement_ids: set[str] = set()
+    for scenario in scenarios:
+        raw_mappings = scenario.get("requirement_mappings", [])
+        if not isinstance(raw_mappings, list):
+            continue
+        for mapping in raw_mappings:
+            if not isinstance(mapping, dict):
+                continue
+            requirement_id = mapping.get("requirement_id") or mapping.get(
+                "lab_requirement_id"
+            )
+            if isinstance(requirement_id, str) and requirement_id:
+                directly_mapped_requirement_ids.add(requirement_id)
+    disposition_ids: set[str] = set()
+    for disposition in dispositions:
+        if not isinstance(disposition, dict):
+            raise TypeError("C++ TCK requirement dispositions must be objects")
+        requirement_id = disposition.get("requirement_id")
+        standard_section = disposition.get("standard_section")
+        is_framework_summary_rule = (
+            is_hla_framework_summary_requirement_identifier(requirement_id)
+        )
+        is_detailed_rule = is_hla_detailed_rule_identifier(requirement_id)
+        if (
+            not is_lab_requirement_identifier(requirement_id)
+            and not is_framework_summary_rule
+            and not is_detailed_rule
+        ):
+            raise ValueError(
+                "C++ TCK disposition needs a stable Lab or canonical HLA rule ID"
+            )
+        if requirement_id in disposition_ids:
+            raise ValueError(f"duplicate C++ TCK requirement disposition {requirement_id}")
+        disposition_ids.add(requirement_id)
+        if requirement_id in directly_mapped_requirement_ids:
+            raise ValueError(
+                f"{requirement_id} cannot be both directly mapped and dispositioned"
+            )
+        is_supported_section = (
+            standard_section == "hla-1516-2025:clause-4"
+            if is_framework_summary_rule
+            else isinstance(standard_section, str)
+            and standard_section.startswith("hla-1516-2025:clause-")
+            if is_detailed_rule
+            else isinstance(standard_section, str)
+            and standard_section.startswith(
+                ("hla-1516.1-2025:clause-", "hla-1516.2-2025:clause-")
+            )
+        )
+        if not is_supported_section:
+            raise ValueError(
+                f"{requirement_id} disposition needs a canonical 2025 section"
+            )
+        if disposition.get("status") not in {
+            "external-responsibility",
+            "no-public-cpp-api-trigger",
+            "not-applicable",
+            "permissive-standard-behavior",
+            "requirements-lab-extraction-defect",
+        }:
+            raise ValueError(
+                f"{requirement_id} has an unsupported C++ TCK disposition status"
+            )
+        for field in ("owner_role", "rationale", "evidence_boundary"):
+            value = disposition.get(field)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(
+                    f"{requirement_id} disposition needs a non-empty {field}"
+                )
     parity_path = ROOT / parity_catalog
     parity = load_json(parity_path)
     if parity.get("kind") != "portable-java-tck-catalog":
@@ -563,6 +688,8 @@ def validate_sources() -> list[str]:
     fom_directory = SOURCE_ROOT / "fom"
     required_fom_names = (
         "p0-tck.xml",
+        "schema-valid-minimal-2025-tck.xml",
+        "schema-invalid-reliable-enumeration-2025-tck.xml",
         "fom-model-tck.xml",
         "ddm-tck.xml",
         "ddm-multi-attribute-tck.xml",
@@ -603,11 +730,18 @@ def scenario_inventory() -> list[str]:
     scenario_id_pattern = re.compile(
         r'constexpr\s+char\s+\w+\[\]\s*=\s*"(cpp-tck\.[^"]+)"'
     )
+    routed_id_pattern = re.compile(
+        r'\bif\s*\(\s*id\s*==\s*"(cpp-tck\.[^"]+)"\s*\)'
+    )
     for path in sorted(source_root.rglob("*.cpp")):
         if path == main_path:
             continue
         source_text = path.read_text(encoding="utf-8")
-        for scenario_id in scenario_id_pattern.findall(source_text):
+        source_ids = [
+            *scenario_id_pattern.findall(source_text),
+            *routed_id_pattern.findall(source_text),
+        ]
+        for scenario_id in source_ids:
             if scenario_id not in inventory:
                 inventory.append(scenario_id)
     return inventory
@@ -693,6 +827,16 @@ def validate_results(
         return [f"evidence document must be an object: {path}"]
     if data.get("kind") != "hla-rti-cpp-tck-evidence":
         findings.append(f"not C++ TCK evidence: {path}")
+    if data.get("standard") != CPP_TCK_STANDARD:
+        findings.append("evidence must identify standard IEEE 1516.1-2025")
+    if data.get("api_language") != CPP_API_LANGUAGE:
+        findings.append("evidence must identify the C++ API language")
+    if data.get("api_profile") != CPP_API_PROFILE:
+        findings.append("evidence must identify the IEEE 1516.1-2025 C++ API profile")
+    if data.get("scenario_api_methods_source") != CPP_API_METHOD_MAPPING_SOURCE:
+        findings.append(
+            "evidence must label scenario API methods as catalog-declared mappings, not a call trace"
+        )
     records = data.get("results")
     if not isinstance(records, list) or any(
         not isinstance(item, dict) for item in records
@@ -739,6 +883,45 @@ def validate_results(
                 )
     scenario_by_runner = {item["runner_id"]: item for item in selected}
     expected = set(scenario_by_runner)
+    scenario_api_methods = data.get("scenario_api_methods")
+    if not isinstance(scenario_api_methods, dict):
+        findings.append("evidence must include scenario_api_methods from the C++ TCK catalog")
+    else:
+        missing_api_scenarios = sorted(expected - set(scenario_api_methods))
+        unexpected_api_scenarios = sorted(set(scenario_api_methods) - expected)
+        if missing_api_scenarios:
+            findings.append(
+                "evidence is missing catalog API mappings: "
+                + ", ".join(missing_api_scenarios)
+            )
+        if unexpected_api_scenarios:
+            findings.append(
+                "evidence contains unexpected catalog API mappings: "
+                + ", ".join(unexpected_api_scenarios)
+            )
+        for scenario_id, scenario in scenario_by_runner.items():
+            actual_methods = scenario_api_methods.get(scenario_id)
+            expected_methods = scenario.get("api_methods")
+            if not isinstance(actual_methods, list) or any(
+                not isinstance(method, str) or not method for method in actual_methods
+            ):
+                findings.append(
+                    f"evidence API mapping for {scenario_id} must be a string array"
+                )
+                continue
+            if not isinstance(expected_methods, Sequence) or isinstance(
+                expected_methods, (str, bytes)
+            ):
+                findings.append(
+                    f"catalog API mapping for {scenario_id} is missing"
+                )
+                continue
+            if len(actual_methods) != len(set(actual_methods)) or set(
+                actual_methods
+            ) != set(expected_methods):
+                findings.append(
+                    f"evidence API mapping does not match the C++ TCK catalog for {scenario_id}"
+                )
     actual = {item["id"] for item in valid_records}
     missing = sorted(expected - actual)
     if missing:

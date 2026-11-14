@@ -2251,11 +2251,35 @@ void scenarioCallbackControlsFlushQueueGrant(
           flushGrants.front().optimisticTime == encodeTime(*messageTime),
       "re-enabled Flush Queue grant returned incomplete or incorrect time metadata");
   auto actualFlushTime = decodeTime(*receiverTime.factory, flushGrants.front().time);
+  auto optimisticFlushTime =
+      decodeTime(*receiverTime.factory, flushGrants.front().optimisticTime);
+  auto const belowOptimisticRequest = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      8U);
   require(
       actualFlushTime != nullptr &&
           !(*actualFlushTime < *receiverTime.initial) &&
-          !(*requestBoundary < *actualFlushTime),
+          !(*requestBoundary < *actualFlushTime) &&
+          optimisticFlushTime != nullptr &&
+          *actualFlushTime < *belowOptimisticRequest &&
+          *belowOptimisticRequest < *optimisticFlushTime,
       "re-enabled Flush Queue grant returned a time outside standard bounds");
+  requireException(
+      [&] {
+        receiver.rtiAmbassador().flushQueueRequest(*belowOptimisticRequest);
+      },
+      L"LogicalTimeAlreadyPassed",
+      "FQG rejected a next request below its optimistic logical time");
+  require(
+      receiver.recorder().flushQueueGrants().size() == 1U,
+      "rejected below-optimistic Flush Queue request generated another grant");
+  auto logicalTimeAfterRejectedRequest = receiverTime.factory->makeInitial();
+  receiver.rtiAmbassador().queryLogicalTime(*logicalTimeAfterRejectedRequest);
+  require(
+      encodeTime(*logicalTimeAfterRejectedRequest) == flushGrants.front().time,
+      "rejected below-optimistic Flush Queue request changed logical time");
 
   receiver.rtiAmbassador().disableTimeConstrained();
   publisher.rtiAmbassador().disableTimeRegulation();

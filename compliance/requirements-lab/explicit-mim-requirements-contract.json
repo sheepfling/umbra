@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-service-not-conformance-evidence",
-  "notes": "This focused contract binds the embedded development profile's successful explicit-MIM Create path to the source-derived federation-management Create requirement. The test uses the official 2025 MIM through a caller-supplied filesystem designator, then joins and tears down the created federation. The reserved HLAstandardMIM spelling remains a separate negative boundary; custom-MIM interoperability, remote transport, JUnit, protected review, package evidence, and conformance remain open.",
+  "notes": "This reference separates embedded Catch2 evidence from portable public-API C++ TCK evidence; neither establishes conformance. The embedded Catch2 case verifies successful explicit-MIM Create using the official 2025 MIM file. The portable TCK scenario verifies the supplied-standard-MIM and no-MIM automatic-standard-MIM paths, plus rejection of the reserved HLAstandardMIM designator. Arbitrary custom-MIM contents, the MIM-before-FOM ordering child, remote-provider interoperability, protected review, and conformance remain open.",
   "requirements": [
     {
       "id": "umbra-embedded-create-federation-execution-explicit-mim",
@@ -14,6 +14,28 @@
       "tests": [
         "cpp/tests/ieee1516_2025_explicit_mim_create_catch2.cpp::Embedded Create Federation Execution accepts a validated explicit MIM path"
       ]
+    },
+    {
+      "id": "cpp-tck-create-federation-loads-supplied-or-standard-mim",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l50-8",
+      "clause_id": "clause-4.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioExplicitMimCreation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioExplicitMimCreation"
+      ],
+      "scope": "The public C++ TCK uses the adapter-supplied official 2025 MIM with Create Federation Execution With MIM, and separately omits the MIM argument and verifies a standard MOM class/attribute. It does not establish arbitrary custom-MIM contents or MIM-before-FOM ordering."
+    },
+    {
+      "id": "cpp-tck-create-federation-rejects-reserved-standard-mim-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l50-8-reserved-name",
+      "clause_id": "clause-4.5",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp",
+      "source_symbol": "scenarioExplicitMimCreation",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioExplicitMimCreation"
+      ],
+      "scope": "The public Create Federation Execution With MIM call supplies the reserved HLAstandardMIM designator and asserts DesignatorIsHLAstandardMIM."
     }
   ]
 }

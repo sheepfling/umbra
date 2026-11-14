@@ -12,6 +12,7 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
@@ -96,13 +97,15 @@ final class ServiceReportOrderTransportationLookupTck {
          TransportationTypeHandle reliableByName =
             subject.getTransportationTypeHandle("HLAreliable");
          String reliableName = subject.getTransportationTypeName(reliable);
+         LogicalTimeFactory<?, ?> timeFactory = subject.getTimeFactory();
          JavaTckSupport.check(timestamp == OrderType.TIMESTAMP
                && "Receive".equals(receiveName)
                && reliable.equals(reliableByName)
-               && "HLAreliable".equals(reliableName),
+               && "HLAreliable".equals(reliableName)
+               && timeFactory != null && timeImplementation.equals(timeFactory.getName()),
             "standard order or transportation lookup returned an unexpected value");
-         await(observer, recorder, callbackModel, 4);
-         JavaTckSupport.check(recorder.events.size() == 4,
+         await(observer, recorder, callbackModel, 5);
+         JavaTckSupport.check(recorder.events.size() == 5,
             "order/transportation lookups produced an unexpected number of reports");
 
          verifyReport(observer, subjectHandle, recorder.events.get(0), encoder, reportClass,
@@ -122,6 +125,10 @@ final class ServiceReportOrderTransportationLookupTck {
             "GetTransportationTypeName", 59, "Transportation type handle",
             quoted(reliable.toString()), 53, "Transportation type name", "\"HLAreliable\"",
             3, true, "");
+         verifyReport(observer, subjectHandle, recorder.events.get(4), encoder, reportClass,
+            reportParameters, reliable,
+            "GetTimeFactory", null, null, null, 12, null, "\"LOGICAL_TIME_FACTORY\"",
+            4, true, "");
 
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
@@ -201,8 +208,13 @@ final class ServiceReportOrderTransportationLookupTck {
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
 
+         // The Java API has no public default constructor for an invalid handle.
+         // Decode this adapter's HLAvariableArray representation of the zero-valued,
+         // default-invalid handle: nine elements containing the transportation
+         // discriminator followed by the eight-octet identity.
          TransportationTypeHandle invalidTransportation =
-            JavaTckSupport.invalidHandle(TransportationTypeHandle.class);
+            subject.getTransportationTypeHandleFactory().decode(
+               new byte[] {0, 0, 0, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0}, 0);
          subject.setServiceReportingSwitch(true);
          JavaTckSupport.expectFailure(() -> subject.getOrderType(unsupportedOrder),
             "InvalidOrderName", "reported unsupported order-name lookup");
@@ -225,7 +237,8 @@ final class ServiceReportOrderTransportationLookupTck {
             reportParameters, reliable, "GetOrderType", 53, "Order name",
             quoted(unsupportedOrder), 34, "", "null", 0, false, "InvalidOrderName");
          verifyReport(observer, subjectHandle, recorder.events.get(1), encoder, reportClass,
-            reportParameters, reliable, "GetOrderName", 38, "Order type", quoted("null"),
+            reportParameters, reliable, "GetOrderName", 38, "Order type",
+            quoted("UNSUPPORTED"),
             34, "", "null", 1, false, "InvalidOrderType");
          verifyReport(observer, subjectHandle, recorder.events.get(2), encoder, reportClass,
             reportParameters, reliable, "GetTransportationTypeHandle", 53,
@@ -268,7 +281,7 @@ final class ServiceReportOrderTransportationLookupTck {
    private static void verifyReport(RTIambassador observer, FederateHandle expectedFederate,
          Interaction event, EncoderFactory encoder,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> parameters,
-         TransportationTypeHandle reliable, String service, int suppliedType,
+         TransportationTypeHandle reliable, String service, Integer suppliedType,
          String suppliedName, String suppliedValue, int returnedType, String returnedName,
          String returnedValue, int serial, boolean expectedSuccess,
          String expectedException) throws Exception {
@@ -306,10 +319,15 @@ final class ServiceReportOrderTransportationLookupTck {
       HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
          index -> argumentPrototype(encoder), prototype);
       suppliedArguments.decode(event.parameters.get(parameters.get("HLAsuppliedArguments")));
-      JavaTckSupport.check(suppliedArguments.size() == 1,
-         service + " report returned the wrong supplied argument count");
-      verifyArgument(suppliedArguments.get(0), suppliedType, suppliedName, suppliedValue,
-         service + " supplied argument");
+      if (suppliedType == null) {
+         JavaTckSupport.check(suppliedArguments.size() == 0,
+            service + " report returned unexpected supplied arguments");
+      } else {
+         JavaTckSupport.check(suppliedArguments.size() == 1,
+            service + " report returned the wrong supplied argument count");
+         verifyArgument(suppliedArguments.get(0), suppliedType, suppliedName, suppliedValue,
+            service + " supplied argument");
+      }
 
       HLAfixedRecord returnedArgument = argumentPrototype(encoder);
       returnedArgument.decode(event.parameters.get(parameters.get("HLAreturnedArgument")));
@@ -327,11 +345,15 @@ final class ServiceReportOrderTransportationLookupTck {
 
    private static void verifyArgument(HLAfixedRecord argument, int type, String name,
          String value, String description) throws Exception {
-      JavaTckSupport.check(argument.size() == 3
-            && ((HLAinteger32BE) argument.get(0)).getValue() == type
-            && name.equals(((HLAunicodeString) argument.get(1)).getValue())
-            && value.equals(((HLAunicodeString) argument.get(2)).getValue()),
-         description + " had the wrong type, name, or value");
+      JavaTckSupport.check(argument.size() == 3,
+         description + " expected three fields but found " + argument.size());
+      int actualType = ((HLAinteger32BE) argument.get(0)).getValue();
+      String actualName = ((HLAunicodeString) argument.get(1)).getValue();
+      String actualValue = ((HLAunicodeString) argument.get(2)).getValue();
+      JavaTckSupport.check(actualType == type && (name == null || name.equals(actualName))
+            && value.equals(actualValue),
+         description + " expected type/name/value " + type + "/" + name + "/" + value
+            + " but found " + actualType + "/" + actualName + "/" + actualValue);
    }
 
    private static String quoted(String value) { return "\"" + value + "\""; }

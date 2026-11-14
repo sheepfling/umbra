@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Dimension-table Input data type description preflight through official Federation Create and dimension lookup services. The adapter supplies the provider package, standard MIM, four schema-valid FOM bindings, endpoint, logical time, and callback model. Empty inputDataTypes with NA description is rejected; meaningful text is accepted; named HLAcount inputs accept NA or amplifying text. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/dimension-input-description-jni-20261021.json); other Java providers, private diagnostics, interoperability, and conformance are not claimed.",
+  "notes": "Portable Dimension-table description preflight through official Federation Create and dimension lookup services. The adapter supplies the provider package, standard MIM, seven schema-valid FOM bindings, endpoint, logical time, and callback model. It preserves the empty-input-type/NA and meaningful-description cases, named HLAcount with NA or amplifying text, and three separately isolated blank required text cells (inputDataDescription, normalization, outputDataSemantics) rejected through public Create as InconsistentFOM. The rebuilt installed MinGW C++ package passed the focused 24/24 CTest dimension regression across 12 scenario IDs and direct runs in both callback models. An earlier packaged JNI Java run remains historical evidence for the description paths only; no Java rerun, interoperability, or provider conformance is claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-dimension-input-description",

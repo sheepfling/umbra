@@ -6,7 +6,7 @@
   <synchronizations><synchronizationPoint>
     <label>TckMergeReady</label>
     <dataType>HLAASCIIstring</dataType>
-    <capability>Achieve</capability>
+    <capability>NA</capability>
     <semantics>Ready for the same shared phase.</semantics>
   </synchronizationPoint></synchronizations>
 </objectModel>

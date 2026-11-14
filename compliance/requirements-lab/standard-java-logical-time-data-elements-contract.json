@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the Java-visible subset of the official logical-time DataElement APIs. The scenario exercises HLAlogicalTime and HLAlogicalTimeInterval creation from EncoderFactory, selected-factory values, encoded length and boundary, byte-array and ByteWrapper encode/decode, cursor preservation, and truncated-input rejection. No direct normative Java mapping is claimed: the related page-378 candidate is specifically the Annex C RTI C++ header implementation requirement.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-logical-time-data-element",
+      "owner": "IEEE 1516.1 Java EncoderFactory",
+      "language": "java",
+      "signature": "createHLAlogicalTime(RTIambassador), HLAlogicalTime.getValue, HLAlogicalTime.setValue, DataElement encode/decode and metadata",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.encoding.EncoderFactory.createHLAlogicalTime and HLAlogicalTime",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeDataElementsTck.java"
+      ]
+    },
+    {
+      "id": "standard-java-logical-time-interval-data-element",
+      "owner": "IEEE 1516.1 Java EncoderFactory",
+      "language": "java",
+      "signature": "createHLAlogicalTimeInterval(RTIambassador), HLAlogicalTimeInterval.getValue, HLAlogicalTimeInterval.setValue, DataElement encode/decode and metadata",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.encoding.EncoderFactory.createHLAlogicalTimeInterval and HLAlogicalTimeInterval",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LogicalTimeDataElementsTck.java"
+      ]
+    }
+  ]
+}

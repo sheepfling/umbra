@@ -1,4 +1,5 @@
 #include "tck_fom_module_scenarios.hpp"
+#include "tck_federation_mom_content_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
@@ -43,10 +44,40 @@ void runSynchronizationDuplicate(Options const& options,
     create(creator, federation, options, {base.wstring()});
     creator.rtiAmbassador().destroyFederationExecution(federation);
   } else {
-    create(creator, federation, options,
-           {base.wstring(), second.wstring()});
-    creator.rtiAmbassador().destroyFederationExecution(federation);
+    auto const currentFdd = composedCurrentFdd(
+        options, model, {base.wstring(), second.wstring()},
+        "fom-sync-merge-current-fdd");
+    require(currentFdd.find(L"TckMergeReady") != std::wstring::npos,
+            "the merged current FDD omitted the synchronization declaration");
   }
+  creator.disconnect();
+}
+
+void runSynchronizationTableValidation(Options const& options,
+                                       rti::CallbackModel model) {
+  require(!options.logicalTimeImplementationName.empty(),
+          "Synchronization table validation requires adapter-supplied logical time");
+  auto const& valid = requiredFom(options, "sync-cap-na");
+  auto const& invalidCapability = requiredFom(options, "sync-cap-action");
+  auto const& invalidLabel = requiredFom(options, "sync-label-invalid");
+  Session creator(options, model, "synchronization-table-creator");
+  auto const federation = federationName(options, "fom-synchronization-table");
+  creator.connect();
+
+  create(creator, federation, options, {valid.wstring()});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  requireException(
+      [&] { create(creator, federation, options, {invalidCapability.wstring()}); },
+      L"InconsistentFOM",
+      "a FOM synchronization-point Capability field other than NA");
+  requireException(
+      [&] { create(creator, federation, options, {invalidLabel.wstring()}); },
+      L"InconsistentFOM",
+      "a user-defined synchronization-point label using the reserved HLA prefix");
+
+  // Failed table checks must leave federation-name reuse available.
+  create(creator, federation, options, {valid.wstring()});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
   creator.disconnect();
 }
 
@@ -70,6 +101,16 @@ void scenarioFomSynchronizationDuplicateNoteConflict(Options const& options,
 void scenarioFomSynchronizationDuplicateNoteConflictContract(
     Options const& options, rti::CallbackModel model) {
   scenarioFomSynchronizationDuplicateNoteConflict(options, model);
+}
+
+void scenarioFomSynchronizationTableValidation(
+    Options const& options, rti::CallbackModel model) {
+  runSynchronizationTableValidation(options, model);
+}
+
+void scenarioFomSynchronizationTableValidationContract(
+    Options const& options, rti::CallbackModel model) {
+  scenarioFomSynchronizationTableValidation(options, model);
 }
 
 }  // namespace hla_rti_cpp_tck::detail

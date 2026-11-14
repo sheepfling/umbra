@@ -56,12 +56,6 @@ void submitReceiveOrderCallback(
       std::move(invocation));
 }
 
-TransportationTypeHandle transportationHandleFromEmbeddedName(
-    std::string const& transportationName,
-    wchar_t const* context) {
-  return ambassadorTransportationHandleFromEmbeddedName(transportationName, context);
-}
-
 void queueObjectInstanceNameReservation(
     umbra::detail::ObjectInstanceCallbackRoute callbackRoute,
     std::wstring federationName,
@@ -360,15 +354,36 @@ void queueObjectInstanceDiscovery(
         for (auto const& [attributeHandle, value] : initialValues->attributeValues) {
           attributeValues.emplace(makeAttributeHandle(attributeHandle), value);
         }
+        CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+            federationName,
+            receivingFederateId);
+        std::optional<RegionHandleSet> optionalUpdateRegions;
+        if (initialValues->conveyUpdateRegion) {
+          if (initialValues->updateRegionSourceHandles.size() != 1U ||
+              initialValues->updateRegionSnapshots.size() != 1U) {
+            throw RTIinternalError(
+                L"A joined-federate MOM reflection has no single RTI update-region snapshot.");
+          }
+          optionalUpdateRegions.emplace();
+          auto const copyStatus = callbackRegionDesignatorCopies.create(
+              initialValues->updateRegionSourceHandles,
+              initialValues->updateRegionSnapshots,
+              *optionalUpdateRegions);
+          if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+            throw RTIinternalError(
+                L"The RTI could not create a callback-scoped joined-federate MOM update region.");
+          }
+        }
         recipient.reflectAttributeValues(
             makeObjectInstanceHandle(initialValues->objectInstanceHandle),
             attributeValues,
             VariableLengthData{},
-            transportationHandleFromEmbeddedName(
+            ambassadorTransportationHandleFromFederationName(
+                federationName,
                 umbra::detail::hla::utf8::mom::reliable,
                 L"The embedded federation could not reconstruct the MOM transportation type."),
             FederateHandle{},
-            nullptr);
+            optionalUpdateRegions ? &*optionalUpdateRegions : nullptr);
       }
       return;
     }
@@ -1026,15 +1041,36 @@ void queueJoinedFederateMomAttributeValueUpdate(
     for (auto const& [attributeHandle, value] : values) {
       attributeValues.emplace(makeAttributeHandle(attributeHandle), value);
     }
+    CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+        federationName,
+        receivingFederateId);
+    std::optional<RegionHandleSet> optionalUpdateRegions;
+    if (reflection->conveyUpdateRegion) {
+      if (reflection->updateRegionSourceHandles.size() != 1U ||
+          reflection->updateRegionSnapshots.size() != 1U) {
+        throw RTIinternalError(
+            L"A joined-federate MOM reflection has no single RTI update-region snapshot.");
+      }
+      optionalUpdateRegions.emplace();
+      auto const copyStatus = callbackRegionDesignatorCopies.create(
+          reflection->updateRegionSourceHandles,
+          reflection->updateRegionSnapshots,
+          *optionalUpdateRegions);
+      if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+        throw RTIinternalError(
+            L"The RTI could not create a callback-scoped joined-federate MOM update region.");
+      }
+    }
     recipient.reflectAttributeValues(
         makeObjectInstanceHandle(reflection->objectInstanceHandle),
         attributeValues,
         VariableLengthData{},
-        transportationHandleFromEmbeddedName(
+        ambassadorTransportationHandleFromFederationName(
+            federationName,
             umbra::detail::hla::utf8::mom::reliable,
             L"The embedded federation could not reconstruct the MOM transportation type."),
         FederateHandle{},
-        nullptr);
+        optionalUpdateRegions ? &*optionalUpdateRegions : nullptr);
   });
 }
 

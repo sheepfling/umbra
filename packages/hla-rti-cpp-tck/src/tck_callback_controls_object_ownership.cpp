@@ -451,6 +451,12 @@ void scenarioCallbackControlsObjectDiscovery(
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherClass,
       publisherAttributes);
+  if (model == rti::HLA_EVOKED) {
+    while (publisher.evokeMultipleCallbacks(0.0, 0.0)) {
+    }
+    while (receiver.evokeMultipleCallbacks(0.0, 0.0)) {
+    }
+  }
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::DELETE_OBJECTS);
   publisher.rtiAmbassador().destroyFederationExecution(federation);

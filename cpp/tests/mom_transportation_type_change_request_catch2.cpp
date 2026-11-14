@@ -7,10 +7,17 @@
 #include <RTI/RTI1516.h>
 #include <RTI/encoding/BasicDataElements.h>
 
+#include "internal/federation/federation_registry.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
+#include "internal/runtime/umbra_rti_ambassador.hpp"
+
 #include <atomic>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -41,6 +48,28 @@ using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::TransportationTypeHandle;
 using rti1516_2025::VariableLengthData;
+
+class ScopedEmbeddedFederationRegistry final {
+ public:
+  explicit ScopedEmbeddedFederationRegistry(
+      std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> replacement)
+      : previous_(
+            rti1516_2025::umbra_binding_detail::replaceEmbeddedFederationRegistryForTesting(
+                std::move(replacement))) {}
+  ScopedEmbeddedFederationRegistry(ScopedEmbeddedFederationRegistry const&) = delete;
+  ScopedEmbeddedFederationRegistry& operator=(
+      ScopedEmbeddedFederationRegistry const&) = delete;
+  ~ScopedEmbeddedFederationRegistry() noexcept {
+    if (previous_) {
+      static_cast<void>(
+          rti1516_2025::umbra_binding_detail::replaceEmbeddedFederationRegistryForTesting(
+              std::move(previous_)));
+    }
+  }
+
+ private:
+  std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> previous_;
+};
 
 std::wstring nextFederationName() {
   static std::atomic_uint64_t sequence{0U};
@@ -206,6 +235,15 @@ TEST_CASE(
   auto runScenario = [](auto const callbackModel) {
     ReportingFederateAmbassador subjectReports;
     ReportingFederateAmbassador observerReports;
+    std::uint64_t nextFomHandleValue = 0x1000U;
+    auto const registry =
+        std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+            nullptr,
+            nullptr,
+            [&nextFomHandleValue] {
+              return std::optional<std::uint64_t>{nextFomHandleValue++};
+            });
+    ScopedEmbeddedFederationRegistry registryScope(registry);
     auto subject = makeRti();
     auto observer = makeRti();
     bool const immediate = callbackModel == rti1516_2025::HLA_IMMEDIATE;
@@ -259,6 +297,11 @@ TEST_CASE(
     REQUIRE(takeOrder.isValid());
     REQUIRE(observerTakeOrder.isValid());
     REQUIRE(reliable.isValid());
+    auto const reliableValue =
+        rti1516_2025::umbra_binding_detail::transportationTypeHandleValue(
+            reliable);
+    REQUIRE(reliableValue.has_value());
+    REQUIRE(*reliableValue != 1U);
     REQUIRE(bestEffort.isValid());
     REQUIRE_NOTHROW(subject->publishObjectClassAttributes(
         serverClass,

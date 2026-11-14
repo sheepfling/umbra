@@ -1,6 +1,7 @@
 #include "internal/handles/federate_handle.hpp"
 #include "internal/handles/interaction_class_handle.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
@@ -49,7 +50,8 @@ void queueFederateLostReport(
   sentParameters.emplace_back(
       report.routing.faultDescriptionParameterHandle,
       HLAunicodeString{faultDescription}.encode());
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportFederateLost transportation.");
 
@@ -82,13 +84,29 @@ void queueFederateLostReport(
       ParameterHandleValueMap parameterValues = ambassadorProjectInteractionParameterValues(
           sentParameters,
           projection->receivedParameterHandles);
+      RegionHandleSet callbackRegionHandles;
+      CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+          federationName, receivingFederateId);
+      RegionHandleSet const* optionalSentRegions = nullptr;
+      if (projection->conveyRegionDesignatorSets &&
+          !projection->sentRegionHandles.empty()) {
+        auto const copyStatus = callbackRegionDesignatorCopies.create(
+            projection->sentRegionHandles,
+            projection->sentRegionSnapshots,
+            callbackRegionHandles);
+        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+          throw RTIinternalError(
+              L"The embedded federation could not convey HLAreportFederateLost region designators.");
+        }
+        optionalSentRegions = &callbackRegionHandles;
+      }
       recipient.receiveInteraction(
           makeInteractionClassHandle(projection->receivedInteractionClassHandle),
           parameterValues,
           VariableLengthData{},
           reliableTransportation,
           FederateHandle{},
-          nullptr);
+          optionalSentRegions);
     });
   }
 }
@@ -154,6 +172,50 @@ void UmbraRtiAmbassador::handleProcessTransportFailure(
       });
     });
   }
+}
+
+bool UmbraRtiAmbassador::handleProcessFederateResignation(
+    std::wstring reasonForResign) {
+  auto instrumentationScope = beginRtiCall("handleProcessFederateResignation");
+  std::shared_ptr<CallbackSession> callbackSession;
+  {
+    std::scoped_lock lock(mutex_);
+    if (!processEndpointActive_ ||
+        lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+        !joinedFederationName_ || !joinedFederateId_ ||
+        lifecycle_.apply(umbra::detail::FederateLifecycleEvent::rti_resign) !=
+            umbra::detail::FederateLifecycleResult::applied) {
+      return false;
+    }
+    if (federateTimeState_) {
+      federateTimeState_->deactivate();
+      federateTimeState_.reset();
+    }
+    joinedFederationName_.reset();
+    joinedFederateId_.reset();
+    processLogicalTimeImplementationName_.reset();
+    processServiceReportFile_.reset();
+    processTimeRegulationCallbackPending_ = false;
+    processTimeConstrainedCallbackPending_ = false;
+    callbackSession = callbackSession_;
+    callbacks_->reset();
+  }
+
+  if (callbackSession) {
+    callbacks_->submit([
+        callbackSession = std::move(callbackSession),
+        reasonForResign = std::move(reasonForResign)]() mutable {
+      callbackSession->invoke([
+          reasonForResign = std::move(reasonForResign)](
+          FederateAmbassador& recipient) mutable {
+        try {
+          recipient.federateResigned(reasonForResign);
+        } catch (...) {
+        }
+      });
+    });
+  }
+  return true;
 }
 
 bool UmbraRtiAmbassador::handleEmbeddedFederateResignation(

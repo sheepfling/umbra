@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java case creates a region through one joined federate and calls Get Dimension Handle Set from a peer that did not create or receive the region designator. It checks only the InvalidRegion outcome for this ownership/conveyance boundary.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-unconveyed-peer-region-dimension-handle-set",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "DimensionHandle getDimensionHandle(String name)",
+        "DimensionHandleSetFactory getDimensionHandleSetFactory()",
+        "boolean DimensionHandleSet.add(DimensionHandle dimension)",
+        "RegionHandle createRegion(DimensionHandleSet dimensions)",
+        "DimensionHandleSet getDimensionHandleSet(RegionHandle region) throws InvalidRegion"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getDimensionHandleSet",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/UnconveyedPeerRegionDimensionHandleSetInvalidRegionTck.java#run"
+      ]
+    }
+  ]
+}

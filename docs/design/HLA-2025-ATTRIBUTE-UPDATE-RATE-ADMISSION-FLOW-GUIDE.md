@@ -24,6 +24,7 @@ universal order of RTI service processing.
 | --- | --- |
 | Who may update this object-instance attribute? | **Ownership** is sender-side authority; it does not decide whether a receiver's candidate value passes its rate gate. See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md). |
 | Which receiver attributes are candidates? | **Publication, subscription, and DDM** determine the candidate projection before this guide's per-attribute filter. See [object/interaction information flow](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md) and [DDM/regions](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md). |
+| When is the receiver projection formed? | **DSE** addresses when subscription/relevance is evaluated; its §8.1.8 paraphrase remains provisional in the [DSE guide](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md). Umbra may retain a route-only candidate and form its projection later. This rate flow starts once a receiver/passel projection exists. The [DSE/rate-history cross-review](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#a-retained-candidate-uses-the-current-subscription-generation-at-delivery) traces how that projection selects the current admission generation. The cited tests do not combine a late DSE subscription with rate-history admission. |
 | What order does the delivery report? | **Receive order versus timestamp order** selects the delivery path and callback metadata; it is not the rate clock. See [order and transportation](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md). |
 | Which transportation category applies? | The category is separate from order. In the observed embedded 2025 path, reliable values bypass rate reduction and best-effort values reach the rate gate; this is not a wire-protocol or QoS guarantee. See [order and transportation](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md). |
 | When can queued TSO work reach delivery? | **Time management** selects the grant/delivery boundary first; the rate filter then uses steady-clock elapsed time, not the message's logical timestamp. See the [time-management guide](HLA-2025-TIME-MANAGEMENT-GUIDE.md). |
@@ -190,15 +191,15 @@ old generation's timestamp can therefore remain cached but is no longer
 selected by the current generation. This is a 2025 embedded storage detail,
 not an HLA requirement; no focused test measures retained-entry growth. See
 the [gate's keyed storage](../../cpp/src/internal/time/update_rate_gate.cpp#L24),
-[receiver cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L113),
-and [federation cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1928).
+[receiver cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L114),
+and [federation cleanup](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L1965).
 
 The source chain is visible in the [ordinary subscribe/unsubscribe
 mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L261),
 the [regional subscribe mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L422),
 and [regional unsubscribe mutator](../../cpp/src/internal/federation/federation_registry_object_attribute_declarations.cpp#L582),
-the receiver declaration record's [generation field](../../cpp/src/internal/federation/federation_registry.hpp#L2345),
-the [admission-key builder](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L96),
+the receiver declaration record's [generation field](../../cpp/src/internal/federation/federation_registry.hpp#L2406),
+the [admission-key builder](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L97),
 and the [rate gate](../../cpp/src/internal/time/update_rate_gate.cpp#L9). The
 private [gate unit case](../../cpp/tests/ieee1516_2025_update_rate_gate_unit_catch2.cpp#L40)
 shows that a different generation key starts with no prior timestamp, but it
@@ -211,6 +212,13 @@ source/test-derived implementation inference, not an end-to-end observation or
 a normative result. The test's comment interpreting §9.8.4 as a no-op is not an
 independent check of the licensed clause text. Keep that no-op/conformance
 question open until an authorized copy of §9.8.4 is reviewed.
+
+The same generation is read when an embedded DSE candidate is reprojected at
+receive-order callback dispatch or at the TSO grant boundary. Thus a retained
+candidate that becomes eligible after a subscription change uses the current
+generation's rate key; the prior generation's timestamp is not selected. This
+connection is source-derived and has no combined DSE/rate-history test. See the
+[DSE delivery-boundary explanation](HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#a-retained-candidate-uses-the-current-subscription-generation-at-delivery).
 
 This is a best-effort admission filter, not a timer that schedules a suppressed
 value for later delivery and not a measurement of the producer's sustained
@@ -286,14 +294,14 @@ route is shown in the [process-endpoint guide](HLA-2025-PROCESS-ENDPOINT-REQUEST
 | Which active subscription rates are applicable to an attribute? | [Recipient planner](../../cpp/src/internal/federation/federation_registry_attribute_update_recipients.cpp#L327) | Current source combines applicable ordinary and overlapping active regional declarations per attribute; an applicable omitted/default declaration prevents reduction for that attribute. |
 | What clock and interval does the private gate use? | [Gate contract](../../cpp/src/internal/time/update_rate_gate.hpp#L12), [implementation](../../cpp/src/internal/time/update_rate_gate.cpp#L9), [deterministic unit case](../../cpp/tests/ieee1516_2025_update_rate_gate_unit_catch2.cpp#L9) | The implementation uses an injectable steady clock, interval `1/r`, reliable/default bypass, independent keys, successful-admission timestamps, and scoped cleanup. The unit test advances a fake clock rather than sleeping. |
 | Are mixed attributes filtered separately? | [Mixed explicit/default subscription case](../../cpp/tests/mixed_update_rate_subscriptions_catch2.cpp#L199) | In the embedded receive-order scenario, the Low-rate value is removed from the next reflection while the HLAdefault value in that same passel remains. |
-| Do regional declarations participate? | [Regional best-effort case](../../cpp/tests/regional_best_effort_attribute_rate_catch2.cpp#L204), [passive regional query case](../../cpp/tests/update_rate_passive_regional_subscription_catch2.cpp#L73) | The first exercises overlapping active regional rate admission and resubscription; the second distinguishes passive from active regional declarations for the public rate query. These are separate observations. |
+| Do regional declarations participate, and does resubscription reset admission history? | [Regional best-effort case](../../cpp/tests/regional_best_effort_attribute_rate_catch2.cpp#L204), [passive regional query case](../../cpp/tests/update_rate_passive_regional_subscription_catch2.cpp#L73) | The first admits one Low-rate update, suppresses the next within the interval, then observes immediate admission after regional unsubscribe/resubscribe; this directly covers a fresh regional rate epoch without DSE. The second distinguishes passive from active regional declarations for the public rate query. These are separate observations. |
 | Where does TSO admission occur, and what if all values are filtered? | [TSO dispatch](../../cpp/src/internal/runtime/umbra_rti_ambassador_time_advance_dispatch.cpp#L390), [mixed reliable/best-effort TSO case](../../cpp/tests/timestamped_attribute_update_rate_reduction_catch2.cpp#L187), [regional TSO case](../../cpp/tests/regional_best_effort_timestamped_attribute_rate_catch2.cpp#L197) | The implementation gates at queued delivery; focused embedded tests show best-effort suppression with reliable retention and regional suppression across grants. The mixed TSO case also checks the empty-reflection/retraction boundary. |
 | Does the process endpoint retain a subscription rate designator? | [Process subscription handler](../../cpp/src/internal/federation/process_federation_service_declarations.cpp#L214), [public process subscription case](../../cpp/tests/ieee1516_2025_connection_public_object_subscription_catch2.cpp#L458) | The focused case checks active `High`, passive empty designator, and unsubscribe state in the server registry. It does not deliver attribute updates. |
 | Is process callback admission by update rate established? | [Receive-order event projection](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L191), [TSO event projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L77), [callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L261), [process update-rate query cases](../../cpp/tests/ieee1516_2025_connection_update_rate_catch2.cpp#L458) | These source paths project values by received-attribute handles and forward reflection; the inspected builders do not consume `maximumUpdateRatesByAttribute` or call `UpdateRateGate`. Existing process query coverage does not test per-value admission. This is a source-only profile observation, not a normative or runtime conformance result. |
 | What does the process delivery-reduction test lane establish? | [Public update route](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_catch2.cpp#L458), [overlapping-subscription deduplication](../../cpp/tests/ieee1516_2025_connection_update_attribute_values_reflect_catch2.cpp#L458), [disjoint regional suppression](../../cpp/tests/ieee1516_2025_connection_disjoint_regional_update_catch2.cpp#L458) | It covers event routing, duplicate-recipient suppression, and DDM scope. Its regional “suppression” is not evidence of update-rate throttling. |
 
 Additional implementation references:
-[rate-history key construction](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L96),
+[rate-history key construction](../../cpp/src/internal/runtime/umbra_rti_ambassador.cpp#L97),
 [receive-order callback gate](../../cpp/src/internal/runtime/umbra_rti_ambassador_object_instance_lifecycle_callbacks.cpp#L785),
 and [federation rate queries](../../cpp/src/internal/federation/federation_registry_catalog_queries.cpp#L345).
 

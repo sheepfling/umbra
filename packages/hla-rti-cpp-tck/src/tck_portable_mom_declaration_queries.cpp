@@ -15,7 +15,8 @@ void scenarioFederateMomPublicationQueryState(
     bool unpublishWholeObjectClassAfterInitialQuery = false,
     bool unpublishWholeInteractionClassAfterInitialQuery = false,
     bool unpublishOneOrdinaryInteractionClassAfterInitialQuery = false,
-    bool unpublishAllOrdinaryInteractionClassesAfterInitialQuery = false) {
+    bool unpublishAllOrdinaryInteractionClassesAfterInitialQuery = false,
+    bool preserveOtherObjectClassPublication = false) {
   require(
       !options.fom.empty() && !options.mimFom.empty() &&
           !options.logicalTimeImplementationName.empty() &&
@@ -30,6 +31,20 @@ void scenarioFederateMomPublicationQueryState(
             !hasMultipleDirectedPublications &&
             !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
             !unpublishAllDirectedPublicationsAfterPartialQuery)) &&
+          (!preserveOtherObjectClassPublication ||
+           (unpublishOneObjectClassAttributeAfterInitialQuery &&
+            publishCompleteObjectClassAttributeSet &&
+            !hasMultipleDirectedPublications &&
+            !partiallyUnpublishDirectedPublicationAfterInitialQuery &&
+            !unpublishAllDirectedPublicationsAfterPartialQuery &&
+            !unpublishAllObjectClassApplicationAttributesAfterInitialQuery &&
+            !unpublishWholeObjectClassAfterInitialQuery &&
+            !unpublishWholeInteractionClassAfterInitialQuery &&
+            !unpublishOneOrdinaryInteractionClassAfterInitialQuery &&
+            !unpublishAllOrdinaryInteractionClassesAfterInitialQuery &&
+            !options.secondaryDirectedObjectClassName.empty() &&
+            options.secondaryDirectedObjectClassName !=
+                options.objectClassName)) &&
           (!unpublishAllObjectClassApplicationAttributesAfterInitialQuery ||
            (publishCompleteObjectClassAttributeSet &&
             !unpublishOneObjectClassAttributeAfterInitialQuery &&
@@ -163,6 +178,11 @@ void scenarioFederateMomPublicationQueryState(
       hasMultipleDirectedPublications
           ? options.secondaryDirectedObjectClassName
           : options.objectClassName);
+  auto const subjectOtherPublicationObjectClass =
+      preserveOtherObjectClassPublication
+          ? subjectAmbassador.getObjectClassHandle(
+                options.secondaryDirectedObjectClassName)
+          : rti::ObjectClassHandle{};
   auto const subjectAttribute = subjectAmbassador.getAttributeHandle(
       subjectObjectClass,
       options.attributeName);
@@ -190,6 +210,11 @@ void scenarioFederateMomPublicationQueryState(
       hasMultipleDirectedPublications
           ? options.secondaryDirectedObjectClassName
           : options.objectClassName);
+  auto const requesterOtherPublicationObjectClass =
+      preserveOtherObjectClassPublication
+          ? requesterAmbassador.getObjectClassHandle(
+                options.secondaryDirectedObjectClassName)
+          : rti::ObjectClassHandle{};
   auto const subjectSecondaryDirectedObjectClass =
       hasMultipleDirectedPublications
           ? subjectAmbassador.getObjectClassHandle(options.objectClassName)
@@ -242,6 +267,13 @@ void scenarioFederateMomPublicationQueryState(
           reliable.isValid(),
       "Adapter-supplied publication handles or standard reliable transportation were invalid");
   require(
+      !preserveOtherObjectClassPublication ||
+          (subjectOtherPublicationObjectClass.isValid() &&
+           requesterOtherPublicationObjectClass.isValid() &&
+           subjectOtherPublicationObjectClass != subjectObjectClass &&
+           requesterOtherPublicationObjectClass != requesterObjectClass),
+      "The adapter-supplied independent object publication class was invalid or duplicated the primary class");
+  require(
       !(unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
         unpublishAllOrdinaryInteractionClassesAfterInitialQuery) ||
           (subjectSecondaryOrdinaryInteractionClass.isValid() &&
@@ -287,6 +319,11 @@ void scenarioFederateMomPublicationQueryState(
   subjectAmbassador.publishObjectClassAttributes(
       subjectObjectClass,
       subjectPublishedAttributes);
+  if (preserveOtherObjectClassPublication) {
+    subjectAmbassador.publishObjectClassAttributes(
+        subjectOtherPublicationObjectClass,
+        rti::AttributeHandleSet{subjectAttribute});
+  }
   subjectAmbassador.publishInteractionClass(subjectInteractionClass);
   if (unpublishOneOrdinaryInteractionClassAfterInitialQuery ||
       unpublishAllOrdinaryInteractionClassesAfterInitialQuery) {
@@ -377,6 +414,61 @@ void scenarioFederateMomPublicationQueryState(
         }
         return decoded;
       };
+  using ObjectClassPublicationSet =
+      std::pair<rti::ObjectClassHandle, std::vector<rti::AttributeHandle>>;
+  auto decodeObjectClassPublicationSets =
+      [&](std::vector<InteractionRecord> const& source,
+          std::size_t begin,
+          std::size_t end) {
+        std::vector<ObjectClassPublicationSet> decoded;
+        for (std::size_t index = begin; index != end; ++index) {
+          auto const& report = source[index];
+          if (report.interaction != objectReportClass) {
+            continue;
+          }
+          require(
+              report.parameters.size() == 3U &&
+                  report.parameters.count(objectReportCountParameter) == 1U &&
+                  report.parameters.count(objectReportClassParameter) == 1U &&
+                  report.parameters.count(objectReportAttributesParameter) ==
+                      1U,
+              "Object-class publication report did not contain its three MIM-defined parameters");
+          rti::HLAinteger32BE classCount;
+          classCount.decode(report.parameters.at(objectReportCountParameter));
+          require(
+              classCount.get() ==
+                  (preserveOtherObjectClassPublication ? 2 : 1),
+              "Object-class publication report did not report the exact number of independently published object classes");
+          auto const objectClass =
+              requesterAmbassador.decodeObjectClassHandle(
+                  report.parameters.at(objectReportClassParameter));
+          require(
+              std::none_of(
+                  decoded.begin(),
+                  decoded.end(),
+                  [&](ObjectClassPublicationSet const& existing) {
+                    return existing.first == objectClass;
+                  }),
+              "Object-class publication query reported a class more than once");
+          decoded.emplace_back(
+              objectClass,
+              decodeAttributeHandleList(
+                  report.parameters.at(objectReportAttributesParameter)));
+        }
+        return decoded;
+      };
+  auto findObjectClassPublicationSet =
+      [](std::vector<ObjectClassPublicationSet> const& sets,
+         rti::ObjectClassHandle objectClass)
+      -> std::vector<rti::AttributeHandle> const* {
+    auto const found = std::find_if(
+        sets.begin(),
+        sets.end(),
+        [&](ObjectClassPublicationSet const& publication) {
+          return publication.first == objectClass;
+        });
+    return found == sets.end() ? nullptr : &found->second;
+  };
 
   rti::ParameterHandleValueMap const requestParameters{
       {requestFederateParameter, targetFederate.encode()}};
@@ -388,16 +480,19 @@ void scenarioFederateMomPublicationQueryState(
       requester,
       [&] {
         return requester.recorder().interactions().size() >=
-            (hasMultipleDirectedPublications ? 4U : 3U);
+            3U + static_cast<std::size_t>(hasMultipleDirectedPublications) +
+            static_cast<std::size_t>(preserveOtherObjectClassPublication);
       },
       options,
       "the populated federate MOM publication reports");
   auto const reports = requester.recorder().interactions();
   require(
-      reports.size() == (hasMultipleDirectedPublications ? 4U : 3U),
+      reports.size() ==
+          3U + static_cast<std::size_t>(hasMultipleDirectedPublications) +
+              static_cast<std::size_t>(preserveOtherObjectClassPublication),
       "A publication request did not deliver exactly the standard MIM reports for its directed-publication object classes");
 
-  InteractionRecord const* objectReport = nullptr;
+  unsigned objectReportCount = 0U;
   InteractionRecord const* interactionReport = nullptr;
   std::vector<InteractionRecord const*> directedReports;
   for (auto const& report : reports) {
@@ -405,8 +500,7 @@ void scenarioFederateMomPublicationQueryState(
         report.present && report.transportation == reliable,
         "A standard MIM publication report was absent or did not use reliable transportation");
     if (report.interaction == objectReportClass) {
-      require(objectReport == nullptr, "Duplicate object-class publication report");
-      objectReport = &report;
+      ++objectReportCount;
     } else if (report.interaction == interactionReportClass) {
       require(interactionReport == nullptr, "Duplicate interaction publication report");
       interactionReport = &report;
@@ -416,29 +510,26 @@ void scenarioFederateMomPublicationQueryState(
       require(false, "Publication query delivered an unrequested interaction class");
     }
   }
+  auto const objectClassPublicationSets =
+      decodeObjectClassPublicationSets(reports, 0U, reports.size());
   require(
-      objectReport != nullptr && interactionReport != nullptr &&
+      objectReportCount ==
+              (preserveOtherObjectClassPublication ? 2U : 1U) &&
+          objectClassPublicationSets.size() == objectReportCount &&
+          interactionReport != nullptr &&
           directedReports.size() ==
               (hasMultipleDirectedPublications ? 2U : 1U),
       "Publication query omitted or duplicated a standard MIM report for the directed-publication object classes");
 
+  auto const* primaryObjectClassPublicationSet =
+      findObjectClassPublicationSet(
+          objectClassPublicationSets,
+          requesterObjectClass);
   require(
-      objectReport->parameters.size() == 3U &&
-          objectReport->parameters.count(objectReportCountParameter) == 1U &&
-          objectReport->parameters.count(objectReportClassParameter) == 1U &&
-          objectReport->parameters.count(objectReportAttributesParameter) == 1U,
-      "Object-class publication report did not contain its three MIM-defined parameters");
-  rti::HLAinteger32BE objectClassCount;
-  objectClassCount.decode(
-      objectReport->parameters.at(objectReportCountParameter));
-  require(
-      objectClassCount.get() == 1 &&
-          requesterAmbassador.decodeObjectClassHandle(
-              objectReport->parameters.at(objectReportClassParameter)) ==
-              requesterObjectClass,
-      "Object-class publication report identified a different publication set");
-  auto const publishedAttributes = decodeAttributeHandleList(
-      objectReport->parameters.at(objectReportAttributesParameter));
+      primaryObjectClassPublicationSet != nullptr,
+      "Object-class publication report omitted the adapter-selected primary object class");
+  auto publishedAttributes = *primaryObjectClassPublicationSet;
+  std::vector<rti::AttributeHandle> otherClassPublishedAttributesSnapshot;
   if (publishCompleteObjectClassAttributeSet) {
     auto const requesterPrivilegeToDeleteAttribute =
         requesterAmbassador.getAttributeHandle(
@@ -492,6 +583,31 @@ void scenarioFederateMomPublicationQueryState(
             publishedAttributes.end(),
             requesterAttribute) != publishedAttributes.end(),
         "Object-class publication report omitted the adapter-selected published attribute");
+  }
+  if (preserveOtherObjectClassPublication) {
+    auto const* otherClassPublishedAttributes = findObjectClassPublicationSet(
+        objectClassPublicationSets,
+        requesterOtherPublicationObjectClass);
+    auto const requesterOtherClassPrivilegeToDeleteAttribute =
+        requesterAmbassador.getAttributeHandle(
+            requesterOtherPublicationObjectClass,
+            L"HLAprivilegeToDeleteObject");
+    require(
+        otherClassPublishedAttributes != nullptr &&
+            requesterOtherClassPrivilegeToDeleteAttribute.isValid() &&
+            requesterOtherClassPrivilegeToDeleteAttribute != requesterAttribute &&
+            otherClassPublishedAttributes->size() == 2U &&
+            std::find(
+                otherClassPublishedAttributes->begin(),
+                otherClassPublishedAttributes->end(),
+                requesterAttribute) != otherClassPublishedAttributes->end() &&
+            std::find(
+                otherClassPublishedAttributes->begin(),
+                otherClassPublishedAttributes->end(),
+                requesterOtherClassPrivilegeToDeleteAttribute) !=
+                otherClassPublishedAttributes->end(),
+        "Initial MOM report did not preserve the independent class's exact Value and HLAprivilegeToDeleteObject publication set");
+    otherClassPublishedAttributesSnapshot = *otherClassPublishedAttributes;
   }
 
   require(
@@ -866,7 +982,9 @@ void scenarioFederateMomPublicationQueryState(
         requester,
         [&] {
           return requester.recorder().interactions().size() >=
-              reportOffset + 3U;
+              reportOffset + 3U +
+                  static_cast<std::size_t>(
+                      preserveOtherObjectClassPublication);
         },
         options,
         "the federate MOM publication reports after ordinary attribute unpublication");
@@ -874,9 +992,10 @@ void scenarioFederateMomPublicationQueryState(
     auto const reportsAfterAttributeUnpublication =
         requester.recorder().interactions();
     require(
-        reportsAfterAttributeUnpublication.size() == reportOffset + 3U,
+        reportsAfterAttributeUnpublication.size() ==
+            reportOffset + 3U + static_cast<std::size_t>(
+                                   preserveOtherObjectClassPublication),
         "A publication request after ordinary attribute unpublication did not deliver exactly the standard object-class, interaction-class, and directed-interaction reports");
-    InteractionRecord const* objectReportAfterAttributeUnpublication = nullptr;
     unsigned interactionReportCountAfterAttributeUnpublication = 0U;
     unsigned directedReportCountAfterAttributeUnpublication = 0U;
     for (std::size_t index = reportOffset;
@@ -887,10 +1006,6 @@ void scenarioFederateMomPublicationQueryState(
           report.present && report.transportation == reliable,
           "A post-unpublication standard MIM publication report was absent or did not use reliable transportation");
       if (report.interaction == objectReportClass) {
-        require(
-            objectReportAfterAttributeUnpublication == nullptr,
-            "Post-unpublication query delivered duplicate object-class publication reports");
-        objectReportAfterAttributeUnpublication = &report;
       } else if (report.interaction == interactionReportClass) {
         ++interactionReportCountAfterAttributeUnpublication;
       } else if (report.interaction == directedReportClass) {
@@ -902,59 +1017,138 @@ void scenarioFederateMomPublicationQueryState(
       }
     }
     require(
-        objectReportAfterAttributeUnpublication != nullptr &&
-            interactionReportCountAfterAttributeUnpublication == 1U &&
+        interactionReportCountAfterAttributeUnpublication == 1U &&
             directedReportCountAfterAttributeUnpublication == 1U,
         "Post-unpublication query omitted or duplicated a standard publication report");
+    auto const objectClassSetsAfterAttributeUnpublication =
+        decodeObjectClassPublicationSets(
+            reportsAfterAttributeUnpublication,
+            reportOffset,
+            reportsAfterAttributeUnpublication.size());
     require(
-        objectReportAfterAttributeUnpublication->parameters.size() == 3U &&
-            objectReportAfterAttributeUnpublication->parameters.count(
-                objectReportCountParameter) == 1U &&
-            objectReportAfterAttributeUnpublication->parameters.count(
-                objectReportClassParameter) == 1U &&
-            objectReportAfterAttributeUnpublication->parameters.count(
-                objectReportAttributesParameter) == 1U,
-        "Post-unpublication object-class report did not contain exactly its three MIM-defined parameters");
-    rti::HLAinteger32BE objectClassCountAfterAttributeUnpublication;
-    objectClassCountAfterAttributeUnpublication.decode(
-        objectReportAfterAttributeUnpublication->parameters.at(
-            objectReportCountParameter));
-    auto const attributesAfterAttributeUnpublication =
-        decodeAttributeHandleList(
-            objectReportAfterAttributeUnpublication->parameters.at(
-                objectReportAttributesParameter));
+        objectClassSetsAfterAttributeUnpublication.size() ==
+            (preserveOtherObjectClassPublication ? 2U : 1U),
+        "Post-unpublication query omitted or duplicated an object-class publication report");
+    auto const* attributesAfterAttributeUnpublication =
+        findObjectClassPublicationSet(
+            objectClassSetsAfterAttributeUnpublication,
+            requesterObjectClass);
     auto const requesterPrivilegeToDeleteAttribute =
         requesterAmbassador.getAttributeHandle(
             requesterObjectClass,
             L"HLAprivilegeToDeleteObject");
     require(
-        objectClassCountAfterAttributeUnpublication.get() == 1 &&
-            requesterAmbassador.decodeObjectClassHandle(
-                objectReportAfterAttributeUnpublication->parameters.at(
-                    objectReportClassParameter)) == requesterObjectClass &&
+        attributesAfterAttributeUnpublication != nullptr &&
             requesterPrivilegeToDeleteAttribute.isValid() &&
-            attributesAfterAttributeUnpublication.size() == 3U &&
+            attributesAfterAttributeUnpublication->size() == 3U &&
             std::find(
-                attributesAfterAttributeUnpublication.begin(),
-                attributesAfterAttributeUnpublication.end(),
+                attributesAfterAttributeUnpublication->begin(),
+                attributesAfterAttributeUnpublication->end(),
                 requesterAttribute) !=
-                attributesAfterAttributeUnpublication.end() &&
+                attributesAfterAttributeUnpublication->end() &&
             std::find(
-                attributesAfterAttributeUnpublication.begin(),
-                attributesAfterAttributeUnpublication.end(),
+                attributesAfterAttributeUnpublication->begin(),
+                attributesAfterAttributeUnpublication->end(),
                 requesterThirdAttribute) !=
-                attributesAfterAttributeUnpublication.end() &&
+                attributesAfterAttributeUnpublication->end() &&
             std::find(
-                attributesAfterAttributeUnpublication.begin(),
-                attributesAfterAttributeUnpublication.end(),
+                attributesAfterAttributeUnpublication->begin(),
+                attributesAfterAttributeUnpublication->end(),
                 requesterPrivilegeToDeleteAttribute) !=
-                attributesAfterAttributeUnpublication.end() &&
+                attributesAfterAttributeUnpublication->end() &&
             std::find(
-                attributesAfterAttributeUnpublication.begin(),
-                attributesAfterAttributeUnpublication.end(),
+                attributesAfterAttributeUnpublication->begin(),
+                attributesAfterAttributeUnpublication->end(),
                 requesterSecondaryAttribute) ==
-                attributesAfterAttributeUnpublication.end(),
+                attributesAfterAttributeUnpublication->end(),
         "Post-unpublication MIM report did not contain exactly the remaining adapter-selected attributes and inherited HLAprivilegeToDeleteObject");
+
+    if (preserveOtherObjectClassPublication) {
+      auto const* otherClassAttributesAfterUnpublication =
+          findObjectClassPublicationSet(
+              objectClassSetsAfterAttributeUnpublication,
+              requesterOtherPublicationObjectClass);
+      require(
+          otherClassAttributesAfterUnpublication != nullptr &&
+              otherClassAttributesAfterUnpublication->size() ==
+                  otherClassPublishedAttributesSnapshot.size() &&
+              std::is_permutation(
+                  otherClassPublishedAttributesSnapshot.begin(),
+                  otherClassPublishedAttributesSnapshot.end(),
+                  otherClassAttributesAfterUnpublication->begin()),
+          "Unpublishing one class's attribute changed the other class's exact MOM-reported publication set");
+
+      subjectAmbassador.publishObjectClassAttributes(
+          subjectObjectClass,
+          rti::AttributeHandleSet{subjectSecondaryAttribute});
+      auto const publishReportOffset =
+          requester.recorder().interactions().size();
+      requesterAmbassador.sendInteraction(
+          requestClass,
+          requestParameters,
+          rti::VariableLengthData{});
+      waitFor(
+          requester,
+          [&] {
+            return requester.recorder().interactions().size() >=
+                publishReportOffset + 4U;
+          },
+          options,
+          "the federate MOM publication reports after republishing one class attribute");
+      auto const reportsAfterAttributeRepublish =
+          requester.recorder().interactions();
+      require(
+          reportsAfterAttributeRepublish.size() == publishReportOffset + 4U,
+          "A publication request after republishing one class attribute did not report both object classes and the two other standard publication categories");
+      unsigned interactionReportCountAfterRepublish = 0U;
+      unsigned directedReportCountAfterRepublish = 0U;
+      for (std::size_t index = publishReportOffset;
+           index != reportsAfterAttributeRepublish.size();
+           ++index) {
+        auto const& report = reportsAfterAttributeRepublish[index];
+        require(
+            report.present && report.transportation == reliable,
+            "A post-republish standard MIM publication report was absent or did not use reliable transportation");
+        if (report.interaction == interactionReportClass) {
+          ++interactionReportCountAfterRepublish;
+        } else if (report.interaction == directedReportClass) {
+          ++directedReportCountAfterRepublish;
+        } else if (report.interaction != objectReportClass) {
+          require(false, "Republish query delivered an unrequested publication report");
+        }
+      }
+      auto const objectClassSetsAfterRepublish =
+          decodeObjectClassPublicationSets(
+              reportsAfterAttributeRepublish,
+              publishReportOffset,
+              reportsAfterAttributeRepublish.size());
+      auto const* primaryAttributesAfterRepublish =
+          findObjectClassPublicationSet(
+              objectClassSetsAfterRepublish,
+              requesterObjectClass);
+      auto const* otherAttributesAfterRepublish =
+          findObjectClassPublicationSet(
+              objectClassSetsAfterRepublish,
+              requesterOtherPublicationObjectClass);
+      require(
+          objectClassSetsAfterRepublish.size() == 2U &&
+              interactionReportCountAfterRepublish == 1U &&
+              directedReportCountAfterRepublish == 1U &&
+              primaryAttributesAfterRepublish != nullptr &&
+              primaryAttributesAfterRepublish->size() == publishedAttributes.size() &&
+              std::is_permutation(
+                  publishedAttributes.begin(),
+                  publishedAttributes.end(),
+                  primaryAttributesAfterRepublish->begin()) &&
+              otherAttributesAfterRepublish != nullptr &&
+              otherAttributesAfterRepublish->size() ==
+                  otherClassPublishedAttributesSnapshot.size() &&
+              std::is_permutation(
+                  otherClassPublishedAttributesSnapshot.begin(),
+                  otherClassPublishedAttributesSnapshot.end(),
+                  otherAttributesAfterRepublish->begin()),
+          "Publishing an attribute on one class did not restore only that class's set or changed the other class's exact publication set");
+    }
   }
 
   if (unpublishAllObjectClassApplicationAttributesAfterInitialQuery) {
@@ -1425,6 +1619,12 @@ void scenarioFederateMomObjectClassAttributeUnpublicationQuery(
       false,
       false,
       true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
       true);
 }
 
@@ -1785,11 +1985,13 @@ void scenarioFederateMomSubscriptionQueryState(
   auto const federation = federationName(options, scenarioSuffix);
   subject.connect();
   requester.connect();
+  std::vector<std::wstring> federationFomModules{options.fom.wstring()};
+  if (hasObjectSubscription) {
+    federationFomModules.push_back(options.rateFom.wstring());
+  }
   subject.rtiAmbassador().createFederationExecutionWithMIM(
       federation,
-      std::vector<std::wstring>{
-          options.fom.wstring(),
-          options.rateFom.wstring()},
+      federationFomModules,
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
   auto const subjectName =

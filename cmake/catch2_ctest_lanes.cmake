@@ -104,6 +104,11 @@
       umbra_federate_lifecycle_smoke
     )
     umbra_add_ctest_lane(umbra_test_federation_management "^federation-management$")
+    umbra_add_ctest_lane(
+      umbra_test_federation_mom_table7_s_leaf_subscription
+      "^mom-table7-s-leaf-subscription$"
+      umbra_2025_g3_catch2
+    )
     umbra_add_ctest_service_lane(
       umbra_test_federation_listing
       federation-listing
@@ -741,6 +746,7 @@
     set_tests_properties(umbra.ieee1516_2025.focused_service_lane_catalog
       PROPERTIES LABELS foundation
     )
+
     if(TARGET umbra_public_fresh_registry_transportation_restore_catch2)
       add_custom_target(umbra_test_public_transportation_restore
         COMMAND ${CMAKE_CTEST_COMMAND}
@@ -780,6 +786,8 @@
         umbra_negotiated_divestiture_partial_acquisition_cancellation_catch2
         umbra_negotiated_willing_to_acquire_candidate_catch2
         umbra_negotiated_willing_to_acquire_continuation_catch2
+        umbra_ieee1516_2025_fqr_grant_callback_kind_catch2
+        umbra_ieee1516_2025_automatic_resign_mom_attribute_catch2
         umbra_local_delete_object_instance_failure_service_report_catch2
         umbra_local_delete_object_instance_failure_service_report_interaction_catch2
         umbra_regional_declaration_relevance_advisory_catch2

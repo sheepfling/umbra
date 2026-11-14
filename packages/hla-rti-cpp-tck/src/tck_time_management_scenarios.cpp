@@ -2,6 +2,12 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+[[maybe_unused]] constexpr char kFloat64TimeReferenceContractScenarioId[] =
+    "cpp-tck.float64-time-reference-contract";
+
+void scenarioNmrUndefinedGaltNrgMatrix(
+    Options const&, rti::CallbackModel);
+
 void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
   Session flushQueue(options, model, "member");
@@ -86,6 +92,66 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
           publisherTime.factory->getName() == timeAdvanceAvailableTime.factory->getName() &&
           publisherTime.factory->getName() == nextMessageAvailableTime.factory->getName(),
       "alternate time-advance members selected different logical-time factories");
+  auto const expectsFloat64Time =
+      options.logicalTimeImplementationName == L"HLAfloat64Time";
+  auto const checkFloat64TimeReference =
+      [expectsFloat64Time](rti::LogicalTime const& value, std::string const& operation) {
+        if (!expectsFloat64Time) return;
+        require(
+            value.implementationName() == L"HLAfloat64Time" &&
+                dynamic_cast<rti::HLAfloat64Time const*>(&value) != nullptr,
+            operation + " did not use an HLAfloat64Time reference");
+      };
+  auto const checkFloat64TimeIntervalReference =
+      [expectsFloat64Time](rti::LogicalTimeInterval const& value,
+                           std::string const& operation) {
+        if (!expectsFloat64Time) return;
+        require(
+            dynamic_cast<rti::HLAfloat64Interval const*>(&value) != nullptr,
+            operation + " did not use an HLAfloat64Interval reference");
+      };
+  auto const checkFloat64TimeCallback =
+      [expectsFloat64Time](LogicalTimeRecord const& record,
+                           std::string const& operation) {
+        if (!expectsFloat64Time) return;
+        require(
+            record.implementationName == L"HLAfloat64Time" &&
+                record.isHLAfloat64Time,
+            operation + " callback did not provide an HLAfloat64Time reference");
+      };
+  auto const invokeLogicalTimeReference =
+      [expectsFloat64Time](Session& session,
+                           rti::LogicalTime& value,
+                           auto const& operation,
+                           std::string const& description) {
+        if (expectsFloat64Time) {
+          auto* concrete = dynamic_cast<rti::HLAfloat64Time*>(&value);
+          require(
+              concrete != nullptr &&
+                  value.implementationName() == L"HLAfloat64Time",
+              description + " input was not an HLAfloat64Time reference");
+          operation(session.rtiAmbassador(), *concrete);
+          return;
+        }
+        operation(session.rtiAmbassador(), value);
+      };
+  auto const invokeLogicalTimeIntervalReference =
+      [expectsFloat64Time](Session& session,
+                           rti::LogicalTimeInterval& value,
+                           auto const& operation,
+                           std::string const& description) {
+        if (expectsFloat64Time) {
+          auto* concrete = dynamic_cast<rti::HLAfloat64Interval*>(&value);
+          require(
+              concrete != nullptr,
+              description + " input was not an HLAfloat64Interval reference");
+          operation(session.rtiAmbassador(), *concrete);
+          return;
+        }
+        operation(session.rtiAmbassador(), value);
+      };
+  checkFloat64TimeReference(*publisherTime.initial, "factory initial");
+  checkFloat64TimeReference(*flushQueueTime.initial, "member factory initial");
 
   for (auto* member : members) {
     member->rtiAmbassador().enableTimeConstrained();
@@ -94,18 +160,82 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
         [&] { return member->recorder().timeConstrainedEnabled().size() >= 1U; },
         options,
         "alternate time-advance time-constrained callback");
+    auto const constrainedCallbacks = member->recorder().timeConstrainedEnabled();
+    checkFloat64TimeCallback(
+        constrainedCallbacks.front(),
+        "Time Constrained Enabled");
   }
-  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  invokeLogicalTimeIntervalReference(
+      publisher,
+      *publisherTime.epsilon,
+      [](auto& ambassador, auto const& interval) {
+        ambassador.enableTimeRegulation(interval);
+      },
+      "Enable Time Regulation");
   waitFor(
       publisher,
       [&] { return publisher.recorder().timeRegulationEnabled().size() >= 1U; },
       options,
       "alternate time-advance time-regulation callback");
   auto const regulationEnabled = publisher.recorder().timeRegulationEnabled();
+  checkFloat64TimeCallback(
+      regulationEnabled.front(),
+      "Time Regulation Enabled");
   require(
       regulationEnabled.size() == 1U &&
           regulationEnabled.front().encoded == encodeTime(*publisherTime.initial),
       "Time Regulation Enabled did not report the federate's current logical time");
+
+  if (expectsFloat64Time) {
+    auto queriedInitialLookahead = publisherTime.factory->makeZero();
+    require(
+        queriedInitialLookahead != nullptr,
+        "Query Lookahead scenario could not allocate its initial output interval");
+    invokeLogicalTimeIntervalReference(
+        publisher,
+        *queriedInitialLookahead,
+        [](auto& ambassador, auto& interval) {
+          ambassador.queryLookahead(interval);
+        },
+        "Query Lookahead after Enable Time Regulation");
+    checkFloat64TimeIntervalReference(
+        *queriedInitialLookahead,
+        "Query Lookahead after Enable Time Regulation");
+    require(
+        *queriedInitialLookahead == *publisherTime.epsilon,
+        "Query Lookahead did not return the enabled lookahead");
+
+    auto increasedLookahead = publisherTime.factory->makeZero();
+    require(
+        increasedLookahead != nullptr,
+        "Query Lookahead scenario could not allocate a modified interval");
+    *increasedLookahead = *publisherTime.epsilon;
+    *increasedLookahead += *publisherTime.epsilon;
+    invokeLogicalTimeIntervalReference(
+        publisher,
+        *increasedLookahead,
+        [](auto& ambassador, auto const& interval) {
+          ambassador.modifyLookahead(interval);
+        },
+        "Modify Lookahead");
+    auto queriedModifiedLookahead = publisherTime.factory->makeEpsilon();
+    require(
+        queriedModifiedLookahead != nullptr,
+        "Query Lookahead scenario could not allocate its modified output interval");
+    invokeLogicalTimeIntervalReference(
+        publisher,
+        *queriedModifiedLookahead,
+        [](auto& ambassador, auto& interval) {
+          ambassador.queryLookahead(interval);
+        },
+        "Query Lookahead after Modify Lookahead");
+    checkFloat64TimeIntervalReference(
+        *queriedModifiedLookahead,
+        "Query Lookahead after Modify Lookahead");
+    require(
+        *queriedModifiedLookahead == *increasedLookahead,
+        "Query Lookahead did not return the increased lookahead");
+  }
 
   auto messageTime = timeAfter(
       *publisherTime.factory,
@@ -145,10 +275,34 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
   }
   publisher.recorder().clearCallbackOrder();
 
-  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
-  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
-  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
-  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  invokeLogicalTimeReference(
+      flushQueue,
+      *requestBoundary,
+      [](auto& ambassador, auto const& time) {
+        ambassador.flushQueueRequest(time);
+      },
+      "Flush Queue Request");
+  invokeLogicalTimeReference(
+      timeAdvanceAvailable,
+      *messageTime,
+      [](auto& ambassador, auto const& time) {
+        ambassador.timeAdvanceRequestAvailable(time);
+      },
+      "Time Advance Request Available");
+  invokeLogicalTimeReference(
+      nextMessageAvailable,
+      *requestBoundary,
+      [](auto& ambassador, auto const& time) {
+        ambassador.nextMessageRequestAvailable(time);
+      },
+      "Next Message Request Available");
+  invokeLogicalTimeReference(
+      publisher,
+      *publisherTarget,
+      [](auto& ambassador, auto const& time) {
+        ambassador.timeAdvanceRequest(time);
+      },
+      "Time Advance Request");
 
   auto const deadline = Clock::now() +
       std::chrono::milliseconds(options.timeoutMilliseconds);
@@ -171,6 +325,9 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
   require(
       publisher.recorder().timeAdvanceGrants().size() == 1U,
       "alternate time-advance publisher received the wrong number of grants");
+  checkFloat64TimeCallback(
+      publisher.recorder().timeAdvanceGrants().front(),
+      "Time Advance Grant");
   require(
       flushQueue.recorder().timedReflections().size() == 1U &&
           flushQueue.recorder().flushQueueGrants().size() == 1U &&
@@ -181,11 +338,17 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
           timeAdvanceAvailable.recorder().timeAdvanceGrants().size() == 1U &&
           timeAdvanceAvailable.recorder().flushQueueGrants().empty(),
       "Time Advance Request Available did not produce exactly its standard callback pair");
+  checkFloat64TimeCallback(
+      timeAdvanceAvailable.recorder().timeAdvanceGrants().front(),
+      "Time Advance Request Available grant");
   require(
       nextMessageAvailable.recorder().timedReflections().size() == 1U &&
           nextMessageAvailable.recorder().timeAdvanceGrants().size() == 1U &&
           nextMessageAvailable.recorder().flushQueueGrants().empty(),
       "Next Message Request Available did not produce exactly its standard callback pair");
+  checkFloat64TimeCallback(
+      nextMessageAvailable.recorder().timeAdvanceGrants().front(),
+      "Next Message Request Available grant");
   require(
       flushQueue.recorder().callbackOrder() ==
           std::vector<std::string>{"reflect", "flush-grant"},
@@ -268,18 +431,39 @@ void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel mo
           encodeTime(*messageTime),
       "Next Message Request Available returned the wrong grant time");
   auto queriedFlushQueue = flushQueueTime.factory->makeInitial();
-  flushQueue.rtiAmbassador().queryLogicalTime(*queriedFlushQueue);
+  invokeLogicalTimeReference(
+      flushQueue,
+      *queriedFlushQueue,
+      [](auto& ambassador, auto& time) { ambassador.queryLogicalTime(time); },
+      "Flush Queue Request Query Logical Time");
+  checkFloat64TimeReference(
+      *queriedFlushQueue,
+      "Query Logical Time after Flush Queue Request");
   require(
       encodeTime(*queriedFlushQueue) == flushGrants.front().time,
       "Flush Queue Request query did not match its actual grant time");
   auto queriedTimeAdvanceAvailable = timeAdvanceAvailableTime.factory->makeInitial();
-  timeAdvanceAvailable.rtiAmbassador().queryLogicalTime(*queriedTimeAdvanceAvailable);
+  invokeLogicalTimeReference(
+      timeAdvanceAvailable,
+      *queriedTimeAdvanceAvailable,
+      [](auto& ambassador, auto& time) { ambassador.queryLogicalTime(time); },
+      "Time Advance Request Available Query Logical Time");
+  checkFloat64TimeReference(
+      *queriedTimeAdvanceAvailable,
+      "Query Logical Time after Time Advance Request Available");
   requireTimeEquals(
       *queriedTimeAdvanceAvailable,
       *messageTime,
       "Time Advance Request Available logical-time query");
   auto queriedNextMessageAvailable = nextMessageAvailableTime.factory->makeInitial();
-  nextMessageAvailable.rtiAmbassador().queryLogicalTime(*queriedNextMessageAvailable);
+  invokeLogicalTimeReference(
+      nextMessageAvailable,
+      *queriedNextMessageAvailable,
+      [](auto& ambassador, auto& time) { ambassador.queryLogicalTime(time); },
+      "Next Message Request Available Query Logical Time");
+  checkFloat64TimeReference(
+      *queriedNextMessageAvailable,
+      "Query Logical Time after Next Message Request Available");
   requireTimeEquals(
       *queriedNextMessageAvailable,
       *messageTime,
@@ -948,6 +1132,29 @@ void scenarioNmraNoPregrantTsoFloor(
   require(queriedTime != nullptr, "NMRA no-pregrant floor could not allocate a query time");
   requester.rtiAmbassador().queryLogicalTime(*queriedTime);
   requireTimeEquals(*queriedTime, *requestTime, "NMRA no-pregrant logical-time query");
+
+  requester.rtiAmbassador().nextMessageRequestAvailable(*requestTime);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "NMRA request equal to current logical time grant");
+  auto const grantsAtEqualTime = requester.recorder().timeAdvanceGrants();
+  require(
+      grantsAtEqualTime.back().encoded == encodeTime(*requestTime),
+      "NMRA request equal to current logical time granted at a different time");
+
+  auto const pastRequestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      9U);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().nextMessageRequestAvailable(*pastRequestTime);
+      },
+      L"LogicalTimeAlreadyPassed",
+      "NMRA request below current logical time");
 
   auto const legalTime = timeAfter(
       *requesterTime.factory,
@@ -1996,6 +2203,67 @@ void scenarioNmrRequestBelowGaltImmediateGrant(
       *expectedGalt,
       "NMR below-GALT boundary after immediate grant");
 
+  requester.rtiAmbassador().nextMessageRequest(*expectedGalt);
+  auto const equalGaltDeadline = Clock::now() + std::chrono::milliseconds(50);
+  while (Clock::now() < equalGaltDeadline) {
+    regulator.pump();
+    requester.pump();
+    require(
+        requester.recorder().timeAdvanceGrants().size() == 1U &&
+            regulator.recorder().timeAdvanceGrants().empty(),
+        "NMR at GALT equality was granted before the regulator advanced");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  regulator.rtiAmbassador().queryLogicalTime(*regulatorCurrentTime);
+  requester.rtiAmbassador().queryLogicalTime(*requesterCurrentTime);
+  requireTimeEquals(
+      *regulatorCurrentTime,
+      *regulatorTime.initial,
+      "NMR at GALT equality changed regulator time before peer advance");
+  requireTimeEquals(
+      *requesterCurrentTime,
+      *requestTime,
+      "NMR at GALT equality changed requester time before peer advance");
+  require(
+      requester.rtiAmbassador().queryGALT(*observedGalt),
+      "NMR at GALT equality lost its bound while pending");
+  requireTimeEquals(
+      *observedGalt,
+      *expectedGalt,
+      "NMR at GALT equality changed the bound before peer advance");
+
+  regulator.rtiAmbassador().timeAdvanceRequest(*lookaheadTarget);
+  waitFor(
+      regulator,
+      requester,
+      [&] {
+        return regulator.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "NMR at GALT equality released after regulator advance");
+  auto const requesterGrantsAtRaisedGalt = requester.recorder().timeAdvanceGrants();
+  require(
+      requesterGrantsAtRaisedGalt.back().encoded == encodeTime(*expectedGalt),
+      "NMR at GALT equality was released at the wrong logical time");
+  requester.rtiAmbassador().queryLogicalTime(*requesterCurrentTime);
+  requireTimeEquals(
+      *requesterCurrentTime,
+      *expectedGalt,
+      "NMR at GALT equality did not advance after the peer raised GALT");
+  auto const raisedGalt = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  require(
+      requester.rtiAmbassador().queryGALT(*observedGalt),
+      "NMR at GALT equality release left the bound undefined");
+  requireTimeEquals(
+      *observedGalt,
+      *raisedGalt,
+      "NMR at GALT equality release did not observe the raised bound");
+
   requester.resign(rti::NO_ACTION);
   regulator.resign(rti::NO_ACTION);
   regulator.rtiAmbassador().destroyFederationExecution(federation);
@@ -2182,6 +2450,7 @@ void scenarioNmrLitsBelowGaltImmediateGrant(
   requester.resign(rti::NO_ACTION);
   regulator.resign(rti::NO_ACTION);
   regulator.rtiAmbassador().destroyFederationExecution(federation);
+  scenarioNmrUndefinedGaltNrgMatrix(options, model);
 }
 
 void scenarioNmrLitsBelowGaltImmediateGrantContract(
@@ -2231,6 +2500,24 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
   require(
       publisherTime.factory->getName() == receiverTime.factory->getName(),
       "inclusive-GALT members selected different logical-time factories");
+  auto sendInteractionWithStage = [&](
+      rti::ParameterHandleValueMap const& parameters,
+      rti::VariableLengthData const& tag,
+      rti::LogicalTime const& time,
+      std::string const& stage) {
+    try {
+      return publisher.rtiAmbassador().sendInteraction(
+          publisherInteraction,
+          parameters,
+          tag,
+          time);
+    } catch (rti::Exception const& error) {
+      throw std::runtime_error(
+          stage + " timestamped interaction at logical time " +
+          toNarrow(time.toString()) + " failed with " +
+          toNarrow(error.name()) + ": " + toNarrow(error.what()));
+    }
+  };
 
   auto const lookaheadTime = timeAfter(
       *publisherTime.factory,
@@ -2277,11 +2564,11 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
       publisherParameter,
       rti::VariableLengthData(firstValueBytes.data(), firstValueBytes.size()));
   rti::VariableLengthData firstTag(firstTagBytes.data(), firstTagBytes.size());
-  auto const firstRetraction = publisher.rtiAmbassador().sendInteraction(
-      publisherInteraction,
+  auto const firstRetraction = sendInteractionWithStage(
       firstParameters,
       firstTag,
-      *firstMessageTime);
+      *firstMessageTime,
+      "inclusive-GALT first send");
   require(
       firstRetraction.isValid(),
       "inclusive-GALT first timestamped interaction returned an invalid retraction handle");
@@ -2349,6 +2636,14 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
       receiver.recorder().timeAdvanceGrants().front().encoded ==
           encodeTime(*firstMessageTime),
       "inclusive-GALT time-advance-request-available returned the wrong grant time");
+  auto firstQueriedGalt = receiverTime.factory->makeInitial();
+  require(
+      firstQueriedGalt != nullptr && receiver.rtiAmbassador().queryGALT(*firstQueriedGalt),
+      "inclusive-GALT time-advance-request-available had no queryable GALT");
+  requireTimeEquals(
+      *firstQueriedGalt,
+      *firstMessageTime,
+      "inclusive-GALT time-advance-request-available grant boundary");
 
   publisher.recorder().clearTimeCallbacks();
   receiver.recorder().clearTimeCallbacks();
@@ -2377,11 +2672,11 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
       publisherParameter,
       rti::VariableLengthData(secondValueBytes.data(), secondValueBytes.size()));
   rti::VariableLengthData secondTag(secondTagBytes.data(), secondTagBytes.size());
-  auto const secondRetraction = publisher.rtiAmbassador().sendInteraction(
-      publisherInteraction,
+  auto const secondRetraction = sendInteractionWithStage(
       secondParameters,
       secondTag,
-      *secondMessageTime);
+      *secondMessageTime,
+      "inclusive-GALT second send");
   require(
       secondRetraction.isValid(),
       "inclusive-GALT second timestamped interaction returned an invalid retraction handle");
@@ -2421,19 +2716,27 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
       receiver.recorder().timeAdvanceGrants().front().encoded ==
           encodeTime(*secondMessageTime),
       "inclusive-GALT next-message-request-available returned the wrong grant time");
+  auto secondQueriedGalt = receiverTime.factory->makeInitial();
+  require(
+      secondQueriedGalt != nullptr && receiver.rtiAmbassador().queryGALT(*secondQueriedGalt),
+      "inclusive-GALT next-message-request-available had no queryable GALT");
+  requireTimeEquals(
+      *secondQueriedGalt,
+      *secondMessageTime,
+      "inclusive-GALT next-message-request-available grant boundary");
 
   auto zeroLookahead = publisherTime.factory->makeZero();
   require(zeroLookahead != nullptr,
           "post-grant equal-time probe could not allocate zero lookahead");
   publisher.rtiAmbassador().modifyLookahead(*zeroLookahead);
   publisher.recorder().clearTimeCallbacks();
-  publisher.rtiAmbassador().timeAdvanceRequest(*secondMessageTime);
+  publisher.rtiAmbassador().timeAdvanceRequestAvailable(*secondMessageTime);
   waitFor(
       publisher,
       receiver,
       [&] { return publisher.recorder().timeAdvanceGrants().size() >= 1U; },
       options,
-      "post-grant equal-time sender advance");
+      "post-grant equal-time sender available advance");
   require(
       publisher.recorder().timeAdvanceGrants().size() == 1U &&
           publisher.recorder().timeAdvanceGrants().front().encoded ==
@@ -2455,11 +2758,11 @@ void scenarioAvailableTimeAdvancesInclusiveGalt(
           postGrantValueBytes.data(), postGrantValueBytes.size()));
   rti::VariableLengthData postGrantTag(
       postGrantTagBytes.data(), postGrantTagBytes.size());
-  auto const postGrantRetraction = publisher.rtiAmbassador().sendInteraction(
-      publisherInteraction,
+  auto const postGrantRetraction = sendInteractionWithStage(
       postGrantParameters,
       postGrantTag,
-      *secondMessageTime);
+      *secondMessageTime,
+      "inclusive-GALT post-grant equal-time send");
   require(
       postGrantRetraction.isValid(),
       "post-grant equal-time interaction was rejected with zero lookahead");
@@ -3193,19 +3496,35 @@ class ReentrantCallbackFederateAmbassador final
   std::size_t reportCount = 0U;
   bool evokeRejected = false;
   bool multipleRejected = false;
+  bool exerciseJoinedCallbackServices = false;
+  std::wstring objectClassName;
+  bool joinedObjectClassLookupSucceeded = false;
+  bool joinedObjectClassLookupFailed = false;
+  bool joinedEvokeRejected = false;
+  bool joinedMultipleRejected = false;
 
   void reportFederationExecutions(
       rti::FederationExecutionInformationVector const&) override {
     ++reportCount;
+    if (exerciseJoinedCallbackServices) {
+      try {
+        static_cast<void>(ambassador->getObjectClassHandle(objectClassName));
+        joinedObjectClassLookupSucceeded = true;
+      } catch (...) {
+        joinedObjectClassLookupFailed = true;
+      }
+    }
     try {
       static_cast<void>(ambassador->evokeCallback(0.0));
     } catch (rti::CallNotAllowedFromWithinCallback const&) {
       evokeRejected = true;
+      joinedEvokeRejected = exerciseJoinedCallbackServices;
     }
     try {
       static_cast<void>(ambassador->evokeMultipleCallbacks(0.0, 0.0));
     } catch (rti::CallNotAllowedFromWithinCallback const&) {
       multipleRejected = true;
+      joinedMultipleRejected = exerciseJoinedCallbackServices;
     }
   }
 };
@@ -3235,6 +3554,40 @@ void scenarioCallbackReentrancy(
   require(
       federate.evokeRejected && federate.multipleRejected,
       "callback re-entrancy test admitted callback-service re-entry");
+
+  require(
+      !options.objectClassName.empty(),
+      "joined callback re-entrancy test requires an adapter-supplied object class");
+  auto const federation = federationName(options, "callback-reentrancy-joined");
+  ambassador->createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  ambassador->joinFederationExecution(
+      L"callback-reentrancy-joined-federate",
+      options.federateType,
+      federation);
+  federate.objectClassName = options.objectClassName;
+  federate.exerciseJoinedCallbackServices = true;
+  ambassador->listFederationExecutions();
+  if (model == rti::HLA_EVOKED) {
+    auto const maximumWait = static_cast<double>(
+        std::max(options.timeoutMilliseconds, 1)) / 1000.0;
+    static_cast<void>(
+        ambassador->evokeMultipleCallbacks(0.0, maximumWait));
+  }
+  require(
+      federate.reportCount == 2U,
+      "joined callback re-entrancy test did not receive its listing callback");
+  require(
+      federate.joinedObjectClassLookupSucceeded &&
+          !federate.joinedObjectClassLookupFailed,
+      "joined federate service invocation from within a callback did not complete");
+  require(
+      federate.joinedEvokeRejected && federate.joinedMultipleRejected,
+      "callback-only evoke services were not rejected from a joined callback");
+  ambassador->resignFederationExecution(rti::NO_ACTION);
+  ambassador->destroyFederationExecution(federation);
   ambassador->disconnect();
 }
 
@@ -3244,5 +3597,12 @@ void scenarioCallbackReentrancyContract(
   scenarioCallbackReentrancy(options, model);
 }
 
+void scenarioFloat64TimeReferenceContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  auto float64Options = options;
+  float64Options.logicalTimeImplementationName = L"HLAfloat64Time";
+  scenarioAlternateTimeAdvances(float64Options, model);
+}
 
 }  // namespace hla_rti_cpp_tck::detail

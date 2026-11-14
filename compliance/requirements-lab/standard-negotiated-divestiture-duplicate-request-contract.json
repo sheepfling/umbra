@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused C++ TCK starts one negotiated divestiture while a joined acquirer has a pending acquisition, then invokes the same service again for the same object attribute with a distinct tag. The second call must raise the standard AttributeAlreadyBeingDivested exception. While that request remains pending, the owner continues sending an update that is reflected to the acquirer with the original owner identity. The test then completes the original request and checks its callback metadata and ownership transfer, covering the completed-request termination in §7.3 p. 156 l. 20 so a rejected duplicate cannot silently replace or cancel the pending operation. Assertions use only the official C++ API; adapter-supplied FOM, provider, endpoint, and federate names remain external inputs.",
+  "requirements": [
+    {
+      "id": "cpp-tck-negotiated-divestiture-owner-update-while-pending",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l8-1",
+      "clause_id": "clause-7.3",
+      "source": "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp",
+      "source_symbol": "scenarioNegotiatedDivestitureDuplicateRequest",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp::scenarioNegotiatedDivestitureDuplicateRequest"
+      ]
+    },
+    {
+      "id": "cpp-tck-negotiated-divestiture-duplicate-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l35-10",
+      "clause_id": "clause-7.3",
+      "source": "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp",
+      "source_symbol": "scenarioNegotiatedDivestitureDuplicateRequest",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp::scenarioNegotiatedDivestitureDuplicateRequest"
+      ]
+    },
+    {
+      "id": "cpp-tck-negotiated-divestiture-completes-pending-request",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5",
+      "clause_id": "clause-7.3",
+      "source": "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp",
+      "source_symbol": "scenarioNegotiatedDivestitureDuplicateRequest",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp::scenarioNegotiatedDivestitureDuplicateRequest"
+      ]
+    }
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-negotiated-divestiture-duplicate-request",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::negotiatedAttributeOwnershipDivestiture, RTIambassador::attributeOwnershipAcquisition, RTIambassador::confirmDivestiture, and standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_duplicate_request.cpp::scenarioNegotiatedDivestitureDuplicateRequest"
+      ]
+    }
+  ]
+}

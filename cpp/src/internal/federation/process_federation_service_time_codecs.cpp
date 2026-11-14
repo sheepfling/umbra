@@ -225,6 +225,37 @@ std::vector<std::uint8_t> encodeProcessFederationQueryLogicalTimeResult(
   return std::move(writer).finish();
 }
 
+std::vector<std::uint8_t>
+encodeProcessFederationNonRegulatedGrantSwitchResult(
+    ProcessFederationNonRegulatedGrantSwitchResult const& result) {
+  auto const status = static_cast<std::uint8_t>(result.status);
+  if (status > static_cast<std::uint8_t>(
+                   FederationServiceOperationStatus::restore_in_progress)) {
+    throw ProcessFederationServiceProtocolError(
+        "A non-regulated grant switch result has an invalid operation status.");
+  }
+  PayloadWriter writer;
+  writer.unsigned8(status);
+  writer.unsigned8(result.value ? 1U : 0U);
+  return std::move(writer).finish();
+}
+
+ProcessFederationNonRegulatedGrantSwitchResult
+decodeProcessFederationNonRegulatedGrantSwitchResult(
+    std::span<std::uint8_t const> encoded) {
+  PayloadReader reader(encoded);
+  auto const status = reader.unsigned8();
+  auto const value = reader.unsigned8();
+  if (status > static_cast<std::uint8_t>(
+                   FederationServiceOperationStatus::restore_in_progress) ||
+      value > 1U) {
+    throw ProcessFederationServiceProtocolError(
+        "A non-regulated grant switch result has an invalid status or boolean.");
+  }
+  reader.finish();
+  return {static_cast<FederationServiceOperationStatus>(status), value != 0U};
+}
+
 ProcessFederationQueryLogicalTimeResult
 decodeProcessFederationQueryLogicalTimeResult(
     std::span<std::uint8_t const> encoded) {

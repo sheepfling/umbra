@@ -561,6 +561,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="maximum tests (default: 5 in text, 20 with JSON/verbose; 0 for all)",
     )
+    requirement.add_argument(
+        "--tck-catalog",
+        type=Path,
+        default=DEFAULT_CPP_TCK_CATALOG,
+        help="portable C++ TCK scenario catalog for the separate catalog-mapping evidence view",
+    )
     add_output_flags(requirement)
     section = subcommands.add_parser(
         "section",
@@ -626,6 +632,12 @@ def build_parser() -> argparse.ArgumentParser:
             "matrix row shape: one row per test (default), per Lab requirement, "
             "or per canonical 2025 subsection"
         ),
+    )
+    matrix.add_argument(
+        "--tck-catalog",
+        type=Path,
+        default=DEFAULT_CPP_TCK_CATALOG,
+        help="portable C++ TCK scenario catalog for the separate catalog-mapping evidence view",
     )
     add_output_flags(matrix)
     search = subcommands.add_parser(

@@ -5,6 +5,6 @@
   <modelIdentification><name>TCK Enumeration Collision Second</name><type>FOM</type></modelIdentification>
   <dataTypes><enumeratedDataTypes><enumeratedData>
     <name>TckCollisionEnumeration</name><representation>HLAinteger32BE</representation>
-    <enumerator><name>TckSecondCollisionName</name><value>1</value></enumerator>
+    <enumerator><name>TckSecondCollisionName</name><value>2</value></enumerator>
   </enumeratedData></enumeratedDataTypes></dataTypes>
 </objectModel>

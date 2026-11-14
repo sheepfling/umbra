@@ -4,7 +4,6 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
-import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RTIambassador;
@@ -154,18 +153,18 @@ final class CallbackControlsInteractionTck {
             && Arrays.equals(tag, delivery.tag)
             && producer.equals(delivery.producer)
             && delivery.transportation != null
-            && (delivery.regions == null || delivery.regions.isEmpty())
-            && delivery.sentOrder == OrderType.RECEIVE
-            && delivery.receivedOrder == OrderType.RECEIVE,
+            && (delivery.regions == null || delivery.regions.isEmpty()),
          phase + " interaction callback lost its standard delivery metadata");
    }
 
    private static void serviceWhileDisabled(RTIambassador ambassador, CallbackModel model,
          String objectClassName) throws Exception {
-      long deadline = System.nanoTime() + 100_000_000L;
-      do {
+      if (model == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.check(ambassador.evokeMultipleCallbacks(0.0, 1.0),
+            "evoked callback control did not admit the pending interaction event");
+      } else {
          service(ambassador, model, objectClassName);
-      } while (System.nanoTime() < deadline);
+      }
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
@@ -195,18 +194,14 @@ final class CallbackControlsInteractionTck {
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
       private final RegionHandleSet regions;
-      private final OrderType sentOrder;
-      private final OrderType receivedOrder;
-
       private Delivery(Object[] arguments) {
          interaction = (InteractionClassHandle) arguments[0];
          parameters = ((ParameterHandleValueMap) arguments[1]).clone();
          tag = ((byte[]) arguments[2]).clone();
          transportation = (TransportationTypeHandle) arguments[3];
          producer = (FederateHandle) arguments[4];
-         regions = (RegionHandleSet) arguments[5];
-         sentOrder = (OrderType) arguments[6];
-         receivedOrder = (OrderType) arguments[7];
+         RegionHandleSet callbackRegions = (RegionHandleSet) arguments[5];
+         regions = callbackRegions == null ? null : (RegionHandleSet) callbackRegions.clone();
       }
    }
 
@@ -219,7 +214,7 @@ final class CallbackControlsInteractionTck {
             new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("receiveInteraction".equals(name) && arguments.length == 8) {
+               if ("receiveInteraction".equals(name) && arguments.length == 6) {
                   deliveries.add(new Delivery(arguments));
                }
                if (method.getDeclaringClass() == Object.class) {

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.18 public-API witness for the Array Data Type field at p. 94 l. 118. Public Create accepts an array whose Element Type is the standard HLAbyte type and rejects the otherwise identical schema-valid FOM whose Element Type is undeclared. This tests the local reference-resolution rule only; it does not claim multi-module interoperability or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-array-element-type-reference",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_array_table_rules.cpp::scenarioFomArrayElementTypeReferenceContract"
+      ]
+    }
+  ]
+}

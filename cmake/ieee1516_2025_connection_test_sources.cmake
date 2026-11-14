@@ -1,6 +1,7 @@
 # Shared IEEE 1516.1-2025 connection-suite sources used by both Catch2 targets.
 set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_tls_catch2.cpp
   cpp/tests/ieee1516_2025_service_reporting_switch_fdd_default_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_service_report_matrix_catch2.cpp
   cpp/tests/ieee1516_2025_connection_interaction_transportation_catch2.cpp
@@ -47,6 +48,7 @@ set(UMBRA_IEEE1516_2025_CONNECTION_TEST_SOURCES
   cpp/tests/ieee1516_2025_connection_process_tso_object_deletion_future_arrival_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_tso_object_deletion_deferred_lookahead_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_tso_interaction_future_arrival_catch2.cpp
+  cpp/tests/ieee1516_2025_connection_process_tso_directed_interaction_future_arrival_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_tso_ingress_proxy_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_tso_regional_interaction_cross_proxy_immediate_catch2.cpp
   cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp

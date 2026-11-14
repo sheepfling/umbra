@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 §6.2.16 and §4.14.5 public-API witness for the Enumerated Data Type Name rule at p. 94 l. 66 and p. 72 l. 124. A valid-name control FOM is first accepted through public Create; the schema-valid negative FOM differs only by a period in the enumerated data type name and must be rejected as InconsistentFOM. This demonstrates the period restriction only, not every HLA naming rule, all enumerated-data-type fields, arbitrary FOMs, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-enumerated-data-type-name-convention",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_enumerated_name_conventions.cpp::scenarioFomEnumeratedDataTypeNameConventionContract"
+      ]
+    }
+  ]
+}

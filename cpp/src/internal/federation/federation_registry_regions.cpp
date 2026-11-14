@@ -50,12 +50,26 @@ RegionCreateResult EmbeddedFederationRegistry::createRegion(
   // to a supplied designator that cannot be resolved in this federation.  Do
   // not import the sibling Python backend's stricter InvalidRegionContext
   // branch into the official C++ surface.
+  // IEEE 1516.2 FOM dimension values supply the initial interval where one is
+  // present. Excluded dimensions remain unset and still require explicit
+  // Set Range Bounds before the region can be committed.
+  std::map<std::uint64_t, RegionRangeBounds> defaultRangeBounds;
   for (std::uint64_t const dimensionHandle : dimensionHandles) {
     auto const dimensionName = federation->second.dimensionHandles->nameFor(dimensionHandle);
-    if (!dimensionName ||
-        federation->second.definition.catalog->dimension(*dimensionName) == nullptr) {
+    auto const* dimension = dimensionName
+        ? federation->second.definition.catalog->dimension(*dimensionName)
+        : nullptr;
+    if (dimension == nullptr) {
       return {RegionServiceStatus::invalid_dimension};
     }
+    if (!dimension->defaultRange) {
+      continue;
+    }
+    defaultRangeBounds.emplace(
+        dimensionHandle,
+        RegionRangeBounds{
+            dimension->defaultRange->first,
+            dimension->defaultRange->second});
   }
 
   if (federation->second.nextRegionHandle == 0) {
@@ -64,7 +78,13 @@ RegionCreateResult EmbeddedFederationRegistry::createRegion(
   std::uint64_t const regionHandle = federation->second.nextRegionHandle++;
   federation->second.regions.emplace(
       regionHandle,
-      Federation::Region{federateId, dimensionHandles, {}, {}, false, false});
+      Federation::Region{
+          federateId,
+          dimensionHandles,
+          std::move(defaultRangeBounds),
+          {},
+          false,
+          false});
   return {RegionServiceStatus::applied, regionHandle};
 }
 
@@ -407,10 +427,10 @@ RegionRangeBoundsResult EmbeddedFederationRegistry::rangeBoundsForRegion(
     return {RegionServiceStatus::dimension_not_in_region};
   }
 
-  // A pending value is the value most recently supplied by Set Range Bounds;
-  // before a first set, a committed value is the current specification value.
-  // A never-initialized dimension has no range and therefore is not a usable
-  // region until the caller supplies it and commits the template.
+  // A pending value is the value most recently supplied by Set Range Bounds
+  // or the FOM-supplied initial range. Otherwise a committed value is the
+  // current specification value. A dimension without either value has no
+  // range and cannot be used until the caller supplies and commits one.
   auto pending = region->pendingRangeBounds.find(dimensionHandle);
   if (pending != region->pendingRangeBounds.end()) {
     return {RegionServiceStatus::applied, pending->second};
@@ -627,6 +647,38 @@ EmbeddedFederationRegistry::availableInteractionDimensions(
   return handles;
 }
 
+RegionSpecificationSnapshot
+EmbeddedFederationRegistry::realizeRegionForAvailableDimensions(
+    Federation const& federation,
+    RegionSpecificationSnapshot const& region,
+    std::set<std::uint64_t> const& availableDimensions) {
+  RegionSpecificationSnapshot realization = region;
+  if (!federation.definition.catalog || !federation.dimensionHandles) {
+    return realization;
+  }
+
+  for (std::uint64_t const dimensionHandle : availableDimensions) {
+    if (realization.dimensionHandles.contains(dimensionHandle)) {
+      continue;
+    }
+    auto const dimensionName = federation.dimensionHandles->nameFor(dimensionHandle);
+    if (!dimensionName) {
+      continue;
+    }
+    auto const* dimension = federation.definition.catalog->dimension(*dimensionName);
+    if (dimension == nullptr || !dimension->defaultRange) {
+      continue;
+    }
+    realization.dimensionHandles.insert(dimensionHandle);
+    realization.committedRangeBounds.insert_or_assign(
+        dimensionHandle,
+        RegionRangeBounds{
+            dimension->defaultRange->first,
+            dimension->defaultRange->second});
+  }
+  return realization;
+}
+
 std::optional<std::set<std::uint64_t>>
 EmbeddedFederationRegistry::availableObjectClassDimensions(
     Federation const& federation,
@@ -665,6 +717,55 @@ EmbeddedFederationRegistry::availableObjectClassDimensions(
     handles.insert(*handle);
   }
   return handles;
+}
+
+std::optional<std::set<std::uint64_t>>
+EmbeddedFederationRegistry::availableObjectClassAttributeDimensions(
+    Federation const& federation,
+    std::uint64_t objectClassHandle,
+    std::uint64_t attributeHandle) {
+  if (!federation.definition.catalog ||
+      !federation.objectClassHandles ||
+      !federation.attributeHandles) {
+    return std::nullopt;
+  }
+  auto const className = federation.objectClassHandles->nameFor(objectClassHandle);
+  if (!className) {
+    return std::nullopt;
+  }
+  auto const attributeName = federation.attributeHandles->nameFor(
+      federation.definition.catalog.get(),
+      *className,
+      attributeHandle);
+  if (!attributeName) {
+    return std::nullopt;
+  }
+
+  // In the FDD, dimensions are declared on object classes. A class attribute
+  // keeps the association of the class where it is declared; dimensions added
+  // only by a more-derived class do not widen an inherited attribute's set.
+  std::set<std::string> visited;
+  std::string declaringClassName = *className;
+  while (!declaringClassName.empty()) {
+    if (!visited.insert(declaringClassName).second) {
+      return std::nullopt;
+    }
+    auto const* declaringClass =
+        federation.definition.catalog->objectClass(declaringClassName);
+    if (declaringClass == nullptr) {
+      return std::nullopt;
+    }
+    if (declaringClass->declaredAttributes.contains(*attributeName)) {
+      auto const declaringClassHandle =
+          federation.objectClassHandles->handleFor(declaringClassName);
+      if (!declaringClassHandle) {
+        return std::nullopt;
+      }
+      return availableObjectClassDimensions(federation, *declaringClassHandle);
+    }
+    declaringClassName = declaringClass->parentName;
+  }
+  return std::nullopt;
 }
 
 bool EmbeddedFederationRegistry::regionsOverlap(
@@ -796,6 +897,91 @@ bool EmbeddedFederationRegistry::regionOverlapsDefault(
   return snapshot->specificationCommitted &&
       !snapshot->dimensionHandles.empty() &&
       snapshot->committedRangeBounds.size() == snapshot->dimensionHandles.size();
+}
+
+bool EmbeddedFederationRegistry::objectAttributeRegionsOverlap(
+    Federation const& federation,
+    std::uint64_t objectClassHandle,
+    std::uint64_t attributeHandle,
+    std::uint64_t firstRegionHandle,
+    std::uint64_t secondRegionHandle,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides) {
+  auto const availableDimensions = availableObjectClassAttributeDimensions(
+      federation, objectClassHandle, attributeHandle);
+  if (!availableDimensions) {
+    return false;
+  }
+
+  std::map<std::uint64_t, RegionSpecificationSnapshot> realizedOverrides;
+  if (overrides != nullptr) {
+    realizedOverrides = *overrides;
+  }
+  auto realize = [&](std::uint64_t regionHandle) {
+    RegionSpecificationSnapshot specification;
+    auto const overrideRegion = realizedOverrides.find(regionHandle);
+    if (overrideRegion != realizedOverrides.end()) {
+      specification = overrideRegion->second;
+    } else {
+      auto const region = federation.regions.find(regionHandle);
+      if (region == federation.regions.end()) {
+        return false;
+      }
+      specification = RegionSpecificationSnapshot{
+          region->second.dimensionHandles,
+          region->second.committedRangeBounds,
+          region->second.specificationCommitted,
+      };
+    }
+    realizedOverrides.insert_or_assign(
+        regionHandle,
+        realizeRegionForAvailableDimensions(
+            federation, specification, *availableDimensions));
+    return true;
+  };
+
+  if (!realize(firstRegionHandle) || !realize(secondRegionHandle)) {
+    return false;
+  }
+  return regionsOverlap(
+      federation, firstRegionHandle, secondRegionHandle, &realizedOverrides);
+}
+
+bool EmbeddedFederationRegistry::objectAttributeRegionOverlapsDefault(
+    Federation const& federation,
+    std::uint64_t objectClassHandle,
+    std::uint64_t attributeHandle,
+    std::uint64_t regionHandle,
+    std::map<std::uint64_t, RegionSpecificationSnapshot> const* overrides) {
+  auto const availableDimensions = availableObjectClassAttributeDimensions(
+      federation, objectClassHandle, attributeHandle);
+  if (!availableDimensions) {
+    return false;
+  }
+
+  std::map<std::uint64_t, RegionSpecificationSnapshot> realizedOverrides;
+  if (overrides != nullptr) {
+    realizedOverrides = *overrides;
+  }
+  RegionSpecificationSnapshot specification;
+  auto const overrideRegion = realizedOverrides.find(regionHandle);
+  if (overrideRegion != realizedOverrides.end()) {
+    specification = overrideRegion->second;
+  } else {
+    auto const region = federation.regions.find(regionHandle);
+    if (region == federation.regions.end()) {
+      return false;
+    }
+    specification = RegionSpecificationSnapshot{
+        region->second.dimensionHandles,
+        region->second.committedRangeBounds,
+        region->second.specificationCommitted,
+    };
+  }
+  realizedOverrides.insert_or_assign(
+      regionHandle,
+      realizeRegionForAvailableDimensions(
+          federation, specification, *availableDimensions));
+  return regionOverlapsDefault(federation, regionHandle, &realizedOverrides);
 }
 
 void EmbeddedFederationRegistry::clearUpdateRegionAssociation(

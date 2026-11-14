@@ -10,6 +10,7 @@ import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
+import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
@@ -47,7 +48,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          String objectClassName, String attributeName, String firstDimensionName,
          String secondDimensionName, CallbackModel callbackModel) throws Exception {
       runInternal(factory, fom, timeImplementation, objectClassName, attributeName,
-         firstDimensionName, secondDimensionName, callbackModel, false, false);
+         firstDimensionName, secondDimensionName, callbackModel, false, false, false);
    }
 
    static void runCancelAfterConfirmation(RtiFactory factory, String fom,
@@ -55,7 +56,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
       runInternal(factory, fom, timeImplementation, objectClassName, attributeName,
-         firstDimensionName, secondDimensionName, callbackModel, true, false);
+         firstDimensionName, secondDimensionName, callbackModel, true, false, false);
    }
 
    static void runCancelBeforeConfirmation(RtiFactory factory, String fom,
@@ -63,22 +64,22 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
       runInternal(factory, fom, timeImplementation, objectClassName, attributeName,
-         firstDimensionName, secondDimensionName, callbackModel, false, true);
+         firstDimensionName, secondDimensionName, callbackModel, false, true, false);
    }
 
    private static void runInternal(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String firstDimensionName,
          String secondDimensionName, CallbackModel callbackModel, boolean cancelAfterConfirmation,
-         boolean cancelBeforeConfirmation)
+         boolean cancelBeforeConfirmation, boolean ifAvailableCandidates)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador first = factory.getRtiAmbassador();
       RTIambassador second = factory.getRtiAmbassador();
       RTIambassador clock = factory.getRtiAmbassador();
-      Recorder publisherEvents = new Recorder();
-      Recorder firstEvents = new Recorder();
-      Recorder secondEvents = new Recorder();
-      Recorder clockEvents = new Recorder();
+      Recorder publisherEvents = new Recorder(publisher);
+      Recorder firstEvents = new Recorder(first);
+      Recorder secondEvents = new Recorder(second);
+      Recorder clockEvents = new Recorder(clock);
       String federation = "java-tck-timed-regional-owner-restore-" + UUID.randomUUID();
       String label = "java-tck-timed-regional-owner-candidate-continuation";
       String publisherName = "java-tck-timed-owner-publisher";
@@ -114,13 +115,14 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          clockConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         publisher.joinFederationExecution(publisherName, federation);
+          FederateHandle publisherHandle = publisher.joinFederationExecution(
+             publisherName, "publisher", federation);
          publisherJoined = true;
-         first.joinFederationExecution(firstName, federation);
+          first.joinFederationExecution(firstName, "subscriber", federation);
          firstJoined = true;
-         second.joinFederationExecution(secondName, federation);
+          second.joinFederationExecution(secondName, "subscriber", federation);
          secondJoined = true;
-         clock.joinFederationExecution(clockName, federation);
+          clock.joinFederationExecution(clockName, "publisher", federation);
          clockJoined = true;
 
          objectClass = publisher.getObjectClassHandle(objectClassName);
@@ -142,6 +144,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          DimensionHandle secondSecond = second.getDimensionHandle(secondDimensionName);
          DimensionHandle clockFirst = clock.getDimensionHandle(firstDimensionName);
          DimensionHandle clockSecond = clock.getDimensionHandle(secondDimensionName);
+          secondEvents.inspectRegionsUsing(secondFirst, secondSecond);
          JavaTckSupport.check(objectClass.equals(firstClass) && objectClass.equals(secondClass)
                && objectClass.equals(clockClass) && publisherAttribute.equals(firstAttribute)
                && publisherAttribute.equals(secondAttribute) && publisherAttribute.equals(clockAttribute)
@@ -214,15 +217,20 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          LogicalTime firstInitial = first.queryLogicalTime();
          LogicalTime secondInitial = second.queryLogicalTime();
          LogicalTime clockInitial = clock.queryLogicalTime();
-         JavaTckSupport.check(initial.equals(firstInitial) && initial.equals(secondInitial)
-               && initial.equals(clockInitial), "members began at different logical times");
+          JavaTckSupport.check(Arrays.equals(encodeTime(initial), encodeTime(firstInitial))
+                && Arrays.equals(encodeTime(initial), encodeTime(secondInitial))
+                && Arrays.equals(encodeTime(initial), encodeTime(clockInitial)),
+             "members began at different logical times");
          LogicalTime saveTime = offset(initial, publisherEpsilon, 6);
          LogicalTime messageTime = offset(initial, publisherEpsilon, 8);
          LogicalTime publisherGrant = offset(initial, publisherEpsilon, 9);
          LogicalTime flushTime = offset(initial, publisherEpsilon, 10);
-         JavaTckSupport.check(saveTime.equals(offset(firstInitial, firstEpsilon, 6))
-               && saveTime.equals(offset(secondInitial, secondEpsilon, 6))
-               && saveTime.equals(offset(clockInitial, clockEpsilon, 6)),
+          JavaTckSupport.check(Arrays.equals(encodeTime(saveTime),
+                   encodeTime(offset(firstInitial, firstEpsilon, 6)))
+                && Arrays.equals(encodeTime(saveTime),
+                   encodeTime(offset(secondInitial, secondEpsilon, 6)))
+                && Arrays.equals(encodeTime(saveTime),
+                   encodeTime(offset(clockInitial, clockEpsilon, 6))),
             "participants derived different save frontiers");
 
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -267,10 +275,10 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          publisher.requestFederationRestore(label);
          awaitAll(publisher, first, second, clock, callbackModel,
             () -> publisherEvents.restoreSuccesses.size() == 1
-               && publisherEvents.restoreInitiations.size() == 1
-               && firstEvents.restoreInitiations.size() == 1
-               && secondEvents.restoreInitiations.size() == 1
-               && clockEvents.restoreInitiations.size() == 1
+                && publisherEvents.restoreInitiations.size() == 1
+                && firstEvents.restoreInitiations.size() == 1
+                && secondEvents.restoreInitiations.size() == 1
+                && clockEvents.restoreInitiations.size() == 1
                && publisherEvents.restoreBegunCount == 1 && firstEvents.restoreBegunCount == 1
                && secondEvents.restoreBegunCount == 1 && clockEvents.restoreBegunCount == 1,
             "timed restore initiation");
@@ -289,21 +297,19 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          JavaTckSupport.check(publisherEvents.restoreFailures.isEmpty() && firstEvents.restoreFailures.isEmpty()
                && secondEvents.restoreFailures.isEmpty() && clockEvents.restoreFailures.isEmpty(),
             "federation restore reported failure");
+          RestoreInitiation publisherRestore = last(publisherEvents.restoreInitiations);
+          RestoreInitiation firstRestore = last(firstEvents.restoreInitiations);
+          RestoreInitiation secondRestore = last(secondEvents.restoreInitiations);
+          RestoreInitiation clockRestore = last(clockEvents.restoreInitiations);
+          JavaTckSupport.check(publisherRestore.matches(label, publisherName)
+                && firstRestore.matches(label, firstName) && secondRestore.matches(label, secondName)
+                && clockRestore.matches(label, clockName)
+                && Arrays.equals(encodeFederateHandle(publisherRestore.postRestoreHandle),
+                   encodeFederateHandle(publisherHandle)),
+             "restore did not preserve the saved federate identities");
          RangeBounds restoredBounds = publisher.getRangeBounds(sourceRegion, publisherFirst);
          JavaTckSupport.check(restoredBounds.lower == 0 && restoredBounds.upper == 2,
             "restore did not recover the saved source region");
-         RestoreInitiation publisherRestore = last(publisherEvents.restoreInitiations);
-         RestoreInitiation firstRestore = last(firstEvents.restoreInitiations);
-         RestoreInitiation secondRestore = last(secondEvents.restoreInitiations);
-         RestoreInitiation clockRestore = last(clockEvents.restoreInitiations);
-         JavaTckSupport.check(publisherRestore.matches(label, publisherName)
-               && firstRestore.matches(label, firstName) && secondRestore.matches(label, secondName)
-               && clockRestore.matches(label, clockName)
-               && publisherRestore.postRestoreHandle.equals(publisher.getFederateHandle(publisherName))
-               && firstRestore.postRestoreHandle.equals(first.getFederateHandle(firstName))
-               && secondRestore.postRestoreHandle.equals(second.getFederateHandle(secondName))
-               && clockRestore.postRestoreHandle.equals(clock.getFederateHandle(clockName)),
-            "restore did not preserve all federate identities");
          JavaTckSupport.check(object.equals(second.getObjectInstanceHandle(objectName)),
             "restore changed the discovered object's name-to-handle mapping");
 
@@ -321,8 +327,15 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
             first.resignFederationExecution(ResignAction.NO_ACTION);
             firstJoined = false;
          } else {
-            first.attributeOwnershipAcquisition(object, firstAttributes, FIRST_ACQUISITION_TAG.clone());
-            clock.attributeOwnershipAcquisition(object, clockAttributes, CLOCK_ACQUISITION_TAG.clone());
+             if (ifAvailableCandidates) {
+                first.attributeOwnershipAcquisitionIfAvailable(
+                   object, firstAttributes, FIRST_ACQUISITION_TAG.clone());
+                clock.attributeOwnershipAcquisitionIfAvailable(
+                   object, clockAttributes, CLOCK_ACQUISITION_TAG.clone());
+             } else {
+                first.attributeOwnershipAcquisition(object, firstAttributes, FIRST_ACQUISITION_TAG.clone());
+                clock.attributeOwnershipAcquisition(object, clockAttributes, CLOCK_ACQUISITION_TAG.clone());
+             }
             JavaTckSupport.check(firstEvents.acquisitions.isEmpty() && clockEvents.acquisitions.isEmpty(),
                "regular acquisition completed before the owner divested the attribute");
             publisherEvents.clearOwnership();
@@ -334,13 +347,18 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
             first.resignFederationExecution(ResignAction.CANCEL_PENDING_OWNERSHIP_ACQUISITIONS);
             firstJoined = false;
             for (int pass = 0; pass < 8; ++pass) JavaTckSupport.drain(publisher);
-            if (!publisherEvents.releaseRequests.isEmpty()) {
-               OwnershipEvent releaseRequest = last(publisherEvents.releaseRequests);
-               JavaTckSupport.check(object.equals(releaseRequest.object)
-                     && releaseRequest.attributes.equals(new HashSet<>(publisherAttributes))
-                     && Arrays.equals(CLOCK_ACQUISITION_TAG, releaseRequest.tag),
-                  "resignation delivered a release request for the canceled candidate");
-            }
+             if (ifAvailableCandidates) {
+                JavaTckSupport.check(publisherEvents.releaseRequests.isEmpty(),
+                   "If Available candidates unexpectedly delivered an ownership release request");
+             } else {
+                JavaTckSupport.check(publisherEvents.releaseRequests.size() == 1,
+                   "resignation did not continue negotiation with the retained candidate");
+                OwnershipEvent releaseRequest = last(publisherEvents.releaseRequests);
+                JavaTckSupport.check(object.equals(releaseRequest.object)
+                      && releaseRequest.attributes.equals(new HashSet<>(publisherAttributes))
+                      && Arrays.equals(CLOCK_ACQUISITION_TAG, releaseRequest.tag),
+                   "resignation did not deliver the retained candidate's release request");
+             }
             JavaTckSupport.check(publisherEvents.divestitureRequests.isEmpty()
                   && clockEvents.acquisitions.isEmpty(),
                "resignation delivered a stale confirmation or acquisition callback");
@@ -385,18 +403,38 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
                && secondEvents.reflections.size() == 1 && secondEvents.flushGrantCount == 1,
             "restored update and Flush Queue grant");
          Reflection reflection = last(secondEvents.reflections);
-         JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
-               && Arrays.equals(VALUE, reflection.values.get(secondAttribute))
-               && Arrays.equals(UPDATE_TAG, reflection.tag)
-               && reflection.time.equals(messageTime)
-               && reflection.sentOrder == OrderType.TIMESTAMP
-               && reflection.receivedOrder == OrderType.TIMESTAMP
-               && reflection.retraction.equals(sent.handle)
-               && reflection.producer.equals(publisherRestore.postRestoreHandle)
-               && !second.getTransportationTypeName(reflection.transportation).isEmpty()
-               && reflection.regions != null && reflection.regions.size() == 1
-               && reflection.regions.contains(sourceRegion),
-            "restored regional reflection changed its value, time, retraction, order, or source region");
+          JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
+                && Arrays.equals(VALUE, reflection.values.get(secondAttribute))
+                && Arrays.equals(UPDATE_TAG, reflection.tag),
+             "restored reflection changed the object, value, or tag");
+          JavaTckSupport.check(Arrays.equals(encodeTime(reflection.time), encodeTime(messageTime))
+                && reflection.sentOrder == OrderType.TIMESTAMP
+                && reflection.receivedOrder == OrderType.TIMESTAMP,
+             "restored reflection changed its timestamp or order");
+          JavaTckSupport.check(Arrays.equals(encodeHandle(reflection.retraction), encodeHandle(sent.handle)),
+             "restored reflection changed its retraction handle");
+          JavaTckSupport.check(Arrays.equals(encodeFederateHandle(reflection.producer),
+                   encodeFederateHandle(publisherHandle))
+                && Arrays.equals(encodeFederateHandle(reflection.producer),
+                   encodeFederateHandle(publisherRestore.postRestoreHandle)),
+             "restored reflection identified a different producing federate");
+          JavaTckSupport.check(!second.getTransportationTypeName(reflection.transportation).isEmpty(),
+             "restored reflection used an unrecognized transportation type");
+          JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1,
+             "restored reflection did not convey one copied source region");
+          JavaTckSupport.check(secondEvents.callbackRegionQueryFailure == null
+                && secondEvents.callbackRegionQueried
+                && secondEvents.callbackRegionDimensions != null
+                && secondEvents.callbackRegionDimensions.size() == 2
+                && secondEvents.callbackRegionDimensions.contains(secondFirst)
+                && secondEvents.callbackRegionDimensions.contains(secondSecond)
+                && secondEvents.callbackFirstBounds != null
+                && secondEvents.callbackFirstBounds.lower == 0
+                && secondEvents.callbackFirstBounds.upper == 2
+                && secondEvents.callbackSecondBounds != null
+                && secondEvents.callbackSecondBounds.lower == 0
+                && secondEvents.callbackSecondBounds.upper == 2,
+             "restored reflection did not expose the saved receiver-scoped source region");
          JavaTckSupport.check(secondEvents.callbackOrder.equals(
                Arrays.asList("reflectAttributeValues", "flushQueueGrant")),
             "restored reflection was not delivered before the Flush Queue grant");
@@ -446,11 +484,11 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
                "cancellation delivered stale ownership callbacks");
             clock.cancelAttributeOwnershipAcquisition(object, clockAttributes);
             await(clock, callbackModel, () -> !clockEvents.cancellations.isEmpty(),
-               "acquisition cancellation callback");
+               "post-confirmation acquisition cancellation callback");
             OwnershipEvent cancellation = last(clockEvents.cancellations);
             JavaTckSupport.check(object.equals(cancellation.object)
                   && cancellation.attributes.equals(new HashSet<>(clockAttributes)),
-               "acquisition cancellation returned the wrong object or attributes");
+               "post-confirmation acquisition cancellation returned the wrong metadata");
          } else if (!immediateTransfer && !cancelBeforeConfirmation) {
             publisher.confirmDivestiture(object, publisherAttributes, CONFIRMATION_TAG.clone());
             await(clock, callbackModel, () -> !clockEvents.acquisitions.isEmpty(),
@@ -537,10 +575,29 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
       return result;
    }
 
-   private static void verifySave(Recorder recorder, String label, LogicalTime time) {
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeFederateHandle(FederateHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static void verifySave(Recorder recorder, String label, LogicalTime time) throws Exception {
       JavaTckSupport.check(recorder.saveInitiations.size() == 1
             && label.equals(recorder.saveInitiations.get(0)[0])
-            && time.equals(recorder.saveInitiations.get(0)[1]),
+            && Arrays.equals(encodeTime(time),
+               encodeTime((LogicalTime<?, ?>) recorder.saveInitiations.get(0)[1])),
          "timed save callback returned the wrong label or time");
    }
 
@@ -605,7 +662,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
       private final FederateHandle producer;
       private final LogicalTime time;
       private final OrderType sentOrder, receivedOrder;
-      private final Object retraction;
+      private final MessageRetractionHandle retraction;
       private final HashSet<RegionHandle> regions;
       private Reflection(Object[] args) {
          object = (ObjectInstanceHandle) args[0];
@@ -616,7 +673,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
          time = (LogicalTime) args[6];
          sentOrder = (OrderType) args[7];
          receivedOrder = (OrderType) args[8];
-         retraction = args[9];
+         retraction = (MessageRetractionHandle) args[9];
          RegionHandleSet set = (RegionHandleSet) args[5];
          regions = set == null ? null : new HashSet<>(set);
       }
@@ -637,6 +694,7 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
    }
 
    private static final class Recorder {
+      private final RTIambassador ambassador;
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<Object[]> saveInitiations = new CopyOnWriteArrayList<>();
       private final List<Object> saveFailures = new CopyOnWriteArrayList<>();
@@ -649,9 +707,21 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
       private final List<OwnershipEvent> divestitureRequests = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
       private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile DimensionHandle firstDimension, secondDimension;
+      private volatile DimensionHandleSet callbackRegionDimensions;
+      private volatile RangeBounds callbackFirstBounds, callbackSecondBounds;
+      private volatile boolean callbackRegionQueried;
+      private volatile Throwable callbackRegionQueryFailure;
       private volatile boolean timeRegulationEnabled, timeConstrainedEnabled;
       private volatile int savedCount, restoreBegunCount, restoredCount;
       private volatile int timeAdvanceGrants, flushGrantCount;
+
+      private Recorder(RTIambassador ambassador) { this.ambassador = ambassador; }
+
+      private void inspectRegionsUsing(DimensionHandle first, DimensionHandle second) {
+         firstDimension = first;
+         secondDimension = second;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -667,12 +737,26 @@ final class TimedRegionalAttributeOwnershipSaveRestoreTck {
                else if ("requestFederationRestoreSucceeded".equals(name)) restoreSuccesses.add((String) args[0]);
                else if ("requestFederationRestoreFailed".equals(name)
                      || "federationNotRestored".equals(name)) restoreFailures.add(args[0]);
-               else if ("federationRestoreBegun".equals(name)) restoreBegunCount++;
                else if ("initiateFederateRestore".equals(name))
                   restoreInitiations.add(new RestoreInitiation(args));
+               else if ("federationRestoreBegun".equals(name)) restoreBegunCount++;
                else if ("federationRestored".equals(name)) restoredCount++;
                else if ("reflectAttributeValues".equals(name) && args.length == 10) {
-                  reflections.add(new Reflection(args));
+                  Reflection reflection = new Reflection(args);
+                  if (firstDimension != null && secondDimension != null) {
+                     try {
+                        JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1,
+                           "timed reflection did not convey one copied source region");
+                        RegionHandle copied = reflection.regions.iterator().next();
+                        callbackRegionDimensions = ambassador.getDimensionHandleSet(copied);
+                        callbackFirstBounds = ambassador.getRangeBounds(copied, firstDimension);
+                        callbackSecondBounds = ambassador.getRangeBounds(copied, secondDimension);
+                        callbackRegionQueried = true;
+                     } catch (Throwable failure) {
+                        callbackRegionQueryFailure = failure;
+                     }
+                  }
+                  reflections.add(reflection);
                   callbackOrder.add(name);
                } else if ("requestAttributeOwnershipRelease".equals(name)
                      || "requestDivestitureConfirmation".equals(name)) {

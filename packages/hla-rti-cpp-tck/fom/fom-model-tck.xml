@@ -328,6 +328,12 @@
                         <order>Receive</order>
                     </interactionClass>
                 </interactionClass>
+                <interactionClass>
+                    <name>TckClassNameProbe</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                </interactionClass>
             </interactionClass>
             <interactionClass>
                 <name>TckTransportRegionalInteraction</name>
@@ -344,6 +350,12 @@
                     <dataType>HLAbyte</dataType>
                     <semantics>Portable regional custom-transport parameter.</semantics>
                 </parameter>
+                <interactionClass>
+                    <name>TckClassNameProbe</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                </interactionClass>
             </interactionClass>
         </interactionClass>
     </interactions>
@@ -426,7 +438,7 @@
         <synchronizationPoint>
             <label>TckReady</label>
             <dataType>HLAASCIIstring</dataType>
-            <capability>Achieve</capability>
+            <capability>NA</capability>
             <semantics>Portable synchronization fixture.</semantics>
         </synchronizationPoint>
     </synchronizations>

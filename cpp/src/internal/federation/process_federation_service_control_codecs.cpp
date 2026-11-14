@@ -16,16 +16,14 @@ std::vector<std::uint8_t> encodeProcessFederationCreateRequest(
   PayloadWriter writer;
   writer.wideString(request.federationName);
   // Keep the historical one-field payload byte-for-byte compatible for
-  // private callers that still rely on the server-owned definition.  New
-  // public process clients opt into the standards-facing suffix whenever a
-  // FOM/MIM/time input is supplied.
+  // private callers that still rely on the server-owned definition. Public
+  // Create calls set hasFomInputs even when logical-time selection is
+  // omitted; the standards-derived coordinator selects its default from the
+  // supplied FOM.
   if (!request.fomModules.empty() || request.mimModule.has_value() ||
       !request.logicalTimeImplementationName.empty() ||
-      request.hasFomInputs) {
-    if (request.logicalTimeImplementationName.empty()) {
-      throw ProcessFederationServiceProtocolError(
-          "A process federation create request requires a logical-time implementation.");
-    }
+      request.hasFomInputs ||
+      !request.unsupportedTransportationTypeNames.empty()) {
     for (auto const& module : request.fomModules) {
       if (module.empty()) {
         throw ProcessFederationServiceProtocolError(
@@ -42,6 +40,13 @@ std::vector<std::uint8_t> encodeProcessFederationCreateRequest(
       writer.wideString(*request.mimModule);
     }
     writer.wideString(request.logicalTimeImplementationName);
+    if (!request.unsupportedTransportationTypeNames.empty()) {
+      if (!request.hasFomInputs) {
+        throw ProcessFederationServiceProtocolError(
+            "A transportation capability profile requires explicit FOM inputs.");
+      }
+      writer.wideStringVector(request.unsupportedTransportationTypeNames);
+    }
   }
   return std::move(writer).finish();
 }
@@ -63,15 +68,14 @@ ProcessFederationCreateRequest decodeProcessFederationCreateRequest(
       result.mimModule = reader.wideString();
     }
     result.logicalTimeImplementationName = reader.wideString();
+    if (reader.remaining() != 0U) {
+      result.unsupportedTransportationTypeNames = reader.wideStringVector();
+    }
   }
   reader.finish();
   if (result.federationName.empty()) {
     throw ProcessFederationServiceProtocolError(
         "A process federation create request requires a federation name.");
-  }
-  if (result.hasFomInputs && result.logicalTimeImplementationName.empty()) {
-    throw ProcessFederationServiceProtocolError(
-        "A process federation create request requires a logical-time implementation.");
   }
   if (std::any_of(
           result.fomModules.begin(),
@@ -80,6 +84,13 @@ ProcessFederationCreateRequest decodeProcessFederationCreateRequest(
       (result.mimModule.has_value() && result.mimModule->empty())) {
     throw ProcessFederationServiceProtocolError(
         "A process federation create request requires non-empty module designators.");
+  }
+  if (std::any_of(
+          result.unsupportedTransportationTypeNames.begin(),
+          result.unsupportedTransportationTypeNames.end(),
+          [](std::wstring const& name) { return name.empty(); })) {
+    throw ProcessFederationServiceProtocolError(
+        "A transportation capability profile contains an empty type name.");
   }
   return result;
 }

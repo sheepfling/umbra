@@ -46,6 +46,31 @@ metadata through one authoritative coordinator. This is private
 development-profile evidence; it does not prescribe deployment topology or
 establish interoperability or conformance.
 
+## zero-lookahead-postgrant-send-service-distinction
+
+`zero-lookahead-postgrant-send-service-distinction` keeps the pinned 2025
+service rules separate: §8.9 permits an equal-time send after a zero-lookahead
+TARA grant; §8.11.3 permits it after NMRA; §8.1.5 forbids timestamps at or
+below logical time after forward TAR/NMR. The focused C++ TCK slice passes
+22/22 across HLA_EVOKED/HLA_IMMEDIATE for TARA, TAR, NMR, NMR→TARA continuation,
+NMRA, and directed NMRA paths; Catch2 TAR/TARA regression passes 2/2. The shared
+time state now preserves TAR/NMR exclusivity while honoring completed forward
+TARA/NMRA grants. The NMR equality-rejection pair directly maps §8.1.5 and
+includes a strictly later-time positive control. The new NMR→TARA pair covers
+the §8.1.5 continuation sentence: reject equality after NMR, then accept at a
+later TARA grant under TARA's own rule. Clause 8.1.5 remains 11/11 directly
+mapped; this pair adds behavioral depth, not new unique requirement coverage.
+The existing NMRA message-set Catch2 regression also passes 1/1.
+The TARA equal-send mapping is section-only because the nearby Lab candidate
+states only a no-delivery-guarantee; see RL-417. The §11.5.1 Table 5 TCK sweep
+now reports 103/148 directly mapped and promoted, 45 dispositioned, and zero
+actionable rows. The synchronization service-report case directly checks both
+`SynchronizationPointFailureReason` values through the public callback and MOM
+report; RL-408–410 fragments remain explicit extraction-defect dispositions.
+Next, resume the active Table 31 RTI-side timeout/RID implementation handoff;
+do not claim portable TCK coverage for configuration with no standard public
+trigger, and keep Table 32 separate.
+
 ### Registry-free ingress processes forward time state to one authoritative coordinator
 
 The focused composition case runs one authoritative federation/time-service

@@ -83,6 +83,11 @@ struct PrevalidatedFomModule {
   FomStandardEdition standardEdition = FomStandardEdition::ieee1516_2025;
   FomSourceCompatibility sourceCompatibility = FomSourceCompatibility::strict;
   std::vector<std::string> warnings;
+  // The 2025 federation MOM list contains only modules that changed one of
+  // the standard-designated FOM areas (classes, interactions, dimensions,
+  // transportation, update rates, or switches). The composer sets this from
+  // the actual merged-model delta; 2010 keeps its existing all-module behavior.
+  bool contributesToFomModuleDesignatorList = false;
 };
 
 enum class FomValidationStatus {

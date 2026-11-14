@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "verified-focused-installed-package-not-conformance-evidence",
+  "notes": "The promoted portable C++ TCK resolves repeated local interaction-class names under distinct parents through fully qualified dot notation and round-trips the exact names. Paired with the case-sensitive FOM lookup case, this provides a bounded §6.2.3 p. 92 l. 14 witness for selected valid-name handling and qualified identity, not exhaustive §3.3 validation. Fresh installed-package MinGW/Ninja CTest and direct runs passed 2/2 across HLA_EVOKED/HLA_IMMEDIATE; artifact: out/mgw/cpp-tck-fom-interaction-class-structure-20261108.json. For §5.3 p. 88 l. 70, this is a selected direct public-API witness for Class-column identity only; it does not establish Table 48 layout, Semantics prose, all naming-convention rules, validation, interoperability, or conformance.",
+  "requirements": [
+    {
+      "id": "portable-fom-interaction-qualified-class-name-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clause-4a-page-044-l74-5",
+      "clause_id": "clause-4.3.2",
+      "standard_section": "hla-1516.2-2025:clause-4.3.2",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInteractionQualifiedClassNameIdentity"
+      ]
+    },
+    {
+      "id": "portable-omt-interaction-class-dot-name-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-088-l70-8",
+      "clause_id": "clause-5.3",
+      "standard_section": "hla-1516.2-2025:clause-5.3",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInteractionQualifiedClassNameIdentity"
+      ]
+    },
+    {
+      "id": "portable-omt-interaction-class-name-and-qualified-identity",
+      "requirements_lab_requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-092-l14-2",
+      "clause_id": "clause-6.2.3",
+      "standard_section": "hla-1516.2-2025:clause-6.2.3",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFomNameCaseSensitivity",
+        "packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp::scenarioFomInteractionQualifiedClassNameIdentity"
+      ],
+      "note": "Split bounded witness: a standard valid interaction-class name is accepted and round-trips through public lookup, while repeated local names under different parent paths resolve to distinct handles. This is not exhaustive validation of §3.3 naming constraints."
+    }
+  ]
+}

@@ -218,6 +218,7 @@ void scenarioInheritedInteractionClassDelivery(
   Session publisher(options, model, "interaction-hierarchy-publisher");
   Session baseSubscriber(options, model, "interaction-hierarchy-base-subscriber");
   Session derivedSubscriber(options, model, "interaction-hierarchy-derived-subscriber");
+  Session siblingSubscriber(options, model, "interaction-hierarchy-sibling-subscriber");
   auto const federation = federationName(options, "inherited-interaction-class-delivery");
   connectAndJoin(
       publisher,
@@ -230,7 +231,14 @@ void scenarioInheritedInteractionClassDelivery(
       options.memberFederateName + L"-derived-interaction-subscriber",
       options.federateType,
       federation);
+  siblingSubscriber.connect();
+  siblingSubscriber.join(
+      options.memberFederateName + L"-sibling-interaction-subscriber",
+      options.federateType,
+      federation);
 
+  auto const rootInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot");
   auto const baseInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
       options.typedInteractionClassName);
   auto const derivedInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
@@ -241,11 +249,24 @@ void scenarioInheritedInteractionClassDelivery(
   auto const derivedSubscriberDerivedInteraction =
       derivedSubscriber.rtiAmbassador().getInteractionClassHandle(
           options.typedDerivedInteractionClassName);
+  auto const siblingSubscriberInteraction =
+      siblingSubscriber.rtiAmbassador().getInteractionClassHandle(
+          options.customRegionalInteractionClassName);
   require(
-      baseInteraction.isValid() && derivedInteraction.isValid() &&
+      rootInteraction.isValid() && baseInteraction.isValid() &&
+          derivedInteraction.isValid() &&
+          publisher.rtiAmbassador().getInteractionClassName(rootInteraction) ==
+              L"HLAinteractionRoot" &&
+          publisher.rtiAmbassador().getInteractionClassName(baseInteraction) ==
+              options.typedInteractionClassName &&
+          publisher.rtiAmbassador().getInteractionClassName(derivedInteraction) ==
+              options.typedDerivedInteractionClassName &&
           baseSubscriberBaseInteraction == baseInteraction &&
-          derivedSubscriberDerivedInteraction == derivedInteraction,
-      "interaction-class hierarchy handles were invalid or unstable across members");
+          derivedSubscriberDerivedInteraction == derivedInteraction &&
+          siblingSubscriberInteraction.isValid() &&
+          siblingSubscriberInteraction != baseInteraction &&
+          siblingSubscriberInteraction != derivedInteraction,
+      "interaction hierarchy did not expose its root/base/derived classes consistently");
 
   auto const baseParameter = publisher.rtiAmbassador().getParameterHandle(
       baseInteraction,
@@ -256,6 +277,9 @@ void scenarioInheritedInteractionClassDelivery(
   auto const derivedParameter = publisher.rtiAmbassador().getParameterHandle(
       derivedInteraction,
       options.typedDerivedParameterName);
+  auto const siblingParameter = publisher.rtiAmbassador().getParameterHandle(
+      siblingSubscriberInteraction,
+      options.customRegionalParameterName);
   auto const baseSubscriberParameter = baseSubscriber.rtiAmbassador().getParameterHandle(
       baseSubscriberBaseInteraction,
       options.typedIntegerParameterName);
@@ -269,7 +293,9 @@ void scenarioInheritedInteractionClassDelivery(
           options.typedDerivedParameterName);
   require(
       baseParameter.isValid() && derivedBaseParameter == baseParameter &&
-          derivedParameter.isValid() && baseSubscriberParameter == baseParameter &&
+          derivedParameter.isValid() && siblingParameter.isValid() &&
+          siblingParameter != baseParameter && siblingParameter != derivedParameter &&
+          baseSubscriberParameter == baseParameter &&
           derivedSubscriberBaseParameter == baseParameter &&
           derivedSubscriberParameter == derivedParameter,
       "inherited interaction parameter handles were invalid or unstable across members");
@@ -282,9 +308,52 @@ void scenarioInheritedInteractionClassDelivery(
   derivedSubscriber.rtiAmbassador().subscribeInteractionClass(
       derivedSubscriberDerivedInteraction,
       true);
+  siblingSubscriber.rtiAmbassador().subscribeInteractionClass(
+      siblingSubscriberInteraction,
+      true);
 
   auto const baseValue = encodeDataElement(rti::HLAinteger32BE{37});
   auto const derivedValue = encodeDataElement(rti::HLAunicodeString{L"derived-value"});
+  std::vector<std::uint8_t> siblingValue{0x52U};
+
+  rti::ParameterHandleValueMap childOnlyParameters;
+  childOnlyParameters.emplace(
+      derivedParameter,
+      rti::VariableLengthData(derivedValue.data(), derivedValue.size()));
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().sendInteraction(
+            baseInteraction,
+            childOnlyParameters,
+            rti::VariableLengthData{});
+      },
+      L"InteractionParameterNotDefined",
+      "sending a base interaction with a derived-only FDD parameter");
+
+  rti::ParameterHandleValueMap siblingOnlyParameters;
+  siblingOnlyParameters.emplace(
+      siblingParameter,
+      rti::VariableLengthData(siblingValue.data(), siblingValue.size()));
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().sendInteraction(
+            derivedInteraction,
+            siblingOnlyParameters,
+            rti::VariableLengthData{});
+      },
+      L"InteractionParameterNotDefined",
+      "sending a derived interaction with an unrelated sibling-class parameter");
+  for (int pass = 0; pass != 8; ++pass) {
+    baseSubscriber.pump();
+    derivedSubscriber.pump();
+    siblingSubscriber.pump();
+  }
+  require(
+      baseSubscriber.recorder().interactions().empty() &&
+          derivedSubscriber.recorder().interactions().empty() &&
+          siblingSubscriber.recorder().interactions().empty(),
+      "rejected class/parameter combinations produced receive callbacks");
+
   rti::ParameterHandleValueMap derivedParameters;
   derivedParameters.emplace(
       derivedBaseParameter,
@@ -309,6 +378,12 @@ void scenarioInheritedInteractionClassDelivery(
       [&] { return derivedSubscriber.recorder().interactions().size() >= 1U; },
       options,
       "derived interaction subscription receiving a derived interaction");
+  for (int pass = 0; pass != 8; ++pass) {
+    siblingSubscriber.pump();
+  }
+  require(
+      siblingSubscriber.recorder().interactions().empty(),
+      "a sibling interaction-class subscription received a derived interaction");
   auto const baseReceivedDerived = baseSubscriber.recorder().interactions();
   auto const derivedReceivedDerived = derivedSubscriber.recorder().interactions();
   require(
@@ -364,6 +439,7 @@ void scenarioInheritedInteractionClassDelivery(
       "base interaction subscription receiving a base interaction");
   for (int pass = 0; pass != 8; ++pass) {
     derivedSubscriber.pump();
+    siblingSubscriber.pump();
   }
   auto const baseReceivedBase = baseSubscriber.recorder().interactions();
   require(
@@ -375,18 +451,86 @@ void scenarioInheritedInteractionClassDelivery(
           copyBytes(baseReceivedBase.front().parameters.at(baseParameter)) == baseValue,
       "base interaction subscription did not receive the base interaction parameters");
   require(
-      derivedSubscriber.recorder().interactions().empty(),
-      "derived-only interaction subscription received a base-class interaction");
+      derivedSubscriber.recorder().interactions().empty() &&
+          siblingSubscriber.recorder().interactions().empty(),
+      "a derived-only or sibling interaction subscription received a base-class interaction");
+
+  baseSubscriber.recorder().clearInteraction();
+  derivedSubscriber.recorder().clearInteraction();
+  publisher.rtiAmbassador().unpublishInteractionClass(derivedInteraction);
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().sendInteraction(
+            derivedInteraction,
+            derivedParameters,
+            derivedTag);
+      },
+      L"InteractionClassNotPublished",
+      "sending a derived interaction after unpublishing its exact FDD class");
+  for (int pass = 0; pass != 8; ++pass) {
+    baseSubscriber.pump();
+    derivedSubscriber.pump();
+    siblingSubscriber.pump();
+  }
+  require(
+      baseSubscriber.recorder().interactions().empty() &&
+          derivedSubscriber.recorder().interactions().empty() &&
+          siblingSubscriber.recorder().interactions().empty(),
+      "an unpublished derived interaction produced a receive callback");
+
+  publisher.rtiAmbassador().sendInteraction(baseInteraction, baseParameters, baseTag);
+  waitFor(
+      baseSubscriber,
+      [&] { return baseSubscriber.recorder().interactions().size() == 1U; },
+      options,
+      "base interaction remains sendable while the derived interaction is unpublished");
+  for (int pass = 0; pass != 8; ++pass) {
+    derivedSubscriber.pump();
+    siblingSubscriber.pump();
+  }
+  require(
+      baseSubscriber.recorder().interactions().front().interaction == baseInteraction &&
+          derivedSubscriber.recorder().interactions().empty() &&
+          siblingSubscriber.recorder().interactions().empty(),
+      "unpublishing the derived interaction changed the base class send path");
+
+  baseSubscriber.recorder().clearInteraction();
+  publisher.rtiAmbassador().publishInteractionClass(derivedInteraction);
+  publisher.rtiAmbassador().sendInteraction(
+      derivedInteraction,
+      derivedParameters,
+      derivedTag);
+  waitFor(
+      derivedSubscriber,
+      [&] { return derivedSubscriber.recorder().interactions().size() == 1U; },
+      options,
+      "republished derived interaction send");
+  waitFor(
+      baseSubscriber,
+      [&] { return baseSubscriber.recorder().interactions().size() == 1U; },
+      options,
+      "republished derived interaction reaches its base subscription");
+  for (int pass = 0; pass != 8; ++pass) {
+    siblingSubscriber.pump();
+  }
+  require(
+      derivedSubscriber.recorder().interactions().front().interaction == derivedInteraction &&
+          baseSubscriber.recorder().interactions().front().interaction == baseInteraction &&
+          siblingSubscriber.recorder().interactions().empty(),
+      "republishing the derived class did not restore only its matching send paths");
 
   baseSubscriber.rtiAmbassador().unsubscribeInteractionClass(baseInteraction);
   derivedSubscriber.rtiAmbassador().unsubscribeInteractionClass(derivedInteraction);
+  siblingSubscriber.rtiAmbassador().unsubscribeInteractionClass(siblingSubscriberInteraction);
   publisher.rtiAmbassador().unpublishInteractionClass(derivedInteraction);
   publisher.rtiAmbassador().unpublishInteractionClass(baseInteraction);
   baseSubscriber.resign(rti::NO_ACTION);
   derivedSubscriber.resign(rti::NO_ACTION);
+  siblingSubscriber.resign(rti::NO_ACTION);
   publisher.resign(rti::NO_ACTION);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   derivedSubscriber.disconnect();
+  siblingSubscriber.disconnect();
   baseSubscriber.disconnect();
   publisher.disconnect();
 }
@@ -425,10 +569,35 @@ void scenarioInteractionClosestAncestorTransition(
           baseClass != middleClass && middleClass != exactClass,
       "adapter FOM did not provide a stable three-level interaction hierarchy");
 
+  auto const baseParameter = sender.getParameterHandle(
+      sentClass, options.typedIntegerParameterName);
+  auto const middleParameter = sender.getParameterHandle(
+      sentClass, options.typedDerivedParameterName);
+  require(
+      baseParameter.isValid() && middleParameter.isValid() &&
+          receiver.getParameterHandle(baseClass, options.typedIntegerParameterName) ==
+              baseParameter &&
+          receiver.getParameterHandle(middleClass, options.typedDerivedParameterName) ==
+              middleParameter &&
+          receiver.getParameterHandle(exactClass, options.typedIntegerParameterName) ==
+              baseParameter &&
+          receiver.getParameterHandle(exactClass, options.typedDerivedParameterName) ==
+              middleParameter,
+      "adapter FOM did not provide stable inherited parameters across the interaction hierarchy");
+
   sender.publishInteractionClass(sentClass);
-  rti::ParameterHandleValueMap const parameters;
+  auto const baseValue = encodeDataElement(rti::HLAinteger32BE{37});
+  auto const middleValue = encodeDataElement(rti::HLAunicodeString{L"middle-value"});
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      baseParameter,
+      rti::VariableLengthData(baseValue.data(), baseValue.size()));
+  parameters.emplace(
+      middleParameter,
+      rti::VariableLengthData(middleValue.data(), middleValue.size()));
   rti::VariableLengthData const tag;
   auto checkOneDelivery = [&](rti::InteractionClassHandle const& expected,
+                              bool includesMiddleParameter,
                               std::string const& phase) {
     subscriber.recorder().clearInteraction();
     sender.sendInteraction(sentClass, parameters, tag);
@@ -442,17 +611,29 @@ void scenarioInteractionClosestAncestorTransition(
     }
     auto const deliveries = subscriber.recorder().interactions();
     require(
-        deliveries.size() == 1U && deliveries.front().interaction == expected &&
-            deliveries.front().parameters.empty(),
+        deliveries.size() == 1U,
         phase + " did not report exactly one callback at the closest subscribed class");
+    auto const& delivery = deliveries.front();
+    require(
+        delivery.interaction == expected,
+        phase + " reported a class other than the closest subscribed interaction class");
+    require(
+        delivery.parameters.size() == (includesMiddleParameter ? 2U : 1U) &&
+            delivery.parameters.count(baseParameter) == 1U &&
+            delivery.parameters.count(middleParameter) ==
+                (includesMiddleParameter ? 1U : 0U) &&
+            copyBytes(delivery.parameters.at(baseParameter)) == baseValue &&
+            (!includesMiddleParameter ||
+             copyBytes(delivery.parameters.at(middleParameter)) == middleValue),
+        phase + " did not project parameters to the selected received interaction class");
   };
 
   receiver.subscribeInteractionClass(baseClass, true);
-  checkOneDelivery(baseClass, "base-only ancestor subscription");
+  checkOneDelivery(baseClass, false, "base-only ancestor subscription");
   receiver.subscribeInteractionClass(middleClass, true);
-  checkOneDelivery(middleClass, "closest of two ancestor subscriptions");
+  checkOneDelivery(middleClass, true, "closest of two ancestor subscriptions");
   receiver.subscribeInteractionClass(exactClass, true);
-  checkOneDelivery(exactClass, "exact sent-class subscription");
+  checkOneDelivery(exactClass, true, "exact sent-class subscription");
 
   receiver.unsubscribeInteractionClass(exactClass);
   receiver.unsubscribeInteractionClass(middleClass);

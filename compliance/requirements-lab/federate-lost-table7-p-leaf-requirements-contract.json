@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This is a bounded runtime witness for the single Table 7 P leaf HLAreportFederateLost under IEEE 1516.1-2025 §11.4.1. The fault fixture causes one joined federate to be lost and a subscribed survivor receives the report. It does not prove the universal all-P-leaves requirement by itself; the per-leaf crosswalk tracks the broader inventory and the HLAreportMIMData naming conflict remains unresolved under RL-393.",
+  "requirements": [
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1, Table 7; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 111",
+      "source_symbol": "HLAreportFederateLost, a Table 7 leaf interaction designated P",
+      "statement": "The RTI shall publish all leaf interaction classes in Table 7 that are designated with a P.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateLostMomReportContractPortable"
+      ]
+    }
+  ]
+}

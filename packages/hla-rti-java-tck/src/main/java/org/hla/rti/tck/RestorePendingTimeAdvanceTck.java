@@ -11,6 +11,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -62,7 +63,7 @@ final class RestorePendingTimeAdvanceTck {
                && callbacks.timeGrants.size() == 1,
             "pending-TAR save initiation and first grant");
          JavaTckSupport.check(callbacks.saveLabels.equals(List.of(saveLabel))
-               && savedTarget.equals(callbacks.timeGrants.get(0))
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(0)))
                && callbacks.order.equals(List.of("save-initiate", "grant")),
             "pending TAR did not initiate save before the first grant");
          await(member, () -> callbacks.savedCount == 1,
@@ -75,7 +76,8 @@ final class RestorePendingTimeAdvanceTck {
          member.timeAdvanceRequest(laterTarget);
          await(member, () -> callbacks.timeGrants.size() == 2,
             "post-save TAR grant");
-         JavaTckSupport.check(laterTarget.equals(callbacks.timeGrants.get(1))
+         JavaTckSupport.check(Arrays.equals(encode(laterTarget),
+               encode(callbacks.timeGrants.get(1)))
                && laterTarget.equals(member.queryLogicalTime()),
             "post-save TAR did not reach the later logical time");
 
@@ -99,7 +101,7 @@ final class RestorePendingTimeAdvanceTck {
             "restored TAR grant arrived before Federation Restored");
          member.evokeCallback(0.0);
          JavaTckSupport.check(callbacks.timeGrants.size() == 3
-               && savedTarget.equals(callbacks.timeGrants.get(2))
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(2)))
                && callbacks.order.equals(List.of(
                   "restore-request-succeeded", "restore-begun",
                   "restore-initiate", "restore-complete", "grant"))
@@ -164,15 +166,17 @@ final class RestorePendingTimeAdvanceTck {
          member.timeAdvanceRequest(savedTarget);
          JavaTckSupport.check(callbacks.saveLabels.equals(List.of(saveLabel))
                && callbacks.savedCount == 1 && callbacks.saveFailures.isEmpty()
-               && callbacks.timeGrants.equals(List.of(savedTarget))
+               && callbacks.timeGrants.size() == 1
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(0)))
                && callbacks.order.equals(List.of(
                   "save-initiate", "save-complete", "grant")),
             "immediate save did not complete re-entrantly before its first grant");
 
          callbacks.completeSaveInCallback = false;
          member.timeAdvanceRequest(laterTarget);
-         JavaTckSupport.check(callbacks.timeGrants.equals(
-               List.of(savedTarget, laterTarget))
+         JavaTckSupport.check(callbacks.timeGrants.size() == 2
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(0)))
+               && Arrays.equals(encode(laterTarget), encode(callbacks.timeGrants.get(1)))
                && laterTarget.equals(member.queryLogicalTime()),
             "immediate post-save TAR did not reach the later time");
 
@@ -186,7 +190,7 @@ final class RestorePendingTimeAdvanceTck {
          JavaTckSupport.check(callbacks.restoredCount == 1
                && callbacks.restoreFailures.isEmpty()
                && callbacks.timeGrants.size() == 3
-               && savedTarget.equals(callbacks.timeGrants.get(2))
+               && Arrays.equals(encode(savedTarget), encode(callbacks.timeGrants.get(2)))
                && callbacks.order.equals(List.of(
                   "restore-request-succeeded", "restore-begun",
                   "restore-initiate", "restore-complete", "grant"))
@@ -195,7 +199,7 @@ final class RestorePendingTimeAdvanceTck {
 
          member.timeAdvanceRequest(nextTarget);
          JavaTckSupport.check(callbacks.timeGrants.size() == 4
-               && nextTarget.equals(callbacks.timeGrants.get(3))
+               && Arrays.equals(encode(nextTarget), encode(callbacks.timeGrants.get(3)))
                && nextTarget.equals(member.queryLogicalTime()),
             "immediate restored grant did not release Time Advancing state");
 
@@ -224,6 +228,12 @@ final class RestorePendingTimeAdvanceTck {
       LogicalTime result = start;
       for (int index = 0; index < steps; ++index) result = (LogicalTime) result.add(interval);
       return result;
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(RTIambassador ambassador,

@@ -31,6 +31,11 @@ final class NativeInteractionClassHandle implements InteractionClassHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("InteractionClassHandle", encoded);
+   }
+
    private boolean sameEncoding(InteractionClassHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

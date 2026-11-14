@@ -44,6 +44,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--interaction-class")
     parser.add_argument("--provider-id", default="java-current-process")
     parser.add_argument("--provider-jvm-argument", action="append", default=[])
+    parser.add_argument(
+        "--additional-settings",
+        default="FED_TIMEOUT_RECONNECT=0.25",
+        help="RTI additional settings; defaults to a bounded recovery window for this fault test",
+    )
     parser.add_argument("--capability-profile", type=Path, required=True)
     parser.add_argument(
         "--callback-model", choices=("both", "evoked", "immediate"), default="both"
@@ -94,9 +99,36 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
     (markers / (model + ".mode")).write_text("enabled\n", encoding="utf-8")
     ready = markers / "connection-loss-ready.ok"
     complete = markers / "receiver-loss.ok"
+    if arguments.scenario == "java-tck.connection-loss-automatic-unconditional-divestiture":
+        (markers / "automatic-unconditional.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+    if arguments.scenario == "java-tck.automatic-resign-directive-delete-objects":
+        (markers / "automatic-delete-objects.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     if arguments.scenario == "java-tck.connection-loss-automatic-delete-then-divest":
         (markers / "automatic-delete-then-divest.mode").write_text(
             "enabled\n", encoding="utf-8"
+        )
+    if arguments.scenario in {
+        "java-tck.connection-loss-automatic-cancel-pending-acquisition",
+    }:
+        (markers / "automatic-cancel-pending-acquisition.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+    if arguments.scenario == "java-tck.federate-lost-mom-report":
+        (markers / "federate-lost-mom-report.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+    if arguments.scenario == "java-tck.connection-loss-cleanup":
+        (markers / "save-failure-during-connection-loss.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
+        service_report_directory = markers / "service-reports"
+        service_report_directory.mkdir()
+        (markers / "service-report-directory.txt").write_text(
+            str(service_report_directory.resolve()) + "\n", encoding="utf-8"
         )
     result_file = arguments.results_directory / (model + ".results.json")
     junit_file = arguments.results_directory / (model + ".junit.xml")
@@ -118,8 +150,23 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
                 "-Dhla.rti.tck.connectionLossCompletionMarker=" + str(complete),
                 "-Dhla.rti.tck.connectionLossTimeoutMillis="
                 + str(arguments.timeout_ms),
+                "-Dhla.rti.tck.connectionLossFederationName=process-execution",
+                "-Dhla.rti.tck.connectionLossObserverName=package-process-sender",
+                "-Dhla.rti.tck.connectionLossLostName=package-process-receiver",
+                "-Dhla.rti.tck.connectionLossFederateType=package-process-type",
+                "-Dhla.rti.tck.additionalSettings=" + arguments.additional_settings,
+                # These scenarios are adapter-selected and intentionally not in the
+                # portable default batch. The fixture makes the fault input available.
+                "-Dhla.rti.tck.runUnverified=true",
             ]
         )
+        if arguments.scenario == "java-tck.automatic-resign-directive-delete-objects":
+            jvm_arguments.extend(
+                [
+                    "-Dhla.rti.tck.ownerConfigurationName=package-process-sender",
+                    "-Dhla.rti.tck.memberConfigurationName=package-process-receiver",
+                ]
+            )
         if arguments.interaction_class:
             jvm_arguments.append(
                 "-Dhla.rti.tck.interactionClass=" + arguments.interaction_class
@@ -152,6 +199,37 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
                     + fixture_error.read_text(encoding="utf-8").strip(),
                     file=sys.stderr,
                 )
+            for diagnostic_name in (
+                "service-failure.txt",
+                "service-report-files.txt",
+                "service-report-directory-loaded.txt",
+            ):
+                diagnostic = markers / diagnostic_name
+                if diagnostic.is_file():
+                    print(
+                        "connection-loss fixture "
+                        + diagnostic_name
+                        + ": "
+                        + diagnostic.read_text(encoding="utf-8", errors="replace").strip(),
+                        file=sys.stderr,
+                    )
+            report_paths = markers / "service-report-files.txt"
+            if report_paths.is_file():
+                for report_path_text in report_paths.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines():
+                    report_path = Path(report_path_text)
+                    if report_path.is_file():
+                        report_text = report_path.read_text(
+                            encoding="utf-8", errors="replace"
+                        )
+                        print(
+                            "connection-loss fixture report tail "
+                            + report_path.name
+                            + ":\n"
+                            + report_text[-4000:],
+                            file=sys.stderr,
+                        )
             return int(result)
         if not complete.is_file():
             raise RuntimeError(
@@ -195,12 +273,24 @@ def run(arguments: argparse.Namespace) -> int:
     ):
         if not path.is_file():
             raise FileNotFoundError(f"{description} does not exist: {path}")
-    if arguments.scenario == "java-tck.federate-lost-mom-report":
+    if arguments.scenario in {
+        "java-tck.connection-loss-cleanup",
+        "java-tck.federate-lost-mom-report",
+    }:
         if arguments.mim_path is None or not arguments.mim_path.is_file():
             raise FileNotFoundError(
                 "--mim-path is required and must name the adapter-supplied MIM module"
             )
-    elif not arguments.interaction_class:
+    if (
+        not arguments.interaction_class
+        and arguments.scenario
+        not in {
+            "java-tck.automatic-resign-directive-delete-objects",
+            "java-tck.connection-loss-automatic-unconditional-divestiture",
+            "java-tck.connection-loss-automatic-delete-then-divest",
+            "java-tck.connection-loss-automatic-cancel-pending-acquisition",
+        }
+    ):
         raise ValueError(
             "--interaction-class is required for this connection-loss scenario"
         )

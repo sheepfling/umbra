@@ -346,6 +346,10 @@ void scenarioRegionCommitCompleteRanges(
   auto const region = owner.rtiAmbassador().createRegion(
       rti::DimensionHandleSet{handles.firstDimension, handles.secondDimension});
   require(region.isValid(), "two-dimensional region template creation failed");
+  require(
+      owner.rtiAmbassador().getDimensionHandleSet(region) ==
+          rti::DimensionHandleSet{handles.firstDimension, handles.secondDimension},
+      "Get Dimension Handle Set did not accept the region template");
   owner.rtiAmbassador().setRangeBounds(
       region, handles.firstDimension, rti::RangeBounds(1UL, 5UL));
   requireException(
@@ -507,6 +511,31 @@ void scenarioRegionalUnpublishRegionRelease(Options const& options, rti::Callbac
       L"InvalidRegion",
       "dimension lookup after unpublishing releases the region");
 
+  auto const subscriptionRegion = createDdmRegion(owner, handles, 1UL, 5UL, 1UL, 5UL);
+  rti::AttributeHandleSetRegionHandleSetPairVector const subscriptionRegions{{
+      attributes,
+      rti::RegionHandleSet{subscriptionRegion},
+  }};
+  owner.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      handles.objectClass,
+      subscriptionRegions,
+      false,
+      L"");
+  requireException(
+      [&] { owner.rtiAmbassador().deleteRegion(subscriptionRegion); },
+      L"RegionInUseForUpdateOrSubscription",
+      "deletion of a region used by a class-attribute subscription");
+  owner.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      handles.objectClass,
+      subscriptionRegions);
+  owner.rtiAmbassador().deleteRegion(subscriptionRegion);
+  requireException(
+      [&] {
+        static_cast<void>(owner.rtiAmbassador().getDimensionHandleSet(subscriptionRegion));
+      },
+      L"InvalidRegion",
+      "dimension lookup after unsubscribing releases the region");
+
   owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
   owner.rtiAmbassador().destroyFederationExecution(federation);
   owner.disconnect();
@@ -544,6 +573,8 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
   auto const sourceRegion = createDdmRegion(owner, ownerHandles, 1UL, 5UL, 1UL, 5UL);
   auto const disjointSourceRegion =
       createDdmRegion(owner, ownerHandles, 7UL, 9UL, 7UL, 9UL);
+  auto const staleSourceRegion =
+      createDdmRegion(owner, ownerHandles, 1UL, 5UL, 1UL, 5UL);
   auto const overlapRegion =
       createDdmRegion(overlap, overlapHandles, 2UL, 6UL, 2UL, 6UL);
   auto const disjointRegion =
@@ -557,6 +588,14 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       ownerAttributes,
       rti::RegionHandleSet{disjointSourceRegion},
   }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptySourcePair{{
+      ownerAttributes,
+      rti::RegionHandleSet{},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const staleSourcePair{{
+      ownerAttributes,
+      rti::RegionHandleSet{staleSourceRegion},
+  }};
   rti::AttributeHandleSetRegionHandleSetPairVector const overlapPair{{
       overlapAttributes,
       rti::RegionHandleSet{overlapRegion},
@@ -565,6 +604,7 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       disjointAttributes,
       rti::RegionHandleSet{disjointRegion},
   }};
+  owner.rtiAmbassador().deleteRegion(staleSourceRegion);
 
   overlap.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   disjoint.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
@@ -583,6 +623,23 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
           description + " changed the adapter-declared custom transport");
     }
   };
+  auto const staleSubscriptionRegion =
+      createDdmRegion(overlap, overlapHandles, 2UL, 6UL, 2UL, 6UL);
+  rti::AttributeHandleSetRegionHandleSetPairVector const staleSubscriptionPair{{
+      overlapAttributes,
+      rti::RegionHandleSet{staleSubscriptionRegion},
+  }};
+  overlap.rtiAmbassador().deleteRegion(staleSubscriptionRegion);
+  requireException(
+      [&] {
+        overlap.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+            overlapHandles.objectClass,
+            staleSubscriptionPair,
+            true,
+            L"");
+      },
+      L"InvalidRegion",
+      "Subscribe Object Class Attributes With Regions with a deleted region designator");
   overlap.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
       overlapHandles.objectClass, overlapPair, true, L"");
   disjoint.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
@@ -600,16 +657,28 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       sourcePair,
       objectName);
   require(object.isValid(), "regional object registration returned an invalid handle");
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerHandles.attribute),
+      "regional object registration did not assign its published attribute to the registering federate");
   waitFor(
       overlap,
       [&] { return overlap.recorder().hasDiscovery(object); },
       options,
       "regional overlapping object discovery");
+  // A deleted region handle is rejected without disturbing the live source
+  // association; the following delivery checks prove that association remains.
+  requireException(
+      [&] {
+        owner.rtiAmbassador().associateRegionsForUpdates(object, staleSourcePair);
+      },
+      L"InvalidRegion",
+      "Associate Regions For Updates with a deleted region designator");
+  owner.rtiAmbassador().associateRegionsForUpdates(object, emptySourcePair);
   for (int pass = 0; pass != 8; ++pass) {
     disjoint.pump();
   }
   require(!disjoint.recorder().hasDiscovery(object),
-          "disjoint regional subscription discovered the object");
+          "empty source region set added a default association visible to the disjoint subscriber");
 
   std::vector<std::uint8_t> firstValue{0x11U, 0x22U, 0x33U};
   std::vector<std::uint8_t> firstTag{0x52U, 0x31U};
@@ -710,15 +779,60 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
       responseReflection.transportation,
       "regional attribute-value response reflection");
 
+  // Associate Regions For Updates is additive when the attribute already has
+  // a non-default source region. Prove both the original and added source
+  // regions remain effective before removing either one.
+  overlap.recorder().clearReflection();
+  disjoint.recorder().clearReflection();
   owner.rtiAmbassador().associateRegionsForUpdates(object, disjointSourcePair);
-  owner.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  // Re-associating the same region must not create a duplicate association;
+  // one later unassociation must remove it completely.
+  owner.rtiAmbassador().associateRegionsForUpdates(object, disjointSourcePair);
   waitFor(
       disjoint,
       [&] { return disjoint.recorder().hasDiscovery(object); },
       options,
-      "regional disjoint object discovery after association");
+      "regional disjoint object discovery after adding a second source region");
   overlap.recorder().clearReflection();
   disjoint.recorder().clearReflection();
+  std::vector<std::uint8_t> additiveValue{0x66U, 0x99U};
+  std::vector<std::uint8_t> additiveTag{0x52U, 0x39U};
+  rti::AttributeHandleValueMap additiveValues;
+  additiveValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(additiveValue.data(), additiveValue.size()));
+  rti::VariableLengthData additiveUserTag(additiveTag.data(), additiveTag.size());
+  owner.rtiAmbassador().updateAttributeValues(object, additiveValues, additiveUserTag);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().reflection().present; },
+      options,
+      "update through the pre-existing source region after adding another region");
+  waitFor(
+      disjoint,
+      [&] { return disjoint.recorder().reflection().present; },
+      options,
+      "update through the newly added source region");
+  auto const overlapAfterAdd = overlap.recorder().reflection();
+  auto const disjointAfterAdd = disjoint.recorder().reflection();
+  require(copyBytes(overlapAfterAdd.values.at(overlapHandles.attribute)) == additiveValue &&
+              overlapAfterAdd.tag == additiveTag,
+          "adding a source region removed the original overlapping association");
+  require(copyBytes(disjointAfterAdd.values.at(disjointHandles.attribute)) == additiveValue &&
+              disjointAfterAdd.tag == additiveTag,
+          "Associate Regions For Updates did not add the disjoint source association");
+  verifyTransportation(overlap, overlapAfterAdd.transportation,
+                       "additive association overlap reflection");
+  verifyTransportation(disjoint, disjointAfterAdd.transportation,
+                       "additive association disjoint reflection");
+
+  overlap.recorder().clearReflection();
+  disjoint.recorder().clearReflection();
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  // Ignoring the already-removed pair must leave the separate disjoint
+  // association effective.
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, emptySourcePair);
   std::vector<std::uint8_t> disjointValue{0x77U, 0x88U};
   rti::AttributeHandleValueMap disjointValues;
   disjointValues.emplace(
@@ -783,6 +897,23 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
 
   overlap.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       overlapHandles.objectClass, overlapPair);
+  overlap.recorder().clearReflection();
+  owner.rtiAmbassador().associateRegionsForUpdates(object, sourcePair);
+  std::vector<std::uint8_t> unsubscribedValue{0xA1U, 0xB2U, 0xC3U};
+  rti::AttributeHandleValueMap unsubscribedValues;
+  unsubscribedValues.emplace(
+      ownerHandles.attribute,
+      rti::VariableLengthData(
+          unsubscribedValue.data(), unsubscribedValue.size()));
+  owner.rtiAmbassador().updateAttributeValues(
+      object, unsubscribedValues, responseUserTag);
+  for (int pass = 0; pass != 8; ++pass) {
+    overlap.pump();
+  }
+  require(!overlap.recorder().reflection().present,
+          "receiver got an update after its regional attribute subscription was removed");
+  owner.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+
   disjoint.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       disjointHandles.objectClass, disjointPair);
   owner.rtiAmbassador().unpublishObjectClassAttributes(
@@ -799,6 +930,8 @@ void scenarioRegionalObjectUpdate(Options const& options, rti::CallbackModel mod
   owner.disconnect();
   overlap.disconnect();
   disjoint.disconnect();
+  exerciseRegionalClassRequestUpdateAcrossHierarchy(options, model);
+  exerciseRegionalEmptyRequestRegion(options, model);
 }
 
 void scenarioRegionalObjectUpdateContract(
@@ -1014,6 +1147,7 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
   Session publisher(options, model, "publisher");
   Session active(options, model, "active");
   Session rechecked(options, model, "rechecked");
+  Session emptySubscriber(options, model, "empty-regional-subscriber");
   auto const federation = federationName(
       options,
       "regional-attribute-update-callback-ddm-recheck");
@@ -1023,21 +1157,34 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       options.memberFederateName + L"-regional-rechecked",
       options.federateType,
       federation);
+  emptySubscriber.connect();
+  emptySubscriber.join(
+      options.memberFederateName + L"-regional-empty-set",
+      options.federateType,
+      federation);
 
   auto const publisherHandles = ddmHandles(publisher, options);
   auto const activeHandles = ddmHandles(active, options);
   auto const recheckedHandles = ddmHandles(rechecked, options);
+  auto const emptyHandles = ddmHandles(emptySubscriber, options);
   verifyDdmClassDimensions(
       publisher,
       options,
       publisherHandles,
       "regional attribute callback DDM publisher");
+  require(
+      publisher.rtiAmbassador().getDimensionUpperBound(
+          publisherHandles.firstDimension) >= 5UL &&
+          publisher.rtiAmbassador().getDimensionUpperBound(
+              publisherHandles.secondDimension) >= 5UL,
+      "empty-subscription control source region must fit within the default region");
 
   rti::AttributeHandleSet const publisherAttributes{
       publisherHandles.attribute};
   rti::AttributeHandleSet const activeAttributes{activeHandles.attribute};
   rti::AttributeHandleSet const recheckedAttributes{
       recheckedHandles.attribute};
+  rti::AttributeHandleSet const emptyAttributes{emptyHandles.attribute};
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherHandles.objectClass,
       publisherAttributes);
@@ -1071,13 +1218,56 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       activeAttributes,
       rti::RegionHandleSet{activeRegion},
   }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const activeEmptyRegionPair{{
+      activeAttributes,
+      rti::RegionHandleSet{},
+  }};
   rti::AttributeHandleSetRegionHandleSetPairVector const recheckedPair{{
       recheckedAttributes,
       rti::RegionHandleSet{recheckedRegion},
   }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptySubscriptionPair{{
+      emptyAttributes,
+      rti::RegionHandleSet{},
+  }};
+
+  auto const unrelatedDimension = ddmUnrelatedDimensionHandle(rechecked, options);
+  auto const availableObjectDimensions =
+      rechecked.rtiAmbassador().getAvailableDimensionsForObjectClass(
+          recheckedHandles.objectClass);
+  require(
+      availableObjectDimensions.count(unrelatedDimension) == 0U,
+      "DDM subscription test dimension is available to the target object class");
+  auto const invalidSubscriptionRegion = rechecked.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{unrelatedDimension});
+  require(
+      invalidSubscriptionRegion.isValid(),
+      "subscription region with an unrelated dimension could not be created");
+  rechecked.rtiAmbassador().setRangeBounds(
+      invalidSubscriptionRegion,
+      unrelatedDimension,
+      rti::RangeBounds(0UL, 1UL));
+  rechecked.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{invalidSubscriptionRegion});
+  rti::AttributeHandleSetRegionHandleSetPairVector const invalidSubscriptionPair{{
+      recheckedAttributes,
+      rti::RegionHandleSet{invalidSubscriptionRegion},
+  }};
+  requireException(
+      [&] {
+        rechecked.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+            recheckedHandles.objectClass,
+            invalidSubscriptionPair,
+            true,
+            L"");
+      },
+      L"InvalidRegionContext",
+      "regional class-attribute subscription with an unavailable dimension");
+  rechecked.rtiAmbassador().deleteRegion(invalidSubscriptionRegion);
 
   active.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   rechecked.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  emptySubscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   active.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
       activeHandles.objectClass,
       activePair,
@@ -1088,6 +1278,11 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       recheckedPair,
       true,
       L"");
+  emptySubscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      emptyHandles.objectClass,
+      emptySubscriptionPair,
+      true,
+      L"");
 
   auto const object = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
       publisherHandles.objectClass,
@@ -1095,6 +1290,11 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
   require(
       object.isValid(),
       "regional attribute callback DDM registration returned an invalid object handle");
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptySourcePair{{
+      publisherAttributes,
+      rti::RegionHandleSet{},
+  }};
+  publisher.rtiAmbassador().associateRegionsForUpdates(object, emptySourcePair);
   waitForSessions(
       {&active, &rechecked},
       [&] {
@@ -1103,6 +1303,19 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       },
       options,
       "regional attribute callback DDM discovery");
+
+  auto verifyEmptySubscriptionHasNoDefaultRoute = [&] {
+    for (int pass = 0; pass != 8; ++pass) {
+      emptySubscriber.pump();
+    }
+    require(
+        !emptySubscriber.recorder().hasDiscovery(object),
+        "empty regional subscription created a default-region discovery route");
+    require(
+        emptySubscriber.recorder().reflectionCount() == 0U,
+        "empty regional subscription created a default-region reflection route");
+  };
+  verifyEmptySubscriptionHasNoDefaultRoute();
 
   auto sendUpdate = [&](std::vector<std::uint8_t> value,
                         std::vector<std::uint8_t> tag) {
@@ -1114,6 +1327,7 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
         object,
         values,
         rti::VariableLengthData(tag.data(), tag.size()));
+    verifyEmptySubscriptionHasNoDefaultRoute();
   };
   auto moveRecheckedRegion = [&](bool overlap) {
     auto const bounds = overlap
@@ -1129,6 +1343,21 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
         bounds);
     rechecked.rtiAmbassador().commitRegionModifications(
         rti::RegionHandleSet{recheckedRegion});
+  };
+  auto moveActiveRegion = [&](bool overlap) {
+    auto const bounds = overlap
+        ? rti::RangeBounds(2UL, 6UL)
+        : rti::RangeBounds(7UL, 9UL);
+    active.rtiAmbassador().setRangeBounds(
+        activeRegion,
+        activeHandles.firstDimension,
+        bounds);
+    active.rtiAmbassador().setRangeBounds(
+        activeRegion,
+        activeHandles.secondDimension,
+        bounds);
+    active.rtiAmbassador().commitRegionModifications(
+        rti::RegionHandleSet{activeRegion});
   };
   auto requireReflection = [&](Session& receiver,
                                rti::AttributeHandle const& attribute,
@@ -1268,6 +1497,7 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       publisher.recorder().reflectionCount() == 0U,
       "regional attribute callback DDM looped a reflection to the publisher");
 
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, emptySourcePair);
   active.recorder().clearReflection();
   rechecked.recorder().clearReflection();
   std::vector<std::uint8_t> const secondValue{0x41U, 0x32U};
@@ -1323,13 +1553,271 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
       restoredTag,
       "regional attribute callback DDM restored rechecked reflection");
 
+  moveActiveRegion(false);
+  moveRecheckedRegion(false);
+  std::size_t activeUnassociatedRegionCallbacks = 0U;
+  std::size_t recheckedUnassociatedRegionCallbacks = 0U;
+  auto inspectUnassociatedRegion = [&](Session& receiver,
+                                       rti::DimensionHandle const& firstDimension,
+                                       rti::DimensionHandle const& secondDimension,
+                                       std::size_t& inspected,
+                                       std::string const& description) {
+    auto* receiverPtr = &receiver;
+    auto* inspectedPtr = &inspected;
+    receiver.recorder().setReflectionHook(
+        [receiverPtr,
+         inspectedPtr,
+         firstDimension,
+         secondDimension,
+         description](rti::RegionHandleSet const* callbackRegions) {
+          if (callbackRegions != nullptr) {
+            for (auto const& callbackRegion : *callbackRegions) {
+              if (receiverPtr->rtiAmbassador().getDimensionHandleSet(
+                      callbackRegion) !=
+                  rti::DimensionHandleSet{firstDimension, secondDimension}) {
+                continue;
+              }
+              auto const firstBounds =
+                  receiverPtr->rtiAmbassador().getRangeBounds(
+                      callbackRegion, firstDimension);
+              auto const secondBounds =
+                  receiverPtr->rtiAmbassador().getRangeBounds(
+                      callbackRegion, secondDimension);
+              require(
+                  firstBounds.getLowerBound() != 1UL ||
+                      firstBounds.getUpperBound() != 5UL ||
+                      secondBounds.getLowerBound() != 1UL ||
+                      secondBounds.getUpperBound() != 5UL,
+                  description + " still used the unassociated source region");
+            }
+          }
+          ++*inspectedPtr;
+        });
+  };
+  inspectUnassociatedRegion(
+      active,
+      activeHandles.firstDimension,
+      activeHandles.secondDimension,
+      activeUnassociatedRegionCallbacks,
+      "regional attribute callback DDM active post-unassociation reflection");
+  inspectUnassociatedRegion(
+      rechecked,
+      recheckedHandles.firstDimension,
+      recheckedHandles.secondDimension,
+      recheckedUnassociatedRegionCallbacks,
+      "regional attribute callback DDM rechecked post-unassociation reflection");
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
+  std::vector<std::uint8_t> const unassociatedValue{0x41U, 0x34U};
+  std::vector<std::uint8_t> const unassociatedTag{0x52U, 0x34U};
+  sendUpdate(unassociatedValue, unassociatedTag);
+  waitForSessions(
+      {&active, &rechecked},
+      [&] {
+        return active.recorder().reflectionCount() >= 1U &&
+            rechecked.recorder().reflectionCount() >= 1U;
+      },
+      options,
+      "regional attribute callback DDM update after source-region unassociation");
+  auto requireUnassociatedReflection = [&](Session& receiver,
+                                           rti::AttributeHandle const& attribute,
+                                           std::string const& description) {
+    auto const reflection = receiver.recorder().reflection();
+    require(
+        reflection.present &&
+            reflection.object == object &&
+            reflection.values.size() == 1U &&
+            reflection.values.count(attribute) == 1U &&
+            copyBytes(reflection.values.at(attribute)) == unassociatedValue &&
+            reflection.tag == unassociatedTag &&
+            reflection.transportation ==
+                receiver.rtiAmbassador().getTransportationTypeHandle(
+                    L"HLAreliable") &&
+            reflection.producer == publisher.federateHandle(),
+        description + " returned the wrong post-unassociation update");
+  };
+  requireUnassociatedReflection(
+      active,
+      activeHandles.attribute,
+      "regional attribute callback DDM active post-unassociation reflection");
+  requireUnassociatedReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      "regional attribute callback DDM rechecked post-unassociation reflection");
+  require(
+      activeUnassociatedRegionCallbacks == 1U &&
+          recheckedUnassociatedRegionCallbacks == 1U,
+      "regional attribute callback DDM did not inspect both post-unassociation region sets");
+
+  rechecked.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      recheckedHandles.objectClass,
+      recheckedPair);
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const unsubscribedValue{0x41U, 0x35U};
+  std::vector<std::uint8_t> const unsubscribedTag{0x52U, 0x35U};
+  sendUpdate(unsubscribedValue, unsubscribedTag);
+  waitFor(
+      active,
+      [&] { return active.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM still-subscribed positive control after unsubscribe");
+  for (int pass = 0; pass != 8; ++pass) {
+    rechecked.pump();
+  }
+  require(
+      rechecked.recorder().reflectionCount() == 0U,
+      "regional attribute callback DDM delivered through an unsubscribed region triple");
+  auto const stillSubscribedReflection = active.recorder().reflection();
+  require(
+      stillSubscribedReflection.present &&
+          stillSubscribedReflection.object == object &&
+          stillSubscribedReflection.values.size() == 1U &&
+          stillSubscribedReflection.values.count(activeHandles.attribute) == 1U &&
+          copyBytes(stillSubscribedReflection.values.at(activeHandles.attribute)) ==
+              unsubscribedValue &&
+          stillSubscribedReflection.tag == unsubscribedTag &&
+          stillSubscribedReflection.producer == publisher.federateHandle(),
+      "regional attribute callback DDM still-subscribed positive control returned the wrong update");
+  require(
+      activeUnassociatedRegionCallbacks == 2U &&
+          recheckedUnassociatedRegionCallbacks == 1U,
+      "regional attribute callback DDM unsubscribe changed the wrong receiver region route");
+
+  active.recorder().setReflectionHook({});
+  rechecked.recorder().setReflectionHook({});
+  publisher.rtiAmbassador().associateRegionsForUpdates(object, sourcePair);
+  moveActiveRegion(true);
+  moveRecheckedRegion(true);
+  rechecked.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      recheckedHandles.objectClass,
+      recheckedPair,
+      true,
+      L"");
+
+  active.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      activeHandles.objectClass,
+      activeEmptyRegionPair);
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const emptyUnsubscribeOverlapValue{0x41U, 0x36U};
+  std::vector<std::uint8_t> const emptyUnsubscribeOverlapTag{0x52U, 0x36U};
+  sendUpdate(emptyUnsubscribeOverlapValue, emptyUnsubscribeOverlapTag);
+  waitForSessions(
+      {&active, &rechecked},
+      [&] {
+        return active.recorder().reflectionCount() >= 1U &&
+            rechecked.recorder().reflectionCount() >= 1U;
+      },
+      options,
+      "regional attribute callback DDM empty-unsubscribe overlap positive controls");
+  requireReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      emptyUnsubscribeOverlapValue,
+      emptyUnsubscribeOverlapTag,
+      "regional attribute callback DDM empty-unsubscribe overlap positive control");
+  auto const emptyUnsubscribeOverlapReflection = active.recorder().reflection();
+  require(
+      emptyUnsubscribeOverlapReflection.present &&
+          emptyUnsubscribeOverlapReflection.object == object &&
+          emptyUnsubscribeOverlapReflection.values.size() == 1U &&
+          emptyUnsubscribeOverlapReflection.values.count(activeHandles.attribute) == 1U &&
+          copyBytes(emptyUnsubscribeOverlapReflection.values.at(activeHandles.attribute)) ==
+              emptyUnsubscribeOverlapValue &&
+          emptyUnsubscribeOverlapReflection.tag == emptyUnsubscribeOverlapTag,
+      "empty regional unsubscribe changed the existing overlapping subscription");
+
+  moveActiveRegion(false);
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const emptyUnsubscribeDisjointValue{0x41U, 0x37U};
+  std::vector<std::uint8_t> const emptyUnsubscribeDisjointTag{0x52U, 0x37U};
+  sendUpdate(emptyUnsubscribeDisjointValue, emptyUnsubscribeDisjointTag);
+  waitFor(
+      rechecked,
+      [&] { return rechecked.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM disjoint-range positive control after empty unsubscribe");
+  requireReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      emptyUnsubscribeDisjointValue,
+      emptyUnsubscribeDisjointTag,
+      "regional attribute callback DDM disjoint-range positive control after empty unsubscribe");
+  for (int pass = 0; pass != 8; ++pass) {
+    active.pump();
+  }
+  require(
+      active.recorder().reflectionCount() == 0U,
+      "empty regional unsubscribe removed the existing subscription's disjoint-range filter");
+
+  active.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      activeHandles.objectClass,
+      activeEmptyRegionPair,
+      true,
+      L"");
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const emptySubscribeDisjointValue{0x41U, 0x38U};
+  std::vector<std::uint8_t> const emptySubscribeDisjointTag{0x52U, 0x38U};
+  sendUpdate(emptySubscribeDisjointValue, emptySubscribeDisjointTag);
+  waitFor(
+      rechecked,
+      [&] { return rechecked.recorder().reflectionCount() >= 1U; },
+      options,
+      "regional attribute callback DDM disjoint-range positive control after empty subscribe");
+  requireReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      emptySubscribeDisjointValue,
+      emptySubscribeDisjointTag,
+      "regional attribute callback DDM disjoint-range positive control after empty subscribe");
+  for (int pass = 0; pass != 8; ++pass) {
+    active.pump();
+  }
+  require(
+      active.recorder().reflectionCount() == 0U,
+      "empty regional subscribe added a route while the existing region was disjoint");
+
+  moveActiveRegion(true);
+  active.recorder().clearReflection();
+  rechecked.recorder().clearReflection();
+  std::vector<std::uint8_t> const emptySubscribeRestoredValue{0x41U, 0x39U};
+  std::vector<std::uint8_t> const emptySubscribeRestoredTag{0x52U, 0x39U};
+  sendUpdate(emptySubscribeRestoredValue, emptySubscribeRestoredTag);
+  waitForSessions(
+      {&active, &rechecked},
+      [&] {
+        return active.recorder().reflectionCount() >= 1U &&
+            rechecked.recorder().reflectionCount() >= 1U;
+      },
+      options,
+      "regional attribute callback DDM empty-subscribe restored overlap positive controls");
+  requireReflection(
+      rechecked,
+      recheckedHandles.attribute,
+      emptySubscribeRestoredValue,
+      emptySubscribeRestoredTag,
+      "regional attribute callback DDM empty-subscribe restored overlap positive control");
+  auto const emptySubscribeRestoredReflection = active.recorder().reflection();
+  require(
+      emptySubscribeRestoredReflection.present &&
+          emptySubscribeRestoredReflection.object == object &&
+          emptySubscribeRestoredReflection.values.size() == 1U &&
+          emptySubscribeRestoredReflection.values.count(activeHandles.attribute) == 1U &&
+          copyBytes(emptySubscribeRestoredReflection.values.at(activeHandles.attribute)) ==
+              emptySubscribeRestoredValue &&
+          emptySubscribeRestoredReflection.tag == emptySubscribeRestoredTag,
+      "empty regional subscribe changed the existing overlapping subscription");
+
   active.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       activeHandles.objectClass,
       activePair);
   rechecked.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       recheckedHandles.objectClass,
       recheckedPair);
-  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherHandles.objectClass,
       publisherAttributes);
@@ -1338,10 +1826,12 @@ void scenarioRegionalAttributeUpdateCallbackDdmRecheck(
   publisher.rtiAmbassador().deleteRegion(sourceRegion);
   active.resign(rti::NO_ACTION);
   rechecked.resign(rti::NO_ACTION);
+  emptySubscriber.resign(rti::NO_ACTION);
   publisher.resign(rti::DELETE_OBJECTS);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   active.disconnect();
   rechecked.disconnect();
+  emptySubscriber.disconnect();
   publisher.disconnect();
 }
 
@@ -1761,12 +2251,16 @@ void scenarioDefaultRegionObjectRouting(
       [&] { return regional.recorder().hasDiscovery(object); },
       options,
       "default-region overlapping object discovery");
-  for (int pass = 0; pass != 8; ++pass) {
-    mixed.pump();
-  }
+  // The disjoint With Regions declaration must not alter the ordinary
+  // default-region subscription established earlier by this federate.
+  waitFor(
+      mixed,
+      [&] { return mixed.recorder().hasDiscovery(object); },
+      options,
+      "ordinary object subscription after a disjoint regional declaration");
   require(
-      !mixed.recorder().hasDiscovery(object),
-      "disjoint explicit subscription used the retained ordinary default region");
+      mixed.recorder().discoveryCount() == 1U,
+      "ordinary subscription was not preserved independently of the regional declaration");
 
   // Removing the explicit declaration exposes the retained ordinary
   // declaration, which uses the derived default source region again.
@@ -2262,6 +2756,13 @@ void scenarioPassiveRegionalSubscription(
       6UL,
       2UL,
       6UL);
+  auto const disjointSubscriberRegion = createDdmRegion(
+      subscriber,
+      subscriberHandles,
+      7UL,
+      9UL,
+      7UL,
+      9UL);
   rti::AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
       publisherAttributes,
       rti::RegionHandleSet{sourceRegion},
@@ -2269,6 +2770,10 @@ void scenarioPassiveRegionalSubscription(
   rti::AttributeHandleSetRegionHandleSetPairVector const subscriberPair{{
       subscriberAttributes,
       rti::RegionHandleSet{subscriberRegion},
+  }};
+  rti::AttributeHandleSetRegionHandleSetPairVector const disjointSubscriberPair{{
+      subscriberAttributes,
+      rti::RegionHandleSet{disjointSubscriberRegion},
   }};
 
   subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
@@ -2280,19 +2785,28 @@ void scenarioPassiveRegionalSubscription(
       subscriberPair,
       false,
       L"");
+  auto drainCallbacks = [&] {
+    for (int pass = 0; pass != 8; ++pass) {
+      publisher.pump();
+      subscriber.pump();
+    }
+  };
 
   auto const object = publisher.rtiAmbassador().registerObjectInstanceWithRegions(
       publisherHandles.objectClass,
       sourcePair);
   require(object.isValid(),
           "passive regional registration returned an invalid object handle");
-  for (int pass = 0; pass != 8; ++pass) {
-    subscriber.pump();
-  }
+  drainCallbacks();
   require(
       !subscriber.recorder().hasDiscovery(object) &&
           subscriber.recorder().reflectionCount() == 0U,
       "passive regional subscription arranged discovery or reflection");
+  require(
+      publisher.recorder().registrationStarts().empty() &&
+          publisher.recorder().updatesOn().empty() &&
+          publisher.recorder().updatesOff().empty(),
+      "passive regional subscription generated registration or turn-updates callbacks");
   requireException(
       [&] {
         static_cast<void>(
@@ -2300,6 +2814,19 @@ void scenarioPassiveRegionalSubscription(
       },
       L"ObjectInstanceNotKnown",
       "known-object lookup for a passively subscribed regional object");
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      disjointSubscriberPair,
+      true,
+      L"");
+  drainCallbacks();
+  require(
+      !subscriber.recorder().hasDiscovery(object) &&
+          publisher.recorder().registrationStarts().empty() &&
+          publisher.recorder().updatesOn().empty() &&
+          publisher.recorder().updatesOff().empty(),
+      "disjoint active regional subscription changed passive-object relevance");
 
   std::vector<std::uint8_t> passiveValue{0x50U, 0x60U};
   rti::AttributeHandleValueMap passiveValues;
@@ -2310,12 +2837,14 @@ void scenarioPassiveRegionalSubscription(
       object,
       passiveValues,
       rti::VariableLengthData{});
-  for (int pass = 0; pass != 8; ++pass) {
-    subscriber.pump();
-  }
+  drainCallbacks();
   require(
       subscriber.recorder().reflectionCount() == 0U,
       "passive regional subscription received an attribute update");
+  require(
+      publisher.recorder().updatesOn().empty() &&
+          publisher.recorder().updatesOff().empty(),
+      "passive or disjoint regional subscription generated a turn-updates callback");
 
   // Replacing the same regional declaration with an active one makes the
   // already-registered, in-scope object discoverable.
@@ -2335,6 +2864,14 @@ void scenarioPassiveRegionalSubscription(
           discovery.objectClass == subscriberHandles.objectClass &&
           discovery.producer == publisher.federateHandle(),
       "active regional discovery returned the wrong object metadata");
+  drainCallbacks();
+  auto const firstUpdatesOn = publisher.recorder().updatesOn();
+  require(
+      firstUpdatesOn.size() == 1U &&
+          firstUpdatesOn.front().object == object &&
+          firstUpdatesOn.front().attributes == publisherAttributes &&
+          publisher.recorder().updatesOff().empty(),
+      "activating the overlapping regional triple did not report one Turn Updates On callback");
 
   std::vector<std::uint8_t> activeValue{0x70U, 0x80U};
   std::vector<std::uint8_t> activeTag{0x50U, 0x52U};
@@ -2366,15 +2903,120 @@ void scenarioPassiveRegionalSubscription(
           reflection.regions->count(sourceRegion) == 1U,
       "active regional reflection did not preserve source-region metadata");
 
+  subscriber.recorder().clearReflection();
+  subscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      subscriberPair,
+      false,
+      L"");
+  std::vector<std::uint8_t> passiveAgainValue{0x71U, 0x81U};
+  std::vector<std::uint8_t> passiveAgainTag{0x51U, 0x53U};
+  rti::AttributeHandleValueMap passiveAgainValues;
+  passiveAgainValues.emplace(
+      publisherHandles.attribute,
+      rti::VariableLengthData(
+          passiveAgainValue.data(),
+          passiveAgainValue.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      passiveAgainValues,
+      rti::VariableLengthData(passiveAgainTag.data(), passiveAgainTag.size()));
+  drainCallbacks();
+  require(
+      subscriber.recorder().reflectionCount() == 0U,
+      "regional passive mode retained the previous active subscription effect");
+  auto const firstUpdatesOff = publisher.recorder().updatesOff();
+  require(
+      firstUpdatesOff.size() == 1U &&
+          firstUpdatesOff.front().object == object &&
+          firstUpdatesOff.front().attributes == publisherAttributes,
+      "making the overlapping regional triple passive did not report Turn Updates Off");
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const emptyRegionPairs;
+  subscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      emptyRegionPairs,
+      true,
+      L"");
+  std::vector<std::uint8_t> emptyActiveValue{0x72U, 0x82U};
+  rti::AttributeHandleValueMap emptyActiveValues;
+  emptyActiveValues.emplace(
+      publisherHandles.attribute,
+      rti::VariableLengthData(
+          emptyActiveValue.data(),
+          emptyActiveValue.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      emptyActiveValues,
+      rti::VariableLengthData{});
+  drainCallbacks();
+  require(
+      subscriber.recorder().reflectionCount() == 0U &&
+          publisher.recorder().updatesOn().size() == 1U &&
+          publisher.recorder().updatesOff().size() == 1U,
+      "empty active regional subscription changed an existing passive triple");
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      subscriberPair,
+      true,
+      L"");
+  drainCallbacks();
+  auto const updatesOnAfterReactivation = publisher.recorder().updatesOn();
+  require(
+      updatesOnAfterReactivation.size() == 2U &&
+          updatesOnAfterReactivation.back().object == object &&
+          updatesOnAfterReactivation.back().attributes == publisherAttributes &&
+          subscriber.recorder().discoveryCount() == 1U,
+      "reactivating the known regional triple did not emit one fresh On without rediscovery");
+
+  subscriber.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      emptyRegionPairs,
+      false,
+      L"");
+  std::vector<std::uint8_t> emptyPassiveValue{0x73U, 0x83U};
+  rti::AttributeHandleValueMap emptyPassiveValues;
+  emptyPassiveValues.emplace(
+      publisherHandles.attribute,
+      rti::VariableLengthData(
+          emptyPassiveValue.data(),
+          emptyPassiveValue.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      emptyPassiveValues,
+      rti::VariableLengthData{});
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().reflectionCount() == 1U; },
+      options,
+      "active regional reflection after an empty passive declaration");
+  drainCallbacks();
+  require(
+      publisher.recorder().updatesOn().size() == 2U &&
+          publisher.recorder().updatesOff().size() == 1U,
+      "empty passive regional subscription changed an existing active triple");
+
   subscriber.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       subscriberHandles.objectClass,
       subscriberPair);
+  drainCallbacks();
+  auto const updatesOffAfterUnsubscribe = publisher.recorder().updatesOff();
+  require(
+      updatesOffAfterUnsubscribe.size() == 2U &&
+          updatesOffAfterUnsubscribe.back().object == object &&
+          updatesOffAfterUnsubscribe.back().attributes == publisherAttributes,
+      "unsubscribing the active regional triple did not report Turn Updates Off");
+  subscriber.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      subscriberHandles.objectClass,
+      disjointSubscriberPair);
   publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherHandles.objectClass,
       publisherAttributes);
   publisher.rtiAmbassador().deleteRegion(sourceRegion);
   subscriber.rtiAmbassador().deleteRegion(subscriberRegion);
+  subscriber.rtiAmbassador().deleteRegion(disjointSubscriberRegion);
 
   publisher.resign(rti::DELETE_OBJECTS);
   subscriber.resign(rti::NO_ACTION);

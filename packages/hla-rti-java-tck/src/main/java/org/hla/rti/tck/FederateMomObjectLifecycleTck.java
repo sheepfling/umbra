@@ -28,17 +28,44 @@ import java.util.function.BooleanSupplier;
 /** Verifies joined-federate MOM object identity, values, requests, and resign removals. */
 final class FederateMomObjectLifecycleTck {
    private static final String MOM_CLASS = "HLAobjectRoot.HLAmanager.HLAfederate";
+   private static final String FEDERATION_MOM_CLASS = "HLAobjectRoot.HLAmanager.HLAfederation";
+   private static final String FEDERATE_SUBCLASS =
+      "HLAobjectRoot.HLAmanager.HLAfederate.TckFederateExtension";
    private static final String FEDERATE_HANDLE = "HLAfederateHandle";
    private static final String FEDERATE_NAME = "HLAfederateName";
    private static final String FEDERATE_TYPE = "HLAfederateType";
    private static final String FEDERATE_HOST = "HLAfederateHost";
    private static final String MODULES = "HLAFOMmoduleDesignatorList";
+   private static final List<String> FEDERATE_TABLE8_P_ATTRIBUTES = Arrays.asList(
+      "HLAfederateHandle", "HLAfederateName", "HLAfederateType", "HLAfederateHost",
+      "HLARTIversion", "HLAFOMmoduleDesignatorList", "HLAtimeConstrained",
+      "HLAtimeRegulating", "HLAasynchronousDelivery", "HLAfederateState",
+      "HLAtimeManagerState", "HLAlogicalTime", "HLAlookahead", "HLAGALT", "HLALITS",
+      "HLAROlength", "HLATSOlength", "HLAreflectionsReceived", "HLAupdatesSent",
+      "HLAinteractionsReceived", "HLAinteractionsSent", "HLAdirectedInteractionsReceived",
+      "HLAdirectedInteractionsSent", "HLAobjectInstancesThatCanBeDeleted",
+      "HLAobjectInstancesUpdated", "HLAobjectInstancesReflected",
+      "HLAobjectInstancesDeleted", "HLAobjectInstancesRemoved",
+      "HLAobjectInstancesRegistered", "HLAobjectInstancesDiscovered", "HLAtimeGrantedTime",
+      "HLAtimeAdvancingTime", "HLAobjectClassRelevanceAdvisory",
+      "HLAattributeRelevanceAdvisory", "HLAattributeScopeAdvisory",
+      "HLAinteractionRelevanceAdvisory", "HLAconveyRegionDesignatorSets",
+      "HLAautomaticResignAction", "HLAserviceReporting", "HLAexceptionReporting",
+      "HLAsendServiceReportsToFile", "HLAreportServiceFile");
+   private static final List<String> FEDERATION_TABLE8_P_ATTRIBUTES = Arrays.asList(
+      "HLAfederationName", "HLAfederatesInFederation", "HLARTIversion", "HLAMIMdesignator",
+      "HLAFOMmoduleDesignatorList", "HLAcurrentFDD", "HLAtimeImplementationName",
+      "HLAlastSaveName", "HLAlastSaveTime", "HLAnextSaveName", "HLAnextSaveTime",
+      "HLAautoProvide", "HLAadvisoriesUseKnownClass", "HLAdelaySubscriptionEvaluation",
+      "HLAnonRegulatedGrant", "HLAallowRelaxedDDM");
    private static final long TIMEOUT_NANOS = 15_000_000_000L;
 
    private FederateMomObjectLifecycleTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String additionalFom,
          String timeImplementation, CallbackModel callbackModel) throws Exception {
+      verifyMimBeforeFomComposition(factory, fom, mim, additionalFom,
+         timeImplementation, callbackModel);
       RTIambassador moduleSubject = factory.getRtiAmbassador();
       RTIambassador noModuleSubject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
@@ -93,12 +120,20 @@ final class FederateMomObjectLifecycleTck {
                && MODULES.equals(observer.getAttributeName(momClass, moduleListAttribute))
                && "HLAreliable".equals(observer.getTransportationTypeName(reliable)),
             "joined-federate MOM lifecycle did not resolve standard MIM handles");
-         momAttributes = JavaTckSupport.attributeSet(observer, federateHandleAttribute,
-            federateNameAttribute, federateTypeAttribute, federateHostAttribute,
-            moduleListAttribute);
+         momAttributes = resolveTable8Attributes(observer, momClass,
+            FEDERATE_TABLE8_P_ATTRIBUTES, MOM_CLASS);
          observerRecorder.attributes = momAttributes;
          observer.subscribeObjectClassAttributes(momClass, momAttributes, "");
          subscribed = true;
+
+         ObjectClassHandle federationMomClass =
+            observer.getObjectClassHandle(FEDERATION_MOM_CLASS);
+         AttributeHandleSet federationMomAttributes = resolveTable8Attributes(observer,
+            federationMomClass, FEDERATION_TABLE8_P_ATTRIBUTES, FEDERATION_MOM_CLASS);
+         observer.subscribeObjectClassAttributes(
+            federationMomClass, federationMomAttributes, "");
+         verifyFederationTable8(observer, observerRecorder, callbackModel,
+            federationMomClass, federationMomAttributes);
 
          byte[] observerHandle = encode(observerFederate);
          await(observer, callbackModel,
@@ -164,6 +199,8 @@ final class FederateMomObjectLifecycleTck {
             federateHostAttribute, moduleListAttribute, reliable, noModuleFederate,
             noModuleSubjectName, "java-tck", Collections.emptyList(),
             "no-additional-module federate");
+         requestClassWideTable8Values(observer, observerRecorder, callbackModel, momClass,
+            moduleSubjectObject, momAttributes);
 
          waitForRemoval(observer, observerRecorder, callbackModel, moduleSubject,
             moduleSubjectObject, moduleSubjectName, moduleJoined);
@@ -189,6 +226,107 @@ final class FederateMomObjectLifecycleTck {
       }
    }
 
+   private static void verifyMimBeforeFomComposition(RtiFactory factory, String fom,
+         String mim, String additionalFom, String timeImplementation,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador compositionSubject = factory.getRtiAmbassador();
+      String federation = "java-tck-mim-before-fom-" + UUID.randomUUID();
+      boolean connected = false;
+      boolean created = false;
+      boolean joined = false;
+      try {
+         compositionSubject.connect(callbacks(), callbackModel);
+         connected = true;
+         compositionSubject.createFederationExecutionWithMIM(federation,
+            new String[] {fom, additionalFom}, mim, timeImplementation);
+         created = true;
+         compositionSubject.joinFederationExecution("java-tck-mim-before-fom-probe",
+            "java-tck", federation);
+         joined = true;
+         ObjectClassHandle extension = compositionSubject.getObjectClassHandle(FEDERATE_SUBCLASS);
+         AttributeHandle extensionValue =
+            compositionSubject.getAttributeHandle(extension, "TckExtensionValue");
+         JavaTckSupport.check(extension != null && extensionValue != null
+               && FEDERATE_SUBCLASS.equals(compositionSubject.getObjectClassName(extension))
+               && "TckExtensionValue".equals(
+                  compositionSubject.getAttributeName(extension, extensionValue)),
+            "Create Federation Execution With MIM did not compose the FOM subclass of HLAfederate");
+      } finally {
+         if (joined) resign(compositionSubject);
+         if (created) {
+            try { compositionSubject.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (connected) disconnect(compositionSubject);
+      }
+   }
+
+   private static AttributeHandleSet resolveTable8Attributes(RTIambassador ambassador,
+         ObjectClassHandle objectClass, List<String> names, String className) throws Exception {
+      JavaTckSupport.check(objectClass != null
+            && className.equals(ambassador.getObjectClassName(objectClass)),
+         className + " MOM class did not resolve through the standard MIM");
+      AttributeHandleSet result = ambassador.getAttributeHandleSetFactory().create();
+      for (String name : names) {
+         AttributeHandle attribute = ambassador.getAttributeHandle(objectClass, name);
+         JavaTckSupport.check(attribute != null
+               && name.equals(ambassador.getAttributeName(objectClass, attribute)),
+            className + " Table 8 attribute lookup did not round-trip: " + name);
+         result.add(attribute);
+      }
+      JavaTckSupport.check(result.size() == names.size(),
+         className + " Table 8 did not resolve " + names.size() + " distinct P attributes");
+      return result;
+   }
+
+   private static void verifyFederationTable8(RTIambassador observer, Recorder recorder,
+         CallbackModel callbackModel, ObjectClassHandle federationMomClass,
+         AttributeHandleSet federationMomAttributes) throws Exception {
+      await(observer, callbackModel,
+         () -> recorder.discoveryCount(federationMomClass) == 1,
+         "standard HLAfederation Table 8 MOM discovery");
+      ObjectInstanceHandle federationObject = recorder.findDiscoveredObject(federationMomClass);
+      JavaTckSupport.check(federationObject != null
+            && recorder.discoveryCount(federationMomClass) == 1
+            && federationMomClass.equals(observer.getKnownObjectClassHandle(federationObject))
+            && "HLAfederation".equals(observer.getObjectInstanceName(federationObject))
+            && federationObject.equals(observer.getObjectInstanceHandle("HLAfederation")),
+         "HLAfederation Table 8 did not expose exactly one standard MOM instance");
+
+      int start = recorder.reflections.size();
+      observer.requestAttributeValueUpdate(federationObject, federationMomAttributes, new byte[0]);
+      await(observer, callbackModel,
+         () -> recorder.findCompleteReflection(
+            federationObject, federationMomAttributes, start) != null,
+         "complete HLAfederation Table 8 P-attribute request reflection");
+      Reflection reflection = recorder.findCompleteReflection(
+         federationObject, federationMomAttributes, start);
+      TransportationTypeHandle reliable = observer.getTransportationTypeHandle("HLAreliable");
+      JavaTckSupport.check(hasExactlyAttributes(reflection, federationMomAttributes)
+            && reliable.equals(reflection.transportation),
+         "HLAfederation request did not return all 16 Table 8 P values over HLAreliable");
+   }
+
+   private static void requestClassWideTable8Values(RTIambassador observer, Recorder recorder,
+         CallbackModel callbackModel, ObjectClassHandle momClass, ObjectInstanceHandle object,
+         AttributeHandleSet attributes) throws Exception {
+      int start = recorder.reflections.size();
+      observer.requestAttributeValueUpdate(momClass, attributes, new byte[0]);
+      await(observer, callbackModel,
+         () -> recorder.findCompleteReflection(object, attributes, start) != null,
+         "class-wide HLAfederate Table 8 P-attribute request reflection");
+      JavaTckSupport.check(hasExactlyAttributes(
+            recorder.findCompleteReflection(object, attributes, start), attributes),
+         "class-wide HLAfederate request did not return all 42 Table 8 P values");
+   }
+
+   private static boolean hasExactlyAttributes(Reflection reflection,
+         AttributeHandleSet expected) {
+      return reflection != null && expected != null
+         && reflection.values.size() == expected.size()
+         && reflection.values.keySet().containsAll(expected);
+   }
+
    private static ObjectInstanceHandle verifyInitialReflection(RTIambassador observer,
          Recorder recorder, EncoderFactory encoder, Reflection reflection,
          ObjectClassHandle momClass, AttributeHandle federateHandleAttribute,
@@ -199,7 +337,7 @@ final class FederateMomObjectLifecycleTck {
       JavaTckSupport.check(reflection != null
             && momClass.equals(recorder.discoveredObjects.get(reflection.object))
             && momClass.equals(observer.getKnownObjectClassHandle(reflection.object))
-            && reflection.values.size() == 5
+             && reflection.values.size() >= 5
             && reflection.values.containsKey(federateHandleAttribute)
             && reflection.values.containsKey(federateNameAttribute)
             && reflection.values.containsKey(federateTypeAttribute)
@@ -239,7 +377,7 @@ final class FederateMomObjectLifecycleTck {
          description + " known-object attribute-value request");
       Reflection reflection = recorder.findByFederate(federateHandleAttribute, encodedHandle, start);
       JavaTckSupport.check(reflection != null && reflection.object.equals(object)
-            && reflection.values.size() == 5
+             && hasExactlyAttributes(reflection, recorder.attributes)
             && reflection.values.containsKey(federateNameAttribute)
             && reflection.values.containsKey(federateTypeAttribute)
             && reflection.values.containsKey(federateHostAttribute)
@@ -381,6 +519,33 @@ final class FederateMomObjectLifecycleTck {
             Reflection reflection = reflections.get(index);
             byte[] actual = reflection.values.get(attribute);
             if (actual != null && Arrays.equals(actual, handle)) return reflection;
+         }
+         return null;
+      }
+
+      private int discoveryCount(ObjectClassHandle objectClass) {
+         int count = 0;
+         for (ObjectClassHandle discoveredClass : discoveredObjects.values()) {
+            if (objectClass.equals(discoveredClass)) count++;
+         }
+         return count;
+      }
+
+      private ObjectInstanceHandle findDiscoveredObject(ObjectClassHandle objectClass) {
+         for (Map.Entry<ObjectInstanceHandle, ObjectClassHandle> entry :
+               discoveredObjects.entrySet()) {
+            if (objectClass.equals(entry.getValue())) return entry.getKey();
+         }
+         return null;
+      }
+
+      private Reflection findCompleteReflection(ObjectInstanceHandle object,
+            AttributeHandleSet expected, int start) {
+         for (int index = Math.max(0, start); index < reflections.size(); index++) {
+            Reflection reflection = reflections.get(index);
+            if (object.equals(reflection.object) && hasExactlyAttributes(reflection, expected)) {
+               return reflection;
+            }
          }
          return null;
       }

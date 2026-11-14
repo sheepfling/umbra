@@ -109,7 +109,7 @@ final class CallbackControlsAttributeRelevanceAdvisoriesTck {
 
          publisher.disableCallbacks();
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberPayRateSet);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "unnamed turn-updates-on");
          JavaTckSupport.check(publisherRecorder.updatesOn.isEmpty(),
             "disabled callbacks exposed an unnamed turn-updates-on advisory");
          publisher.enableCallbacks();
@@ -121,7 +121,7 @@ final class CallbackControlsAttributeRelevanceAdvisoriesTck {
 
          publisher.disableCallbacks();
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberPayRateSet);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "unnamed turn-updates-off");
          JavaTckSupport.check(publisherRecorder.updatesOff.isEmpty(),
             "disabled callbacks exposed an unnamed turn-updates-off advisory");
          publisher.enableCallbacks();
@@ -135,7 +135,7 @@ final class CallbackControlsAttributeRelevanceAdvisoriesTck {
          publisher.disableCallbacks();
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscriberAttributeSet,
             namedRateName);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "named turn-updates-on");
          JavaTckSupport.check(publisherRecorder.updatesOn.isEmpty(),
             "disabled callbacks exposed a named turn-updates-on advisory");
          publisher.enableCallbacks();
@@ -147,7 +147,7 @@ final class CallbackControlsAttributeRelevanceAdvisoriesTck {
 
          publisher.disableCallbacks();
          subscriber.unsubscribeObjectClassAttributes(subscriberClass, subscriberAttributeSet);
-         service(publisher, callbackModel, objectClassName);
+         servicePending(publisher, callbackModel, objectClassName, "named turn-updates-off");
          JavaTckSupport.check(publisherRecorder.updatesOff.isEmpty(),
             "disabled callbacks exposed a named turn-updates-off advisory");
          publisher.enableCallbacks();
@@ -208,6 +208,16 @@ final class CallbackControlsAttributeRelevanceAdvisoriesTck {
          ambassador.evokeMultipleCallbacks(0.0, 0.01);
       } else {
          ambassador.getObjectClassHandle(objectClassName);
+      }
+   }
+
+   private static void servicePending(RTIambassador ambassador, CallbackModel model,
+         String objectClassName, String advisory) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.check(ambassador.evokeMultipleCallbacks(0.0, 0.01),
+            "evoked callback control did not admit the pending " + advisory + " advisory");
+      } else {
+         service(ambassador, model, objectClassName);
       }
    }
 

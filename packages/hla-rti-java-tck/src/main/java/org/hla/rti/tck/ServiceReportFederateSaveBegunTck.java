@@ -191,7 +191,7 @@ final class ServiceReportFederateSaveBegunTck {
       JavaTckSupport.check(report != null && reportClass.equals(report.interaction)
             && report.parameters.size() == REPORT_PARAMETER_NAMES.length
             && report.tag.length == 0 && report.transportation.equals(reliable)
-            && report.regionsEmpty,
+            && report.producer == null && report.regionsEmpty,
          "FederateSaveBegun report returned non-standard interaction metadata");
       for (String name : REPORT_PARAMETER_NAMES) {
          JavaTckSupport.check(report.parameters.containsKey(parameters.get(name)),
@@ -260,6 +260,7 @@ final class ServiceReportFederateSaveBegunTck {
       private Map<ParameterHandle, byte[]> parameters;
       private byte[] tag;
       private TransportationTypeHandle transportation;
+      private FederateHandle producer;
       private boolean regionsEmpty;
    }
 
@@ -289,6 +290,7 @@ final class ServiceReportFederateSaveBegunTck {
                   }
                   event.tag = ((byte[]) arguments[2]).clone();
                   event.transportation = (TransportationTypeHandle) arguments[3];
+                  event.producer = (FederateHandle) arguments[4];
                   RegionHandleSet regions = (RegionHandleSet) arguments[5];
                   event.regionsEmpty = regions == null || regions.isEmpty();
                   interactions.add(event);

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java case obtains valid standard handles, encodes them, decodes equal values through standard handle factories, and compares the normalization services. The standard Java API has no handle copy constructor; Java reference identity is not asserted.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-handle-encoding-and-equality",
+      "owner": "standard Java handle interfaces",
+      "language": "java",
+      "signatures": [
+        "FederateHandle.encodedLength() and encode(byte[], int)",
+        "ObjectClassHandle.encodedLength() and encode(byte[], int)",
+        "InteractionClassHandle.encodedLength() and encode(byte[], int)",
+        "ObjectInstanceHandle.encodedLength() and encode(byte[], int)",
+        "Handle.equals(Object)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/HandleNormalizationEqualInstancesTck.java#run"
+      ]
+    },
+    {
+      "id": "standard-java-handle-factory-decode-and-normalization",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "ParameterHandle getParameterHandle(InteractionClassHandle, String)",
+        "FederateHandleFactory.decode(byte[], int)",
+        "ObjectClassHandleFactory.decode(byte[], int)",
+        "InteractionClassHandleFactory.decode(byte[], int)",
+        "ObjectInstanceHandleFactory.decode(byte[], int)",
+        "long normalizeFederateHandle(FederateHandle)",
+        "long normalizeObjectClassHandle(ObjectClassHandle)",
+        "long normalizeInteractionClassHandle(InteractionClassHandle)",
+        "long normalizeObjectInstanceHandle(ObjectInstanceHandle)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/HandleNormalizationEqualInstancesTck.java#run"
+      ]
+    }
+  ]
+}

@@ -48,6 +48,7 @@ final class ServiceReportSynchronizationTck {
          CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador participant = factory.getRtiAmbassador();
+      RTIambassador departed = factory.getRtiAmbassador();
       RTIambassador reportSink = factory.getRtiAmbassador();
       Recorder subjectRecorder = new Recorder();
       Recorder participantRecorder = new Recorder();
@@ -57,18 +58,24 @@ final class ServiceReportSynchronizationTck {
       String federation = "java-tck-service-report-synchronization-" + suffix;
       String subjectName = "java-tck-sync-report-subject-" + suffix;
       String participantName = "java-tck-sync-report-participant-" + suffix;
+      String departedName = "java-tck-sync-report-departed-" + suffix;
       String reportSinkName = "java-tck-sync-report-sink-" + suffix;
       String label = "java-tck-service-report-synchronization-point-" + suffix;
       byte[] tag = {0x53, 0x59, 0x4e, 0x43};
-      boolean subjectConnected = false, participantConnected = false, sinkConnected = false;
-      boolean created = false, subjectJoined = false, participantJoined = false, sinkJoined = false;
+      boolean subjectConnected = false, participantConnected = false;
+      boolean departedConnected = false, sinkConnected = false;
+      boolean created = false, subjectJoined = false, participantJoined = false;
+      boolean departedJoined = false, sinkJoined = false;
       boolean reportSubscribed = false;
       InteractionClassHandle reportClass = null;
+      FederateHandle departedFederate = null;
       try {
          subject.connect(subjectRecorder.proxy(), callbackModel);
          subjectConnected = true;
          participant.connect(participantRecorder.proxy(), callbackModel);
          participantConnected = true;
+         departed.connect(emptyCallbacks(), callbackModel);
+         departedConnected = true;
          reportSink.connect(reportRecorder.proxy(), callbackModel);
          sinkConnected = true;
          subject.createFederationExecutionWithMIM(
@@ -80,6 +87,13 @@ final class ServiceReportSynchronizationTck {
          FederateHandle participantFederate = participant.joinFederationExecution(
             participantName, "java-tck", federation);
          participantJoined = true;
+         departedFederate = departed.joinFederationExecution(
+            departedName, "java-tck", federation);
+         departedJoined = true;
+         departed.resignFederationExecution(ResignAction.NO_ACTION);
+         departedJoined = false;
+         departed.disconnect();
+         departedConnected = false;
          reportSink.joinFederationExecution(reportSinkName, "java-tck", federation);
          sinkJoined = true;
 
@@ -135,7 +149,7 @@ final class ServiceReportSynchronizationTck {
             new Arg[] {
                new Arg(53, "Synchronization point label", quoted(label)),
                new Arg(60, "User-supplied tag", quoted(Base64.getEncoder().encodeToString(tag))),
-               new Arg(18, "Optional set of joined federate designators", null)
+               Arg.handleSet(18, "Optional set of joined federate designators", 2)
             }, null);
          verifyReport(reportSink, reportRecorder.interactions, encoder, reportClass,
             reportParameters, reliable, "ConfirmSynchronizationPointRegistration", 1,
@@ -171,7 +185,7 @@ final class ServiceReportSynchronizationTck {
             new Arg[] {
                new Arg(53, "Synchronization point label", quoted(label)),
                new Arg(60, "User-supplied tag", null),
-               new Arg(18, "Optional set of joined federate designators", null)
+               Arg.handleSet(18, "Optional set of joined federate designators", 2)
             }, null);
          verifyReport(reportSink, reportRecorder.interactions, encoder, reportClass,
             reportParameters, reliable, "ConfirmSynchronizationPointRegistration", 4,
@@ -208,7 +222,33 @@ final class ServiceReportSynchronizationTck {
                new Arg(53, "Synchronization point label", quoted(label)),
                new Arg(18, "Set of joined federate designators", null)
             }, null);
-         JavaTckSupport.check(reportRecorder.interactions.size() == 7,
+
+         String departedMemberLabel =
+            "java-tck-service-report-synchronization-departed-member-" + suffix;
+         FederateHandleSet departedMemberSet = subject.getFederateHandleSetFactory().create();
+         departedMemberSet.add(departedFederate);
+         subject.registerFederationSynchronizationPoint(departedMemberLabel, tag,
+            departedMemberSet);
+         await(callbackModel, subject, participant, reportSink,
+            () -> subjectRecorder.failures.size() == 2
+               && countReports(reportRecorder, encoder, reportInteractionClass, reportParameters,
+                  "RegisterFederationSynchronizationPoint") == 3
+               && countReports(reportRecorder, encoder, reportInteractionClass, reportParameters,
+                  "ConfirmSynchronizationPointRegistration") == 3);
+         RegistrationFailure departedMemberFailure = subjectRecorder.failures.get(1);
+         JavaTckSupport.check(departedMemberFailure.label.equals(departedMemberLabel)
+               && departedMemberFailure.reason == SynchronizationPointFailureReason
+                  .SYNCHRONIZATION_SET_MEMBER_NOT_JOINED,
+            "departed synchronization-set member returned the wrong standard failure reason");
+         verifyReport(reportSink, reportRecorder.interactions, encoder, reportClass,
+            reportParameters, reliable, "ConfirmSynchronizationPointRegistration", 8,
+            new Arg[] {
+               new Arg(53, "Synchronization point label", quoted(departedMemberLabel)),
+               new Arg(6, "Registration-success indicator", null),
+               new Arg(56, "Optional failure reason",
+                  quoted("SYNCHRONIZATION_SET_MEMBER_NOT_JOINED"))
+            }, quoted("SYNCHRONIZATION_SET_MEMBER_NOT_JOINED"));
+         JavaTckSupport.check(reportRecorder.interactions.size() == 9,
             "synchronization report sink received an unexpected report count");
 
          reportSink.unsubscribeInteractionClass(reportClass);
@@ -230,6 +270,7 @@ final class ServiceReportSynchronizationTck {
          }
          try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
          try { participant.setServiceReportingSwitch(false); } catch (Exception ignored) { }
+         if (departedJoined) resign(departed);
          if (participantJoined) resign(participant);
          if (subjectJoined) resign(subject);
          if (sinkJoined) resign(reportSink);
@@ -238,6 +279,7 @@ final class ServiceReportSynchronizationTck {
             catch (Exception ignored) { }
          }
          if (sinkConnected) disconnect(reportSink);
+         if (departedConnected) disconnect(departed);
          if (participantConnected) disconnect(participant);
          if (subjectConnected) disconnect(subject);
       }
@@ -308,6 +350,9 @@ final class ServiceReportSynchronizationTck {
             JavaTckSupport.check(expected.value.equals(value.getValue()),
                service + " report returned the wrong argument value at index " + index);
          }
+         if (expected.expectedHandleSetSize >= 0) {
+            verifyQuotedHandleSet(value.getValue(), expected.expectedHandleSetSize, service);
+         }
          if (expectedLastArgumentValue != null && index == 2) {
             JavaTckSupport.check(expectedLastArgumentValue.equals(value.getValue()),
                service + " report returned the wrong synchronization failure reason");
@@ -319,6 +364,26 @@ final class ServiceReportSynchronizationTck {
       verifyArgument(returned, 34, "", "null", service + " return argument");
       JavaTckSupport.check(decodeString(encoder, report, parameters.get("HLAexception")).isEmpty(),
          service + " successful invocation report carried an exception");
+   }
+
+   private static void verifyQuotedHandleSet(String encoded, int expectedSize, String service) {
+      JavaTckSupport.check(encoded.length() >= 2 && encoded.charAt(0) == '['
+            && encoded.charAt(encoded.length() - 1) == ']',
+         service + " report did not use the bracketed handle-set form");
+      Set<String> values = new HashSet<>();
+      String contents = encoded.substring(1, encoded.length() - 1);
+      if (!contents.isEmpty()) {
+         for (String item : contents.split(",", -1)) {
+            JavaTckSupport.check(item.length() >= 2 && item.charAt(0) == '"'
+                  && item.charAt(item.length() - 1) == '"',
+               service + " report contained an unquoted handle-set member");
+            String value = item.substring(1, item.length() - 1);
+            JavaTckSupport.check(!value.isEmpty() && values.add(value),
+               service + " report contained an empty or repeated handle-set member");
+         }
+      }
+      JavaTckSupport.check(values.size() == expectedSize,
+         service + " report returned the wrong number of handle-set members");
    }
 
    private static String decodeString(EncoderFactory encoder, Interaction event,
@@ -411,10 +476,18 @@ final class ServiceReportSynchronizationTck {
       private final int type;
       private final String name;
       private final String value;
+      private final int expectedHandleSetSize;
       private Arg(int type, String name, String value) {
+         this(type, name, value, -1);
+      }
+      private Arg(int type, String name, String value, int expectedHandleSetSize) {
          this.type = type;
          this.name = name;
          this.value = value;
+         this.expectedHandleSetSize = expectedHandleSetSize;
+      }
+      private static Arg handleSet(int type, String name, int expectedSize) {
+         return new Arg(type, name, null, expectedSize);
       }
    }
 

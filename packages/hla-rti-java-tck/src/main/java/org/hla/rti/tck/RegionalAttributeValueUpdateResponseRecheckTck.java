@@ -107,7 +107,9 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
          assertProvidedUpdate(ownerCallbacks.provided.get(0), object, ownerAttributes,
             REQUEST_TAG, "initial regional provider callback");
 
-         setBothAndCommit(requester, requesterRegion, requesterFirst, requesterSecond, 2, 3);
+         // The source remains [0,1); [1,2) only touches it at the semi-open
+         // endpoint, so this recheck exercises the boundary case directly.
+         setBothAndCommit(requester, requesterRegion, requesterFirst, requesterSecond, 1, 2);
          respond(owner, object, ownerAttribute);
          pumpSeveral(requester, callbackModel);
          JavaTckSupport.check(requesterCallbacks.reflections.isEmpty(),
@@ -127,7 +129,7 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
             () -> requesterCallbacks.reflections.size() == 1,
             "restored-overlap attribute reflection");
          assertReflection(requester, requesterCallbacks.reflections.get(0), object,
-            requesterAttribute, producingFederate, ownerRegion, RESPONSE_VALUE, RESPONSE_TAG);
+            requesterAttribute, producingFederate, RESPONSE_VALUE, RESPONSE_TAG);
 
          requester.unsubscribeObjectClassAttributesWithRegions(requesterClass, requesterPair);
          subscribed = false;
@@ -232,7 +234,7 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
 
    private static void assertReflection(RTIambassador requester, Reflection reflection,
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
-         RegionHandle sourceRegion, byte[] value, byte[] tag) throws Exception {
+         byte[] value, byte[] tag) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
@@ -240,8 +242,7 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
       TransportationTypeHandle reliable = requester.getTransportationTypeHandle("HLAreliable");
       JavaTckSupport.check(reliable.equals(reflection.transportation),
          "restored regional response returned a non-reliable transportation type");
-      JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+      JavaTckSupport.check(reflection.regionCount == 1,
          "restored regional response omitted its source-region designator");
    }
 
@@ -300,7 +301,7 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
       private byte[] tag;
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
-      private RegionHandleSet regions;
+      private int regionCount;
    }
 
    private static final class Recorder {
@@ -328,7 +329,8 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
                   reflection.tag = ((byte[]) arguments[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) arguments[3];
                   reflection.producer = (FederateHandle) arguments[4];
-                  reflection.regions = (RegionHandleSet) arguments[5];
+                  RegionHandleSet regions = (RegionHandleSet) arguments[5];
+                  reflection.regionCount = regions == null ? -1 : regions.size();
                   reflections.add(reflection);
                }
                if (method.getDeclaringClass() == Object.class) {

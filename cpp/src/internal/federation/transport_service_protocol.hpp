@@ -366,6 +366,13 @@ enum class TransportServiceOperation : std::uint16_t {
   // Federation execution listing returns the authoritative execution catalog
   // and each execution's logical-time implementation name.
   list_federation_executions = 148U,
+  // An RTI-owned forced departure keeps the transport session connected but
+  // ends one joined-federate lifetime and delivers the official Federate
+  // Resigned callback to that federate.
+  federate_resigned = 149U,
+  // Read the federation-level Non Regulated Grant switch from the
+  // authoritative process-owned execution state.
+  get_non_regulated_grant_switch = 150U,
 };
 
 enum class TransportServiceStatus : std::uint16_t {
@@ -375,6 +382,7 @@ enum class TransportServiceStatus : std::uint16_t {
   internal_error = 3U,
   service_reporting_interlock = 4U,
   invalid_logical_time = 5U,
+  federation_execution_already_exists = 6U,
 };
 
 struct TransportServiceMessage final {

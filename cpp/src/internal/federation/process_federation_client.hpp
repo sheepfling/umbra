@@ -19,6 +19,7 @@
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace rti1516_2025 {
@@ -50,6 +51,21 @@ class ProcessFederationClientError final : public std::runtime_error {
   std::optional<TransportServiceStatus> status_;
 };
 
+struct ProcessFederationClientOptions final {
+  // The private federate transport sends a heartbeat after this much outbound
+  // silence. Keep the default below the RTI's default RTI_TIMEOUT_HEART.
+  std::chrono::milliseconds federateHeartbeatInterval{60000};
+  // Time without any response from the RTI before the client treats the
+  // connection as unavailable and begins the reconnect procedure.
+  std::chrono::milliseconds federateHeartbeatTimeout{180000};
+  // Table 32's FED_TIMEOUT_RECONNECT default bounds automatic resume retries
+  // before a permanently unavailable endpoint becomes Connection Lost.
+  std::chrono::milliseconds transportRecoveryWindow{600000};
+  // Internal test seam to hold the receive loop before its next frame read.
+  // Production construction leaves this unset.
+  std::function<void()> beforeTransportReadForTesting;
+};
+
 class ProcessFederationClient final {
  public:
   using CallbackCompletionHandler =
@@ -63,18 +79,25 @@ class ProcessFederationClient final {
       TransportEndpointIdentity localIdentity,
       std::shared_ptr<RuntimeInstrumentation> instrumentation = {},
       FailureHandler failureHandler = {},
-      ForcedResignationHandler forcedResignationHandler = {});
+      ForcedResignationHandler forcedResignationHandler = {},
+      ProcessFederationClientOptions options = {});
 
   ProcessFederationClient(ProcessFederationClient const&) = delete;
   ProcessFederationClient& operator=(ProcessFederationClient const&) = delete;
 
   ~ProcessFederationClient();
 
+  // Fault-injection seam for private process-transport recovery tests. This
+  // closes only the active socket; the joined client/session remains alive.
+  void disconnectTransportForTesting() noexcept;
+
   void createFederationExecution(
       std::wstring federationName,
       std::vector<std::wstring> fomModules = {},
       std::optional<std::wstring> mimModule = std::nullopt,
-      std::wstring logicalTimeImplementationName = {});
+      std::wstring logicalTimeImplementationName = {},
+      bool hasFomInputs = false,
+      std::vector<std::wstring> unsupportedTransportationTypeNames = {});
 
   [[nodiscard]] ProcessFederationDestroyResult destroyFederationExecution(
       std::wstring federationName);
@@ -175,6 +198,10 @@ class ProcessFederationClient final {
       bool switchValue);
   [[nodiscard]] ProcessFederationExceptionReportingSwitchResult
   getExceptionReportingSwitch(
+      std::wstring federationName,
+      std::uint64_t federateId);
+  [[nodiscard]] ProcessFederationNonRegulatedGrantSwitchResult
+  getNonRegulatedGrantSwitch(
       std::wstring federationName,
       std::uint64_t federateId);
   void reportServiceException(
@@ -937,6 +964,7 @@ class ProcessFederationClient final {
   // background stream dispatcher from racing it.  Its synchronous drain may
   // cross that suppression after the request/response exchange has ended.
   void dispatchPendingPushedEvents(bool allowRequestOwnedSuppression);
+  [[nodiscard]] bool hasPendingFederateResignedEvent() const noexcept;
 
   // Events captured while a request was in flight are drained by the public
   // ambassador before it returns from that service. This count never reads
@@ -1010,13 +1038,18 @@ class ProcessFederationClient final {
   [[nodiscard]] std::shared_ptr<ProcessTransportConnection> connection() const
       noexcept;
 
+  // Interrupt blocking transport work without joining workers or releasing
+  // callback state. Used before stopping an ambassador-owned immediate pump.
+  void interrupt() noexcept;
+  [[nodiscard]] bool terminateSession() noexcept;
   void close() noexcept;
 
  private:
   [[nodiscard]] TransportServiceMessage request(
       TransportServiceOperation operation,
       std::vector<std::uint8_t> payload,
-      bool dispatchCallbacks = true);
+      bool dispatchCallbacks = true,
+      bool bestEffort = false);
   [[nodiscard]] ProcessFederationInteractionEvent receivePushedEvent();
   [[nodiscard]] ProcessFederationAttributeUpdateEvent
   receivePushedAttributeUpdate();
@@ -1066,9 +1099,27 @@ class ProcessFederationClient final {
   void deferTsoDeliveryAcknowledgement(std::uint64_t messageId);
   void flushDeferredTsoDeliveryAcknowledgements();
   [[nodiscard]] std::shared_ptr<ProcessFederationCallbackBridge> requireCallbackBridge() const;
-  void bufferEvent(TransportServiceMessage message);
+  void bufferEvent(
+      TransportServiceMessage message,
+      std::optional<std::uint32_t> callbackRequestSequenceNumber =
+          std::nullopt);
+  void sendCallbackResponse(
+      std::uint32_t callbackRequestSequenceNumber,
+      std::exception_ptr callbackFailure);
   void bufferReceiveResult(ProcessFederationReceiveInteractionResult result);
   void dispatchTransportFailures();
+  void heartbeatLoop() noexcept;
+  [[nodiscard]] ProcessTransportConnection::FailureHandler
+  makeTransportFailureHandler();
+  [[nodiscard]] std::shared_ptr<ProcessTransportConnection>
+  connectTransport(
+      std::shared_ptr<ProcessTransportSessionState> sessionState = {},
+      ProcessTransportConnection::ConnectedHandler connectedHandler = {},
+      std::optional<std::chrono::steady_clock::time_point> deadline = std::nullopt);
+  [[nodiscard]] bool reconnectTransport(
+      ProcessTransportSession& readerSession,
+      std::string& terminalFailure);
+  void noteOutboundMessageSent() noexcept;
   void receiveLoop() noexcept;
   void dispatchLoop() noexcept;
   void rethrowPendingCallbackException();
@@ -1082,24 +1133,48 @@ class ProcessFederationClient final {
   mutable std::recursive_mutex transactionMutex_;
   std::condition_variable_any callbackEventsAvailable_;
   std::atomic_bool closing_{false};
+  std::atomic_bool terminating_{false};
+  std::atomic_bool reconnecting_{false};
+  ProcessTransportAddress address_;
+  TransportEndpointIdentity localIdentity_;
+  std::shared_ptr<RuntimeInstrumentation> instrumentation_;
+  ForcedResignationHandler forcedResignationHandler_;
   FailureHandler failureHandler_;
   std::deque<std::wstring> pendingTransportFailures_;
   std::shared_ptr<ProcessTransportConnection> connection_;
   // Immutable after construction so close can interrupt a blocked stream
   // exchange without first acquiring transactionMutex_.
   std::shared_ptr<ProcessTransportConnection> const shutdownConnection_;
+  mutable std::mutex connectionLifecycleMutex_;
+  std::shared_ptr<ProcessTransportConnection> activeShutdownConnection_;
+  std::shared_ptr<ProcessTransportConnection> recoveryAttemptConnection_;
   std::unique_ptr<ProcessTransportSession> session_;
+  std::chrono::milliseconds federateHeartbeatInterval_;
+  std::chrono::milliseconds federateHeartbeatTimeout_;
+  std::chrono::milliseconds transportRecoveryWindow_;
+  std::function<void()> beforeTransportReadForTesting_;
+  std::mutex heartbeatMutex_;
+  std::condition_variable heartbeatChanged_;
+  std::chrono::steady_clock::time_point lastOutboundMessageSent_{
+      std::chrono::steady_clock::now()};
+  std::uint64_t outboundActivityGeneration_ = 0U;
+  std::thread heartbeatThread_;
   std::thread streamReaderThread_;
   std::thread callbackDispatchThread_;
   std::thread::id streamReaderId_;
   mutable std::mutex responseMutex_;
   std::condition_variable responseAvailable_;
   std::map<std::uint64_t, TransportServiceMessage> responses_;
+  std::optional<std::uint32_t> terminationSequenceNumber_;
+  bool sessionTerminatedReceived_ = false;
   bool streamReaderStopped_ = false;
   std::string streamReaderFailure_;
+  std::string lastTransportFailure_;
   std::shared_ptr<ProcessFederationCallbackBridge> callbackBridge_;
   std::shared_ptr<std::atomic_bool> attributeRelevanceAdvisorySwitchState_;
   struct PendingRequestRetraction final { std::uint64_t messageId; };
+  struct PendingFederateResigned final { std::wstring reason; };
+  struct PendingCallbackResponseOnly final {};
   struct PendingDeferredAttributeUpdate final {
     std::wstring federationName;
     std::uint64_t receivingFederateId;
@@ -1129,11 +1204,29 @@ class ProcessFederationClient final {
       PendingFlushQueueGrant,
       PendingTimeRegulationEnabled,
       PendingTimeConstrainedEnabled,
-      PendingRequestRetraction>;
+      PendingRequestRetraction,
+      PendingFederateResigned,
+      PendingCallbackResponseOnly>;
+  struct PendingEventEnvelope final {
+    template <typename Event>
+    explicit PendingEventEnvelope(Event&& pendingEvent)
+        : PendingEventEnvelope(
+              std::forward<Event>(pendingEvent), std::nullopt) {}
+
+    template <typename Event>
+    PendingEventEnvelope(
+        Event&& pendingEvent,
+        std::optional<std::uint32_t> callbackRequestSequence)
+        : event(std::forward<Event>(pendingEvent)),
+          callbackRequestSequenceNumber(callbackRequestSequence) {}
+
+    PendingEvent event;
+    std::optional<std::uint32_t> callbackRequestSequenceNumber;
+  };
   // One FIFO preserves the order of heterogeneous pushed frames. Keeping a
   // single draining owner avoids taking a second lock across the dispatcher;
   // an immediate callback may reenter on that same owner thread.
-  std::deque<PendingEvent> pendingEvents_;
+  std::deque<PendingEventEnvelope> pendingEvents_;
   std::thread::id dispatchOwner_;
   std::size_t dispatchDepth_ = 0U;
   std::size_t dataCallbackAdmissionDepth_ = 0U;

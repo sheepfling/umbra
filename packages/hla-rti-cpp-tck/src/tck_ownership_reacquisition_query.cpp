@@ -69,6 +69,20 @@ void scenarioOwnershipReacquisitionQuery(
               owner.recorder().ownershipInformationEvents().empty(),
           "query after divestiture did not report the attribute unowned");
 
+  acquirer.recorder().clearOwnershipRecords();
+  acquirer.rtiAmbassador().queryAttributeOwnership(object, acquirerAttributes);
+  waitFor(acquirer,
+          [&] { return !acquirer.recorder().ownershipNotOwnedEvents().empty(); },
+          options, "ownership-reacquisition member unowned report");
+  auto const memberUnowned = acquirer.recorder().ownershipNotOwnedEvents();
+  require(memberUnowned.size() == 1U && memberUnowned.front().object == object &&
+              memberUnowned.front().attributes == acquirerAttributes &&
+              acquirer.recorder().ownershipInformationEvents().empty() &&
+              acquirer.recorder().ownershipOwnedByRtiEvents().empty(),
+          "another joined federate did not observe the unowned attribute");
+  require(!acquirer.rtiAmbassador().isAttributeOwnedByFederate(object, acquirerAttribute),
+          "the observing federate reports itself as owner after unconditional divestiture");
+
   std::array<std::uint8_t, 2> const acquisitionBytes{0xA7U, 0x0CU};
   rti::VariableLengthData const acquisitionTag(
       acquisitionBytes.data(), acquisitionBytes.size());
@@ -94,6 +108,17 @@ void scenarioOwnershipReacquisitionQuery(
               transferred.front().owner == acquirer.federateHandle() &&
               owner.recorder().ownershipNotOwnedEvents().empty(),
           "final ownership query did not identify the second federate");
+  acquirer.recorder().clearOwnershipRecords();
+  acquirer.rtiAmbassador().queryAttributeOwnership(object, acquirerAttributes);
+  waitFor(acquirer,
+          [&] { return !acquirer.recorder().ownershipInformationEvents().empty(); },
+          options, "new owner's final ownership report");
+  auto const newOwnerReport = acquirer.recorder().ownershipInformationEvents();
+  require(newOwnerReport.size() == 1U && newOwnerReport.front().object == object &&
+              newOwnerReport.front().attributes == acquirerAttributes &&
+              newOwnerReport.front().owner == acquirer.federateHandle() &&
+              acquirer.recorder().ownershipNotOwnedEvents().empty(),
+          "new owner did not observe itself as the sole owner after acquisition");
   require(!owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
               acquirer.rtiAmbassador().isAttributeOwnedByFederate(
                   object, acquirerAttribute),

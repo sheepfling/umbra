@@ -20,9 +20,13 @@ void runRestoreMixedTsoFourMember(Options const& options, rti::CallbackModel mod
   std::wstring const saveLabel = L"tck-mixed-tso-four-member-save";
   std::array<std::uint8_t, 5> const attributePayload{'M', 'I', 'X', '-', 'A'};
   std::array<std::uint8_t, 5> const interactionPayload{'M', 'I', 'X', '-', 'I'};
+  std::array<std::uint8_t, 5> const postSaveInteractionPayload{'M', 'I', 'X', '-', 'U'};
   std::array<std::uint8_t, 5> const commonTagBytes{'M', 'I', 'X', '-', 'T'};
+  std::array<std::uint8_t, 5> const postSaveTagBytes{'M', 'I', 'X', '-', 'L'};
   std::array<std::uint8_t, 5> const deletionTagBytes{'M', 'I', 'X', '-', 'D'};
   rti::VariableLengthData const commonTag(commonTagBytes.data(), commonTagBytes.size());
+  rti::VariableLengthData const postSaveTag(
+      postSaveTagBytes.data(), postSaveTagBytes.size());
   rti::VariableLengthData const deletionTag(deletionTagBytes.data(), deletionTagBytes.size());
   auto const expectedAttribute = std::vector<std::uint8_t>(
       attributePayload.begin(), attributePayload.end());
@@ -96,6 +100,8 @@ void runRestoreMixedTsoFourMember(Options const& options, rti::CallbackModel mod
                                *ownerTime.epsilon, 7U);
   auto const time8 = timeAfter(*ownerTime.factory, *ownerTime.initial,
                                *ownerTime.epsilon, 8U);
+  auto const time9 = timeAfter(*ownerTime.factory, *ownerTime.initial,
+                               *ownerTime.epsilon, 9U);
   auto const time10 = timeAfter(*ownerTime.factory, *ownerTime.initial,
                                 *ownerTime.epsilon, 10U);
   auto const encoded7 = encodeTime(*time7);
@@ -168,6 +174,18 @@ void runRestoreMixedTsoFourMember(Options const& options, rti::CallbackModel mod
            observer.federationSavedCount() == 1U;
   }, options, "mixed TSO four-member federation saved");
 
+  rti::ParameterHandleValueMap postSaveParameters;
+  postSaveParameters.emplace(senderParameter,
+      rti::VariableLengthData(
+          postSaveInteractionPayload.data(), postSaveInteractionPayload.size()));
+  auto const postSaveRetraction = sender.rtiAmbassador().sendInteraction(
+      senderInteraction, postSaveParameters, postSaveTag, *time9);
+  require(postSaveRetraction.isValid(),
+          "Post-save TSO interaction did not return a valid retraction handle");
+  require(
+      observer.recorder().timedInteractions().empty(),
+          "Post-save TSO interaction was delivered before the restoring execution advanced");
+
   owner.rtiAmbassador().retract(attributeRetraction);
   sender.rtiAmbassador().retract(interactionRetraction);
   owner.rtiAmbassador().retract(deletionRetraction);
@@ -206,9 +224,11 @@ void runRestoreMixedTsoFourMember(Options const& options, rti::CallbackModel mod
   }, options, "mirror restored reflection, removal, and flush grant");
   observer.rtiAmbassador().flushQueueRequest(*time10);
   waitForSessions({&observer}, [&] {
-    return observer.recorder().timedInteractions().size() == 1U &&
+    return !observer.recorder().timedInteractions().empty() &&
            observer.recorder().flushQueueGrants().size() == 1U;
   }, options, "observer restored interaction and flush grant");
+  require(observer.recorder().timedInteractions().size() == 1U,
+          "Restore delivered a post-save interaction absent from the saved state");
   auto const reflection = mirror.recorder().timedReflections().front();
   auto const removal = mirror.recorder().timedRemovals().front();
   auto const interaction = observer.recorder().timedInteractions().front();

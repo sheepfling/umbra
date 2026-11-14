@@ -70,9 +70,9 @@ final class FederateMomDirectedSubscriptionQueryTck {
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+          requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+          FederateHandle targetFederate = requester.getFederateHandle(subjectName);
 
          ObjectClassHandle subjectObjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle requesterObjectClass = requester.getObjectClassHandle(objectClassName);
@@ -161,14 +161,13 @@ final class FederateMomDirectedSubscriptionQueryTck {
          classCount.decode(directedReport.parameters.get(directedCount));
          ObjectClassHandle reportedObjectClass = requester.getObjectClassHandleFactory().decode(
             directedReport.parameters.get(directedObjectClass), 0);
-         List<Subscription> subscriptions = decodeSubscriptions(encoder,
-            requester.getInteractionClassHandleFactory(),
+         List<InteractionClassHandle> subscriptions = decodeDirectedInteractionClasses(
+            encoder, requester.getInteractionClassHandleFactory(),
             directedReport.parameters.get(directedList));
          JavaTckSupport.check(classCount.getValue() == 1
                && requesterObjectClass.equals(reportedObjectClass)
                && subscriptions.size() == 1
-               && requesterInteraction.equals(subscriptions.get(0).interaction)
-               && !subscriptions.get(0).active,
+               && requesterInteraction.equals(subscriptions.get(0)),
             "directed-subscription report did not identify exactly the adapter-selected passive pair");
       } finally {
          if (objectReportSubscribed && requesterJoined && objectReportClass != null) try {
@@ -252,9 +251,9 @@ final class FederateMomDirectedSubscriptionQueryTck {
          created = true;
          subject.joinFederationExecution(subjectName, federateType, federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, federateType, federation);
+          requester.joinFederationExecution(requesterName, federateType, federation);
          requesterJoined = true;
+          FederateHandle targetFederate = requester.getFederateHandle(subjectName);
 
          ObjectClassHandle subjectPrimaryObjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle subjectSecondObjectClass = subject.getObjectClassHandle(secondObjectClassName);
@@ -433,7 +432,8 @@ final class FederateMomDirectedSubscriptionQueryTck {
             HLAinteger32BE directedClassCount = encoder.createHLAinteger32BE();
             directedClassCount.decode(fullDirectedReport.parameters.get(directedReportCount));
             JavaTckSupport.check(directedClassCount.getValue() == 0
-                  && decodeSubscriptions(encoder, requester.getInteractionClassHandleFactory(),
+                  && decodeDirectedInteractionClasses(encoder,
+                     requester.getInteractionClassHandleFactory(),
                      fullDirectedReport.parameters.get(directedReportList)).isEmpty(),
                "full directed-subscription NULL report did not encode zero classes and an empty interaction list");
          }
@@ -513,19 +513,19 @@ final class FederateMomDirectedSubscriptionQueryTck {
          classCount.decode(report.parameters.get(countParameter));
          ObjectClassHandle reportedObjectClass = objectFactory.decode(
             report.parameters.get(objectClassParameter), 0);
-         List<Subscription> subscriptions = decodeSubscriptions(encoder, interactionFactory,
-            report.parameters.get(listParameter));
+         List<InteractionClassHandle> subscriptions = decodeDirectedInteractionClasses(
+            encoder, interactionFactory, report.parameters.get(listParameter));
          JavaTckSupport.check(classCount.getValue() == expectedObjectClassCount
-               && subscriptions.size() == 1 && !subscriptions.get(0).active,
-            "directed-subscription report had the wrong class count, subscription count, or active state");
+               && subscriptions.size() == 1,
+            "directed-subscription report had the wrong class count or interaction count");
          if (reportedObjectClass.equals(primaryObjectClass)) {
             JavaTckSupport.check(expectedObjectClassCount == 2 && !foundPrimary
-                  && subscriptions.get(0).interaction.equals(primaryInteraction),
+                  && subscriptions.get(0).equals(primaryInteraction),
                "primary directed-subscription report was duplicated or identified the wrong pair");
             foundPrimary = true;
          } else if (reportedObjectClass.equals(secondObjectClass)) {
             JavaTckSupport.check(!foundSecond
-                  && subscriptions.get(0).interaction.equals(secondInteraction),
+                  && subscriptions.get(0).equals(secondInteraction),
                "secondary directed-subscription report was duplicated or identified the wrong pair");
             foundSecond = true;
          } else {
@@ -537,6 +537,19 @@ final class FederateMomDirectedSubscriptionQueryTck {
             ? foundPrimary && foundSecond
             : !foundPrimary && foundSecond,
          "directed-subscription rows did not cover the exact expected object-class groups");
+   }
+
+   private static List<InteractionClassHandle> decodeDirectedInteractionClasses(
+         EncoderFactory encoder, InteractionClassHandleFactory interactionFactory,
+         byte[] encoded) throws Exception {
+      HLAvariableArray<HLAvariableArray<HLAbyte>> handles = encoder.createHLAvariableArray(
+         outer -> encoder.createHLAvariableArray(inner -> encoder.createHLAbyte()));
+      handles.decode(encoded);
+      List<InteractionClassHandle> result = new ArrayList<>();
+      for (HLAvariableArray<HLAbyte> handle : handles) {
+         result.add(interactionFactory.decode(handle.toByteArray(), 0));
+      }
+      return result;
    }
 
    private static List<Subscription> decodeSubscriptions(EncoderFactory encoder,

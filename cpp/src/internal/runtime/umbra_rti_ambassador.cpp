@@ -633,16 +633,16 @@ void validateTsoTimestamp(
     // IEEE 1516.1-2025 §8.1.5 uses the requested logical time while the
     // federate is Time Advancing, then its current logical time after a grant.
     *lowerBound += *timeSnapshot.lookahead;
-    // The exclusive epsilon is needed while a zero-lookahead advance is
-    // pending, but IEEE 1516.1-2025 §8.9 permits a regulating federate to send
-    // at its granted current time when its actual lookahead is zero. Keep the
-    // snapshot's exclusive boundary for peer-grant scheduling; do not apply
-    // it as a sender-side floor after that grant has completed.
-    bool const completedZeroLookaheadGrant =
-        timeSnapshot.minimumTimestampIsExclusive &&
-        !timeSnapshot.timeAdvancePending && timeSnapshot.lookahead->isZero();
+    // IEEE 1516.1-2025 §8.1.5 keeps TAR/NMR's zero-lookahead boundary
+    // exclusive after grant. §§8.9 and 8.11.3 separately permit an equal-time
+    // TSO send after a forward TARA or NMRA grant, so only those completed-
+    // available-grant cases may use the inclusive boundary.
+    bool const completedForwardAvailableGrantAllowsEqualTime =
+        !timeSnapshot.timeAdvancePending &&
+        timeSnapshot.allowEqualTimeTsoAfterAvailableGrant &&
+        timeSnapshot.lookahead->isZero();
     if (timeSnapshot.minimumTimestampIsExclusive &&
-        !completedZeroLookaheadGrant) {
+        !completedForwardAvailableGrantAllowsEqualTime) {
       auto factory = umbra::detail::makeFederationLogicalTimeFactory(
           timeSnapshot.implementationName);
       if (!factory || factory->getName() != timeSnapshot.implementationName) {
@@ -2468,6 +2468,9 @@ UmbraRtiAmbassador::UmbraRtiAmbassador(
 
 UmbraRtiAmbassador::~UmbraRtiAmbassador() {
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processFederationClient_) {
+    processFederationClient_->interrupt();
+  }
   stopPeriodicMomScheduler();
   if (processFederationClient_) {
     processFederationClient_->close();
@@ -2573,6 +2576,11 @@ void UmbraRtiAmbassador::disconnect() {
   }
 
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  bool processSessionTerminated = true;
+  if (processFederationClient) {
+    processSessionTerminated = processFederationClient->terminateSession();
+    processFederationClient->interrupt();
+  }
   stopPeriodicMomScheduler();
 #endif
 
@@ -2588,6 +2596,10 @@ void UmbraRtiAmbassador::disconnect() {
   }
   if (processFederationClient) {
     processFederationClient->close();
+  }
+  if (!processSessionTerminated) {
+    throw RTIinternalError(
+        L"The RTI did not complete the process session termination exchange.");
   }
 #endif
 }
@@ -2700,6 +2712,7 @@ void UmbraRtiAmbassador::listFederationExecutions() {
   auto instrumentationScope = beginRtiCall("listFederationExecutions");
   std::shared_ptr<CallbackSession> callbackSession;
   FederationExecutionInformationVector report;
+  bool joinedFederate = false;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra::detail::ProcessFederationClient* processClient = nullptr;
 #endif
@@ -2710,6 +2723,7 @@ void UmbraRtiAmbassador::listFederationExecutions() {
     if (!callbackSession) {
       throw RTIinternalError(L"The embedded connection has no federate ambassador callback recipient.");
     }
+    joinedFederate = joinedFederationName_.has_value() && joinedFederateId_.has_value();
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     if (processEndpointActive_) {
       processClient = processFederationClient_.get();
@@ -2743,6 +2757,23 @@ void UmbraRtiAmbassador::listFederationExecutions() {
   }
 #endif
 
+  if (joinedFederate) {
+    std::vector<umbra::detail::MomFederationExecutionInformation> reportValues;
+    reportValues.reserve(report.size());
+    for (auto const& federation : report) {
+      reportValues.push_back({
+          federation.federationExecutionName,
+          federation.logicalTimeImplementationName});
+    }
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"ListFederationExecutions",
+        umbra::detail::MomServiceType::federation_management,
+        {},
+        {umbra::detail::MomArgumentType::federation_execution_information_set,
+         L"Federation execution information set",
+         umbra::detail::formatMomFederationExecutionInformationSet(reportValues)});
+  }
+
   // The dispatcher may invoke an immediate callback synchronously. Submit only
   // after releasing both runtime locks so federate code can safely make an RTI
   // call from the report callback.
@@ -2758,6 +2789,7 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
   auto instrumentationScope = beginRtiCall("listFederationExecutionMembers");
   std::shared_ptr<CallbackSession> callbackSession;
   std::optional<std::vector<umbra::detail::FederateMembership>> members;
+  bool joinedFederate = false;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   umbra::detail::ProcessFederationClient* processClient = nullptr;
 #endif
@@ -2768,6 +2800,7 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
     if (!callbackSession) {
       throw RTIinternalError(L"The embedded connection has no federate ambassador callback recipient.");
     }
+    joinedFederate = joinedFederationName_.has_value() && joinedFederateId_.has_value();
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     if (processEndpointActive_) {
       processClient = processFederationClient_.get();
@@ -2810,6 +2843,17 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
     for (auto const& member : processMembers.members) {
       report.emplace_back(member.name, member.type);
     }
+    if (joinedFederate) {
+      appendSuccessfulServiceReportToFileIfSelected(
+          L"ListFederationExecutionMembers",
+          umbra::detail::MomServiceType::federation_management,
+          {{umbra::detail::MomArgumentType::string,
+            L"Federation execution name",
+            umbra::detail::formatMomString(federationName)}},
+          {umbra::detail::MomArgumentType::federation_execution_member_set,
+           L"Federation execution member set",
+           umbra::detail::formatMomFederationExecutionMemberInformationVector(report)});
+    }
     callbacks_->submit(
         [callbackSession = std::move(callbackSession),
          federationName,
@@ -2834,6 +2878,17 @@ void UmbraRtiAmbassador::listFederationExecutionMembers(
   }
 
   auto report = federationExecutionMemberReport(*members);
+  if (joinedFederate) {
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"ListFederationExecutionMembers",
+        umbra::detail::MomServiceType::federation_management,
+        {{umbra::detail::MomArgumentType::string,
+          L"Federation execution name",
+          umbra::detail::formatMomString(federationName)}},
+        {umbra::detail::MomArgumentType::federation_execution_member_set,
+         L"Federation execution member set",
+         umbra::detail::formatMomFederationExecutionMemberInformationVector(report)});
+  }
   callbacks_->submit([
       callbackSession = std::move(callbackSession),
       federationName,

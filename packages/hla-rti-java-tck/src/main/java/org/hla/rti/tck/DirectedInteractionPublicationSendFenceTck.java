@@ -96,9 +96,6 @@ final class DirectedInteractionPublicationSendFenceTck {
          publisherAttributesSubscribed = true;
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          receiverAttributesSubscribed = true;
-         publisher.publishObjectClassDirectedInteractions(publisherClass,
-            JavaTckSupport.interactionSet(publisher, publisherInteraction));
-         directedPublished = true;
          receiver.subscribeObjectClassDirectedInteractions(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction));
          directedSubscribed = true;
@@ -123,8 +120,23 @@ final class DirectedInteractionPublicationSendFenceTck {
                .equals(publisherClass),
             "publisher learned the wrong directed target class");
 
-         byte[] initialValue = new byte[] {0x44, 0x49, 0x52};
-         byte[] initialTag = new byte[] {0x49, 0x4e, 0x49};
+         byte[] initialValue = new byte[] {(byte) 0xd1, 0x72};
+         byte[] initialTag = new byte[] {0x50, 0x55, 0x42};
+         InteractionClassHandle initiallyUnpublishedInteraction = publisherInteraction;
+         JavaTckSupport.expectFailure(
+            () -> send(publisher, initiallyUnpublishedInteraction, publisherTarget,
+               publisherParameter, initialValue, initialTag),
+            "InteractionClassNotPublished",
+            "directed send before initial interaction publication");
+         pump(receiver, callbackModel);
+         JavaTckSupport.check(receiverRecorder.directed.isEmpty(),
+            "directed interaction sent before initial publication produced a callback");
+         JavaTckSupport.check(receiverRecorder.unexpectedDirectedCount.get() == 0,
+            "unpublished directed send used an unexpected callback overload");
+
+         publisher.publishObjectClassDirectedInteractions(publisherClass,
+            JavaTckSupport.interactionSet(publisher, publisherInteraction));
+         directedPublished = true;
          send(publisher, publisherInteraction, publisherTarget, publisherParameter,
             initialValue, initialTag);
          await(receiver, callbackModel,

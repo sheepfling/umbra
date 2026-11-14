@@ -123,6 +123,33 @@ void scenarioServiceReportReleaseMultipleObjectInstanceNames(
   require(
       serial.get() == 0,
       "First multiple object-name release service report did not use serial number zero");
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == owner.federateHandle(),
+      "Multiple object-name release service-report callback identified the wrong federate");
+
+  std::wstring expectedNameSet = L"[";
+  for (auto name = objectNames.begin(); name != objectNames.end(); ++name) {
+    if (name != objectNames.begin()) {
+      expectedNameSet += L",";
+    }
+    expectedNameSet += L"\"";
+    expectedNameSet += *name;
+    expectedNameSet += L"\"";
+  }
+  expectedNameSet += L"]";
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"ReleaseMultipleObjectInstanceNames",
+      {{54, L"Name set", expectedNameSet}},
+      {34, L"", L"null"},
+      serial.get(),
+      "ReleaseMultipleObjectInstanceNames service report",
+      2,
+      false);
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   owner.rtiAmbassador().setServiceReportingSwitch(false);
@@ -225,6 +252,10 @@ void scenarioServiceReportReleaseObjectInstanceName(
         report.parameters.count(parameterHandle) == 1U,
         "Object-name release service-report callback omitted a standard report parameter");
   }
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == owner.federateHandle(),
+      "Object-name release service-report callback identified the wrong federate");
 
   rti::HLAunicodeString service;
   service.decode(report.parameters.at(reportParameters[0]));
@@ -251,6 +282,35 @@ void scenarioServiceReportReleaseObjectInstanceName(
   require(
       serial.get() == 0,
       "First object-name release service report did not use serial number zero");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 1U,
+      "ReleaseObjectInstanceName report returned the wrong supplied-argument count");
+  auto const& suppliedName = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(suppliedName.get(0U)).get() == 53 &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedName.get(1U)).get() == L"Name" &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedName.get(2U)).get() ==
+              L"\"" + objectName + L"\"",
+      "ReleaseObjectInstanceName report returned the wrong String argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() == L"null",
+      "Void ReleaseObjectInstanceName report returned a non-Null value");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   owner.rtiAmbassador().setServiceReportingSwitch(false);

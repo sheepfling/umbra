@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records one portable C++ TCK witness for IEEE 1516.1-2025 §4.2: failure to parse optional additional settings must not prevent Connect from completing. The adapter supplies implementation-specific malformed settings text; the official API test requires SETTINGS_FAILED_TO_PARSE, successful return from Connect, and successful Disconnect. The malformed input syntax is not normative and stays outside the TCK source. This does not cover valid or ignored settings, unknown settings, configuration selection, authorization, or overall provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-additional-settings-parse-failure",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect(FederateAmbassador&, CallbackModel, RtiConfiguration const&) returning ConfigurationResult, followed by RTIambassador::disconnect",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::connect, RtiConfiguration::withAdditionalSettings, ConfigurationResult::additionalSettingsResult, SETTINGS_FAILED_TO_PARSE, and RTIambassador::disconnect",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_settings.cpp::scenarioConnectionAdditionalSettingsParseFailure"
+      ]
+    }
+  ]
+}

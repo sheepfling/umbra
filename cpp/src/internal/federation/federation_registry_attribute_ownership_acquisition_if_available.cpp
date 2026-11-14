@@ -83,18 +83,40 @@ AttributeOwnershipQueryPlan EmbeddedFederationRegistry::planAttributeOwnershipQu
         return {AttributeOwnershipQueryStatus::attribute_not_defined};
       }
     }
+    using ReportKey = std::pair<AttributeOwnershipQueryReportKind, std::uint64_t>;
+    std::map<ReportKey, std::set<std::uint64_t>> attributesByReport;
+    for (std::uint64_t const attributeHandle : requestedAttributeHandles) {
+      if (momObject->second.rtiOwnedAttributeHandles.contains(attributeHandle)) {
+        attributesByReport[{AttributeOwnershipQueryReportKind::rti, 0U}].insert(
+            attributeHandle);
+        continue;
+      }
+      auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner == momObject->second.attributeOwnersByHandle.end()) {
+        attributesByReport[{AttributeOwnershipQueryReportKind::unowned, 0U}].insert(
+            attributeHandle);
+      } else {
+        attributesByReport[{AttributeOwnershipQueryReportKind::federate, owner->second}].insert(
+            attributeHandle);
+      }
+    }
+
     AttributeOwnershipQueryPlan result;
-    auto recipient = candidateAttributeOwnershipQueryRecipient(
-        federation->second,
-        requestingFederateId,
-        objectInstanceHandle,
-        AttributeOwnershipQueryReportKind::rti,
-        0,
-        requestedAttributeHandles);
-    if (recipient) {
+    for (auto const& [report, attributeHandles] : attributesByReport) {
+      auto recipient = candidateAttributeOwnershipQueryRecipient(
+          federation->second,
+          requestingFederateId,
+          objectInstanceHandle,
+          report.first,
+          report.second,
+          attributeHandles);
+      if (!recipient) {
+        continue;
+      }
       auto persisted = persistRecipient(std::move(*recipient));
       if (!persisted) {
         result.status = AttributeOwnershipQueryStatus::inconsistent_catalog;
+        result.recipients.clear();
         return result;
       }
       result.recipients.push_back(std::move(*persisted));
@@ -239,9 +261,8 @@ AttributeOwnershipCheckResult EmbeddedFederationRegistry::attributeOwnedByFedera
     return {AttributeOwnershipCheckStatus::requesting_federate_not_member};
   }
   // A discovered RTI-owned MOM object is known to the requesting federate
-  // through the separate MOM ledger. Its attributes are valid object-class
-  // attributes but none are owned by the invoking federate, so answer the
-  // standard boolean query directly instead of reporting ObjectInstanceNotKnown.
+  // through the separate MOM ledger. Predefined MIM attributes are owned by
+  // the RTI; FOM-added attributes use their own joined-federate owner state.
   auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
       objectInstanceHandle);
   if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
@@ -266,7 +287,12 @@ AttributeOwnershipCheckResult EmbeddedFederationRegistry::attributeOwnedByFedera
             attributeHandle)) {
       return {AttributeOwnershipCheckStatus::attribute_not_defined};
     }
-    return {AttributeOwnershipCheckStatus::applied, false};
+    auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+    return {
+        AttributeOwnershipCheckStatus::applied,
+        owner != momObject->second.attributeOwnersByHandle.end() &&
+            owner->second == requestingFederateId,
+    };
   }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() || instance->second.deleteAccepted ||

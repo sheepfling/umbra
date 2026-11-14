@@ -24,6 +24,11 @@ using rti1516_2025::RTIambassador;
 using rti1516_2025::RTIambassadorFactory;
 using rti1516_2025::RtiConfiguration;
 
+std::filesystem::path resourcePath(std::filesystem::path const& relative) {
+  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "third_party" /
+      "ieee1516.2-2025" / "resources" / relative;
+}
+
 void writeText(
     std::filesystem::path const& path,
     std::string const& text) {
@@ -230,7 +235,9 @@ int runRegulatingClient(std::filesystem::path const& directory) {
     throw std::runtime_error("The regulator did not select the coordinator endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-authoritative-tso-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const handle = rti->joinFederationExecution(
       federateName, federateType, federationName);
   if (!handle.isValid()) {
@@ -431,7 +438,9 @@ int runDeleteTsoSender(
     throw std::runtime_error("The deletion sender did not select the coordinator endpoint.");
   }
   rti->createFederationExecution(
-      federationName, L"server-owned-authoritative-tso-fom.xml");
+      federationName,
+      resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring(),
+      L"HLAinteger64Time");
   auto const senderHandle = rti->joinFederationExecution(
       L"delete-tso-authoritative-sender", federateType, federationName);
   if (!senderHandle.isValid()) {

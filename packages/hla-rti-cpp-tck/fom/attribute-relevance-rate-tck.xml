@@ -45,8 +45,8 @@
     <switches>
         <autoProvide isEnabled="false"/>
         <attributeRelevanceAdvisory isEnabled="true"/>
-        <objectClassRelevanceAdvisory isEnabled="false"/>
-        <interactionRelevanceAdvisory isEnabled="false"/>
+        <objectClassRelevanceAdvisory isEnabled="true"/>
+        <interactionRelevanceAdvisory isEnabled="true"/>
         <nonRegulatedGrant isEnabled="false"/>
         <allowRelaxedDDM isEnabled="false"/>
         <advisoriesUseKnownClass isEnabled="false"/>

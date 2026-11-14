@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable C++ TCK federation-wide handle FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.1-2025 FOM handle identity checks</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Defines multiple handle-valued FOM name categories.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>TckHandleObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckHandleDimension</dimension>
+                </dimensions>
+                <attribute>
+                    <name>TckHandleAttribute</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Portable handle identity attribute.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>TckHandleObjectChild</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <attribute>
+                        <name>TckHandleChildAttribute</name>
+                        <dataType>HLAbyte</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>On change.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAbestEffort</transportation>
+                        <order>Receive</order>
+                        <semantics>Portable child handle identity attribute.</semantics>
+                    </attribute>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <interactionClass>
+                <name>TckHandleInteraction</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckHandleDimension</dimension>
+                    <dimension>TckHandleDimensionSecond</dimension>
+                </dimensions>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <parameter>
+                    <name>TckHandleParameter</name>
+                    <dataType>HLAbyte</dataType>
+                    <semantics>Portable handle identity parameter.</semantics>
+                </parameter>
+                <interactionClass>
+                    <name>TckHandleInteractionChild</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAbestEffort</transportation>
+                    <order>Receive</order>
+                    <parameter>
+                        <name>TckHandleChildParameter</name>
+                        <dataType>HLAbyte</dataType>
+                        <semantics>Portable child handle identity parameter.</semantics>
+                    </parameter>
+                </interactionClass>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <dimensions>
+        <dimension>
+            <name>TckHandleDimension</name>
+            <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>
+            <inputDataDescription>Portable first handle dimension.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable first dimension.</normalization>
+            <outputDataSemantics>Portable first dimension.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+        <dimension>
+            <name>TckHandleDimensionSecond</name>
+            <inputDataTypes><dataType>HLAcount</dataType></inputDataTypes>
+            <inputDataDescription>Portable second handle dimension.</inputDataDescription>
+            <upperBound>100</upperBound>
+            <normalization>Portable second dimension.</normalization>
+            <outputDataSemantics>Portable second dimension.</outputDataSemantics>
+            <value>[0..100)</value>
+        </dimension>
+    </dimensions>
+    <transportations>
+        <transportation>
+            <name>TckHandleTransportation</name>
+            <reliable>Yes</reliable>
+            <semantics>Portable handle identity transportation type.</semantics>
+        </transportation>
+    </transportations>
+</objectModel>

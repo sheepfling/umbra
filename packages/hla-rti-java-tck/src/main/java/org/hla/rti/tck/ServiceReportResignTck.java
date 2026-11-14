@@ -13,9 +13,11 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -125,6 +127,22 @@ final class ServiceReportResignTck {
          serial.decode(event.parameters.get(reportParameters.get("HLAserialNumber")));
          JavaTckSupport.check(serial.getValue() >= 0,
             "resignation report returned a negative per-federate serial number");
+
+         HLAfixedRecord argumentPrototype = fixedRecordPrototype(encoder);
+         HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+            index -> fixedRecordPrototype(encoder), argumentPrototype);
+         suppliedArguments.decode(event.parameters.get(
+            reportParameters.get("HLAsuppliedArguments")));
+         JavaTckSupport.check(suppliedArguments.size() == 1,
+            "resignation report returned the wrong supplied-argument count");
+         verifyArgument(suppliedArguments.get(0), 44, "HLAresignAction", "\"NO_ACTION\"");
+
+         HLAfixedRecord returnedArgument = encoder.createHLAfixedRecord();
+         returnedArgument.add(encoder.createHLAinteger32BE());
+         returnedArgument.add(encoder.createHLAunicodeString());
+         returnedArgument.add(encoder.createHLAunicodeString());
+         returnedArgument.decode(event.parameters.get(reportParameters.get("HLAreturnedArgument")));
+         verifyArgument(returnedArgument, 34, "", "null");
       } finally {
          if (observerJoined && subscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); } catch (Exception ignored) { }
@@ -175,6 +193,24 @@ final class ServiceReportResignTck {
       if ("hashCode".equals(name)) return System.identityHashCode(proxy);
       if ("equals".equals(name)) return proxy == (arguments == null ? null : arguments[0]);
       return null;
+   }
+
+   private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {
+      HLAfixedRecord result = encoder.createHLAfixedRecord();
+      result.add(encoder.createHLAinteger32BE());
+      result.add(encoder.createHLAunicodeString());
+      result.add(encoder.createHLAunicodeString());
+      return result;
+   }
+
+   private static void verifyArgument(HLAfixedRecord argument, int type, String name,
+         String value) throws Exception {
+      boolean matches = argument.size() == 3
+            && ((HLAinteger32BE) argument.get(0)).getValue() == type
+            && name.equals(((HLAunicodeString) argument.get(1)).getValue())
+            && value.equals(((HLAunicodeString) argument.get(2)).getValue());
+      JavaTckSupport.check(matches,
+         "resignation report returned the wrong argument value for type " + type);
    }
 
    private static final class Interaction {

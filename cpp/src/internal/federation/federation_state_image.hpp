@@ -799,6 +799,26 @@ struct FederationStateImageObjectClassAttributeDeclarations final {
   std::vector<FederationStateImageObjectClassAttributeClass> classes;
 };
 
+// Semantic identity for one opaque FOM handle. Numeric values are RTI-owned
+// and may differ after an RTI process restart, so durable state records the
+// catalog designator needed to translate each handle into the live registry.
+enum class FederationStateImageFomHandleKind : std::uint32_t {
+  object_class = 1,
+  attribute = 2,
+  interaction_class = 3,
+  parameter = 4,
+  dimension = 5,
+};
+
+struct FederationStateImageFomHandle final {
+  FederationStateImageFomHandleKind kind =
+      FederationStateImageFomHandleKind::object_class;
+  std::string name;
+  // Attribute and parameter handles are identified by their declaring class.
+  std::string containingName;
+  std::uint64_t handle = 0;
+};
+
 struct FederationStateImage final {
   static constexpr std::string_view format = "umbra-federation-state/v1";
 
@@ -906,6 +926,10 @@ struct FederationStateImage final {
   // Decoder-only compatibility marker: older v1 images have only the
   // aggregate objectClassDeclarationCount and no typed declaration section.
   bool objectClassAttributeDeclarationsPresent = false;
+  std::vector<FederationStateImageFomHandle> fomHandles;
+  // Decoder-only compatibility marker. Older v1 images do not contain the
+  // semantic table and therefore cannot be translated across fresh registries.
+  bool fomHandlesPresent = false;
 };
 
 class FederationStateImageCodec final {

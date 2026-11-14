@@ -5,6 +5,11 @@ no Umbra-authored public RTI interface. The current native artifact has a small
 embedded connection runtime; other languages will be downstream consumers of
 the completed C++ RTI.
 
+Internal portability goals for host runtimes and transport choices are tracked
+in [Host and transport portability goals](HOST-AND-TRANSPORT-PORTABILITY-GOALS.md).
+Those goals are implementation architecture direction, not IEEE requirements
+or conformance claims.
+
 ~~~text
 official IEEE C++ API
           |

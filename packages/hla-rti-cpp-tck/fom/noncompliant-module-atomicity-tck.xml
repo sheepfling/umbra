@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK noncompliant-module atomicity</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-10-31</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Verify that a rejected module contributes no FDD elements.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This schema-valid module combines a valid object-class definition with a noncompliant zero update rate.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>TckRejectedModuleObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>Valid class that must not enter the FDD when the module is rejected.</semantics>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <updateRates>
+        <updateRate>
+            <name>TckNoncompliantZeroRate</name>
+            <rate>0</rate>
+            <semantics>Noncompliant zero update rate that requires rejection of this entire module.</semantics>
+        </updateRate>
+    </updateRates>
+</objectModel>

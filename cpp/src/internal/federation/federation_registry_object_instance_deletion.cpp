@@ -213,6 +213,11 @@ LocalObjectInstanceDeletionStatus EmbeddedFederationRegistry::localDeleteObjectI
   // untouched. A later eligible subscription can plan a fresh discovery.
   instance->second.knownObjectClassHandlesByFederate.erase(deletingFederateId);
   instance->second.pendingDiscoveryFederates.erase(deletingFederateId);
+  if (canPurgeOrphanObjectInstance(instance->second)) {
+    federation->second.objectInstanceHandlesByName.erase(instance->second.name);
+    federation->second.objectInstances.erase(instance);
+    refreshRegionUsage(federation->second);
+  }
   return LocalObjectInstanceDeletionStatus::applied;
 }
 

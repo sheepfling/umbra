@@ -21,8 +21,45 @@ class Boundary16Element final : public rti::DataElement {
 
 void verifyVariableLengthDataContract();
 void verifyStandardDataElementContract();
+void verifyBasicDataElementsIntegerContract();
 void verifyBasicDataElementsContract();
+void scenarioBasicDataElementEncodeDecodeContract(
+    Options const&, rti::CallbackModel);
+void scenarioBasicDataElementValueOperationsContract(
+    Options const&, rti::CallbackModel);
+void scenarioComplexDataElementConstituentAccess(
+    Options const&, rti::CallbackModel);
+void verifyFloatingBasicDataElementExternalMemoryContract();
+void verifyScalarBasicDataElementExternalMemoryContract();
+void verifyAsciiBasicDataElementExternalMemoryContract();
+void verifyUnicodeBasicDataElementExternalMemoryContract();
+void verifySixteenBitIntegerExternalMemoryContract();
+void verifyArrayCopyCloneExternalMemoryContract();
+void verifyRecordCopyCloneExternalMemoryContract();
+void verifyExtendableVariantCopyCloneContract();
+void verifyExtendableVariantRawBufferContract();
 void verifyCompositeDataElementsContract();
 void scenarioEncoderRoundTrip(Options const&, rti::CallbackModel);
+void scenarioFixedRecordAlignment(Options const&, rti::CallbackModel);
+void scenarioVariantRecordDiscriminantPadding(
+    Options const&, rti::CallbackModel);
+void scenarioVariantRecordUnmappedDiscriminant(
+    Options const&, rti::CallbackModel);
+void scenarioExtendableVariantRecordLengthPadding(
+    Options const&, rti::CallbackModel);
+void scenarioExtendableVariantRecordAlternativePadding(
+    Options const&, rti::CallbackModel);
+void scenarioExtendableVariantRecordUnmappedDiscriminant(
+    Options const&, rti::CallbackModel);
+void scenarioExtendableVariantRecordRejectsBoundaryOverEight(
+    Options const&, rti::CallbackModel);
+void scenarioFixedArrayElementSequence(
+    Options const&, rti::CallbackModel);
+void scenarioVariableArrayElementSequence(
+    Options const&, rti::CallbackModel);
+void scenarioVariableArrayFirstElementPadding(
+    Options const&, rti::CallbackModel);
+void scenarioVariableArrayInterElementPadding(
+    Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

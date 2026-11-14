@@ -140,7 +140,10 @@
       "source_symbol": "UmbraRtiAmbassador::evokeMultipleCallbacks",
       "tests": [
         "cpp/tests/ieee1516_2025_connection_catch2.cpp::RTIambassador callback controls honor both models with an empty embedded queue",
-        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface"
+        "cpp/tests/ieee1516_2025_connection_receive_evoke_catch2.cpp::RTIambassador receives a process interaction through the official Evoke callback surface",
+        "packages/hla-rti-cpp-tck/src/tck_evoke_multiple_callbacks_minimum_duration.cpp::scenarioEvokeMultipleCallbacksMinimumDuration",
+        "packages/hla-rti-cpp-tck/src/tck_evoke_multiple_callbacks_maximum_duration.cpp::scenarioEvokeMultipleCallbacksMaximumDuration",
+        "packages/hla-rti-cpp-tck/src/tck_evoke_multiple_callbacks_millisecond_precision.cpp::scenarioEvokeMultipleCallbacksMillisecondPrecision"
       ]
     },
     {

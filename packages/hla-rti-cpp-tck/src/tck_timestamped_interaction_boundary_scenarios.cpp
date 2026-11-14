@@ -1,5 +1,14 @@
 #include "tck_main_scenarios.hpp"
 #include "tck_timestamped_interaction_boundary_scenarios.hpp"
+#include "tck_nmr_process_coordination.hpp"
+
+#include <chrono>
+#include <cstddef>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
 
 namespace hla_rti_cpp_tck::detail {
 
@@ -8,6 +17,327 @@ enum class TimestampedInteractionBoundaryMode {
   tara_equal,
   tar_equal,
 };
+
+namespace {
+
+void runTaraEqualBoundaryRequesterProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  Session flushQueue(options, model, "owner");
+  Session timeAdvanceAvailable(options, model, "owner");
+  Session nextMessageAvailable(options, model, "owner");
+  auto const federation = federationName(
+      options,
+      "timestamped-interaction-tara-equal-boundary");
+
+  flushQueue.connect();
+  timeAdvanceAvailable.connect();
+  nextMessageAvailable.connect();
+  flushQueue.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  writeNmrProcessMarker(directory, "federation-created.marker");
+  flushQueue.join(
+      options.ownerFederateName + L"-interaction-flush-queue",
+      options.federateType,
+      federation);
+  timeAdvanceAvailable.join(
+      options.ownerFederateName + L"-interaction-tara",
+      options.federateType,
+      federation);
+  nextMessageAvailable.join(
+      options.ownerFederateName + L"-interaction-nmra",
+      options.federateType,
+      federation);
+
+  std::vector<Session*> const receivers{
+      &flushQueue,
+      &timeAdvanceAvailable,
+      &nextMessageAvailable};
+  std::vector<rti::InteractionClassHandle> interactions;
+  std::vector<rti::ParameterHandle> parameters;
+  interactions.reserve(receivers.size());
+  parameters.reserve(receivers.size());
+  for (auto* receiver : receivers) {
+    auto const interaction = receiver->rtiAmbassador().getInteractionClassHandle(
+        options.interactionClassName);
+    auto const parameter = receiver->rtiAmbassador().getParameterHandle(
+        interaction,
+        options.parameterName);
+    require(
+        interaction.isValid() && parameter.isValid(),
+        "TARA process requester could not resolve its interaction and parameter");
+    receiver->rtiAmbassador().subscribeInteractionClass(interaction, true);
+    interactions.push_back(interaction);
+    parameters.push_back(parameter);
+  }
+
+  auto flushQueueTime = makeTimeContext(flushQueue);
+  auto timeAdvanceAvailableTime = makeTimeContext(timeAdvanceAvailable);
+  auto nextMessageAvailableTime = makeTimeContext(nextMessageAvailable);
+  require(
+      flushQueueTime.factory->getName() == timeAdvanceAvailableTime.factory->getName() &&
+          flushQueueTime.factory->getName() == nextMessageAvailableTime.factory->getName(),
+      "TARA process requesters selected different logical-time factories");
+  auto const messageTime = timeAfter(
+      *timeAdvanceAvailableTime.factory,
+      *timeAdvanceAvailableTime.initial,
+      *timeAdvanceAvailableTime.epsilon,
+      5U);
+  auto const followupBoundary = timeAfter(
+      *timeAdvanceAvailableTime.factory,
+      *timeAdvanceAvailableTime.initial,
+      *timeAdvanceAvailableTime.epsilon,
+      6U);
+  auto const requestBoundary = timeAfter(
+      *flushQueueTime.factory,
+      *flushQueueTime.initial,
+      *flushQueueTime.epsilon,
+      10U);
+
+  for (auto* receiver : receivers) {
+    receiver->rtiAmbassador().enableTimeConstrained();
+    waitFor(
+        *receiver,
+        [&] { return receiver->recorder().timeConstrainedEnabled().size() == 1U; },
+        options,
+        "TARA process requester Time Constrained callback");
+  }
+  writeNmrProcessMarker(directory, "requester-ready.marker");
+  waitForNmrProcessMarker(directory, "publisher-ready.marker", options);
+  waitForNmrProcessMarker(directory, "publisher-at-four.marker", options);
+
+  auto reportedGalt = timeAdvanceAvailableTime.factory->makeInitial();
+  require(
+      reportedGalt != nullptr &&
+          timeAdvanceAvailable.rtiAmbassador().queryGALT(*reportedGalt),
+      "TARA process requester did not expose GALT before the first request");
+  auto const expectedGalt = timeAfter(
+      *timeAdvanceAvailableTime.factory,
+      *timeAdvanceAvailableTime.initial,
+      *timeAdvanceAvailableTime.epsilon,
+      5U);
+  requireTimeEquals(
+      *reportedGalt,
+      *expectedGalt,
+      "TARA process requester first-request GALT");
+  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
+  waitFor(
+      timeAdvanceAvailable,
+      [&] { return timeAdvanceAvailable.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TARA process requester first grant at GALT");
+  require(
+      timeAdvanceAvailable.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*messageTime) &&
+          timeAdvanceAvailable.recorder().timedInteractions().empty() &&
+          timeAdvanceAvailable.recorder().callbackOrder() ==
+              std::vector<std::string>{"grant"},
+      "TARA process requester did not grant before the later equal-time interaction");
+  writeNmrProcessMarker(directory, "requester-first-tara-grant.marker");
+  waitForNmrProcessMarker(directory, "publisher-at-five.marker", options);
+
+  flushQueue.recorder().clearCallbackOrder();
+  nextMessageAvailable.recorder().clearCallbackOrder();
+  flushQueue.rtiAmbassador().flushQueueRequest(*requestBoundary);
+  timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(*followupBoundary);
+  nextMessageAvailable.rtiAmbassador().nextMessageRequestAvailable(*requestBoundary);
+  waitForSessions(
+      receivers,
+      [&] {
+        return flushQueue.recorder().timedInteractions().size() == 1U &&
+            flushQueue.recorder().flushQueueGrants().size() == 1U &&
+            timeAdvanceAvailable.recorder().timedInteractions().size() == 1U &&
+            timeAdvanceAvailable.recorder().timeAdvanceGrants().size() == 2U &&
+            nextMessageAvailable.recorder().timedInteractions().size() == 1U &&
+            nextMessageAvailable.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "TARA process requester late equal-time interaction deliveries");
+
+  require(
+      flushQueue.recorder().callbackOrder() ==
+          std::vector<std::string>{"interaction", "flush-grant"} &&
+          timeAdvanceAvailable.recorder().callbackOrder() ==
+              std::vector<std::string>{"grant", "interaction", "grant"} &&
+          nextMessageAvailable.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "grant"},
+      "TARA process requesters observed the wrong callback ordering");
+
+  std::vector<std::uint8_t> const payloadBytes{0x49U, 0x4EU, 0x54U, 0x2DU, 0x41U};
+  std::vector<std::uint8_t> const tagBytes{0x49U, 0x4EU, 0x54U, 0x2DU, 0x46U};
+  auto assertInteraction = [&](Session& receiver,
+                               TimedInteractionRecord const& received,
+                               rti::InteractionClassHandle const& expectedInteraction,
+                               rti::ParameterHandle const& expectedParameter) {
+    require(
+        received.interaction == expectedInteraction &&
+            received.parameters.size() == 1U &&
+            received.parameters.count(expectedParameter) == 1U &&
+            copyBytes(received.parameters.at(expectedParameter)) == payloadBytes &&
+            received.tag == tagBytes &&
+            received.time == encodeTime(*messageTime) &&
+            received.sentOrder == rti::TIMESTAMP &&
+            received.receivedOrder == rti::TIMESTAMP &&
+            received.retractionPresent && !received.retraction.empty() &&
+            received.transportation.isValid() && !received.regions.has_value(),
+        "TARA process requester received incorrect equal-time interaction metadata");
+    require(
+        !receiver.rtiAmbassador().getTransportationTypeName(
+            received.transportation).empty(),
+        "TARA process requester could not resolve the interaction transport");
+  };
+  assertInteraction(
+      flushQueue,
+      flushQueue.recorder().timedInteractions().front(),
+      interactions.at(0U),
+      parameters.at(0U));
+  assertInteraction(
+      timeAdvanceAvailable,
+      timeAdvanceAvailable.recorder().timedInteractions().front(),
+      interactions.at(1U),
+      parameters.at(1U));
+  assertInteraction(
+      nextMessageAvailable,
+      nextMessageAvailable.recorder().timedInteractions().front(),
+      interactions.at(2U),
+      parameters.at(2U));
+  auto const taraGrants = timeAdvanceAvailable.recorder().timeAdvanceGrants();
+  require(
+      taraGrants.at(0U).encoded == encodeTime(*messageTime) &&
+          taraGrants.at(1U).encoded == encodeTime(*messageTime) &&
+          nextMessageAvailable.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*messageTime) &&
+          flushQueue.recorder().flushQueueGrants().front().optimisticTime ==
+              encodeTime(*messageTime),
+      "TARA process requesters returned incorrect grant or optimistic time values");
+
+  auto queriedTaraTime = timeAdvanceAvailableTime.factory->makeInitial();
+  auto queriedNmraTime = nextMessageAvailableTime.factory->makeInitial();
+  require(
+      queriedTaraTime != nullptr && queriedNmraTime != nullptr,
+      "TARA process requester could not allocate queried logical times");
+  timeAdvanceAvailable.rtiAmbassador().queryLogicalTime(*queriedTaraTime);
+  nextMessageAvailable.rtiAmbassador().queryLogicalTime(*queriedNmraTime);
+  requireTimeEquals(
+      *queriedTaraTime,
+      *messageTime,
+      "TARA process requester queried logical time");
+  requireTimeEquals(
+      *queriedNmraTime,
+      *messageTime,
+      "NMRA process requester queried logical time");
+
+  writeNmrProcessMarker(directory, "requester-interaction-received.marker");
+  waitForNmrProcessMarker(directory, "publisher-resigned.marker", options);
+  for (std::size_t index = 0U; index != receivers.size(); ++index) {
+    auto* receiver = receivers.at(index);
+    receiver->rtiAmbassador().disableTimeConstrained();
+    receiver->rtiAmbassador().unsubscribeInteractionClass(interactions.at(index));
+    receiver->resign(rti::NO_ACTION);
+  }
+  flushQueue.rtiAmbassador().destroyFederationExecution(federation);
+  nextMessageAvailable.disconnect();
+  timeAdvanceAvailable.disconnect();
+  flushQueue.disconnect();
+}
+
+void runTaraEqualBoundaryPublisherProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  waitForNmrProcessMarker(directory, "federation-created.marker", options);
+  Session publisher(options, model, "member");
+  publisher.connect();
+  auto const federation = federationName(
+      options,
+      "timestamped-interaction-tara-equal-boundary");
+  publisher.join(options.memberFederateName, options.federateType, federation);
+
+  auto const interaction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = publisher.rtiAmbassador().getParameterHandle(
+      interaction,
+      options.parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "TARA process publisher could not resolve its interaction and parameter");
+  publisher.rtiAmbassador().publishInteractionClass(interaction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      interaction,
+      rti::TIMESTAMP);
+
+  auto publisherTime = makeTimeContext(publisher);
+  publisher.rtiAmbassador().enableTimeRegulation(*publisherTime.epsilon);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TARA process publisher Time Regulation callback");
+  writeNmrProcessMarker(directory, "publisher-ready.marker");
+  waitForNmrProcessMarker(directory, "requester-ready.marker", options);
+
+  auto const publisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      4U);
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      5U);
+  publisher.rtiAmbassador().timeAdvanceRequest(*publisherTarget);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TARA process publisher pre-message TAR(4)");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*publisherTarget),
+      "TARA process publisher received the wrong TAR(4) grant");
+  writeNmrProcessMarker(directory, "publisher-at-four.marker");
+  waitForNmrProcessMarker(directory, "requester-first-tara-grant.marker", options);
+
+  std::vector<std::uint8_t> const payloadBytes{0x49U, 0x4EU, 0x54U, 0x2DU, 0x41U};
+  std::vector<std::uint8_t> const tagBytes{0x49U, 0x4EU, 0x54U, 0x2DU, 0x46U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      parameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      interaction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "TARA process publisher got an invalid equal-time retraction handle");
+  publisher.rtiAmbassador().timeAdvanceRequest(*messageTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "TARA process publisher post-message TAR(5)");
+  require(
+      publisher.recorder().timeAdvanceGrants().at(1U).encoded ==
+          encodeTime(*messageTime),
+      "TARA process publisher received the wrong TAR(5) grant");
+  writeNmrProcessMarker(directory, "publisher-at-five.marker");
+  waitForNmrProcessMarker(directory, "requester-interaction-received.marker", options);
+
+  publisher.rtiAmbassador().disableTimeRegulation();
+  publisher.rtiAmbassador().unpublishInteractionClass(interaction);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.disconnect();
+  writeNmrProcessMarker(directory, "publisher-resigned.marker");
+}
+
+}  // namespace
 
 void runTimestampedInteractionMixedAdvancesScenario(
     Options const& options,
@@ -20,6 +350,25 @@ void runTimestampedInteractionMixedAdvancesScenario(
   require(
       !options.logicalTimeImplementationName.empty(),
       "Timestamped interaction mixed advances requires an adapter-supplied logical-time implementation");
+
+  if (equalTaraBoundary && !options.nmrProcessRole.empty()) {
+    auto const directory = nextNmrProcessRunDirectory(options);
+    if (options.nmrProcessRole == "requester") {
+      runTaraEqualBoundaryRequesterProcess(options, model, directory);
+      return;
+    }
+    if (options.nmrProcessRole == "publisher") {
+      runTaraEqualBoundaryPublisherProcess(options, model, directory);
+      return;
+    }
+    throw std::runtime_error(
+        "TARA equal-boundary process role must be requester or publisher");
+  }
+  if (equalTaraBoundary) {
+    require(
+        options.nmrProcessCoordinationDirectory.empty(),
+        "TARA equal-boundary process coordination directory requires an explicit role");
+  }
 
   Session publisher(options, model, "owner");
   Session flushQueue(options, model, "member");
@@ -133,9 +482,10 @@ void runTimestampedInteractionMixedAdvancesScenario(
       *timeAdvanceAvailableTime.initial,
       *timeAdvanceAvailableTime.epsilon,
       6U);
-  // TAR(5) must be below the regulator's GALT before the equal-time message
-  // can be granted. Advance the TAR-equal publisher to 5 (lookahead 1 =>
-  // GALT 6); only TARA-equal first grants at 5 before the message exists.
+  // TAR(5) must be below GALT, so the TAR-equal publisher advances to 5
+  // (lookahead 1 => GALT 6). The TARA-equal publisher advances only to 4
+  // (GALT 5), letting TARA(5) grant at GALT before the equal-time message
+  // exists.
   auto const publisherTarget = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -166,6 +516,18 @@ void runTimestampedInteractionMixedAdvancesScenario(
         publisher.recorder().timeAdvanceGrants().front().encoded ==
             encodeTime(*publisherTarget),
         "Timestamped interaction TARA-equal publisher received the wrong pre-message grant");
+    auto reportedGalt = timeAdvanceAvailableTime.factory->makeInitial();
+    require(
+        reportedGalt != nullptr &&
+            timeAdvanceAvailable.rtiAmbassador().queryGALT(*reportedGalt),
+        "Timestamped interaction TARA-equal request had no defined GALT");
+    requireTimeEquals(
+        *reportedGalt,
+        *timeAdvanceAvailableBoundary,
+        "Timestamped interaction TARA-equal request at GALT");
+    // This grant completes before the publisher advances to 5 and sends the
+    // equal-time TSO. The later TARA must therefore deliver that message after
+    // the first grant rather than treating all timestamp-5 messages as part of it.
     timeAdvanceAvailable.rtiAmbassador().timeAdvanceRequestAvailable(
         *timeAdvanceAvailableBoundary);
     waitFor(
@@ -389,12 +751,20 @@ void runTimestampedInteractionMixedAdvancesScenario(
   auto actualFlushTime = decodeTime(*flushQueueTime.factory, flushGrants.front().time);
   auto optimisticFlushTime =
       decodeTime(*flushQueueTime.factory, flushGrants.front().optimisticTime);
+  auto reportedFlushGalt = flushQueueTime.factory->makeInitial();
+  require(
+      reportedFlushGalt != nullptr,
+      "Timestamped interaction mixed-advance Flush Queue Grant could not allocate GALT");
+  require(
+      flushQueue.rtiAmbassador().queryGALT(*reportedFlushGalt),
+      "Timestamped interaction mixed-advance Flush Queue Grant had no defined GALT");
   require(
       actualFlushTime != nullptr && optimisticFlushTime != nullptr &&
           !(*actualFlushTime < *flushQueueTime.initial) &&
           !(*requestBoundary < *actualFlushTime) &&
+          !(*reportedFlushGalt < *actualFlushTime) &&
           !(*optimisticFlushTime < *actualFlushTime),
-      "Timestamped interaction mixed-advance Flush Queue Grant returned time outside bounds");
+      "Timestamped interaction mixed-advance Flush Queue Grant returned time outside request, GALT, or optimistic-time bounds");
   auto queriedFlushQueue = flushQueueTime.factory->makeInitial();
   flushQueue.rtiAmbassador().queryLogicalTime(*queriedFlushQueue);
   require(
@@ -449,12 +819,230 @@ void scenarioTimestampedInteractionTaraEqualBoundary(
 
 namespace {
 
+void requireTaraQueuedInteractionPending(
+    Session& receiver,
+    std::string const& context) {
+  auto const deadline = Clock::now() + std::chrono::milliseconds(40);
+  while (Clock::now() < deadline) {
+    receiver.pump();
+    require(
+        receiver.recorder().timedInteractions().empty() &&
+            receiver.recorder().timeAdvanceGrants().empty(),
+        context);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
+
+void runTaraQueuedEqualBoundaryRequesterProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  Session receiver(options, model, "owner");
+  receiver.connect();
+  auto const federation = federationName(
+      options,
+      "timestamped-interaction-tara-queued-equal-boundary");
+  receiver.rtiAmbassador().createFederationExecution(
+      federation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  writeNmrProcessMarker(directory, "federation-created.marker");
+  receiver.join(options.ownerFederateName, options.federateType, federation);
+
+  auto const interaction = receiver.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = receiver.rtiAmbassador().getParameterHandle(
+      interaction,
+      options.parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "TARA process requester could not resolve its interaction and parameter");
+  receiver.rtiAmbassador().subscribeInteractionClass(interaction, true);
+
+  auto receiverTime = makeTimeContext(receiver);
+  receiver.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "TARA process requester Time Constrained callback");
+  writeNmrProcessMarker(directory, "requester-ready.marker");
+  waitForNmrProcessMarker(directory, "publisher-ready.marker", options);
+  waitForNmrProcessMarker(directory, "publisher-interaction-sent.marker", options);
+
+  auto const messageTime = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      2U);
+  requireTaraQueuedInteractionPending(
+      receiver,
+      "TARA process requester delivered the equal-time interaction before its request");
+  receiver.rtiAmbassador().timeAdvanceRequestAvailable(*messageTime);
+  requireTaraQueuedInteractionPending(
+      receiver,
+      "TARA process requester granted before the publisher advanced to the queued event");
+  writeNmrProcessMarker(directory, "requester-tara-requested.marker");
+  waitForNmrProcessMarker(directory, "publisher-advanced.marker", options);
+
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 1U &&
+            receiver.recorder().timeAdvanceGrants().size() == 1U;
+      },
+      options,
+      "independent publisher's TARA equal-time interaction");
+  auto const interactions = receiver.recorder().timedInteractions();
+  auto const grants = receiver.recorder().timeAdvanceGrants();
+  std::vector<std::uint8_t> const payloadBytes{0x54U, 0x41U, 0x52U, 0x41U};
+  std::vector<std::uint8_t> const tagBytes{0x51U, 0x45U};
+  require(
+      interactions.size() == 1U && grants.size() == 1U &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "grant"},
+      "TARA process requester did not deliver the equal-time interaction before grant");
+  auto const& received = interactions.front();
+  require(
+      received.interaction == interaction &&
+          received.parameters.size() == 1U &&
+          received.parameters.count(parameter) == 1U &&
+          copyBytes(received.parameters.at(parameter)) == payloadBytes &&
+          received.time == encodeTime(*messageTime) &&
+          received.sentOrder == rti::TIMESTAMP &&
+          received.receivedOrder == rti::TIMESTAMP &&
+          received.tag == tagBytes && received.retractionPresent &&
+          !received.retraction.empty(),
+      "TARA process requester received incorrect equal-time callback metadata");
+  require(
+      grants.front().encoded == encodeTime(*messageTime),
+      "TARA process requester received the wrong equal-boundary grant time");
+
+  auto queriedTime = receiverTime.factory->makeInitial();
+  require(
+      queriedTime != nullptr,
+      "TARA process requester could not allocate Query Logical Time value");
+  receiver.rtiAmbassador().queryLogicalTime(*queriedTime);
+  requireTimeEquals(
+      *queriedTime,
+      *messageTime,
+      "TARA process requester final logical time");
+
+  writeNmrProcessMarker(directory, "requester-interaction-received.marker");
+  waitForNmrProcessMarker(directory, "publisher-resigned.marker", options);
+  receiver.rtiAmbassador().disableTimeConstrained();
+  receiver.rtiAmbassador().unsubscribeInteractionClass(interaction);
+  receiver.resign(rti::NO_ACTION);
+  receiver.rtiAmbassador().destroyFederationExecution(federation);
+  receiver.disconnect();
+}
+
+void runTaraQueuedEqualBoundaryPublisherProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  waitForNmrProcessMarker(directory, "federation-created.marker", options);
+  Session publisher(options, model, "member");
+  publisher.connect();
+  auto const federation = federationName(
+      options,
+      "timestamped-interaction-tara-queued-equal-boundary");
+  publisher.join(options.memberFederateName, options.federateType, federation);
+
+  auto const interaction = publisher.rtiAmbassador().getInteractionClassHandle(
+      options.interactionClassName);
+  auto const parameter = publisher.rtiAmbassador().getParameterHandle(
+      interaction,
+      options.parameterName);
+  require(
+      interaction.isValid() && parameter.isValid(),
+      "TARA process publisher could not resolve its interaction and parameter");
+  publisher.rtiAmbassador().publishInteractionClass(interaction);
+  publisher.rtiAmbassador().changeInteractionOrderType(
+      interaction,
+      rti::TIMESTAMP);
+
+  auto publisherTime = makeTimeContext(publisher);
+  auto lookahead = publisherTime.factory->makeZero();
+  require(
+      lookahead != nullptr,
+      "TARA process publisher could not allocate its lookahead");
+  *lookahead = *publisherTime.epsilon;
+  publisher.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "TARA process publisher Time Regulation callback");
+  writeNmrProcessMarker(directory, "publisher-ready.marker");
+  waitForNmrProcessMarker(directory, "requester-ready.marker", options);
+
+  auto const messageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      2U);
+  std::vector<std::uint8_t> const payloadBytes{0x54U, 0x41U, 0x52U, 0x41U};
+  std::vector<std::uint8_t> const tagBytes{0x51U, 0x45U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      parameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+  auto const retraction = publisher.rtiAmbassador().sendInteraction(
+      interaction,
+      parameters,
+      tag,
+      *messageTime);
+  require(
+      retraction.isValid(),
+      "TARA process publisher received an invalid interaction retraction handle");
+  writeNmrProcessMarker(directory, "publisher-interaction-sent.marker");
+  waitForNmrProcessMarker(directory, "requester-tara-requested.marker", options);
+
+  publisher.rtiAmbassador().timeAdvanceRequest(*messageTime);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "TARA process publisher equal-boundary advance");
+  require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*messageTime),
+      "TARA process publisher received the wrong equal-boundary grant");
+  writeNmrProcessMarker(directory, "publisher-advanced.marker");
+  waitForNmrProcessMarker(directory, "requester-interaction-received.marker", options);
+
+  publisher.rtiAmbassador().disableTimeRegulation();
+  publisher.rtiAmbassador().unpublishInteractionClass(interaction);
+  publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
+  publisher.disconnect();
+  writeNmrProcessMarker(directory, "publisher-resigned.marker");
+}
+
 void runTimestampedInteractionTaraQueuedEqualBoundary(
     Options const& options,
     rti::CallbackModel model) {
   require(
       !options.logicalTimeImplementationName.empty(),
       "TARA queued equal-boundary case requires an adapter-supplied logical-time implementation");
+
+  if (!options.nmrProcessRole.empty()) {
+    auto const directory = nextNmrProcessRunDirectory(options);
+    if (options.nmrProcessRole == "requester") {
+      runTaraQueuedEqualBoundaryRequesterProcess(options, model, directory);
+      return;
+    }
+    if (options.nmrProcessRole == "publisher") {
+      runTaraQueuedEqualBoundaryPublisherProcess(options, model, directory);
+      return;
+    }
+    throw std::runtime_error(
+        "TARA process role must be either requester or publisher");
+  }
+  require(
+      options.nmrProcessCoordinationDirectory.empty(),
+      "TARA process coordination directory requires an explicit process role");
 
   Session publisher(options, model, "tara-queued-equal-publisher");
   Session receiver(options, model, "tara-queued-equal-receiver");
@@ -663,7 +1251,7 @@ void runTimestampedInteractionZeroLookaheadSendAtGrant(
       *grantedTime,
       *publisherTime.epsilon,
       1U);
-  publisher.rtiAmbassador().timeAdvanceRequest(*grantedTime);
+  publisher.rtiAmbassador().timeAdvanceRequestAvailable(*grantedTime);
   waitFor(
       publisher,
       [&] { return publisher.recorder().timeAdvanceGrants().size() == 1U; },

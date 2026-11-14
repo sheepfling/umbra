@@ -4,10 +4,12 @@
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard_sections": [
+    "hla-1516.1-2025:clause-10.23",
+    "hla-1516.1-2025:clause-10.23.5",
     "hla-1516.1-2025:clause-11.5",
     "hla-1516.1-2025:clause-11.5.1"
   ],
-  "notes": "This contract records the portable C++ TCK check for a successful RTIambassador::getDimensionHandle invocation reported through the standard HLAreportServiceInvocation interaction. The report content maps directly to IEEE 1516.1-2025 sections 11.5 and 11.5.1; federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM (including the tested dimension name), standard MIM, endpoint, callback model, and logical-time configuration. It verifies the lookup result, service classification, typed dimension-name and dimension-handle arguments, reliable report delivery, reporter identity, success/exception state, and report serial. Provider-private headers, registries, routing, file sinks, names, and diagnostics are outside this contract.",
+  "notes": "This contract records portable C++ TCK checks for a successful RTIambassador::getDimensionHandle invocation and the separately specified NameNotFound failure, both reported through HLAreportServiceInvocation. RL-421 identifies the positive-return candidate but records a conflicting subsection; RL-423's source-layout audit confirms §10.23.3 is Preconditions, so the positive result is mapped to main service clause §10.23 rather than the Lab-exported §10.22.6 or mislabeled §10.23.3 field. The undefined-name exception is §10.23.5. The asserted report forms are limited to the returned DimensionHandle and Null failure return in §11.5.1; no mapping is claimed for every argument type or the whole MOM clause. Federation setup reuses the existing federation execution API contract. The source uses only official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard 1516.2 MIM data elements, and the C++ standard library. The adapter supplies the provider package, model FOM (including the tested dimension name), standard MIM, endpoint, callback model, and logical-time configuration. It verifies lookup results, service classification, typed arguments, reliable report delivery, reporter identity, success/exception state, and report serials. Provider-private headers, registries, routing, file sinks, names, and diagnostics are outside this contract.",
   "api_surfaces": [
     {
       "id": "standard-cpp-service-report-dimension-handle",
@@ -17,8 +19,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
       "source_symbol": "RTIambassador::getDimensionHandle; standard MIM HLAreportServiceInvocation",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportDimensionHandle",
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioServiceReportDimensionHandleContract"
+        "packages/hla-rti-cpp-tck/src/tck_service_report_lookup_scenarios.cpp::scenarioServiceReportDimensionHandle",
+        "packages/hla-rti-cpp-tck/src/tck_service_report_lookup_scenarios.cpp::scenarioServiceReportDimensionHandleContract"
       ]
     }
   ]

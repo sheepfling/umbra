@@ -27,6 +27,12 @@ namespace umbra::detail {
 using CallbackRegionDesignatorCopyMap =
     std::map<std::uint64_t, std::uint64_t>;
 
+// TSO message identifiers are allocated by each federation's time
+// coordinator, so the process service must pair an identifier with its
+// federation when retaining producer ownership or pending recipients.
+using ProcessFederationTsoMessageKey =
+    std::pair<std::wstring, std::uint64_t>;
+
 // Owns the receiver-side region designator copies for one pending timestamped
 // attribute message. Erasing the lease at callback acknowledgement or session
 // teardown retires every copied region through the registry.
@@ -99,11 +105,19 @@ struct ProcessFederationServiceOptions final {
   // filesystem directory.  Test-only memory stores remain an internal
   // injection seam and are not selected by this runtime option.
   std::filesystem::path serviceReportDirectory;
+  // Test-only observer for diagnostics swallowed at the process-service
+  // transport boundary. Production callers leave this unset.
+  std::function<void(std::string const&)> failureDiagnosticForTesting;
   // Deterministic rollback coverage for failures after file allocation. This
   // hook is private to the process-service test construction path.
   std::function<void(std::filesystem::path const&)>
       afterServiceReportFileAllocatedForTesting;
   std::function<void()> afterJoinedFederateSessionInstalledForTesting;
+  // Deterministic process-recovery fault injection: the hook runs after Join
+  // state is installed and before its response is sent. Closing the socket
+  // makes the subsequent sequenced send retain, then fail, the response.
+  std::function<void(ProcessTransportSession&)>
+      afterJoinedFederateSessionInstalledForRecoveryTesting;
   // Internal failure injection after a queued RTI-owned MOM discovery and
   // its initial reflection, to verify failed-Join event cleanup.
   std::function<bool(std::uint64_t, std::uint64_t)>
@@ -112,6 +126,10 @@ struct ProcessFederationServiceOptions final {
   // announcement is queued for the joining federate.
   std::function<bool(std::wstring const&)>
       failAfterSynchronizationPointAnnouncementQueuedForTesting;
+  // Internal synchronization hook used by process-client recovery tests to
+  // establish that a completion callback frame was pushed before disconnect.
+  std::function<void(std::uint64_t, std::wstring const&)>
+      afterFederationSynchronizedEventSentForTesting;
 };
 
 // Private service binding for the first process-boundary federation path.  A
@@ -158,6 +176,14 @@ class ProcessFederationService final {
   [[nodiscard]] bool connectionLost(
       ProcessTransportSession& session,
       std::wstring faultDescription);
+
+  // Private adapter control for a server-originated departure that retains
+  // the transport connection. Production policy must call this only after
+  // deciding that the joined federate is forced out; the public RTI binding
+  // exposes only the resulting standard callback/state transition.
+  [[nodiscard]] bool forceFederateResignationForTesting(
+      ProcessTransportSession& session,
+      std::wstring reasonForResign);
 
  private:
   void clearJoinedFederateSessionState(
@@ -373,6 +399,9 @@ class ProcessFederationService final {
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleQueryLogicalTime(
+      ProcessTransportSession& session,
+      TransportServiceMessage const& request);
+  [[nodiscard]] TransportServiceMessage handleGetNonRegulatedGrantSwitch(
       ProcessTransportSession& session,
       TransportServiceMessage const& request);
   [[nodiscard]] TransportServiceMessage handleQueryLookahead(
@@ -699,6 +728,10 @@ class ProcessFederationService final {
       std::uint64_t federateId,
       std::vector<std::string> const& attributeNames);
 
+  [[nodiscard]] bool enqueueFederationMomConditionalAttributeUpdate(
+      std::wstring const& federationName,
+      std::vector<std::string> const& attributeNames);
+
   [[nodiscard]] bool enqueueObjectInstanceRemovals(
       std::wstring const& federationName,
       std::vector<ObjectInstanceRemovalRecipient> removals,
@@ -808,10 +841,11 @@ class ProcessFederationService final {
   // Pushed directed events may be buffered in a receiver process client even
   // after they leave the service's queue. Retain the recipient sessions long
   // enough to send a matching retraction notification.
-  std::map<std::uint64_t, std::vector<ProcessTransportSession*>>
+  std::map<ProcessFederationTsoMessageKey, std::vector<ProcessTransportSession*>>
       pendingPushedRetractionRecipients_;
   std::uint64_t nextPushedAttributeDeliveryId_ = 1U;
-  std::map<std::uint64_t, std::uint64_t> processTsoMessageProducers_;
+  std::map<ProcessFederationTsoMessageKey, std::uint64_t>
+      processTsoMessageProducers_;
   // Joining may replace a federation's composed definition. Serialize that
   // preparation/commit pair so two process clients cannot both compose from
   // the same stale definition and race the registry replacement.

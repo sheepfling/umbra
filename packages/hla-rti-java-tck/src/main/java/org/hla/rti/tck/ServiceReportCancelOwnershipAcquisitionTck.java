@@ -142,7 +142,7 @@ final class ServiceReportCancelOwnershipAcquisitionTck {
          JavaTckSupport.check(observerRecorder.interactions.size() == 1,
             "cancellation produced an unexpected service-report count");
          verifyReport(observer, requesterFederate, observerRecorder.interactions.get(0), encoder,
-            reportClass, reportParameters, reliable, object, requesterAttribute);
+            reportClass, reportParameters, reliable);
          JavaTckSupport.check(requesterRecorder.cancellations.size() == 1
                && object.equals(requesterRecorder.cancellations.get(0).object)
                && requesterRecorder.cancellations.get(0).attributes.contains(requesterAttribute),
@@ -180,8 +180,8 @@ final class ServiceReportCancelOwnershipAcquisitionTck {
 
    private static void verifyReport(RTIambassador observer, FederateHandle expectedFederate,
          Interaction event, EncoderFactory encoder, InteractionClassHandle reportClass,
-         Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable,
-         ObjectInstanceHandle object, AttributeHandle attribute) throws Exception {
+         Map<String, ParameterHandle> parameters, TransportationTypeHandle reliable)
+         throws Exception {
       JavaTckSupport.check(reportClass.equals(event.interaction)
             && event.parameters.size() == REPORT_PARAMETERS.length && event.tag.length == 0
             && event.producer == null && event.regionsEmpty && reliable.equals(event.transport),
@@ -215,10 +215,17 @@ final class ServiceReportCancelOwnershipAcquisitionTck {
       supplied.decode(event.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 2,
          "cancellation report returned the wrong supplied-argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator",
-         quoted(object.toString()), "cancellation object argument");
-      verifyArgument(supplied.get(1), 1, "Set of attribute designators",
-         "[" + quoted(attribute.toString()) + "]", "cancellation attribute-set argument");
+      // Java handle interfaces have no portable text conversion; check the
+      // standard argument names and serialized string shapes without equating
+      // Java handles are opaque; compare the report's argument shape only.
+      String objectDesignator = verifyArgumentHeader(supplied.get(0),
+         37, "Object instance designator", "cancellation object argument");
+      JavaTckSupport.check(isQuotedString(objectDesignator),
+         "cancellation object argument was not a quoted designator");
+      String attributeSet = verifyArgumentHeader(supplied.get(1),
+         1, "Set of attribute designators", "cancellation attribute-set argument");
+      JavaTckSupport.check(isSingleElementJsonStringArray(attributeSet),
+         "cancellation attribute-set argument was not a one-item encoded set");
       HLAfixedRecord returned = argumentPrototype(encoder);
       returned.decode(event.parameters.get(parameters.get("HLAreturnedArgument")));
       verifyArgument(returned, 34, "", "null", "cancellation return value");
@@ -234,14 +241,32 @@ final class ServiceReportCancelOwnershipAcquisitionTck {
 
    private static void verifyArgument(HLAfixedRecord record, int type, String name,
          String value, String description) throws Exception {
-      JavaTckSupport.check(record.size() == 3
-            && ((HLAinteger32BE) record.get(0)).getValue() == type
-            && name.equals(((HLAunicodeString) record.get(1)).getValue())
-            && value.equals(((HLAunicodeString) record.get(2)).getValue()),
-         description + " had the wrong type, name, or value");
+      String actualValue = verifyArgumentHeader(record, type, name, description);
+      JavaTckSupport.check(value.equals(actualValue),
+         description + " had the wrong value");
    }
 
-   private static String quoted(String value) { return "\"" + value + "\""; }
+   private static String verifyArgumentHeader(HLAfixedRecord record, int type, String name,
+         String description) throws Exception {
+      JavaTckSupport.check(record.size() == 3,
+         description + " had the wrong field count");
+      int actualType = ((HLAinteger32BE) record.get(0)).getValue();
+      String actualName = ((HLAunicodeString) record.get(1)).getValue();
+      String actualValue = ((HLAunicodeString) record.get(2)).getValue();
+      JavaTckSupport.check(actualType == type && name.equals(actualName),
+         description + " had the wrong type or name");
+      return actualValue;
+   }
+
+   private static boolean isQuotedString(String value) {
+      return value.length() > 2 && value.charAt(0) == '"'
+         && value.charAt(value.length() - 1) == '"';
+   }
+
+   private static boolean isSingleElementJsonStringArray(String value) {
+      return value.length() > 4 && value.startsWith("[\"") && value.endsWith("\"]")
+         && !value.substring(2, value.length() - 2).contains("\",\"");
+   }
 
    private static void await(RTIambassador rti, Recorder recorder, CallbackModel model,
          Ready ready) throws Exception {

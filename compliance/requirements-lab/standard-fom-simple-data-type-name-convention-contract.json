@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.2-2025",
+  "status": "focused-public-api-test-not-conformance-evidence",
+  "notes": "Focused IEEE 1516.2-2025 public-API witness. The Clause 4 simple-data-type name requirement at p. 71 l. 61 refers to §3.3.1; the §6.2.15 Create Federation Execution requirement at p. 94 l. 50 supplies the tested InconsistentFOM outcome. The valid-name control is accepted, while schema-valid variants differing only by a period, a mixed-case reserved HLA prefix, or a mixed-case reserved NA marker are rejected. This covers those three simple-data-type name boundaries only, not all HLA naming rules, arbitrary FOMs, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-fom-simple-data-type-name-convention",
+      "owner": "IEEE 1516.2-2025 OMT and IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador.createFederationExecution(FOM module)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 RTIambassador federation creation service",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_fom_simple_data_type_name.cpp::scenarioFomSimpleDataTypeNameConventionContract"
+      ]
+    }
+  ]
+}

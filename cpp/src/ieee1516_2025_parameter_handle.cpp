@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(Parameter, parameter)
+UMBRA_2025_DEFINE_HANDLE(Parameter, parameter, Parameter)
 
 }  // namespace rti1516_2025

@@ -1,7 +1,7 @@
 # Requirements Lab issue ledger
 
 This note retains the 2026-10-24 issue history for the IEEE 1516.1-2025 Requirements Lab export. Umbra now pins the reviewed Lab backflow revision: 84 Lab-content complaints and four Umbra-local complaints are resolved. RL-369 is dispositioned for mapping, although the supplied Table 5 and official MIM names conflict. Historical symptoms and workarounds below describe the old pin; the machine-readable ledger carries current status and acceptance evidence.
-On 2026-10-29, the separate TAR backward-time precondition/exception omission was recorded as RL-392; the structured register now has 143 records with one open issue.
+At that historical point, the structured register had 143 records with one open issue. It now has 154 records; use the machine-readable ledger or `python tools/query_rti_work.py lab-issues --summary --compact` for current issue status rather than carrying forward the historical open count.
 Historical observations such as RL-030 remain in
 `docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md`; this ledger retains the original issue descriptions and records current status in `known-issues.json`.
 
@@ -2451,3 +2451,440 @@ nearby general §8.8 candidates do not state the backward-time rejection rule.
 The canonical PDF was not independently checked; this is a Lab
 extraction/usability issue, not IEEE errata or conformance evidence. No Lab
 resynchronization was performed.
+
+### RL-401 — Page-298 MessageRetractionReturn candidate drops a field and example
+
+Candidates `requirement-candidate-table-5-p298-r019` and
+`requirement-candidate-table-5-p298-r020` split the row: p298-r019 stops its
+encoding at `Record<retractionHandleIsValid:Boolean` and marks the example
+unspecified, while p298-r020 detaches the second field and example. The pinned generated semantic row
+`topics/ieee/hla-1516.1-2025/output/semantic/content-block-content-15161-page-298.tex`
+contains the complete type
+`Record<retractionHandleIsValid:Boolean, handle:MessageRetractionHandle>` and
+an example with `retractionHandleIsValid` true and
+`handle` equal to `MessageRetractionHandle<2345>`.
+
+Impact: the extracted requirement omits a required field and the exact example
+representation, so a candidate-only test could encode an incomplete record.
+Preserve the stable candidate ID and use the complete pinned page row for
+local mapping. This is private Table 5 encoding evidence; official C++
+`RTIambassador::retract` returns `void`, so do not invent a public return type.
+Do not edit or resynchronize the unchanged Lab export.
+
+Reproduction: run
+`python tools/query_rti_work.py requirement p298-r019 --summary --compact`
+and query p298-r020; compare both with the page-298 `MessageRetractionReturn`
+row above. The candidates split the record and example while the pinned
+semantic source contains the complete row. This is a Requirements Lab extraction
+defect, not IEEE errata or provider-conformance evidence. No Lab resync was
+performed.
+
+### RL-402 — Restore-status formatter comment again cites nonexistent RL-083
+
+After RL-369 corrected the original untraceable `RL-083` citation and RL-372
+recorded a later recurrence in plan notes, the restore-status formatter test
+comment again attributed the Table 5/MIM discrepancy to nonexistent `RL-083`.
+This recurrence is recorded separately rather than rewriting either prior
+issue. The source comment now points to RL-369, which remains the disposition
+for the Table 5/MIM name conflict; p.297 r007 stays unmapped.
+
+Impact: the dangling pointer makes the comment's support unqueryable and hides
+the current disposition of the naming conflict. This is a local traceability
+defect, not a new Lab semantic finding, IEEE erratum, or conformance evidence.
+
+Reproduction: search
+`cpp/tests/mom_service_report_encoding_catch2.cpp` for `RL-083` and compare the
+restore-status formatter comment with exact issue IDs in
+`compliance/requirements-lab/known-issues.json`.
+
+Verification — 2026-10-31: the stale source citation now points to RL-369 and
+no `RL-083` citation remains in the source file. No Requirements Lab
+resynchronization was performed.
+
+### RL-403 — Table 5 ParameterHandleValueMap examples conflict with the Binary Data definition
+
+The pinned page-292 §11.5.1 text defines Binary Data as a Character Sequence
+of base 64-encoded data delimited with double quotation marks. The p.299 Table
+5 `ParameterHandleValueMap` example uses `xFDcMa` and `R6lkHla`; the p.295
+`BinaryData` example repeats `xFDcMa`. Those six- and seven-character strings
+are not canonical padded Base64, and their final sextets have non-zero pad
+bits under RFC 4648. The Lab text does not state an unpadded variant.
+
+Impact: adopting the example literals as executable byte encodings could
+produce an invalid Base64 formatter or test and hide whether the conflict is
+in the Lab transcription or original standard. Keep p299-r008 stable and map
+only the PairList structure using valid Base64 input; do not encode the
+disputed literal values or alter the formatter pending source review.
+
+Reproduction: query
+`requirement-candidate-table-5-p299-r008` and compare the pinned semantic
+pages 292, 295, and 299. RFC 4648 §3.2 requires padding unless the referring
+specification explicitly says otherwise:
+<https://www.rfc-editor.org/rfc/rfc4648.html#section-3.2>.
+
+Verification — 2026-10-31: the pinned Lab transcription contains the stated
+definition and examples. The known Downloads folder has no original
+`HLA_1516_1_2025_LaTeX_FINAL.pdf`; available 2025 PDFs are Lab compilations,
+so the original standard text has not been independently compared. This is an
+unresolved source discrepancy, not a finding that IEEE or the Lab is wrong.
+No Requirements Lab resynchronization was performed.
+
+### RL-404 — Page-300 Table 5 enum rows are truncated and continuation values become pseudo-requirements
+
+The p.300 `SaveFailureReason` candidate p300-r001 stops its enumeration after
+`RTI_UNABLE_TO_SAVE`; p300-r002 through r005 are then exported as separate
+Table 5 rows with no encoding or example. The `SaveStatus` row repeats the
+pattern: p300-r006 stops after `NO_SAVE_IN_PROGRESS`, while p300-r007 through
+r009 are exported as separate rows. The pinned page-300 semantic layout shows
+the complete six-value SaveFailureReason enumeration and four-value SaveStatus
+enumeration in their respective rows. The `ServiceGroup` row follows the same
+pattern: p300-r010 stops after `FEDERATION_MANAGEMENT`, while p300-r011 through
+r015 are detached continuation values with no encoding or example; the pinned
+row contains all seven ServiceGroup values.
+
+Impact: candidate-level coverage can treat enumeration continuations as
+independent normative requirements and inflate apparent Table 5 coverage.
+Keep the parent row IDs stable, map only the complete row evidence, and leave
+the detached candidates unmapped until the Lab corrects the extraction.
+
+Reproduction: query
+`requirement-candidate-table-5-p300-r001` through `p300-r015` and compare the
+records with `content-15161-page-300` in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: bounded queries reproduce the truncated parent and
+detached continuation candidates. The pinned semantic layout contains all six
+SaveFailureReason values, all four SaveStatus values, and all seven ServiceGroup
+values under their respective Table 5 row labels. This is a Requirements Lab extraction defect, not IEEE
+errata or conformance evidence. No Requirements Lab resynchronization was
+performed.
+
+### RL-405 — Page-300 ServiceReportInitialRecord type and example are split into pseudo-rows
+
+The pinned page-300 semantic layout defines one `ServiceReportInitialRecord`
+row with a composite type containing `RtiConfiguration`,
+`HLAmanager.HLAfederation:FederationAttributes`, and
+`HLAmanager.HLAfederate:FederateAttributes`, followed by one complete JSON
+example. The current candidate export truncates p300-r016 after
+`Record<RtiConfiguration:RtiConfiguration` and marks its example unspecified.
+It then emits the two nested record components as p300-r017 and p300-r018;
+their candidate encodings are misaligned with the original table columns and
+fragments of the parent example.
+
+Impact: candidate-level traceability can count nested type components and
+pieces of the JSON example as independent Table 5 requirements. p300-r016 can
+still be mapped only when the evidence covers the full parent row from the
+pinned semantic layout; r017 and r018 must remain unmapped.
+
+Reproduction: query `requirement-candidate-table-5-p300-r016` through
+`p300-r018` and compare those records with `content-15161-page-300` layout_body
+in `topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: the bounded candidate queries split the record into
+three entries, while the pinned layout_body shows the complete `Record<...>`
+type and one JSON object under the `ServiceReportInitialRecord` label. The
+existing C++ formatter assertion checks the full parent record shape, so it
+maps p300-r016 only; p300-r017 and p300-r018 remain unmapped pending Lab
+correction. This is a Requirements Lab extraction defect, not IEEE errata or
+conformance evidence. No Requirements Lab resynchronization was performed.
+
+### RL-406 — Page-301/302 ServiceReportRecord type and example are fragmented into pseudo-rows
+
+The pinned page-301/302 layout has one `ServiceReportRecord` row whose type
+and example span the page break. The candidate export truncates p301-r001 after
+`Record<HLAserialNumber:Number`, marks its example unspecified, and exports
+p301-r002 through p301-r006 as separate rows for fields and fragments of the
+same example. The p302-r001 continuation of that example is also exported as a
+separate row. The detached encodings are shifted across columns: for example,
+p301-r002 pairs `HLAreturnedArgument` with the preceding `HLAserialNumber`
+example value, p301-r006 receives fields from the nested argument list, and
+p302-r001 contains the final sent-region arguments and record fields from the
+same multi-page example.
+
+Impact: candidate-level traceability can treat pieces of one record and JSON
+example as separate Table 5 requirements, and field-to-example relationships
+are no longer reliable.
+
+Workaround: map only the p301-r001 parent row when a test checks the complete
+record shape against the pinned layout; leave p301-r002 through r006 and
+p302-r001 unmapped until the Lab repairs the row extraction.
+
+Reproduction: query `requirement-candidate-table-5-p301-r001` through
+`p301-r006` and `p302-r001` and compare them with `content-15161-page-301` and
+`content-15161-page-302` layout_body in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: bounded queries show the truncated parent, five
+detached candidates, and one page-302 continuation candidate. The pinned
+layout shows one six-field record and its single multi-page JSON example. The
+focused C++ successful-record formatter case checks the parent JSON structure
+and maps p301-r001 only; p301-r002-r006 and p302-r001 remain unmapped. This is a Requirements Lab extraction defect, not IEEE
+errata or conformance evidence. No Requirements Lab resynchronization was
+performed.
+
+### RL-407 — Page-301 ServiceReportRecord type spelling conflicts with its example
+
+The pinned page-301 layout spells a type member `HLAservce:String`, while the
+JSON example in the same row spells the key `HLAservice`. The 1516.2-2025
+standard MIM also uses `HLAservice`. The original licensed 1516.1 page artwork
+has not yet been compared, so the source of the discrepancy is not
+established.
+
+Impact: treating the type spelling as normative could produce a file key that
+conflicts with both the row's own example and the standard MIM naming.
+
+Workaround: retain the discrepancy as open; do not claim that either spelling
+is validated against the original licensed Table 5 text.
+
+Reproduction: inspect `content-15161-page-301` layout_body in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json` and compare the
+type member and JSON example with `HLAservice` in
+`third_party/ieee1516.2-2025/resources/mim/HLAstandardMIM-2025.xml`.
+
+Verification — 2026-10-31: the pinned 1516.1 layout contains both spellings,
+and the 1516.2-2025 MIM contains `HLAservice`. This is an unresolved source
+discrepancy, not a conclusion that IEEE or the Lab is wrong. No Requirements
+Lab resynchronization was performed.
+
+### RL-408 — Page-304 SuppliedArgumentList continuation is counted separately from its parent row
+
+The pinned page-303 layout defines `SuppliedArgumentList` as
+`Array<HLAargument>` and begins one multi-element example. The page-304 layout
+continues that same example under the label `SuppliedArgumentList (cont.)`.
+The Lab exports the page-304 continuation as p304-r001, separate from the
+parent p303-r001 candidate, so its example values can appear as another
+requirement rather than continuation text.
+
+Impact: requirement counts can double-count one Table 5 row, and a test may be
+incorrectly asked to treat the continuation's example values as a separate
+type or encoding obligation.
+
+Workaround: map p303-r001 only for `Array<HLAargument>` behavior, and leave
+p304-r001 unmapped as the parent example continuation.
+
+Reproduction: query `requirement-candidate-table-5-p303-r001` and
+`requirement-candidate-table-5-p304-r001`, then compare them with
+`content-15161-page-303` and `content-15161-page-304` layout_body in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: the pinned page layouts show the parent array type
+on page 303 and the remaining argument objects under the explicit
+`(cont.)` label on page 304. The focused two-element C++ array case maps
+p303-r001 only; p304-r001 remains unmapped. This is a Requirements Lab
+candidate-fragmentation issue, not IEEE errata or conformance evidence. No
+Requirements Lab resynchronization was performed.
+
+### RL-409 — Page-304 SynchronizationPointFailureReason enum values become pseudo-requirements
+
+The p304-r002 candidate truncates `SYNCHRONIZATION_POINT_LABEL_NOT_UNIQUE`
+after `NOT_U`. The Lab exports the suffix `NIQUE` as p304-r003 and
+`SYNCHRONIZATION_SET_MEMBER_NOT_JOINED` as p304-r004, each detached from its
+encoding and example. The pinned page-304 layout shows both values in one
+`SynchronizationPointFailureReason` enumeration, with the example belonging
+to that same row.
+
+Impact: candidate-level coverage can count enum fragments and values as
+independent Table 5 requirements instead of one complete enumeration row.
+
+Workaround: map p304-r002 only when evidence covers the complete enum row;
+leave p304-r003 and p304-r004 unmapped as detached fragments.
+
+Reproduction: query `requirement-candidate-table-5-p304-r002` through
+`p304-r004`, then inspect `content-15161-page-304` layout_body in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: the bounded queries reproduce the truncated parent
+and two detached candidates. The pinned page layout contains both enum values
+in one row. The focused C++ formatter case verifies both spellings and maps
+p304-r002 only; p304-r003 and p304-r004 remain unmapped. This is a recurrence
+of the Table 5 row-fragmentation class recorded in RL-404 on another page and
+row, so it is recorded as a new issue rather than rewriting RL-404. No
+Requirements Lab resynchronization was performed.
+
+### RL-410 — Page-304 time-query return records are split across pseudo-requirements
+
+The p304-r005 candidate truncates the `TimeIntervalQueryReturn` type at
+`Record<intervalIsValid:Boolean` and omits its example. Candidate p304-r006
+exports `interval:LogicalTimeInterval>` with example fragments but no encoding.
+The same split occurs for `TimeQueryReturn`: p304-r007 truncates
+`Record<timeIsValid:Boolean` and omits its example; p304-r008 exports
+`time:LogicalTime>` with example fragments but no encoding. The pinned page
+layout shows each pair as one complete two-field record row.
+
+Impact: candidate-level traceability can split both Table 5 query-return
+records into unrelated requirements and lose the relationships between types,
+fields, and examples.
+
+Workaround: map p304-r005 and p304-r007 only when evidence covers each complete
+parent record; leave p304-r006 and p304-r008 unmapped as detached
+field/example continuations.
+
+Reproduction: query `requirement-candidate-table-5-p304-r005` through p304-r008,
+then inspect `content-15161-page-304` layout_body in
+`topics/ieee/hla-1516.1-2025/semantic/content-blocks.json`.
+
+Verification — 2026-10-31: the bounded queries reproduce two incomplete Record
+parents and their detached interval/time field-example candidates. The pinned
+page-304 layout presents
+`Record<intervalIsValid:Boolean, interval:LogicalTimeInterval>` and
+`Record<timeIsValid:Boolean, time:LogicalTime>`, each with its example under
+one Table 5 row. This is a recurrence of the composite Table 5 fragmentation
+class recorded in RL-405/RL-406 on different rows, so it is logged as a new
+issue. No Requirements Lab resynchronization was performed.
+
+### RL-411 — Page-223 DDM replacement framing is counted as a standalone behavior gap
+
+The candidate
+`requirement-candidate-content-clauses-09-data-distribution-management-page-223-l10-3`
+says that the expanded DDM definitions and constraints replace the
+correspondingly numbered DM definitions in §§5.1.2 and 5.1.3. The pinned
+corpus classifies it as a detailed, cross-cutting requirement with no
+one-to-one API surface, yet the global Catch2 gap query counts it as one
+standalone uncovered behavioral requirement after the other 27 §9.1.5 records
+are mapped.
+
+Impact: coverage reports conflate an aggregate interpretation/crosswalk rule
+with a missing service behavior. Mapping it to a single API test would
+overstate evidence; leaving it unexplained makes the 27/28 result look like
+one ordinary implementation gap.
+
+Workaround: keep the candidate unmapped to an individual behavioral test.
+Preserve direct mappings for concrete §9.1.5 obligations and track this as an
+explicit cross-cutting/document-level coverage question until the Lab or
+Umbra coverage workflow can represent aggregate replacement-rule evidence
+separately from callable behavior. Do not invent a one-service test claim or
+resynchronize unchanged Lab inputs.
+
+Reproduction: run
+`python tools/query_rti_work.py gaps --document hla-1516.1-2025 --clause clause-9.1.5 --summary --compact`
+and
+`python tools/query_rti_work.py gaps requirement-candidate-content-clauses-09-data-distribution-management-page-223-l10-3 --json --limit 1`.
+
+Verification — 2026-10-31: the exact pinned requirement query reports source
+lines 10–15, `coverage_kind=cross-cutting`, `api_surface_scope=cross-cutting`,
+and no one-to-one callable declaration. The bounded §9.1.5 gap query reports
+this as the sole globally uncovered Catch2-plan requirement (27/28 mapped).
+No standalone behavioral test or direct mapping was added because that would
+claim more than a single service case can prove. This is a Requirements
+Lab/Umbra traceability-modeling issue, not IEEE errata, provider
+nonconformance, or conformance evidence. No Requirements Lab resynchronization
+was performed.
+
+### RL-415 — Page-185 pending-message queue rule is assigned to §8.1.7 instead of §8.1.6
+
+The structured record for
+`requirement-candidate-content-clauses-08-time-management-page-185-l17-5`
+assigns the internal pending-message queue rule to §8.1.7. The pinned semantic
+page places the statement beneath the visible §8.1.6 Lookahead bookmark, with
+the §8.1.7 heading later in the rendered page flow. This conflicts with the
+portable TCK and Catch2 section mappings, which use §8.1.6 based on the source
+heading.
+
+Impact: section-level requirement queries and coverage reports can attach this
+rule to the wrong subsection. Preserve the stable requirement ID and keep the
+test mapping at §8.1.6; ask the Requirements Lab maintainers to verify the
+crosswalk against the original IEEE source. The semantic derivative is not the
+original publication. The authoritative machine-readable record is
+`compliance/requirements-lab/known-issues.json` under RL-415. No Requirements
+Lab resynchronization was performed.
+
+### RL-416 — Page-125 Receive Interaction tag-relay requirement loses its subject
+
+The structured page-125 statement starts with the fragment “Regions service
+invocation shall be provided with all corresponding Receive Interaction
+service invocations.” The source page supplies the missing subject and
+condition: the tag from Send Interaction or Send Interaction With Regions is
+relayed to the corresponding Receive Interaction callbacks. Without that
+context, a trace can look like generic delivery evidence while never checking
+tag preservation.
+
+Keep `requirement-candidate-content-clauses-06-object-management-page-125-l82-23`
+unmapped until the Lab restores the complete statement. This is a distinct
+page-125 segmentation instance; RL-250 remains unchanged. No Requirements Lab
+resynchronization was performed.
+
+### RL-417 — §8.9 post-TARA equal-time send permission is absent from Lab requirements
+
+The pinned page-195 candidate
+`requirement-candidate-content-clauses-08-time-management-page-195-l119-34`
+states only that the RTI does not guarantee delivery of all messages at T when
+TARA grants T. The same §8.9 source block separately permits a zero-lookahead
+federate to send additional messages timestamped T after that grant. No
+extracted requirement represents this sender permission.
+
+Do not select the no-delivery-guarantee candidate as evidence for send
+acceptance. Keep the exact §8.9 source-section mapping visible and use this
+issue to track the extraction gap. The affected TARA Catch2/TCK rows now state
+that distinction explicitly. This is a Requirements Lab extraction gap, not
+IEEE errata, implementation evidence, or conformance evidence. No Requirements
+Lab resynchronization was performed.
+
+### RL-438 — Page-113 update-rate criteria lose the Annex C.7 parent heading
+
+The Lab exports
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l10-2`
+and
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l18-4`
+with `clause_id=clause-7` and `semantic_group_id=m17.clause-7`. The semantic
+layout on page 112 starts “C.7 Merging update rates.” Page 113 continues the
+numbered update-rate comparison and merge criteria before the visible C.8
+“Merging switches” heading. These two records therefore lose the inherited C.7
+subclause context at the page boundary.
+
+Impact: requirement queries assign the two update-rate criteria to parent
+Clause 7; direct mappings to C.7 then appear as crosswalk reviews and subsection
+coverage is harder to query accurately. Preserve the stable Lab IDs and map
+public C++ evidence to `hla-1516.2-2025:clause-C.7` based on the heading and
+page flow. The update-rate TCK now exercises both a unique-name merge and a
+same-name, rate-only conflict through the public API. This is a Lab cross-page
+subclause attribution issue, not IEEE errata or conformance evidence. No Lab
+resynchronization or requirement-ID rewrite was performed. Machine-readable
+evidence is in `compliance/requirements-lab/known-issues.json` under RL-438.
+
+### RL-443 — Page-113 switch-conflict rule conflates warning and failed-merge outcome
+
+The Lab's C.8 candidate
+`requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-113-l50-9`
+combines a user-facing warning with the statement that a conflicting switch
+cannot be inserted and the merge fails. The candidate/content-element wording
+does not establish whether the warning is the failure diagnostic or a separate
+log/report event; the page-layout export also has a missing separator in the
+failed-merge phrase.
+
+The official 1516.1-2025 C++ binding declares `InconsistentFOM` for Create and
+Join and documents `Exception::what()` as returning exception details. It
+exposes no separate warning callback for those services. Umbra translates the
+FOM composition diagnostic into that exception message. The public C++ TCK now
+checks both failed Create module orders and conflicting Join additions, and
+asserts that `what()` identifies the `nonRegulatedGrant` switch. The primary
+and contract scenarios passed 4/4 direct MinGW runs across HLA_EVOKED and
+HLA_IMMEDIATE; artifacts are under
+`out/mgw/cpp-tck-annex-c8-switch-conflict-20261110/diagnostic-results.json`.
+
+Umbra maps the candidate to C.8 using the explicit interpretation that this
+detailed public failure diagnostic is the user-facing warning. The mapping
+does not claim a separate warning event or log. Keep RL-443 open for Lab/source
+clarification because the licensed primary PDF was not independently checked
+and a separate warning channel remains possible. This is a Requirements Lab
+source-text/usability ambiguity, not IEEE errata or RTI nonconformance. No Lab
+resynchronization or requirement-ID rewrite was performed; machine-readable
+details remain in `compliance/requirements-lab/known-issues.json`.
+
+### RL-446 — Pages 80–81 fixed-record requirements export only under Clause 4
+
+The three fixed-record requirements on pages 80–81 retain source locations
+within semantic Clause 4 but export only `clause_id=clause-4`. The page-80
+transcription explicitly starts subsection 4.14.10.1, “HLAfixedRecord,” before
+the offset-zero, declaration-order, and minimum-padding rules. Page 81
+continues that subsection through the no-padding-after-the-last-component
+rule before the 4.14.10.2 “HLAvariantRecord” heading.
+
+The portable C++ TCK now maps these three stable IDs to §4.14.10 based on that
+source context. The focused §4.14.10 query reports 5/5 mapped and 0 absent, but
+keeps three subsection crosswalk reviews visible because the Lab export says
+only Clause 4. Preserve those IDs and the broad export; do not claim an
+unqualified subsection closeout until the attribution is restored. This is a
+page-specific Lab crosswalk defect related to, but distinct from, the page-52/53
+Clause 4 issue RL-440. No Requirements Lab resynchronization was performed.
+Machine-readable details are in `compliance/requirements-lab/known-issues.json`
+under RL-446.

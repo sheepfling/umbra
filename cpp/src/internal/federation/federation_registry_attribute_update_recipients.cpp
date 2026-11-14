@@ -32,6 +32,78 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
     return std::nullopt;
   }
 
+  auto const momObject = federation.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(receivingFederateId) ||
+        (sentRegionHandles != nullptr && !sentRegionHandles->empty())) {
+      return std::nullopt;
+    }
+    auto const className = federation.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    auto const declarations = federation.objectClassAttributeDeclarations.find(
+        receivingFederateId);
+    auto const member = federation.members.find(receivingFederateId);
+    auto const callbackRoute = federation.interactionCallbackRoutes.find(
+        receivingFederateId);
+    if (!className ||
+        federation.definition.catalog->objectClass(*className) == nullptr ||
+        declarations == federation.objectClassAttributeDeclarations.end() ||
+        member == federation.members.end() ||
+        callbackRoute == federation.interactionCallbackRoutes.end() ||
+        !callbackRoute->second) {
+      return std::nullopt;
+    }
+
+    ReceiveOrderAttributeUpdateRecipient recipient;
+    recipient.federateId = receivingFederateId;
+    recipient.subscriptionGeneration = declarations->second.subscriptionGeneration;
+    recipient.conveyRegionDesignatorSets = member->second.conveyRegionDesignatorSetsSwitch;
+    recipient.callbackRoute = callbackRoute->second;
+    for (std::uint64_t const attributeHandle : sentAttributeHandles) {
+      auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner == momObject->second.attributeOwnersByHandle.end() ||
+          owner->second != producingFederateId ||
+          !momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+          !federation.attributeHandles->nameFor(
+              federation.definition.catalog.get(),
+              *className,
+              attributeHandle)) {
+        continue;
+      }
+      bool subscribed = false;
+      std::set<std::string> visited;
+      std::string currentClassName = *className;
+      while (!currentClassName.empty() && visited.insert(currentClassName).second) {
+        auto const currentClassHandle = federation.objectClassHandles->handleFor(
+            currentClassName);
+        auto const* currentClass = federation.definition.catalog->objectClass(
+            currentClassName);
+        if (!currentClassHandle || currentClass == nullptr) {
+          break;
+        }
+        auto const perClass = declarations->second.byObjectClass.find(
+            *currentClassHandle);
+        if (perClass != declarations->second.byObjectClass.end()) {
+          auto const subscription = perClass->second.subscribedAttributes.find(
+              attributeHandle);
+          if (subscription != perClass->second.subscribedAttributes.end() &&
+              subscription->second) {
+            subscribed = true;
+            break;
+          }
+        }
+        currentClassName = currentClass->parentName;
+      }
+      if (subscribed) {
+        recipient.receivedAttributeHandles.insert(attributeHandle);
+      }
+    }
+    return recipient.receivedAttributeHandles.empty()
+        ? std::nullopt
+        : std::optional<ReceiveOrderAttributeUpdateRecipient>{std::move(recipient)};
+  }
+
   auto const instance = federation.objectInstances.find(objectInstanceHandle);
   // A receive-order Delete Object Instance commits the federation-wide
   // deletion before each recipient's queued Remove Object Instance callback
@@ -129,8 +201,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
             // committed realization overlaps that default region.
             if (sentRegionHandles != nullptr && !sentRegionHandles->empty()) {
               for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
-                if (regionOverlapsDefault(
+                if (objectAttributeRegionOverlapsDefault(
                         federation,
+                        instance->second.registeredObjectClassHandle,
+                        attributeHandle,
                         sentRegionHandle,
                         regionOverrides)) {
                   established = true;
@@ -139,8 +213,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
               }
             } else if (associated != instance->second.updateRegionsByAttribute.end()) {
               for (std::uint64_t const associatedRegionHandle : associated->second) {
-                if (regionOverlapsDefault(
+                if (objectAttributeRegionOverlapsDefault(
                         federation,
+                        instance->second.registeredObjectClassHandle,
+                        attributeHandle,
                         associatedRegionHandle,
                         regionOverrides)) {
                   established = true;
@@ -176,8 +252,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
                 continue;
               }
               if (!hasExplicitUpdateRegion) {
-                if (regionOverlapsDefault(
+                if (objectAttributeRegionOverlapsDefault(
                         federation,
+                        instance->second.registeredObjectClassHandle,
+                        attributeHandle,
                         subscribedRegionHandle,
                         regionOverrides)) {
                   established = true;
@@ -186,8 +264,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
                 continue;
               }
               for (std::uint64_t const sentRegionHandle : currentSentRegions) {
-                if (regionsOverlap(
+                if (objectAttributeRegionsOverlap(
                         federation,
+                        instance->second.registeredObjectClassHandle,
+                        attributeHandle,
                         subscribedRegionHandle,
                         sentRegionHandle,
                         regionOverrides)) {
@@ -251,8 +331,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
       subscribed = false;
       if (sentRegionHandles != nullptr && !sentRegionHandles->empty()) {
         for (std::uint64_t const sentRegionHandle : *sentRegionHandles) {
-          if (regionOverlapsDefault(
+          if (objectAttributeRegionOverlapsDefault(
                   federation,
+                  instance->second.registeredObjectClassHandle,
+                  attributeHandle,
                   sentRegionHandle,
                   regionOverrides)) {
             subscribed = true;
@@ -261,8 +343,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
         }
       } else if (associatedUpdateRegions != instance->second.updateRegionsByAttribute.end()) {
         for (std::uint64_t const associatedRegionHandle : associatedUpdateRegions->second) {
-          if (regionOverlapsDefault(
+          if (objectAttributeRegionOverlapsDefault(
                   federation,
+                  instance->second.registeredObjectClassHandle,
+                  attributeHandle,
                   associatedRegionHandle,
                   regionOverrides)) {
             subscribed = true;
@@ -280,7 +364,11 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
       // association suppresses a stale passel rather than retargeting it.
       if (sentRegionHandles == nullptr || sentRegionHandles->empty()) {
         for (auto const& [subscribedRegionHandle, active] : regional->second) {
-          if (active && regionOverlapsDefault(federation, subscribedRegionHandle)) {
+          if (active && objectAttributeRegionOverlapsDefault(
+                            federation,
+                            instance->second.registeredObjectClassHandle,
+                            attributeHandle,
+                            subscribedRegionHandle)) {
             subscribed = true;
             break;
           }
@@ -309,8 +397,10 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
             continue;
           }
           for (std::uint64_t const sentRegionHandle : currentSentRegions) {
-            if (regionsOverlap(
+            if (objectAttributeRegionsOverlap(
                     federation,
+                    instance->second.registeredObjectClassHandle,
+                    attributeHandle,
                     subscribedRegionHandle,
                     sentRegionHandle,
                     regionOverrides)) {
@@ -358,7 +448,12 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
           ordinary->second &&
           (!hasExplicitUpdateRegion || [&] {
             for (std::uint64_t const associatedRegionHandle : associatedUpdateRegions->second) {
-              if (regionOverlapsDefault(federation, associatedRegionHandle, regionOverrides)) {
+              if (objectAttributeRegionOverlapsDefault(
+                      federation,
+                      instance->second.registeredObjectClassHandle,
+                      attributeHandle,
+                      associatedRegionHandle,
+                      regionOverrides)) {
                 return true;
               }
             }
@@ -381,14 +476,18 @@ EmbeddedFederationRegistry::candidateReceiveOrderAttributeUpdateRecipient(
           }
           bool overlaps = false;
           if (sentRegionHandles == nullptr || sentRegionHandles->empty()) {
-            overlaps = regionOverlapsDefault(
+            overlaps = objectAttributeRegionOverlapsDefault(
                 federation,
+                instance->second.registeredObjectClassHandle,
+                attributeHandle,
                 subscribedRegionHandle,
                 regionOverrides);
           } else {
             for (std::uint64_t const sentRegionHandle : currentSentRegions) {
-              if (regionsOverlap(
+              if (objectAttributeRegionsOverlap(
                       federation,
+                      instance->second.registeredObjectClassHandle,
+                      attributeHandle,
                       subscribedRegionHandle,
                       sentRegionHandle,
                       regionOverrides)) {
@@ -593,7 +692,12 @@ EmbeddedFederationRegistry::candidateAttributeValueUpdateClassProvideRecipient(
         bool overlaps = false;
         for (std::uint64_t const requestRegionHandle : requestRegions->second) {
           for (std::uint64_t const updateRegionHandle : updateRegions->second) {
-            if (regionsOverlap(federation, requestRegionHandle, updateRegionHandle)) {
+            if (objectAttributeRegionsOverlap(
+                    federation,
+                    instance->second.registeredObjectClassHandle,
+                    attributeHandle,
+                    requestRegionHandle,
+                    updateRegionHandle)) {
               overlaps = true;
               break;
             }

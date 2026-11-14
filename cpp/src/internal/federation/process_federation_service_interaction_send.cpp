@@ -7,11 +7,14 @@
 #include "internal/encoding/byte_order.hpp"
 #include "internal/encoding/variable_length_data_2025.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/handles/attribute_handle.hpp"
 #include "internal/handles/federate_handle.hpp"
+#include "internal/handles/object_class_handle.hpp"
 
 #include <RTI/Exception.h>
 #include <RTI/VariableLengthData.h>
 #include <RTI/encoding/BasicDataElements.h>
+#include <RTI/encoding/HLAvariableArray.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -85,10 +88,16 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       sendRequest.sentRegionHandles.has_value()) {
     return invalid(request);
   }
+  std::wstring logicalTimeImplementationName;
   if (sendRequest.timestamp) {
+    auto const definition = registry_.definitionFor(sendRequest.federationName);
+    if (!definition) {
+      return rejected(request);
+    }
+    logicalTimeImplementationName = definition->logicalTimeImplementationName;
     validateProcessLogicalTime(
         *sendRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
   }
   std::shared_ptr<FederateTimeState> producingTimeState;
   {
@@ -110,7 +119,7 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
   if (sendRequest.timestamp && producingTimeState) {
     auto const timestamp = decodeProcessLogicalTime(
         *sendRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
     try {
       rti1516_2025::umbra_binding_detail::validateAmbassadorTsoTimestamp(
           producingTimeState->snapshot(), *timestamp);
@@ -128,6 +137,143 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
   // mutation boundary equivalent to the embedded public path.
   auto const interactionClassName = registry_.interactionClassNameFor(
       sendRequest.federationName, sendRequest.interactionClassHandle);
+  auto const isUnsubscribeObjectClassAttributes =
+      registry_.interactionClassIsSameOrDescendantOf(
+          sendRequest.federationName,
+          sendRequest.interactionClassHandle,
+          hla::utf8::mom::service_unsubscribe_object_class_attributes);
+  if (interactionClassName && isUnsubscribeObjectClassAttributes &&
+      *isUnsubscribeObjectClassAttributes) {
+    // A standard HLAservice interaction invokes the service for the sending
+    // federate. Keep its optional-argument presence distinct from an empty
+    // HLAattributeList: absence is the whole-class service form, while a
+    // supplied empty list selects no attributes. The normal public service
+    // request codec uses an empty vector for both, so consume this MOM request
+    // directly before it is lowered to that codec.
+    if (sendRequest.timestamp || sendRequest.sentRegionHandles) {
+      return rejected(request);
+    }
+    auto const envelope =
+        decodeProcessFederationInteractionEnvelope(sendRequest.payload);
+    if (!envelope) {
+      return rejected(request);
+    }
+
+    std::optional<std::uint64_t> objectClassHandle;
+    std::optional<std::set<std::uint64_t>> attributeHandles;
+    for (auto const parameterHandle : sendRequest.sentParameterHandles) {
+      auto const value = std::find_if(
+          envelope->parameterValues.begin(),
+          envelope->parameterValues.end(),
+          [parameterHandle](ProcessFederationInteractionParameterValue const& entry) {
+            return entry.first == parameterHandle;
+          });
+      if (value == envelope->parameterValues.end()) {
+        return rejected(request);
+      }
+      auto const parameterName = registry_.parameterNameFor(
+          sendRequest.federationName,
+          *interactionClassName,
+          parameterHandle);
+      if (!parameterName) {
+        return rejected(request);
+      }
+      if (*parameterName == "HLAobjectClass") {
+        try {
+          rti1516_2025::VariableLengthData const encoded(
+              value->second.data(), value->second.size());
+          auto const decoded =
+              rti1516_2025::umbra_binding_detail::decodeObjectClassHandle(encoded);
+          objectClassHandle =
+              rti1516_2025::umbra_binding_detail::objectClassHandleValue(decoded);
+        } catch (rti1516_2025::Exception const&) {
+          return rejected(request);
+        }
+        if (!objectClassHandle) {
+          return rejected(request);
+        }
+        continue;
+      }
+      if (*parameterName == hla::utf8::mom::attribute_list) {
+        rti1516_2025::HLAvariableArrayT<rti1516_2025::HLAoctet> handlePrototype;
+        rti1516_2025::HLAvariableArray decodedHandles{
+            static_cast<rti1516_2025::DataElement const&>(handlePrototype)};
+        try {
+          rti1516_2025::VariableLengthData const encoded(
+              value->second.data(), value->second.size());
+          decodedHandles.decode(encoded);
+        } catch (rti1516_2025::Exception const&) {
+          return rejected(request);
+        }
+        std::set<std::uint64_t> decodedAttributeHandles;
+        for (std::size_t index = 0U; index < decodedHandles.size(); ++index) {
+          auto const* encodedHandle = dynamic_cast<
+              rti1516_2025::HLAvariableArray const*>(&decodedHandles.get(index));
+          if (encodedHandle == nullptr) {
+            return rejected(request);
+          }
+          try {
+            auto const decodedAttribute =
+                rti1516_2025::umbra_binding_detail::decodeAttributeHandle(
+                    encodedHandle->encode());
+            auto const value =
+                rti1516_2025::umbra_binding_detail::attributeHandleValue(
+                    decodedAttribute);
+            if (!value) {
+              return rejected(request);
+            }
+            decodedAttributeHandles.insert(*value);
+          } catch (rti1516_2025::Exception const&) {
+            return rejected(request);
+          }
+        }
+        attributeHandles = std::move(decodedAttributeHandles);
+        continue;
+      }
+      // Compatible HLAservice subclasses may add parameters; only these two
+      // standard arguments are consumed by this service operation.
+    }
+    if (!objectClassHandle) {
+      return rejected(request);
+    }
+
+    auto const declaration = registry_.objectClassAttributeDeclarationFor(
+        sendRequest.federationName,
+        sendRequest.producingFederateId,
+        *objectClassHandle);
+    if (!declaration) {
+      return rejected(request);
+    }
+    if (!attributeHandles) {
+      attributeHandles.emplace();
+      for (auto const& [attributeHandle, active] : declaration->subscribedAttributes) {
+        static_cast<void>(active);
+        attributeHandles->insert(attributeHandle);
+      }
+    }
+    auto const result = registry_.setObjectClassAttributeSubscriptionWithScopeChanges(
+        sendRequest.federationName,
+        sendRequest.producingFederateId,
+        *objectClassHandle,
+        *attributeHandles,
+        std::nullopt,
+        {});
+    if (result.status != ObjectClassAttributeDeclarationStatus::applied) {
+      return rejected(request);
+    }
+    if (!enqueueObjectInstanceScopeChanges(
+            sendRequest.federationName, std::move(result.recipients)) ||
+        !enqueueAttributeRelevanceAdvisories(
+            sendRequest.federationName,
+            std::move(result.attributeRelevanceAdvisories))) {
+      return internalError(request);
+    }
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationSendInteractionResult(
+            ProcessFederationSendInteractionResult{}));
+  }
   auto const isFederationSetSwitches =
       registry_.interactionClassIsSameOrDescendantOf(
           sendRequest.federationName,
@@ -456,7 +602,7 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
     message.defaultRegionUsed = plan.defaultRegionUsed;
     message.timestamp = decodeProcessLogicalTime(
         *sendRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
     message.sentOrderType = rti1516_2025::TIMESTAMP;
     message.receivedOrderType = rti1516_2025::TIMESTAMP;
     if (envelope) {
@@ -512,7 +658,8 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
     {
       std::scoped_lock lock(mutex_);
       processTsoMessageProducers_.emplace(
-          messageId,
+          ProcessFederationTsoMessageKey{
+              sendRequest.federationName, messageId},
           sendRequest.producingFederateId);
     }
   }
@@ -670,7 +817,8 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
           // of this queue. A producer may still retract before the receiver's
           // queued public callback starts; handleRetract must notify that
           // process so its callback bridge can suppress the original.
-          pendingPushedRetractionRecipients_[messageId].push_back(
+          pendingPushedRetractionRecipients_[ProcessFederationTsoMessageKey{
+              sendRequest.federationName, messageId}].push_back(
               receivingSession->second);
         }
       }
@@ -702,8 +850,9 @@ TransportServiceMessage ProcessFederationService::handleSendInteraction(
       }
       if (pushedEvent.second.retractionMessageId) {
         std::scoped_lock lock(mutex_);
-        pendingPushedRetractionRecipients_[
-            *pushedEvent.second.retractionMessageId]
+        pendingPushedRetractionRecipients_[ProcessFederationTsoMessageKey{
+            sendRequest.federationName,
+            *pushedEvent.second.retractionMessageId}]
             .push_back(pushedEvent.first);
       }
     }
@@ -740,10 +889,16 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
     TransportServiceMessage const& request) {
   auto const sendRequest =
       decodeProcessFederationSendDirectedInteractionRequest(request.payload);
+  std::wstring logicalTimeImplementationName;
   if (sendRequest.timestamp) {
+    auto const definition = registry_.definitionFor(sendRequest.federationName);
+    if (!definition) {
+      return rejected(request);
+    }
+    logicalTimeImplementationName = definition->logicalTimeImplementationName;
     validateProcessLogicalTime(
         *sendRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
   }
   std::shared_ptr<FederateTimeState> producingTimeState;
   {
@@ -807,7 +962,7 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
   if (queueTimestampedDirectedInteraction && !plan.recipients.empty()) {
     auto timestamp = decodeProcessLogicalTime(
         *sendRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
     auto const envelope =
         decodeProcessFederationInteractionEnvelope(sendRequest.payload);
     if (!envelope && !sendRequest.sentParameterHandles.empty()) {
@@ -888,7 +1043,10 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
     messageId = result.messageId;
     {
       std::scoped_lock lock(mutex_);
-      processTsoMessageProducers_.emplace(messageId, sendRequest.producingFederateId);
+      processTsoMessageProducers_.emplace(
+          ProcessFederationTsoMessageKey{
+              sendRequest.federationName, messageId},
+          sendRequest.producingFederateId);
     }
   }
 
@@ -989,7 +1147,9 @@ TransportServiceMessage ProcessFederationService::handleSendDirectedInteraction(
   if (messageId != 0U) {
     std::scoped_lock lock(mutex_);
     pendingPushedRetractionRecipients_.emplace(
-        messageId, std::move(retractionRecipients));
+        ProcessFederationTsoMessageKey{
+            sendRequest.federationName, messageId},
+        std::move(retractionRecipients));
   }
   if (options_.pushReceiveOrderEvents) {
     for (auto const& pushedEvent : pushedEvents) {

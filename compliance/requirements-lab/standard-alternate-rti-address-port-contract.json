@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract defines portable C++ and Java TCK witnesses for IEEE 1516.1-2025 §12.13.5's requirement that the RID support alternative configuration of the RTI address and port. The adapter supplies a TLS RTI Address with a numeric port other than the normative TLS default 15165 and a matching TLS 1.3 listener. The scenarios connect through the official APIs and complete List Federation Executions with its report callback. They test the externally observable configured endpoint only; they do not establish certificate-policy completeness, independent-provider interoperability, or provider-wide conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-configured-alternate-rti-address-port",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect using an RtiConfiguration RTI Address with an explicitly configured non-default port, followed by List Federation Executions and its report callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::connect, RtiConfiguration::withRtiAddress, and RTIambassador::listFederationExecutions",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_tls_transport.cpp::scenarioTls13AlternateAddressPortConfiguration"
+      ]
+    },
+    {
+      "id": "standard-java-configured-alternate-rti-address-port",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
+        "RtiConfiguration.withRtiAddress",
+        "ConfigurationResult.addressUsed",
+        "RTIambassador.listFederationExecutions"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#connect;hla.rti1516_2025.RtiConfiguration#withRtiAddress",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/Tls13AlternateAddressPortScenarioRegistry.java#tls13AlternateAddressPortConfiguration"
+      ]
+    }
+  ]
+}

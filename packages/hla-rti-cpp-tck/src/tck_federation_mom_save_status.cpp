@@ -134,6 +134,134 @@ void scenarioFederationMomSaveStatus(
       "Federation save-status Table 5 argument encoding",
       0);
 
+  owner.rtiAmbassador().setServiceReportingSwitch(false);
+  auto const ownerInitiationsBefore = owner.federateSaveInitiations().size();
+  auto const peerInitiationsBefore = peer.federateSaveInitiations().size();
+  std::wstring const activeSaveLabel = L"federation-mom-save-status-lifecycle";
+  owner.rtiAmbassador().requestFederationSave(activeSaveLabel);
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federateSaveInitiations().size() > ownerInitiationsBefore &&
+            peer.federateSaveInitiations().size() > peerInitiationsBefore;
+      },
+      options,
+      "federation save-status lifecycle initiation callbacks");
+  require(
+      owner.federateSaveInitiations().back() == activeSaveLabel &&
+          peer.federateSaveInitiations().back() == activeSaveLabel,
+      "save-status lifecycle initiation returned the wrong label");
+
+  auto const queryAndRequireStatuses = [&](rti::SaveStatus ownerExpected,
+                                           rti::SaveStatus peerExpected,
+                                           std::string const& description) {
+    auto const responseCount = owner.federationSaveStatusResponses().size();
+    owner.rtiAmbassador().queryFederationSaveStatus();
+    waitFor(
+        owner,
+        [&] {
+          return owner.federationSaveStatusResponses().size() > responseCount;
+        },
+        options,
+        description);
+    auto const response = owner.federationSaveStatusResponses().back();
+    require(response.size() == 2U,
+            description + " omitted a joined federate");
+    auto const requireStatus = [&](rti::FederateHandle const& handle,
+                                   rti::SaveStatus expected,
+                                   std::string const& member) {
+      auto const found = std::find_if(
+          response.begin(),
+          response.end(),
+          [&](auto const& entry) { return entry.first == handle; });
+      require(found != response.end(),
+              description + " omitted the " + member + " federate");
+      require(found->second == expected,
+              description + " returned the wrong status for the " + member);
+    };
+    requireStatus(ownerHandle, ownerExpected, "owner");
+    requireStatus(peerHandle, peerExpected, "peer");
+  };
+
+  queryAndRequireStatuses(
+      rti::FEDERATE_INSTRUCTED_TO_SAVE,
+      rti::FEDERATE_INSTRUCTED_TO_SAVE,
+      "instructed federation save status");
+  owner.rtiAmbassador().federateSaveBegun();
+  peer.rtiAmbassador().federateSaveBegun();
+  queryAndRequireStatuses(
+      rti::FEDERATE_SAVING,
+      rti::FEDERATE_SAVING,
+      "saving federation status");
+  owner.rtiAmbassador().federateSaveComplete();
+  queryAndRequireStatuses(
+      rti::FEDERATE_WAITING_FOR_FEDERATION_TO_SAVE,
+      rti::FEDERATE_SAVING,
+      "waiting-for-federation save status");
+  auto const ownerSavedBefore = owner.federationSavedCount();
+  auto const peerSavedBefore = peer.federationSavedCount();
+  peer.rtiAmbassador().federateSaveComplete();
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federationSavedCount() > ownerSavedBefore &&
+            peer.federationSavedCount() > peerSavedBefore;
+      },
+      options,
+      "federation save-status lifecycle completion callbacks");
+  require(
+      owner.federationNotSavedReasons().empty() &&
+          peer.federationNotSavedReasons().empty(),
+      "successful save-status lifecycle reported a failure");
+
+  auto const ownerAbortInitiationsBefore =
+      owner.federateSaveInitiations().size();
+  auto const peerAbortInitiationsBefore =
+      peer.federateSaveInitiations().size();
+  std::wstring const abortedSaveLabel =
+      L"federation-mom-save-status-mixed-abort";
+  owner.rtiAmbassador().requestFederationSave(abortedSaveLabel);
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federateSaveInitiations().size() >
+                ownerAbortInitiationsBefore &&
+            peer.federateSaveInitiations().size() > peerAbortInitiationsBefore;
+      },
+      options,
+      "mixed-substate save-abort initiation callbacks");
+  require(
+      owner.federateSaveInitiations().back() == abortedSaveLabel &&
+          peer.federateSaveInitiations().back() == abortedSaveLabel,
+      "mixed-substate save-abort initiation returned the wrong label");
+  owner.rtiAmbassador().federateSaveBegun();
+  queryAndRequireStatuses(
+      rti::FEDERATE_SAVING,
+      rti::FEDERATE_INSTRUCTED_TO_SAVE,
+      "mixed-substate pre-abort save status");
+
+  auto const ownerNotSavedBefore = owner.federationNotSavedReasons().size();
+  auto const peerNotSavedBefore = peer.federationNotSavedReasons().size();
+  auto const ownerSavedBeforeAbort = owner.federationSavedCount();
+  auto const peerSavedBeforeAbort = peer.federationSavedCount();
+  owner.rtiAmbassador().abortFederationSave();
+  waitForSessions(
+      {&owner, &peer},
+      [&] {
+        return owner.federationNotSavedReasons().size() > ownerNotSavedBefore &&
+            peer.federationNotSavedReasons().size() > peerNotSavedBefore;
+      },
+      options,
+      "mixed-substate federation save-abort callbacks");
+  require(
+      owner.federationNotSavedReasons().back() == rti::SAVE_ABORTED &&
+          peer.federationNotSavedReasons().back() == rti::SAVE_ABORTED,
+      "mixed-substate abort did not report SAVE_ABORTED to both members");
+  require(
+      owner.federationSavedCount() == ownerSavedBeforeAbort &&
+          peer.federationSavedCount() == peerSavedBeforeAbort,
+      "mixed-substate save abort reported a successful Federation Saved callback");
+
   peer.resign(rti::NO_ACTION);
   owner.resign(rti::NO_ACTION);
   owner.rtiAmbassador().destroyFederationExecution(federation);

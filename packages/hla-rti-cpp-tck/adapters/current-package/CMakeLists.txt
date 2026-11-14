@@ -29,6 +29,53 @@ list(GET _installed_api_include 0 _installed_api_include)
 
 get_filename_component(_repository_root
   "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
+get_target_property(_current_package_rti_location
+  umbra::rti IMPORTED_LOCATION_DEBUG)
+if(NOT _current_package_rti_location)
+  get_target_property(_current_package_rti_location
+    umbra::rti IMPORTED_LOCATION)
+endif()
+get_target_property(_current_package_rti_type umbra::rti TYPE)
+if(_current_package_rti_type STREQUAL "SHARED_LIBRARY")
+  set(UMBRA_PACKAGE_EXPECT_SHARED_LIBRARIES ON)
+  include("${_repository_root}/cmake/package-smoke/abi_policy.cmake")
+endif()
+set(_custom_tradt_provider_enabled FALSE)
+set(_custom_authorizer_provider_enabled FALSE)
+if(_current_package_rti_location MATCHES "\\.(dll|so|dylib)$")
+  add_library(umbra_cpp_tck_custom_tradt_provider SHARED
+    custom_tradt_provider.cpp)
+  target_include_directories(umbra_cpp_tck_custom_tradt_provider PRIVATE
+    "${_repository_root}/cpp/src")
+  target_link_libraries(umbra_cpp_tck_custom_tradt_provider PRIVATE umbra::rti)
+  target_compile_features(umbra_cpp_tck_custom_tradt_provider PRIVATE cxx_std_20)
+  if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(umbra_cpp_tck_custom_tradt_provider PRIVATE
+      "_int64=long long")
+  endif()
+  set(_custom_tradt_provider_enabled TRUE)
+  set(HLA_RTI_TCK_CUSTOM_TRADT_PROVIDER_TARGET
+    umbra_cpp_tck_custom_tradt_provider)
+
+  add_library(umbra_cpp_tck_custom_authorizer_provider SHARED
+    custom_authorizer_provider.cpp)
+  target_include_directories(umbra_cpp_tck_custom_authorizer_provider PRIVATE
+    "${_repository_root}/cpp/src")
+  target_link_libraries(umbra_cpp_tck_custom_authorizer_provider PRIVATE
+    umbra::rti)
+  target_compile_features(umbra_cpp_tck_custom_authorizer_provider PRIVATE
+    cxx_std_20)
+  if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_definitions(umbra_cpp_tck_custom_authorizer_provider PRIVATE
+      "_int64=long long")
+  endif()
+  set(_custom_authorizer_provider_enabled TRUE)
+  set(HLA_RTI_TCK_CUSTOM_AUTHORIZER_PROVIDER_TARGET
+    umbra_cpp_tck_custom_authorizer_provider)
+  file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/portable-tck-authorizer-provider-$<CONFIG>.txt"
+    CONTENT "$<TARGET_FILE:${HLA_RTI_TCK_CUSTOM_AUTHORIZER_PROVIDER_TARGET}>\n")
+endif()
 set(HLA_RTI_TCK_API_INCLUDE_DIR "${_installed_api_include}" CACHE PATH
   "Official API headers exported by the installed provider package" FORCE)
 set(HLA_RTI_TCK_PROVIDER_LIBRARIES
@@ -42,6 +89,12 @@ set(HLA_RTI_TCK_PROVIDER_LINK_OPTIONS "" CACHE STRING
 set(HLA_RTI_TCK_ADAPTER_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/p0-tck.xml"
   CACHE FILEPATH "FOM supplied by this provider adapter")
+set(HLA_RTI_TCK_ADAPTER_SCHEMA_VALID_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/schema-valid-minimal-2025-tck.xml"
+  CACHE FILEPATH "Official-XSD-valid 2025 FDD for Annex F TCK coverage")
+set(HLA_RTI_TCK_ADAPTER_SCHEMA_INVALID_FOM
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/schema-invalid-reliable-enumeration-2025-tck.xml"
+  CACHE FILEPATH "Well-formed, correctly namespaced XSD-invalid 2025 FDD for Annex F TCK coverage")
 set(HLA_RTI_TCK_ADAPTER_MODEL_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-model-tck.xml"
   CACHE FILEPATH "Rich FOM model supplied by this provider adapter")
@@ -100,6 +153,58 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml"
   CACHE FILEPATH "Annex C.3 conflicting object-attribute FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+  "attribute-table-empty-semantics=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-table-empty-semantics-tck.xml"
+  "empty-domain-tables=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-empty-domain-content-tck.xml"
+  "delay-subscription-evaluation=${_repository_root}/packages/hla-rti-cpp-tck/fom/delay-subscription-evaluation-tck.xml"
+  "support-switch-getter-lifecycle=${_repository_root}/packages/hla-rti-cpp-tck/fom/support-switch-getter-lifecycle-tck.xml"
+  "service-usage-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml"
+  "service-usage-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-usage-second-tck.xml"
+  "reference-data-type-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-data-type-invalid-name-tck.xml"
+  "reference-data-type-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-data-type-valid-name-tck.xml"
+  "model-identification-name-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/model-identification-name-valid-tck.xml"
+  "model-modification-date-timezone=${_repository_root}/packages/hla-rti-cpp-tck/fom/model-modification-date-timezone-tck.xml"
+  "model-modification-date-exact=${_repository_root}/packages/hla-rti-cpp-tck/fom/model-modification-date-exact-tck.xml"
+  "simple-data-type-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/simple-data-type-valid-name-tck.xml"
+  "simple-data-type-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/simple-data-type-invalid-name-tck.xml"
+  "simple-data-type-reserved-prefix-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/simple-data-type-reserved-prefix-name-tck.xml"
+  "simple-data-type-reserved-na-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/simple-data-type-reserved-na-name-tck.xml"
+  "tag-data-type-category-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/tag-data-type-category-valid-tck.xml"
+  "tag-data-type-basic-user=${_repository_root}/packages/hla-rti-cpp-tck/fom/tag-data-type-basic-user-tck.xml"
+  "tag-data-type-basic-synchronization=${_repository_root}/packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml"
+  "tag-synchronization-capability-register=${_repository_root}/packages/hla-rti-cpp-tck/fom/tag-synchronization-capability-register-tck.xml"
+  "enumerated-data-type-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-data-type-valid-name-tck.xml"
+  "enumerated-data-type-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-data-type-invalid-name-tck.xml"
+  "enumerator-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerator-valid-name-tck.xml"
+  "enumerator-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerator-invalid-name-tck.xml"
+  "variant-record-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-record-valid-name-tck.xml"
+  "variant-record-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-record-invalid-name-tck.xml"
+  "variant-discriminant-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-name-tck.xml"
+  "variant-discriminant-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-invalid-name-tck.xml"
+  "variant-alternative-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-valid-name-tck.xml"
+  "variant-alternative-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-invalid-name-tck.xml"
+  "variant-alternative-type-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-type-valid-tck.xml"
+  "variant-alternative-type-invalid=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-alternative-type-invalid-tck.xml"
+  "variant-record-encoding-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-record-encoding-valid-tck.xml"
+  "variant-record-encoding-invalid=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-record-encoding-invalid-tck.xml"
+  "interaction-parameter-unresolved-data-type=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-parameter-unresolved-data-type-tck.xml"
+  "interaction-transportation-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-transportation-conflict-tck.xml"
+  "interaction-order-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-order-conflict-tck.xml"
+  "interaction-order-invalid-value=${_repository_root}/packages/hla-rti-cpp-tck/fom/interaction-order-invalid-value-tck.xml"
+  "object-attribute-transportation-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-transportation-conflict-tck.xml"
+  "object-attribute-order-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-order-conflict-tck.xml"
+  "fom-root-classes-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-root-classes-omitted-tck.xml"
+  "mom-table-attribute-transportation-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-table-attribute-transportation-conflict-tck.xml"
+  "mom-category-c-interaction=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-category-c-interaction-tck.xml"
+  "mom-report-service-invocation-extension-parameter=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-report-invocation-extension-parameter-tck.xml"
+  "mom-report-added-subclass-not-sent=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-report-added-subclass-tck.xml"
+  "mom-federate-subclass-instance=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-federate-subclass-instance-tck.xml"
+  "mom-federate-added-attribute-same-instance=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-federate-added-attribute-same-instance-tck.xml"
+  "mom-set-switches-extra-parameter=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-set-switches-extra-parameter-tck.xml"
+  "additional-join-duplicate=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-additional-duplicate-tck.xml"
+  "additional-join-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-additional-order-conflict-tck.xml"
+  "additional-join-interaction-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-additional-interaction-order-conflict-tck.xml"
+  "additional-join-transport-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-additional-transportation-conflict-tck.xml"
+  "fom-handle-uniqueness=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-handle-uniqueness-tck.xml"
   "object-class-semantics-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"
   "matching-data-types-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/matching-data-types-first-tck.xml"
   "matching-data-types-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/matching-data-types-second-tck.xml"
@@ -113,15 +218,58 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "extendable-hlaother-invalid=${_repository_root}/packages/hla-rti-cpp-tck/fom/extendable-variant-hlaother-tck.xml"
   "enumerated-value-collision-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-collision-first-tck.xml"
   "enumerated-value-collision-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml"
+  "enumerated-value-merge-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-merge-first-tck.xml"
+  "enumerated-value-merge-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-value-merge-second-tck.xml"
+  "enumerated-representation-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-representation-omitted-tck.xml"
+  "enumerated-representation-nonbasic=${_repository_root}/packages/hla-rti-cpp-tck/fom/enumerated-representation-nonbasic-tck.xml"
+  "variant-discriminant-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-tck.xml"
+  "variant-discriminant-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-omitted-tck.xml"
+  "variant-discriminant-basic=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-basic-tck.xml"
+  "variant-discriminant-simple=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-simple-tck.xml"
+  "variant-discriminant-na=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml"
+  "variant-enumerator-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-range-tck.xml"
+  "variant-enumerator-hlaother=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-hlaother-tck.xml"
+  "variant-enumerator-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-omitted-tck.xml"
+  "variant-enumerator-malformed-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-malformed-range-tck.xml"
+  "variant-enumerator-composite-hlaother=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-composite-hlaother-tck.xml"
+  "variant-member-unknown=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-member-tck.xml"
+  "variant-member-unknown-endpoint=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-unknown-endpoint-tck.xml"
+  "variant-member-incomplete=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-incomplete-members-tck.xml"
+  "variant-member-later-consumer=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-later-consumer-tck.xml"
+  "variant-member-later-provider=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-enumerator-later-provider-tck.xml"
+  "variant-range-order-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-range-order-base-tck.xml"
+  "variant-range-order-valid-extension=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-range-order-valid-extension-tck.xml"
+  "variant-range-order-conflict-extension=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-range-order-conflict-extension-tck.xml"
+  "variant-range-other-complement=${_repository_root}/packages/hla-rti-cpp-tck/fom/variant-range-other-complement-tck.xml"
   "nonextendable-variant-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-first-tck.xml"
   "nonextendable-variant-second=${_repository_root}/packages/hla-rti-cpp-tck/fom/nonextendable-variant-second-tck.xml"
   "array-cardinality-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/valid-array-cardinality-forms-tck.xml"
+  "array-data-type-valid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-data-type-valid-name-tck.xml"
+  "array-data-type-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-data-type-invalid-name-tck.xml"
+  "array-element-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-valid-tck.xml"
+  "array-element-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-omitted-tck.xml"
+  "array-element-basic=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml"
+  "array-element-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-invalid-name-tck.xml"
+  "array-element-type-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-type-valid-tck.xml"
+  "array-element-type-invalid=${_repository_root}/packages/hla-rti-cpp-tck/fom/array-element-type-invalid-tck.xml"
   "array-cardinality-reversed-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml"
   "array-cardinality-fixed-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml"
   "array-cardinality-variable-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml"
+  "record-member-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-valid-tck.xml"
+  "record-member-encoding-mismatch=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-encoding-mismatch-tck.xml"
+  "record-member-reserved-hla-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-reserved-hla-name-tck.xml"
+  "record-member-reserved-na-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-reserved-na-name-tck.xml"
+  "record-member-field-types=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-field-types-tck.xml"
+  "record-member-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-omitted-tck.xml"
+  "record-member-basic-field=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-basic-field-tck.xml"
+  "record-member-basic-alternative=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml"
+  "record-member-reserved-hla-field-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-reserved-hla-field-name-tck.xml"
+  "record-member-reserved-na-field-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/record-member-reserved-na-field-name-tck.xml"
   "dimension-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-base-tck.xml"
+  "dimension-duplicate-within-module=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-within-module-tck.xml"
   "dimension-duplicate-equal-unique=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-equal-unique-tck.xml"
   "dimension-duplicate-conflicting-upper-bound=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
+  "dimension-duplicate-unspecified-upper-bound=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-duplicate-unspecified-upper-bound-tck.xml"
   "dimension-default-range-outside=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-default-range-outside-tck.xml"
   "dimension-default-range-bounded=${_repository_root}/packages/hla-rti-cpp-tck/fom/dimension-default-range-bounded-tck.xml"
   "synchronization-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-base-tck.xml"
@@ -129,16 +277,57 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "synchronization-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml"
   "transportation-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-duplicate-base-tck.xml"
   "transportation-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml"
+  "transportation-description-different=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-description-different-tck.xml"
   "transportation-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml"
+  "transportation-duplicate-reliability-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-duplicate-reliability-conflict-tck.xml"
+  "transportation-table-invalid-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-table-invalid-name-tck.xml"
+  "transportation-table-invalid-reliability=${_repository_root}/packages/hla-rti-cpp-tck/fom/transportation-table-invalid-reliability-tck.xml"
   "update-rate-duplicate-base=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-base-tck.xml"
   "update-rate-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-equal-tck.xml"
   "update-rate-duplicate-note-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml"
+  "update-rate-duplicate-rate-conflict=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-duplicate-rate-conflict-tck.xml"
+  "update-rate-unique-merge=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-unique-merge-tck.xml"
+  "update-rate-invalid-name-preflight=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-invalid-name-preflight-tck.xml"
+  "update-rate-zero-preflight=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml"
+  "update-rate-positive-preflight=${_repository_root}/packages/hla-rti-cpp-tck/fom/update-rate-positive-preflight-tck.xml"
+  "member-data-type-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/member-data-type-valid-tck.xml"
+  "member-data-type-attribute-basic=${_repository_root}/packages/hla-rti-cpp-tck/fom/member-data-type-attribute-basic-tck.xml"
+  "member-data-type-parameter-basic=${_repository_root}/packages/hla-rti-cpp-tck/fom/member-data-type-parameter-basic-tck.xml"
+  "attribute-na-valid-companions=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-valid-companions-tck.xml"
+  "attribute-na-omitted-companions=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-tck.xml"
+  "attribute-na-omitted-companions-extension=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-omitted-companions-extension-tck.xml"
+  "attribute-na-invalid-update-type=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-type-tck.xml"
+  "attribute-na-invalid-update-condition=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-invalid-update-condition-tck.xml"
+  "attribute-na-invalid-transportation=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-na-invalid-transportation-tck.xml"
+  "reference-attribute-consumer=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-attribute-consumer-tck.xml"
+  "reference-attribute-provider=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-attribute-provider-tck.xml"
+  "reference-attribute-missing=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-attribute-missing-tck.xml"
+  "reference-attribute-mismatched=${_repository_root}/packages/hla-rti-cpp-tck/fom/reference-attribute-mismatched-tck.xml"
+  "representation-special=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-special-identifiers-tck.xml"
+  "basic-data-representation-endian-big=${_repository_root}/packages/hla-rti-cpp-tck/fom/basic-data-representation-endian-big-tck.xml"
+  "basic-data-representation-endian-little=${_repository_root}/packages/hla-rti-cpp-tck/fom/basic-data-representation-endian-little-tck.xml"
+  "representation-missing-simple=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-missing-simple-tck.xml"
+  "representation-missing-enumerated=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-missing-enumerated-tck.xml"
+  "representation-invalid-special=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml"
+  "representation-invalid-basic=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-invalid-basic-reference-tck.xml"
+  "representation-invalid-basic-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-invalid-basic-name-tck.xml"
+  "representation-invalid-reference-name=${_repository_root}/packages/hla-rti-cpp-tck/fom/representation-invalid-reference-name-tck.xml"
   "switch-duplicate-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-disabled-tck.xml"
   "switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-equal-tck.xml"
   "switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-enabled-tck.xml"
   "switch-duplicate-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml"
+  "service-reporting-initial-omitted=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-reporting-initial-omitted-tck.xml"
+  "service-reporting-initial-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-reporting-initial-enabled-tck.xml"
   "attribute-fdd-preferred-order-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"
+  "timestamped-update-before-delete=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"
+  "transport-order-fdd-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/transport-default-best-effort-tck.xml"
   "directed-interaction-subscription-accumulation=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-interaction-subscription-accumulation-tck.xml"
+  "directed-reference-object=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-reference-object-tck.xml"
+  "directed-reference-interaction=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-reference-interaction-tck.xml"
+  "directed-reference-missing=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml"
+  "directed-reference-invalid-sharing=${_repository_root}/packages/hla-rti-cpp-tck/fom/directed-reference-invalid-sharing-tck.xml"
+  "ddm-region-realization-default-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/ddm-region-realization-default-range-tck.xml"
+  "ddm-region-realization-excluded-dimensions=${_repository_root}/packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml"
   "advisory-switch-duplicate-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-disabled-tck.xml"
   "advisory-switch-duplicate-equal=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-equal-tck.xml"
   "advisory-switch-duplicate-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/advisory-switch-duplicate-enabled-tck.xml"
@@ -147,6 +336,130 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "restore-pending-flush-queue-request=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
   "nrg-regulator-release=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
   CACHE STRING "Semicolon-separated NAME=FILE FOM bindings supplied by this adapter")
+foreach(_name_convention_fom_binding IN ITEMS
+    "object-class-name-period|object-class-name-period-tck.xml"
+    "object-class-name-reserved-hla|object-class-name-reserved-hla-tck.xml"
+    "object-class-name-reserved-na|object-class-name-reserved-na-tck.xml"
+    "object-class-name-allowed-punctuation|object-class-name-allowed-punctuation-tck.xml"
+    "enumerated-data-type-valid-name|enumerated-data-type-valid-name-tck.xml"
+    "enumerated-data-type-invalid-name|enumerated-data-type-invalid-name-tck.xml"
+    "enumerator-valid-name|enumerator-valid-name-tck.xml"
+    "enumerator-invalid-name|enumerator-invalid-name-tck.xml"
+    "variant-record-valid-name|variant-record-valid-name-tck.xml"
+    "variant-record-invalid-name|variant-record-invalid-name-tck.xml"
+    "variant-discriminant-valid-name|variant-discriminant-valid-name-tck.xml"
+    "variant-discriminant-invalid-name|variant-discriminant-invalid-name-tck.xml"
+    "variant-alternative-valid-name|variant-alternative-valid-name-tck.xml"
+    "variant-alternative-invalid-name|variant-alternative-invalid-name-tck.xml"
+    "variant-alternative-type-valid|variant-alternative-type-valid-tck.xml"
+    "variant-alternative-type-invalid|variant-alternative-type-invalid-tck.xml"
+    "variant-record-encoding-valid|variant-record-encoding-valid-tck.xml"
+    "variant-record-encoding-invalid|variant-record-encoding-invalid-tck.xml"
+    "array-data-type-valid-name|array-data-type-valid-name-tck.xml"
+    "array-data-type-invalid-name|array-data-type-invalid-name-tck.xml"
+    "array-element-type-valid|array-element-type-valid-tck.xml"
+    "array-element-type-invalid|array-element-type-invalid-tck.xml")
+  string(REPLACE "|" ";" _name_convention_fom_parts "${_name_convention_fom_binding}")
+  list(GET _name_convention_fom_parts 0 _name_convention_fom_key)
+  list(GET _name_convention_fom_parts 1 _name_convention_fom_file)
+  set(_name_convention_fom_present FALSE)
+  foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+    if(_scenario_fom MATCHES "^${_name_convention_fom_key}=")
+      set(_name_convention_fom_present TRUE)
+      break()
+    endif()
+  endforeach()
+  if(NOT _name_convention_fom_present)
+    list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+      "${_name_convention_fom_key}=${_repository_root}/packages/hla-rti-cpp-tck/fom/${_name_convention_fom_file}")
+  endif()
+endforeach()
+set(_transport_order_fdd_default_fom_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^transport-order-fdd-default=")
+    set(_transport_order_fdd_default_fom_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _transport_order_fdd_default_fom_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "transport-order-fdd-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/transport-default-best-effort-tck.xml")
+endif()
+set(_custom_tradt_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^federation-supplied-custom-tradt=")
+    set(_custom_tradt_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _custom_tradt_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "federation-supplied-custom-tradt=${_repository_root}/packages/hla-rti-cpp-tck/fom/time-representation-custom-tradt-tck.xml")
+endif()
+set(_noncompliant_update_rate_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^noncompliant-update-rate=")
+    set(_noncompliant_update_rate_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _noncompliant_update_rate_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "noncompliant-update-rate=${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-zero-update-rate-tck.xml")
+endif()
+set(_mom_federate_subclass_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^mom-federate-subclass-instance=")
+    set(_mom_federate_subclass_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _mom_federate_subclass_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "mom-federate-subclass-instance=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-federate-subclass-instance-tck.xml")
+endif()
+set(_mom_federate_added_attribute_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^mom-federate-added-attribute-same-instance=")
+    set(_mom_federate_added_attribute_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _mom_federate_added_attribute_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "mom-federate-added-attribute-same-instance=${_repository_root}/packages/hla-rti-cpp-tck/fom/mom-federate-added-attribute-same-instance-tck.xml")
+endif()
+set(_noncompliant_module_atomicity_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^noncompliant-module-atomicity=")
+    set(_noncompliant_module_atomicity_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _noncompliant_module_atomicity_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "noncompliant-module-atomicity=${_repository_root}/packages/hla-rti-cpp-tck/fom/noncompliant-module-atomicity-tck.xml")
+endif()
+foreach(_scaffold_fom_binding IN ITEMS
+    "incomplete-object-class-scaffold|incomplete-object-class-scaffold-tck.xml"
+    "complete-object-class-scaffold-provider|complete-object-class-scaffold-provider-tck.xml"
+    "incomplete-interaction-class-scaffold|incomplete-interaction-class-scaffold-tck.xml"
+    "complete-interaction-class-scaffold-provider|complete-interaction-class-scaffold-provider-tck.xml")
+  string(REPLACE "|" ";" _scaffold_fom_parts "${_scaffold_fom_binding}")
+  list(GET _scaffold_fom_parts 0 _scaffold_fom_key)
+  list(GET _scaffold_fom_parts 1 _scaffold_fom_file)
+  set(_scaffold_fom_key_present FALSE)
+  foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+    if(_scenario_fom MATCHES "^${_scaffold_fom_key}=")
+      set(_scaffold_fom_key_present TRUE)
+      break()
+    endif()
+  endforeach()
+  if(NOT _scaffold_fom_key_present)
+    list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+      "${_scaffold_fom_key}=${_repository_root}/packages/hla-rti-cpp-tck/fom/${_scaffold_fom_file}")
+  endif()
+endforeach()
 set(_directed_interaction_accumulation_fom_key_present FALSE)
 foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
   if(_scenario_fom MATCHES "^directed-interaction-subscription-accumulation=")
@@ -168,6 +481,39 @@ endforeach()
 if(NOT _attribute_fdd_preferred_order_fom_key_present)
   list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
     "attribute-fdd-preferred-order-default=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml")
+endif()
+set(_timestamped_update_before_delete_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^timestamped-update-before-delete=")
+    set(_timestamped_update_before_delete_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _timestamped_update_before_delete_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "timestamped-update-before-delete=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml")
+endif()
+set(_ddm_region_realization_default_range_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^ddm-region-realization-default-range=")
+    set(_ddm_region_realization_default_range_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _ddm_region_realization_default_range_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "ddm-region-realization-default-range=${_repository_root}/packages/hla-rti-cpp-tck/fom/ddm-region-realization-default-range-tck.xml")
+endif()
+set(_ddm_region_realization_excluded_dimensions_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^ddm-region-realization-excluded-dimensions=")
+    set(_ddm_region_realization_excluded_dimensions_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _ddm_region_realization_excluded_dimensions_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "ddm-region-realization-excluded-dimensions=${_repository_root}/packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml")
 endif()
 set(_restore_pending_fqr_fom_key_present FALSE)
 foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
@@ -201,6 +547,94 @@ endforeach()
 if(NOT _nrg_regulator_release_fom_key_present)
   list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
     "nrg-regulator-release=${_repository_root}/packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml")
+endif()
+set(_fqr_undefined_galt_nrg_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^fqr-undefined-galt-nrg-disabled=")
+    set(_fqr_undefined_galt_nrg_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _fqr_undefined_galt_nrg_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "fqr-undefined-galt-nrg-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/p0-tck.xml")
+endif()
+set(_fqr_undefined_galt_nrg_enabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^fqr-undefined-galt-nrg-enabled=")
+    set(_fqr_undefined_galt_nrg_enabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _fqr_undefined_galt_nrg_enabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "fqr-undefined-galt-nrg-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml")
+endif()
+set(_nmr_undefined_galt_nrg_disabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^nmr-undefined-galt-nrg-disabled=")
+    set(_nmr_undefined_galt_nrg_disabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _nmr_undefined_galt_nrg_disabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "nmr-undefined-galt-nrg-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/p0-tck.xml")
+endif()
+set(_nmr_undefined_galt_nrg_enabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^nmr-undefined-galt-nrg-enabled=")
+    set(_nmr_undefined_galt_nrg_enabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _nmr_undefined_galt_nrg_enabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "nmr-undefined-galt-nrg-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml")
+endif()
+set(_nmra_undefined_galt_nrg_disabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^nmra-undefined-galt-nrg-disabled=")
+    set(_nmra_undefined_galt_nrg_disabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _nmra_undefined_galt_nrg_disabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "nmra-undefined-galt-nrg-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/p0-tck.xml")
+endif()
+set(_nmra_undefined_galt_nrg_enabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^nmra-undefined-galt-nrg-enabled=")
+    set(_nmra_undefined_galt_nrg_enabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _nmra_undefined_galt_nrg_enabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "nmra-undefined-galt-nrg-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml")
+endif()
+set(_tara_undefined_galt_nrg_disabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^tara-undefined-galt-nrg-disabled=")
+    set(_tara_undefined_galt_nrg_disabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _tara_undefined_galt_nrg_disabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "tara-undefined-galt-nrg-disabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/p0-tck.xml")
+endif()
+set(_tara_undefined_galt_nrg_enabled_fom_key_present FALSE)
+foreach(_scenario_fom IN LISTS HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS)
+  if(_scenario_fom MATCHES "^tara-undefined-galt-nrg-enabled=")
+    set(_tara_undefined_galt_nrg_enabled_fom_key_present TRUE)
+    break()
+  endif()
+endforeach()
+if(NOT _tara_undefined_galt_nrg_enabled_fom_key_present)
+  list(APPEND HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+    "tara-undefined-galt-nrg-enabled=${_repository_root}/packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml")
 endif()
 set(HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml"
@@ -326,7 +760,7 @@ set(HLA_RTI_TCK_ADAPTER_INVALID_FOM_MODULES
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-malformed-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-namespace-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-duplicate-tck.xml"
   CACHE STRING "Semicolon-separated invalid FOM modules supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_STANDARD_INVALID_FOM_MODULES
-  "${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-zero-update-rate-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-dimension-default-value-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-basic-representation-tck.xml"
+  "${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-zero-update-rate-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-dimension-default-value-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-array-cardinality-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-variable-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-fixed-array-encoding-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-object-name-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-reference-basic-representation-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-data-type-representation-name-collision-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-model-identification-blank-version-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-basic-data-representation-reserved-hla-name-tck.xml;${_repository_root}/packages/hla-rti-cpp-tck/fom/invalid-basic-data-representation-endian-enumeration-tck.xml"
   CACHE STRING "Semicolon-separated standard-invalid FOM modules supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_CALLBACK_MODEL "both"
   CACHE STRING "Callback model supplied by this provider adapter")
@@ -356,6 +790,8 @@ set(HLA_RTI_TCK_ADAPTER_CONFIGURATION_NAME ""
   CACHE STRING "Optional standard RtiConfiguration name supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_ADDITIONAL_SETTINGS ""
   CACHE STRING "Optional standard RtiConfiguration settings supplied by this adapter")
+set(HLA_RTI_TCK_ADAPTER_SETTINGS_PARSE_FAILURE_INPUT "fomEdition=202x"
+  CACHE STRING "Provider-specific settings text known to fail parsing")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER ""
   CACHE FILEPATH "Optional marker written after the adapter observes connection loss")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED OFF
@@ -369,6 +805,13 @@ if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_FOM}")
   message(FATAL_ERROR "Adapter FOM does not exist: ${HLA_RTI_TCK_ADAPTER_FOM}")
 endif()
+foreach(_schema_fom IN ITEMS
+    HLA_RTI_TCK_ADAPTER_SCHEMA_VALID_FOM
+    HLA_RTI_TCK_ADAPTER_SCHEMA_INVALID_FOM)
+  if(NOT EXISTS "${${_schema_fom}}" OR IS_DIRECTORY "${${_schema_fom}}")
+    message(FATAL_ERROR "Adapter Annex F FOM does not exist: ${${_schema_fom}}")
+  endif()
+endforeach()
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_MODEL_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_MODEL_FOM}")
   message(FATAL_ERROR
@@ -501,6 +944,40 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   string(JSON _tck_entry GET "${_tck_catalog_json}" scenarios
     ${_tck_scenario_index})
   string(JSON _tck_scenario GET "${_tck_entry}" id)
+  if(_tck_scenario STREQUAL "cpp-tck.websocket-transport-support" AND
+     NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^ws://")
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL "cpp-tck.tls13-transport-support" AND
+     NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^tls://")
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL "cpp-tck.tls13-default-port-support" AND
+     NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^tls://[^:/]+$")
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL "cpp-tck.tls13-alternate-address-port-configuration" AND
+     (NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^tls://.+:[0-9]+$" OR
+      HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES ":15165$"))
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL "cpp-tck.secure-websocket-transport-support" AND
+     NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^wss://")
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL "cpp-tck.federation-supplied-custom-tradt" AND
+     NOT _custom_tradt_provider_enabled)
+    continue()
+  endif()
+  if((_tck_scenario STREQUAL "cpp-tck.authorizer-federation-service-decision" OR
+      _tck_scenario STREQUAL "cpp-tck.authorizer-destroy-service-decision" OR
+      _tck_scenario STREQUAL "cpp-tck.authorizer-join-service-decision" OR
+      _tck_scenario STREQUAL "cpp-tck.authorizer-no-credentials-connect" OR
+      _tck_scenario STREQUAL "cpp-tck.authorizer-rid-configuration-decision" OR
+      _tck_scenario STREQUAL "cpp-tck.authorizer-single-service-per-rid-profile") AND
+     NOT _custom_authorizer_provider_enabled)
+    continue()
+  endif()
   if(HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER AND
      NOT _tck_scenario IN_LIST HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER)
     continue()
@@ -557,6 +1034,8 @@ endif()
 
 set(_tck_common_arguments
   --fom "${HLA_RTI_TCK_ADAPTER_FOM}"
+  --schema-valid-fom "${HLA_RTI_TCK_ADAPTER_SCHEMA_VALID_FOM}"
+  --schema-invalid-fom "${HLA_RTI_TCK_ADAPTER_SCHEMA_INVALID_FOM}"
   --model-fom "${HLA_RTI_TCK_ADAPTER_MODEL_FOM}"
   --data-type-merge-consumer-fom "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_CONSUMER_FOM}"
   --data-type-merge-provider-fom "${HLA_RTI_TCK_ADAPTER_DATA_TYPE_MERGE_PROVIDER_FOM}"
@@ -699,6 +1178,9 @@ set(HLA_RTI_TCK_TEST_CALLBACK_MODELS "${_tck_test_callback_models}" CACHE STRING
   "Portable TCK callback models registered by this adapter" FORCE)
 set(HLA_RTI_TCK_TEST_COMMON_ARGUMENTS "${_tck_common_arguments}" CACHE STRING
   "Adapter arguments shared by each portable TCK scenario" FORCE)
+set(HLA_RTI_TCK_TEST_SETTINGS_PARSE_FAILURE_INPUT
+  "${HLA_RTI_TCK_ADAPTER_SETTINGS_PARSE_FAILURE_INPUT}" CACHE STRING
+  "Adapter-provided malformed settings value for the focused Connect TCK" FORCE)
 set(HLA_RTI_TCK_TEST_TIMEOUT_SECONDS 120 CACHE STRING
   "CTest timeout for each portable TCK scenario" FORCE)
 
@@ -707,6 +1189,18 @@ set(HLA_RTI_TCK_TEST_BUDGET_SCRIPT
 add_subdirectory(
   "${_repository_root}/packages/hla-rti-cpp-tck"
   "${CMAKE_CURRENT_BINARY_DIR}/portable-tck")
+
+if(TARGET hla_rti_cpp_tck AND
+   _current_package_rti_type STREQUAL "SHARED_LIBRARY")
+  target_compile_definitions(hla_rti_cpp_tck PRIVATE
+    "HLA_TCK_PACKAGE_COMPILER_MARKER=\"${umbra_rti_HLA_COMPILER_VERSION_MARKER}\""
+    "HLA_TCK_PACKAGE_32BIT_MARKER=\"${umbra_rti_HLA_LIBRARY_32BIT_MARKER}\""
+    "HLA_TCK_PACKAGE_DEBUG_BUILD=$<IF:$<CONFIG:Debug>,1,0>"
+    "HLA_TCK_PACKAGE_RTI_LIBRARY_PATH=\"$<TARGET_FILE:umbra::rti>\""
+    "HLA_TCK_PACKAGE_FEDTIME_LIBRARY_PATH=\"$<TARGET_FILE:umbra::fedtime>\""
+    "HLA_TCK_PACKAGE_AUTHORIZER_LIBRARY_PATH=\"$<TARGET_FILE:umbra::authorizer>\""
+  )
+endif()
 
 include(CTest)
 if(BUILD_TESTING)

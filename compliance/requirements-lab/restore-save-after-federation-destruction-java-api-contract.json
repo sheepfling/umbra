@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The Java case uses only the pinned official IEEE 1516.1-2025 Java API. It completes a save, destroys and recreates the federation execution, restores the save, and verifies one previously announced explicit synchronization point can still complete.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-save-after-federation-execution-destruction",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "ConfigurationResult connect(FederateAmbassador, CallbackModel)",
+        "void createFederationExecution(String, String, String)",
+        "FederateHandle joinFederationExecution(String, String)",
+        "FederateHandleSetFactory getFederateHandleSetFactory()",
+        "void registerFederationSynchronizationPoint(String, byte[], FederateHandleSet)",
+        "void requestFederationSave(String)",
+        "void federateSaveBegun()",
+        "void federateSaveComplete()",
+        "void resignFederationExecution(ResignAction)",
+        "void destroyFederationExecution(String)",
+        "void requestFederationRestore(String)",
+        "void federateRestoreComplete()",
+        "void synchronizationPointAchieved(String)",
+        "FederateHandle getFederateHandle(String)",
+        "void disconnect()"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreSaveAfterFederationDestructionTck.java#run"
+      ]
+    },
+    {
+      "id": "standard-java-federate-handle-set-construction",
+      "owner": "FederateHandleSetFactory and FederateHandleSet",
+      "language": "java",
+      "signatures": [
+        "FederateHandleSet create()",
+        "boolean add(FederateHandle)",
+        "FederateHandleSet clone()",
+        "boolean isEmpty()"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreSaveAfterFederationDestructionTck.java#run"
+      ]
+    },
+    {
+      "id": "standard-java-save-restore-and-synchronization-callbacks",
+      "owner": "FederateAmbassador",
+      "language": "java",
+      "signatures": [
+        "void synchronizationPointRegistrationSucceeded(String)",
+        "void synchronizationPointRegistrationFailed(String, SynchronizationPointFailureReason)",
+        "void announceSynchronizationPoint(String, byte[])",
+        "void initiateFederateSave(String)",
+        "void federationSaved()",
+        "void federationNotSaved(SaveFailureReason)",
+        "void requestFederationRestoreSucceeded(String)",
+        "void requestFederationRestoreFailed(String)",
+        "void initiateFederateRestore(String, String, FederateHandle)",
+        "void federationRestored()",
+        "void federationNotRestored(RestoreFailureReason)",
+        "void federationSynchronized(String, FederateHandleSet)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RestoreSaveAfterFederationDestructionTck.java#run"
+      ]
+    }
+  ]
+}

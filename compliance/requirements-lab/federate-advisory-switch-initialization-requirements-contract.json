@@ -3,18 +3,8 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-per-federate-initialization-not-conformance-evidence",
-  "notes": "This contract records the bounded embedded join behavior that applies composed FDD advisory switch settings as each federate's initial switch values. Subsequent official setter calls remain per-federate; existing members are not retroactively reset by an additional-FOM join. Complete FDD/MOM switch management, all switch families, package evidence, protected review, and conformance remain open.",
+  "notes": "This contract records the bounded embedded join behavior for per-federate advisory-switch initialization when a switch is unspecified after Create-time FDD composition. Subsequent official setter calls remain per-federate; existing members are not retroactively reset by an additional-FOM join. It does not establish the separate p. 48 l. 42 rule that the RTI consider only the FDD when combining FOM modules. Complete FDD/MOM switch management, all switch families, package evidence, protected review, and conformance remain open.",
   "requirements": [
-    {
-      "id": "umbra-federate-advisory-switches-use-current-fdd",
-      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l42-13",
-      "clause_id": "clause-4.1.4.1",
-      "source": "cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp",
-      "source_symbol": "EmbeddedFederationRegistry::joinImpl",
-      "tests": [
-        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
-      ]
-    },
     {
       "id": "umbra-federate-advisory-switches-retain-per-federate-state",
       "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l48-15",
@@ -22,7 +12,7 @@
       "source": "cpp/src/internal/federation/federation_registry_membership_lifecycle.cpp",
       "source_symbol": "EmbeddedFederationRegistry::joinImpl",
       "tests": [
-        "cpp/tests/declaration_relevance_advisory_catch2.cpp::Embedded declaration relevance advisories follow ordinary 2025 publication and subscription transitions"
+        "cpp/tests/join_advisory_switch_seed_catch2.cpp::Embedded joins seed advisory switches from the current composed FDD"
       ]
     }
   ]

@@ -104,6 +104,97 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
   if (!federation->second.members.contains(producingFederateId)) {
     return {ReceiveOrderAttributeUpdateStatus::producing_federate_not_member};
   }
+  auto const momObject = federation->second.rtiOwnedJoinedFederateMomObjects.find(
+      objectInstanceHandle);
+  if (momObject != federation->second.rtiOwnedJoinedFederateMomObjects.end()) {
+    if (!momObject->second.knownFederateIds.contains(producingFederateId)) {
+      return {ReceiveOrderAttributeUpdateStatus::object_instance_not_known};
+    }
+    if (!federation->second.definition.catalog ||
+        !federation->second.objectClassHandles ||
+        !federation->second.attributeHandles) {
+      return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
+    }
+    auto const registeredClassName = federation->second.objectClassHandles->nameFor(
+        momObject->second.objectClassHandle);
+    if (!registeredClassName ||
+        federation->second.definition.catalog->objectClass(*registeredClassName) == nullptr) {
+      return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
+    }
+
+    using MomPasselKey = std::tuple<
+        std::string,
+        rti1516_2025::OrderType,
+        std::set<std::uint64_t>,
+        bool>;
+    std::map<MomPasselKey, std::vector<std::uint64_t>> attributesByPolicy;
+    std::set<std::uint64_t> uniqueAttributeHandles;
+    for (std::uint64_t const attributeHandle : sentAttributeHandles) {
+      if (!uniqueAttributeHandles.insert(attributeHandle).second ||
+          !momObject->second.effectiveAttributeHandles.contains(attributeHandle) ||
+          !federation->second.attributeHandles->nameFor(
+              federation->second.definition.catalog.get(),
+              *registeredClassName,
+              attributeHandle)) {
+        return {ReceiveOrderAttributeUpdateStatus::attribute_not_defined};
+      }
+      auto const owner = momObject->second.attributeOwnersByHandle.find(attributeHandle);
+      if (owner == momObject->second.attributeOwnersByHandle.end() ||
+          owner->second != producingFederateId) {
+        return {ReceiveOrderAttributeUpdateStatus::attribute_not_owned};
+      }
+      auto const dimensions = availableObjectClassAttributeDimensions(
+          federation->second,
+          momObject->second.objectClassHandle,
+          attributeHandle);
+      auto const declaredTransportation = attributeDefaultTransportationName(
+          federation->second,
+          producingFederateId,
+          momObject->second.objectClassHandle,
+          attributeHandle);
+      auto const transportation = declaredTransportation
+          ? effectiveTransportationTypeName(federation->second, *declaredTransportation)
+          : std::nullopt;
+      auto const order = attributeDefaultOrderType(
+          federation->second,
+          producingFederateId,
+          momObject->second.objectClassHandle,
+          attributeHandle);
+      if (!dimensions || !transportation || !order) {
+        return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
+      }
+      attributesByPolicy[
+          {*transportation, *order, {}, !dimensions->empty()}]
+          .push_back(attributeHandle);
+    }
+
+    ReceiveOrderAttributeUpdatePlan result;
+    result.registeredObjectClassHandle = momObject->second.objectClassHandle;
+    result.passels.reserve(attributesByPolicy.size());
+    for (auto const& [policy, attributeHandles] : attributesByPolicy) {
+      ReceiveOrderAttributeUpdatePassel passel;
+      passel.transportationName = std::get<0>(policy);
+      passel.preferredOrderType = std::get<1>(policy);
+      passel.sentAttributeHandles = attributeHandles;
+      passel.defaultRegionUsed = std::get<3>(policy);
+      for (auto const& [federateId, member] : federation->second.members) {
+        static_cast<void>(member);
+        auto recipient = candidateReceiveOrderAttributeUpdateRecipient(
+            federation->second,
+            producingFederateId,
+            federateId,
+            objectInstanceHandle,
+            passel.sentAttributeHandles,
+            nullptr,
+            nullptr);
+        if (recipient) {
+          passel.recipients.push_back(std::move(*recipient));
+        }
+      }
+      result.passels.push_back(std::move(passel));
+    }
+    return result;
+  }
   auto const instance = federation->second.objectInstances.find(objectInstanceHandle);
   if (instance == federation->second.objectInstances.end() ||
       !instance->second.knownObjectClassHandlesByFederate.contains(producingFederateId)) {
@@ -143,14 +234,6 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
       federation->second.definition.catalog->objectClass(*registeredClassName) == nullptr) {
     return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
   }
-  auto const availableDimensions = availableObjectClassDimensions(
-      federation->second,
-      instance->second.registeredObjectClassHandle);
-  if (!availableDimensions) {
-    return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
-  }
-  bool const classHasAvailableDimensions = !availableDimensions->empty();
-
   std::set<std::uint64_t> uniqueAttributeHandles;
   using PasselKey = std::tuple<
       std::string,
@@ -165,6 +248,14 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
             *registeredClassName,
             attributeHandle)) {
       return {ReceiveOrderAttributeUpdateStatus::attribute_not_defined};
+    }
+    auto const availableAttributeDimensions =
+        availableObjectClassAttributeDimensions(
+            federation->second,
+            instance->second.registeredObjectClassHandle,
+            attributeHandle);
+    if (!availableAttributeDimensions) {
+      return {ReceiveOrderAttributeUpdateStatus::inconsistent_catalog};
     }
     auto const owner = instance->second.attributeOwnersByHandle.find(attributeHandle);
     if (owner == instance->second.attributeOwnersByHandle.end() ||
@@ -191,7 +282,7 @@ ReceiveOrderAttributeUpdatePlan EmbeddedFederationRegistry::planReceiveOrderAttr
       associatedRegions = regionAssociation->second;
     }
     bool const defaultRegionUsed =
-        classHasAvailableDimensions && associatedRegions.empty();
+        !availableAttributeDimensions->empty() && associatedRegions.empty();
     attributesByTransportationOrderAndRegions[
         {*transportationName,
          *preferredOrderType,
@@ -392,6 +483,8 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate(
         requesting_federate_not_member;
     return result;
   }
+  auto const receivingMember = federation->second.members.find(
+      requestingFederateId);
   if (!object->second.knownFederateIds.contains(requestingFederateId)) {
     result.status = JoinedFederateMomAttributeValueUpdateStatus::
         object_instance_not_known;
@@ -440,12 +533,23 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdate(
     return result;
   }
   result.status = JoinedFederateMomAttributeValueUpdateStatus::applied;
-  result.recipient.emplace(JoinedFederateMomAttributeValueUpdateRecipient{
+  JoinedFederateMomAttributeValueUpdateRecipient recipient{
       requestingFederateId,
       object->second.objectInstanceHandle,
       std::move(*values),
       callbackRoute->second,
-  });
+  };
+  if (receivingMember != federation->second.members.end() &&
+      !object->second.federationExecutionObject) {
+    recipient.conveyUpdateRegion =
+        receivingMember->second.conveyRegionDesignatorSetsSwitch;
+    auto const sourceHandle = object->second.objectInstanceHandle;
+    recipient.updateRegionSourceHandles.insert(sourceHandle);
+    recipient.updateRegionSnapshots.emplace(
+        sourceHandle,
+        object->second.immutableFederatePoint);
+  }
+  result.recipient.emplace(std::move(recipient));
   return result;
 }
 
@@ -470,8 +574,10 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateClass(
   }
   auto const callbackRoute = federation->second.interactionCallbackRoutes.find(
       requestingFederateId);
+  auto const receivingMember = federation->second.members.find(
+      requestingFederateId);
   if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
-      !callbackRoute->second) {
+      !callbackRoute->second || receivingMember == federation->second.members.end()) {
     return result;
   }
   for (auto const& [objectInstanceHandle, object] :
@@ -499,12 +605,22 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateClass(
     if (!values || values->empty()) {
       continue;
     }
-    result.recipients.push_back({
+    JoinedFederateMomAttributeValueUpdateRecipient recipient{
         requestingFederateId,
         object.objectInstanceHandle,
         *values,
         callbackRoute->second,
-    });
+    };
+    if (!object.federationExecutionObject) {
+      recipient.conveyUpdateRegion =
+          receivingMember->second.conveyRegionDesignatorSetsSwitch;
+      auto const sourceHandle = object.objectInstanceHandle;
+      recipient.updateRegionSourceHandles.insert(sourceHandle);
+      recipient.updateRegionSnapshots.emplace(
+          sourceHandle,
+          object.immutableFederatePoint);
+    }
+    result.recipients.push_back(std::move(recipient));
   }
   return result;
 }
@@ -529,7 +645,9 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateForObject(
   }
   result.rtiOwnedMomObject = true;
   for (std::uint64_t const receivingFederateId : object->second.knownFederateIds) {
-    if (!federation->second.members.contains(receivingFederateId)) {
+    auto const receivingMember = federation->second.members.find(
+        receivingFederateId);
+    if (receivingMember == federation->second.members.end()) {
       continue;
     }
     if (excludedReceivingFederateId.has_value() &&
@@ -557,12 +675,22 @@ EmbeddedFederationRegistry::planJoinedFederateMomAttributeValueUpdateForObject(
         !callbackRoute->second) {
       continue;
     }
-    result.recipients.push_back({
+    JoinedFederateMomAttributeValueUpdateRecipient recipient{
         receivingFederateId,
         object->second.objectInstanceHandle,
         *values,
         callbackRoute->second,
-    });
+    };
+    if (!object->second.federationExecutionObject) {
+      recipient.conveyUpdateRegion =
+          receivingMember->second.conveyRegionDesignatorSetsSwitch;
+      auto const sourceHandle = object->second.objectInstanceHandle;
+      recipient.updateRegionSourceHandles.insert(sourceHandle);
+      recipient.updateRegionSnapshots.emplace(
+          sourceHandle,
+          object->second.immutableFederatePoint);
+    }
+    result.recipients.push_back(std::move(recipient));
   }
   return result;
 }
@@ -1024,15 +1152,16 @@ EmbeddedFederationRegistry::planAttributeValueUpdateClassRequest(
     // A regional request uses the same class DDM context as the regional
     // subscription services. Validate every explicit region before planning
     // any provider callback so an invalid pair cannot partially route.
-    auto const availableDimensions = availableObjectClassDimensions(
-        federation->second,
-        objectClassHandle);
-    if (!availableDimensions) {
-      return {AttributeValueUpdateClassRequestStatus::inconsistent_catalog};
-    }
     for (auto const& [attributeHandle, regionHandles] : *requestRegionsByAttribute) {
       if (!requestedAttributeHandles.contains(attributeHandle)) {
         return {AttributeValueUpdateClassRequestStatus::attribute_not_defined};
+      }
+      auto const availableDimensions = availableObjectClassAttributeDimensions(
+          federation->second,
+          objectClassHandle,
+          attributeHandle);
+      if (!availableDimensions) {
+        return {AttributeValueUpdateClassRequestStatus::inconsistent_catalog};
       }
       for (std::uint64_t const regionHandle : regionHandles) {
         auto const region = federation->second.regions.find(regionHandle);

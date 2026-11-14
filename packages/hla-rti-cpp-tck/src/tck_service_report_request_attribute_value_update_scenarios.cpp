@@ -58,6 +58,64 @@ void scenarioServiceReportRequestAttributeValueUpdate(
     reportParameters.push_back(parameter);
   }
 
+  struct ExpectedArgument final {
+    std::int32_t type;
+    bool verifyType;
+    std::wstring name;
+    std::wstring value;
+  };
+  auto const quoted = [](std::wstring const& value) {
+    return std::wstring{L"\""} + value + L"\"";
+  };
+  auto const attributeSetValue = [&](rti::AttributeHandle const& attribute) {
+    return std::wstring{L"["} + quoted(attribute.toString()) + L"]";
+  };
+  auto const verifySuppliedArguments = [&](auto const& parameters,
+                                           std::vector<ExpectedArgument> const& expected) {
+    rti::HLAfixedRecord argumentPrototype;
+    argumentPrototype.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    rti::HLAvariableArray suppliedArguments{argumentPrototype};
+    suppliedArguments.decode(parameters.at(reportParameters.at(3U)));
+    require(
+        suppliedArguments.size() == expected.size(),
+        "RequestAttributeValueUpdate report returned the wrong supplied-argument count");
+    for (std::size_t index = 0U; index != expected.size(); ++index) {
+      auto const& supplied = dynamic_cast<rti::HLAfixedRecord const&>(
+          suppliedArguments.get(index));
+      auto const type = dynamic_cast<rti::HLAinteger32BE const&>(supplied.get(0U)).get();
+      auto const& name = dynamic_cast<rti::HLAunicodeString const&>(supplied.get(1U)).get();
+      auto const& value = dynamic_cast<rti::HLAunicodeString const&>(supplied.get(2U)).get();
+      require(
+          !expected[index].verifyType || type == expected[index].type,
+          "RequestAttributeValueUpdate report returned the wrong argument type");
+      require(
+          name == expected[index].name,
+          "RequestAttributeValueUpdate report returned the wrong argument name");
+      require(
+          value == expected[index].value,
+          index == 0U
+              ? "RequestAttributeValueUpdate report returned the wrong handle argument value"
+              : index == 1U
+                    ? "RequestAttributeValueUpdate report returned the wrong attribute-set value"
+                    : "RequestAttributeValueUpdate report returned the wrong user-tag value");
+    }
+  };
+  auto const verifyNullReturnedArgument = [&](auto const& parameters) {
+    rti::HLAfixedRecord returnedArgument;
+    returnedArgument.appendElement(rti::HLAinteger32BE{})
+        .appendElement(rti::HLAunicodeString{})
+        .appendElement(rti::HLAunicodeString{});
+    returnedArgument.decode(parameters.at(reportParameters.at(4U)));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+            dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+                L"null",
+        "Void RequestAttributeValueUpdate report returned a non-Null value");
+  };
+
   auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);
   auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
@@ -173,6 +231,12 @@ void scenarioServiceReportRequestAttributeValueUpdate(
   require(
       serial.get() == 0,
       "First request attribute-value service report did not use serial number zero");
+  verifySuppliedArguments(
+      report.parameters,
+      {{37, true, L"Object instance designator", quoted(knownObject.toString())},
+       {1, true, L"Set of attribute designators", attributeSetValue(requesterAttribute)},
+       {0, false, L"User-supplied tag", L"\"UlFU\""}});
+  verifyNullReturnedArgument(report.parameters);
 
   auto const providedUpdates = owner.recorder().providedUpdates();
   require(
@@ -251,6 +315,12 @@ void scenarioServiceReportRequestAttributeValueUpdate(
   require(
       classSerial.get() == 1,
       "Second request attribute-value service report did not use serial number one");
+  verifySuppliedArguments(
+      classReport.parameters,
+      {{36, true, L"Object class designator", quoted(requesterClass.toString())},
+       {1, true, L"Set of attribute designators", attributeSetValue(requesterAttribute)},
+       {0, false, L"User-supplied tag", L"\"Q0xT\""}});
+  verifyNullReturnedArgument(classReport.parameters);
 
   auto const classProvidedUpdates = owner.recorder().providedUpdates();
   require(

@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "This focused trace covers omission of the declared HLAsyncPointName parameter from the standard HLArequestSynchronizationPointStatus MOM interaction and the resulting standard HLAreportMOMexception payload. The case requires HLAparameterError true for the missing parameter but does not constrain provider-specific synchronous exception types or HLAexception wording, and does not claim complete MOM or synchronization-point conformance.",
+  "notes": "This focused trace covers two bounded missing-parameter paths: omitting the declared HLAsyncPointName from HLArequestSynchronizationPointStatus and supplying zero parameters to HLAsetSwitches, which must receive at least one. Both paths require the standard HLAreportMOMexception with HLAparameterError true and the fully qualified interaction name. The tests do not constrain provider-specific synchronous exception types or HLAexception wording, do not cover every MOM interaction or extra-parameter rejection, and do not claim full Table 20, MOM, or synchronization-point conformance.",
   "requirements": [
     {
       "id": "cpp-1516.1-tck-send-interaction-via-standard-api",
@@ -24,6 +24,30 @@
       "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus.HLAsyncPointName; HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportMOMexception",
       "source_lines": "909-918, 1759-1767, 1847-1875, 2569-2583",
       "statement": "HLArequestSynchronizationPointStatus declares HLAsyncPointName to identify the synchronization point whose status is requested. HLAreportMOMexception shall be sent when a MOM interaction is sent without all necessary parameters; its HLAservice value identifies the interaction class fully qualified, its inherited HLAfederate identifies the joined federate, and HLAparameterError is HLAtrue for an incorrect number of interaction parameters.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameter",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameterContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l101-33",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1 and IEEE 1516.2-2025 HLAstandardMIM-2025.xml",
+      "source_lines": "page 291, line 101; standard MIM HLArequestSynchronizationPointStatus parameter declaration",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus.HLAsyncPointName",
+      "statement": "The TCK sends HLArequestSynchronizationPointStatus without the declared HLAsyncPointName and verifies that the RTI reports the missing required MOM interaction parameter with HLAparameterError true. This is a bounded witness for that interaction only; it does not establish parameter completeness for every MOM interaction or every Table 20 exception.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameter",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameterContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l146-48",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1 and IEEE 1516.2-2025 HLAstandardMIM-2025.xml",
+      "source_lines": "page 291, line 146; HLAsetSwitches interaction",
+      "source_symbol": "HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches",
+      "statement": "The TCK sends HLAsetSwitches with zero parameters and verifies that the RTI reports this missing-parameter form through HLAreportMOMexception with HLAparameterError true. This directly witnesses the at-least-one-parameter rule for HLAsetSwitches only.",
       "tests": [
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameter",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederateMomExceptionMissingParameterContract"

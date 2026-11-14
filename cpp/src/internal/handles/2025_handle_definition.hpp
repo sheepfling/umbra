@@ -14,10 +14,11 @@
 #define UMBRA_2025_HANDLE_WIDE_STRING(value) \
   UMBRA_2025_HANDLE_WIDE_STRING_IMPL(#value)
 
-// The IEEE 1516.1-2025 handle classes all have the same value semantics and
-// HLAvariableArray wire representation. Keep the public classes distinct for
-// type safety, but define their private implementation in one place.
-#define UMBRA_2025_DEFINE_HANDLE(HandleKind, functionSuffix) \
+// The IEEE 1516.1-2025 handle classes share value semantics and an
+// HLAvariableArray envelope, with a stable wire discriminator for each handle
+// kind. Keep the public classes distinct for type safety, but define their
+// private implementation in one place.
+#define UMBRA_2025_DEFINE_HANDLE(HandleKind, functionSuffix, wireType) \
   class HandleKind##HandleImplementation final { \
    public: \
     explicit HandleKind##HandleImplementation(std::uint64_t value) : value_(value) {} \
@@ -30,14 +31,16 @@
     return implementation == nullptr ? 0 : implementation->value(); \
   } \
   auto encodeValue(std::uint64_t value) { \
-    return umbra_binding_detail::encodeUmbraHandleVariableArray(value); \
+    return umbra_binding_detail::encodeUmbraHandleVariableArray( \
+        value, umbra_binding_detail::HlaHandleType::wireType); \
   } \
   std::uint64_t decodeValue(VariableLengthData const& encodedValue) { \
-    auto const value = umbra_binding_detail::decodeUmbraHandleVariableArray(encodedValue); \
+    auto const value = umbra_binding_detail::decodeUmbraHandleVariableArray( \
+        encodedValue, umbra_binding_detail::HlaHandleType::wireType); \
     if (!value.has_value()) { \
       throw CouldNotDecode( \
           L"An Umbra " UMBRA_2025_HANDLE_WIDE_STRING(HandleKind) \
-          L"Handle must contain an HLAvariableArray with exactly eight HLAbyte elements."); \
+          L"Handle must contain a typed HLAvariableArray with nine HLAbyte elements."); \
     } \
     return *value; \
   } \
@@ -106,10 +109,10 @@
   } \
   size_t HandleKind##Handle::encode(void* buffer, size_t bufferSize) const { \
     if (buffer == nullptr || \
-        bufferSize < umbra_binding_detail::kUmbraHandleVariableArrayEncodedLength) { \
+          bufferSize < umbra_binding_detail::kUmbraHandleVariableArrayEncodedLength) { \
       throw CouldNotEncode( \
           L"The " UMBRA_2025_HANDLE_WIDE_STRING(HandleKind) \
-          L"Handle output buffer must contain at least twelve bytes."); \
+          L"Handle output buffer must contain at least thirteen bytes."); \
     } \
     auto const encoded = encodeValue(handleValue(_impl)); \
     std::memcpy(buffer, encoded.data(), encoded.size()); \

@@ -20,6 +20,10 @@
             <objectClass>
                 <name>TckExtensionObject</name>
                 <sharing>PublishSubscribe</sharing>
+                <directedInteraction>
+                    <name>HLAinteractionRoot.TckExtensionInteraction</name>
+                    <sharing>PublishSubscribe</sharing>
+                </directedInteraction>
                 <attribute>
                     <name>ExtensionValue</name>
                     <dataType>TckExtensionInteger</dataType>

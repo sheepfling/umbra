@@ -1,4 +1,10 @@
+#include "internal/federation/federation_registry.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <optional>
 
 namespace {
 
@@ -11,6 +17,15 @@ TEST_CASE(
   ReportingFederateAmbassador lostReports;
   ReportingFederateAmbassador observerReports;
   ReportingFederateAmbassador unsubscribedReports;
+  std::uint64_t nextFomHandleValue = 0x1000U;
+  auto const registry =
+      std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+          nullptr,
+          nullptr,
+          [&nextFomHandleValue] {
+            return std::optional<std::uint64_t>{nextFomHandleValue++};
+          });
+  ScopedEmbeddedFederationRegistry registryScope(registry);
   auto lost = makeRti();
   auto observer = makeRti();
   auto unsubscribed = makeRti();
@@ -47,11 +62,19 @@ TEST_CASE(
   auto const faultDescriptionParameter = observer->getParameterHandle(
       reportClass,
       standard_hla::mom::fault_description);
+  auto const reliableTransportation = observer->getTransportationTypeHandle(
+      standard_hla::mom::reliable);
   REQUIRE(reportClass.isValid());
   REQUIRE(federateParameter.isValid());
   REQUIRE(federateNameParameter.isValid());
   REQUIRE(timestampParameter.isValid());
   REQUIRE(faultDescriptionParameter.isValid());
+  REQUIRE(reliableTransportation.isValid());
+  auto const reliableValue =
+      rti1516_2025::umbra_binding_detail::transportationTypeHandleValue(
+          reliableTransportation);
+  REQUIRE(reliableValue.has_value());
+  REQUIRE(*reliableValue != 1U);
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
 
   // The standard requires a last known time position when the lost federate
@@ -77,7 +100,7 @@ TEST_CASE(
   REQUIRE(report.interactionClass == reportClass);
   REQUIRE(report.parameterValues.size() == 4U);
   REQUIRE(report.userSuppliedTag.size() == 0U);
-  REQUIRE(report.transportationType == observer->getTransportationTypeHandle(standard_hla::mom::reliable));
+  REQUIRE(report.transportationType == reliableTransportation);
   // This is Umbra's deliberately narrow adapter representation for an
   // RTI-originated report, not a source claim that the standard assigns an
   // invalid handle to the producer argument. RL-065 retains that distinction.

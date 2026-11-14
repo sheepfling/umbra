@@ -218,7 +218,7 @@ TEST_CASE(
   std::vector<TransportServiceMessage> receiverFrames;
   auto collectFrames = [](std::vector<TransportServiceMessage>& messages) {
     return [&messages](TransportFrame const& frame) {
-      if (frame.kind != TransportFrameKind::data) {
+      if (!isTransportServiceFrameKind(frame.kind)) {
         return false;
       }
       messages.push_back(decodeTransportServiceMessage(frame.payload));

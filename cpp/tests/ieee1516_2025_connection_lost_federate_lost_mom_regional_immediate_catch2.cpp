@@ -1,15 +1,79 @@
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 namespace {
+
+class RegionInspectingLostReportAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  struct InteractionReport final {
+    rti1516_2025::InteractionClassHandle interactionClass;
+    rti1516_2025::ParameterHandleValueMap parameterValues;
+    rti1516_2025::FederateHandle producingFederate;
+    bool sentRegionsSupplied = false;
+    rti1516_2025::RegionHandleSet sentRegions;
+    bool regionInspectionFailed = false;
+    std::set<std::wstring> sentRegionDimensionNames;
+    std::map<std::wstring, std::pair<unsigned long, unsigned long>> sentRegionBounds;
+  };
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const&,
+      rti1516_2025::TransportationTypeHandle const&,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+    InteractionReport report{
+        interactionClass,
+        parameterValues,
+        producingFederate,
+        optionalSentRegions != nullptr,
+    };
+    if (optionalSentRegions != nullptr) {
+      report.sentRegions = *optionalSentRegions;
+      if (regionQueryAmbassador == nullptr) {
+        report.regionInspectionFailed = true;
+      } else {
+        try {
+          for (auto const& region : *optionalSentRegions) {
+            auto const dimensions = regionQueryAmbassador->getDimensionHandleSet(region);
+            for (auto const& dimension : dimensions) {
+              auto const name = regionQueryAmbassador->getDimensionName(dimension);
+              auto const bounds = regionQueryAmbassador->getRangeBounds(region, dimension);
+              report.sentRegionDimensionNames.insert(name);
+              report.sentRegionBounds.emplace(
+                  name,
+                  std::pair{bounds.getLowerBound(), bounds.getUpperBound()});
+            }
+          }
+        } catch (...) {
+          report.regionInspectionFailed = true;
+        }
+      }
+    }
+    interactionReports.push_back(std::move(report));
+  }
+
+  rti1516_2025::RTIambassador* regionQueryAmbassador = nullptr;
+  std::vector<InteractionReport> interactionReports;
+};
 
 TEST_CASE(
     "Embedded transport loss DDM-delivers HLAreportFederateLost immediately to matching subscribers",
     "[integration][development-profile][federation-management][transport][mom][ddm]"
     "[callback-immediate][rti.service.connection-lost]"
     "[rti.service.subscribe-interaction-class-with-regions]"
+    "[mom-ddm-service-prohibition]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm]"
     "[federate.callback.connection-lost][federate.callback.receive-interaction]") {
   ReportingFederateAmbassador lostReports;
-  ReportingFederateAmbassador matchingReports;
+  RegionInspectingLostReportAmbassador matchingReports;
   ReportingFederateAmbassador disjointReports;
   auto lost = makeRti();
   auto matching = makeRti();
@@ -40,6 +104,8 @@ TEST_CASE(
       L"observer",
       federationName));
 
+  matchingReports.regionQueryAmbassador = matching.get();
+  REQUIRE_NOTHROW(matching->setConveyRegionDesignatorSetsSwitch(true));
   auto const reportClass = matching->getInteractionClassHandle(reportClassName);
   auto const federateDimension = matching->getDimensionHandle(standard_hla::mom::federate);
   REQUIRE(reportClass.isValid());
@@ -81,7 +147,14 @@ TEST_CASE(
   REQUIRE(matchingReports.interactionReports.front().interactionClass == reportClass);
   REQUIRE(matchingReports.interactionReports.front().parameterValues.size() == 4U);
   REQUIRE_FALSE(matchingReports.interactionReports.front().producingFederate.isValid());
-  REQUIRE_FALSE(matchingReports.interactionReports.front().sentRegionsSupplied);
+  auto const& report = matchingReports.interactionReports.front();
+  REQUIRE(report.sentRegionsSupplied);
+  REQUIRE(report.sentRegions.size() == 1U);
+  REQUIRE_FALSE(report.regionInspectionFailed);
+  CHECK((report.sentRegionDimensionNames == std::set<std::wstring>{L"HLAfederate"}));
+  REQUIRE(report.sentRegionBounds.size() == 1U);
+  CHECK((report.sentRegionBounds.at(L"HLAfederate") ==
+         std::pair<unsigned long, unsigned long>{normalizedLost, normalizedLost + 1UL}));
   REQUIRE(disjointReports.interactionReports.empty());
 
   REQUIRE_NOTHROW(lost->connect(lostReports, rti1516_2025::HLA_IMMEDIATE));

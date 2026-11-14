@@ -12,7 +12,7 @@
         <releaseRestriction>NA</releaseRestriction>
         <purpose>Portable IEEE 1516.1-2025 multi-attribute DDM conformance tests</purpose>
         <applicationDomain>Conformance testing</applicationDomain>
-        <description>This FOM supplies one two-dimensional object class with independently region-associated attributes.</description>
+        <description>This FOM supplies multi-attribute DDM classes and an object-class inheritance hierarchy with distinct class-level dimensions for attribute-specific regional routing tests.</description>
     </modelIdentification>
     <objects>
         <objectClass>
@@ -49,6 +49,44 @@
                     <order>Receive</order>
                     <semantics>Second independently region-associated value.</semantics>
                 </attribute>
+            </objectClass>
+            <objectClass>
+                <name>TckAttributeDimensionBaseObject</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions>
+                    <dimension>TckDimensionX</dimension>
+                </dimensions>
+                <attribute>
+                    <name>BaseValue</name>
+                    <dataType>HLAbyte</dataType>
+                    <updateType>Conditional</updateType>
+                    <updateCondition>On change.</updateCondition>
+                    <valueRequired>false</valueRequired>
+                    <ownership>DivestAcquire</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>Receive</order>
+                    <semantics>Base-class attribute associated with dimension X.</semantics>
+                </attribute>
+                <objectClass>
+                    <name>TckAttributeDimensionDerivedObject</name>
+                    <sharing>PublishSubscribe</sharing>
+                    <dimensions>
+                        <dimension>TckDimensionY</dimension>
+                    </dimensions>
+                    <attribute>
+                        <name>DerivedValue</name>
+                        <dataType>HLAbyte</dataType>
+                        <updateType>Conditional</updateType>
+                        <updateCondition>On change.</updateCondition>
+                        <valueRequired>false</valueRequired>
+                        <ownership>DivestAcquire</ownership>
+                        <sharing>PublishSubscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>Receive</order>
+                        <semantics>Derived-class attribute associated with dimension Y.</semantics>
+                    </attribute>
+                </objectClass>
             </objectClass>
             <objectClass>
                 <name>TckTimestampedAttributePasselObject</name>

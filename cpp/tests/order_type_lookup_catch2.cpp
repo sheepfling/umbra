@@ -87,6 +87,12 @@ TEST_CASE(
   REQUIRE(receive == RECEIVE);
   REQUIRE(timestamp == TIMESTAMP);
   REQUIRE(receive != timestamp);
+  REQUIRE_THROWS_AS(
+      member->getOrderType(L"receive"),
+      rti1516_2025::InvalidOrderName);
+  REQUIRE_THROWS_AS(
+      member->getOrderType(L"timestamp"),
+      rti1516_2025::InvalidOrderName);
   REQUIRE(member->getOrderType(L"Receive") == receive);
   REQUIRE(member->getOrderName(receive) == L"Receive");
   REQUIRE(member->getOrderName(timestamp) == L"TimeStamp");

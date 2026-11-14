@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK case exercises the public RTIambassador::connect path against an adapter-controlled loopback peer. The peer returns two malformed CTRL_NEW_SESSION_STATUS frames: a valid nonzero Session ID with the reserved invalid sequence value, then a valid sequence value with zero Session ID. The public call must report ConnectionFailed for both, and the adapter observes the client close both sockets. Scope is limited to federate-side receipt of these two status-frame metadata failures; it does not test other frame types, RTI-host receive behavior, independent-provider interoperability, or complete §12.13.4.6 conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connect-invalid-transport-session-metadata",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect reports ConnectionFailed when an adapter-controlled peer responds with invalid New Session Status session metadata; adapter observes client socket closure",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::connect; RTIambassador::ConnectionFailed",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_session_cardinality.cpp::scenarioRejectsInvalidTransportSessionMetadata"
+      ]
+    }
+  ]
+}

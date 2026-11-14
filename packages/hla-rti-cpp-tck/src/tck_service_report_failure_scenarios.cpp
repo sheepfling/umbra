@@ -179,6 +179,11 @@ void scenarioServiceReportRegionalInteractionFailure(
     verifyArgument(2U, 43, L"Set of region designators");
     verifyArgument(3U, 60, L"User-supplied tag");
     verifyArgument(4U, 34, L"Optional timestamp");
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) ==
+            publisher.federateHandle(),
+        description + " report identified the wrong publisher federate");
 
     rti::HLAfixedRecord returnedArgument;
     returnedArgument.appendElement(rti::HLAinteger32BE{})
@@ -481,6 +486,11 @@ void scenarioServiceReportAttributeUpdateFailure(
         mapValue);
     verifyArgument(2U, 60, L"User-supplied tag", L"\"cmVn\"");
     verifyArgument(3U, 34, L"Optional timestamp", L"null");
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) ==
+            publisher.federateHandle(),
+        description + " report identified the wrong publisher federate");
 
     rti::HLAfixedRecord returnedArgument;
     returnedArgument.appendElement(rti::HLAinteger32BE{})
@@ -726,6 +736,11 @@ void scenarioServiceReportInteractionFailure(
         L"Constrained set of interaction parameter designator and value pairs");
     verifyArgument(2U, 60, L"User-supplied tag");
     verifyArgument(3U, 34, L"Optional timestamp");
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) ==
+            publisher.federateHandle(),
+        description + " report identified the wrong publisher federate");
 
     rti::HLAfixedRecord returnedArgument;
     returnedArgument.appendElement(rti::HLAinteger32BE{})

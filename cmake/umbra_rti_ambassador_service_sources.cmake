@@ -18,6 +18,12 @@ target_sources(umbra_rti PRIVATE
   cpp/src/internal/runtime/umbra_rti_ambassador_interaction_subscription_services.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_services.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_controls.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_lifecycle.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_subscriptions.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_synchronization.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_ownership.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_declarations.cpp
+  cpp/src/internal/runtime/umbra_rti_ambassador_interaction_send_mom_time_management.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_timestamped_interaction_send.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_directed_interaction_services.cpp
   cpp/src/internal/runtime/umbra_rti_ambassador_object_deletion_services.cpp

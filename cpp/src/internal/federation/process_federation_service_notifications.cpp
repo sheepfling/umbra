@@ -1,6 +1,7 @@
 #include "internal/federation/process_federation_service.hpp"
 #include "internal/federation/process_federation_service_helpers.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/observability/mom_service_report_encoding.hpp"
 #include "internal/time/federation_time_bounds.hpp"
 
 #include <RTI/Exception.h>
@@ -158,6 +159,80 @@ bool ProcessFederationService::enqueueJoinedFederateMomConditionalAttributeUpdat
     event.receivingFederateId = recipient.receivingFederateId;
     event.objectInstanceHandle = recipient.objectInstanceHandle;
     event.transportationName = "HLAreliable";
+    event.rtiOwnedMomObject = true;
+    event.attributeValues.reserve(recipient.attributeValues.size());
+    for (auto const& [attributeHandle, encodedValue] : recipient.attributeValues) {
+      std::vector<std::uint8_t> bytes(encodedValue.size());
+      if (!bytes.empty()) {
+        auto const* data = static_cast<std::uint8_t const*>(encodedValue.data());
+        if (data == nullptr) {
+          return false;
+        }
+        std::copy(data, data + bytes.size(), bytes.begin());
+      }
+      event.attributeValues.emplace_back(attributeHandle, std::move(bytes));
+    }
+    ProcessTransportSession* receivingSession = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      auto const session = sessionsByFederateId_.find(recipient.receivingFederateId);
+      if (session == sessionsByFederateId_.end()) {
+        continue;
+      }
+      auto const state = sessions_.find(session->second);
+      if (state == sessions_.end() ||
+          !state->second.federationName.has_value() ||
+          *state->second.federationName != federationName ||
+          state->second.federateId != recipient.receivingFederateId) {
+        continue;
+      }
+      if (!options_.pushReceiveOrderEvents) {
+        state->second.attributeUpdateEvents.push_back(std::move(event));
+        continue;
+      }
+      receivingSession = session->second;
+    }
+    if (!receivingSession->send(TransportServiceMessage{
+            TransportServiceMessageKind::event,
+            TransportServiceOperation::receive_attribute_update,
+            TransportServiceStatus::ok,
+            0U,
+            encodeProcessFederationReceiveAttributeUpdateResult(
+                ProcessFederationReceiveAttributeUpdateResult{std::move(event)})})) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool ProcessFederationService::enqueueFederationMomConditionalAttributeUpdate(
+    std::wstring const& federationName,
+    std::vector<std::string> const& attributeNames) {
+  auto const object = registry_.federationMomObjectFor(federationName);
+  if (!object) {
+    return true;
+  }
+  std::set<std::uint64_t> attributeHandles;
+  for (auto const& attributeName : attributeNames) {
+    auto const handle = registry_.attributeHandleFor(
+        federationName,
+        std::string(hla::utf8::mom::federation_object_class),
+        attributeName);
+    if (!handle) {
+      return true;
+    }
+    attributeHandles.insert(*handle);
+  }
+  auto const plan = registry_.planJoinedFederateMomAttributeValueUpdateForObject(
+      federationName, object->objectInstanceHandle, attributeHandles, true);
+  for (auto const& recipient : plan.recipients) {
+    if (recipient.attributeValues.empty()) {
+      continue;
+    }
+    ProcessFederationAttributeUpdateEvent event;
+    event.receivingFederateId = recipient.receivingFederateId;
+    event.objectInstanceHandle = recipient.objectInstanceHandle;
+    event.transportationName = hla::utf8::mom::reliable;
     event.rtiOwnedMomObject = true;
     event.attributeValues.reserve(recipient.attributeValues.size());
     for (auto const& [attributeHandle, encodedValue] : recipient.attributeValues) {
@@ -400,6 +475,9 @@ bool ProcessFederationService::enqueueFederationSynchronizedNotifications(
     return true;
   }
   for (auto& pushedEvent : pushedEvents) {
+    auto const receivingFederateId =
+        pushedEvent.second.receivingFederateId;
+    auto const label = pushedEvent.second.label;
     ProcessFederationReceiveInteractionResult result;
     result.federationSynchronizedEvent = std::move(pushedEvent.second);
     if (pushedEvent.first == nullptr ||
@@ -410,6 +488,10 @@ bool ProcessFederationService::enqueueFederationSynchronizedNotifications(
             0U,
             encodeProcessFederationReceiveInteractionResult(result)})) {
       return false;
+    }
+    if (options_.afterFederationSynchronizedEventSentForTesting) {
+      options_.afterFederationSynchronizedEventSentForTesting(
+          receivingFederateId, label);
     }
   }
   return true;
@@ -435,6 +517,41 @@ bool ProcessFederationService::enqueueFederationSaveNotifications(
     }
     if (receivingSession == nullptr) {
       continue;
+    }
+    if (planned.kind == FederationSaveNotificationKind::completed) {
+      auto const successful = planned.successful;
+      auto const failureReason = planned.failureReason;
+      if (!appendSelectedServiceReportRecord(
+              *receivingSession,
+              federationName,
+              planned.receivingFederateId,
+              static_cast<std::uint16_t>(MomServiceType::federation_management),
+              [successful, failureReason](std::uint32_t serialNumber) {
+                std::vector<MomServiceArgument> suppliedArguments{
+                    {MomArgumentType::boolean,
+                     L"Federation save-success indicator",
+                     formatMomBoolean(successful)},
+                };
+                if (successful) {
+                  suppliedArguments.push_back({
+                      MomArgumentType::null_value,
+                      L"Optional failure reason",
+                      formatMomNull(),
+                  });
+                } else {
+                  suppliedArguments.push_back({
+                      MomArgumentType::save_failure_reason,
+                      L"Optional failure reason",
+                      formatMomSaveFailureReason(failureReason),
+                  });
+                }
+                return formatMomSuccessfulVoidServiceReportRecord(
+                    serialNumber,
+                    L"FederationSaved",
+                    suppliedArguments);
+              })) {
+        return false;
+      }
     }
     ProcessFederationSaveEvent event{
         planned.kind,

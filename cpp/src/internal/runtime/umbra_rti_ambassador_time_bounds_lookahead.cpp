@@ -64,9 +64,9 @@ bool UmbraRtiAmbassador::queryGALT(LogicalTime &time) {
           L"QueryGALT",
           umbra::detail::MomServiceType::time_management,
           {},
-          {umbra::detail::MomArgumentType::logical_time,
+          {umbra::detail::MomArgumentType::time_query_return,
            L"GALT",
-           umbra::detail::formatMomLogicalTime(*galt)},
+           umbra::detail::formatMomTimeQueryReturn(true, *galt)},
           true);
       return true;
     }
@@ -110,23 +110,23 @@ bool UmbraRtiAmbassador::queryGALT(LogicalTime &time) {
       }
       copyAmbassadorQueriedLogicalTime(time, *bounds.galt);
       auto const returnedGalt = umbra::detail::MomServiceArgument{
-          umbra::detail::MomArgumentType::logical_time,
+          umbra::detail::MomArgumentType::time_query_return,
           L"GALT",
-          umbra::detail::formatMomLogicalTime(*bounds.galt),
+          umbra::detail::formatMomTimeQueryReturn(true, *bounds.galt),
       };
-      static_cast<void>(emitSelectedMomServiceReportInteraction(
+      appendSuccessfulServiceReportToFileIfSelected(
           L"QueryGALT",
           umbra::detail::MomServiceType::time_management,
           {},
-          returnedGalt));
+          returnedGalt);
       return true;
     }
     case umbra::detail::FederationTimeBoundStatus::undefined: {
-      static_cast<void>(emitSelectedMomServiceReportInteraction(
+      appendSuccessfulServiceReportToFileIfSelected(
           L"QueryGALT",
           umbra::detail::MomServiceType::time_management,
           {},
-          {umbra::detail::MomArgumentType::null_value, L"", umbra::detail::formatMomNull()}));
+          {umbra::detail::MomArgumentType::null_value, L"", umbra::detail::formatMomNull()});
       return false;
     }
     case umbra::detail::FederationTimeBoundStatus::requesting_federate_not_registered:
@@ -186,9 +186,9 @@ bool UmbraRtiAmbassador::queryLITS(LogicalTime &time) {
           L"QueryLITS",
           umbra::detail::MomServiceType::time_management,
           {},
-          {umbra::detail::MomArgumentType::logical_time,
+          {umbra::detail::MomArgumentType::time_query_return,
            L"LITS",
-           umbra::detail::formatMomLogicalTime(*lits)},
+           umbra::detail::formatMomTimeQueryReturn(true, *lits)},
           true);
       return true;
     }
@@ -232,37 +232,37 @@ bool UmbraRtiAmbassador::queryLITS(LogicalTime &time) {
       }
       copyAmbassadorQueriedLogicalTime(time, *bounds.lits);
       auto const returnedLits = umbra::detail::MomServiceArgument{
-          umbra::detail::MomArgumentType::logical_time,
+          umbra::detail::MomArgumentType::time_query_return,
           L"LITS",
-          umbra::detail::formatMomLogicalTime(*bounds.lits),
+          umbra::detail::formatMomTimeQueryReturn(true, *bounds.lits),
       };
-      static_cast<void>(emitSelectedMomServiceReportInteraction(
+      appendSuccessfulServiceReportToFileIfSelected(
           L"QueryLITS",
           umbra::detail::MomServiceType::time_management,
           {},
-          returnedLits));
+          returnedLits);
       return true;
     }
     case umbra::detail::FederationTimeBoundStatus::undefined: {
       if (bounds.lits) {
         copyAmbassadorQueriedLogicalTime(time, *bounds.lits);
         auto const returnedLits = umbra::detail::MomServiceArgument{
-            umbra::detail::MomArgumentType::logical_time,
+            umbra::detail::MomArgumentType::time_query_return,
             L"LITS",
-            umbra::detail::formatMomLogicalTime(*bounds.lits),
+            umbra::detail::formatMomTimeQueryReturn(true, *bounds.lits),
         };
-        static_cast<void>(emitSelectedMomServiceReportInteraction(
+        appendSuccessfulServiceReportToFileIfSelected(
             L"QueryLITS",
             umbra::detail::MomServiceType::time_management,
             {},
-            returnedLits));
+            returnedLits);
         return true;
       }
-      static_cast<void>(emitSelectedMomServiceReportInteraction(
+      appendSuccessfulServiceReportToFileIfSelected(
           L"QueryLITS",
           umbra::detail::MomServiceType::time_management,
           {},
-          {umbra::detail::MomArgumentType::null_value, L"", umbra::detail::formatMomNull()}));
+          {umbra::detail::MomArgumentType::null_value, L"", umbra::detail::formatMomNull()});
       return false;
     }
     case umbra::detail::FederationTimeBoundStatus::requesting_federate_not_registered:
@@ -327,9 +327,9 @@ void UmbraRtiAmbassador::queryLookahead(LogicalTimeInterval &interval) {
               L"QueryLookahead",
               umbra::detail::MomServiceType::time_management,
               {},
-              {umbra::detail::MomArgumentType::logical_time_interval,
+              {umbra::detail::MomArgumentType::time_interval_query_return,
                L"Lookahead",
-               umbra::detail::formatMomLogicalTimeInterval(*decoded)},
+               umbra::detail::formatMomTimeIntervalQueryReturn(true, *decoded)},
               true);
         }
         return;
@@ -366,15 +366,15 @@ void UmbraRtiAmbassador::queryLookahead(LogicalTimeInterval &interval) {
       }
       copyAmbassadorQueriedLogicalTimeInterval(interval, *result.lookahead);
       auto const returnedLookahead = umbra::detail::MomServiceArgument{
-          umbra::detail::MomArgumentType::logical_time_interval,
+          umbra::detail::MomArgumentType::time_interval_query_return,
           L"Lookahead",
-          umbra::detail::formatMomLogicalTimeInterval(*result.lookahead),
+          umbra::detail::formatMomTimeIntervalQueryReturn(true, *result.lookahead),
       };
-      static_cast<void>(emitSelectedMomServiceReportInteraction(
+      appendSuccessfulServiceReportToFileIfSelected(
           L"QueryLookahead",
           umbra::detail::MomServiceType::time_management,
           {},
-          returnedLookahead));
+          returnedLookahead);
       return;
     }
     case umbra::detail::FederateTimeLookaheadStatus::not_enabled:

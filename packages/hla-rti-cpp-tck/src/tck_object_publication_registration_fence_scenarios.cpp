@@ -35,6 +35,17 @@ void scenarioObjectPublicationRegistrationFence(
       true,
       L"");
 
+  requireException(
+      [&] {
+        static_cast<void>(publisher.rtiAmbassador().registerObjectInstance(
+            publisherClass));
+      },
+      L"ObjectClassNotPublished",
+      "registering an object before publishing its object class");
+  require(
+      !subscriber.recorder().discovery().present,
+      "unpublished object registration unexpectedly delivered discovery");
+
   publisher.rtiAmbassador().publishObjectClassAttributes(
       publisherClass,
       publisherAttributes);

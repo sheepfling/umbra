@@ -118,3 +118,52 @@ TEST_CASE(
 
   std::filesystem::remove_all(directory, ignored);
 }
+
+TEST_CASE(
+    "Registry only accepts MOM subscription declarations from joined federate identities",
+    "[unit][internal-only][no-normative-mapping][2025][federation-registry]"
+    "[mom-subscriptions]") {
+  umbra::detail::EmbeddedFederationRegistry registry;
+  REQUIRE(registry.create(L"mom-subscription-scope", composedRestaurantDefinition()).status ==
+      FederationRegistryStatus::applied);
+
+  auto joined = registry.join(
+      L"mom-subscription-scope", L"observer", L"joined-observer", noOpCallbackRoute());
+  REQUIRE(joined.status == FederationRegistryStatus::applied);
+  REQUIRE(joined.membership);
+  auto const federateId = joined.membership->id;
+
+  auto const momClass = registry.objectClassHandleFor(
+      L"mom-subscription-scope", "HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateHandleAttribute = registry.attributeHandleFor(
+      L"mom-subscription-scope",
+      "HLAobjectRoot.HLAmanager.HLAfederate",
+      "HLAfederateHandle");
+  REQUIRE(momClass.has_value());
+  REQUIRE(federateHandleAttribute.has_value());
+
+  auto memberDeclaration = registry.objectClassAttributeDeclarationFor(
+      L"mom-subscription-scope", federateId, *momClass);
+  REQUIRE(memberDeclaration.has_value());
+  REQUIRE(memberDeclaration->subscribedAttributes.empty());
+
+  // There is no RTI federate identity in the membership ledger. Exercise the
+  // registry boundary with an unjoined identity so internal RTI work cannot
+  // accidentally create a MOM subscription declaration under a nonmember.
+  auto const unjoinedIdentity = federateId + 1U;
+  REQUIRE(registry.setObjectClassAttributeSubscription(
+      L"mom-subscription-scope",
+      unjoinedIdentity,
+      *momClass,
+      {*federateHandleAttribute},
+      true,
+      "HLAdefault") ==
+      umbra::detail::ObjectClassAttributeDeclarationStatus::federate_not_member);
+  REQUIRE_FALSE(registry.objectClassAttributeDeclarationFor(
+      L"mom-subscription-scope", unjoinedIdentity, *momClass));
+
+  auto memberDeclarationAfterRejectedAttempt = registry.objectClassAttributeDeclarationFor(
+      L"mom-subscription-scope", federateId, *momClass);
+  REQUIRE(memberDeclarationAfterRejectedAttempt.has_value());
+  REQUIRE(memberDeclarationAfterRejectedAttempt->subscribedAttributes.empty());
+}

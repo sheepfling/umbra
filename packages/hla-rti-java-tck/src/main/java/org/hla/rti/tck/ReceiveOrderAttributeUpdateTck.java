@@ -236,28 +236,14 @@ final class ReceiveOrderAttributeUpdateTck {
             "default-rate subscription update burst");
          JavaTckSupport.check(receiverCallbacks.reflections.size() == values.length,
             "default-rate subscription did not reflect every update in the burst");
-         boolean[] seen = new boolean[values.length];
-         for (Reflection reflection : receiverCallbacks.reflections) {
+         for (int index = 0; index < values.length; ++index) {
+            Reflection reflection = receiverCallbacks.reflections.get(index);
             JavaTckSupport.check(receiverObject.equals(reflection.object)
-                  && reflection.values.size() == 1,
-               "default-rate subscription reflected the wrong local object or attribute set");
-            boolean matched = false;
-            for (int index = 0; index < values.length; ++index) {
-               if (Arrays.equals(values[index], reflection.values.get(receiverAttribute))
-                     && Arrays.equals(tags[index], reflection.tag)) {
-                  JavaTckSupport.check(!seen[index],
-                     "default-rate subscription duplicated update " + (index + 1));
-                  seen[index] = true;
-                  matched = true;
-                  break;
-               }
-            }
-            JavaTckSupport.check(matched,
-               "default-rate subscription changed a value or tag");
-         }
-         for (boolean delivered : seen) {
-            JavaTckSupport.check(delivered,
-               "default-rate subscription reduced the ordinary update burst");
+                  && reflection.values.size() == 1
+                  && Arrays.equals(values[index],
+                     reflection.values.get(receiverAttribute))
+                  && Arrays.equals(tags[index], reflection.tag),
+               "default-rate subscription altered or reduced the ordered update burst");
          }
          JavaTckSupport.check(publisherCallbacks.reflections.isEmpty(),
             "default-rate attribute update looped a reflection back to its publisher");

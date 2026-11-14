@@ -100,9 +100,11 @@ final class FederateMomPartialAttributeUnsubscribeTck {
          created = true;
          subject.joinFederationExecution(subjectName, "java-tck", federation);
          subjectJoined = true;
-         FederateHandle targetFederate = requester.joinFederationExecution(
-            requesterName, "java-tck", federation);
+         requester.joinFederationExecution(requesterName, "java-tck", federation);
          requesterJoined = true;
+         FederateHandle targetFederate = requester.getFederateHandle(subjectName);
+         JavaTckSupport.check(targetFederate != null,
+            "requester could not resolve the subject federate by name");
 
          ObjectClassHandle subjectClass = subject.getObjectClassHandle(objectClassName);
          ObjectClassHandle requesterClass = requester.getObjectClassHandle(objectClassName);
@@ -189,6 +191,7 @@ final class FederateMomPartialAttributeUnsubscribeTck {
             attributesSubscribed = false;
          } else {
             subject.unsubscribeObjectClassAttributes(subjectClass, removeAttributes);
+            if (fullAttributeUnsubscribe) attributesSubscribed = false;
          }
          int offset = recorder.interactions.size();
          requester.sendInteraction(requestClass, request, new byte[0]);

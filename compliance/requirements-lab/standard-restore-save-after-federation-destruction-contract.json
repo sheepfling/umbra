@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-04-federation-management-page-044-l36-11"
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l36-11",
+      "standard_section": "hla-1516.1-2025:clause-4.1.2"
+    }
+  ],
+  "mapping_note": "This is one direct witness for saved federation information remaining restorable after destruction and recreation. It checks a saved explicit two-member synchronization point through public callbacks and subsequent public achievement; it does not claim complete save-image coverage or persistence across an RTI-process restart.",
+  "notes": "The portable C++ TCK uses only the official IEEE 1516.1-2025 API and standard library. It completes a federation save, destroys the execution, recreates it, rejoins the same two-member set with new joined-federate identities, restores the saved execution, and completes the saved synchronization point. Adapter/provider portability and full HLA conformance are not established by this local Umbra run.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-restore-save-after-federation-destruction",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador createFederationExecution, joinFederationExecution, registerFederationSynchronizationPoint, requestFederationSave, federateSaveBegun, federateSaveComplete, resignFederationExecution, destroyFederationExecution, requestFederationRestore, federateRestoreComplete, synchronizationPointAchieved; FederateAmbassador announceSynchronizationPoint, initiateFederateSave, federationSaved, requestFederationRestoreSucceeded, initiateFederateRestore, federationRestored, federationSynchronized",
+      "source": "Official IEEE 1516.1-2025 C++ RTI API",
+      "source_symbol": "Federation save and restore lifecycle API",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_restore_save_after_federation_destruction.cpp::scenarioRestoreSaveAfterFederationDestruction",
+        "packages/hla-rti-cpp-tck/src/tck_restore_save_after_federation_destruction.cpp::scenarioRestoreSaveAfterFederationDestructionContract"
+      ]
+    }
+  ]
+}

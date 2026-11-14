@@ -243,8 +243,8 @@ void ProcessFederationService::dispatchTsoAttributeUpdateDelivery(
   }
   {
     std::scoped_lock lock(mutex_);
-    pendingPushedRetractionRecipients_[message.messageId].push_back(
-        receivingSession);
+    pendingPushedRetractionRecipients_[ProcessFederationTsoMessageKey{
+        federationName, message.messageId}].push_back(receivingSession);
   }
   // Keep the coordinator entry in-transit until the process receiver has
   // crossed its callback boundary and sends acknowledge_tso_delivery.
@@ -434,8 +434,8 @@ void ProcessFederationService::dispatchTsoInteractionDelivery(
   }
   {
     std::scoped_lock lock(mutex_);
-    pendingPushedRetractionRecipients_[message.messageId].push_back(
-        receivingSession);
+    pendingPushedRetractionRecipients_[ProcessFederationTsoMessageKey{
+        federationName, message.messageId}].push_back(receivingSession);
   }
   // Keep the coordinator entry in-transit until the process receiver has
   // crossed its callback boundary and sends acknowledge_tso_delivery.

@@ -100,6 +100,9 @@ final class TimestampedDefaultRegionAttributeMixedFanoutTck {
          immediateRegions = regionSet(immediate, immediateRegion);
          constrained.setConveyRegionDesignatorSetsSwitch(true);
          immediate.setConveyRegionDesignatorSetsSwitch(true);
+          JavaTckSupport.check(constrained.getConveyRegionDesignatorSetsSwitch()
+                && immediate.getConveyRegionDesignatorSetsSwitch(),
+             "mixed-fanout subscribers did not enable region-designator callbacks");
          constrained.subscribeObjectClassAttributesWithRegions(constrainedClass,
             association(constrained, constrainedAttributes, constrainedRegions));
          constrainedSubscribed = true;
@@ -133,8 +136,8 @@ final class TimestampedDefaultRegionAttributeMixedFanoutTck {
          LogicalTime ownerTarget = offset(ownerInitial, epsilon, 2);
          JavaTckSupport.check(messageTime.equals(constrainedTarget),
             "owner and constrained recipient computed different message times");
-         byte[] value = new byte[] {0x44, 0x52, 0x41, 0x46};
-         byte[] tag = new byte[] {0x4d, 0x46, 0x41, 0x4e};
+          byte[] value = new byte[] {0x44, 0x45, 0x46, 0x41};
+          byte[] tag = new byte[] {0x44, 0x45, 0x46, 0x2d, 0x54, 0x53, 0x4f};
          AttributeHandleValueMap values = owner.getAttributeHandleValueMapFactory().create(1);
          values.put(ownerAttribute, value.clone());
          MessageRetractionReturn sent =
@@ -375,7 +378,7 @@ final class TimestampedDefaultRegionAttributeMixedFanoutTck {
                   reflection.tag = ((byte[]) arguments[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) arguments[3];
                   reflection.producer = (FederateHandle) arguments[4];
-                  reflection.regions = (RegionHandleSet) arguments[5];
+                   reflection.regions = ((RegionHandleSet) arguments[5]).clone();
                   reflection.time = (LogicalTime<?, ?>) arguments[6];
                   reflection.sentOrder = (OrderType) arguments[7];
                   reflection.receivedOrder = (OrderType) arguments[8];

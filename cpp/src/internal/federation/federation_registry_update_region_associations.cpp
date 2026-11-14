@@ -43,14 +43,14 @@ EmbeddedFederationRegistry::associateRegionsForUpdatesWithScopeChanges(
   if (attributesAndRegions.empty()) {
     return {};
   }
-  auto const availableDimensions = availableObjectClassDimensions(
-      federation->second,
-      instance->second.registeredObjectClassHandle);
-  if (!availableDimensions) {
-    return {ObjectInstanceRegionAssociationStatus::inconsistent_catalog};
-  }
   for (auto const& [attributeHandle, regionHandles] : attributesAndRegions) {
-    static_cast<void>(attributeHandle);
+    auto const availableDimensions = availableObjectClassAttributeDimensions(
+        federation->second,
+        instance->second.registeredObjectClassHandle,
+        attributeHandle);
+    if (!availableDimensions) {
+      return {ObjectInstanceRegionAssociationStatus::inconsistent_catalog};
+    }
     for (std::uint64_t const regionHandle : regionHandles) {
       auto const region = federation->second.regions.find(regionHandle);
       if (region == federation->second.regions.end()) {

@@ -4,5 +4,6 @@
     xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
     <objects><objectClass><name>HLAobjectRoot</name><attribute>
         <name>TckNaCompletedAcrossModules</name><dataType>NA</dataType>
+        <semantics>Partial NA attribute completed by a later FOM module.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

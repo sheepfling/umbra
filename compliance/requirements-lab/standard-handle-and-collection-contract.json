@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 handle, range, map, set, pair-vector, and federation/restore-vector value types. It verifies invalid-handle identity, copy and assignment, ordering and hashing, collection lookup and erase, deep copy independence, and standard record-vector values. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
+  "notes": "This contract records the provider- and FOM-independent C++ TCK check for the official IEEE 1516.1 handle, range, map, set, pair-vector, and federation/restore-vector value types. It verifies invalid-handle identity, copy and assignment, ordering and hashing, unique-key insertion for AttributeHandleValueMap and ParameterHandleValueMap, duplicate-free insertion for AttributeHandleSet, collection lookup and erase, deep copy independence, and standard record-vector values. The map/set checks exercise the public C++ containers independently of Annex D encoding data types. It is an API contract check only and does not claim provider behavior or cross-RTI interoperability.",
   "api_surfaces": [
     {
       "id": "standard-cpp-handle-and-collection-values",
@@ -13,7 +13,8 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 standard handle and collection declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::verifyStandardHandleAndCollectionContract"
+        "packages/hla-rti-cpp-tck/src/tck_api_foundation.cpp::verifyStandardHandleAndCollectionContract",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioHandleAndCollectionPortable"
       ]
     }
   ]

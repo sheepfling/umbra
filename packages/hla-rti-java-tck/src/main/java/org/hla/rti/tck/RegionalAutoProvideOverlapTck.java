@@ -267,11 +267,11 @@ final class RegionalAutoProvideOverlapTck {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+               if ("discoverObjectInstance".equals(name) && args != null && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery);
                   if (moveOutOfScope.get() && discoveries.size() == 2) try {
                      RTIambassador ambassador = scopeOwner.get();

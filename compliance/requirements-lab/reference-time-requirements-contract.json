@@ -64,6 +64,16 @@
       "tests": [
         "cpp/tests/libxml2_fom_composer_catch2.cpp::Reference logical-time selection defaults to HLAfloat64Time and rejects incompatible FDD documentation"
       ]
+    },
+    {
+      "id": "umbra-reference-logical-time-interval-nonnegative",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-176-l22-7",
+      "clause_id": "clause-8.1.1",
+      "source": "cpp/src/ieee1516_2025_time.cpp",
+      "source_symbol": "HLAinteger64Interval::setInterval",
+      "tests": [
+        "cpp/tests/ieee1516_2025_time_catch2.cpp::IEEE 1516.1-2025 logical time intervals reject negative values"
+      ]
     }
   ]
 }

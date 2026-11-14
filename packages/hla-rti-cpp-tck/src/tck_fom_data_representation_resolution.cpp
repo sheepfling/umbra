@@ -25,6 +25,10 @@ void scenarioFomDataRepresentationResolution(Options const& options,
       representationFom(options, "representation-invalid-special");
   auto const& invalidBasic =
       representationFom(options, "representation-invalid-basic");
+  auto const& invalidBasicName =
+      representationFom(options, "representation-invalid-basic-name");
+  auto const& invalidReferenceName =
+      representationFom(options, "representation-invalid-reference-name");
   auto const& attributeProvider =
       representationFom(options, "reference-attribute-provider");
 
@@ -50,6 +54,14 @@ void scenarioFomDataRepresentationResolution(Options const& options,
     create({special});
     creator.rtiAmbassador().destroyFederationExecution(federation);
   }
+  requireException([&] { create({invalidBasicName}); }, L"InconsistentFOM",
+                   "a basic-data representation named with the reserved NA marker");
+  create({special});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
+  requireException([&] { create({invalidReferenceName}); }, L"InconsistentFOM",
+                   "a reference data type named with the reserved NA marker");
+  create({special});
+  creator.rtiAmbassador().destroyFederationExecution(federation);
   requireException([&] { create({invalidBasic, attributeProvider}); },
                    L"InconsistentFOM", "invalid ordinary reference representation");
   create({special});

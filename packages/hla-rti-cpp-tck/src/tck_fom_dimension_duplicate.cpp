@@ -29,6 +29,9 @@ void runDimensionDuplicate(Options const& options, rti::CallbackModel model,
   auto const& second = requiredFom(options, conflictingUpperBound
       ? "dimension-duplicate-conflicting-upper-bound"
       : "dimension-duplicate-equal-unique");
+  auto const* unspecifiedUpperBound = conflictingUpperBound
+      ? &requiredFom(options, "dimension-duplicate-unspecified-upper-bound")
+      : nullptr;
   Session creator(options, model, "dimension-duplicate-creator");
   Session member(options, model, "dimension-duplicate-member");
   auto const federation = federationName(options, conflictingUpperBound
@@ -41,14 +44,24 @@ void runDimensionDuplicate(Options const& options, rti::CallbackModel model,
     create(creator, federation, options, {module});
     creator.rtiAmbassador().destroyFederationExecution(federation);
   }
+  if (unspecifiedUpperBound != nullptr) {
+    create(creator, federation, options, {unspecifiedUpperBound->wstring()});
+    creator.rtiAmbassador().destroyFederationExecution(federation);
+  }
 
   if (conflictingUpperBound) {
-    requireException(
-        [&] { create(creator, federation, options,
-                     {base.wstring(), second.wstring()}); },
-        L"InconsistentFOM", "conflicting upperBound on one named dimension");
-    create(creator, federation, options, {base.wstring()});
-    creator.rtiAmbassador().destroyFederationExecution(federation);
+    auto rejectConflict = [&](std::filesystem::path const& conflictingModule,
+                              std::string const& description) {
+      requireException(
+          [&] { create(creator, federation, options,
+                       {base.wstring(), conflictingModule.wstring()}); },
+          L"InconsistentFOM", description);
+      create(creator, federation, options, {base.wstring()});
+      creator.rtiAmbassador().destroyFederationExecution(federation);
+    };
+    rejectConflict(second, "different explicit upperBound values");
+    rejectConflict(*unspecifiedUpperBound,
+                   "an explicit upperBound conflicting with an omitted upperBound");
   } else {
     create(creator, federation, options,
            {base.wstring(), second.wstring()});
@@ -146,6 +159,12 @@ void scenarioFomDimensionInputDescription(Options const& options,
   auto const& described = requiredFom(options, "dimension-input-description-text");
   auto const& namedNa = requiredFom(options, "dimension-input-description-named-na");
   auto const& namedText = requiredFom(options, "dimension-input-description-named-text");
+  auto const& blankInputDescription = requiredFom(
+      options, "dimension-table-input-description-empty");
+  auto const& blankNormalization = requiredFom(
+      options, "dimension-table-normalization-empty");
+  auto const& blankOutputSemantics = requiredFom(
+      options, "dimension-table-output-semantics-empty");
   Session creator(options, model, "dimension-input-description-creator");
   Session member(options, model, "dimension-input-description-member");
   auto const federation = federationName(options, "fom-dimension-input-description");
@@ -158,6 +177,18 @@ void scenarioFomDimensionInputDescription(Options const& options,
   };
   requireException([&] { createWithMim(missing); }, L"InconsistentFOM",
                    "a dimension with no named input type and NA description");
+  requireException(
+      [&] { createWithMim(blankInputDescription); },
+      L"InconsistentFOM",
+      "a dimension table row with an empty input-data description field");
+  requireException(
+      [&] { createWithMim(blankNormalization); },
+      L"InconsistentFOM",
+      "a dimension table row with an empty normalization field");
+  requireException(
+      [&] { createWithMim(blankOutputSemantics); },
+      L"InconsistentFOM",
+      "a dimension table row with an empty output-data semantics field");
 
   auto const checkAccepted = [&](std::filesystem::path const& module,
                                  std::wstring const& dimensionName) {
@@ -316,13 +347,26 @@ void scenarioFomDimensionDefaultRange(Options const& options,
   auto& rti = member.rtiAmbassador();
   auto const name = std::wstring(L"TckBoundedDefaultDimension");
   auto const dimension = rti.getDimensionHandle(name);
-  require(dimension.isValid() && rti.getDimensionName(dimension) == name &&
-              rti.getDimensionUpperBound(dimension) == 100U,
-          "a bounded dimension default range did not compose publicly");
+  require(dimension.isValid() && rti.getDimensionName(dimension) == name,
+          "a bounded dimension row did not preserve its public name");
+  auto const dimensionUpperBound = rti.getDimensionUpperBound(dimension);
+  require(dimensionUpperBound > 0UL && dimensionUpperBound == 100UL,
+          "a dimension-table upper bound was not a positive integer");
   auto const intervalRegion =
       rti.createRegion(rti::DimensionHandleSet{dimension});
   require(intervalRegion.isValid(),
           "the FDD dimension could not be used in a region interval");
+  auto const suppliedDefaultBounds =
+      rti.getRangeBounds(intervalRegion, dimension);
+  require(suppliedDefaultBounds.getLowerBound() == 0U &&
+              suppliedDefaultBounds.getUpperBound() == dimensionUpperBound,
+          "the RTI did not supply the full default interval for an unspecified region range");
+  rti.commitRegionModifications(rti::RegionHandleSet{intervalRegion});
+  auto const committedDefaultBounds =
+      rti.getRangeBounds(intervalRegion, dimension);
+  require(committedDefaultBounds.getLowerBound() == 0U &&
+              committedDefaultBounds.getUpperBound() == dimensionUpperBound,
+          "a default-only region did not commit its RTI-supplied range");
   // The smallest valid interval has a one-unit span; equality of the two
   // endpoints is invalid under the standard RangeBounds contract.
   rti.setRangeBounds(
@@ -411,6 +455,117 @@ void scenarioFomDimensionDefaultRange(Options const& options,
   require(endpoint.recorder().discoveryCount() == 0U &&
               endpoint.recorder().reflectionCount() == 0U,
           "the half-open upper endpoint at 1 matched the adjacent [1,2) subscription");
+
+  auto const interactionClassName =
+      std::wstring(L"HLAinteractionRoot.TckBoundedDefaultInteraction");
+  auto const interactionClass =
+      producerRti.getInteractionClassHandle(interactionClassName);
+  auto const interactionParameter = producerRti.getParameterHandle(
+      interactionClass, L"Value");
+  auto const memberInteractionClass =
+      rti.getInteractionClassHandle(interactionClassName);
+  auto const endpointInteractionClass =
+      endpointRti.getInteractionClassHandle(interactionClassName);
+  require(interactionClass.isValid() && interactionParameter.isValid() &&
+              interactionClass == memberInteractionClass &&
+              interactionClass == endpointInteractionClass &&
+              producerRti.getAvailableDimensionsForInteractionClass(
+                  interactionClass) ==
+                  rti::DimensionHandleSet{producerDimension},
+          "the bounded FOM did not expose its dimension on the interaction class");
+  producerRti.publishInteractionClass(interactionClass);
+
+  auto const defaultInteractionRegion = rti.createRegion(
+      rti::DimensionHandleSet{dimension});
+  require(defaultInteractionRegion.isValid() &&
+              rti.getDimensionHandleSet(defaultInteractionRegion) ==
+                  rti::DimensionHandleSet{dimension},
+          "the interaction receiver region did not retain its FOM dimension");
+  auto const interactionDefaultBeforeCommit =
+      rti.getRangeBounds(defaultInteractionRegion, dimension);
+  require(interactionDefaultBeforeCommit.getLowerBound() == 0U &&
+              interactionDefaultBeforeCommit.getUpperBound() ==
+                  dimensionUpperBound,
+          "the interaction region did not receive the FOM-supplied default range");
+  rti.commitRegionModifications(
+      rti::RegionHandleSet{defaultInteractionRegion});
+  auto const interactionDefaultAfterCommit =
+      rti.getRangeBounds(defaultInteractionRegion, dimension);
+  require(interactionDefaultAfterCommit.getLowerBound() == 0U &&
+              interactionDefaultAfterCommit.getUpperBound() ==
+                  dimensionUpperBound,
+          "committing the default interaction region changed its FOM range");
+  rti.subscribeInteractionClassWithRegions(
+      memberInteractionClass,
+      rti::RegionHandleSet{defaultInteractionRegion});
+
+  auto const boundaryInteractionRegion = endpointRti.createRegion(
+      rti::DimensionHandleSet{endpointDimension});
+  endpointRti.setRangeBounds(
+      boundaryInteractionRegion, endpointDimension,
+      rti::RangeBounds(1U, 2U));
+  endpointRti.commitRegionModifications(
+      rti::RegionHandleSet{boundaryInteractionRegion});
+  endpointRti.subscribeInteractionClassWithRegions(
+      endpointInteractionClass,
+      rti::RegionHandleSet{boundaryInteractionRegion});
+
+  auto const interactionSourceRegion = producerRti.createRegion(
+      rti::DimensionHandleSet{producerDimension});
+  producerRti.setRangeBounds(
+      interactionSourceRegion, producerDimension,
+      rti::RangeBounds(0U, 1U));
+  producerRti.commitRegionModifications(
+      rti::RegionHandleSet{interactionSourceRegion});
+  std::uint8_t const interactionValueByte = 0xa5U;
+  rti::ParameterHandleValueMap interactionParameters;
+  interactionParameters.emplace(
+      interactionParameter,
+      rti::VariableLengthData(
+          &interactionValueByte, sizeof(interactionValueByte)));
+  std::uint8_t const interactionTagByte = 0x71U;
+  rti::VariableLengthData const interactionTag(
+      &interactionTagByte, sizeof(interactionTagByte));
+  producerRti.sendInteractionWithRegions(
+      interactionClass, interactionParameters,
+      rti::RegionHandleSet{interactionSourceRegion}, interactionTag);
+  waitForSessions({&creator, &member, &endpoint}, [&] {
+    return member.recorder().interactions().size() == 1U;
+  }, options, "interaction delivery through the FOM-supplied default range");
+  auto const interactionQuietDeadline =
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+  while (std::chrono::steady_clock::now() < interactionQuietDeadline) {
+    member.pump();
+    endpoint.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto const deliveredInteractions = member.recorder().interactions();
+  require(deliveredInteractions.size() == 1U &&
+              deliveredInteractions.front().interaction ==
+                  memberInteractionClass &&
+              deliveredInteractions.front().parameters.size() == 1U &&
+              deliveredInteractions.front().parameters.count(
+                  interactionParameter) == 1U &&
+              copyBytes(deliveredInteractions.front().parameters.at(
+                  interactionParameter)) ==
+                  std::vector<std::uint8_t>{interactionValueByte} &&
+              deliveredInteractions.front().tag ==
+                  std::vector<std::uint8_t>{interactionTagByte} &&
+              deliveredInteractions.front().producer ==
+                  creator.federateHandle(),
+          "the receiver did not get one intact interaction through the default range");
+  require(endpoint.recorder().interactions().empty(),
+          "an interaction matched the adjacent [1,2) region after the FOM default");
+
+  rti.unsubscribeInteractionClassWithRegions(
+      memberInteractionClass, rti::RegionHandleSet{defaultInteractionRegion});
+  endpointRti.unsubscribeInteractionClassWithRegions(
+      endpointInteractionClass,
+      rti::RegionHandleSet{boundaryInteractionRegion});
+  rti.deleteRegion(defaultInteractionRegion);
+  endpointRti.deleteRegion(boundaryInteractionRegion);
+  producerRti.deleteRegion(interactionSourceRegion);
+  producerRti.unpublishInteractionClass(interactionClass);
 
   rti.unsubscribeObjectClassAttributesWithRegions(objectClass, memberPair);
   endpointRti.unsubscribeObjectClassAttributesWithRegions(objectClass,

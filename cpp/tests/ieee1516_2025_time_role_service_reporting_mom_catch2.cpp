@@ -8,6 +8,7 @@ TEST_CASE(
     "Embedded service reporting delivers accepted time-role transitions through MOM",
     "[integration][development-profile][federation-management][mom][service-reporting]"
     "[service-report-interaction][time-management][time-role]"
+    "[service-report-table5-time-interval-query-return]"
     "[rti.service.enable-time-regulation]"
     "[rti.service.modify-lookahead]"
     "[rti.service.disable-time-regulation]"
@@ -124,7 +125,8 @@ TEST_CASE(
   REQUIRE(queriedLookahead.getInterval() == 3);
   REQUIRE(observerReports.interactionReports.size() == 5U);
   verifyReport(4U, L"QueryLookahead", 4);
-  verifyReturnedArgument(4U, 32, L"Lookahead", L"\"3\"");
+  verifyReturnedArgument(
+      4U, 57, L"Lookahead", L"{\"intervalIsValid\":true,\"interval\":\"3\"}");
 
   REQUIRE_NOTHROW(subject->modifyLookahead(rti1516_2025::HLAinteger64Interval(1)));
   REQUIRE(observerReports.interactionReports.size() == 6U);

@@ -2,7 +2,19 @@
 <objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
-    <dataTypes><referenceDataTypes>
+    <dataTypes>
+        <basicDataRepresentations><basicData>
+            <name>TckBasicRepresentation</name>
+            <size>32</size>
+            <interpretation>Signed integer basic representation.</interpretation>
+            <endian>Big</endian>
+            <encoding>Two's complement.</encoding>
+        </basicData></basicDataRepresentations>
+        <simpleDataTypes><simpleData>
+            <name>TckSimpleWithDeclaredBasicRepresentation</name>
+            <representation>TckBasicRepresentation</representation>
+        </simpleData></simpleDataTypes>
+        <referenceDataTypes>
         <referenceDataType>
             <name>TckObjectInstanceNameReference</name>
             <representation>HLAunicodeString</representation>
@@ -17,5 +29,6 @@
             <referencedAttribute>HLAobjectInstanceHandle</referencedAttribute>
             <semantics>Standard object-instance-handle reference.</semantics>
         </referenceDataType>
-    </referenceDataTypes></dataTypes>
+        </referenceDataTypes>
+    </dataTypes>
 </objectModel>

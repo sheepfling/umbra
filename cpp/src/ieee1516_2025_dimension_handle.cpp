@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(Dimension, dimension)
+UMBRA_2025_DEFINE_HANDLE(Dimension, dimension, Dimension)
 
 }  // namespace rti1516_2025

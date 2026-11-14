@@ -61,6 +61,9 @@ void UmbraRtiAmbassador::periodicMomSchedulerLoop(std::stop_token stopToken) {
         try {
           pumpProcessReceiveOrder();
         } catch (...) {
+          if (stopToken.stop_requested()) {
+            return;
+          }
           // The transport failure handler records connection loss and queues
           // the official callback. Never let a background pump exception
           // escape the scheduler thread.

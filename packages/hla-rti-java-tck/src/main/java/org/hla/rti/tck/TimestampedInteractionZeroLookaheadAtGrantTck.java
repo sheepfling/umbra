@@ -99,7 +99,7 @@ final class TimestampedInteractionZeroLookaheadAtGrantTck {
          LogicalTime<?, ?> receiverTarget = offset(receiverInitial, receiverEpsilon, 5);
          JavaTckSupport.check(grantedTime.equals(receiverTarget),
             "Zero-lookahead members calculated different target times");
-         publisher.timeAdvanceRequest(grantedTime);
+         publisher.timeAdvanceRequestAvailable(grantedTime);
          await(publisher, callbackModel,
             () -> publisherCallbacks.grants.size() == 1,
             "zero-lookahead publisher grant at time five");
@@ -207,7 +207,7 @@ final class TimestampedInteractionZeroLookaheadAtGrantTck {
          interaction = (InteractionClassHandle) arguments[0];
          values = ((ParameterHandleValueMap) arguments[1]).clone();
          tag = ((byte[]) arguments[2]).clone();
-         sentOrder = (OrderType) arguments[3];
+         sentOrder = (OrderType) arguments[7];
          time = (LogicalTime<?, ?>) arguments[6];
          receivedOrder = (OrderType) arguments[8];
          retraction = (MessageRetractionHandle) arguments[9];

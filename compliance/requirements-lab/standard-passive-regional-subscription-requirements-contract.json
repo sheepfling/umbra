@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair covers regional subscription discovery, passive relevance, and the owner-side Turn Updates On/Off route for one object class, attribute, and overlapping region. It verifies passive registration generates neither Start Registration For Object Class nor Turn Updates On For Object Instance; active→passive and reactivation produce the corresponding update advisories without rediscovery. A second active but disjoint regional triple demonstrates that passive state is per subscription triple. The optional passive/active indicator is observed on the same single class/attribute/region triple (p. 234 l. 14), and re-invoking the service for an existing triple changes it to the invocation's active/passive indicator (l. 26). Empty-region invocations are checked in both directions: an empty active call leaves an existing passive triple passive, and an empty passive call leaves an existing active triple active (l. 38). This is bounded §9.8 evidence, not a claim that every operation analogous to ordinary Subscribe Object Class Attributes is covered.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-234-l14-3",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 234, line 14",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "For the tested (object class, class attribute, region) triple, the optional passive/active indicator supplied to Subscribe Object Class Attributes With Regions determines the observed state. The TCK uses passive and active calls for the same triple and verifies discovery/reflection suppression and activation, with matching owner-side update advisories.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l30-7",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l30-7",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 30-38",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "The Subscribe Object Class Attributes With Regions service shall specify an object class for which the RTI shall begin notifying the joined federate of discovery of instantiated object instances when at least one of that object instance’s instance attributes is in scope. The TCK registers an in-scope instance while the regional subscription is passive, observes no discovery, then activates the same regional declaration and observes discovery.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l33-8",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l33-8",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, lines 30-38",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "The RTI shall begin notifying the joined federate of discovery of instantiated object instances when at least one of that object instance’s instance attributes is in scope. The TCK verifies discovery begins after the same overlapping regional subscription is active and checks the discovered object, class, and producer.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l90-27",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l90-27",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, line 90",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "A passive Subscribe Object Class Attributes With Regions call must not cause Start Registration For Object Class or Turn Updates On For Object Instance at another joined federate. The TCK checks both publisher-side callback collections remain empty after a matching object is registered under a passive subscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l102-31",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l102-31",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, line 102",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "Changing the same previously active regional subscription triple to passive causes Turn Updates Off For Object Instance. The TCK checks the exact object and attribute set, then reactivates the known triple and observes a fresh Turn Updates On without a second discovery.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-233-l120-37",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l120-37",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 233, line 120",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "The passive indicator applies separately to each (object class, class attribute, region) subscription triple. The TCK keeps a second disjoint-region triple active while changing the overlapping triple between passive and active and verifies the overlapping object route alone controls discovery, reflection, and owner update advisories.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-234-l38-11",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l38-11",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 234, line 38",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "An empty region-set invocation does not change the active/passive nature of any existing regional subscription triple. The TCK invokes an empty active subscription while the overlapping triple is passive and confirms no reflection or Turn Updates On; it then invokes an empty passive subscription while the triple is active and confirms reflection continues without additional Turn Updates On/Off advisories.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-234-l26-7",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+      "source_lines": "page 234, line 26",
+      "source_symbol": "scenarioPassiveRegionalSubscription",
+      "statement": "When a Subscribe Object Class Attributes With Regions invocation matches an existing (object class, attribute, region) triple, the invocation's active/passive indicator governs that triple. The TCK changes the same existing triple from active to passive and back, observing the corresponding Turn Updates Off/On effects and no rediscovery.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscription",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioPassiveRegionalSubscriptionContract"
+      ]
+    }
+  ]
+}

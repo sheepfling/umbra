@@ -12,6 +12,8 @@ bool isRouteFreeMultipleInteractionPublicationImage(FederationStateImage const& 
 bool isRouteFreeRegionalTsoInteractionImage(FederationStateImage const& image);
 bool isOneQueuedTsoInteractionIdentityRebindingImage(
     FederationStateImage const& image);
+bool isOneQueuedReceiveOrderInteractionIdentityRebindingImage(
+    FederationStateImage const& image);
 bool isRouteFreeMixedMultipleInteractionDeclarationImage(
     FederationStateImage const& image);
 bool isRouteFreeMultipleDirectedInteractionDeclarationImage(

@@ -132,7 +132,7 @@ bool ProcessFederationService::enqueueObjectInstanceRemovals(
   if (retractionMessageId != 0U) {
     std::scoped_lock lock(mutex_);
     pendingPushedRetractionRecipients_.emplace(
-        retractionMessageId,
+        ProcessFederationTsoMessageKey{federationName, retractionMessageId},
         std::move(retractionRecipients));
   }
 

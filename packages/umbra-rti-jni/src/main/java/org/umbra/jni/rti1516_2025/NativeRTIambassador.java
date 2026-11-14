@@ -37,7 +37,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -157,7 +156,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          NativeBridge.nativeCreateFederationExecution(
             requireNativeHandle(),
             (String) values[0],
-            fomPaths(values[1]),
+            fomDesignators(values[1]),
             "");
          return null;
       }
@@ -165,7 +164,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          NativeBridge.nativeCreateFederationExecution(
             requireNativeHandle(),
             (String) values[0],
-            fomPaths(values[1]),
+            fomDesignators(values[1]),
             (String) values[2]);
          return null;
       }
@@ -173,8 +172,8 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          NativeBridge.nativeCreateFederationExecutionWithMIM(
             requireNativeHandle(),
             (String) values[0],
-            fomPaths(values[1]),
-            fomPath(values[2]),
+            fomDesignators(values[1]),
+            fomDesignator(values[2]),
             "");
          return null;
       }
@@ -182,8 +181,8 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          NativeBridge.nativeCreateFederationExecutionWithMIM(
             requireNativeHandle(),
             (String) values[0],
-            fomPaths(values[1]),
-            fomPath(values[2]),
+            fomDesignators(values[1]),
+            fomDesignator(values[2]),
             (String) values[3]);
          return null;
       }
@@ -793,6 +792,11 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
             requireNativeHandle(), (String) values[0]));
       }
       if ("getOrderName".equals(name) && values.length == 1) {
+         if (values[0] == null) {
+            // Java's closed enum has no equivalent for an invalid C++ OrderType.
+            // Forward the sentinel so the RTI can report the failed service too.
+            return NativeBridge.nativeGetOrderName(requireNativeHandle(), "UNSUPPORTED");
+         }
          return NativeBridge.nativeGetOrderName(
             requireNativeHandle(), ((OrderType) values[0]).name());
       }
@@ -1209,7 +1213,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       } else if (values.length == 3 && isFomModuleSequence(values[2])) {
          federateType = (String) values[0];
          federationName = (String) values[1];
-         additionalFomModules = fomPaths(values[2]);
+         additionalFomModules = fomDesignators(values[2]);
       } else if (values.length == 3) {
          federateName = (String) values[0];
          federateType = (String) values[1];
@@ -1218,7 +1222,7 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
          federateName = (String) values[0];
          federateType = (String) values[1];
          federationName = (String) values[2];
-         additionalFomModules = fomPaths(values[3]);
+         additionalFomModules = fomDesignators(values[3]);
       } else {
          throw unavailable("joinFederationExecution");
       }
@@ -1283,18 +1287,22 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       return new RTIinternalError("Umbra JNI RTI does not yet bind standard service " + service);
    }
 
-   private String[] fomPaths(Object value) throws Exception {
-      if (value instanceof String) return new String[] { fomPath(value) };
+   private String[] fomDesignators(Object value) throws Exception {
+      if (value instanceof String) return new String[] { fomDesignator(value) };
       if (value instanceof String[]) {
          String[] values = (String[]) value;
          String[] result = new String[values.length];
-         for (int index = 0; index < values.length; ++index) result[index] = fomPath(values[index]);
+         for (int index = 0; index < values.length; ++index) {
+            result[index] = fomDesignator(values[index]);
+         }
          return result;
       }
       if (value instanceof URL[]) {
          URL[] values = (URL[]) value;
          String[] result = new String[values.length];
-         for (int index = 0; index < values.length; ++index) result[index] = fomPath(values[index]);
+         for (int index = 0; index < values.length; ++index) {
+            result[index] = fomDesignator(values[index]);
+         }
          return result;
       }
       throw unavailable("a standard String[] FOM module sequence");
@@ -1304,14 +1312,8 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       return value instanceof String[] || value instanceof URL[];
    }
 
-   private String fomPath(Object value) throws Exception {
-      if (value instanceof String) {
-         String path = (String) value;
-         if (path.regionMatches(true, 0, "file:", 0, "file:".length())) {
-            return Path.of(java.net.URI.create(path)).toString();
-         }
-         return path;
-      }
+   private String fomDesignator(Object value) throws Exception {
+      if (value instanceof String) return (String) value;
       if (!(value instanceof URL)) {
          throw unavailable("a FOM module designator");
       }
@@ -1319,7 +1321,9 @@ final class NativeRTIambassador implements InvocationHandler, AutoCloseable {
       if (!"file".equalsIgnoreCase(url.getProtocol())) {
          throw unavailable("createFederationExecution with a non-file FOM URL");
       }
-      return Path.of(url.toURI()).toString();
+      // Preserve the caller's URL spelling. The C++ RTI service resolves the
+      // URL for loading and retains the supplied designator for federation MOM.
+      return url.toExternalForm();
    }
 
    private byte[][] encodedFederateHandles(FederateHandleSet values) {

@@ -23,6 +23,10 @@ from typing import TypedDict, cast
 
 try:
     from .cpp_tck import (
+        CPP_TCK_STANDARD,
+        CPP_API_LANGUAGE,
+        CPP_API_METHOD_MAPPING_SOURCE,
+        CPP_API_PROFILE,
         DEFAULT_CATALOG,
         ROOT,
         STANDARD_CALLBACK_MODELS,
@@ -34,6 +38,10 @@ try:
 except ImportError:  # Direct invocation: python tools/run_cpp_tck.py
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from cpp_tck import (
+        CPP_TCK_STANDARD,
+        CPP_API_LANGUAGE,
+        CPP_API_METHOD_MAPPING_SOURCE,
+        CPP_API_PROFILE,
         DEFAULT_CATALOG,
         ROOT,
         STANDARD_CALLBACK_MODELS,
@@ -45,6 +53,61 @@ except ImportError:  # Direct invocation: python tools/run_cpp_tck.py
 
 
 ADAPTER = ROOT / "packages" / "hla-rti-cpp-tck" / "adapters" / "current-package"
+AUTHORIZER_CONNECT_DECISION_SCENARIO = (
+    "cpp-tck.authorizer-connect-service-decision"
+)
+AUTHORIZER_UNRECOGNIZED_CREDENTIALS_SCENARIO = (
+    "cpp-tck.authorizer-unrecognized-credentials-unauthorized"
+)
+AUTHORIZER_DISABLED_CREDENTIALS_SCENARIO = (
+    "cpp-tck.authorizer-disabled-service-rejects-credentials"
+)
+AUTHORIZER_FEDERATION_DECISION_SCENARIO = (
+    "cpp-tck.authorizer-federation-service-decision"
+)
+AUTHORIZER_DESTROY_DECISION_SCENARIO = (
+    "cpp-tck.authorizer-destroy-service-decision"
+)
+AUTHORIZER_JOIN_DECISION_SCENARIO = "cpp-tck.authorizer-join-service-decision"
+AUTHORIZER_NO_CREDENTIALS_SCENARIO = "cpp-tck.authorizer-no-credentials-connect"
+AUTHORIZER_RID_CONFIGURATION_SCENARIO = (
+    "cpp-tck.authorizer-rid-configuration-decision"
+)
+AUTHORIZER_SINGLE_SERVICE_SCENARIO = (
+    "cpp-tck.authorizer-single-service-per-rid-profile"
+)
+AUTHORIZER_CONNECT_DECISION_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_authorizer_connect_decision.py"
+)
+AUTHORIZER_DISABLED_CREDENTIALS_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_authorizer_disabled_credentials.py"
+)
+AUTHORIZER_FEDERATION_DECISION_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_authorizer_federation_decision.py"
+)
+AUTHORIZER_RID_CONFIGURATION_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_authorizer_rid_configuration.py"
+)
 FOM_ROOT = ROOT / "packages" / "hla-rti-cpp-tck" / "fom"
 DEFAULT_MIM = (
     ROOT
@@ -59,6 +122,10 @@ DEFAULT_INVALID_FOM = (
     FOM_ROOT / "invalid-namespace-tck.xml",
     FOM_ROOT / "invalid-duplicate-tck.xml",
 )
+DEFAULT_SCHEMA_VALID_FOM = FOM_ROOT / "schema-valid-minimal-2025-tck.xml"
+DEFAULT_SCHEMA_INVALID_FOM = (
+    FOM_ROOT / "schema-invalid-reliable-enumeration-2025-tck.xml"
+)
 DEFAULT_STANDARD_INVALID_FOM = (
     FOM_ROOT / "invalid-zero-update-rate-tck.xml",
     FOM_ROOT / "invalid-dimension-default-value-tck.xml",
@@ -67,11 +134,14 @@ DEFAULT_STANDARD_INVALID_FOM = (
     FOM_ROOT / "invalid-fixed-array-encoding-tck.xml",
     FOM_ROOT / "invalid-reference-object-name-tck.xml",
     FOM_ROOT / "invalid-reference-basic-representation-tck.xml",
+    FOM_ROOT / "invalid-data-type-representation-name-collision-tck.xml",
+    FOM_ROOT / "invalid-basic-data-representation-reserved-hla-name-tck.xml",
+    FOM_ROOT / "invalid-basic-data-representation-endian-enumeration-tck.xml",
 )
 
 # Keep direct child-process command lines below the limits imposed by common
-# process launchers.  The C++ executable accepts repeated --scenario values,
-# so large catalog runs can be partitioned without changing the test binary.
+# process launchers. Large common option sets use the executable's argument
+# file; scenario IDs can still be partitioned without changing the test binary.
 DIRECT_COMMAND_LENGTH_LIMIT = 24000
 
 
@@ -80,6 +150,8 @@ class _ResolvedPathInputs(TypedDict):
     build_directory: Path
     service_report_directory: Path
     fom: Path
+    schema_valid_fom: Path
+    schema_invalid_fom: Path
     model_fom: Path
     rate_fom: Path
     ddm_fom: Path
@@ -190,8 +262,38 @@ def run_command(
     cwd: Path,
     env: Mapping[str, str] | None = None,
 ) -> None:
-    print(f"+ {command_text(command)}", flush=True)
-    subprocess.run(command, cwd=cwd, env=env, check=True)
+    command_arguments = list(command)
+    executable_name = (
+        Path(command_arguments[0]).name.casefold().removesuffix(".exe")
+        if command_arguments
+        else ""
+    )
+    if (
+        executable_name == "hla_rti_cpp_tck"
+        and not (
+            len(command_arguments) > 1
+            and command_arguments[1] == "--common-arguments-file"
+        )
+        and command_length(command_arguments) > DIRECT_COMMAND_LENGTH_LIMIT
+    ):
+        if any("\n" in value or "\r" in value for value in command_arguments[1:]):
+            raise ValueError(
+                "long direct C++ TCK arguments cannot contain newline characters"
+            )
+        with tempfile.TemporaryDirectory(prefix="cpp-tck-arguments-") as directory:
+            argument_file = Path(directory) / "common-arguments.txt"
+            with argument_file.open("w", encoding="utf-8", newline="\n") as stream:
+                stream.writelines(f"{value}\n" for value in command_arguments[1:])
+            command_arguments = [
+                command_arguments[0],
+                "--common-arguments-file",
+                str(argument_file),
+            ]
+            print(f"+ {command_text(command_arguments)}", flush=True)
+            subprocess.run(command_arguments, cwd=cwd, env=env, check=True)
+        return
+    print(f"+ {command_text(command_arguments)}", flush=True)
+    subprocess.run(command_arguments, cwd=cwd, env=env, check=True)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -227,14 +329,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--build-parallel",
         type=int,
-        default=max(1, min(4, os.cpu_count() or 1)),
-        help="Parallel build jobs (default: bounded by available CPUs)",
+        default=max(1, os.cpu_count() or 1),
+        help="Build and CTest worker count (default: all available CPUs)",
     )
     parser.add_argument(
         "--scenario-set",
         choices=("verified", "all"),
-        default="verified",
-        help="Catalog promotion set configured for CTest (default: verified)",
+        default=None,
+        help="Catalog promotion set for CTest (default: verified for suite runs, all for explicit --scenario runs)",
     )
     parser.add_argument(
         "--scenario",
@@ -479,6 +581,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Additional FOM module; repeat to replace the default extension",
     )
     parser.add_argument(
+        "--schema-valid-fom",
+        default=str(DEFAULT_SCHEMA_VALID_FOM),
+        help="Official-XSD-valid FDD used by Annex F TCK coverage",
+    )
+    parser.add_argument(
+        "--schema-invalid-fom",
+        default=str(DEFAULT_SCHEMA_INVALID_FOM),
+        help="Well-formed official-XSD-invalid FDD used by Annex F TCK coverage",
+    )
+    parser.add_argument(
         "--invalid-fom",
         action="append",
         default=[],
@@ -587,6 +699,23 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--message-history-recovery-fixture",
+        default="",
+        help=(
+            "Process fixture executable for public TCK message-history replay "
+            "scenarios"
+        ),
+    )
+    parser.add_argument(
+        "--federate-heartbeat-fixture",
+        "--websocket-frame-fixture",
+        "--tls-encryption-only-fixture",
+        "--tls-server-validation-fixture",
+        dest="federate_heartbeat_fixture",
+        default="",
+        help="Process fixture for adapter-managed heartbeat, WebSocket, and TLS TCK scenarios",
+    )
+    parser.add_argument(
         "--ownership-service-report-fixture",
         "--confirm-divestiture-fixture",
         dest="ownership_service_report_fixture",
@@ -606,6 +735,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--connection-loss-configuration-name", default="")
     parser.add_argument("--connection-loss-additional-settings", default="")
     parser.add_argument("--connection-loss-interaction-class", default="")
+    parser.add_argument("--connection-loss-cutoff-interaction-class", default="")
     parser.add_argument("--connection-loss-object-class", default="")
     parser.add_argument("--connection-loss-attribute", default="")
     parser.add_argument("--results", help="Write direct-run JSON evidence to this path")
@@ -630,6 +760,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def load_arguments(parser: argparse.ArgumentParser) -> argparse.Namespace:
     arguments = parser.parse_args()
+    arguments.scenario_set = resolve_scenario_set(
+        arguments.scenario_set, arguments.scenario
+    )
     if arguments.build_parallel < 1:
         parser.error("--build-parallel must be at least 1")
     if arguments.timeout_ms < 1:
@@ -639,6 +772,14 @@ def load_arguments(parser: argparse.ArgumentParser) -> argparse.Namespace:
     if not arguments.skip_ctest and not shutil.which(arguments.ctest):
         parser.error(f"CTest executable was not found: {arguments.ctest}")
     return arguments
+
+
+def resolve_scenario_set(
+    requested_scenario_set: str | None, selected_scenarios: Sequence[str]
+) -> str:
+    if requested_scenario_set is not None:
+        return requested_scenario_set
+    return "all" if selected_scenarios else "verified"
 
 
 def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
@@ -656,6 +797,22 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                 arguments.connection_loss_fixture,
                 must_exist=True,
                 label="connection-loss fixture",
+            )
+        )
+    if arguments.message_history_recovery_fixture:
+        arguments.message_history_recovery_fixture = str(
+            resolve_path(
+                arguments.message_history_recovery_fixture,
+                must_exist=True,
+                label="message-history recovery fixture",
+            )
+        )
+    if arguments.federate_heartbeat_fixture:
+        arguments.federate_heartbeat_fixture = str(
+            resolve_path(
+                arguments.federate_heartbeat_fixture,
+                must_exist=True,
+                label="process TCK fixture",
             )
         )
     if arguments.connection_loss_fom:
@@ -697,6 +854,16 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
         "build_directory": build_directory,
         "service_report_directory": service_report_directory,
         "fom": resolve_path(arguments.fom, must_exist=True, label="FOM"),
+        "schema_valid_fom": resolve_path(
+            arguments.schema_valid_fom,
+            must_exist=True,
+            label="schema-valid FDD",
+        ),
+        "schema_invalid_fom": resolve_path(
+            arguments.schema_invalid_fom,
+            must_exist=True,
+            label="schema-invalid FDD",
+        ),
         "model_fom": resolve_path(
             arguments.model_fom, must_exist=True, label="model FOM"
         ),
@@ -835,10 +1002,150 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
     scenario_fom_bindings = arguments.scenario_fom
     if scenario_fom_bindings is None:
         scenario_fom_bindings = [
+            "delay-subscription-evaluation="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/delay-subscription-evaluation-tck.xml"
+                )
+            ),
+            "fqr-undefined-galt-nrg-disabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")),
+            "fqr-undefined-galt-nrg-enabled="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml"
+                )
+            ),
+            "nmr-undefined-galt-nrg-disabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")),
+            "nmr-undefined-galt-nrg-enabled="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml"
+                )
+            ),
+            "nmra-undefined-galt-nrg-disabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")),
+            "nmra-undefined-galt-nrg-enabled="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml"
+                )
+            ),
+            "tara-undefined-galt-nrg-disabled="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")),
+            "tara-undefined-galt-nrg-enabled="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/nrg-interaction-tck.xml"
+                )
+            ),
+            "restore-pending-time-advance="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
+                )
+            ),
+            "support-switch-getter-lifecycle="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/support-switch-getter-lifecycle-tck.xml"
+                )
+            ),
+            "empty-domain-tables="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-empty-domain-content-tck.xml"
+                )
+            ),
+            "additional-join-duplicate="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-additional-duplicate-tck.xml"
+                )
+            ),
+            "additional-join-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-additional-order-conflict-tck.xml"
+                )
+            ),
+            "additional-join-interaction-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-additional-interaction-order-conflict-tck.xml"
+                )
+            ),
+            "additional-join-transport-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-additional-transportation-conflict-tck.xml"
+                )
+            ),
+            "fom-handle-uniqueness="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-handle-uniqueness-tck.xml"
+                )
+            ),
+            "fom-root-classes-omitted="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/fom-root-classes-omitted-tck.xml"
+                )
+            ),
             "object-class-semantics-conflict="
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/object-class-semantics-conflict-tck.xml"
+                )
+            ),
+            "object-attribute-transportation-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-attribute-transportation-conflict-tck.xml"
+                )
+            ),
+            "mom-table-attribute-transportation-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-table-attribute-transportation-conflict-tck.xml"
+                )
+            ),
+            "mom-category-c-interaction="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-category-c-interaction-tck.xml"
+                )
+            ),
+            "object-attribute-order-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/object-attribute-order-conflict-tck.xml"
+                )
+            ),
+            "interaction-transportation-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-transportation-conflict-tck.xml"
+                )
+            ),
+            "interaction-order-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-order-conflict-tck.xml"
+                )
+            ),
+            "interaction-order-invalid-value="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-order-invalid-value-tck.xml"
+                )
+            ),
+            "attribute-fdd-preferred-order-default="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"
                 )
             ),
             "matching-data-types-first="
@@ -877,6 +1184,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/interaction-dimension-merge-second-tck.xml"
                 )
             ),
+            "ddm-region-realization-default-range="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/ddm-region-realization-default-range-tck.xml"
+                )
+            ),
+            "ddm-region-realization-excluded-dimensions="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/ddm-region-realization-excluded-dimensions-tck.xml"
+                )
+            ),
             "named-variant-alternative-first="
             + str(
                 default_path(
@@ -911,6 +1230,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/enumerated-value-collision-second-tck.xml"
+                )
+            ),
+            "enumerated-value-merge-first="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-value-merge-first-tck.xml"
+                )
+            ),
+            "enumerated-value-merge-second="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-value-merge-second-tck.xml"
                 )
             ),
             "nonextendable-variant-first="
@@ -1105,6 +1436,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/tag-data-type-basic-synchronization-tck.xml"
                 )
             ),
+            "tag-synchronization-capability-register="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/tag-synchronization-capability-register-tck.xml"
+                )
+            ),
             "inherited-member-names-valid="
             + str(
                 default_path(
@@ -1153,6 +1490,66 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/reference-class-unresolved-tck.xml"
                 )
             ),
+            "reference-data-type-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-data-type-invalid-name-tck.xml"
+                )
+            ),
+            "reference-data-type-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/reference-data-type-valid-name-tck.xml"
+                )
+            ),
+            "simple-data-type-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/simple-data-type-valid-name-tck.xml"
+                )
+            ),
+            "simple-data-type-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/simple-data-type-invalid-name-tck.xml"
+                )
+            ),
+            "enumerated-data-type-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-data-type-valid-name-tck.xml"
+                )
+            ),
+            "enumerated-data-type-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerated-data-type-invalid-name-tck.xml"
+                )
+            ),
+            "enumerator-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerator-valid-name-tck.xml"
+                )
+            ),
+            "enumerator-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/enumerator-invalid-name-tck.xml"
+                )
+            ),
+            "array-data-type-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/array-data-type-valid-name-tck.xml"
+                )
+            ),
+            "array-data-type-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/array-data-type-invalid-name-tck.xml"
+                )
+            ),
             "enumerated-representation-omitted="
             + str(
                 default_path(
@@ -1179,9 +1576,27 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path("packages/hla-rti-cpp-tck/fom/array-element-basic-tck.xml")
             ),
+            "array-element-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/array-element-invalid-name-tck.xml"
+                )
+            ),
             "record-member-valid="
             + str(
                 default_path("packages/hla-rti-cpp-tck/fom/record-member-valid-tck.xml")
+            ),
+            "record-member-encoding-mismatch="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-encoding-mismatch-tck.xml"
+                )
+            ),
+            "record-member-field-types="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-field-types-tck.xml"
+                )
             ),
             "record-member-omitted="
             + str(
@@ -1199,6 +1614,66 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/record-member-basic-alternative-tck.xml"
+                )
+            ),
+            "record-member-reserved-hla-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-reserved-hla-name-tck.xml"
+                )
+            ),
+            "record-member-reserved-na-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-reserved-na-name-tck.xml"
+                )
+            ),
+            "record-member-reserved-hla-field-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-reserved-hla-field-name-tck.xml"
+                )
+            ),
+            "record-member-reserved-na-field-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/record-member-reserved-na-field-name-tck.xml"
+                )
+            ),
+            "variant-record-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-record-valid-name-tck.xml"
+                )
+            ),
+            "variant-record-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-record-invalid-name-tck.xml"
+                )
+            ),
+            "variant-discriminant-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-valid-name-tck.xml"
+                )
+            ),
+            "variant-discriminant-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-discriminant-invalid-name-tck.xml"
+                )
+            ),
+            "variant-alternative-valid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-alternative-valid-name-tck.xml"
+                )
+            ),
+            "variant-alternative-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-alternative-invalid-name-tck.xml"
                 )
             ),
             "variant-discriminant-valid="
@@ -1229,6 +1704,30 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/variant-discriminant-na-tck.xml"
+                )
+            ),
+            "variant-alternative-type-valid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-alternative-type-valid-tck.xml"
+                )
+            ),
+            "variant-alternative-type-invalid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-alternative-type-invalid-tck.xml"
+                )
+            ),
+            "variant-record-encoding-valid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-record-encoding-valid-tck.xml"
+                )
+            ),
+            "variant-record-encoding-invalid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/variant-record-encoding-invalid-tck.xml"
                 )
             ),
             "variant-enumerator-range="
@@ -1345,6 +1844,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/representation-special-identifiers-tck.xml"
                 )
             ),
+            "basic-data-representation-endian-big="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/basic-data-representation-endian-big-tck.xml"
+                )
+            ),
+            "basic-data-representation-endian-little="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/basic-data-representation-endian-little-tck.xml"
+                )
+            ),
             "representation-missing-simple="
             + str(
                 default_path(
@@ -1369,6 +1880,46 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/representation-invalid-basic-reference-tck.xml"
                 )
             ),
+            "representation-invalid-basic-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-invalid-basic-name-tck.xml"
+                )
+            ),
+            "representation-invalid-reference-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/representation-invalid-reference-name-tck.xml"
+                )
+            ),
+            "noncompliant-update-rate="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/invalid-zero-update-rate-tck.xml"
+                )
+            ),
+            "noncompliant-module-atomicity="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/noncompliant-module-atomicity-tck.xml"
+                )
+            ),
+            "incomplete-object-class-scaffold="
+            + str(default_path(
+                "packages/hla-rti-cpp-tck/fom/incomplete-object-class-scaffold-tck.xml"
+            )),
+            "complete-object-class-scaffold-provider="
+            + str(default_path(
+                "packages/hla-rti-cpp-tck/fom/complete-object-class-scaffold-provider-tck.xml"
+            )),
+            "incomplete-interaction-class-scaffold="
+            + str(default_path(
+                "packages/hla-rti-cpp-tck/fom/incomplete-interaction-class-scaffold-tck.xml"
+            )),
+            "complete-interaction-class-scaffold-provider="
+            + str(default_path(
+                "packages/hla-rti-cpp-tck/fom/complete-interaction-class-scaffold-provider-tck.xml"
+            )),
             "transportation-reference-consumer="
             + str(
                 default_path(
@@ -1405,6 +1956,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/directed-reference-missing-tck.xml"
                 )
             ),
+            "directed-reference-invalid-sharing="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/directed-reference-invalid-sharing-tck.xml"
+                )
+            ),
+            "interaction-parameter-unresolved-data-type="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/interaction-parameter-unresolved-data-type-tck.xml"
+                )
+            ),
             "dimension-reference-consumer="
             + str(
                 default_path(
@@ -1439,6 +2002,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/dimension-duplicate-conflicting-upper-bound-tck.xml"
+                )
+            ),
+            "dimension-duplicate-unspecified-upper-bound="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-duplicate-unspecified-upper-bound-tck.xml"
                 )
             ),
             "dimension-input-raw-basic="
@@ -1487,6 +2056,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/object-class-name-allowed-punctuation-tck.xml"
                 )
             ),
+            "model-identification-name-valid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/model-identification-name-valid-tck.xml"
+                )
+            ),
             "model-modification-date-timezone="
             + str(
                 default_path(
@@ -1503,6 +2078,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/update-rate-zero-preflight-tck.xml"
+                )
+            ),
+            "update-rate-invalid-name-preflight="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-invalid-name-preflight-tck.xml"
                 )
             ),
             "update-rate-positive-preflight="
@@ -1553,6 +2134,24 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/dimension-input-table-type-tck.xml"
                 )
             ),
+            "dimension-table-normalization-empty="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-table-normalization-empty-tck.xml"
+                )
+            ),
+            "dimension-table-input-description-empty="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-table-input-description-empty-tck.xml"
+                )
+            ),
+            "dimension-table-output-semantics-empty="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/dimension-table-output-semantics-empty-tck.xml"
+                )
+            ),
             "synchronization-duplicate-base="
             + str(
                 default_path(
@@ -1571,6 +2170,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/synchronization-duplicate-note-conflict-tck.xml"
                 )
             ),
+            "sync-cap-na="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/sync-cap-na.xml")),
+            "sync-cap-action="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/sync-cap-action.xml")),
+            "sync-label-invalid="
+            + str(default_path("packages/hla-rti-cpp-tck/fom/sync-label-invalid.xml")),
             "transportation-duplicate-base="
             + str(
                 default_path(
@@ -1583,10 +2188,34 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/transportation-duplicate-equal-tck.xml"
                 )
             ),
+            "transportation-description-different="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-description-different-tck.xml"
+                )
+            ),
             "transportation-duplicate-note-conflict="
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/transportation-duplicate-note-conflict-tck.xml"
+                )
+            ),
+            "transportation-duplicate-reliability-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-duplicate-reliability-conflict-tck.xml"
+                )
+            ),
+            "transportation-table-invalid-name="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-table-invalid-name-tck.xml"
+                )
+            ),
+            "transportation-table-invalid-reliability="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transportation-table-invalid-reliability-tck.xml"
                 )
             ),
             "update-rate-duplicate-base="
@@ -1605,6 +2234,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/update-rate-duplicate-note-conflict-tck.xml"
+                )
+            ),
+            "update-rate-duplicate-rate-conflict="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-duplicate-rate-conflict-tck.xml"
+                )
+            ),
+            "update-rate-unique-merge="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/update-rate-unique-merge-tck.xml"
                 )
             ),
             "switch-duplicate-disabled="
@@ -1629,6 +2270,48 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/switch-duplicate-omitted-tck.xml"
+                )
+            ),
+            "resign-invalid="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-invalid-tck.xml"
+                )
+            ),
+            "resign-uncond="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-uncond-tck.xml"
+                )
+            ),
+            "resign-delete="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-delete-tck.xml"
+                )
+            ),
+            "resign-cancel="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-cancel-tck.xml"
+                )
+            ),
+            "resign-delete-divest="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-delete-divest-tck.xml"
+                )
+            ),
+            "resign-cancel-delete-divest="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-cancel-delete-divest-tck.xml"
+                )
+            ),
+            "resign-no-action="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/resign-no-action-tck.xml"
                 )
             ),
             "advisory-switch-duplicate-disabled="
@@ -1677,6 +2360,54 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/note-collision-second-tck.xml"
                 )
             ),
+            "service-reporting-initial-omitted="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/service-reporting-initial-omitted-tck.xml"
+                )
+            ),
+            "service-reporting-initial-enabled="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/service-reporting-initial-enabled-tck.xml"
+                )
+            ),
+            "mom-federate-subclass-instance="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-federate-subclass-instance-tck.xml"
+                )
+            ),
+            "mom-federate-added-attribute-same-instance="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-federate-added-attribute-same-instance-tck.xml"
+                )
+            ),
+            "mom-report-added-subclass-not-sent="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-report-added-subclass-tck.xml"
+                )
+            ),
+            "mom-report-service-invocation-extension-parameter="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/service-report-invocation-extension-parameter-tck.xml"
+                )
+            ),
+            "mom-set-switches-extra-parameter="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/mom-set-switches-extra-parameter-tck.xml"
+                )
+            ),
+            "official-restaurant-example="
+            + str(
+                default_path(
+                    "third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml"
+                )
+            ),
         ]
     scenario_foms: list[str] = []
     seen_scenario_foms: set[str] = set()
@@ -1699,6 +2430,8 @@ def cmake_definitions(
         "BUILD_TESTING": "ON",
         "CMAKE_PREFIX_PATH": inputs["package_prefix"],
         "HLA_RTI_TCK_ADAPTER_FOM": inputs["fom"],
+        "HLA_RTI_TCK_ADAPTER_SCHEMA_VALID_FOM": inputs["schema_valid_fom"],
+        "HLA_RTI_TCK_ADAPTER_SCHEMA_INVALID_FOM": inputs["schema_invalid_fom"],
         "HLA_RTI_TCK_ADAPTER_MODEL_FOM": inputs["model_fom"],
         "HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION": arguments.fom_custom_transportation,
         "HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION": arguments.fom_additional_transportation,
@@ -1750,7 +2483,6 @@ def cmake_definitions(
         "HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM": inputs[
             "object_attribute_conflict_fom"
         ],
-        "HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS": ";".join(inputs["scenario_foms"]),
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_FOM": inputs["known_class_fom"],
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_DISABLED_FOM": inputs[
             "known_class_disabled_fom"
@@ -1800,9 +2532,6 @@ def cmake_definitions(
         ),
         "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_CLASS": (
             arguments.secondary_directed_interaction_class
-        ),
-        "HLA_RTI_TCK_ADAPTER_SECONDARY_DIRECTED_INTERACTION_PARAMETER": (
-            arguments.secondary_directed_interaction_parameter
         ),
         "HLA_RTI_TCK_ADAPTER_PARAMETER": arguments.parameter,
         "HLA_RTI_TCK_ADAPTER_KNOWN_CLASS_OBJECT_CLASS": arguments.known_class_object_class,
@@ -1854,15 +2583,50 @@ def cmake_definitions(
 
 def configure(arguments: argparse.Namespace, inputs: ResolvedInputs) -> None:
     build_directory: Path = inputs["build_directory"]
+    scenario_fom_cache: Path | None = None
+    if arguments.scenario_fom is not None and inputs["scenario_foms"]:
+        build_directory.mkdir(parents=True, exist_ok=True)
+        scenario_fom_cache = build_directory / "scenario-fom-bindings.cmake"
+        scenario_fom_value = ";".join(inputs["scenario_foms"])
+        bracket_equals = "="
+        while f"]{bracket_equals}]" in scenario_fom_value:
+            bracket_equals += "="
+        bracket_value = (
+            f"[{bracket_equals}[{scenario_fom_value}]{bracket_equals}]"
+        )
+        scenario_fom_cache.write_text(
+            "set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS "
+            f"{bracket_value} CACHE STRING "
+            '"Adapter-supplied scenario FOM bindings" FORCE)\n',
+            encoding="utf-8",
+        )
     command = [
         arguments.cmake,
         "-S",
         str(ADAPTER),
         "-B",
         str(build_directory),
+        # CMAKE_PREFIX_PATH is only a search hint. Drop a previous provider's
+        # cached *_DIR so a reused runner cannot configure against a stale RTI.
+        "-Uumbra_rti_DIR",
+        # Interoperability runs use an ephemeral loopback peer; do not carry
+        # that peer's address into the next ordinary TCK configuration.
+        "-UHLA_RTI_TCK_ADAPTER_RTI_ADDRESS",
     ]
+    if scenario_fom_cache is not None:
+        command.extend(["-C", str(scenario_fom_cache)])
+    else:
+        # The adapter owns its complete built-in fixture set. Clear any prior
+        # explicit override so a reused build directory returns to that set.
+        command.append("-UHLA_RTI_TCK_ADAPTER_SCENARIO_FOMS")
     if arguments.generator:
         command.extend(["-G", arguments.generator])
+        normalized_generator = arguments.generator.casefold()
+        if (
+            normalized_generator.startswith("ninja")
+            or "makefiles" in normalized_generator
+        ):
+            command.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
     if arguments.cxx_compiler:
         command.append(f"-DCMAKE_CXX_COMPILER={arguments.cxx_compiler}")
     command.extend(cmake_definitions(arguments, inputs))
@@ -1975,7 +2739,51 @@ def ctest_registered_scenarios(
             arguments.ownership_service_report_fixture
             and is_ownership_service_report_scenario(scenario["id"])
         )
+        and not (
+            arguments.message_history_recovery_fixture
+            and is_message_history_recovery_scenario(scenario["id"])
+        )
+        and not (
+            arguments.federate_heartbeat_fixture
+            and is_federate_process_fixture_scenario(scenario["id"])
+        )
     ]
+
+
+def validate_ctest_junit_no_skips(junit_path: Path) -> None:
+    """Reject a successful CTest process that skipped selected TCK cases."""
+    try:
+        root = ET.parse(junit_path).getroot()
+    except ET.ParseError as error:
+        raise ValueError(f"CTest produced invalid JUnit XML at {junit_path}: {error}") from error
+
+    def local_name(element: ET.Element) -> str:
+        return element.tag.rsplit("}", 1)[-1]
+
+    skipped_names = []
+    for testcase in (element for element in root.iter() if local_name(element) == "testcase"):
+        status = testcase.attrib.get("status", "").casefold()
+        has_skipped_child = any(
+            local_name(element) == "skipped" for element in testcase.iter()
+        )
+        if status in {"notrun", "disabled", "skipped"} or has_skipped_child:
+            skipped_names.append(
+                testcase.attrib.get("name", "<unnamed test case>")
+            )
+
+    skipped_totals = []
+    for element in root.iter():
+        try:
+            skipped_totals.append(int(element.attrib.get("skipped", "0")))
+        except ValueError as error:
+            raise ValueError(
+                f"CTest produced a non-integer skipped count in {junit_path}"
+            ) from error
+    if skipped_names or any(total > 0 for total in skipped_totals):
+        details = ", ".join(skipped_names) if skipped_names else "JUnit skipped count is nonzero"
+        raise ValueError(
+            f"CTest exited successfully but skipped selected TCK cases: {details}"
+        )
 
 
 def run_ctest(
@@ -2000,9 +2808,14 @@ def run_ctest(
     )
     if callback_model_exclusions:
         command.extend(["-E", callback_model_exclusions])
+    command.extend(["--parallel", str(arguments.build_parallel)])
     command.append("--no-tests=error")
     command.append("--output-on-failure")
-    run_command(command, cwd=ROOT)
+    with tempfile.TemporaryDirectory(prefix="cpp-tck-ctest-") as temporary_directory:
+        junit_path = Path(temporary_directory) / "ctest-results.xml"
+        command.extend(["--output-junit", str(junit_path)])
+        run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+        validate_ctest_junit_no_skips(junit_path)
 
 
 def find_executable(build_directory: Path, configuration: str) -> Path:
@@ -2085,6 +2898,10 @@ def direct_arguments(
     command = [
         "--fom",
         str(inputs["fom"]),
+        "--schema-valid-fom",
+        str(inputs["schema_valid_fom"]),
+        "--schema-invalid-fom",
+        str(inputs["schema_invalid_fom"]),
         "--model-fom",
         str(inputs["model_fom"]),
         "--fom-custom-transportation",
@@ -2343,6 +3160,68 @@ CONNECTION_LOSS_SCENARIOS = (
     "cpp-tck.automatic-resign-directive-delete-objects",
     "cpp-tck.automatic-resign-directive-delete-objects-contract",
 )
+FEDERATE_HEARTBEAT_SCENARIO = "cpp-tck.federate-heartbeat-configuration"
+FEDERATE_RECONNECT_TIMEOUT_SCENARIO = "cpp-tck.federate-reconnect-timeout"
+FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_SCENARIO = (
+    "cpp-tck.federate-heartbeat-timeout-recovery"
+)
+FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_SCENARIO = (
+    "cpp-tck.federate-missing-rti-message-timeout-recovers"
+)
+FEDERATE_IDLE_HEARTBEAT_SCENARIO = (
+    "cpp-tck.federate-idle-heartbeat-preserves-session"
+)
+FEDERATE_SESSION_CARDINALITY_SCENARIO = (
+    "cpp-tck.one-transport-connection-per-federate-session"
+)
+FEDERATE_CALLBACK_DIRECTION_SCENARIO = (
+    "cpp-tck.callback-controls-object-discovery-transport-direction"
+)
+FEDERATE_CALLBACK_SERIAL_PROCESSING_SCENARIO = (
+    "cpp-tck.evoked-callback-no-concurrency"
+)
+INVALID_TRANSPORT_SESSION_METADATA_SCENARIO = (
+    "cpp-tck.reject-invalid-transport-session-metadata"
+)
+WEBSOCKET_TRANSPORT_SCENARIO = "cpp-tck.websocket-transport-support"
+TLS_ENCRYPTION_ONLY_SCENARIO = "cpp-tck.tls13-encryption-only-mode"
+TLS13_TRANSPORT_SUPPORT_SCENARIO = "cpp-tck.tls13-transport-support"
+TLS_SERVER_VALIDATION_SCENARIOS = (
+    "cpp-tck.tls13-server-certificate-validation",
+    "cpp-tck.tls13-server-certificate-validation-rejects-untrusted",
+)
+TLS_DEFAULT_PORT_SCENARIO = "cpp-tck.tls13-default-port-support"
+TLS_ALTERNATE_ADDRESS_PORT_SCENARIO = (
+    "cpp-tck.tls13-alternate-address-port-configuration"
+)
+SECURE_WEBSOCKET_TRANSPORT_SCENARIO = (
+    "cpp-tck.secure-websocket-transport-support"
+)
+TLS_PROCESS_TRANSPORT_SCENARIOS = (
+    TLS13_TRANSPORT_SUPPORT_SCENARIO,
+    *TLS_SERVER_VALIDATION_SCENARIOS,
+    TLS_DEFAULT_PORT_SCENARIO,
+    TLS_ALTERNATE_ADDRESS_PORT_SCENARIO,
+    SECURE_WEBSOCKET_TRANSPORT_SCENARIO,
+)
+MESSAGE_HISTORY_RECOVERY_SCENARIOS = (
+    "cpp-tck.connection-fault-join-response-replay",
+    "cpp-tck.connection-fault-federate-request-replay",
+    "cpp-tck.connection-fault-rti-closed-resume-fails",
+    "cpp-tck.connection-fault-registration-response-replay",
+    "cpp-tck.connection-fault-create-federation-response-replay",
+    "cpp-tck.connection-fault-reservation-response-replay",
+    "cpp-tck.connection-fault-delete-object-response-replay",
+    "cpp-tck.connection-fault-attribute-update-response-replay",
+    "cpp-tck.connection-fault-send-interaction-response-replay",
+    "cpp-tck.connection-fault-time-regulation-response-replay",
+    "cpp-tck.connection-fault-time-constrained-response-replay",
+    "cpp-tck.connection-fault-time-advance-request-response-replay",
+    "cpp-tck.connection-fault-time-advance-request-available-response-replay",
+    "cpp-tck.connection-fault-next-message-request-response-replay",
+    "cpp-tck.connection-fault-next-message-request-available-response-replay",
+    "cpp-tck.connection-fault-inactive-session-purge",
+)
 PUBLIC_HANDLE_DECODING_SCENARIOS = (
     "cpp-tck.public-handle-decoding",
     "cpp-tck.public-handle-decoding-contract",
@@ -2360,8 +3239,20 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.handle-and-collection-contract",
     "cpp-tck.data-element-contract",
     "cpp-tck.basic-data-elements-contract",
+    "cpp-tck.basic-data-element-encode-decode-contract",
+    "cpp-tck.basic-data-element-value-operations-contract",
+    "cpp-tck.complex-data-element-constituent-access",
     "cpp-tck.composite-data-elements-contract",
     "cpp-tck.configuration-and-authorization-contract",
+    AUTHORIZER_CONNECT_DECISION_SCENARIO,
+    AUTHORIZER_UNRECOGNIZED_CREDENTIALS_SCENARIO,
+    AUTHORIZER_DISABLED_CREDENTIALS_SCENARIO,
+    AUTHORIZER_FEDERATION_DECISION_SCENARIO,
+    AUTHORIZER_DESTROY_DECISION_SCENARIO,
+    AUTHORIZER_JOIN_DECISION_SCENARIO,
+    AUTHORIZER_NO_CREDENTIALS_SCENARIO,
+    AUTHORIZER_RID_CONFIGURATION_SCENARIO,
+    AUTHORIZER_SINGLE_SERVICE_SCENARIO,
     "cpp-tck.runtime-identity-contract",
     "cpp-tck.authorizer-factory-factory-contract",
     "cpp-tck.null-federate-ambassador-contract",
@@ -2587,6 +3478,94 @@ CONNECTION_LOSS_ADAPTER = (
     / "current-process"
     / "run_connection_loss.py"
 )
+MESSAGE_HISTORY_RECOVERY_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_message_history_recovery.py"
+)
+FEDERATE_HEARTBEAT_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_heartbeat.py"
+)
+FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_heartbeat_timeout_recovery.py"
+)
+FEDERATE_RECONNECT_TIMEOUT_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_reconnect_timeout.py"
+)
+FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_missing_rti_message_timeout.py"
+)
+FEDERATE_IDLE_HEARTBEAT_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_idle_heartbeat.py"
+)
+FEDERATE_SESSION_CARDINALITY_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_transport_session_cardinality.py"
+)
+INVALID_TRANSPORT_SESSION_METADATA_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_invalid_transport_session_metadata.py"
+)
+WEBSOCKET_BINARY_FRAMES_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_websocket_binary_frames.py"
+)
+TLS_ENCRYPTION_ONLY_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_tls_encryption_only.py"
+)
+TLS_SERVER_VALIDATION_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_tls_server_validation.py"
+)
 OWNERSHIP_SERVICE_REPORT_SCENARIOS = (
     "cpp-tck.service-report-query-attribute-ownership",
     "cpp-tck.service-report-query-attribute-ownership-contract",
@@ -2607,6 +3586,26 @@ OWNERSHIP_SERVICE_REPORT_ADAPTER = (
 
 def is_connection_loss_scenario(scenario_id: str) -> bool:
     return scenario_id in CONNECTION_LOSS_SCENARIOS
+
+
+def is_message_history_recovery_scenario(scenario_id: str) -> bool:
+    return scenario_id in MESSAGE_HISTORY_RECOVERY_SCENARIOS
+
+
+def is_federate_process_fixture_scenario(scenario_id: str) -> bool:
+    return scenario_id in {
+        FEDERATE_HEARTBEAT_SCENARIO,
+        FEDERATE_RECONNECT_TIMEOUT_SCENARIO,
+        FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_SCENARIO,
+        FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_SCENARIO,
+        FEDERATE_IDLE_HEARTBEAT_SCENARIO,
+        FEDERATE_SESSION_CARDINALITY_SCENARIO,
+        FEDERATE_CALLBACK_DIRECTION_SCENARIO,
+        INVALID_TRANSPORT_SESSION_METADATA_SCENARIO,
+        WEBSOCKET_TRANSPORT_SCENARIO,
+        TLS_ENCRYPTION_ONLY_SCENARIO,
+        *TLS_PROCESS_TRANSPORT_SCENARIOS,
+    }
 
 
 def is_ownership_service_report_scenario(scenario_id: str) -> bool:
@@ -2841,14 +3840,19 @@ def run_connection_loss_adapter(
         ),
         ("--configuration-name", arguments.connection_loss_configuration_name),
         ("--additional-settings", arguments.connection_loss_additional_settings),
+        ("--service-report-directory", str(inputs["service_report_directory"])),
         ("--interaction-class", arguments.connection_loss_interaction_class),
+        (
+            "--cutoff-interaction-class",
+            arguments.connection_loss_cutoff_interaction_class,
+        ),
         ("--object-class", arguments.connection_loss_object_class),
         ("--attribute", arguments.connection_loss_attribute),
     )
     for flag, value in optional_arguments:
         if value:
             command.extend([flag, value])
-    run_command(command, cwd=ROOT)
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
 
 
 def run_connection_loss_check(
@@ -2871,6 +3875,584 @@ def run_connection_loss_check(
                 temporary_root / f"connection-loss-{index}.json",
                 temporary_root / f"connection-loss-{index}.xml",
             )
+
+
+def run_message_history_recovery_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    scenario_id: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(MESSAGE_HISTORY_RECOVERY_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.message_history_recovery_fixture,
+        "--scenario",
+        scenario_id,
+        "--callback-model",
+        arguments.callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--object-class",
+        arguments.object_class,
+        "--attribute",
+        arguments.attribute,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_message_history_recovery_check(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    scenario_ids: Sequence[str],
+) -> None:
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-message-history-recovery-",
+        dir=inputs["build_directory"],
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        for index, scenario_id in enumerate(scenario_ids):
+            run_message_history_recovery_adapter(
+                arguments,
+                inputs,
+                executable,
+                scenario_id,
+                temporary_root / f"message-history-{index}.json",
+                temporary_root / f"message-history-{index}.xml",
+            )
+
+
+def run_federate_heartbeat_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_HEARTBEAT_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_federate_heartbeat_timeout_recovery_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_federate_reconnect_timeout_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_RECONNECT_TIMEOUT_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_federate_idle_heartbeat_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_IDLE_HEARTBEAT_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_transport_session_cardinality_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+    scenario_id: str = FEDERATE_SESSION_CARDINALITY_SCENARIO,
+    require_call_callback_directions: bool = False,
+    require_federate_heartbeat_response_pairing: bool = False,
+    require_callback_response_correlation: bool = False,
+    expected_connections: int = 2,
+    minimum_callback_request_count: int = 1,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_SESSION_CARDINALITY_ADAPTER),
+        "--scenario",
+        scenario_id,
+        "--expected-connections",
+        str(expected_connections),
+        "--minimum-callback-request-count",
+        str(minimum_callback_request_count),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    if require_call_callback_directions:
+        command.append("--require-call-callback-directions")
+    if require_federate_heartbeat_response_pairing:
+        command.append("--require-federate-heartbeat-response-pairing")
+    if require_callback_response_correlation:
+        command.append("--require-callback-response-correlation")
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_invalid_transport_session_metadata_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(INVALID_TRANSPORT_SESSION_METADATA_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_websocket_binary_frames_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(WEBSOCKET_BINARY_FRAMES_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_tls_encryption_only_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(TLS_ENCRYPTION_ONLY_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_tls_server_validation_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    scenario_id: str,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(TLS_SERVER_VALIDATION_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--scenario",
+        scenario_id,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_federate_missing_rti_message_timeout_adapter(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    callback_model: str,
+    results: Path,
+    junit: Path,
+) -> None:
+    command = [
+        sys.executable,
+        str(FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_ADAPTER),
+        "--tck-executable",
+        str(executable),
+        "--process-fixture",
+        arguments.federate_heartbeat_fixture,
+        "--fom-path",
+        str(inputs["fom"]),
+        "--mim-fom",
+        str(inputs["mim_fom"]),
+        "--time-implementation",
+        arguments.time_implementation,
+        "--callback-model",
+        callback_model,
+        "--provider-id",
+        arguments.provider_id,
+        "--timeout-s",
+        str(max(arguments.timeout_ms / 1000.0, 1.0)),
+        "--results",
+        str(results),
+        "--junit",
+        str(junit),
+    ]
+    run_command(command, cwd=ROOT, env=direct_run_environment(inputs))
+
+
+def run_federate_process_fixture_check(
+    arguments: argparse.Namespace,
+    inputs: ResolvedInputs,
+    executable: Path,
+    scenario_ids: Sequence[str],
+) -> None:
+    with tempfile.TemporaryDirectory(
+        prefix="cpp-tck-federate-heartbeat-",
+        dir=inputs["build_directory"],
+    ) as temporary_directory:
+        temporary_root = Path(temporary_directory)
+        models = (
+            STANDARD_CALLBACK_MODELS
+            if arguments.callback_model == "both"
+            else (arguments.callback_model,)
+        )
+        for index, scenario_id in enumerate(scenario_ids):
+            if not is_federate_process_fixture_scenario(scenario_id):
+                continue
+            scenario_models = (
+                ("evoked",)
+                if scenario_id == FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_SCENARIO
+                else models
+            )
+            for model_index, callback_model in enumerate(scenario_models):
+                results = temporary_root / f"federate-heartbeat-{index}-{model_index}.json"
+                junit = temporary_root / f"federate-heartbeat-{index}-{model_index}.xml"
+                if scenario_id == WEBSOCKET_TRANSPORT_SCENARIO:
+                    run_websocket_binary_frames_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == TLS_ENCRYPTION_ONLY_SCENARIO:
+                    run_tls_encryption_only_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id in TLS_PROCESS_TRANSPORT_SCENARIOS:
+                    run_tls_server_validation_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        scenario_id,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == FEDERATE_SESSION_CARDINALITY_SCENARIO:
+                    run_transport_session_cardinality_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                        require_federate_heartbeat_response_pairing=True,
+                    )
+                elif scenario_id == FEDERATE_CALLBACK_DIRECTION_SCENARIO:
+                    run_transport_session_cardinality_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                        scenario_id,
+                        True,
+                        require_callback_response_correlation=True,
+                    )
+                elif scenario_id == FEDERATE_CALLBACK_SERIAL_PROCESSING_SCENARIO:
+                    run_transport_session_cardinality_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                        scenario_id,
+                        require_callback_response_correlation=True,
+                        expected_connections=1,
+                        minimum_callback_request_count=2,
+                    )
+                elif scenario_id == INVALID_TRANSPORT_SESSION_METADATA_SCENARIO:
+                    run_invalid_transport_session_metadata_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == FEDERATE_IDLE_HEARTBEAT_SCENARIO:
+                    run_federate_idle_heartbeat_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_SCENARIO:
+                    run_federate_missing_rti_message_timeout_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_SCENARIO:
+                    run_federate_heartbeat_timeout_recovery_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                elif scenario_id == FEDERATE_RECONNECT_TIMEOUT_SCENARIO:
+                    run_federate_reconnect_timeout_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
+                else:
+                    run_federate_heartbeat_adapter(
+                        arguments,
+                        inputs,
+                        executable,
+                        callback_model,
+                        results,
+                        junit,
+                    )
 
 
 def run_ownership_service_report_adapter(
@@ -2958,6 +4540,18 @@ def merge_json_evidence_parts(parts: Iterable[Path], output: Path) -> None:
         payload["callback_model"] = next_payload.get(
             "callback_model", payload.get("callback_model")
         )
+        existing_faults = payload.get("transport_fault_evidence")
+        next_faults = next_payload.get("transport_fault_evidence")
+        if existing_faults is None and isinstance(next_faults, dict):
+            payload["transport_fault_evidence"] = dict(next_faults)
+        elif isinstance(existing_faults, dict) and isinstance(next_faults, dict):
+            conflicts = set(existing_faults).intersection(next_faults)
+            if conflicts:
+                raise ValueError(
+                    "duplicate transport fault evidence for "
+                    + ", ".join(sorted(conflicts))
+                )
+            existing_faults.update(next_faults)
     output.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -2990,6 +4584,32 @@ def validate_direct_evidence(
             + preview
             + suffix
         )
+
+
+def annotate_cpp_api_evidence(
+    results: Path,
+    selected: Sequence[CppTckScenario],
+) -> None:
+    """Identify the implemented API and catalog method mappings in TCK evidence.
+
+    The per-scenario methods come from the scenario catalog. They describe the
+    intended API mapping; they are not a dynamic trace of methods called.
+    """
+    payload = json.loads(results.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("direct C++ TCK evidence must be a JSON object")
+    payload["standard"] = CPP_TCK_STANDARD
+    payload["api_language"] = CPP_API_LANGUAGE
+    payload["api_profile"] = CPP_API_PROFILE
+    payload["scenario_api_methods"] = {
+        scenario["runner_id"]: list(scenario["api_methods"])
+        for scenario in selected
+    }
+    payload["scenario_api_methods_source"] = CPP_API_METHOD_MAPPING_SOURCE
+    results.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
 
 def callback_models_for_run(
@@ -3048,6 +4668,30 @@ def direct_run_environment(
     return environment
 
 
+def custom_authorizer_provider_library(
+    build_directory: Path,
+    configuration: str,
+) -> Path:
+    """Read the CMake-generated custom-authorizer plugin target path."""
+    manifest = (
+        build_directory
+        / f"portable-tck-authorizer-provider-{configuration}.txt"
+    )
+    if not manifest.is_file():
+        raise ValueError(
+            "custom-authorizer TCK provider path manifest is missing; "
+            "configure the shared current-package adapter first: "
+            f"{manifest}"
+        )
+    library = Path(manifest.read_text(encoding="utf-8").strip())
+    if not library.is_file():
+        raise ValueError(
+            "custom-authorizer TCK provider has not been built: "
+            f"{library}"
+        )
+    return library
+
+
 def run_portable_dispatch_direct(
     arguments: argparse.Namespace,
     inputs: ResolvedInputs,
@@ -3068,6 +4712,20 @@ def run_portable_dispatch_direct(
         else (arguments.callback_model,)
     )
     child_environment = direct_run_environment(inputs)
+    if scenario["id"] in {
+        AUTHORIZER_FEDERATION_DECISION_SCENARIO,
+        AUTHORIZER_DESTROY_DECISION_SCENARIO,
+        AUTHORIZER_JOIN_DECISION_SCENARIO,
+        AUTHORIZER_NO_CREDENTIALS_SCENARIO,
+        AUTHORIZER_RID_CONFIGURATION_SCENARIO,
+        AUTHORIZER_SINGLE_SERVICE_SCENARIO,
+    }:
+        child_environment["UMBRA_AUTHORIZER_PROVIDER_LIBRARY"] = str(
+            custom_authorizer_provider_library(
+                inputs["build_directory"],
+                arguments.configuration,
+            )
+        )
     runner_id = scenario["runner_id"]
     with tempfile.TemporaryDirectory(
         prefix="cpp-tck-portable-dispatch-evidence-",
@@ -3079,13 +4737,95 @@ def run_portable_dispatch_direct(
         for index, callback_model in enumerate(callback_models):
             child_arguments = argparse.Namespace(**vars(arguments))
             child_arguments.callback_model = callback_model
-            command = [str(executable)] + direct_arguments(
+            child_command_arguments = direct_arguments(
                 child_arguments,
                 inputs,
                 [scenario],
                 None,
                 None,
             )
+            if scenario["id"] in {
+                AUTHORIZER_CONNECT_DECISION_SCENARIO,
+                AUTHORIZER_UNRECOGNIZED_CREDENTIALS_SCENARIO,
+            }:
+                command = [
+                    sys.executable,
+                    str(AUTHORIZER_CONNECT_DECISION_ADAPTER),
+                    str(executable),
+                    "--",
+                    *child_command_arguments,
+                ]
+            elif scenario["id"] == AUTHORIZER_DISABLED_CREDENTIALS_SCENARIO:
+                command = [
+                    sys.executable,
+                    str(AUTHORIZER_DISABLED_CREDENTIALS_ADAPTER),
+                    str(executable),
+                    "--",
+                    *child_command_arguments,
+                ]
+            elif scenario["id"] in {
+                AUTHORIZER_RID_CONFIGURATION_SCENARIO,
+                AUTHORIZER_SINGLE_SERVICE_SCENARIO,
+            }:
+                command = [
+                    sys.executable,
+                    str(AUTHORIZER_RID_CONFIGURATION_ADAPTER),
+                    str(executable),
+                    "--",
+                    *child_command_arguments,
+                ]
+            elif scenario["id"] in {
+                AUTHORIZER_FEDERATION_DECISION_SCENARIO,
+                AUTHORIZER_DESTROY_DECISION_SCENARIO,
+                AUTHORIZER_JOIN_DECISION_SCENARIO,
+                AUTHORIZER_NO_CREDENTIALS_SCENARIO,
+            }:
+                service_names = {
+                    AUTHORIZER_FEDERATION_DECISION_SCENARIO: "TckFederationGate",
+                    AUTHORIZER_DESTROY_DECISION_SCENARIO: "TckDestroyGate",
+                    AUTHORIZER_JOIN_DECISION_SCENARIO: "TckJoinGate",
+                    AUTHORIZER_NO_CREDENTIALS_SCENARIO: "TckNoCredentialsGate",
+                }
+                service_name = service_names[scenario["id"]]
+                command = [
+                    sys.executable,
+                    str(AUTHORIZER_FEDERATION_DECISION_ADAPTER),
+                    str(executable),
+                    service_name,
+                    "--",
+                    *child_command_arguments,
+                ]
+            else:
+                command = [str(executable), *child_command_arguments]
+            if (
+                command_length(command) > DIRECT_COMMAND_LENGTH_LIMIT
+                and "--common-arguments-file" not in command
+            ):
+                separator = command.index("--") if "--" in command else None
+                argument_start = separator + 1 if separator is not None else 1
+                tck_arguments = command[argument_start:]
+                if any("\n" in value or "\r" in value for value in tck_arguments):
+                    raise ValueError(
+                        "long portable TCK arguments cannot contain newline characters"
+                    )
+                argument_file = temporary_root / f"common-arguments-{index}.txt"
+                argument_file.write_text(
+                    "".join(f"{value}\n" for value in tck_arguments),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                if separator is None:
+                    command = [
+                        command[0],
+                        "--common-arguments-file",
+                        str(argument_file),
+                    ]
+                else:
+                    command = [
+                        *command[: separator + 1],
+                        "--common-arguments-file",
+                        str(argument_file),
+                    ]
             print(f"+ {command_text(command)}", flush=True)
             completed = subprocess.run(
                 command,
@@ -3235,6 +4975,11 @@ def run_direct(
     connection_loss_selected = [
         scenario for scenario in selected if is_connection_loss_scenario(scenario["id"])
     ]
+    message_history_recovery_selected = [
+        scenario
+        for scenario in selected
+        if is_message_history_recovery_scenario(scenario["id"])
+    ]
     public_handle_decoding_selected = [
         scenario
         for scenario in selected
@@ -3298,6 +5043,17 @@ def run_direct(
     managed_connection_loss_selected = (
         connection_loss_selected if arguments.connection_loss_fixture else []
     )
+    managed_message_history_recovery_selected = (
+        message_history_recovery_selected
+        if arguments.message_history_recovery_fixture
+        else []
+    )
+    managed_federate_heartbeat_selected = [
+        scenario
+        for scenario in selected
+        if arguments.federate_heartbeat_fixture
+        and is_federate_process_fixture_scenario(scenario["id"])
+    ]
     managed_ownership_service_report_selected = [
         scenario
         for scenario in selected
@@ -3311,6 +5067,14 @@ def run_direct(
         and not (
             arguments.connection_loss_fixture
             and is_connection_loss_scenario(scenario["id"])
+        )
+        and not (
+            arguments.message_history_recovery_fixture
+            and is_message_history_recovery_scenario(scenario["id"])
+        )
+        and not (
+            arguments.federate_heartbeat_fixture
+            and is_federate_process_fixture_scenario(scenario["id"])
         )
         and not (
             arguments.ownership_service_report_fixture
@@ -3330,6 +5094,8 @@ def run_direct(
         + custom_transportation_timestamped_regional_interaction_selected
         + portable_dispatch_selected
         + managed_connection_loss_selected
+        + managed_message_history_recovery_selected
+        + managed_federate_heartbeat_selected
         + managed_ownership_service_report_selected
     )
     if special_selected:
@@ -3665,6 +5431,159 @@ def run_direct(
                 )
                 loss_results_parts.append(loss_results)
                 loss_junit_parts.append(loss_junit)
+            message_history_results_parts: list[Path] = []
+            message_history_junit_parts: list[Path] = []
+            for index, scenario in enumerate(
+                managed_message_history_recovery_selected
+            ):
+                message_history_results = temporary_root / (
+                    f"message-history-{index}.json"
+                )
+                message_history_junit = temporary_root / (
+                    f"message-history-{index}.xml"
+                )
+                run_message_history_recovery_adapter(
+                    arguments,
+                    inputs,
+                    executable,
+                    scenario["id"],
+                    message_history_results,
+                    message_history_junit,
+                )
+                message_history_results_parts.append(message_history_results)
+                message_history_junit_parts.append(message_history_junit)
+            federate_heartbeat_results_parts: list[Path] = []
+            federate_heartbeat_junit_parts: list[Path] = []
+            for index, scenario in enumerate(managed_federate_heartbeat_selected):
+                models = callback_models_for_run(
+                    arguments.callback_model, scenario
+                )
+                for model_index, callback_model in enumerate(models):
+                    heartbeat_results = temporary_root / (
+                        f"federate-heartbeat-{index}-{model_index}.json"
+                    )
+                    heartbeat_junit = temporary_root / (
+                        f"federate-heartbeat-{index}-{model_index}.xml"
+                    )
+                    if scenario["id"] == WEBSOCKET_TRANSPORT_SCENARIO:
+                        run_websocket_binary_frames_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == TLS_ENCRYPTION_ONLY_SCENARIO:
+                        run_tls_encryption_only_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] in TLS_PROCESS_TRANSPORT_SCENARIOS:
+                        run_tls_server_validation_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            scenario["id"],
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == FEDERATE_SESSION_CARDINALITY_SCENARIO:
+                        run_transport_session_cardinality_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                            require_federate_heartbeat_response_pairing=True,
+                        )
+                    elif scenario["id"] == FEDERATE_CALLBACK_DIRECTION_SCENARIO:
+                        run_transport_session_cardinality_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                            scenario["id"],
+                            True,
+                            require_callback_response_correlation=True,
+                        )
+                    elif scenario["id"] == FEDERATE_CALLBACK_SERIAL_PROCESSING_SCENARIO:
+                        run_transport_session_cardinality_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                            scenario["id"],
+                            require_callback_response_correlation=True,
+                            expected_connections=1,
+                            minimum_callback_request_count=2,
+                        )
+                    elif scenario["id"] == INVALID_TRANSPORT_SESSION_METADATA_SCENARIO:
+                        run_invalid_transport_session_metadata_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == FEDERATE_IDLE_HEARTBEAT_SCENARIO:
+                        run_federate_idle_heartbeat_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == FEDERATE_MISSING_RTI_MESSAGE_TIMEOUT_SCENARIO:
+                        run_federate_missing_rti_message_timeout_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == FEDERATE_HEARTBEAT_TIMEOUT_RECOVERY_SCENARIO:
+                        run_federate_heartbeat_timeout_recovery_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    elif scenario["id"] == FEDERATE_RECONNECT_TIMEOUT_SCENARIO:
+                        run_federate_reconnect_timeout_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    else:
+                        run_federate_heartbeat_adapter(
+                            arguments,
+                            inputs,
+                            executable,
+                            callback_model,
+                            heartbeat_results,
+                            heartbeat_junit,
+                        )
+                    federate_heartbeat_results_parts.append(heartbeat_results)
+                    federate_heartbeat_junit_parts.append(heartbeat_junit)
             ownership_service_report_results_parts: list[Path] = []
             ownership_service_report_junit_parts: list[Path] = []
             for index, scenario in enumerate(managed_ownership_service_report_selected):
@@ -3707,6 +5626,8 @@ def run_direct(
                     )
                     + portable_dispatch_results_parts
                     + loss_results_parts
+                    + message_history_results_parts
+                    + federate_heartbeat_results_parts
                     + (ownership_service_report_results_parts)
                 )
                 merge_json_evidence_parts(json_parts, results)
@@ -3733,6 +5654,8 @@ def run_direct(
                     )
                     + portable_dispatch_junit_parts
                     + loss_junit_parts
+                    + message_history_junit_parts
+                    + federate_heartbeat_junit_parts
                     + (ownership_service_report_junit_parts)
                 )
                 merge_junit_evidence_parts(junit_parts, junit)
@@ -3740,6 +5663,7 @@ def run_direct(
         run_executable_direct(arguments, inputs, executable, selected, results, junit)
     if results is not None:
         validate_direct_evidence(results, selected, arguments.callback_model)
+        annotate_cpp_api_evidence(results, selected)
     return {
         "executable": str(executable),
         "scenario_count": len(selected),
@@ -3807,6 +5731,42 @@ def main() -> int:
                         scenario["id"]
                         for scenario in selected
                         if is_ownership_service_report_scenario(scenario["id"])
+                    ],
+                )
+            if (
+                arguments.message_history_recovery_fixture
+                and not (arguments.results or arguments.junit)
+                and any(
+                    is_message_history_recovery_scenario(scenario["id"])
+                    for scenario in selected
+                )
+            ):
+                run_message_history_recovery_check(
+                    arguments,
+                    inputs,
+                    find_executable(inputs["build_directory"], arguments.configuration),
+                    [
+                        scenario["id"]
+                        for scenario in selected
+                        if is_message_history_recovery_scenario(scenario["id"])
+                    ],
+                )
+            if (
+                arguments.federate_heartbeat_fixture
+                and not (arguments.results or arguments.junit)
+                and any(
+                    is_federate_process_fixture_scenario(scenario["id"])
+                    for scenario in selected
+                )
+            ):
+                run_federate_process_fixture_check(
+                    arguments,
+                    inputs,
+                    find_executable(inputs["build_directory"], arguments.configuration),
+                    [
+                        scenario["id"]
+                        for scenario in selected
+                        if is_federate_process_fixture_scenario(scenario["id"])
                     ],
                 )
         direct_summary = None

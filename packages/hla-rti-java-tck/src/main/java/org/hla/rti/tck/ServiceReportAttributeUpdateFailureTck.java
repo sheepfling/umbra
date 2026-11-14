@@ -86,8 +86,15 @@ final class ServiceReportAttributeUpdateFailureTck {
             publisherClass, attributeName);
          AttributeHandle receiverAttribute = receiver.getAttributeHandle(
             receiverClass, attributeName);
+         ObjectClassHandle momFederateClass = publisher.getObjectClassHandle(
+            "HLAobjectRoot.HLAmanager.HLAfederate");
+         JavaTckSupport.check(momFederateClass != null,
+            "standard HLAfederate MOM object class lookup returned an invalid handle");
+         AttributeHandle foreignAttribute = publisher.getAttributeHandle(
+            momFederateClass, "HLAfederateName");
          JavaTckSupport.check(publisherClass != null && receiverClass != null
-               && publisherAttribute != null && receiverAttribute != null,
+               && publisherAttribute != null && receiverAttribute != null
+               && foreignAttribute != null,
             "adapter-supplied object class or attribute lookup returned an invalid handle");
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
@@ -121,11 +128,15 @@ final class ServiceReportAttributeUpdateFailureTck {
          published = true;
          receiver.subscribeObjectClassAttributes(receiverClass, receiverAttributes);
          subscribed = true;
+         ObjectInstanceHandle unknownObject = publisher.registerObjectInstance(publisherClass);
+         await(receiver, callbackModel,
+            () -> unknownObject.equals(receiverRecorder.discoveredObject),
+            "ordinary attribute-update failure setup-object discovery");
+         publisher.deleteObjectInstance(unknownObject, new byte[0]);
+         settle(receiver, callbackModel);
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
-         await(receiver, callbackModel, () -> receiverRecorder.discoveredObject != null,
-            "ordinary attribute-update failure object discovery");
-         JavaTckSupport.check(object.equals(receiverRecorder.discoveredObject),
-            "ordinary attribute-update failure discovery returned the wrong object");
+         await(receiver, callbackModel, () -> object.equals(receiverRecorder.discoveredObject),
+            "ordinary attribute-update failure live-object discovery");
 
          byte[] value = new byte[] {0x01, 0x02};
          byte[] tag = new byte[] {0x72, 0x65, 0x67};
@@ -134,23 +145,21 @@ final class ServiceReportAttributeUpdateFailureTck {
          validValues.put(publisherAttribute, value);
          AttributeHandleValueMap invalidValues =
             publisher.getAttributeHandleValueMapFactory().create(1);
-         AttributeHandle invalidAttribute =
-            JavaTckSupport.invalidHandle(AttributeHandle.class);
-         invalidValues.put(invalidAttribute, value);
+         invalidValues.put(foreignAttribute, value);
+         settle(receiver, callbackModel);
          int reflectionsBeforeFailures = receiverRecorder.reflections.size();
          publisher.setServiceReportingSwitch(true);
          publisher.setSendServiceReportsToFileSwitch(false);
 
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
          JavaTckSupport.expectFailure(
-            () -> publisher.updateAttributeValues(invalidObject, validValues, tag),
+            () -> publisher.updateAttributeValues(unknownObject, validValues, tag),
             "ObjectInstanceNotKnown", "updateAttributeValues with an unknown object");
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "unknown-object attribute-update failure report");
          verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, invalidObject.toString(),
-            publisherAttribute.toString(), value, tag, "ObjectInstanceNotKnown", 0, reliable);
+            reportParameters, encoder, publisherHandle, unknownObject, publisherAttribute,
+            value, tag,
+            "ObjectInstanceNotKnown", 0, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
          JavaTckSupport.check(receiverRecorder.reflections.size() == reflectionsBeforeFailures,
@@ -162,8 +171,8 @@ final class ServiceReportAttributeUpdateFailureTck {
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "undefined-attribute update failure report");
          verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, object.toString(),
-            invalidAttribute.toString(), value, tag, "AttributeNotDefined", 1, reliable);
+            reportParameters, encoder, publisherHandle, object, foreignAttribute, value, tag,
+            "AttributeNotDefined", 1, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
          JavaTckSupport.check(receiverRecorder.reflections.size() == reflectionsBeforeFailures,
@@ -211,8 +220,8 @@ final class ServiceReportAttributeUpdateFailureTck {
 
    private static void verifyFailureReport(RTIambassador observer, Interaction report,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> parameters,
-         EncoderFactory encoder, FederateHandle publisher, String objectValue,
-         String attributeValue, byte[] value, byte[] tag, String exceptionName,
+         EncoderFactory encoder, FederateHandle publisher, ObjectInstanceHandle object,
+         AttributeHandle attribute, byte[] value, byte[] tag, String exceptionName,
          int serialNumber, TransportationTypeHandle reliable) throws Exception {
       JavaTckSupport.check(reportClass.equals(report.interaction)
             && report.parameters.size() == REPORT_PARAMETER_NAMES.length
@@ -240,10 +249,34 @@ final class ServiceReportAttributeUpdateFailureTck {
       supplied.decode(report.parameters.get(parameters.get("HLAsuppliedArguments")));
       JavaTckSupport.check(supplied.size() == 4,
          "attribute-update failure report returned the wrong supplied-argument count");
-      verifyArgument(supplied.get(0), 37, "Object instance designator", quoted(objectValue));
-      verifyArgument(supplied.get(1), 2,
-         "Constrained set of attribute designator and value pairs",
-         "{\"" + attributeValue + "\":\"" + base64(value) + "\"}");
+      HLAfixedRecord objectDesignator = supplied.get(0);
+      JavaTckSupport.check(objectDesignator.size() == 3
+            && ((HLAinteger32BE) objectDesignator.get(0)).getValue() == 37
+            && "Object instance designator".equals(
+               ((HLAunicodeString) objectDesignator.get(1)).getValue()),
+         "attribute-update failure report returned the wrong object-designator shape");
+      String objectDesignatorValue = ((HLAunicodeString) objectDesignator.get(2)).getValue();
+      JavaTckSupport.check(quoted(object.toString()).equals(objectDesignatorValue),
+         "attribute-update failure report did not identify the actual object argument");
+
+      HLAfixedRecord attributeMapArgument = supplied.get(1);
+      JavaTckSupport.check(attributeMapArgument.size() == 3,
+         "attribute-update failure map argument did not have three fields");
+      int mapType = ((HLAinteger32BE) attributeMapArgument.get(0)).getValue();
+      String mapName = ((HLAunicodeString) attributeMapArgument.get(1)).getValue();
+      String mapValue = ((HLAunicodeString) attributeMapArgument.get(2)).getValue();
+      String mapPrefix = "{\"";
+      String mapSuffix = "\":\"" + base64(value) + "\"}";
+      String keyValueSeparator = "\":\"";
+      int separator = mapValue.indexOf(keyValueSeparator);
+      boolean oneMapEntry = mapValue.startsWith(mapPrefix) && mapValue.endsWith(mapSuffix)
+         && separator > mapPrefix.length()
+         && separator == mapValue.lastIndexOf(keyValueSeparator);
+      String expectedMapValue = "{\"" + attribute.toString() + "\":\"" + base64(value) + "\"}";
+      JavaTckSupport.check(mapType == 2
+            && "Constrained set of attribute designator and value pairs".equals(mapName)
+            && oneMapEntry && expectedMapValue.equals(mapValue),
+         "attribute-update failure report returned the wrong map argument, handle, or Base64 value");
       verifyArgument(supplied.get(2), 60, "User-supplied tag", quoted(base64(tag)));
       verifyArgument(supplied.get(3), 34, "Optional timestamp", "null");
 

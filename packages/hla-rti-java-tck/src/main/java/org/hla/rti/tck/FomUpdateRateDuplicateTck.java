@@ -8,13 +8,13 @@ import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 
-/** Annex C.7 update-rate duplicate cases through the standard API. */
+/** Annex C.7 and §4.1.4.1 update-rate duplicate cases through the standard API. */
 final class FomUpdateRateDuplicateTck {
    private FomUpdateRateDuplicateTck() { }
 
    static void run(RtiFactory factory, String base, String second,
-         String timeImplementation, CallbackModel callbackModel,
-         boolean noteConflict) throws Exception {
+         String rateConflict, String timeImplementation,
+         CallbackModel callbackModel, boolean noteConflict) throws Exception {
       RTIambassador creator = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-update-rate-duplicate-" + UUID.randomUUID();
@@ -35,10 +35,31 @@ final class FomUpdateRateDuplicateTck {
             created = false;
          }
          if (noteConflict) {
+            JavaTckSupport.check(rateConflict != null && !rateConflict.isEmpty(),
+               "rate-conflict FOM is required for update-rate duplicate conflict coverage");
+            created = true;
             JavaTckSupport.expectFailure(
                () -> creator.createFederationExecution(federation,
                   new String[] {base, second}, timeImplementation),
                "InconsistentFOM", "different note references on one update rate");
+            created = false;
+            creator.createFederationExecution(federation,
+               new String[] {base}, timeImplementation);
+            created = true;
+            creator.destroyFederationExecution(federation);
+            created = false;
+
+            creator.createFederationExecution(federation,
+               new String[] {rateConflict}, timeImplementation);
+            created = true;
+            creator.destroyFederationExecution(federation);
+            created = false;
+            created = true;
+            JavaTckSupport.expectFailure(
+               () -> creator.createFederationExecution(federation,
+                  new String[] {base, rateConflict}, timeImplementation),
+               "InconsistentFOM", "different maximum rates on one update rate");
+            created = false;
             creator.createFederationExecution(federation,
                new String[] {base}, timeImplementation);
             created = true;

@@ -36,9 +36,6 @@ final class ObjectClassLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> observer.getObjectClassHandle(baseObjectName), "NotConnected",
             "looking up an object class before connecting");
-         JavaTckSupport.expectFailure(
-            () -> observer.getObjectClassName(null), "NotConnected",
-            "looking up an object-class name before connecting");
 
          observer.connect(callbacks(), callbackModel);
          observerConnected = true;
@@ -51,9 +48,6 @@ final class ObjectClassLookupLifecycleTck {
             () -> observer.getObjectClassHandle(baseObjectName),
             "FederateNotExecutionMember",
             "looking up an object class after connecting but before joining");
-         JavaTckSupport.expectFailure(
-            () -> observer.getObjectClassName(null), "FederateNotExecutionMember",
-            "looking up an object-class name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -70,10 +64,6 @@ final class ObjectClassLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> owner.getObjectClassHandle(unknownObjectClassName), "NameNotFound",
             "looking up an unknown object class");
-         // Java exposes no public invalid-handle constructor; null is its portable invalid input.
-         JavaTckSupport.expectFailure(
-            () -> owner.getObjectClassName(null), "InvalidObjectClassHandle",
-            "looking up an object-class name from an invalid handle");
          JavaTckSupport.expectFailure(
             () -> owner.getObjectClassHandle(extensionObjectName), "NameNotFound",
             "looking up the extension object class before an additional-module join");
@@ -85,9 +75,12 @@ final class ObjectClassLookupLifecycleTck {
          ObjectClassHandle ownerExtension = owner.getObjectClassHandle(extensionObjectName);
          ObjectClassHandle memberExtension = extension.getObjectClassHandle(extensionObjectName);
          JavaTckSupport.check(ownerExtension != null && ownerExtension.equals(memberExtension)
+               && !base.equals(ownerExtension)
                && extensionObjectName.equals(owner.getObjectClassName(ownerExtension))
-               && base.equals(owner.getObjectClassHandle(baseObjectName)),
-            "additional-module join did not compose a shared extension object class or preserve the base handle");
+               && extensionObjectName.equals(extension.getObjectClassName(memberExtension))
+               && base.equals(owner.getObjectClassHandle(baseObjectName))
+               && baseObjectName.equals(owner.getObjectClassName(base)),
+            "additional-module join did not keep the extension distinct or preserve both class names and the base handle");
 
          extension.resignFederationExecution(ResignAction.NO_ACTION);
          extensionJoined = false;

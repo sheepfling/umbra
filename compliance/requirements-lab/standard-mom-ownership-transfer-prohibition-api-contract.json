@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK pair observes a joined-federate MOM object through the official discovery/reflection API, queries RTI ownership of one predefined MOM instance attribute before and after both public ownership-acquisition forms, and checks for no ownership-transfer notification or federate release request. The API does not prescribe the response to the attempted requests. Adapter configuration supplies the package, endpoint, application FOM, standard MIM, logical-time implementation, and callback model. No conformance claim is made.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-mom-ownership-transfer-prohibition",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador MIM federation creation, join, object-class/attribute lookup, active subscription, queryAttributeOwnership, ownership acquisition, and lifecycle; FederateAmbassador discoverObjectInstance, reflectAttributeValues, attributeIsOwnedByRTI, attributeOwnershipAcquisitionNotification, and requestAttributeOwnershipRelease observation",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, RTIambassador::joinFederationExecution, RTIambassador::getObjectClassHandle, RTIambassador::getAttributeHandle, RTIambassador::subscribeObjectClassAttributes, RTIambassador::queryAttributeOwnership, RTIambassador::publishObjectClassAttributes, RTIambassador::attributeOwnershipAcquisitionIfAvailable, RTIambassador::attributeOwnershipAcquisition, RTIambassador::unpublishObjectClassAttributes, RTIambassador::resignFederationExecution, RTIambassador::destroyFederationExecution; FederateAmbassador::discoverObjectInstance, FederateAmbassador::reflectAttributeValues, FederateAmbassador::attributeIsOwnedByRTI, FederateAmbassador::attributeOwnershipAcquisitionNotification, FederateAmbassador::requestAttributeOwnershipRelease",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibition",
+        "packages/hla-rti-cpp-tck/src/tck_mom_ownership_transfer_prohibition.cpp::scenarioMomOwnershipTransferProhibitionContract"
+      ]
+    }
+  ]
+}

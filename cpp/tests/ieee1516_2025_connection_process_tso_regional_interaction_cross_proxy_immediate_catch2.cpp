@@ -325,7 +325,10 @@ class ProxyProcess final {
         if (input >> port && port > 0U && port <= 65535U) {
           return static_cast<unsigned short>(port);
         }
-        throw std::runtime_error("A regional ingress process published an invalid port.");
+        // Do not treat an unreadable readiness marker as final: under heavily
+        // parallel process startup, the endpoint is ready only once its port
+        // can actually be read. The child-exit check below distinguishes a
+        // failed start from a transient marker-read race.
       }
       if (waitForExit(std::chrono::milliseconds(0))) {
         throw std::runtime_error("A regional ingress process exited before readiness.");

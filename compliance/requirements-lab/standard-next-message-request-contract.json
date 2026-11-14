@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for the official IEEE 1516.1 Next Message Request service. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies selection and delivery of the next queued timestamped interaction before the requested grant, callback ordering, logical-time and retraction metadata, and the standard no-longer-retractable boundary without asserting provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records portable C++ TCK checks for the official IEEE 1516.1 Next Message Request service. The source uses only the standard C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, FOM, endpoint, callback configuration, and logical-time implementation. It verifies selection and delivery of the next queued timestamped interaction before the requested grant, callback ordering, logical-time and retraction metadata, and the standard no-longer-retractable boundary. The undefined-GALT case observes NRG-on granting at queued LITS without a regulator advance and NRG-off holding at current logical time until a regulator resumes. These checks do not assert a universal GALT formula, provider-specific behavior, conformance, or interoperability.",
   "api_surfaces": [
     {
       "id": "standard-cpp-next-message-request",
@@ -13,7 +13,9 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador nextMessageRequest and FederateAmbassador timestamped-delivery declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioNextMessageRequestContract"
+        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioNextMessageRequestContract",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNmrLitsBelowGaltImmediateGrantPortable",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioNmrLitsBelowGaltImmediateGrantContractPortable"
       ]
     }
   ]

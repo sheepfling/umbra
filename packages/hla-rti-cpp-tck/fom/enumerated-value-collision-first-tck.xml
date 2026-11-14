@@ -5,6 +5,6 @@
   <modelIdentification><name>TCK Enumeration Collision First</name><type>FOM</type></modelIdentification>
   <dataTypes><enumeratedDataTypes><enumeratedData>
     <name>TckCollisionEnumeration</name><representation>HLAinteger32BE</representation>
-    <enumerator><name>TckFirstCollisionName</name><value>1</value></enumerator>
+    <enumerator><name>TckFirstCollisionName</name><value>1,2</value></enumerator>
   </enumeratedData></enumeratedDataTypes></dataTypes>
 </objectModel>

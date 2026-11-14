@@ -42,15 +42,15 @@ TEST_CASE("The official ObjectClassHandle has stable embedded value semantics", 
 
 TEST_CASE("The embedded ObjectClassHandle encoding is an HLAvariableArray-wrapped identity", "[unit][kernel][object-class-handle][foundation][object-management][handle-encoding]") {
   auto const handle = makeObjectClassHandle(0x0102030405060708ULL);
-  std::array<unsigned char, 12> const expected{
-      0x00, 0x00, 0x00, 0x08, 0x01, 0x02,
+  std::array<unsigned char, 13> const expected{
+      0x00, 0x00, 0x00, 0x09, 0x02, 0x01, 0x02,
       0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 
   VariableLengthData encoded = handle.encode();
   REQUIRE(encoded.size() == expected.size());
   REQUIRE(std::memcmp(encoded.data(), expected.data(), expected.size()) == 0);
 
-  std::array<unsigned char, 12> destination{};
+  std::array<unsigned char, 13> destination{};
   REQUIRE(handle.encode(destination.data(), destination.size()) == destination.size());
   REQUIRE(destination == expected);
 

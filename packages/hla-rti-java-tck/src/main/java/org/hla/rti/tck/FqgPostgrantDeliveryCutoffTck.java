@@ -4,6 +4,8 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.MessageRetractionHandle;
+import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
@@ -98,7 +100,7 @@ final class FqgPostgrantDeliveryCutoffTck {
          LogicalTime<?, ?> requestBoundary = offset(receiverInitial, receiverEpsilon, 10);
          byte[] firstPayload = {0x46, 0x51, 0x47, 0x2d, 0x37};
          byte[] firstTag = {0x46, 0x51, 0x47, 0x2d, 0x37};
-         send(firstPublisher, firstClass, firstParameter,
+         MessageRetractionHandle firstRetraction = send(firstPublisher, firstClass, firstParameter,
             firstPayload, firstTag, timestampSeven, "FQG initial TSO");
          JavaTckSupport.check(receiverCallbacks.interactions.isEmpty(),
             "FQG initial TSO was delivered before a request");
@@ -119,6 +121,9 @@ final class FqgPostgrantDeliveryCutoffTck {
          checkDelivery(receiverCallbacks.interactions.get(0), receiverClass,
             receiverParameter, firstPayload, firstTag,
             firstFederateHandle, timestampSeven, "FQG initial TSO");
+         JavaTckSupport.check(firstRetraction.equals(
+               receiverCallbacks.interactions.get(0).retraction),
+            "FQG initial callback changed the timestamped interaction retraction handle");
          JavaTckSupport.check(timestampSeven.equals(firstGrant.actual),
             "FQG returned the wrong initial actual grant time");
 
@@ -225,15 +230,17 @@ final class FqgPostgrantDeliveryCutoffTck {
       }
    }
 
-   private static void send(RTIambassador ambassador, InteractionClassHandle interaction,
+   private static MessageRetractionHandle send(RTIambassador ambassador,
+         InteractionClassHandle interaction,
          ParameterHandle parameter, byte[] payload, byte[] tag, LogicalTime<?, ?> time,
          String description) throws Exception {
       ParameterHandleValueMap values = ambassador.getParameterHandleValueMapFactory().create(1);
       values.put(parameter, payload.clone());
-      hla.rti1516_2025.MessageRetractionReturn result =
-         ambassador.sendInteraction(interaction, values, tag.clone(), time);
+      MessageRetractionReturn result = ambassador.sendInteraction(
+         interaction, values, tag.clone(), time);
       JavaTckSupport.check(result != null && result.retractionHandleIsValid
             && result.handle != null, description + " returned no valid retraction handle");
+      return result.handle;
    }
 
    private static void checkDelivery(Delivery delivery, InteractionClassHandle expectedClass,
@@ -310,6 +317,7 @@ final class FqgPostgrantDeliveryCutoffTck {
       private final LogicalTime<?, ?> time;
       private final OrderType sentOrder;
       private final OrderType receivedOrder;
+      private final MessageRetractionHandle retraction;
 
       private Delivery(Object[] arguments) {
          interaction = (InteractionClassHandle) arguments[0];
@@ -319,6 +327,7 @@ final class FqgPostgrantDeliveryCutoffTck {
          time = (LogicalTime<?, ?>) arguments[6];
          sentOrder = (OrderType) arguments[7];
          receivedOrder = (OrderType) arguments[8];
+         retraction = (MessageRetractionHandle) arguments[9];
       }
    }
 

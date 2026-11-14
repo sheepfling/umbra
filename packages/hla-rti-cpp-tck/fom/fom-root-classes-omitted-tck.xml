@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK FOM Without Explicit Root Classes</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-04</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Test optional HLA root-class inclusion in an IEEE 1516.1-2025 FDD</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Defines one object class and one interaction class without explicitly declaring either HLA root class.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>TckObject</name>
+            <sharing>PublishSubscribe</sharing>
+            <attribute>
+                <name>Value</name>
+                <dataType>HLAbyte</dataType>
+                <updateType>Static</updateType>
+                <updateCondition>On change</updateCondition>
+                <valueRequired>false</valueRequired>
+                <ownership>DivestAcquire</ownership>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>Receive</order>
+                <semantics>Attribute for the optional HLA root-class TCK fixture.</semantics>
+            </attribute>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>TckInteraction</name>
+            <sharing>PublishSubscribe</sharing>
+            <transportation>HLAreliable</transportation>
+            <order>Receive</order>
+            <parameter>
+                <name>Payload</name>
+                <dataType>HLAbyte</dataType>
+                <semantics>Parameter for the optional HLA root-class TCK fixture.</semantics>
+            </parameter>
+        </interactionClass>
+    </interactions>
+    <switches>
+        <autoProvide isEnabled="false"/>
+        <attributeRelevanceAdvisory isEnabled="false"/>
+        <objectClassRelevanceAdvisory isEnabled="false"/>
+        <interactionRelevanceAdvisory isEnabled="false"/>
+        <nonRegulatedGrant isEnabled="false"/>
+        <allowRelaxedDDM isEnabled="false"/>
+        <advisoriesUseKnownClass isEnabled="false"/>
+    </switches>
+</objectModel>

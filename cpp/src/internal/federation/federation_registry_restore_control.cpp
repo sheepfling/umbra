@@ -44,6 +44,7 @@ using federation_registry_state_image_validation::isRouteFreePendingOwnershipAss
 using federation_registry_state_image_validation::isRouteFreePendingRegularOwnershipObject;
 using federation_registry_state_image_validation::isRouteFreeRegionalTsoInteractionImage;
 using federation_registry_state_image_validation::isOneQueuedTsoInteractionIdentityRebindingImage;
+using federation_registry_state_image_validation::isOneQueuedReceiveOrderInteractionIdentityRebindingImage;
 using federation_registry_state_image_validation::pendingOwnershipAssumptionCallbackCount;
 
 using FederateIdentityMapping = std::map<std::uint64_t, std::uint64_t>;
@@ -484,6 +485,155 @@ bool isOnePendingRegularOwnershipIdentityRebindingImage(
   return true;
 }
 
+// A fresh-registry identity-rebinding slice for one ordinary polling-mode
+// receive-order attribute update. The saved object value, publisher and
+// subscriber declarations, and queued callback must describe the same single
+// nonregional attribute delivery; unrelated transaction ledgers are rejected.
+bool isOneQueuedReceiveOrderAttributeUpdateIdentityRebindingImage(
+    FederationStateImage const& image) {
+  if (image.members.size() != 2U ||
+      image.objectInstanceCount != 1U || image.objects.size() != 1U ||
+      image.objectClassDeclarationCount != 2U ||
+      image.objectClassAttributeDeclarations.size() != 2U ||
+      !image.objectClassAttributeDeclarationsPresent ||
+      image.regionCount != 0U || !image.regions.empty() ||
+      image.synchronizationPointCount != 0U ||
+      !image.synchronizationPoints.empty() ||
+      image.interactionDeclarationCount != 0U ||
+      !image.interactionDeclarations.empty() ||
+      image.tsoInteractionMessageCount != 0U ||
+      image.tsoAttributeUpdateMessageCount != 0U ||
+      image.tsoObjectDeletionMessageCount != 0U ||
+      image.tsoDirectedInteractionMessageCount != 0U ||
+      !image.tsoInteractionMessages.empty() ||
+      !image.tsoAttributeUpdateMessages.empty() ||
+      !image.tsoObjectDeletionMessages.empty() ||
+      !image.tsoRequestRetractionRecords.empty() ||
+      !image.tsoDirectedInteractionMessages.empty() ||
+      !image.tsoQueueEntries.empty() ||
+      !image.queuedReceiveOrderInteractions.empty() ||
+      !image.queuedReceiveOrderAttributeUpdatesPresent ||
+      image.queuedReceiveOrderAttributeUpdates.size() != 1U ||
+      !image.deferredUpdateRegionAssociations.empty() ||
+      !image.pendingAttributeOwnershipQueries.empty() ||
+      !image.pendingAttributeOwnershipAssumptions.empty() ||
+      !image.reservedObjectInstanceNames.empty()) {
+    return false;
+  }
+
+  std::set<std::uint64_t> savedMemberIds;
+  for (FederationStateImageMember const& member : image.members) {
+    if (member.id == 0U || !savedMemberIds.insert(member.id).second) {
+      return false;
+    }
+  }
+
+  FederationStateImageReceiveOrderAttributeUpdate const& update =
+      image.queuedReceiveOrderAttributeUpdates.front();
+  if (update.sequence == 0U ||
+      !savedMemberIds.contains(update.producingFederateId) ||
+      !savedMemberIds.contains(update.receivingFederateId) ||
+      update.producingFederateId == update.receivingFederateId ||
+      update.objectInstanceHandle == 0U || update.transportationName.empty() ||
+      update.pushDeliveryId != 0U || update.values.size() != 1U ||
+      update.values.front().attributeHandle == 0U) {
+    return false;
+  }
+
+  FederationStateImageObject const& object = image.objects.front();
+  std::uint64_t const attributeHandle = update.values.front().attributeHandle;
+  if (object.handle != update.objectInstanceHandle || object.name.empty() ||
+      object.registeredObjectClassHandle == 0U ||
+      object.producingFederateId != update.producingFederateId ||
+      !isRouteFreeDeliveredApplicationValue(object) ||
+      object.attributes.empty() || object.attributeValues.size() != 1U ||
+      object.knownObjectClassHandlesByFederate.size() != savedMemberIds.size()) {
+    return false;
+  }
+  FederationStateImageObjectAttributeValue const& latestValue =
+      object.attributeValues.front();
+  if (latestValue.attributeHandle != attributeHandle ||
+      latestValue.value != update.values.front().value) {
+    return false;
+  }
+
+  std::set<std::uint64_t> objectAttributeHandles;
+  bool producerOwnsUpdatedAttribute = false;
+  for (FederationStateImageObjectAttribute const& attribute : object.attributes) {
+    if (attribute.handle == 0U ||
+        !objectAttributeHandles.insert(attribute.handle).second ||
+        !attribute.updateRegionHandles.empty() ||
+        (attribute.ownerFederateId != 0U &&
+         attribute.ownerFederateId != update.producingFederateId)) {
+      return false;
+    }
+    if (attribute.handle == attributeHandle) {
+      if (attribute.ownerFederateId != update.producingFederateId) {
+        return false;
+      }
+      producerOwnsUpdatedAttribute = true;
+    }
+  }
+  std::set<std::uint64_t> knownFederateIds;
+  for (FederationStateImageKnownObjectClass const& knownClass :
+       object.knownObjectClassHandlesByFederate) {
+    if (!savedMemberIds.contains(knownClass.federateId) ||
+        !knownFederateIds.insert(knownClass.federateId).second ||
+        knownClass.objectClassHandle != object.registeredObjectClassHandle) {
+      return false;
+    }
+  }
+  if (!producerOwnsUpdatedAttribute || knownFederateIds != savedMemberIds) {
+    return false;
+  }
+
+  std::set<std::uint64_t> declarationFederateIds;
+  bool hasPublisher = false;
+  bool hasSubscriber = false;
+  for (FederationStateImageObjectClassAttributeDeclarations const& declarations :
+       image.objectClassAttributeDeclarations) {
+    if (!savedMemberIds.contains(declarations.federateId) ||
+        !declarationFederateIds.insert(declarations.federateId).second ||
+        declarations.classes.size() != 1U) {
+      return false;
+    }
+    FederationStateImageObjectClassAttributeClass const& objectClass =
+        declarations.classes.front();
+    if (objectClass.objectClassHandle != object.registeredObjectClassHandle ||
+        objectClass.privilegeToDeleteExplicitlyUnpublished ||
+        !objectClass.regionalSubscribedAttributes.empty() ||
+        !objectClass.regionalSubscribedUpdateRateDesignators.empty() ||
+        !objectClass.defaultTransportationTypes.empty() ||
+        !objectClass.defaultOrderTypes.empty()) {
+      return false;
+    }
+    if (declarations.federateId == update.producingFederateId) {
+      if (objectClass.explicitlyPublishedAttributeHandles !=
+              std::vector<std::uint64_t>{attributeHandle} ||
+          !objectClass.subscribedAttributes.empty() ||
+          !objectClass.subscribedUpdateRateDesignators.empty()) {
+        return false;
+      }
+      hasPublisher = true;
+    } else if (declarations.federateId == update.receivingFederateId) {
+      if (!objectClass.explicitlyPublishedAttributeHandles.empty() ||
+          objectClass.subscribedAttributes.size() != 1U ||
+          objectClass.subscribedAttributes.front().attributeHandle !=
+              attributeHandle ||
+          !objectClass.subscribedAttributes.front().active ||
+          objectClass.subscribedUpdateRateDesignators.size() != 1U ||
+          objectClass.subscribedUpdateRateDesignators.front().attributeHandle !=
+              attributeHandle) {
+        return false;
+      }
+      hasSubscriber = true;
+    } else {
+      return false;
+    }
+  }
+  return declarationFederateIds == savedMemberIds && hasPublisher && hasSubscriber;
+}
+
 bool hasOnlySupportedRebindableRestoreLedgers(
     FederationStateImage const& image) {
   bool const hasNoInteractionDeclarations =
@@ -515,6 +665,10 @@ bool hasOnlySupportedRebindableRestoreLedgers(
       image.synchronizationPoints.empty();
   bool const hasOneQueuedTsoInteractionLedger =
       isOneQueuedTsoInteractionIdentityRebindingImage(image);
+  bool const hasOneQueuedReceiveOrderInteractionLedger =
+      isOneQueuedReceiveOrderInteractionIdentityRebindingImage(image);
+  bool const hasOneQueuedReceiveOrderAttributeUpdateLedger =
+      isOneQueuedReceiveOrderAttributeUpdateIdentityRebindingImage(image);
   bool const hasOneAllowedDeclarationLedger =
       (hasNoInteractionDeclarations && hasNoObjectClassDeclarations && hasNoObjects) ||
       (hasOneRouteFreeInteractionDeclaration && hasNoObjectClassDeclarations && hasNoObjects) ||
@@ -549,7 +703,9 @@ bool hasOnlySupportedRebindableRestoreLedgers(
       (hasOnePublishedObjectApplicationValueWithOneRegion
            ? image.regions.size() == 1U
            : image.regions.empty());
-  return hasOneNonTsoRebindableLedger || hasOneQueuedTsoInteractionLedger;
+  return hasOneNonTsoRebindableLedger || hasOneQueuedTsoInteractionLedger ||
+      hasOneQueuedReceiveOrderInteractionLedger ||
+      hasOneQueuedReceiveOrderAttributeUpdateLedger;
 }
 
 template <typename LiveMembers>
@@ -559,14 +715,27 @@ bool rebindSupportedFederateIdentityLedgers(
     LiveMembers const& liveMembers) {
   bool const hasOneQueuedTsoIdentityRebindingLedger =
       isOneQueuedTsoInteractionIdentityRebindingImage(image);
+  bool const hasOneQueuedReceiveOrderInteractionIdentityRebindingLedger =
+      isOneQueuedReceiveOrderInteractionIdentityRebindingImage(image);
+  bool const hasOneQueuedReceiveOrderAttributeUpdateIdentityRebindingLedger =
+      isOneQueuedReceiveOrderAttributeUpdateIdentityRebindingImage(image);
   // The object producer and publication declaration refer to the same saved
   // member. Validate that cross-linked graph before either side is rebound.
   bool const hasOneOrTwoPublishedObjectApplicationValues =
       image.objects.empty() ||
       isOneOrTwoRouteFreePublishedObjectApplicationValueImage(image) ||
       isOneRouteFreePublishedObjectApplicationValueWithOneRegionImage(image) ||
-      isOnePendingRegularOwnershipIdentityRebindingImage(image);
+      isOnePendingRegularOwnershipIdentityRebindingImage(image) ||
+      hasOneQueuedReceiveOrderAttributeUpdateIdentityRebindingLedger;
   if (!hasOneOrTwoPublishedObjectApplicationValues) {
+    return false;
+  }
+  if (!image.queuedReceiveOrderAttributeUpdates.empty() &&
+      !hasOneQueuedReceiveOrderAttributeUpdateIdentityRebindingLedger) {
+    return false;
+  }
+  if (!image.queuedReceiveOrderInteractions.empty() &&
+      !hasOneQueuedReceiveOrderInteractionIdentityRebindingLedger) {
     return false;
   }
   if (!(image.synchronizationPointCount == 0U &&
@@ -596,7 +765,8 @@ bool rebindSupportedFederateIdentityLedgers(
   }
   if (!image.interactionDeclarations.empty()) {
     if (!isRouteFreeInteractionDeclarationImage(image) &&
-        !hasOneQueuedTsoIdentityRebindingLedger) {
+        !hasOneQueuedTsoIdentityRebindingLedger &&
+        !hasOneQueuedReceiveOrderInteractionIdentityRebindingLedger) {
       return false;
     }
     for (FederationStateImageInteractionDeclaration& declaration :
@@ -725,6 +895,26 @@ bool rebindSupportedFederateIdentityLedgers(
     }
     entry.recipientFederateId = reboundRecipient->second;
   }
+  for (FederationStateImageReceiveOrderAttributeUpdate& update :
+       image.queuedReceiveOrderAttributeUpdates) {
+    auto const reboundProducer = mapping.find(update.producingFederateId);
+    auto const reboundReceiver = mapping.find(update.receivingFederateId);
+    if (reboundProducer == mapping.end() || reboundReceiver == mapping.end()) {
+      return false;
+    }
+    update.producingFederateId = reboundProducer->second;
+    update.receivingFederateId = reboundReceiver->second;
+  }
+  for (FederationStateImageReceiveOrderInteraction& interaction :
+       image.queuedReceiveOrderInteractions) {
+    auto const reboundProducer = mapping.find(interaction.producingFederateId);
+    auto const reboundReceiver = mapping.find(interaction.receivingFederateId);
+    if (reboundProducer == mapping.end() || reboundReceiver == mapping.end()) {
+      return false;
+    }
+    interaction.producingFederateId = reboundProducer->second;
+    interaction.receivingFederateId = reboundReceiver->second;
+  }
 
   std::map<std::uint64_t, std::wstring> reboundNames;
   for (auto const& mappingEntry : mapping) {
@@ -749,6 +939,12 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     std::wstring const& federationName,
     std::uint64_t requestingFederateId,
     std::wstring label) {
+  std::unique_lock restoreAdmissionLock(
+      restoreRequestAdmissionMutex_, std::try_to_lock);
+  bool const concurrentRequest = !restoreAdmissionLock.owns_lock();
+  if (concurrentRequest) {
+    restoreAdmissionLock.lock();
+  }
   auto instrumentationScope = beginInstrumentation("requestFederationRestore");
   FederationRestoreControlResult result;
 
@@ -768,6 +964,34 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
     return result;
   }
   if (federation->second.restoreOperation.has_value()) {
+    if (concurrentRequest) {
+      auto const callbackRoute =
+          federation->second.interactionCallbackRoutes.find(requestingFederateId);
+      if (callbackRoute == federation->second.interactionCallbackRoutes.end() ||
+          !callbackRoute->second) {
+        result.status = FederationRestoreControlStatus::callback_route_missing;
+        return result;
+      }
+      auto const serviceReportRoute =
+          federation->second.serviceReportRoutes.find(requestingFederateId);
+      auto const publicServiceReportRoute =
+          federation->second.publicServiceReportRoutes.find(requestingFederateId);
+      FederationRestoreNotification notification;
+      notification.kind = FederationRestoreNotificationKind::request_failed;
+      notification.receivingFederateId = requestingFederateId;
+      notification.label = std::move(label);
+      notification.callbackRoute = callbackRoute->second;
+      if (serviceReportRoute != federation->second.serviceReportRoutes.end()) {
+        notification.serviceReportRoute = serviceReportRoute->second;
+      }
+      if (publicServiceReportRoute !=
+          federation->second.publicServiceReportRoutes.end()) {
+        notification.publicServiceReportRoute = publicServiceReportRoute->second;
+      }
+      result.status = FederationRestoreControlStatus::applied;
+      result.notifications.push_back(std::move(notification));
+      return result;
+    }
     result.status = FederationRestoreControlStatus::restore_in_progress;
     return result;
   }
@@ -1027,6 +1251,11 @@ FederationRestoreControlResult EmbeddedFederationRegistry::requestFederationRest
                        ? image.tsoObjectDeletionMessages.empty()
                        : restartableObjectLedger) &&
                   restartableTsoPayloadLedger;
+            }
+            if (durableCommitMatches && !processLocalSnapshot) {
+              durableCommitMatches = rebindFomHandlesInStateImage(
+                  image,
+                  federation->second);
             }
             if (durableCommitMatches) {
               FederateIdentityMapping identityMapping;

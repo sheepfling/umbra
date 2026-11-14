@@ -62,11 +62,17 @@ final class CallbackControlsAutoProvideTck {
          await(requester, callbackModel, objectClassName,
             () -> requesterRecorder.discoveries.contains(object),
             "discovery with Auto Provide disabled");
+         List<DiscoveryEvent> discoveries = requesterRecorder.discoveryEvents();
+         JavaTckSupport.check(discoveries.size() == 1
+               && object.equals(discoveries.get(0).object)
+               && requesterClass.equals(discoveries.get(0).objectClass),
+            "disabled Auto Provide discovery returned the wrong object or class");
          JavaTckSupport.check(ownerRecorder.provided().isEmpty(),
             "disabled Auto Provide emitted a callback before an explicit request");
 
          byte[] objectTag = new byte[] {0x51, 0x52, 0x54};
-         requester.requestAttributeValueUpdate(object, requesterAttributes, objectTag);
+         requester.requestAttributeValueUpdate(
+            discoveries.get(0).object, requesterAttributes, objectTag);
          await(owner, callbackModel, objectClassName,
             () -> ownerRecorder.provided().size() == 1,
             "object-scoped explicit attribute-value request");
@@ -280,18 +286,23 @@ final class CallbackControlsAutoProvideTck {
          await(requester, callbackModel, objectClassName,
             () -> requesterRecorder.discoveries.contains(object),
             "requester did not discover the Auto Provide object");
+         List<DiscoveryEvent> initialDiscoveries = requesterRecorder.discoveryEvents();
+         JavaTckSupport.check(initialDiscoveries.size() == 1
+               && object.equals(initialDiscoveries.get(0).object)
+               && requesterClass.equals(initialDiscoveries.get(0).objectClass),
+            "Auto Provide discovery returned the wrong object or object class");
 
-          if (gateCallbacks) {
-             if (callbackModel == CallbackModel.HLA_EVOKED) {
-                JavaTckSupport.check(owner.evokeMultipleCallbacks(0.0, 1.0),
-                   "evoked callback control did not admit the pending Auto Provide callback");
-             } else {
-                service(owner, callbackModel, objectClassName);
-             }
-             JavaTckSupport.check(ownerRecorder.provided().isEmpty(),
-                "disabled callbacks exposed a provideAttributeValueUpdate callback");
-             owner.enableCallbacks();
-          }
+         if (gateCallbacks) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) {
+               JavaTckSupport.check(owner.evokeMultipleCallbacks(0.0, 1.0),
+                  "evoked callback control did not admit the pending Auto Provide callback");
+            } else {
+               service(owner, callbackModel, objectClassName);
+            }
+            JavaTckSupport.check(ownerRecorder.provided().isEmpty(),
+               "disabled callbacks exposed a provideAttributeValueUpdate callback");
+            owner.enableCallbacks();
+         }
          await(owner, callbackModel, objectClassName,
             () -> ownerRecorder.provided().size() == 1,
              "Auto Provide callback did not arrive");
@@ -326,8 +337,13 @@ final class CallbackControlsAutoProvideTck {
                   && new HashSet<>(ownerAttributes).equals(secondUpdates.get(0).attributes)
                   && secondUpdates.get(0).tag.length == 0,
                "Attribute Scope Advisory changed Auto Provide callback data");
-            JavaTckSupport.check(requesterRecorder.discoveries.size() == 2,
-               "Attribute Scope Advisory changed Auto Provide discovery count");
+            List<DiscoveryEvent> discoveries = requesterRecorder.discoveryEvents();
+            JavaTckSupport.check(discoveries.size() == 2
+                  && object.equals(discoveries.get(0).object)
+                  && requesterClass.equals(discoveries.get(0).objectClass)
+                  && secondObject.equals(discoveries.get(1).object)
+                  && requesterClass.equals(discoveries.get(1).objectClass),
+               "Attribute Scope Advisory changed Auto Provide discovery data or count");
          }
 
          requester.unsubscribeObjectClassAttributes(requesterClass, requesterAttributes);

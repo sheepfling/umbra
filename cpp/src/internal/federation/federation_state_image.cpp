@@ -2075,6 +2075,34 @@ std::string FederationStateImageCodec::encode(FederationStateImage const& image)
       }
     }
   }
+  if (image.fomHandlesPresent) {
+    result += "fomHandles=";
+    result += std::to_string(image.fomHandles.size());
+    result += '\n';
+    for (auto const& fomHandle : image.fomHandles) {
+      auto const kind = static_cast<std::uint32_t>(fomHandle.kind);
+      if (kind < static_cast<std::uint32_t>(
+                     FederationStateImageFomHandleKind::object_class) ||
+          kind > static_cast<std::uint32_t>(
+                     FederationStateImageFomHandleKind::dimension) ||
+          fomHandle.name.empty() || fomHandle.handle == 0U ||
+          ((fomHandle.kind == FederationStateImageFomHandleKind::attribute ||
+            fomHandle.kind == FederationStateImageFomHandleKind::parameter) !=
+           !fomHandle.containingName.empty())) {
+        throw std::logic_error(
+            "Invalid semantic FOM handle identity in Umbra state image.");
+      }
+      result += "fomHandle=";
+      result += std::to_string(kind);
+      result += '|';
+      result += hexEncode(fomHandle.name);
+      result += '|';
+      result += hexEncode(fomHandle.containingName);
+      result += '|';
+      result += std::to_string(fomHandle.handle);
+      result += '\n';
+    }
+  }
   if (image.saveHistoryPresent ||
       !image.queuedReceiveOrderInteractions.empty() ||
       !image.queuedReceiveOrderAttributeUpdates.empty()) {

@@ -193,11 +193,12 @@ final class RestoreMixedTsoFourMemberTck {
                && Arrays.equals(reflection.values.get(mirrorAttribute), attributePayload)
                && Arrays.equals(reflection.tag, commonTag)
                && reflection.producer.equals(ownerHandle)
-               && reflection.time.equals(time7) && reflection.retraction != null
+               && Arrays.equals(encode(reflection.time), encode(time7))
+               && reflection.retraction != null
                && removal.subject.equals(object)
                && Arrays.equals(removal.tag, deletionTag)
                && removal.producer.equals(ownerHandle)
-               && removal.time.equals(time8)
+               && Arrays.equals(encode(removal.time), encode(time8))
                && removal.sentOrder == OrderType.TIMESTAMP
                && removal.receivedOrder == OrderType.TIMESTAMP
                && removal.retraction != null
@@ -206,7 +207,8 @@ final class RestoreMixedTsoFourMemberTck {
                && Arrays.equals(interaction.values.get(observerParameter), interactionPayload)
                && Arrays.equals(interaction.tag, commonTag)
                && interaction.producer.equals(senderHandle)
-               && interaction.time.equals(time7) && interaction.retraction != null,
+               && Arrays.equals(encode(interaction.time), encode(time7))
+               && interaction.retraction != null,
             "mixed TSO restore changed public reflection, removal, or interaction fields");
          JavaTckSupport.check(mirrorEvents.callbackOrder.equals(
                   List.of("reflect", "remove", "flush-grant"))
@@ -291,6 +293,12 @@ final class RestoreMixedTsoFourMemberTck {
       LogicalTime result = start;
       for (int index = 0; index < steps; ++index) result = (LogicalTime) result.add(interval);
       return result;
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static final class TimedPayload {

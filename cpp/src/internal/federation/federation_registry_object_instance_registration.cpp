@@ -242,14 +242,14 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
       }
     }
     if (!associatedAttributes.empty()) {
-      auto const availableDimensions = availableObjectClassDimensions(
-          federation->second,
-          objectClassHandle);
-      if (!availableDimensions) {
-        return {ObjectInstanceRegistrationStatus::inconsistent_catalog};
-      }
       for (auto const& [attributeHandle, regionHandles] : *updateRegionsByAttribute) {
-        static_cast<void>(attributeHandle);
+        auto const availableDimensions = availableObjectClassAttributeDimensions(
+            federation->second,
+            objectClassHandle,
+            attributeHandle);
+        if (!availableDimensions) {
+          return {ObjectInstanceRegistrationStatus::inconsistent_catalog};
+        }
         for (std::uint64_t const regionHandle : regionHandles) {
           auto const region = federation->second.regions.find(regionHandle);
           if (region == federation->second.regions.end()) {
@@ -295,10 +295,14 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
   std::wstring objectInstanceName = requestedObjectInstanceName == nullptr
       ? std::wstring{}
       : *requestedObjectInstanceName;
+  if (objectInstanceHandle == 0U ||
+      objectInstanceHandle >= kRtiOwnedObjectInstanceHandleDomainBit) {
+    return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
+  }
   if (requestedObjectInstanceName == nullptr) {
     do {
-      if (objectInstanceHandle == 0 ||
-          objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
+      if (objectInstanceHandle == 0U ||
+          objectInstanceHandle >= kRtiOwnedObjectInstanceHandleDomainBit) {
         return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
       }
       objectInstanceName =
@@ -309,19 +313,21 @@ ObjectInstanceRegistrationResult EmbeddedFederationRegistry::registerObjectInsta
           !federation->second.reservedObjectInstanceNamesByFederate.contains(objectInstanceName)) {
         break;
       }
+      if (objectInstanceHandle + 1U >= kRtiOwnedObjectInstanceHandleDomainBit) {
+        return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
+      }
       ++objectInstanceHandle;
     } while (true);
   } else {
     while (federation->second.objectInstances.contains(objectInstanceHandle) ||
            federation->second.rtiOwnedJoinedFederateMomObjects.contains(objectInstanceHandle)) {
-      if (objectInstanceHandle == 0 ||
-          objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
+      if (objectInstanceHandle + 1U >= kRtiOwnedObjectInstanceHandleDomainBit) {
         return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
       }
       ++objectInstanceHandle;
     }
-    if (objectInstanceHandle == 0 ||
-        objectInstanceHandle == std::numeric_limits<std::uint64_t>::max()) {
+    if (objectInstanceHandle == 0U ||
+        objectInstanceHandle >= kRtiOwnedObjectInstanceHandleDomainBit) {
       return {ObjectInstanceRegistrationStatus::object_instance_handle_exhausted};
     }
   }

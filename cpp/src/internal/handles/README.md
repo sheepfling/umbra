@@ -11,16 +11,25 @@ federation membership, delivery, ownership, or time behavior.
   validation helpers.
 - The <kind>_handle_directory files keep FOM-derived name and handle mappings
   stable for an active federation.
-- handle_variable_array_encoding.hpp and
-  handle_variable_array_encoding_2010.hpp are version-specific adapters over
-  the same private wire primitive; keep their public namespaces and error
-  behavior separate.
+- fom_handle_allocator retains collision-checked, CSPRNG-generated assignments
+  by typed FDD name for the RTI registry lifetime, so recreating a federation
+  execution with the same FDD reuses those handles.
+- handle_variable_array_encoding.hpp is the 2025 typed handle wire adapter:
+  its HLAvariableArray<HLAbyte> payload contains a stable one-octet handle
+  kind followed by the eight-octet identity. Keep the explicit type-code table
+  stable across future language bindings so cross-API reconstitution can be
+  implemented consistently.
+- handle_variable_array_encoding_2010.hpp retains the legacy eight-octet
+  identity format through the shared private wire primitive. Do not change or
+  share that format with the 2025 typed encoding.
 - 2025_handle_definition.hpp contains the 2025-only common class definition
   macro. It must not be used by the 2010 implementation.
 
 The directory implementations consume the [FOM catalog](../fom/README.md).
 Federation-owned code uses them through narrow lookup operations rather than
-reconstructing names or raw values itself.
+reconstructing names or raw values itself. The 2025 handle assignment cache is
+owned by one RTI registry and is shared across its federation executions; it is
+not a cross-process persistence store.
 
 ## Where new code belongs
 

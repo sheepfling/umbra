@@ -64,7 +64,7 @@ final class TimestampedDirectedInteractionRetractionTck {
             JavaTckSupport.attributeSet(receiver, receiverAttribute)); attributesSubscribed = true;
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction)); directedPublished = true;
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction)); directedSubscribed = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
 

@@ -20,6 +20,7 @@
 #include <cmath>
 #include <exception>
 #include <filesystem>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
@@ -232,6 +233,111 @@ SemanticNode buildCompositionRoot(xmlDoc const* document, NoteLabelMap const* no
   return root;
 }
 
+bool normalizeOptionalStandardRootHierarchy(
+    SemanticNode& compositionRoot,
+    std::string_view sectionName,
+    std::string_view classElementName,
+    std::string_view requiredRootName,
+    std::string_view hierarchyKind,
+    std::string& diagnostics) {
+  auto section = std::find_if(
+      compositionRoot.children.begin(),
+      compositionRoot.children.end(),
+      [&](auto const& entry) { return entry.second.localName == sectionName; });
+  if (section == compositionRoot.children.end()) {
+    return true;
+  }
+
+  SemanticNode& classTable = section->second;
+  std::vector<NodeKey> implicitRootChildren;
+  NodeKey rootKey;
+  bool hasExplicitRoot = false;
+  for (auto const& [key, classDefinition] : classTable.children) {
+    if (classDefinition.localName != classElementName) {
+      continue;
+    }
+    if (identityValue(classDefinition, fom_schema::identity::name_prefix) == requiredRootName) {
+      rootKey = key;
+      hasExplicitRoot = true;
+    } else {
+      implicitRootChildren.push_back(key);
+    }
+  }
+  if (implicitRootChildren.empty()) {
+    return true;
+  }
+
+  // IEEE 1516.1-2025 §10.1.1 makes explicit FOM declarations of the standard
+  // root classes optional. The standard MIM normally contributes these roots;
+  // synthesize a name-only node when composing a FOM without that foundation.
+  // Later composition merges the placeholder with the MIM's full definition.
+  if (!hasExplicitRoot) {
+    std::string const rootName(requiredRootName);
+    SemanticNode rootClass{
+        std::string(classElementName),
+        classTable.namespaceName,
+        std::string(fom_schema::identity::name_prefix) + rootName,
+        {},
+        {},
+        {}};
+    SemanticNode rootNameNode{"name", classTable.namespaceName, {}, rootName, {}, {}};
+    appendChild(rootClass, childKey(rootClass, rootNameNode), std::move(rootNameNode));
+    rootKey = childKey(classTable, rootClass);
+    appendChild(classTable, rootKey, std::move(rootClass));
+  }
+
+  auto rootClass = classTable.children.find(rootKey);
+  if (rootClass == classTable.children.end()) {
+    diagnostics = "The standard " + std::string(hierarchyKind) +
+                  " root class could not be materialized during FOM composition.";
+    return false;
+  }
+
+  // A top-level class in a 2025 FOM has the implicit standard root as its
+  // parent. Normalize before module merging so names and references use the
+  // same fully qualified hierarchy regardless of whether the root was named.
+  for (NodeKey const& key : implicitRootChildren) {
+    auto classDefinition = classTable.children.find(key);
+    if (classDefinition == classTable.children.end()) {
+      continue;
+    }
+    SemanticNode child = std::move(classDefinition->second);
+    classTable.children.erase(classDefinition);
+    std::erase(classTable.childOrder, key);
+
+    NodeKey const nestedKey = childKey(rootClass->second, child);
+    if (rootClass->second.children.contains(nestedKey)) {
+      diagnostics = std::string(hierarchyKind) + " class " +
+                    quoteDiagnosticString(identityValue(
+                        child, fom_schema::identity::name_prefix)) +
+                    " is declared both at the top level and below " +
+                    quoteDiagnosticString(requiredRootName) + ".";
+      return false;
+    }
+    appendChild(rootClass->second, nestedKey, std::move(child));
+  }
+  return true;
+}
+
+bool normalizeOptionalStandardRootClassHierarchies(
+    SemanticNode& compositionRoot,
+    std::string& diagnostics) {
+  return normalizeOptionalStandardRootHierarchy(
+             compositionRoot,
+             fom_schema::element::objects,
+             fom_schema::element::object_class,
+             umbra::detail::hla::utf8::fom::object_root,
+             "Object",
+             diagnostics) &&
+         normalizeOptionalStandardRootHierarchy(
+             compositionRoot,
+             fom_schema::element::interactions,
+             fom_schema::element::interaction_class,
+             umbra::detail::hla::utf8::fom::interaction_root,
+             "Interaction",
+             diagnostics);
+}
+
 unsigned long parseUnsignedLong(std::string const& value) {
   if (value.empty()) {
     return 0;
@@ -242,6 +348,50 @@ unsigned long parseUnsignedLong(std::string const& value) {
     return 0;
   }
   return parsed;
+}
+
+std::optional<std::pair<unsigned long, unsigned long>> parseDimensionDefaultRange(
+    std::string_view value,
+    unsigned long dimensionUpperBound) {
+  if (value.empty() || value == fom_schema::value::excluded_dimension_value) {
+    return std::nullopt;
+  }
+
+  auto parseBound = [](std::string_view text) -> std::optional<unsigned long> {
+    if (text.empty()) {
+      return std::nullopt;
+    }
+    unsigned long parsed = 0;
+    auto const result = std::from_chars(text.data(), text.data() + text.size(), parsed, 10);
+    if (result.ec != std::errc{} || result.ptr != text.data() + text.size()) {
+      return std::nullopt;
+    }
+    return parsed;
+  };
+
+  if (auto const point = parseBound(value); point.has_value()) {
+    if (*point >= dimensionUpperBound ||
+        *point == std::numeric_limits<unsigned long>::max()) {
+      return std::nullopt;
+    }
+    return std::pair<unsigned long, unsigned long>{*point, *point + 1UL};
+  }
+
+  if (value.size() < 3U || value.front() != '[' || value.back() != ')') {
+    return std::nullopt;
+  }
+  std::string_view const body = value.substr(1U, value.size() - 2U);
+  auto const separator = body.find("..");
+  auto const lower = parseBound(
+      separator == std::string_view::npos ? body : body.substr(0U, separator));
+  auto const upper = separator == std::string_view::npos
+      ? std::optional<unsigned long>{dimensionUpperBound}
+      : parseBound(body.substr(separator + 2U));
+  if (!lower.has_value() || !upper.has_value() ||
+      *lower >= *upper || *upper > dimensionUpperBound) {
+    return std::nullopt;
+  }
+  return std::pair<unsigned long, unsigned long>{*lower, *upper};
 }
 
 bool isEnabledSwitch(SemanticNode const& node) {
@@ -375,6 +525,30 @@ bool semanticNodesEquivalent(SemanticNode const& current, SemanticNode const& ca
     }
   }
   return true;
+}
+
+SemanticNode trackedFomDesignatorContent(SemanticNode const& root) {
+  static constexpr std::string_view trackedSections[] = {
+      "objects",
+      "interactions",
+      "dimensions",
+      "transportations",
+      "updateRates",
+      "switches",
+  };
+  SemanticNode projection{"objectModel", {}, {}, {}, {}, {}};
+  for (SemanticNode const* child : childrenInDeclarationOrder(root)) {
+    bool const isTracked = std::find(
+                               std::begin(trackedSections),
+                               std::end(trackedSections),
+                               child->localName) != std::end(trackedSections);
+    // An empty schema section is not an addition or modification of FOM
+    // content. Keep only declaration-bearing sections in the comparison.
+    if (isTracked && !child->children.empty()) {
+      appendChild(projection, childKey(projection, *child), *child);
+    }
+  }
+  return projection;
 }
 
 std::map<std::string, std::string> canonicalSwitchAttributes(
@@ -566,6 +740,14 @@ bool transportationNodesEquivalent(
     return false;
   }
   for (auto const& [key, candidateChild] : candidate.children) {
+    // IEEE 1516.1-2025 §4.1.4.1 limits FOM-module conflict checks to FDD
+    // content. A transportation type's <semantics> element is descriptive,
+    // not part of the FDD, so a differing description cannot make the
+    // duplicate inconsistent. Keep the first module's description in the
+    // composed document, but do not use it as a rejection criterion.
+    if (candidateChild.localName == "semantics") {
+      continue;
+    }
     auto const existing = current.children.find(key);
     if (existing == current.children.end()) {
       // The first definition may be a partial DIF row; a later supplied
@@ -588,15 +770,15 @@ bool mergeSwitches(
     SemanticNode const& candidate,
     std::string const& path,
     std::string& diagnostics,
-    std::vector<std::string>& warnings) {
+    std::vector<std::string>& warnings,
+    bool allowLegacyStandardAliases) {
   if (!mergeNodeFields(current, candidate, path, diagnostics)) {
     return false;
   }
 
-  // IEEE 1516.2-2025 Annex C.8 treats a same-named switch differently from
-  // the ordinary structural merge rules: the existing setting wins and a
-  // non-equivalent duplicate is ignored with a warning rather than making the
-  // entire FOM composition inconsistent. Unique switch names are inserted.
+  // IEEE 1516.1-2025 §4.1.4.1 requires a module with a conflicting named
+  // switch to be rejected. Keep the first-definition warning behavior only
+  // in the explicitly separate 2010 compatibility stream.
   for (SemanticNode const* candidateSwitch : childrenInDeclarationOrder(candidate)) {
     NodeKey const key = childKey(current, *candidateSwitch);
     auto const existing = current.children.find(key);
@@ -605,8 +787,13 @@ bool mergeSwitches(
       continue;
     }
     if (!switchNodesEquivalent(existing->second, *candidateSwitch)) {
+      if (!allowLegacyStandardAliases) {
+        diagnostics = "Conflicting definition of named switch " +
+                      displayNode(*candidateSwitch) + " at " + path + ".";
+        return false;
+      }
       warnings.push_back(
-          "Annex C.8 warning: non-equivalent duplicate switch " +
+          "IEEE 1516-2010 compatibility: non-equivalent duplicate switch " +
           displayNode(*candidateSwitch) + " at " + path +
           " was ignored; the first module's setting is retained.");
     }
@@ -667,10 +854,11 @@ bool mergeTransportationTypes(
   }
 
   // IEEE 1516.2-2025 Annex C.6 compares a same-name transportation type with
-  // the first definition.  An identical duplicate is ignored; a duplicate
-  // with any differing name/semantics/notes sub-element fails.  Keep this out
-  // of the generic structural merge so noteReferences cannot be unioned into
-  // a silently changed transport definition.
+  // the first definition.  A duplicate with differing FDD content fails;
+  // the non-FDD <semantics> description is excluded by
+  // transportationNodesEquivalent per IEEE 1516.1-2025 §4.1.4.1. Keep this
+  // out of the generic structural merge so noteReferences cannot be unioned
+  // into a silently changed transport definition.
   for (SemanticNode const* candidateTransportation : childrenInDeclarationOrder(candidate)) {
     NodeKey const key = childKey(current, *candidateTransportation);
     auto const existing = current.children.find(key);
@@ -850,7 +1038,13 @@ bool mergeNode(
     NoteDefinitionMap const& currentNoteDefinitions = {},
     NoteDefinitionMap const& candidateNoteDefinitions = {}) {
   if (current.localName == "switches") {
-    return mergeSwitches(current, candidate, path, diagnostics, warnings);
+    return mergeSwitches(
+        current,
+        candidate,
+        path,
+        diagnostics,
+        warnings,
+        allowLegacyStandardAliases);
   }
   if (current.localName == "synchronizations") {
     return mergeSynchronizationPoints(
@@ -1669,12 +1863,37 @@ class FomCatalogBuilder final {
  public:
   [[nodiscard]] static std::shared_ptr<FomCatalog const> build(
       SemanticNode const& root,
-      std::vector<PrevalidatedFomModule> const& modules) {
+      std::vector<PrevalidatedFomModule> const& modules,
+      SemanticNode const* mimRoot) {
     auto catalog = std::make_shared<FomCatalog>();
     catalog->modules_ = modules;
     FomSourceCompatibility const sourceCompatibility = modules.empty()
         ? FomSourceCompatibility::strict
         : modules.front().sourceCompatibility;
+
+    if (mimRoot != nullptr) {
+      FomCatalog mimCatalog;
+      if (auto const* objects = firstChildNamed(*mimRoot, "objects"); objects != nullptr) {
+        for (auto const& [key, objectClass] : objects->children) {
+          (void)key;
+          if (objectClass.localName == "objectClass") {
+            appendObjectClass(mimCatalog, objectClass, {});
+          }
+        }
+      }
+      for (auto const& [objectClassName, objectClass] : mimCatalog.objectClasses_) {
+        static_cast<void>(objectClass);
+        auto const attributes = mimCatalog.effectiveObjectClassAttributes(objectClassName);
+        if (!attributes.has_value()) {
+          continue;
+        }
+        auto& names = catalog->mimObjectClassAttributeNames_[objectClassName];
+        for (auto const& [attributeName, attribute] : *attributes) {
+          static_cast<void>(attribute);
+          names.insert(attributeName);
+        }
+      }
+    }
 
     if (auto const* objects = firstChildNamed(root, "objects"); objects != nullptr) {
       for (auto const& [key, objectClass] : objects->children) {
@@ -1992,6 +2211,9 @@ class FomCatalogBuilder final {
         ? std::numeric_limits<unsigned long>::max()
         : parseUnsignedLong(upperBoundText);
     FomDimensionDefinition definition{name, {}, upperBound};
+    definition.defaultRange = parseDimensionDefaultRange(
+        scalarChildValue(node, "value"),
+        upperBound);
     if (auto const* inputDataTypes = firstChildNamed(node, "inputDataTypes"); inputDataTypes != nullptr) {
       for (auto const& [key, dataType] : inputDataTypes->children) {
         (void)key;
@@ -2148,6 +2370,7 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   std::optional<SemanticNode> modelIdentification;
   std::vector<PrevalidatedFomModule> revalidated;
   revalidated.reserve(modules.size());
+  std::optional<SemanticNode> mimFoundation;
   std::vector<std::string> moduleNames;
   moduleNames.reserve(modules.size());
   std::vector<std::string> warnings;
@@ -2193,9 +2416,29 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
     SemanticNode candidate = buildCompositionRoot(parsed.document.get(), &noteLabels);
     xmlNode const* root = xmlDocGetRootElement(parsed.document.get());
     std::string diagnostics;
+    if (standardEdition == FomStandardEdition::ieee1516_2025 &&
+        module.kind == FomModuleKind::fom &&
+        !normalizeOptionalStandardRootClassHierarchies(candidate, diagnostics)) {
+      return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
+    }
     if (!validateFomModificationDate(
             directChildElement(root, "modelIdentification"),
             diagnostics)) {
+      return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
+    }
+    if (standardEdition == FomStandardEdition::ieee1516_2025 &&
+        module.kind == FomModuleKind::fom &&
+        !validateFomModelIdentificationVersionNonblank(
+            directChildElement(root, "modelIdentification"), diagnostics)) {
+      return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
+    }
+    // IEEE 1516.2-2025 table completeness applies to rows authored in FOM
+    // modules. The standard MIM intentionally omits some optional fields on
+    // its predefined rows, so validate the source module before composition
+    // rather than the MIM-augmented model.
+    if (standardEdition == FomStandardEdition::ieee1516_2025 &&
+        module.kind == FomModuleKind::fom &&
+        !validateFomAttributeRequiredTextFields(candidate, diagnostics)) {
       return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
     }
     if (!modelIdentification.has_value()) {
@@ -2213,6 +2456,11 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
       if (candidateNotes.has_value()) {
         collectFomReservedHlaNames(*candidateNotes, reservedHlaNames);
       }
+    } else if (!mimFoundation.has_value()) {
+      // The first FOM module is applied after the MIM foundation. Preserve
+      // that composed baseline so downstream MOM ownership uses provenance
+      // rather than a homegrown list of predefined attribute names.
+      mimFoundation = merged;
     }
     NoteDefinitionMap const currentNoteDefinitions =
         haveNotes ? noteDefinitions(&mergedNotes) : NoteDefinitionMap{};
@@ -2222,6 +2470,7 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
     // preserves the completed-model ordering of the MIM-reserved set and
     // lets table-specific NA companion rules report their more precise
     // diagnostic before the generic reserved-name check.
+    SemanticNode const trackedContentBefore = trackedFomDesignatorContent(merged);
     if (!validateUniqueComposedFomDimensions(parsed.document.get(), diagnostics) ||
         !mergeNode(
             merged,
@@ -2235,6 +2484,9 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
         !validateMergedFomModuleState(merged, diagnostics)) {
       return {FomCompositionStatus::inconsistent_modules, {}, std::move(diagnostics)};
     }
+    bool const changesListedFomContent = !semanticNodesEquivalent(
+        trackedContentBefore,
+        trackedFomDesignatorContent(merged));
 
     if (candidateNotes.has_value()) {
       if (!haveNotes) {
@@ -2262,6 +2514,9 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
       }
     }
 
+    parsed.module.contributesToFomModuleDesignatorList =
+        standardEdition != FomStandardEdition::ieee1516_2025 ||
+        module.kind != FomModuleKind::fom || changesListedFomContent;
     moduleNames.push_back(moduleName(parsed.document.get(), module, moduleIndex));
     revalidated.push_back(std::move(parsed.module));
   }
@@ -2295,7 +2550,12 @@ FomCompositionResult LibXml2FomModuleComposer::compose(
   // attribute, interaction, and datatype metadata for handle/object creation.
   // FDD serialization remains available for the complete 2025 lane and is a
   // later, separately reviewed 2010 compatibility milestone.
-  auto catalog = FomCatalogBuilder::build(merged, revalidated);
+  if (!mimFoundation.has_value()) {
+    // A MIM-only execution has no later FOM extension boundary; all effective
+    // attributes therefore come from its foundation.
+    mimFoundation = merged;
+  }
+  auto catalog = FomCatalogBuilder::build(merged, revalidated, &*mimFoundation);
   if (standardEdition == FomStandardEdition::ieee1516_2010) {
     return {
         FomCompositionStatus::valid,

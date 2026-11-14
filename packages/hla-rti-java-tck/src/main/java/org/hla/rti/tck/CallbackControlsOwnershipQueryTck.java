@@ -106,9 +106,9 @@ final class CallbackControlsOwnershipQueryTck {
          JavaTckSupport.check(object.equals(notOwned.object)
                && new HashSet<>(List.of(requesterSecond)).equals(notOwned.attributes),
             "ownership query returned the wrong unowned subset");
-          JavaTckSupport.check(requesterRecorder.ownedByRti().isEmpty()
-                && requesterRecorder.ownershipEventCount() == 2,
-             "ordinary ownership query returned an unexpected RTI-owned callback");
+         JavaTckSupport.check(requesterRecorder.ownedByRti().isEmpty()
+               && requesterRecorder.ownershipEventCount() == 2,
+            "ordinary ownership query returned an unexpected RTI-owned callback");
 
          requester.setServiceReportingSwitch(false);
          ObjectClassHandle momClass = requester.getObjectClassHandle(MOM_FEDERATE_CLASS);
@@ -116,10 +116,10 @@ final class CallbackControlsOwnershipQueryTck {
             requester.getAttributeHandle(momClass, MOM_FEDERATE_HANDLE);
          JavaTckSupport.check(momClass != null && momHandleAttribute != null,
             "standard joined-federate MOM ownership-query lookup returned a null handle");
-          JavaTckSupport.check(MOM_FEDERATE_CLASS.equals(requester.getObjectClassName(momClass))
-                && MOM_FEDERATE_HANDLE.equals(
-                   requester.getAttributeName(momClass, momHandleAttribute)),
-             "standard MIM ownership-query handles did not round-trip to their names");
+         JavaTckSupport.check(MOM_FEDERATE_CLASS.equals(requester.getObjectClassName(momClass))
+               && MOM_FEDERATE_HANDLE.equals(
+                  requester.getAttributeName(momClass, momHandleAttribute)),
+            "standard MIM ownership-query handles did not round-trip to their names");
          requester.subscribeObjectClassAttributes(
             momClass, JavaTckSupport.attributeSet(requester, momHandleAttribute));
          byte[] encodedRequester = new byte[requesterHandle.encodedLength()];

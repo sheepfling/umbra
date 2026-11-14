@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for standard ownership transfer with regional update association state. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard region services, and the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback model, and application configuration. It verifies regional registration and subscription, If Available acquisition, If Wanted divestiture, ownership queries, update-region association, source-region metadata, and cleanup without provider-specific headers, registries, names, or diagnostics.",
+  "notes": "This contract records the portable C++ TCK check for standard ownership transfer with regional update association state. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs, standard region services, and the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback model, and application configuration. Before valid object registration, it creates and commits a region using TckUnrelatedDimension, confirms that dimension is unavailable to the object class, and checks that Register Object Instance With Regions raises InvalidRegionContext; the existing valid X/Y region update is the positive control for p. 220 l. 5-13. It also verifies regional registration and subscription, If Available and regular acquisition, If Wanted divestiture, ownership queries, and source-region metadata. After the first transfer, all receiver subscriptions are moved disjoint from the former owner's source region; the new owner updates before associating a replacement. The former owner later reacquires ownership, updates before explicitly recreating its lost association, then reassociates and demonstrates that the old source region is used only after that explicit call. This is bounded evidence for the selected §9.1.3.2 dimension-subset and ownership-loss rules, not conformance.",
   "api_surfaces": [
     {
       "id": "standard-cpp-ownership-transfer-regional-update",
@@ -13,6 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador ownership, object-management, DDM, and attribute-update declarations with standard callbacks",
       "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_ownership_management_scenarios.cpp::scenarioOwnershipTransferRegionalUpdate",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioOwnershipTransferRegionalUpdateContract"
       ]
     }

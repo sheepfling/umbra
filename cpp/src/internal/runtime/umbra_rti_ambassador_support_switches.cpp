@@ -292,6 +292,53 @@ bool UmbraRtiAmbassador::getAllowRelaxedDDMSwitch() const {
 bool UmbraRtiAmbassador::getNonRegulatedGrantSwitch() const {
   auto instrumentationScope = beginRtiCall("getNonRegulatedGrantSwitch");
   try {
+#if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
+  if (processEndpointActive_) {
+    std::wstring federationName;
+    std::uint64_t federateId = 0U;
+    umbra::detail::ProcessFederationClient* processClient = nullptr;
+    {
+      std::scoped_lock lock(mutex_);
+      requireConnectedForFederationManagement(lifecycle_);
+      if (lifecycle_.state() != umbra::detail::FederateLifecycleState::joined ||
+          !joinedFederationName_ || !joinedFederateId_) {
+        throw FederateNotExecutionMember(
+            L"Get Non Regulated Grant Switch requires membership in a federation execution.");
+      }
+      processClient = processFederationClient_.get();
+      if (processClient == nullptr) {
+        throw RTIinternalError(
+            L"The configured process endpoint has no active federation client.");
+      }
+      federationName = *joinedFederationName_;
+      federateId = *joinedFederateId_;
+    }
+    try {
+      auto const result = processClient->getNonRegulatedGrantSwitch(
+          std::move(federationName), federateId);
+      switch (result.status) {
+        case umbra::detail::FederationServiceOperationStatus::available:
+          return result.value;
+        case umbra::detail::FederationServiceOperationStatus::save_in_progress:
+          throw SaveInProgress(
+              L"Get Non Regulated Grant Switch is unavailable during federation save.");
+        case umbra::detail::FederationServiceOperationStatus::restore_in_progress:
+          throw RestoreInProgress(
+              L"Get Non Regulated Grant Switch is unavailable during federation restore.");
+        case umbra::detail::FederationServiceOperationStatus::federation_does_not_exist:
+        case umbra::detail::FederationServiceOperationStatus::federate_not_member:
+          throw FederateNotExecutionMember(
+              L"Get Non Regulated Grant Switch requires an execution member.");
+      }
+      throw RTIinternalError(
+          L"Get Non Regulated Grant Switch returned an unknown operation state.");
+    } catch (umbra::detail::ProcessFederationServiceProtocolError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    } catch (umbra::detail::ProcessFederationClientError const& error) {
+      throw RTIinternalError(wideAscii(error.what()));
+    }
+  }
+#endif
   std::scoped_lock lock(mutex_, ambassadorFederationManagementMutex());
   requireConnectedForFederationManagement(lifecycle_);
   requireFederationServiceOperationAvailable(L"Get Non Regulated Grant Switch");

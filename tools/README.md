@@ -2560,7 +2560,7 @@ complete provider, FOM, matrix, and JPype-handoff commands.
 | verify_catch2_test_tags.py | Ensures native Catch2 tests belong to focused development lanes. |
 | verify_ctest_service_lanes.py | Checks that configured CTest service lanes remain complete. |
 | verify_ieee_exception_binding.py | Confirms every official exception has a binding definition. |
-| verify_ieee_headers.py | Confirms the vendored IEEE 1516.1 header file set and hashes. |
+| verify_ieee_headers.py | Confirms the pinned 2025 C++ API header file set and hashes in vendored, installed, or locally supplied upstream ZIP trees. |
 | verify_hla_symbolic_names.py | Rejects new raw string literals at dynamic HLA handle-lookup boundaries against a per-file legacy ceiling; `--strict` requires zero findings. |
 
 ## Reporting

@@ -9,6 +9,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -73,7 +74,8 @@ final class RestorePendingTimeRegulationCallbackTck {
          await(member, model, () -> !roleTimes.isEmpty()
                && events.savedCount >= 1 && events.restoredCount >= 1,
             "rebound time-role and restore callbacks");
-         JavaTckSupport.check(roleTimes.equals(List.of(initial))
+         JavaTckSupport.check(roleTimes.size() == 1
+               && Arrays.equals(encode(roleTimes.get(0)), encode(initial))
                && events.savedCount == 1 && events.restoredCount == 1,
             "restore duplicated or lost the pending time-role callback");
 
@@ -96,6 +98,12 @@ final class RestorePendingTimeRegulationCallbackTck {
    private static LogicalTimeInterval doubleInterval(LogicalTimeInterval epsilon)
          throws Exception {
       return (LogicalTimeInterval) epsilon.add(epsilon);
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(RTIambassador member, CallbackModel model,

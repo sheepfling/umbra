@@ -95,7 +95,8 @@ final class MultiAttributeValueUpdateRequestResponseTck {
          await(requester, () -> requesterRecorder.discoveredObject != null,
             "requester did not discover the multi-attribute object before the deadline");
          ObjectInstanceHandle localObject = requesterRecorder.discoveredObject;
-         JavaTckSupport.check(objectName.equals(requester.getObjectInstanceName(localObject))
+         JavaTckSupport.check(object.equals(localObject)
+               && objectName.equals(requester.getObjectInstanceName(localObject))
                && localObject.equals(requester.getObjectInstanceHandle(objectName))
                && requesterClass.equals(requester.getKnownObjectClassHandle(localObject)),
             "requester did not preserve its discovered object identity");

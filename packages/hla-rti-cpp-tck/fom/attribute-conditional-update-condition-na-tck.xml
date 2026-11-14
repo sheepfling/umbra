@@ -6,5 +6,6 @@
         <name>TckConditionalNaCondition</name>
         <dataType>HLAunicodeString</dataType><updateType>Conditional</updateType>
         <updateCondition>NA</updateCondition>
+        <semantics>Invalid fixture pairing a conditional update with an NA condition.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

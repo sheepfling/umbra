@@ -94,10 +94,16 @@ final class CallbackControlsAvailableTimeAdvanceTck {
          publisherRecorder.clearEvents();
          receiverRecorder.clearEvents();
 
-         LogicalTime<?, ?> initial = publisher.queryLogicalTime();
-         LogicalTime<?, ?> receiverInitial = receiver.queryLogicalTime();
-         JavaTckSupport.check(initial.equals(receiverInitial),
-            "available-advance federates began at different logical times");
+         LogicalTime<?, ?> initial = publisherTimeFactory.makeInitial();
+         LogicalTime<?, ?> receiverInitial = receiverTimeFactory.makeInitial();
+         LogicalTime<?, ?> publisherCurrent = publisher.queryLogicalTime();
+         LogicalTime<?, ?> receiverCurrent = receiver.queryLogicalTime();
+         JavaTckSupport.check(initial.equals(publisherCurrent)
+               && receiverInitial.equals(receiverCurrent)
+               && Arrays.equals(encode(initial), encode(publisherCurrent))
+               && Arrays.equals(encode(receiverInitial), encode(receiverCurrent))
+               && Arrays.equals(encode(initial), encode(receiverInitial)),
+            "available-advance federates did not start at their time factories' initial time");
 
          runAvailableAdvance(publisher, receiver, publisherRecorder, receiverRecorder,
             publisherInteraction, receiverInteraction, publisherParameter, receiverParameter,
@@ -208,7 +214,10 @@ final class CallbackControlsAvailableTimeAdvanceTck {
          description + " publisher timeAdvanceGrant did not arrive");
       JavaTckSupport.check(publisherTarget.equals(publisherRecorder.timeAdvanceGrantTimes.get(0)),
          description + " publisher received the wrong grant time");
-      service(receiver, callbackModel, objectClassName);
+      JavaTckSupport.check(Arrays.equals(encode(publisherTarget),
+            encode(publisherRecorder.timeAdvanceGrantTimes.get(0))),
+         description + " publisher received the wrong encoded grant time");
+      serviceWithoutWaiting(receiver, callbackModel, objectClassName);
       JavaTckSupport.check(receiverRecorder.timedInteractions.isEmpty()
             && receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
          description + " exposed callbacks while callbacks were disabled");
@@ -232,12 +241,18 @@ final class CallbackControlsAvailableTimeAdvanceTck {
             && interaction.receivedOrder == OrderType.TIMESTAMP
             && interaction.transportation != null
             && (interaction.regions == null || interaction.regions.isEmpty())
-            && retraction.handle.equals(interaction.retraction),
+            && retraction.handle.equals(interaction.retraction)
+            && Arrays.equals(encode(retraction.handle), encode(interaction.retraction))
+            && Arrays.equals(encode(messageTime), encode(interaction.time)),
          description + " returned incorrect timestamped interaction metadata");
       JavaTckSupport.check(receiverRecorder.flushQueueGrantTimes.isEmpty(),
          description + " returned an unexpected Flush Queue grant");
-      JavaTckSupport.check(messageTime.equals(receiverRecorder.timeAdvanceGrantTimes.get(0))
-            && messageTime.equals(receiver.queryLogicalTime()),
+      LogicalTime<?, ?> grantedTime = receiverRecorder.timeAdvanceGrantTimes.get(0);
+      LogicalTime<?, ?> currentTime = receiver.queryLogicalTime();
+      JavaTckSupport.check(messageTime.equals(grantedTime)
+            && Arrays.equals(encode(messageTime), encode(grantedTime))
+            && messageTime.equals(currentTime)
+            && Arrays.equals(encode(messageTime), encode(currentTime)),
          description + " returned the wrong time-advance grant");
    }
 
@@ -255,6 +270,24 @@ final class CallbackControlsAvailableTimeAdvanceTck {
          String objectClassName) throws Exception {
       if (model == CallbackModel.HLA_EVOKED) ambassador.evokeMultipleCallbacks(0.0, 1.0);
       else ambassador.getObjectClassHandle(objectClassName);
+   }
+
+   private static void serviceWithoutWaiting(RTIambassador ambassador, CallbackModel model,
+         String objectClassName) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) ambassador.evokeMultipleCallbacks(0.0, 0.0);
+      else ambassador.getObjectClassHandle(objectClassName);
+   }
+
+   private static byte[] encode(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encode(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
    }
 
    private interface Condition {

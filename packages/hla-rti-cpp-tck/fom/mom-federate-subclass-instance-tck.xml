@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLAfederate MOM Subclass Instance TCK FOM</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-03</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Exercise the IEEE 1516.1-2025 MOM object subclass instance rule.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>Adds one user-publishable object subclass below the standard HLAfederate MOM class.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>HLAmanager</name>
+                <objectClass>
+                    <name>HLAfederate</name>
+                    <objectClass>
+                        <name>TckFederateExtension</name>
+                        <sharing>PublishSubscribe</sharing>
+                        <attribute>
+                            <name>TckExtensionValue</name>
+                            <dataType>TckFederateExtensionValueType</dataType>
+                            <updateType>Static</updateType>
+                            <updateCondition>At registration.</updateCondition>
+                            <valueRequired>false</valueRequired>
+                            <ownership>DivestAcquire</ownership>
+                            <sharing>PublishSubscribe</sharing>
+                            <transportation>HLAreliable</transportation>
+                            <order>Receive</order>
+                            <semantics>Test-only attribute used to publish and register an HLAfederate subclass instance.</semantics>
+                        </attribute>
+                    </objectClass>
+                </objectClass>
+            </objectClass>
+        </objectClass>
+    </objects>
+    <dataTypes>
+        <simpleDataTypes>
+            <simpleData>
+                <name>TckFederateExtensionValueType</name>
+                <representation>HLAinteger32BE</representation>
+                <units>NA</units>
+                <resolution>1</resolution>
+                <accuracy>Perfect</accuracy>
+                <semantics>Test-only signed integer representation for the extension attribute.</semantics>
+            </simpleData>
+        </simpleDataTypes>
+    </dataTypes>
+</objectModel>

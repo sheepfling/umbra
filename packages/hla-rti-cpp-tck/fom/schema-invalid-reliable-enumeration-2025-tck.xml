@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025">
+  <modelIdentification>
+    <name>IEEE 1516.2-2025 schema-invalid TCK FDD</name>
+  </modelIdentification>
+  <objects>
+    <objectClass>
+      <name>HLAobjectRoot</name>
+    </objectClass>
+  </objects>
+  <interactions>
+    <interactionClass>
+      <name>HLAinteractionRoot</name>
+      <sharing>Neither</sharing>
+      <transportation>HLAreliable</transportation>
+      <order>TimeStamp</order>
+      <interactionClass>
+        <name>TckSchemaValidInteraction</name>
+        <sharing>PublishSubscribe</sharing>
+        <transportation>HLAreliable</transportation>
+        <order>Receive</order>
+      </interactionClass>
+    </interactionClass>
+  </interactions>
+  <dimensions/>
+  <transportations>
+    <transportation>
+      <name>HLAreliable</name>
+      <reliable>Maybe</reliable>
+    </transportation>
+  </transportations>
+</objectModel>

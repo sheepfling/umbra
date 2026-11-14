@@ -54,7 +54,8 @@ void queueExceptionReport(
   sentParameters.emplace_back(
       report.routing.exceptionParameterHandle,
       HLAunicodeString{exception}.encode());
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportException transportation.");
 
@@ -89,13 +90,33 @@ void queueExceptionReport(
       auto const parameterValues = ambassadorProjectInteractionParameterValues(
           sentParameters,
           projection->receivedParameterHandles);
+      CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+          federationName,
+          receivingFederateId);
+      std::optional<RegionHandleSet> optionalSentRegions;
+      if (projection->conveyRegionDesignatorSets) {
+        if (projection->sentRegionHandles.empty() ||
+            projection->sentRegionSnapshots.empty()) {
+          throw RTIinternalError(
+              L"An HLAreportException recipient has no RTI update-region snapshot.");
+        }
+        optionalSentRegions.emplace();
+        auto const copyStatus = callbackRegionDesignatorCopies.create(
+            projection->sentRegionHandles,
+            projection->sentRegionSnapshots,
+            *optionalSentRegions);
+        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+          throw RTIinternalError(
+              L"The RTI could not create callback-scoped exception-report region designators.");
+        }
+      }
       recipient.receiveInteraction(
           makeInteractionClassHandle(projection->receivedInteractionClassHandle),
           parameterValues,
           VariableLengthData{},
           reliableTransportation,
           FederateHandle{},
-          nullptr);
+          optionalSentRegions ? &*optionalSentRegions : nullptr);
     });
   }
 }
@@ -134,7 +155,8 @@ void queueMomExceptionReport(
   sentParameters.emplace_back(
       report.routing.parameterErrorParameterHandle,
       HLAboolean{parameterError}.encode());
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportMOMexception transportation.");
 
@@ -169,13 +191,33 @@ void queueMomExceptionReport(
       auto const parameterValues = ambassadorProjectInteractionParameterValues(
           sentParameters,
           projection->receivedParameterHandles);
+      CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+          federationName,
+          receivingFederateId);
+      std::optional<RegionHandleSet> optionalSentRegions;
+      if (projection->conveyRegionDesignatorSets) {
+        if (projection->sentRegionHandles.empty() ||
+            projection->sentRegionSnapshots.empty()) {
+          throw RTIinternalError(
+              L"An HLAreportMOMexception recipient has no RTI update-region snapshot.");
+        }
+        optionalSentRegions.emplace();
+        auto const copyStatus = callbackRegionDesignatorCopies.create(
+            projection->sentRegionHandles,
+            projection->sentRegionSnapshots,
+            *optionalSentRegions);
+        if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+          throw RTIinternalError(
+              L"The RTI could not create callback-scoped MOM-exception region designators.");
+        }
+      }
       recipient.receiveInteraction(
           makeInteractionClassHandle(projection->receivedInteractionClassHandle),
           parameterValues,
           VariableLengthData{},
           reliableTransportation,
           FederateHandle{},
-          nullptr);
+          optionalSentRegions ? &*optionalSentRegions : nullptr);
     });
   }
 }
@@ -448,7 +490,8 @@ bool emitAmbassadorSelectedMomServiceReportInteractionForFederate(
   reportParameters.emplace_back(
       reservation.routing.reportParameterHandles[7],
       makeFederateHandle(reportedFederateId).encode());
-  auto const reliableTransportation = ambassadorTransportationHandleFromEmbeddedName(
+  auto const reliableTransportation = ambassadorTransportationHandleFromFederationName(
+      federationName,
       umbra::detail::hla::utf8::mom::reliable,
       L"The embedded federation could not reconstruct HLAreportServiceInvocation transportation.");
   queueAmbassadorMomServiceReportInteraction(

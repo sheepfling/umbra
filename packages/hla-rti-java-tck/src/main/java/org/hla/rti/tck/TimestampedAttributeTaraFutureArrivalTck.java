@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** A TSO attribute update arriving while TARA or NMR is pending. */
+/** A TSO attribute update arriving while TARA, NMR, or NMRA is pending. */
 final class TimestampedAttributeTaraFutureArrivalTck {
    private TimestampedAttributeTaraFutureArrivalTck() { }
 
@@ -33,24 +33,32 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
       runMode(factory, fom, timeImplementation, objectClassName, attributeName,
-         callbackModel, false);
+         callbackModel, false, false);
    }
 
    static void runNmr(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, CallbackModel callbackModel)
          throws Exception {
       runMode(factory, fom, timeImplementation, objectClassName, attributeName,
-         callbackModel, true);
+         callbackModel, true, false);
+   }
+
+   static void runNmra(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
+      runMode(factory, fom, timeImplementation, objectClassName, attributeName,
+         callbackModel, false, true);
    }
 
    private static void runMode(RtiFactory factory, String fom,
          String timeImplementation, String objectClassName, String attributeName,
-         CallbackModel callbackModel, boolean nmr) throws Exception {
+         CallbackModel callbackModel, boolean nmr, boolean nmra) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
       Recorder receiverRecorder = new Recorder();
-      String federation = "java-tck-attribute-" + (nmr ? "nmr" : "tara")
+      String requestMode = nmra ? "nmra" : nmr ? "nmr" : "tara";
+      String federation = "java-tck-attribute-" + requestMode
          + "-future-" + UUID.randomUUID();
       boolean publisherConnected = false, receiverConnected = false;
       boolean created = false, publisherJoined = false, receiverJoined = false;
@@ -63,10 +71,11 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          receiverConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
+         String federatePrefix = "java-tck-attribute-" + requestMode;
          FederateHandle producer = publisher.joinFederationExecution(
-            "java-tck-attribute-tara-publisher", federation);
+            federatePrefix + "-publisher", federation);
          publisherJoined = true;
-         receiver.joinFederationExecution("java-tck-attribute-tara-receiver", federation);
+         receiver.joinFederationExecution(federatePrefix + "-receiver", federation);
          receiverJoined = true;
 
          ObjectClassHandle publisherClass = publisher.getObjectClassHandle(objectClassName);
@@ -100,7 +109,8 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          LogicalTimeInterval epsilon = (LogicalTimeInterval) publisherFactory.makeEpsilon();
          receiver.enableTimeConstrained();
          constrained = true;
-         publisher.enableTimeRegulation(nmr ? intervalOffset(epsilon, 5) : epsilon);
+         publisher.enableTimeRegulation(nmr || nmra
+            ? intervalOffset(epsilon, 5) : epsilon);
          regulating = true;
          await(() -> receiverRecorder.constrained && publisherRecorder.regulating,
             publisher, receiver, "time-role callbacks");
@@ -112,9 +122,9 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          JavaTckSupport.check(publisherCurrent.equals(publisherRecorder.grants.get(0)),
             "regulator advanced to the wrong logical time");
          LogicalTime<?, ?> updateTime = offset(publisherCurrent, epsilon,
-            nmr ? 5 : 3);
+            nmra ? 6 : nmr ? 5 : 3);
          LogicalTime<?, ?> requestBoundary = offset(receiverInitial,
-            (LogicalTimeInterval) receiverFactory.makeEpsilon(), nmr ? 10 : 6);
+            (LogicalTimeInterval) receiverFactory.makeEpsilon(), nmr || nmra ? 10 : 6);
          if (nmr) {
             TimeQueryReturn galt = receiver.queryGALT();
             JavaTckSupport.check(galt.timeIsValid && updateTime.equals(galt.time),
@@ -133,16 +143,26 @@ final class TimestampedAttributeTaraFutureArrivalTck {
 
          receiverRecorder.callbackOrder.clear();
          if (nmr) receiver.nextMessageRequest(requestBoundary);
+         else if (nmra) receiver.nextMessageRequestAvailable(requestBoundary);
          else receiver.timeAdvanceRequestAvailable(requestBoundary);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.reflections.isEmpty()
-               && receiverRecorder.grants.isEmpty(),
-            "request completed before the future attribute update arrived");
+         if (nmra) {
+            requireNmraPending(receiver, receiverRecorder,
+               "NMRA completed before the future timestamped attribute update arrived");
+         } else {
+            JavaTckSupport.drain(receiver);
+            JavaTckSupport.check(receiverRecorder.reflections.isEmpty()
+                  && receiverRecorder.grants.isEmpty(),
+               "request completed before the future attribute update arrived");
+         }
 
-         byte[] value = nmr
+         byte[] value = nmra
+            ? new byte[] {0x4e, 0x4d, 0x52, 0x41}
+            : nmr
             ? new byte[] {0x4e, 0x4d, 0x52, 0x37}
             : new byte[] {0x54, 0x41, 0x52, 0x41, 0x35};
-         byte[] tag = nmr
+         byte[] tag = nmra
+            ? new byte[] {0x4e, 0x4d, 0x52, 0x41}
+            : nmr
             ? new byte[] {0x4e, 0x4d, 0x52}
             : new byte[] {0x54, 0x41, 0x52, 0x41};
          AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
@@ -152,14 +172,17 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
                && sent.handle != null,
             "timestamped update returned no valid retraction handle");
-         if (!nmr) {
+         if (nmra) {
+            requireNmraPending(receiver, receiverRecorder,
+               "NMRA delivered the update before the publisher advanced to its timestamp");
+         } else if (!nmr) {
             JavaTckSupport.check(receiverRecorder.reflections.isEmpty(),
                "future reflection arrived before the regulator advanced");
          }
 
          if (!nmr) {
             LogicalTime<?, ?> publisherAdvance = offset(publisherCurrent,
-               epsilon, 4);
+               epsilon, nmra ? 1 : 4);
             publisher.timeAdvanceRequest(publisherAdvance);
             await(() -> publisherRecorder.grants.size() == 2,
                publisher, receiver, "regulator's follow-up grant");
@@ -168,7 +191,7 @@ final class TimestampedAttributeTaraFutureArrivalTck {
          }
          await(() -> receiverRecorder.reflections.size() >= 1
                && receiverRecorder.grants.size() >= 1,
-            publisher, receiver, "reflection and TARA grant");
+            publisher, receiver, "reflection and request grant");
          JavaTckSupport.check(receiverRecorder.reflections.size() == 1
                && receiverRecorder.grants.size() == 1
                && receiverRecorder.callbackOrder.equals(Arrays.asList(
@@ -189,7 +212,7 @@ final class TimestampedAttributeTaraFutureArrivalTck {
                && reflection.transportation != null
                && !receiver.getTransportationTypeName(reflection.transportation).isEmpty(),
             "reflection returned incorrect time, order, retraction, or transport metadata");
-         LogicalTime<?, ?> expectedGrant = nmr ? updateTime : requestBoundary;
+         LogicalTime<?, ?> expectedGrant = nmr || nmra ? updateTime : requestBoundary;
          JavaTckSupport.check(expectedGrant.equals(receiverRecorder.grants.get(0))
                && expectedGrant.equals(receiver.queryLogicalTime()),
             "request did not grant and advance to the expected time");
@@ -261,6 +284,17 @@ final class TimestampedAttributeTaraFutureArrivalTck {
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})
+   private static void requireNmraPending(RTIambassador receiver,
+         Recorder receiverRecorder, String context) throws Exception {
+      long deadline = System.nanoTime() + 40_000_000L;
+      while (System.nanoTime() < deadline) {
+         JavaTckSupport.drain(receiver);
+         JavaTckSupport.check(receiverRecorder.reflections.isEmpty()
+               && receiverRecorder.grants.isEmpty(), context);
+         Thread.sleep(1L);
+      }
+   }
+
    private static LogicalTime offset(LogicalTime start, LogicalTimeInterval epsilon,
          int steps) throws Exception {
       LogicalTime time = start;

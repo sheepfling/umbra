@@ -11,5 +11,9 @@ void scenarioMixedUpdateRateSubscriptionsContract(Options const&, rti::CallbackM
 void scenarioTimestampedAttributeUpdateRateReduction(Options const&, rti::CallbackModel);
 void scenarioTimestampedAttributeUpdateRateReductionContract(
     Options const&, rti::CallbackModel);
+void scenarioUpdateRateWallClockSpacing(Options const&, rti::CallbackModel);
+void scenarioUpdateRateWallClockSpacingContract(Options const&, rti::CallbackModel);
+void scenarioSynchronousUpdateRateMessageDrop(Options const&, rti::CallbackModel);
+void scenarioSynchronousUpdateRateMessageDropContract(Options const&, rti::CallbackModel);
 
 }  // namespace hla_rti_cpp_tck::detail

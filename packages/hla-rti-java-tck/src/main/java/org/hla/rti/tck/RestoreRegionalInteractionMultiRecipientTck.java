@@ -91,6 +91,8 @@ final class RestoreRegionalInteractionMultiRecipientTck {
          sourceRegion = createRegion(publisher, firstDimensionName, secondDimensionName, 1, 7);
          firstRegion = createRegion(first, firstDimensionName, secondDimensionName, 3, 8);
          secondRegion = createRegion(second, firstDimensionName, secondDimensionName, 5, 9);
+         installRegionObserver(firstEvents, first, firstDimensionName, secondDimensionName);
+         installRegionObserver(secondEvents, second, firstDimensionName, secondDimensionName);
          first.subscribeInteractionClassWithRegions(firstInteraction, regionSet(first, firstRegion));
          firstSubscribed = true;
          second.subscribeInteractionClassWithRegions(secondInteraction, regionSet(second, secondRegion));
@@ -112,7 +114,7 @@ final class RestoreRegionalInteractionMultiRecipientTck {
          LogicalTime<?, ?> time7 = offset(initial, epsilon, 7);
          LogicalTime<?, ?> time10 = offset(initial, epsilon, 10);
          publisher.enableTimeRegulation(interval(epsilon, 5));
-         await(members, () -> publisherEvents.regulationEnabled == 1,
+         await(List.of(publisher), () -> publisherEvents.regulationEnabled == 1,
             "publisher time-regulation enablement");
 
          MessageRetractionReturn saved = publisher.sendInteractionWithRegions(
@@ -121,6 +123,7 @@ final class RestoreRegionalInteractionMultiRecipientTck {
                && saved.handle != null && firstEvents.deliveries.isEmpty()
                && secondEvents.deliveries.isEmpty(),
             "timestamp-seven interaction was not queued for both recipients");
+         byte[] savedRetraction = encodeHandle(saved.handle);
          first.timeAdvanceRequest(time1);
          second.timeAdvanceRequest(time1);
          publisher.requestFederationSave(saveLabel);
@@ -130,8 +133,9 @@ final class RestoreRegionalInteractionMultiRecipientTck {
                && firstEvents.timeGrants.size() == 1
                && secondEvents.timeGrants.size() == 1,
             "three-member save initiation and time-one grants");
-         JavaTckSupport.check(firstEvents.timeGrants.get(0).equals(time1)
-               && secondEvents.timeGrants.get(0).equals(time1),
+         JavaTckSupport.check(Arrays.equals(
+                  encodeTime(firstEvents.timeGrants.get(0)), encodeTime(time1))
+               && Arrays.equals(encodeTime(secondEvents.timeGrants.get(0)), encodeTime(time1)),
             "a constrained recipient did not reach time one before save");
          publisher.federateSaveBegun();
          first.federateSaveBegun();
@@ -169,29 +173,30 @@ final class RestoreRegionalInteractionMultiRecipientTck {
          firstEvents.order.clear();
          secondEvents.order.clear();
          first.flushQueueRequest(time10);
-         await(members, () -> firstEvents.deliveries.size() == 1
+         await(List.of(first), () -> firstEvents.deliveries.size() == 1
                && firstEvents.flushGrants.size() == 1,
             "first restored interaction and flush queue grant");
          JavaTckSupport.check(secondEvents.deliveries.isEmpty()
                && secondEvents.flushGrants.isEmpty() && secondEvents.order.isEmpty(),
             "first FQR prematurely released second recipient");
          second.flushQueueRequest(time10);
-         await(members, () -> secondEvents.deliveries.size() == 1
+         await(List.of(second), () -> secondEvents.deliveries.size() == 1
                && secondEvents.flushGrants.size() == 1,
             "second restored interaction and flush queue grant");
-         checkDelivered(firstEvents, firstInteraction, firstParameter, sourceRegion,
-            publisherHandle, saved.handle, time7, time5, payload, tag);
-         checkDelivered(secondEvents, secondInteraction, secondParameter, sourceRegion,
-            publisherHandle, saved.handle, time7, time5, payload, tag);
+         checkDelivered(firstEvents, firstInteraction, firstParameter,
+            publisherHandle, savedRetraction, time7, time5, payload, tag);
+         checkDelivered(secondEvents, secondInteraction, secondParameter,
+            publisherHandle, savedRetraction, time7, time5, payload, tag);
 
          firstEvents.order.clear();
          secondEvents.order.clear();
          publisher.retract(saved.handle);
-         await(members, () -> firstEvents.retractions.size() == 1
+         await(List.of(first, second), () -> firstEvents.retractions.size() == 1
                && secondEvents.retractions.size() == 1,
             "both restored request-retraction callbacks");
-         JavaTckSupport.check(firstEvents.retractions.get(0).equals(saved.handle)
-               && secondEvents.retractions.get(0).equals(saved.handle)
+         JavaTckSupport.check(Arrays.equals(
+                  encodeHandle(firstEvents.retractions.get(0)), savedRetraction)
+               && Arrays.equals(encodeHandle(secondEvents.retractions.get(0)), savedRetraction)
                && firstEvents.order.equals(List.of("request-retraction"))
                && secondEvents.order.equals(List.of("request-retraction")),
             "restored retraction callbacks differed between recipients");
@@ -263,28 +268,67 @@ final class RestoreRegionalInteractionMultiRecipientTck {
       return regions;
    }
 
+   private static void installRegionObserver(Recorder events, RTIambassador receiver,
+         String firstDimensionName, String secondDimensionName) throws Exception {
+      DimensionHandle first = receiver.getDimensionHandle(firstDimensionName);
+      DimensionHandle second = receiver.getDimensionHandle(secondDimensionName);
+      events.firstDimension = first;
+      events.secondDimension = second;
+      events.regionHook = regions -> events.callbackRegion = inspectCallbackRegion(
+         receiver, regions, first, second);
+   }
+
+   private static CallbackRegionCopy inspectCallbackRegion(RTIambassador receiver,
+         RegionHandleSet regions, DimensionHandle firstDimension,
+         DimensionHandle secondDimension) throws Exception {
+      JavaTckSupport.check(regions != null && regions.size() == 1,
+         "restored regional interaction omitted its single source-region copy");
+      RegionHandle callbackRegion = regions.iterator().next();
+      return new CallbackRegionCopy(
+         (DimensionHandleSet) receiver.getDimensionHandleSet(callbackRegion).clone(),
+         receiver.getRangeBounds(callbackRegion, firstDimension),
+         receiver.getRangeBounds(callbackRegion, secondDimension));
+   }
+
    private static void checkDelivered(Recorder events,
          InteractionClassHandle interaction, ParameterHandle parameter,
-         RegionHandle sourceRegion,
-         FederateHandle publisher, MessageRetractionHandle saved,
+         FederateHandle publisher, byte[] savedRetraction,
          LogicalTime<?, ?> time7, LogicalTime<?, ?> time5,
-         byte[] payload, byte[] tag) {
+         byte[] payload, byte[] tag) throws Exception {
       Delivery delivered = events.deliveries.get(0);
       FlushGrant grant = events.flushGrants.get(0);
+      CallbackRegionCopy regionCopy = events.callbackRegion;
       JavaTckSupport.check(delivered.interaction.equals(interaction)
             && delivered.parameters.size() == 1
             && Arrays.equals(delivered.parameters.get(parameter), payload)
             && Arrays.equals(delivered.tag, tag)
             && delivered.producer.equals(publisher)
-            && delivered.time.equals(time7)
+            && Arrays.equals(encodeTime(delivered.time), encodeTime(time7))
             && delivered.sentOrder == OrderType.TIMESTAMP
             && delivered.receivedOrder == OrderType.TIMESTAMP
             && delivered.regions != null && delivered.regions.size() == 1
-            && delivered.regions.contains(sourceRegion)
-            && delivered.retraction.equals(saved)
-            && grant.time.equals(time5) && grant.optimisticTime.equals(time7)
+            && Arrays.equals(encodeHandle(delivered.retraction), savedRetraction)
+            && regionCopy != null && regionCopy.dimensions.size() == 2
+            && regionCopy.dimensions.contains(events.firstDimension)
+            && regionCopy.dimensions.contains(events.secondDimension)
+            && regionCopy.firstBounds.lower == 1 && regionCopy.firstBounds.upper == 7
+            && regionCopy.secondBounds.lower == 1 && regionCopy.secondBounds.upper == 7
+            && Arrays.equals(encodeTime(grant.time), encodeTime(time5))
+            && Arrays.equals(encodeTime(grant.optimisticTime), encodeTime(time7))
             && events.order.equals(List.of("interaction", "flush-grant")),
          "restored recipient interaction, grant, or callback ordering changed");
+   }
+
+   private static byte[] encodeHandle(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
+   }
+
+   private static byte[] encodeTime(LogicalTime<?, ?> time) throws Exception {
+      byte[] encoded = new byte[time.encodedLength()];
+      time.encode(encoded, 0);
+      return encoded;
    }
 
    private static void await(List<RTIambassador> members,
@@ -327,6 +371,18 @@ final class RestoreRegionalInteractionMultiRecipientTck {
       LogicalTime<?, ?> time, optimisticTime;
    }
 
+   private static final class CallbackRegionCopy {
+      final DimensionHandleSet dimensions;
+      final RangeBounds firstBounds, secondBounds;
+
+      CallbackRegionCopy(DimensionHandleSet dimensions,
+            RangeBounds firstBounds, RangeBounds secondBounds) {
+         this.dimensions = dimensions;
+         this.firstBounds = firstBounds;
+         this.secondBounds = secondBounds;
+      }
+   }
+
    private static final class Recorder {
       final List<Delivery> deliveries = new CopyOnWriteArrayList<>();
       final List<FlushGrant> flushGrants = new CopyOnWriteArrayList<>();
@@ -336,6 +392,9 @@ final class RestoreRegionalInteractionMultiRecipientTck {
       final List<String> restoreLabels = new CopyOnWriteArrayList<>();
       final List<String> order = new CopyOnWriteArrayList<>();
       volatile int regulationEnabled, savedCount, restoredCount;
+      DimensionHandle firstDimension, secondDimension;
+      volatile CallbackRegionCopy callbackRegion;
+      RegionHook regionHook;
 
       FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -351,6 +410,7 @@ final class RestoreRegionalInteractionMultiRecipientTck {
                   restoreLabels.add((String) args[0]);
                else if ("federationRestored".equals(name)) restoredCount++;
                else if ("receiveInteraction".equals(name) && args.length == 10) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) args[5]);
                   Delivery delivered = new Delivery();
                   delivered.interaction = (InteractionClassHandle) args[0];
                   delivered.parameters = ((ParameterHandleValueMap) args[1]).clone();
@@ -382,5 +442,10 @@ final class RestoreRegionalInteractionMultiRecipientTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

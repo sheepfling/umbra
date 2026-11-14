@@ -170,6 +170,10 @@ final class TimestampedInteractionTarPostGrantCutoffTck {
             () -> publisherRecorder.timeAdvanceGrantTimes.size() == 2
                && frontierRecorder.timeAdvanceGrantTimes.size() == 2,
             publisher, frontier);
+         JavaTckSupport.check(publisherAtSix.equals(
+               publisherRecorder.timeAdvanceGrantTimes.get(1))
+               && frontierAtSix.equals(frontierRecorder.timeAdvanceGrantTimes.get(1)),
+            "producer or regulating frontier did not grant the requested TAR(6)");
          receiver.timeAdvanceRequest(receiverAtSix);
          await(callbackModel, "receiver TAR(6) grant",
             () -> receiverRecorder.timeAdvanceGrantTimes.size() == 2,

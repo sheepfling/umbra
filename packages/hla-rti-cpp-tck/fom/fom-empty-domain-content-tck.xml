@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-FDD-2025.xsd">
+    <modelIdentification>
+        <name>FOM with empty domain-specific tables</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-11-01</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Portable IEEE 1516.2-2025 empty-domain-content test</purpose>
+        <applicationDomain>HLA TCK</applicationDomain>
+        <description>Required root classes only; other OMT tables contain no domain-specific entries.</description>
+    </modelIdentification>
+    <serviceUtilization/>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <transportation>HLAreliable</transportation>
+            <order>TimeStamp</order>
+        </interactionClass>
+    </interactions>
+    <dimensions/>
+    <time/>
+    <tags/>
+    <synchronizations/>
+    <transportations>
+        <transportation>
+            <name>HLAreliable</name>
+            <reliable>Yes</reliable>
+            <semantics>Provide reliable delivery of data in the sense that TCP/IP delivers its data reliably</semantics>
+        </transportation>
+    </transportations>
+    <switches/>
+    <updateRates/>
+    <dataTypes/>
+    <notes/>
+</objectModel>

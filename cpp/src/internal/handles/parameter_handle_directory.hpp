@@ -9,6 +9,7 @@
 namespace umbra::detail {
 
 class FomCatalog;
+class FomHandleAllocator;
 
 // Private, per-federation ParameterHandle allocation. A key represents the
 // interaction class that declares a parameter rather than each subclass that
@@ -16,7 +17,9 @@ class FomCatalog;
 // value across compatible additional-FOM joins; no name-derived hash is used.
 class ParameterHandleDirectory final {
  public:
-  [[nodiscard]] bool reconcile(FomCatalog const* catalog);
+  [[nodiscard]] bool reconcile(
+      FomCatalog const* catalog,
+      FomHandleAllocator& handleAllocator);
 
   [[nodiscard]] std::optional<std::uint64_t> handleFor(
       FomCatalog const* catalog,
@@ -37,7 +40,6 @@ class ParameterHandleDirectory final {
 
   std::map<ParameterKey, std::uint64_t> handlesByDefinition_;
   std::map<std::uint64_t, ParameterKey> definitionsByHandle_;
-  std::uint64_t nextHandle_ = 1;
 };
 
 }  // namespace umbra::detail

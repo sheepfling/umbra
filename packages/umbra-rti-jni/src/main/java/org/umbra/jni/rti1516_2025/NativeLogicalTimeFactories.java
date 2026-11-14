@@ -2,6 +2,7 @@ package org.umbra.jni.rti1516_2025;
 
 import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeFactoryFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -57,6 +58,11 @@ public final class NativeLogicalTimeFactories {
       }
       if ("HLAfloat64Time".equals(factoryName)) {
          return factory(nativeHandle, true, true);
+      }
+      LogicalTimeFactory<?, ?> customFactory =
+         LogicalTimeFactoryFactory.getLogicalTimeFactory(factoryName);
+      if (customFactory != null) {
+         return customFactory;
       }
       throw new IllegalArgumentException("Unsupported C++ logical-time factory: " + factoryName);
    }
@@ -199,9 +205,20 @@ public final class NativeLogicalTimeFactories {
          }
          if ("makeLogicalTimeInterval".equals(name) || "makeInterval".equals(name)) {
             Number value = (Number) values[0];
-            return floatingPoint
-               ? makeFloatIntervalValue(value.doubleValue())
-               : makeIntegerIntervalValue(value.longValue());
+            if (floatingPoint) {
+               double interval = value.doubleValue();
+               if (interval < 0.0d) {
+                  throw new IllegalArgumentException(
+                     "logical-time interval must be nonnegative: " + interval);
+               }
+               return makeFloatIntervalValue(interval);
+            }
+            long interval = value.longValue();
+            if (interval < 0L) {
+               throw new IllegalArgumentException(
+                  "logical-time interval must be nonnegative: " + interval);
+            }
+            return makeIntegerIntervalValue(interval);
          }
          if ("decodeLogicalTime".equals(name) || "decodeTime".equals(name)) {
             return decodeTimeValue((byte[]) values[0], ((Integer) values[1]).intValue());

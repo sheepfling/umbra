@@ -3,27 +3,44 @@ package org.hla.rti.tck;
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
+import hla.rti1516_2025.AttributeRegionAssociation;
+import hla.rti1516_2025.AttributeSetRegionSetPairList;
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.DimensionHandle;
+import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
+import hla.rti1516_2025.FederateHandleSet;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.InteractionClassHandleSet;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.RangeBounds;
+import hla.rti1516_2025.RegionHandle;
+import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.time.LogicalTime;
+import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** Ordinary declaration and data services are interlocked during save and restore. */
+/** Declaration, directed interaction, ownership, time, order, transportation, advisory,
+ * synchronization, and regional services are interlocked. */
 final class FederationSaveRestoreInterlocksTck {
    private FederationSaveRestoreInterlocksTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String objectClassName, String attributeName, String interactionClassName,
-         String parameterName, CallbackModel callbackModel) throws Exception {
+         String parameterName, CallbackModel callbackModel, String firstDimensionName,
+         String secondDimensionName) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador peer = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -40,7 +57,7 @@ final class FederationSaveRestoreInterlocksTck {
          peerConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution(ownerName, federation);
+         FederateHandle ownerFederate = owner.joinFederationExecution(ownerName, federation);
          ownerJoined = true;
          peer.joinFederationExecution(peerName, federation);
          peerJoined = true;
@@ -54,6 +71,18 @@ final class FederationSaveRestoreInterlocksTck {
          InteractionClassHandle peerInteraction =
             peer.getInteractionClassHandle(interactionClassName);
          ParameterHandle ownerParameter = owner.getParameterHandle(ownerInteraction, parameterName);
+         InteractionClassHandleSet ownerDirectedInteractions =
+            JavaTckSupport.interactionSet(owner, ownerInteraction);
+         InteractionClassHandleSet peerDirectedInteractions =
+            JavaTckSupport.interactionSet(peer, peerInteraction);
+         TransportationTypeHandle reliable = owner.getTransportationTypeHandle("HLAreliable");
+         JavaTckSupport.check(reliable != null && reliable.encodedLength() > 0,
+            "save/restore interlock setup returned an invalid transportation handle");
+         LogicalTimeFactory<?, ?> timeFactory = owner.getTimeFactory();
+         LogicalTime<?, ?> interlockTime = timeFactory.makeInitial();
+         LogicalTimeInterval<?> interlockLookahead = timeFactory.makeEpsilon();
+         JavaTckSupport.check(interlockTime != null && interlockLookahead != null,
+            "save/restore interlock setup returned incomplete logical-time values");
 
          AttributeHandleSet ownerAttributes =
             JavaTckSupport.attributeSet(owner, ownerAttribute);
@@ -63,9 +92,30 @@ final class FederationSaveRestoreInterlocksTck {
          peer.subscribeObjectClassAttributes(peerObjectClass, peerAttributes);
          owner.publishInteractionClass(ownerInteraction);
          peer.subscribeInteractionClass(peerInteraction);
+         owner.publishObjectClassDirectedInteractions(ownerObjectClass, ownerDirectedInteractions);
+         peer.subscribeObjectClassDirectedInteractions(peerObjectClass, peerDirectedInteractions);
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerObjectClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "save/restore interlock setup returned an invalid object handle");
+         DimensionHandle firstDimension = owner.getDimensionHandle(firstDimensionName);
+         DimensionHandle secondDimension = owner.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(firstDimension != null && secondDimension != null
+               && !firstDimension.equals(secondDimension),
+            "save/restore interlock setup returned invalid or duplicate DDM dimensions");
+         DimensionHandleSet dimensions = owner.getDimensionHandleSetFactory().create();
+         dimensions.add(firstDimension);
+         dimensions.add(secondDimension);
+         RegionHandle region = owner.createRegion(dimensions);
+         owner.setRangeBounds(region, firstDimension, new RangeBounds(1L, 5L));
+         owner.setRangeBounds(region, secondDimension, new RangeBounds(1L, 5L));
+         RegionHandleSet regions = owner.getRegionHandleSetFactory().create();
+         regions.add(region);
+         owner.commitRegionModifications(regions);
+         AttributeSetRegionSetPairList attributeRegions =
+            owner.getAttributeSetRegionSetPairListFactory().create(1);
+         attributeRegions.add(new AttributeRegionAssociation(ownerAttributes, regions));
+         FederateHandleSet synchronizationSet = owner.getFederateHandleSetFactory().create();
+         synchronizationSet.add(ownerFederate);
 
          AttributeHandleValueMap attributeValues = owner.getAttributeHandleValueMapFactory()
             .create(1);
@@ -85,8 +135,11 @@ final class FederationSaveRestoreInterlocksTck {
          owner.federateSaveBegun();
          peer.federateSaveBegun();
          assertInterlocks(owner, peer, ownerObjectClass, peerObjectClass, ownerAttributes,
-            peerAttributes, ownerInteraction, peerInteraction, object, attributeValues,
-            parameters, saveLabel, "SaveInProgress");
+            peerAttributes, ownerInteraction, peerInteraction, ownerDirectedInteractions,
+            peerDirectedInteractions, object, dimensions, ownerAttribute, ownerFederate, reliable,
+            regions, attributeRegions, synchronizationSet, attributeValues,
+            parameters, interlockTime,
+            interlockLookahead, saveLabel, "SaveInProgress");
          owner.federateSaveComplete();
          peer.federateSaveComplete();
          await(owner, peer, callbackModel, objectClassName,
@@ -105,8 +158,11 @@ final class FederationSaveRestoreInterlocksTck {
                && peerRecorder.restoreBegunCount == 1,
             "restore initiation callbacks");
          assertInterlocks(owner, peer, ownerObjectClass, peerObjectClass, ownerAttributes,
-            peerAttributes, ownerInteraction, peerInteraction, object, attributeValues,
-            parameters, saveLabel, "RestoreInProgress");
+            peerAttributes, ownerInteraction, peerInteraction, ownerDirectedInteractions,
+            peerDirectedInteractions, object, dimensions, ownerAttribute, ownerFederate, reliable,
+            regions, attributeRegions, synchronizationSet, attributeValues,
+            parameters, interlockTime,
+            interlockLookahead, saveLabel, "RestoreInProgress");
          owner.federateRestoreComplete();
          peer.federateRestoreComplete();
          await(owner, peer, callbackModel, objectClassName,
@@ -131,8 +187,17 @@ final class FederationSaveRestoreInterlocksTck {
          ObjectClassHandle ownerObjectClass, ObjectClassHandle peerObjectClass,
          AttributeHandleSet ownerAttributes, AttributeHandleSet peerAttributes,
          InteractionClassHandle ownerInteraction, InteractionClassHandle peerInteraction,
-         ObjectInstanceHandle object, AttributeHandleValueMap attributeValues,
-         ParameterHandleValueMap parameters, String saveLabel, String expected) throws Exception {
+         InteractionClassHandleSet ownerDirectedInteractions,
+         InteractionClassHandleSet peerDirectedInteractions, ObjectInstanceHandle object,
+         DimensionHandleSet dimensions, AttributeHandle ownerAttribute,
+         FederateHandle ownerFederate,
+         TransportationTypeHandle reliable, RegionHandleSet regions,
+         AttributeSetRegionSetPairList attributeRegions,
+         FederateHandleSet synchronizationSet,
+         AttributeHandleValueMap attributeValues, ParameterHandleValueMap parameters,
+         LogicalTime<?, ?> interlockTime,
+         LogicalTimeInterval<?> interlockLookahead, String saveLabel, String expected)
+         throws Exception {
       JavaTckSupport.expectFailure(() -> owner.requestFederationRestore(saveLabel), expected,
          "requesting another federation restore during " + expected);
       JavaTckSupport.expectFailure(
@@ -159,12 +224,156 @@ final class FederationSaveRestoreInterlocksTck {
          expected, "subscribing to an interaction during " + expected);
       JavaTckSupport.expectFailure(() -> peer.unsubscribeInteractionClass(peerInteraction),
          expected, "unsubscribing an interaction during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.publishObjectClassDirectedInteractions(ownerObjectClass,
+            ownerDirectedInteractions), expected,
+         "publishing directed interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unpublishObjectClassDirectedInteractions(ownerObjectClass), expected,
+         "unpublishing all directed interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unpublishObjectClassDirectedInteractions(ownerObjectClass,
+            ownerDirectedInteractions), expected,
+         "unpublishing selected directed interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> peer.subscribeObjectClassDirectedInteractions(peerObjectClass,
+            peerDirectedInteractions), expected,
+         "subscribing to directed interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> peer.unsubscribeObjectClassDirectedInteractions(peerObjectClass), expected,
+         "unsubscribing all directed interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> peer.unsubscribeObjectClassDirectedInteractions(peerObjectClass,
+            peerDirectedInteractions), expected,
+         "unsubscribing selected directed interactions during " + expected);
       JavaTckSupport.expectFailure(() -> owner.registerObjectInstance(ownerObjectClass), expected,
          "registering an object instance during " + expected);
       JavaTckSupport.expectFailure(() -> owner.updateAttributeValues(object, attributeValues,
          new byte[] {0x49}), expected, "updating attribute values during " + expected);
       JavaTckSupport.expectFailure(() -> owner.sendInteraction(ownerInteraction, parameters,
          new byte[] {0x49}), expected, "sending an interaction during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.changeAttributeOrderType(object, ownerAttributes, OrderType.RECEIVE),
+         expected, "changing object-attribute order during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.changeDefaultAttributeOrderType(ownerObjectClass, ownerAttributes,
+            OrderType.RECEIVE), expected,
+         "changing default object-attribute order during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.changeInteractionOrderType(ownerInteraction, OrderType.RECEIVE), expected,
+         "changing interaction order during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.requestAttributeTransportationTypeChange(object, ownerAttributes, reliable),
+         expected, "requesting an attribute transportation change during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.changeDefaultAttributeTransportationType(ownerObjectClass, ownerAttributes,
+            reliable), expected, "changing default attribute transportation during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.queryAttributeTransportationType(object, ownerAttribute), expected,
+         "querying attribute transportation during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.requestInteractionTransportationTypeChange(ownerInteraction, reliable),
+         expected, "requesting an interaction transportation change during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.queryInteractionTransportationType(ownerFederate, ownerInteraction),
+         expected, "querying interaction transportation during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.queryAttributeOwnership(object, ownerAttributes), expected,
+         "querying attribute ownership during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.isAttributeOwnedByFederate(object, ownerAttributes.iterator().next()),
+         expected, "querying ownership by federate during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.negotiatedAttributeOwnershipDivestiture(object, ownerAttributes,
+            new byte[0]), expected, "requesting negotiated divestiture during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.confirmDivestiture(object, ownerAttributes, new byte[0]), expected,
+         "confirming divestiture during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.cancelNegotiatedAttributeOwnershipDivestiture(object, ownerAttributes),
+         expected, "cancelling negotiated divestiture during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unconditionalAttributeOwnershipDivestiture(object, ownerAttributes,
+            new byte[0]), expected, "requesting unconditional divestiture during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.attributeOwnershipReleaseDenied(object, ownerAttributes, new byte[0]),
+         expected, "reporting denied ownership release during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.attributeOwnershipDivestitureIfWanted(object, ownerAttributes, new byte[0]),
+         expected, "requesting conditional divestiture during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.cancelAttributeOwnershipAcquisition(object, ownerAttributes), expected,
+         "cancelling ownership acquisition during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.attributeOwnershipAcquisition(object, ownerAttributes, new byte[0]),
+         expected, "acquiring attribute ownership during " + expected);
+      JavaTckSupport.expectFailure(() -> owner.createRegion(dimensions), expected,
+         "creating a region during " + expected);
+      JavaTckSupport.expectFailure(() -> owner.timeAdvanceRequest(interlockTime), expected,
+         "requesting a time advance during " + expected);
+      JavaTckSupport.expectFailure(() -> owner.enableTimeRegulation(interlockLookahead), expected,
+         "enabling time regulation during " + expected);
+      JavaTckSupport.expectFailure(owner::disableTimeRegulation, expected,
+         "disabling time regulation during " + expected);
+      JavaTckSupport.expectFailure(owner::enableTimeConstrained, expected,
+         "enabling time constrained during " + expected);
+      JavaTckSupport.expectFailure(owner::disableTimeConstrained, expected,
+         "disabling time constrained during " + expected);
+      JavaTckSupport.expectFailure(owner::queryLogicalTime, expected,
+         "querying logical time during " + expected);
+      JavaTckSupport.expectFailure(owner::queryGALT, expected,
+         "querying GALT during " + expected);
+      JavaTckSupport.expectFailure(owner::queryLITS, expected,
+         "querying LITS during " + expected);
+      JavaTckSupport.expectFailure(owner::queryLookahead, expected,
+         "querying lookahead during " + expected);
+      JavaTckSupport.expectFailure(() -> owner.modifyLookahead(interlockLookahead), expected,
+         "modifying lookahead during " + expected);
+      JavaTckSupport.expectFailure(owner::getAttributeScopeAdvisorySwitch, expected,
+         "getting the attribute-scope advisory switch during " + expected);
+      JavaTckSupport.expectFailure(() -> owner.setAttributeScopeAdvisorySwitch(false), expected,
+         "setting the attribute-scope advisory switch during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.registerFederationSynchronizationPoint("tck-interlock-sync", new byte[0]),
+         expected, "registering a synchronization point during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.registerFederationSynchronizationPoint("tck-interlock-sync-set",
+            new byte[0], synchronizationSet), expected,
+         "registering an explicit-set synchronization point during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.synchronizationPointAchieved("tck-interlock-sync"), expected,
+         "achieving a synchronization point during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.registerObjectInstanceWithRegions(ownerObjectClass, attributeRegions),
+         expected, "registering an object instance with regions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.associateRegionsForUpdates(object, attributeRegions), expected,
+         "associating regions for updates during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unassociateRegionsForUpdates(object, attributeRegions), expected,
+         "unassociating regions for updates during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.subscribeObjectClassAttributesWithRegions(ownerObjectClass,
+            attributeRegions), expected,
+         "subscribing to regional object attributes during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unsubscribeObjectClassAttributesWithRegions(ownerObjectClass,
+            attributeRegions), expected,
+         "unsubscribing regional object attributes during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.requestAttributeValueUpdateWithRegions(ownerObjectClass, attributeRegions,
+            new byte[0]), expected,
+         "requesting regional attribute values during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.subscribeInteractionClassWithRegions(ownerInteraction, regions), expected,
+         "subscribing to regional interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.unsubscribeInteractionClassWithRegions(ownerInteraction, regions), expected,
+         "unsubscribing regional interactions during " + expected);
+      JavaTckSupport.expectFailure(
+         () -> owner.sendInteractionWithRegions(ownerInteraction, parameters, regions,
+            new byte[0]), expected,
+         "sending a regional interaction during " + expected);
    }
 
    private static void await(RTIambassador first, RTIambassador second, CallbackModel model,

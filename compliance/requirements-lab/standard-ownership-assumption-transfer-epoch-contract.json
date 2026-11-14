@@ -3,13 +3,35 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "IEEE 1516.1-2025 public-API transfer-epoch scenario: two published candidates receive one tagged assumption offer after unconditional divestiture; the first acquires the transferred attribute set, the second unpublishes, and the original owner resigns. After the first candidate divests and the second republishes, that previously offered candidate receives exactly one fresh grouped assumption with the new tag. Direct pinned native mappings: page-148-l61-18/l70-21 -> Clause 7 and page-154-l162-51 -> §7.2. Adapter supplies provider, endpoint, FOM, names, callback model and logical-time implementation. Current-source installed-package C++ primary/contract passed 4/4 under evoked/immediate callbacks. Java parity compiles against the official API-only JAR but has no provider-runtime execution evidence. This is not a conformance claim.",
+  "notes": "IEEE 1516.1-2025 public-API transfer-epoch scenario: two published candidates receive tagged assumption offers after unconditional divestiture; the ownership query verifies the former owner is unowned (§7.1.2). The first candidate acquires the transferred set. The test then drains the other candidate's callbacks and asserts no additional Request Attribute Ownership Assumption after ownership is established, directly covering requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-owned (§4.12). A later explicit divestiture starts a fresh epoch and the other candidate receives a new tagged offer. Other direct mappings: page-148-l61-18/l70-21 -> §7.1, p150-l116-36 -> §7.1.2, and page-154-l162-51 -> §7.2. Adapter supplies provider, endpoint, FOM, names, callback model and logical-time implementation. This C++ public-API test is not a conformance claim.",
+  "requirements": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
+      "standard_section": "hla-1516.1-2025:clause-7.1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21",
+      "standard_section": "hla-1516.1-2025:clause-7.1"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l116-36",
+      "standard_section": "hla-1516.1-2025:clause-7.1.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l162-51",
+      "standard_section": "hla-1516.1-2025:clause-7.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-owned",
+      "standard_section": "hla-1516.1-2025:clause-4.12"
+    }
+  ],
   "api_surfaces": [
     {
       "id": "standard-cpp-ownership-assumption-transfer-epoch",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador unconditionalAttributeOwnershipDivestiture, attributeOwnershipAcquisition, isAttributeOwnedByFederate and FederateAmbassador requestAttributeOwnershipAssumption, attributeOwnershipAcquisitionNotification",
+      "signature": "RTIambassador publishObjectClassAttributes, unconditionalAttributeOwnershipDivestiture, attributeOwnershipAcquisition, isAttributeOwnedByFederate, evokeCallback and FederateAmbassador requestAttributeOwnershipAssumption, attributeOwnershipAcquisitionNotification",
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
       "tests": [

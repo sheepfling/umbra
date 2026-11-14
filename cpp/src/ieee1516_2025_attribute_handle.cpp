@@ -3,6 +3,6 @@
 
 namespace rti1516_2025 {
 
-UMBRA_2025_DEFINE_HANDLE(Attribute, attribute)
+UMBRA_2025_DEFINE_HANDLE(Attribute, attribute, Attribute)
 
 }  // namespace rti1516_2025

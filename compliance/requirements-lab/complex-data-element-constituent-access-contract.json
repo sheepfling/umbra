@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "latest_cpp_test_scope": "The C++ scenario encodes and decodes HLAfixedArray and HLAvariableArray instances containing a nested HLAfixedRecord, checking nested values and containing-array size. It also round-trips an HLAfixedRecord containing a simple HLAoctet and a nested HLAfixedRecord. Fixed- and variable-array decode checks use prepopulated targets and verify decoded values/count replace the prior state; variable-array cases include empty input, stale-element clearing, and reducing a three-element receiver to exactly two encoded elements. Typed HLAfixedArrayT<HLAoctet> and HLAvariableArrayT<HLAoctet> decodes replace seeded contents; typed HLAvariantRecordT<HLAinteger32BE> decodes both simple and nested-complex alternatives into receivers initially selecting the opposite alternative. The untyped HLAvariantRecord and HLAextendableVariantRecord round trips likewise check opposite-alternative replacement. These selected compositions strengthen existing p. 381 l. 4-1 element-types, l. 22-7 variant, l. 25-8 size, and p. 382 l. 18-5 typed-element witnesses only for the tested shapes; they do not assert Java parity or every possible complex-element combination.",
+  "notes": "The C++ scenario has compile-time std::is_class assertions naming the five non-templated utility classes and three standard templated utility classes in the exact rti1516_2025 namespace, in addition to its runtime API evidence. Focused public C++ TCK evidence covers IEEE 1516.1-2025 §12.12.4.2 p. 381 l. 4-1, its element-types continuation, HLAvariableArray.size at l. 25-8, addElement/get(index) at l. 10-3 and l. 13-4, and discriminant-selected variant composition/encoding/decoding at l. 22-7. The Java counterpart covers those six p. 381 requirements using the Java generic API: simple and nested-complex constituents, variable-array addElement/size/get, fixed-record access, and simple/nested discriminant-selected variant round trips. The Java case does not claim the C++-specific operator[], addVariant name, HLAfixedArrayT/HLAvariableArrayT/HLAvariantRecordT class names, or p. 382 template requirements. The C++ scenario additionally instantiates those templated classes and verifies typed element and discriminant access. The separate l. 16-5 addMapping wording conflict is tracked in RL-420 and is not mapped by this contract. This is selected API evidence, not an exhaustive claim about every possible encoder or Annex C conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-complex-encoder-utility-classes-in-namespace",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-379-l236-77",
+      "clause_id": "clause-12.12.4",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess"
+      ]
+    },
+    {
+      "id": "umbra-cpp-complex-encoder-constituent-access",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l4-1",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-complex-and-simple-encoder-elements",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l4-1-element-types",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-variable-array-add-element",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l10-3",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-complex-encoder-get-index",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l13-4",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-variant-discriminant-selected-encoding",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l22-7",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-variable-array-size",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-381-l25-8",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess",
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ComplexDataElementConstituentAccessTck.java::run"
+      ]
+    },
+    {
+      "id": "umbra-cpp-templated-complex-encoder-classes",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l6-1",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess"
+      ]
+    },
+    {
+      "id": "umbra-cpp-templated-complex-encoder-names",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l9-2",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess"
+      ]
+    },
+    {
+      "id": "umbra-cpp-templated-complex-encoder-single-parameter",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l12-3",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess"
+      ]
+    },
+    {
+      "id": "umbra-cpp-templated-complex-encoder-typed-elements",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-382-l18-5",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp",
+      "source_symbol": "scenarioComplexDataElementConstituentAccess",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_complex_constituents.cpp::scenarioComplexDataElementConstituentAccess"
+      ]
+    }
+  ]
+}

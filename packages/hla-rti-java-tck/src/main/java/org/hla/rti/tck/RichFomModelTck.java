@@ -76,6 +76,45 @@ final class RichFomModelTck {
       }
    }
 
+   static void runInteractionQualifiedClassNameIdentity(RtiFactory factory, String fom,
+         String timeImplementation, CallbackModel callbackModel) throws Exception {
+      RTIambassador rti = factory.getRtiAmbassador();
+      Recorder recorder = new Recorder();
+      String federation = "java-tck-qualified-interaction-name-" + UUID.randomUUID();
+      boolean connected = false;
+      boolean created = false;
+      boolean joined = false;
+      try {
+         rti.connect(recorder.proxy(), callbackModel);
+         connected = true;
+         rti.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         rti.joinFederationExecution("qualified-interaction-name-tck", federation);
+         joined = true;
+
+         String firstName =
+            "HLAinteractionRoot.TckTypedInteraction.TckClassNameProbe";
+         String secondName =
+            "HLAinteractionRoot.TckTransportRegionalInteraction.TckClassNameProbe";
+         String firstLocalName = firstName.substring(firstName.lastIndexOf('.') + 1);
+         String secondLocalName = secondName.substring(secondName.lastIndexOf('.') + 1);
+         check(firstLocalName.equals(secondLocalName),
+            "interaction-name fixture must repeat a local class name under distinct parents");
+
+         InteractionClassHandle first = rti.getInteractionClassHandle(firstName);
+         InteractionClassHandle second = rti.getInteractionClassHandle(secondName);
+         check(first != null && second != null && !first.equals(second),
+            "duplicate local interaction-class names did not resolve to distinct handles");
+         check(firstName.equals(rti.getInteractionClassName(first))
+               && secondName.equals(rti.getInteractionClassName(second)),
+            "qualified interaction-class names did not round-trip through handles");
+      } finally {
+         if (joined) resign(rti, ResignAction.NO_ACTION);
+         if (created) destroy(rti, federation);
+         if (connected) disconnect(rti);
+      }
+   }
+
    static void run(RtiFactory factory, String fom, String timeImplementation,
          CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();

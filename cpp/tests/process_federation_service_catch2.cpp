@@ -73,6 +73,35 @@ using umbra::test::process_federation_service_support::request;
 using umbra::test::process_federation_service_support::resourcePath;
 using umbra::test::process_federation_service_support::validatedModule;
 
+FederationDefinition composedPortableTckDefinition() {
+  auto const tckFomPath = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) /
+      "packages" / "hla-rti-cpp-tck" / "fom" / "p0-tck.xml";
+  std::vector<PrevalidatedFomModule> modules{
+      validatedModule(
+          resourcePath("mim/HLAstandardMIM-2025.xml"),
+          FomModuleKind::mim,
+          L"urn:umbra:test:nrg-switch-mim"),
+      validatedModule(
+          tckFomPath,
+          FomModuleKind::fom,
+          L"urn:umbra:test:nrg-switch-fom"),
+  };
+  LibXml2FomModuleComposer composer(
+      resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
+  auto result = composer.compose(modules);
+  if (result.status != umbra::detail::FomCompositionStatus::valid ||
+      !result.catalog || !result.fdd) {
+    throw std::runtime_error(
+        "The NRG process test FOM did not compose: " + result.diagnostics);
+  }
+  return {
+      std::move(result.modules),
+      L"HLAinteger64Time",
+      std::move(result.catalog),
+      std::move(result.fdd),
+  };
+}
+
 }  // namespace
 
 TEST_CASE(
@@ -2239,6 +2268,76 @@ TEST_CASE(
                       ProcessFederationClientError);
     REQUIRE_THROWS_AS(client.setExceptionReportingSwitch(federation, federate, true),
                       ProcessFederationClientError);
+  } catch (...) {
+    clientFailure = std::current_exception();
+  }
+  if (server.joinable()) {
+    server.join();
+  }
+  if (clientFailure) {
+    std::rethrow_exception(clientFailure);
+  }
+  REQUIRE_FALSE(serverFailure);
+}
+
+TEST_CASE(
+    "Private process Non Regulated Grant Switch reads registry state and observes save gates",
+    "[unit][internal][time-management][process-boundary]"
+    "[process-non-regulated-grant-switch-readback][2025]") {
+  using umbra::detail::FederationServiceOperationStatus;
+  using umbra::detail::ProcessFederationClient;
+  using umbra::detail::ProcessFederationClientError;
+
+  auto listener = ProcessTransportListener::listen({"127.0.0.1", 0U});
+  REQUIRE(listener != nullptr);
+  EmbeddedFederationRegistry registry;
+  ProcessFederationService service(registry, composedPortableTckDefinition());
+  std::exception_ptr serverFailure;
+  std::thread server([&] {
+    try {
+      auto connection = listener->accept(
+          nullptr, {"nrg-switch-server", 0xF9U},
+          [](std::wstring) {}, [](std::wstring) { return false; });
+      ProcessTransportSession session(std::move(connection));
+      auto handler = service.handlerFor(session);
+      while (ProcessTransportServiceDispatcher::serveOne(session, handler)) {}
+      service.detach(session);
+      session.connection()->close();
+    } catch (...) {
+      serverFailure = std::current_exception();
+    }
+  });
+  std::exception_ptr clientFailure;
+  try {
+    ProcessFederationClient client(
+        {"127.0.0.1", listener->address().port}, {"nrg-switch-client", 0xFAU});
+    std::wstring const federation = L"nrg-switch-readback";
+    client.createFederationExecution(federation);
+    auto const joined = client.joinFederationExecution(
+        federation, L"tester", L"nrg-switch-member");
+    auto const federate = joined.federateId;
+    auto const initial = client.getNonRegulatedGrantSwitch(federation, federate);
+    REQUIRE(initial.status == FederationServiceOperationStatus::available);
+    REQUIRE_FALSE(initial.value);
+    REQUIRE(registry.nonRegulatedGrantSwitchFor(federation, federate) == false);
+    REQUIRE_THROWS_AS(
+        client.getNonRegulatedGrantSwitch(federation, federate + 1U),
+        ProcessFederationClientError);
+    REQUIRE(registry.requestFederationSave(
+                federation, federate, L"nrg-switch-checkpoint").status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(client.getNonRegulatedGrantSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::save_in_progress);
+    REQUIRE(registry.federateSaveBegun(federation, federate).status ==
+            umbra::detail::FederationSaveControlStatus::applied);
+    REQUIRE(registry.federateSaveComplete(federation, federate)
+                .saveCompletedSuccessfully);
+    REQUIRE(client.getNonRegulatedGrantSwitch(federation, federate).status ==
+            FederationServiceOperationStatus::available);
+    client.resignFederationExecution(federation, federate, rti1516_2025::NO_ACTION);
+    REQUIRE_THROWS_AS(
+        client.getNonRegulatedGrantSwitch(federation, federate),
+        ProcessFederationClientError);
   } catch (...) {
     clientFailure = std::current_exception();
   }

@@ -20,24 +20,71 @@ ordinary and timestamped interaction delivery (including the RO-positive/TSO-gat
 support lookups, negative cases, relevance
 advisories, directed interactions, derived-target subscription eligibility,
 and transportation/order controls. The
-`java-tck.federate-application-multiple-executions` case creates two
-executions, joins multiple federates to each, and reuses one ambassador in the
-second execution after resignation. It runs by default after focused JNI
-passes in both callback models, using the adapter's FOM and time selection.
+`java-tck.federation-mom-service-actor-identity` case sends a failing
+`HLAchangeAttributeOrderType` request from a federate that does not own the
+target attribute. It checks `AttributeNotOwned` and verifies that two separate
+`HLAreportMOMexception` subscribers identify the sending federate. It uses the
+adapter-supplied FOM, standard MIM, logical-time implementation, object class,
+and attribute, and maps only the actor-context slice at p. 289 l. 56 in
+IEEE 1516.1-2025 §11.3; other `HLAservice` leaves are not claimed. Focused
+local Umbra JNI runs passed in both callback models using `p0-tck.xml`, the
+standard MIM, `HLAinteger64Time`, `HLAobjectRoot.TckObject`, and `Value`.
+Independent-provider behavior and conformance are not claimed.
+The `java-tck.federation-mom-change-attribute-order-type` case sends the
+Table 7 S-leaf request with inherited `HLAfederate` encoded from the subject's
+handle, plus `HLAobjectInstance`, `HLAattributeList`, and
+`HLAsendOrder=Receive`. It then checks that the subject's timestamp-bearing
+attribute update is reflected in RECEIVE order without a retraction designator.
+It maps p. 289 l. 53 to §11.3 and p. 290 l. 156 to §11.4.1. Current-source
+JNI runs passed both callback models; results are in
+`out/java-tck/federation-mom-change-attribute-order-type-java-federate-target-20261114/`.
+No independent-provider or conformance claim is made.
+The `java-tck.federate-application-multiple-executions` case creates two
+execution names that differ by one ASCII case change, lists both, and joins two
+federates to each execution through four distinct ambassadors. It reuses the
+same two exact federate names in both executions and checks each execution's
+member report independently. Same-execution positive controls and bounded peer
+observations cover object discovery/reflection, receive-order interactions, and
+timestamped interaction isolation; the case also reuses an ambassador after
+resignation. Focused runs against the installed Umbra JNI provider passed in
+both callback models, and the paired C++ primary/contract CTests passed 4/4.
+These are focused same-provider results, not independent-provider or conformance
+evidence. The case runs by default with the adapter's FOM and time selection.
 The `java-tck.unsubscribe-last-attribute-stops-discovery` and
 `java-tck.attribute-unsubscribe-stops-reflection` cases now run by default.
 They first establish positive discovery/reflection, then verify that removing
 the selected attribute subscription suppresses later callbacks within a
 bounded observation window. Both passed focused JNI runs in evoked and
-immediate callback modes using the adapter's ordinary object FOM.
-The `java-tck.callback-reentrancy` case
-checks the official API's callback-service exception boundary; because the
-Requirements Lab has no standalone normative requirement for re-entry, it is
-classified as API/exception traceability rather than conformance evidence. It
-is parity-linked to `cpp-tck.callback-reentrancy` and runs by default after
-focused JNI passes in both callback models. Its immediate-callback observation
-uses a bounded wait and thread-safe recorder; no independent-provider claim is
-made.
+immediate callback modes using the adapter's ordinary object FOM. The
+attribute-reflection case also directly maps the bounded post-unsubscribe
+suppression witness at p. 223 l. 40 to §9.1.5, alongside its §5.9.4 setup
+mapping.
+The `java-tck.callback-reentrancy` case first checks callback-service exception
+boundaries before joining, then creates and joins a federation and requests the
+listing callback again. From the joined callback, `getObjectClassHandle` must
+succeed while `evokeCallback` and `evokeMultipleCallbacks` must throw
+`CallNotAllowedFromWithinCallback`. Those joined-phase checks map directly to
+the two existing §12.8 requirement candidates; the pre-join phase remains
+supplementary API/exception tracing. The mapped witnesses cover one permitted
+and two excluded services, not either complete service subset. It is
+parity-linked to `cpp-tck.callback-reentrancy`, runs by default, and passed
+focused JNI runs in both callback models. The callback recorder uses bounded
+waits and thread-safe state; no independent-provider or overall conformance
+claim is made.
+The opt-in `java-tck.federate-initiated-concurrency-different-ambassadors`
+case joins two distinct `RTIambassador` instances to one federation, holds the
+owner's `reportFederationExecutions` callback while the member invokes
+`listFederationExecutions`, then releases and evokes both reports. It maps the
+two direct p. 358 requirements to IEEE 1516.1-2025 §12.8. Five focused
+current-source JNI runs passed under `HLA_EVOKED`; `HLA_IMMEDIATE` is outside
+this case's scope.
+The `java-tck.evoked-callback-no-concurrency` case holds one
+`reportFederationExecutions` callback open while a second thread calls
+`evokeCallback` on the same ambassador. It verifies the second callback does
+not enter before release and that callback execution never overlaps. The two
+direct p. 357 requirements map to IEEE 1516.1-2025 §12.8. Five focused
+current-source JNI runs passed under `HLA_EVOKED`; `HLA_IMMEDIATE` is
+unsupported for this case.
 The `java-tck.null-federate-ambassador` case invokes every official
 `FederateAmbassador` callback overload through `NullFederateAmbassador`,
 including timestamped and directed callbacks, and passes independently of
@@ -51,6 +98,50 @@ password encoding/decoding, and authorizer dispatch. It passes without
 federation/FOM setup. Unlike C++ `VariableLengthData`, Java `Credentials`
 exposes its byte array directly, so the test does not impose C++ copy semantics
 on the Java API.
+The `java-tck.authorizer-connect-service-decision` and
+`java-tck.authorizer-unrecognized-credentials-unauthorized` cases exercise the
+Java Connect boundary with a configured `HLAauthorizer`: they check no
+credentials, a wrong password, a matching password, and an unrecognized
+credential type. `java-tck.authorizer-disabled-service-rejects-credentials`
+checks the Connect outcome when RID authorization is disabled. These cases need
+the protected RID profiles supplied by
+`packages/hla-rti-cpp-tck/adapters/current-process/run_authorizer_connect_decision.py`
+and `run_authorizer_disabled_credentials.py`; focused JNI runs passed in both
+callback models. The direct mappings cover the bounded Connect outcomes in
+IEEE 1516.1-2025 §§12.5 and 12.12.1.1 only.
+The `java-tck.authorizer-federation-service-decision` case exercises the
+public Java Connect, Create Federation Execution, Join, and Destroy services
+with the adapter's custom native Authorizer. It requires the protected RID
+profile and provider library supplied through
+`run_authorizer_federation_decision.py`, plus an adapter FOM. The Java
+`AuthorizerFactoryFactory` uses Java `ServiceLoader`; the native C++ fixture
+factory is not exposed through that discovery API, so this case records the
+public federation-service outcomes without claiming custom-factory discovery
+or provider interoperability.
+The `java-tck.authorizer-destroy-service-decision` case uses the same adapter
+library with `TckDestroyGate`: it requires `Unauthorized` for the first Destroy,
+joins to confirm the federation remains, resigns, and retries Destroy
+successfully. It maps p. 356 l. 293-97 to IEEE 1516.1-2025 §12.5; the protected
+RID profile, custom native provider library, adapter FOM, and time
+implementation are required.
+The `java-tck.authorizer-join-service-decision` case uses `TckJoinGate` to
+require `Unauthorized` on the first Join and successful membership on a retry
+with the same federate name, then resigns and destroys the federation. It maps
+p. 356 l. 326-108-join to IEEE 1516.1-2025 §12.5 and uses the same adapter
+profile, native provider library, FOM, and time implementation inputs.
+The `java-tck.authorizer-no-credentials-connect` case calls Connect with the
+standard `HLAnoCredentials` value. Its adapter Authorizer permits connection
+only when the RTI forwards that type with empty data; it maps p. 356 l. 389-129
+and l. 395-131 to IEEE 1516.1-2025 §12.5.
+The `java-tck.authorizer-rid-configuration-decision` case uses one denying
+service profile, one allowing service profile, and one `service=disabled`
+profile with identical Java Connect/HLAnoCredentials calls. It maps p. 357
+l. 55-17 to IEEE 1516.1-2025 §12.5 and requires the protected RID and native
+provider fixtures from `run_authorizer_rid_configuration.py`.
+The `java-tck.authorizer-single-service-per-rid-profile` case checks that a
+profile with two otherwise valid authorization service directives is rejected
+through Java Connect. It maps p. 357 l. 58-18 to IEEE 1516.1-2025 §12.5 and uses
+the same RID adapter with its duplicate-service profile.
 The C++ `VariableLengthData` ownership/pointer-adoption contract has no direct
 Java equivalent: the standard Java API uses `byte[]` and does not define pointer
 ownership or adoption. The Java catalog records this as not applicable instead
@@ -61,6 +152,11 @@ positioned `ByteWrapper` encoding/decoding, and truncated input rejection. It
 passes without federation/FOM setup. Java's `DataElement` interface does not
 expose the C++ clone, type-comparison, hash, `encodeInto`, or `decodeFrom`
 members, so those C++-specific methods are not claimed as Java parity.
+The paired `java-tck.basic-data-elements` scenario separately checks the
+equivalent nonterminal `HLAinteger64LE` cursor behavior with `ByteWrapper`:
+the following encoded `HLAoctet` remains readable from the cursor after the
+integer. This verifies the shared cursor behavior without claiming a Java
+`decodeFrom` method.
 The `java-tck.handle-collection-values` case exercises standard attribute
 handle-set and attribute/parameter value-map factories, set/map clone
 independence, attribute/region pair-list cloning, save/restore status value
@@ -78,6 +174,10 @@ of the promoted C++ exception contract: all 100 shared exception types must
 construct through the standard Java `RTIexception` base and preserve their
 standard name and message. Java copy/assignment and stream behavior, plus C++
 exception types without direct Java counterparts, remain explicitly unclaimed.
+The `java-tck.exception-name-string` case calls `getObjectClassHandle` before
+Connect, catches the public `RTIexception`, and checks that `name()` returns
+exactly `NotConnected`. It ports the matching C++ exception-name case through
+the Java binding and is limited to this one service exception.
 The `java-tck.basic-data-elements` case independently covers the standard scalar
 basic-data-element contract, including exact wire vectors, round trips, and
 malformed scalar decoding; it passes on the local JNI provider. This is linked
@@ -88,6 +188,31 @@ and extendable variant records. Its wire
 checks are paired with the promoted C++ composite-data-elements contract;
 runtime validation currently exposes an unknown-discriminant variant getter
 behavior difference in the available provider.
+The `java-tck.complex-data-element-constituent-access` case complements that
+wire coverage with direct Java generic-array, record, and variant constituent
+access, including simple and nested-record alternatives and selected-value
+round trips. It maps the six demonstrated p. 381 assertions in
+IEEE 1516.1-2025 §12.12.4.2; C++-specific operators and template class names
+remain outside the Java parity claim.
+The `java-tck.handle-encoding-mim-data-types` case encodes all ten standard
+Java handle kinds, checks each as an `HLAvariableArray<HLAbyte>`, and verifies
+the corresponding Java `HandleFactory` round trip. It maps p. 382 l. 24-7 to
+IEEE 1516.1-2025 §12.12.4.2 and runs with the adapter-supplied DDM FOM.
+The `java-tck.handle-parameter-value-round-trip` case sends a registered
+object's encoded handle through both an interaction parameter and an attribute
+value, verifies byte-preserving delivery and `ObjectInstanceHandleFactory`
+reconstitution, and checks the same object name. For each receive-order send,
+the receiver holds callbacks until the service returns; the sender then mutates
+the input map's `byte[]` and the receiver must still get the original bytes.
+Eight other standard Java handle factories must reject the interaction
+parameter bytes with `CouldNotDecode`. Its direct mappings are p. 353 l. 120,
+123, and 132-43 to §12.2, p. 377 l. 210-68 to §12.11.7, and p. 396 l. 186-61
+to §12.13.3.3. Focused current-source JNI runs under both callback models
+executed the two value-map paths and then failed at the existing federate-handle
+type-rejection assertion: `FederateHandleFactory.decode` accepted the
+object-instance encoding. Results are under
+`out/java-tck/handle-parameter-value-round-trip-map-copy-20261114/`; these
+provider-local runs are execution evidence, not conformance evidence.
 The `java-tck.malformed-inputs` scenario now mirrors the promoted C++ case:
 it rejects missing and malformed FOM inputs, adapter-supplied invalid FOM
 modules, and truncated `HLAinteger32BE` data, then disconnects through the
@@ -99,6 +224,14 @@ The `java-tck.support-services` case also checks that public name-based
 support lookups and service-group normalization reject calls before connect
 and before federation join, using the adapter's callback model, and complements
 those lifecycle gates with joined-state handle checks.
+The `java-tck.handle-decoder-semantic-validity` case registers an object in one
+federation and decodes its standard handle through a different joined
+federation's `ObjectInstanceHandleFactory`. It verifies that decoding preserves
+the handle value while the subsequent target-federation name lookup reports
+`ObjectInstanceNotKnown`, directly mapping the §12.12.4.2 semantic-independence
+rule for object-instance handles. The adapter supplies the DDM FOM, object
+class, and attribute; focused JNI runs passed both callback models. Other handle
+decoder types and independent-provider behavior are not claimed.
 The default-run `java-tck.standard-order-transportation-lookups` case verifies that
 each federate's standard transportation-handle factory defaults match the
 handles returned by the standard `HLAreliable` and `HLAbestEffort` name lookups.
@@ -116,19 +249,60 @@ wrappers have no direct Java equivalent; the catalog marks those C++ slices
 non-applicable rather than claiming Java parity. Federation-backed checks still
 require a provider that can create an execution with adapter-supplied FOM/time
 inputs.
+The `java-tck.logical-time-interval-nonnegative` case resolves both standard
+time factories through `LogicalTimeFactoryFactory`, verifies zero and positive
+interval controls, and requires negative integer64 and float64 intervals to be
+rejected. The 2025 JNI adapter enforces this boundary for its service-loaded
+factories. Focused runs passed both callback models. Java `makeInterval` does
+not declare a checked interval exception, so the catalog records rejection
+without asserting one exception class; independent-provider behavior and
+conformance are not established.
+The `java-tck.logical-time-factory-factory-contract` case ports the standard
+factory-selection checks: an empty name selects float64, the two standardized
+names select their matching factory types, an unknown name returns null, and
+the default factory creates initial time zero. The Java API has a
+`LogicalTimeFactoryFactory` in its official `time` package, so this replaces
+the previous not-applicable classification. It does not claim the C++-specific
+header-placement requirement at §12.12.1.1 p. 378 l. 339. Focused installed
+JNI runs passed both callback models; independent-provider behavior and
+conformance are not established.
 The `java-tck.overloads-and-exceptions` connection slice now covers all four
 standard Java `connect` overloads plus the adapter-configured
 `RtiConfiguration` overload, validates the standard additional-settings result
 codes, and checks pre-connect service exceptions, duplicate connect, callback
 disable/enable and empty-queue servicing, and reconnecting the same ambassador.
-It uses the adapter-selected callback model and passes on the local JNI provider
-in both callback modes. The C++ pre-connect `disconnect`
+It also attempts a unique unknown `RtiConfiguration` name without an RTI address
+and requires Connect to succeed with an allowed additional-settings result; it
+does not assert configuration-selection flags. The direct mapping covers the
+two existing §4.2.4 Connect fallback candidates and retains the §10.58 mapping
+for the false empty-queue `evokeMultipleCallbacks` result. It uses the
+adapter-selected callback model and passes on the local JNI provider in both
+callback modes. The C++ pre-connect `disconnect`
 exception assertion is intentionally not translated because the Java standard
 API does not declare `NotConnected` for `disconnect`.
 Optional standard connection settings for this scenario come from adapter JVM
 properties `hla.rti.tck.configurationName`, `hla.rti.tck.rtiAddress`, and
 `hla.rti.tck.additionalSettings`; they default to empty and stay outside the
 portable scenario implementation.
+The opt-in `java-tck.connection-additional-settings-parse-failure` scenario
+checks that Java Connect completes and returns
+`SETTINGS_FAILED_TO_PARSE` when the adapter supplies a malformed optional
+setting, then disconnects. On provider build `umbra-jni-20261106`, focused
+EVOKED and IMMEDIATE runs used `fomEdition=invalid`; that input is specific to
+Umbra and does not define portable settings syntax. Results are in
+`out/java-tck/connection-additional-settings-parse-failure-java-port-20261113/`.
+The direct mapping covers only the optional-settings parse-failure continuation
+rule in IEEE 1516.1-2025 §4.2.
+The opt-in `java-tck.connection-default-configuration-fallback` case compares
+an unnamed Connect with a Connect using a unique unknown configuration name and
+no RTI address or additional settings. It creates a federation through the
+unnamed connection and checks that the second ambassador lists that same
+federation through `reportFederationExecutions`, without interpreting
+`ConfigurationResult` flags or provider configuration details. Focused EVOKED
+and IMMEDIATE runs passed on provider build `umbra-jni-20261106` with the
+adapter FOM; results are in
+`out/java-tck/connection-default-configuration-fallback-java-port-20261113/`.
+The direct mapping covers IEEE 1516.1-2025 §4.2.
 The `java-tck.factory-discovery` slice also mirrors the promoted C++
 four-octet `HLAinteger32BE` encode/decode check through the discovered standard
 encoder factory, the stable non-empty runtime name/version contract, and
@@ -168,6 +342,19 @@ two-federate acquisition path, checks the confirmation carries the acquisition
 tag, cancels the negotiated divestiture, and verifies that the ordinary release
 request is restored without changing ownership. It uses byte-array tags and
 adapter-supplied federation inputs; provider runtime remains unverified.
+The `java-tck.negotiated-divestiture-duplicate-request` case verifies that a
+second divestiture request throws `AttributeAlreadyBeingDivested`, the current
+owner can still send an update while the first request is pending, and the
+original request transfers ownership only after `confirmDivestiture`. Focused
+local JNI runs passed in both callback models with the adapter's P0 FOM; the
+case maps these bounded observations to IEEE 1516.1-2025 §7.3.
+The `java-tck.negotiated-divestiture-if-wanted-completion` case exercises the
+alternate completion path: after the owner receives the acquisition request
+and confirmation callback, it calls `attributeOwnershipDivestitureIfWanted`
+instead of `confirmDivestiture`. The case checks the exact returned attribute
+set, ownership transfer, and acquisition callback tag. Focused local JNI runs
+passed in both callback models, with the alternate termination assertion
+mapped to IEEE 1516.1-2025 §7.3.
 The `java-tck.negotiated-willing-to-acquire-continuation` case also uses the
 adapter FOM and logical-time implementation. It checks that a canceled first
 candidate does not block the second willing candidate from receiving the
@@ -190,6 +377,13 @@ adapter-supplied FOM. It verifies that If Wanted is a no-op without pending
 acquirers, then transfers two attributes to independent requesters with the
 exact divestiture tag. With immediate callbacks, If Available is first observed
 as unavailable before a regular pending acquisition is used for the transfer.
+The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
+case uses the configured two-attribute FOM to check that unconditional
+divestiture produces exactly one full-set, correctly tagged assumption callback
+at the eligible publisher. It also checks that the divesting owner and a
+subscribed non-publisher receive no assumption callback. Current-source JNI
+runs passed in both callback models; the paired C++ primary and contract passed
+their focused installed-package runs. This is local-provider evidence only.
 The `java-tck.ownership-state-save-restore` case completes an ordinary negotiated
 transfer before saving, restores that completed owner state, and confirms it
 through both `isAttributeOwnedByFederate` and `queryAttributeOwnership`. Cleanup
@@ -294,12 +488,21 @@ the grant (§8.15.3), and disabling it during Time Advancing does not revoke
 that RO callback's eligibility (§8.16.5). Both passed evoked and immediate
 installed-package runs on 2026-10-22; neither asserts TSO delivery or
 network-arrival timing.
-The opt-in `java-tck.update-rate-queries` scenario checks adapter-defined named
-rate lookup, active and passive named subscriptions, default-rate behavior,
-per-attribute rate reset, and invalid designator/object/attribute failures.
-The FOM, object class, attribute, update-rate designator, provider, and callback
-model are adapter-supplied; the scenario uses only the official Java 2025 API
-and remains unverified against a Java provider runtime.
+The adapter-backed `java-tck.update-rate-queries` scenario checks named-rate
+lookup, active and passive named subscriptions, default-rate behavior,
+per-attribute rate reset, and invalid designator/object/attribute failures. Its
+active `High` subscription is established before object registration, and the
+subscriber's per-attribute rate is checked against the resolved FOM value.
+Direct mappings cover page 251 line 74 to §10.11.6 for named-rate lookup, page
+252 line 17 to §10.12 for the per-attribute query after named subscription, and
+page 97 line 23 to §5.8 for the default empty designator's zero-rate boundary.
+The separate page 97 line 20 to §5.8 mapping witnesses the paired C++
+`named-update-rate-subscription` case. Five focused current-source Umbra JNI
+runs passed per callback model; the paired C++ CTests and direct run passed both
+models. Results are under
+`out/java-tck/update-rate-queries-java-port-20261106/current-source/`;
+other-provider behavior is unverified.
+The `java-tck.fom-handle-uniqueness` case checks pairwise-distinct encoded values for representative object-class, attribute, interaction-class, parameter, dimension, and transportation-type handles, plus matching values across two federates. It then destroys the first execution, creates a second with the same FOM on the same connected RTI instance, and compares the same 11 FDD-derived encodings. Direct mappings cover IEEE 1516.1-2025 §10.1.1 for the bounded uniqueness witness and §12.2 for the named cross-execution values. `OrderType` stays a separate fixed-enum check, outside handle uniqueness. Focused current-source JNI runs passed under both callback models; results are under `out/java-tck/fom-handle-uniqueness-java-port-20261106/results/`.
 The opt-in `java-tck.fom-transportation-handle-stability` scenario verifies
 that built-in and custom transportation handles survive an additional-module
 join, while the newly introduced transportation type becomes available with
@@ -307,10 +510,26 @@ one shared handle and round-trips by name. The rich base FOM, extension module,
 transportation names, provider, and callback model are adapter-supplied; Java
 provider runtime verification remains pending.
 The opt-in `java-tck.fom-module-composition` scenario composes the adapter's
-base and extension modules both at federation creation and at a later join,
-then verifies extension object/attribute and interaction/parameter declaration
-identity and ordinary delivery. All module paths and extension names are
-adapter-supplied; Java provider runtime verification remains pending.
+base and extension modules as absolute file URLs at federation creation and at
+a later join. It verifies extension object/attribute and interaction/parameter
+declaration identity, ordinary reflection and interaction delivery, and a
+directed extension interaction targeted to a receiver-owned object with its
+target, parameter bytes, tag, and producer. All module paths and extension
+names are adapter-supplied. Focused current-source JNI runs passed under both
+callback models; this is local provider evidence only.
+The opt-in `java-tck.fom-file-url-designator` case passes an absolute local
+FOM URL with a percent-escaped first filename character to standard Create,
+checks the exact `HLAFOMmoduleDesignatorList` value before and after an
+additional-module Join, and verifies `HLAMIMdesignator` is
+`HLAstandardMIM` when Create omits an explicit MIM. Its two direct mappings
+cover IEEE 1516.1-2025 §4.1.4.2. Current-source JNI runs under both callback
+models passed against a fresh MinGW JNI library built from this checkout. Both
+runs preserved the exact supplied URL through the initial and post-Join MOM
+checks and verified the automatic standard-MIM designator. The paired C++
+primary and contract CTests passed 4/4 against the installed package. The case
+remains opt-in because its FOM modules and logical-time implementation are
+adapter inputs; this does not establish independent-provider interoperability
+or overall conformance.
 The federate MOM publication-query cases check ordinary object and interaction
 publication reports, including partial/full attribute withdrawal and whole-class
 withdrawal. The opt-in partial interaction-class withdrawal case publishes two
@@ -391,9 +610,9 @@ modes, including empty active and passive calls. It checks each reflected
 attribute set, value, and tag against receiver-local standard handles. The
 adapter supplies the FOM, logical-time implementation, names, provider,
 endpoint, and callback model. Focused installed JNI runs passed in both modes;
-only the C++ plan row's page-96 line-129 requirement is selected here, pending
-reconciliation of the wider C++ catalog mapping. Independent-provider
-conformance remains unverified.
+direct mappings cover IEEE 1516.1-2025 §5.1.2 p. 82 l. 80, §9.1.5 p. 223
+l. 103, and §5.8 p. 96 l. 129. The regional rule at p. 223 l. 109 remains
+outside this case. Independent-provider conformance remains unverified.
 The default `java-tck.passive-subscription-no-start-registration` case enables
 the publisher's standard object-class relevance advisory switch if needed,
 then uses an active subscription as a positive control for Start Registration.
@@ -429,8 +648,9 @@ active non-empty attribute subscription, submits an empty active set, and
 verifies the original subscription still delivers the next tagged update using
 the subscriber's local standard handles. The adapter supplies the FOM, standard
 MIM, object class/attribute names, provider, logical-time implementation,
-endpoint, and callback model. Focused installed JNI runs passed in both modes;
-passive-state preservation and independent-provider conformance are unverified.
+endpoint, and callback model. Five focused current-source Umbra JNI runs passed
+under each callback model; passive-state preservation and independent-provider
+conformance are unverified.
 The passive companion uses the standard passive attribute-set subscription
 operation and verifies that the same complete attribute list and rate are
 reported with the active flag false.
@@ -456,13 +676,193 @@ is a standard FOM-loading/rejection exception and that membership/declarations
 remain unchanged, then checks that a valid extension join succeeds. Supply
 invalid paths through `hla.rti.tck.invalidFomModules`, separated by the
 platform path separator.
-The opt-in `java-tck.fom-update-rate-value-stability` scenario verifies an
-existing named update rate retains its value across a later FOM join and that
-the new member resolves the same positive value for an extension rate. The rate
-FOM, extension module, and both rate names are adapter-supplied.
+The opt-in `java-tck.fom-incomplete-class-definition` scenario mirrors the
+public C++ TCK case for schema-valid object and interaction class scaffolds.
+It rejects each unfinished module union at Create and additional-module Join,
+then retries with its companion module and checks that the completed class and
+member are visible. Supply the base FOM and four scaffold/provider modules via
+`hla.rti.tck.fom`, `hla.rti.tck.incompleteObjectClassScaffoldFom`,
+`hla.rti.tck.completeObjectClassProviderFom`,
+`hla.rti.tck.incompleteInteractionClassScaffoldFom`, and
+`hla.rti.tck.completeInteractionClassProviderFom`.
+A focused run using the current-source JNI native build and cached Umbra Java
+adapter JAR passed 1/1 with these inputs; independent-provider behavior and
+conformance remain unverified.
+The opt-in `java-tck.fom-attribute-table-nonblank-semantics` scenario mirrors
+the public C++ check for an empty attribute-table Semantics element. Supply
+`attribute-table-empty-semantics-tck.xml` through
+`hla.rti.tck.attributeTableEmptySemanticsFom`; Create Federation Execution must
+reject it as `InconsistentFOM`. Focused runs passed under both callback models
+with the 2026-11-06 JNI provider build. An earlier local provider build accepted
+the fixture, so this result is specific to the tested build and fixture.
+The opt-in `java-tck.fom-reference-data-type-name-convention` scenario accepts
+the adapter's valid reference-data-type name, then requires `InconsistentFOM`
+for the paired DIF-valid FOM whose name contains a period. Supply the files via
+`hla.rti.tck.referenceDataTypeValidNameFom` and
+`hla.rti.tck.referenceDataTypeInvalidNameFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; the evidence covers
+this name restriction only.
+The opt-in `java-tck.fom-simple-data-type-name-convention` scenario accepts
+the valid control and rejects three selected invalid Simple Data Type names:
+one containing a period, one beginning with a mixed-case `HLA` prefix, and one
+matching mixed-case `NA`. Supply the control and invalid FOMs through
+`hla.rti.tck.simpleDataTypeValidNameFom`,
+`hla.rti.tck.simpleDataTypeInvalidNameFom`,
+`hla.rti.tck.simpleDataTypeReservedPrefixNameFom`, and
+`hla.rti.tck.simpleDataTypeReservedNaNameFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; these examples do not
+establish exhaustive name-convention coverage.
+The opt-in `java-tck.fom-model-identification-name-valid` scenario supplies a
+schema-valid FOM with a nonempty HLA/XML-compatible Model Identification Name
+to public Create and destroys the resulting federation. Supply
+`model-identification-name-valid-tck.xml` through
+`hla.rti.tck.modelIdentificationNameValidFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; this covers the valid
+input path only.
+The opt-in `java-tck.fom-enumerated-data-type-name-convention` scenario
+accepts a valid Enumerated Data Type name and rejects its period-containing
+counterpart as `InconsistentFOM`. Supply the paired fixtures through
+`hla.rti.tck.enumeratedDataTypeValidNameFom` and
+`hla.rti.tck.enumeratedDataTypeInvalidNameFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; this covers the period
+restriction only.
+The opt-in `java-tck.fom-enumerator-name-convention` scenario accepts the
+valid enumerator-name control and rejects its period-containing counterpart
+as `InconsistentFOM`. Supply the fixtures through
+`hla.rti.tck.enumeratorValidNameFom` and
+`hla.rti.tck.enumeratorInvalidNameFom`. Focused runs passed under both callback
+models with the 2026-11-06 JNI provider build; coverage is limited to this
+prohibited character and enumerator row.
+The opt-in `java-tck.fom-array-data-type-name-convention` scenario accepts a
+valid Array Data Type name and rejects its period-containing counterpart as
+`InconsistentFOM`. Supply the paired fixtures through
+`hla.rti.tck.arrayDataTypeValidNameFom` and
+`hla.rti.tck.arrayDataTypeInvalidNameFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; coverage is limited to
+this period restriction.
+The opt-in `java-tck.fom-array-element-type-reference` scenario accepts the
+control Array Data Type that names the standard `HLAbyte` type and rejects the
+otherwise identical FOM with an undeclared Element Type as `InconsistentFOM`.
+Supply the fixtures through `hla.rti.tck.arrayElementTypeValidFom` and
+`hla.rti.tck.arrayElementTypeInvalidFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; coverage is limited to
+this single-module reference.
+The opt-in `java-tck.fom-variant-record-name-convention` scenario accepts a
+valid Variant Record Name and rejects its period-containing counterpart as
+`InconsistentFOM`. Supply the fixtures through
+`hla.rti.tck.variantRecordValidNameFom` and
+`hla.rti.tck.variantRecordInvalidNameFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; this covers the tested
+period restriction only.
+The opt-in `java-tck.fom-variant-discriminant-name-convention` scenario accepts
+a valid Variant Record Discriminant Name and rejects its period-containing
+counterpart as `InconsistentFOM`. Supply the fixtures through
+`hla.rti.tck.variantDiscriminantValidNameFom` and
+`hla.rti.tck.variantDiscriminantInvalidNameFom`. Focused runs passed under
+both callback models with the 2026-11-06 JNI provider build; this covers the
+tested period restriction only.
+The opt-in `java-tck.fom-variant-alternative-name-convention` scenario accepts
+a valid Variant Record Alternative Name and rejects its period-containing
+counterpart as `InconsistentFOM`. Supply the fixtures through
+`hla.rti.tck.variantAlternativeValidNameFom` and
+`hla.rti.tck.variantAlternativeInvalidNameFom`. Focused runs passed under
+both callback models with the 2026-11-06 JNI provider build; this covers the
+tested period restriction only.
+The opt-in `java-tck.fom-variant-alternative-type-category` scenario accepts
+the enumerated `HLAboolean` Alternative Type control and rejects the otherwise
+schema-valid alternative using basic `HLAinteger32BE` as `InconsistentFOM`.
+Supply the fixtures through `hla.rti.tck.variantAlternativeTypeValidFom` and
+`hla.rti.tck.variantAlternativeTypeInvalidFom`. Focused runs passed under
+both callback models with the 2026-11-06 JNI provider build; coverage is limited
+to this category boundary.
+The opt-in `java-tck.fom-variant-record-encoding` scenario accepts a valid FOM
+using `HLAvariantRecord` and `HLAextendableVariantRecord`, then rejects the
+paired predefined `HLAfixedRecord` mismatch as `InconsistentFOM`. Supply the
+fixtures through `hla.rti.tck.variantRecordEncodingValidFom` and
+`hla.rti.tck.variantRecordEncodingInvalidFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build; this covers marker
+validation only, not detailed byte layout.
+The opt-in `java-tck.fom-synchronization-table-validation` scenario accepts a
+FOM synchronization row with `Capability=NA`, rejects `Capability=Achieve` and
+a user label beginning with the reserved `HLA` prefix, then retries the valid
+FOM under the same federation name. Supply the fixtures through
+`hla.rti.tck.synchronizationCapabilityNaFom`,
+`hla.rti.tck.synchronizationCapabilityActionFom`, and
+`hla.rti.tck.synchronizationLabelInvalidFom`. Focused runs passed under both
+callback models with the 2026-11-06 JNI provider build. The SOM Capability rule
+is separate from these FOM assertions.
+The opt-in `java-tck.fom-transportation-description-ignored` scenario mirrors
+the C++ Create-time union and additional-module Join case for two declarations
+with the same transportation name and reliability but different `Semantics`.
+Supply the fixtures through `hla.rti.tck.transportationDuplicateBaseFom` and
+`hla.rti.tck.transportationDescriptionDifferentFom`. The Java test checks
+public transportation handle/name lookup and does not assert which description
+is retained. Both callback-model runs against provider build
+`umbra-jni-20261106` failed at Create with `InconsistentFOM`, so the Join and
+lookup assertions remain unexecuted on that build.
+The opt-in `java-tck.fom-automatic-resign-action-setting` scenario rejects an
+unsupported `resignAction` value with `InvalidFOM`, then accepts each of the six
+defined settings and checks the joined federate's public
+`getAutomaticResignDirective` value. Supply the seven FOM modules through the
+`hla.rti.tck.resignAction*Fom` properties and the pinned MIM through
+`--mim-path`; focused runs also require `--run-unverified`.
+The scenario compiled against the pinned API JAR and passed in both callback
+models on provider build `umbra-jni-20261106`; results are in
+`out/java-tck/fom-automatic-resign-action-setting-java-port-20261113/`.
+Evidence covers these seven FOM fixtures only.
+The opt-in `java-tck.fom-interaction-class-hierarchy` case resolves the
+three-level `TckTypedInteraction` hierarchy from `fom-model-tck.xml`, checks
+qualified interaction names round-trip through distinct handles, and verifies
+that inherited `IntegerParameter` and `DerivedParameter` handles and names
+remain stable through the derived and grandchild classes. Both focused callback
+models passed on provider build `umbra-jni-20261106`; results are in
+`out/java-tck/fom-interaction-class-hierarchy-java-port-20261113/`. Its direct
+mappings are IEEE 1516.2-2025 §§4.3.1 and 4.6.2; the checks cover this FOM
+witness only.
+The opt-in `java-tck.service-report-file-switch-lifecycle` scenario checks
+distinct `HLAreportServiceFile` values for two joined federates, each file's
+initial Connect record, independent file and Service Reporting switch gating,
+and a fresh report file after resign and rejoin. Focused HLA_EVOKED and
+HLA_IMMEDIATE runs passed on provider build `umbra-jni-20261106` with the
+adapter-supplied report directories; results are in
+`out/java-tck/service-report-file-switch-lifecycle-java-port-20261113/`.
+The assertions cover only the public MOM values and resulting records observed
+by this fixture, not filesystem failure handling or report-interaction
+delivery while file logging is disabled.
+The opt-in `java-tck.fom-update-rate-value-stability` scenario checks the
+selected base FOM entries `TckFast=25.0` and `TckSlow=0.5`, confirms
+`TckAdditionalRate` is unavailable before the extension module is joined, then
+checks `TckAdditionalRate=2.0` and the unchanged base values through both the
+owner and extension joiner. Supply `fom-model-tck.xml` through
+`hla.rti.tck.updateRateFom`, `fom-extension-tck.xml` through
+`hla.rti.tck.additionalFom`, and the designators through
+`hla.rti.tck.updateRateFastDesignator`, `hla.rti.tck.updateRateDesignator`, and
+`hla.rti.tck.fomAdditionalUpdateRate`. The Java TCK passed ten focused
+current-source JNI runs, five per callback model; the paired C++ primary and
+contract cases passed 4/4 focused installed-package CTests. This is evidence
+for these selected fixture entries; the public API does not enumerate
+arbitrary FDD update-rate tables, and independent-provider behavior remains
+unverified.
 The opt-in `java-tck.fom-invalid-create-atomicity` scenario retries federation
 creation with each adapter-supplied invalid FOM path, then creates and joins a
 valid federation using the same name to prove failures did not reserve it.
+The opt-in `java-tck.fom-noncompliant-module` scenario tests a schema-valid
+zero-update-rate FOM module at both Create and additional-module Join. It checks
+that Create rejects the valid-plus-noncompliant module set and permits a valid
+same-name retry; Join must reject the mixed class/rate module without adding a
+member or class, then allow a valid join while the rejected class remains
+absent. Supply the adapter's base FOM, zero-rate module, and mixed atomicity
+module via `hla.rti.tck.fom`, `hla.rti.tck.noncompliantUpdateRateFom`, and
+`hla.rti.tck.noncompliantModuleAtomicityFom`.
+A focused run passed 1/1 using the current-source JNI native build, cached Umbra
+Java adapter JAR, and HLAinteger64Time; independent providers and conformance
+remain unverified.
+The opt-in `java-tck.declaration-publish-before-send` scenario subscribes a
+receiver before attempting an unpublished send, checks the standard rejection
+and absence of a receive callback, then publishes and checks one callback with
+the original class, parameter, payload, and tag. A focused run passed 1/1 using
+the current-source JNI native build, cached Umbra Java adapter JAR, and
+HLAinteger64Time; independent providers and conformance remain unverified.
 The opt-in `java-tck.fom-invalid-composite-join-atomicity` case passes each
 invalid module together with the valid extension module, verifies atomic
 rejection, then confirms the valid join works after all failures.
@@ -597,24 +997,44 @@ FOM modules. Independent-provider conformance is not claimed.
 The default-run `java-tck.fom-update-rate-duplicate-equal` and
 `java-tck.fom-update-rate-duplicate-note-conflict` cases cover Annex C.7
 composition of same-name update-rate declarations. Equal declarations compose
-and expose `30.0` through `getUpdateRateValue`; a changed note reference is
-rejected with `InconsistentFOM`, followed by a valid retry. Both passed
-installed-provider evoked and immediate runs with adapter-supplied FOM modules.
-Independent-provider conformance is not claimed.
+and expose `30.0` through `getUpdateRateValue`; the equal case checks both
+modules individually before composing them and joining a member. Its direct
+Java mappings are requirement candidates p112-l70-9 and p112-l74-10 to Annex
+C.7. The changed-note-reference case is rejected with `InconsistentFOM` and
+retries the base module. It also covers IEEE 1516.1-2025 §4.1.4.1: the
+individually accepted `TckMergeRate=30.0` and `TckMergeRate=60.0` modules reject
+their combined Create, then the base module succeeds again. Its direct mappings
+are requirement candidates p112-l70-9 and p112-l78-11 to Annex C.7, plus
+`req-fom-module-reject-update-rate-conflict` to §4.1.4.1. Current-source JNI
+runs passed for both Java cases in both callback models; the paired C++ primary
+and contract cases passed 8/8 focused installed-package CTests. Evidence is
+limited to these adapter fixtures; independent-provider behavior remains
+unverified.
 
 The default-run `java-tck.fom-switch-duplicate-equal`,
 `java-tck.fom-switch-duplicate-order`, and
 `java-tck.fom-switch-duplicate-omitted` cases cover Annex C.8 support-switch
-composition: equivalent declarations agree, conflicting values follow the
-first FOM in either order, and an omitted `isEnabled` defaults to Disabled.
-All three passed installed-provider evoked and immediate runs with
-adapter-supplied FOM modules. Independent-provider conformance is not claimed.
+composition: equivalent declarations agree, conflicting Disabled/Enabled
+values are rejected in either Create order and as either Join extension, and
+an omitted `isEnabled` defaults to Disabled. The conflict scenario retries
+each rejected Create or Join with a valid same-name module and checks the
+public switch getter. Its direct mappings are IEEE 1516.2-2025 Annex C.8 and
+IEEE 1516.1-2025 §4.1.4.1. The conflict scenario passed current-source JNI
+runs under HLA_EVOKED and HLA_IMMEDIATE; the paired C++ primary and contract
+cases passed 4/4 focused CTests. All three scenarios passed installed-provider
+evoked and immediate runs with adapter-supplied FOM modules. These results do
+not claim independent-provider conformance.
 
 The default-run `java-tck.fom-advisory-switch-duplicate-equal`,
 `java-tck.fom-advisory-switch-duplicate-order`, and
 `java-tck.fom-advisory-switch-duplicate-omitted` cases cover equivalent,
-first-module, and omitted-default known-class advisory settings through the
-standard public getter. All three passed installed-provider evoked and
+conflicting and omitted-default known-class advisory settings through the
+standard public getter. The conflict case rejects the Disabled/Enabled modules
+in either Create order, retries each federation name with one valid module, and
+checks the retained value. Its direct mappings are IEEE 1516.2-2025 Annex C.8
+and IEEE 1516.1-2025 §4.1.4.1. It passed current-source JNI runs under
+HLA_EVOKED and HLA_IMMEDIATE; the paired C++ primary and contract cases passed
+4/4 focused CTests. All three scenarios passed installed-provider evoked and
 immediate runs with adapter-supplied FOM modules. Independent-provider
 conformance is not claimed.
 
@@ -664,34 +1084,134 @@ these local passes are not independent-provider conformance evidence.
 Its named subscription and per-attribute rate equality also cover the smaller
 `cpp-tck.named-update-rate-subscription` behavior without a duplicate Java case.
 
-The opt-in `java-tck.timestamped-attribute-update-rate-reduction` case checks
-timestamped best-effort suppression while reliable attribute updates continue
-to arrive. Its adapter supplies `hla.rti.tck.updateRateFom`,
+The opt-in `java-tck.timestamped-attribute-update-rate-reduction` case mirrors
+the C++ sequence with timestamped updates at logical times 6, 8, 10, 12, and
+14. The named-rate best-effort attribute is reflected at time 6 and suppressed
+at time 8 while the reliable attribute is reflected for both updates. A
+best-effort-only update at time 10 is suppressed and retracted before the
+receiver's grant; a second retraction after that grant must raise
+`MessageCanNoLongerBeRetracted`. The case then requests a change to
+`HLAreliable`, checks the single confirmation for the expected object and
+attribute, and verifies both later timestamped updates carry reliable transport
+metadata.
+
+Its adapter supplies `hla.rti.tck.updateRateFom`,
 `hla.rti.tck.updateRateObjectClass`,
 `hla.rti.tck.updateRateReliableAttribute`,
 `hla.rti.tck.updateRateBestEffortAttribute`, and
-`hla.rti.tck.updateRateDesignator`, along with the provider's standard logical-
-time and callback configuration.
+`hla.rti.tck.updateRateDesignator`, along with the provider's standard
+logical-time and callback configuration. Ten focused current-source JNI runs
+passed, five in each callback model. Results and the joined traceability export
+are under
+`out/java-tck/timestamped-attribute-update-rate-reduction-java-port-20261106/current-source/`;
+independent-provider behavior remains unverified.
+
+The opt-in `java-tck.update-rate-wall-clock-spacing` case mirrors the C++
+
+public API check for a named maximum update rate. It verifies the resolved
+
+subscription rate, sends one receive-order update, then immediately submits a
+
+second. The receiver records callback-entry times with `System.nanoTime()`
+
+and checks every observed pair stays at least `1/x` seconds apart through
+
+the full interval. It does not require the second update to arrive after that
+
+interval and makes no minimum-rate or general delivery-cadence claim.
+
+Its adapter supplies `hla.rti.tck.updateRateFom`,
+
+`hla.rti.tck.updateRateObjectClass`,
+
+`hla.rti.tck.updateRateBestEffortAttribute`, and
+
+`hla.rti.tck.updateRateDesignator`. The focused fixture uses
+
+`fom-model-tck.xml`, `HLAobjectRoot.TckRateObject.BestEffortValue`,
+
+`TckSlow=0.5`, and `HLAinteger64Time`. Ten current-source JNI runs passed,
+
+five in each callback model. Results and traceability export are under
+
+`out/java-tck/update-rate-wall-clock-spacing-java-port-20261106/current-source/`;
+
+independent-provider behavior remains unverified.
+
+The opt-in `java-tck.synchronous-update-rate-message-drop` case mirrors the
+C++ HLA_EVOKED scenario. It verifies that the receiver callback-service rate
+`Re` and publisher update rate `Rp` both exceed the active named subscription
+rate `Rs`, then counts unique receive-order updates delivered during a bounded
+wall-clock window. It checks sent-minus-delivered against `(Rp-Rs) * window`
+within two boundary updates. The case makes no HLA_IMMEDIATE, timestamped, or
+general rate-combination claim.
+
+Supply the adapter rate FOM, object class, best-effort attribute, and designator
+with `hla.rti.tck.updateRateFom`,
+`hla.rti.tck.updateRateObjectClass`,
+`hla.rti.tck.updateRateBestEffortAttribute`, and
+`hla.rti.tck.updateRateDesignator`, plus `HLA_EVOKED`. Five focused
+current-source JNI runs passed with `HLAobjectRoot.TckRateObject`,
+`BestEffortValue`, `TckSlow=1.0`, and `HLAinteger64Time`; the adapter FOM was
+copied from `fom-model-tck.xml` with only `TckSlow` changed and is at
+`out/java-tck/synchronous-update-rate-message-drop-java-port-20261106/tck-rate-1.0-fom.xml`.
+The tracked
+`TckSlow=0.5` fixture passed four of five exploratory runs, with one run over
+the two-update tolerance by one update. The paired C++ CTest and direct evoked
+run passed with the `1.0` adapter FOM. Results and traceability are under
+`out/java-tck/synchronous-update-rate-message-drop-java-port-20261106/current-source-rate-1.0-park/`;
+independent-provider behavior remains unverified.
+
+The opt-in `java-tck.attribute-relevance-rate-reissue` peer checks the named
+rate passed with owner-directed Turn Updates On callbacks. With the attribute
+relevance advisory switch enabled, the initial active `TckFast` subscriber
+produces an advisory; adding a lower-rate `TckSlow` subscriber does not reissue
+it; changing and restoring the fast subscriber's rate reissues the new maximum;
+removing that peer reissues the surviving slow rate; and removing the final
+subscriber produces Turn Updates Off. The case checks the callback object,
+attribute set, and exact designator, without a minimum-rate or throughput
+claim.
+
+The adapter uses `attribute-relevance-rate-tck.xml`, which sets the standard
+advisory switch on and defines `TckFast=25.0` and `TckSlow=0.5` for
+`HLAobjectRoot.TckRateObject.BestEffortValue`. Five focused current-source JNI
+runs passed for each callback model. Results and the traceability export are
+under `out/java-tck/attribute-relevance-rate-reissue-java-port-20261106/current-source/`;
+the paired current-source C++ primary and contract CTests passed 4/4.
 
 The default `java-tck.default-rate-subscription-no-reduction` case omits the
 optional update-rate designator, sends three distinct ordinary updates before
 servicing an evoked callback, and verifies that every original value and tag is
-reflected on the receiver's locally known object without assuming callback
-order. Its FOM, object class, attribute, endpoint, callback model, and logical
-time are adapter-supplied. Focused installed JNI execution passed in both
-callback modes; independent-provider conformance remains unverified.
+reflected in send order on the receiver's locally known object. Its FOM, object
+class, attribute, endpoint, callback model, and logical time are adapter-
+supplied. Five focused current-source JNI runs passed per callback mode;
+independent-provider conformance remains unverified. Results and the joined
+traceability export are under
+`out/java-tck/default-rate-subscription-no-reduction-port-20261106/current-source/`.
 
-The opt-in `java-tck.mixed-update-rate-subscriptions` case uses the same
-adapter inputs to verify ordinary receive-order updates are independently
-gated: the first passel includes both attributes, while the next still
-delivers the default-rate reliable attribute without repeating the named-rate
-best-effort attribute.
-
-The opt-in `java-tck.attribute-relevance-rate-reissue` case verifies owner-side
-Turn Updates On reissues as the maximum active subscription rate changes among
-two subscribers. It uses the shared rate FOM/object/attribute properties plus
-`hla.rti.tck.updateRateFastDesignator`; the adapter supplies both distinct
-designators and their positive rate ordering.
+The opt-in `java-tck.mixed-update-rate-subscriptions` case mirrors the C++
+ordinary and regional branches. With an adapter-supplied rich rate FOM, it
+checks named and default per-attribute rates, tagged receive-order reflections,
+and the reliable/best-effort transportation types in the ordinary passel. The
+next update retains the default-rate reliable attribute while suppressing the
+named-rate best-effort attribute. A two-dimensional regional branch checks the
+same named-rate suppression and default-rate delivery, including the producer
+federate in callback metadata. The direct Java mappings cover §5.1.7
+(named/default rates), §6.1.13 (owner updates), §6.11 (tag and transportation),
+and §9.8 (regional delivery); the C++-binding-only §1.5 container type
+assertions are excluded. Configure `hla.rti.tck.updateRateFom`,
+`hla.rti.tck.updateRateObjectClass`,
+`hla.rti.tck.updateRateReliableAttribute`,
+`hla.rti.tck.updateRateBestEffortAttribute`,
+`hla.rti.tck.updateRateDesignator`,
+`hla.rti.tck.updateRateRegionalObjectClass`,
+`hla.rti.tck.updateRateRegionalAttribute`,
+`hla.rti.tck.updateRateDimensionFirst`, and
+`hla.rti.tck.updateRateDimensionSecond`. Ten focused current-source JNI runs
+passed, five per callback model. The joined mapping export is under
+`out/java-tck/mixed-update-rate-subscriptions-java-port-20261106/current-source/`;
+the scenario remains opt-in because these fixture inputs are not supplied by a
+default adapter, and independent-provider behavior remains unverified.
 
 The opt-in `java-tck.standard-order-transport-lookups-after-resignation` case
 checks the mandatory `Receive`/`TimeStamp` orders and `HLAreliable`/
@@ -776,12 +1296,16 @@ checks that the deleting member loses known-class lookup immediately, the
 other member receives the standard removal callback, and that member then
 also receives `ObjectInstanceNotKnown` for the removed handle.
 
-The `java-tck.explicit-mim-creation` scenario runs by default using only the
-standard `createFederationExecutionWithMIM` API. The adapter supplies the MIM
-file (`-Dhla.rti.tck.mim=...`), caller FOM, and the FOM's object, attribute,
-interaction, and parameter names. It checks rejection of the reserved
-standard-MIM designator, shared MOM handles/names across federates, and
-continued lookup of the caller's declarations. The bundled P0 FOM uses
+The `java-tck.explicit-mim-creation` scenario runs by default. It checks an
+adapter-supplied standard MIM through `createFederationExecutionWithMIM`, then
+creates a separate federation without an explicit MIM and resolves the standard
+`HLAfederation` class and `HLAfederationName` attribute. It also checks
+rejection of the reserved standard-MIM designator, shared MOM handles/names
+across federates, and continued lookup of the caller's declarations. The
+adapter supplies the MIM file (`-Dhla.rti.tck.mim=...`), caller FOM, and the
+FOM's object, attribute, interaction, and parameter names. These selected
+paths map to IEEE 1516.1-2025 §§4.5 and 4.6.5; arbitrary custom-MIM content and
+the separate MIM-before-FOM rule are not covered. The bundled P0 FOM uses
 `Payload` as the `TckInteraction` parameter name. Both callback models passed
 focused JNI runs; this is not independent-provider or conformance evidence.
 
@@ -800,22 +1324,27 @@ The default-run `java-tck.federation-mom-current-fdd` scenario consumes the
 adapter-supplied FOM, standard MIM, and an additional extension FOM
 (`-Dhla.rti.tck.additionalFom=...`). It checks standard federation-MOM
 discovery, reliable transportation and `HLAcurrentFDD` reflection, then
-verifies that an additional-module join refreshes the reflected FDD and that a
-subsequent explicit value request returns the same composition.
-It passed installed-provider evoked and immediate runs with standard
-RTI-originated producer validation; independent-provider behavior remains
-unverified.
+checks for the selected `HLAserviceReporting`, `HLAsetSwitches`, and
+`HLAreportServiceInvocation` definitions while requesting only
+`HLAfederation.HLAcurrentFDD`. After an additional-module join, it verifies the
+refresh and compares it with an explicit request. After the supplying federate
+resigns, it checks that the extension class and declarations remain in the FDD
+and that standard class/attribute lookups still resolve. The paired C++ primary
+maps these bounded witnesses to IEEE 1516.1-2025 §§4.1.4.1, 4.1.4.2, and 11.1.
+Current-source JNI runs passed under both callback models; independent-provider
+behavior and overall conformance remain unverified.
 
 The default-run `java-tck.federation-mom-fom-module-designator-list` scenario uses
-the adapter-supplied base FOM and MIM plus one or more additional FOM modules
-(`-Dhla.rti.tck.additionalFomModules=...`, paths separated by the platform
-path separator). It decodes the standard `HLAFOMmoduleDesignatorList` as a
-variable array of Unicode strings, compares designators without assuming array
-order, and checks that the list changes after an additional-module join and
-matches a later explicit request. The callback assertion also checks the
-standard transport, tag, producer, and DDM-region metadata.
-It passed installed-provider evoked and immediate runs with standard
-RTI-originated producer validation; independent-provider behavior remains
+the adapter-supplied base FOM and MIM, additional FOM modules
+(`-Dhla.rti.tck.additionalFomModules=...`), and data-type-only provider FOM
+(`-Dhla.rti.tck.dataTypeMergeProviderFom=...`). It creates with a filesystem
+path and a distinct file URL for the same base FOM content, then checks that
+only the first qualifying designator appears. It compares the designator list
+as an order-independent set after an additional-module join and verifies that
+a data-type-only join adds `TckMergeValue` to `HLAcurrentFDD` without changing
+the designator list. Callback checks include standard transport, tag, producer,
+and DDM-region metadata. Current-source JNI runs passed under both callback
+models; independent-provider behavior and overall conformance remain
 unverified.
 
 The default-run `java-tck.federate-mom-fom-module-content-report` scenario requests
@@ -835,6 +1364,23 @@ decoded handle and attribute lists, reliable delivery, and the owned/known/NULL
 states. The adapter supplies the FOM, standard MIM, object-class and attribute
 names, logical time, and callback model. It passed installed-provider runs in
 both callback models; independent-provider behavior is not yet verified.
+
+The adapter-required `java-tck.federate-mom-updated-null-object-report` scenario
+requests HLArequestObjectInstancesUpdated for a joined subject with no successful
+updates. It checks exactly one reliable HLAreportObjectInstancesUpdated response,
+its single HLAobjectInstanceCounts parameter and empty metadata, and decodes the
+value as an empty count array. Current-source JNI runs passed in both callback
+models, as did the paired installed-package C++ primary and contract. This is a
+bounded §11.4.1(d) witness and local-provider evidence only.
+
+The adapter-required `java-tck.mom-save-restore-interactions` case has both
+federates publish the three standard save/restore MOM interactions. During the
+active save it sends Save Begun and Save Complete; during the active restore it
+sends Restore Complete. It checks the matching completion callbacks and that
+application sends fail with SaveInProgress or RestoreInProgress during those
+transitions. Current-source JNI and paired installed-package C++ runs passed in
+both callback models. This is one bounded positive path and local-provider
+evidence only.
 
 The default-run `java-tck.federate-mom-publication-query` scenario requests
 standard federate MOM publication reports after publishing an adapter-named
@@ -868,10 +1414,14 @@ The default-run `java-tck.federation-mom-static-identity` scenario consumes the
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
 model. It checks standard federation-MOM handle/name round trips and object
 identity, then decodes the federation name, RTI version, MIM designator, and
-logical-time implementation from the ordinary identity reflection.
-It validates an RTI-originated producer through the standard invalid-handle
-lookup, and passed installed-provider evoked and immediate runs; independent-
-provider behavior remains unverified.
+logical-time implementation from the ordinary identity reflection. It also
+resolves all 16 Table 8 P-designated federation attributes and requests their
+complete report, inventories the 25 Table 7 P-leaf interaction names through
+lookups only, and verifies that an acquisition-if-available attempt does not
+change HLAfederationName ownership. Its two direct candidate mappings are to
+IEEE 1516.1-2025 §11.4.1; Table 7 lookups do not claim publication, and the
+NoTransfer probe has no direct mapping. Focused current-source JNI runs passed
+in both callback models; independent-provider behavior remains unverified.
 
 The default-run `java-tck.federation-mom-static-switches` scenario uses the same
 adapter-supplied FOM, standard MIM, logical-time implementation, and callback
@@ -888,18 +1438,24 @@ model. It decodes the standard nested `HLAfederateReferenceList` encoding with
 the official encoder API and federate-handle factory, treats roster order as
 unspecified, and verifies requested membership plus conditional updates after
 a federate joins and resigns.
+This join/resign roster witness directly maps p. 290 l. 174 to §11.4.1; it
+does not claim coverage of other Federation MOM attributes.
 It passed installed-provider evoked and immediate runs after standard
 RTI-originated producer validation; independent-provider behavior remains
 unverified.
 
 The default-run `java-tck.federation-mom-content-reports` scenario requests the
-standard FOM-module and MIM content reports using the adapter-supplied FOM,
-MIM, logical-time implementation, and callback model. It decodes the report
-parameters with the official `HLAinteger32BE` and `HLAunicodeString` encoders,
-and checks interaction identity, empty tags, reliable transportation, and
-ordinary receive-order delivery. The scenario has a matching C++ portable TCK
-ID and passed installed-provider evoked and immediate runs. This establishes
-API-level parity on one provider, not independent-provider conformance.
+standard FOM-module and MIM content reports from one member and observes them
+from another using the adapter-supplied FOM, MIM, logical-time implementation,
+and callback model. It checks report parameters, RTI-originated producer
+metadata, reliable transportation, and that the FOM report contains the
+adapter's `TckObject` declaration. A malformed MIM request carrying the
+FOM-only module indicator must raise `InteractionParameterNotDefined` and
+produce no report. Runtime MIM-data names follow the bundled 1516.2 standard
+MIM; the uppercase spelling in 1516.1 remains unresolved under RL-393, so no
+alias is added. The scenario has a matching C++ portable TCK ID and passed
+installed-provider evoked and immediate runs. This establishes API-level
+parity on one provider, not independent-provider conformance.
 
 The default `java-tck.object-registration-discovery-lifecycle` scenario checks
 typed base/derived-class lookup, inherited attribute identity, publication,
@@ -930,9 +1486,14 @@ The default `java-tck.attribute-value-request-service-boundaries` case covers
 ordinary instance- and class-scoped value requests, owner callbacks with request
 tags, and the subsequent update/reflect responses. It uses each federate's own
 object and attribute handles and the adapter's object class, attribute, FOM,
-logical time, provider, endpoint, and callback model. Fabricated invalid-handle
-checks are excluded from this portable Java subset. Focused installed JNI runs
-passed in both callback modes; independent-provider conformance is unverified.
+logical time, provider, endpoint, and callback model. Its opt-in companion,
+`java-tck.attribute-value-request-service-boundaries-invalid-handle-contexts`,
+checks the C++ supplemental `ObjectClassNotDefined` and two
+`AttributeNotDefined` outcomes. It uses standard API handles from a separate
+FOM execution and does not represent C++ default-invalid handle values. The
+companion requires the adapter's additional FOM module. Both cases passed
+focused installed JNI runs in both callback modes; independent-provider
+conformance is unverified.
 
 The default-run `java-tck.object-attribute-declarations-valid-inputs-after-resignation`
 scenario uses adapter-supplied object-class and attribute names and checks all six
@@ -963,12 +1524,16 @@ and `HLA_IMMEDIATE`. This does not establish independent-provider conformance.
 
 The default-run `java-tck.attribute-value-update-response` scenario uses the adapter's
 ordinary object-class and attribute names (`hla.rti.tck.objectClass` and
-`hla.rti.tck.attribute`). It verifies discovery and request-tag
-delivery, then has the owner answer with standard `updateAttributeValues` and checks
-the reflected value/tag, reliable transportation, producer, and absence of regions.
-Provider, FOM, endpoint, logical-time implementation, and callback model remain
-adapter-configured. It passed the focused JNI gate in both `HLA_EVOKED` and
-`HLA_IMMEDIATE`; this does not establish independent-provider conformance.
+`hla.rti.tck.attribute`). Before the request, the subscribed non-owner tries to
+update the owner's instance attribute; Java must throw `AttributeNotOwned` and
+deliver neither a provider callback nor a reflection. The case then verifies
+request-tag delivery, the owner's response, and the reflected value/tag, reliable
+transportation, producer, and absence of regions. The ownership rejection maps
+directly to p. 148 l. 22 -> §7.1. Provider, FOM, endpoint, logical-time
+implementation, and callback model remain adapter-configured. Current-source JNI
+runs passed both `HLA_EVOKED` and `HLA_IMMEDIATE`; results are in
+`out/java-tck/attribute-value-update-response-java-parity-20261114/`. This does
+not establish independent-provider conformance.
 
 The default-run `java-tck.attribute-value-update-request-multi-requester` scenario
 uses the adapter's ordinary object-class and attribute names (`hla.rti.tck.objectClass`
@@ -985,9 +1550,31 @@ receive exactly one discovery per object, with matching producer/class metadata
 and stable name/handle/known-class lookups. Provider, FOM, endpoint, and callback
 model remain adapter-configured. The shared helper also supports default-run
 `java-tck.named-registration-multi-recipient`, which reserves both names before
-registration. Both passed the focused JNI gate in `HLA_EVOKED` and `HLA_IMMEDIATE`
-without assuming discovery order or cross-federate equality of object, class, or
-attribute handles. This does not establish independent-provider conformance.
+registration and reserves a second pair of explicit names that differ only by
+ASCII case. It verifies both case-distinct reservations succeed and preserves
+their exact spelling in the name/handle round-trips, a bounded §1.5 witness.
+Both passed five focused current-source JNI runs in each callback model without
+assuming discovery order. Each subscriber compares publisher-returned object
+handles with its local name lookups using ObjectInstanceHandle.equals and checks
+that each callback handle matches the local lookup. This does not establish
+independent-provider conformance.
+
+The opt-in `java-tck.object-class-abstraction-subscription` scenario uses the
+adapter-supplied `hla.rti.tck.modelFom` and configured typed base/derived class
+names with the inherited Identity attribute. It publishes and registers a
+derived object, subscribes at the base class, verifies the subscriber's
+discovery/known-class view, and checks reflection of the inherited value.
+Five focused current-source Umbra JNI runs passed under each callback model;
+behavior on other providers is unverified.
+
+The adapter-backed `java-tck.per-federate-discovered-class`,
+`java-tck.registered-object-class-immutability`, and
+`java-tck.discovered-class-stability-after-specific-subscription` scenarios use
+the typed hierarchy FOM to check subscriber-specific discovery views, stable
+registered and known classes through subscription changes, and no duplicate
+discovery after a more-specific subscription is added. Each passed five focused
+current-source Umbra JNI runs under both callback models; this is local-provider
+evidence only.
 
 The default-run `java-tck.named-registration` case checks single and multiple
 name reservations, release and reuse, owner-only consumption, named discovery,
@@ -997,28 +1584,32 @@ without assuming a provider-generated prefix. Focused installed-provider
 evoked and immediate runs passed; independent-provider conformance is not claimed.
 
 The default-run `java-tck.ordinary-multi-attribute-subscription-projection` scenario
-uses an adapter-supplied multi-attribute FOM and attribute names. It verifies the
-complete update for a two-attribute subscriber, selective value projection for
-single-attribute subscribers, preservation of per-update tags and producer
-metadata, and suppression of updates for an unsubscribed attribute and the
-publisher. It passed the focused JNI gate in both callback models using an
-adapter-supplied two-attribute FOM. It remains internal API-contract evidence
-without a direct canonical requirement mapping or independent-provider claim.
+uses an adapter-supplied multi-attribute FOM and attribute names. It verifies a
+complete two-attribute update and selective projection, then sends first-only
+and second-only updates back-to-back without explicitly evoking a receiver
+between calls. The fully subscribed receiver must get two distinct callbacks
+with separate tags and one value each; selective receivers get only matching
+updates. This is the bounded §6.1.12 sequential-pair witness, not a claim about
+every concurrent interleaving or independent-provider conformance. Focused JNI
+runs passed under both callback models.
 
 The default-run `java-tck.subscription-initial-reflection-projection` scenario
-subscribes to an existing object and checks the current first-attribute value,
-then a later two-attribute update. Only the subscribed attribute may appear in
-either reflection. The adapter supplies the provider, FOM, names, and callback
-model; both callback modes passed the focused JNI gate. This is direct §5.8
-parity evidence, not an independent-provider conformance claim.
+joins both members before registration, updates both object attributes, then
+subscribes to the first attribute. It checks one matching discovery and the
+current initial value, then a later two-attribute update; both reflections
+must contain only the subscribed value. The adapter supplies the provider,
+FOM, names, and callback model. Both callback modes passed the focused JNI
+gate. This is direct §5.8 parity evidence, not an independent-provider
+conformance claim.
 
 The default-run `java-tck.active-subscription-object-discovery` scenario checks
 discovery of one object registered before subscription and one registered
 afterward, each exactly once. It observes no discovery before subscription and
-checks each discovered object's identity within the subscriber. The adapter
-supplies the provider, FOM, class/attribute names, and callback model. Both
-callback modes passed the focused JNI gate; only the recorded §5.8 assertions
-are direct standard mappings.
+checks each callback's producer, name, class, and publisher-returned handle, plus
+the subscriber's name and known-class lookups. Both members join before the first
+registration. The adapter supplies the provider, FOM, class/attribute names, and
+callback model. Both callback modes passed the focused JNI gate; only the
+recorded §5.8 assertions are direct standard mappings.
 
 The opt-in `java-tck.time-constrained-enable-galt-equality` scenario compiles
 against the pinned IEEE 1516.1-2025 Java API. It checks that constrained-enable
@@ -1081,10 +1672,15 @@ logical time and grant history are unchanged by a receive-order interaction,
 and a later advance still grants. It passes focused installed-provider runs
 in both callback models using adapter-supplied FOM, names, endpoint, and time.
 
-The default `java-tck.tar-queued-tso-before-grant` case checks one bounded
-Clause 8 TAR path: a queued timestamp-5 interaction arrives before the
-receiver's grant at requested time 6. Focused installed-provider runs pass
-in both callback models. Cohort and equal-boundary behavior are separate tests.
+The default `java-tck.tar-queued-tso-before-grant` case checks queued TSO(5)
+delivery before TAR(6), then a sender lookahead floor after its TAR(2) grant:
+timestamp 6 is rejected with `InvalidLogicalTime`, while timestamp 7 is
+accepted and delivered before TAR(7). Direct mappings cover the bounded Clause
+8 delivery witness and page-199-l91-29 -> §8.11 send-floor behavior for one
+regulated producer. Current-source JNI runs passed both callback models with
+HLAinteger64Time; results are in
+`out/java-tck/tar-queued-tso-send-floor-java-port-20261114/`. This does not
+claim a general future-message suppression rule or conformance.
 
 The default `java-tck.timestamped-interaction-tar-strict-timestamp-cutoff`
 case adds that §8.14.3 cohort check: known timestamps 5 and 6 arrive before
@@ -1102,72 +1698,287 @@ fails against the installed Java provider in both callback models: the send
 returns a valid retraction designator where its promoted C++ peer expects
 none. It remains outside the default run pending a provider/adapter audit.
 
-The opt-in `java-tck.service-report-associate-regions-for-updates` scenario
-checks the standard Table 5 `AttributeRegionAssociation` report value for one
-successful `AssociateRegionsForUpdates` call. Supply `hla.rti.tck.fom`,
+The adapter-required `java-tck.service-report-associate-regions-for-updates`
+scenario directly maps Table 5 rows r007 and r010 to IEEE 1516.1-2025
+§11.5.1. It decodes `HLAsuppliedArguments` as a variable array, checks its two
+ordered `AttributeRegionAssociation` entries, and validates each singleton
+attribute/region pair for one successful `AssociateRegionsForUpdates` call.
+Supply `hla.rti.tck.fom`,
 `hla.rti.tck.modelFom`, and `hla.rti.tck.mim` as adapter FOM/MIM paths, plus
-the matching typed object/attribute, dimension, time, and callback settings.
-Its C++ primary and contract pass the focused installed-package gate with
-`HLAinteger64Time`; Java compiles against the official API jar but awaits
-provider-runtime verification.
+the matching typed object, identity and integer attributes, dimension, time,
+and callback settings. The Java P0 adapter input is
+`packages/hla-rti-java-tck/fom/p0-tck-without-switches.xml`, paired with
+`packages/hla-rti-cpp-tck/fom/fom-model-tck.xml`. It preserves the P0 model
+declarations and omits the root switch block because its values conflict with
+the typed model FOM; this scenario does not assert switch behavior. Its C++
+primary and contract pass the focused installed-package gate with
+`HLAinteger64Time`. The Java scenario passed current-source Umbra JNI runs
+under both callback models with the same adapter FOM/MIM and time inputs;
+results are in
+`out/java-tck/service-report-associate-regions-java-parity-20261114/{evoked,immediate}.{results.json,junit.xml}`.
+This is local provider evidence only.
+
+The opt-in java-tck.service-report-commit-region-modifications scenario
+commits two distinct regions with valid full-range bounds in one call. It
+checks one type-43 Set of region designators report containing both region
+handles, the successful report fields, and the committed bounds on both
+regions. Configure the adapter FOM, TckDimension, standard MIM, and
+HLAinteger64Time. The Umbra JNI profile has focused passing runs under both
+callback models.
+
+The opt-in java-tck.service-report-delete-region scenario deletes one
+adapter-valid region. It checks one type-42 Region designator service report,
+the successful report fields, and that getDimensionHandleSet rejects the
+deleted region with InvalidRegion. Configure the adapter FOM, TckDimension,
+standard MIM, and HLAinteger64Time. The Umbra JNI profile has focused passing
+runs under both callback models.
+
+The opt-in java-tck.service-report-create-region scenario creates one region
+over TckDimension. It checks the type-11 Set of dimension designators supplied
+argument and type-42 Region designator return value in one successful service
+report, then deletes the region. Configure fom-model-tck.xml, the standard MIM,
+and HLAinteger64Time. The Umbra JNI profile has focused passing runs under both
+callback models.
+
+The opt-in `java-tck.service-report-dimension-handle-set` scenario checks the
+type-11 dimension-set result and successful report. It also enables conveyed
+region designators and, inside `receiveInteraction`, checks that the report's
+single callback region has exactly the `HLAfederate` and `HLAserviceGroup`
+dimensions with normalized point ranges for the reporting federate and
+`SUPPORT_SERVICES`. Configure the adapter FOM, TckDimension, standard MIM, and
+HLAinteger64Time. The Umbra JNI profile has focused passing runs under both
+callback models.
+
+The opt-in `java-tck.service-report-range-bounds` scenario commits one valid
+region, reads back its bounds, and checks the type-42 region and type-10
+dimension arguments with the type-41 JSON range result. The
+`java-tck.service-report-set-range-bounds` scenario checks the matching update
+report with both type-35 bound arguments and verifies the updated range.
+Configure the adapter FOM, TckDimension, standard MIM, and HLAinteger64Time.
+The Umbra JNI profile has focused passing runs for both scenarios under both
+callback models.
+
+The opt-in `java-tck.service-report-interaction-dimensions` scenario checks
+`GetAvailableDimensionsForInteractionClass` for the adapter's typed interaction
+class. It verifies the single configured dimension and the empty
+`HLAinteractionRoot` result, with successful reports at serials 0 and 1. The
+reports check type-27 interaction-class and type-11 dimension-set arguments.
+Handle text is checked by quoted shape because provider handle strings are not
+portable. Configure `HLAinteractionRoot.TckTypedInteraction`, TckDimension, the
+standard MIM, and HLAinteger64Time. The Umbra JNI profile has focused passing
+runs under both callback models.
+
+The opt-in
+`java-tck.service-report-interaction-dimensions-invalid-handle-contexts`
+companion repeats those success and empty results, then uses the standard handle
+for `HLAinteractionRoot.TckExtensionInteraction` from a separate FOM execution.
+It checks `InvalidInteractionClassHandle` and the failed report at serial 2.
+The foreign handle reproduces the C++ failure outcome without representing its
+default-invalid handle or adding a normative mapping. Configure the additional
+FOM module, for example `fom-extension-tck.xml`; focused local Umbra JNI runs
+passed under both callback models.
+
+The opt-in `java-tck.service-report-object-dimensions` scenario checks
+`GetAvailableDimensionsForObjectClass` for the adapter's typed object class. It
+verifies the single configured dimension, the empty `HLAobjectRoot` result,
+and the type-36 object-class and type-11 dimension-set report arguments for
+both calls. Handle text is checked by its quoted form; provider handle strings
+are not compared as portable values. Configure
+`HLAobjectRoot.TckTypedObject`, TckDimension, the standard MIM, and
+HLAinteger64Time. Focused local Umbra JNI runs passed under both callback models.
+
+The opt-in
+`java-tck.service-report-object-dimensions-invalid-handle-contexts` companion
+repeats the positive and empty results, then uses the standard object-class
+handle for `HLAobjectRoot.TckExtensionObject` from a separate FOM execution. It
+checks `InvalidObjectClassHandle` and the failed report at serial 2. This
+reproduces the C++ failure outcome without claiming the default-invalid C++
+handle representation or adding a normative mapping. It requires the adapter's
+additional FOM module; focused local Umbra JNI runs passed under both callback
+models.
+
+The opt-in `java-tck.service-report-dimension-upper-bound` scenario checks
+`GetDimensionUpperBound` for TckDimension and verifies the type-10 dimension
+argument and type-35 bound result. The adapter FOM must define its upper bound
+as 64. Configure the standard MIM and HLAinteger64Time. The Umbra JNI profile
+has focused passing runs under both callback models.
+
+The opt-in `java-tck.service-report-dimension-name` scenario checks
+`GetDimensionName` for TckDimension and verifies the type-10 dimension argument
+and type-53 quoted name result. Configure the adapter FOM, standard MIM, and
+HLAinteger64Time. The Umbra JNI profile has focused passing runs under both
+callback models.
+
+The opt-in `java-tck.service-report-dimension-handle` scenario checks
+`GetDimensionHandle` for TckDimension and verifies the type-53 quoted name
+argument and type-10 quoted handle result. Configure the adapter FOM, standard
+MIM, and HLAinteger64Time. The Umbra JNI profile has focused passing runs under
+both callback models.
+
+The opt-in `java-tck.service-report-order-transportation-lookups` scenario
+checks successful `GetOrderType`, `GetOrderName`, `GetTransportationTypeHandle`,
+and `GetTransportationTypeName` calls, followed by `GetTimeFactory`. It verifies
+all five ordered reports, including the zero-argument type-12 time-factory
+result. Configure the standard MIM and `HLAinteger64Time`; the Umbra JNI profile
+has focused passing runs under both callback models.
+
+The opt-in `java-tck.service-report-order-transportation-lookup-failures`
+scenario checks the ordered failure reports for unsupported order and
+transportation lookups, an invalid order value, and an invalid transportation
+handle, followed by a successful `Receive` lookup. Java's closed `OrderType`
+enum uses `null` for the invalid value; the Umbra JNI adapter maps it to the
+invalid C++ enum so the RTI emits the same exception and report. Its
+zero-valued invalid transportation handle is decoded through the public Java
+handle factory. Focused Umbra JNI runs pass under both callback models; the
+scenario remains disabled by default for other providers because that handle
+encoding is provider-specific.
+
+The opt-in `java-tck.service-report-interaction-parameter-lookups` scenario
+checks the ordered `GetInteractionClassHandle`, `GetInteractionClassName`,
+`GetParameterHandle`, and `GetParameterName` reports, including their supplied
+and returned arguments, serials, status, and callback metadata. With an
+adapter-supplied `serviceReportDirectory`, it also subscribes to the Federate
+MOM report-file attribute and verifies that a file-backed handle lookup appends
+the Table 5 type-27 result. Configure the adapter FOM, standard MIM, and
+`HLAinteger64Time`; focused Umbra JNI runs with file reporting pass under both
+callback models.
+
+The opt-in `java-tck.federate-mom-report-service-file` peer reads the public
+Federate MOM `HLAreportServiceFile` value and checks Table 5 p. 295 row r013's
+`CallbackModel` enumerant in the initial record. Focused HLA_EVOKED and
+HLA_IMMEDIATE runs passed against the current-source Umbra JNI provider with
+`HLAinteger64Time`; results are in
+`out/java-tck/service-report-callback-model-java-port-20261114/`. The check does
+not cover file identity, other record contents, or persistence.
+
+The opt-in
+`java-tck.service-report-interaction-parameter-lookup-failures` scenario checks
+the ordered reports for a missing interaction class, invalid interaction-class
+handle, missing parameter, invalid parameter handle, and successful interaction
+class recovery. It verifies the exception classes, Table 5 argument names and
+types, serials 0–4, status, federate identity, and callback metadata. Java
+invalid handles are provider-neutral opaque sentinels; the test checks their
+reported values for quoted form without assuming provider-specific text. The
+Umbra JNI bridge maps empty sentinel encodings to default invalid C++ handles so
+the RTI emits the standard API errors. Configure the adapter FOM, standard MIM,
+and `HLAinteger64Time`; focused Umbra JNI runs pass under both callback models.
+
+The opt-in `java-tck.service-report-object-attribute-update-rate-lookups`
+scenario checks seven ordered reports for object-class, object-instance,
+attribute, and update-rate lookups. With an adapter-supplied
+`serviceReportDirectory`, it also checks that `GetUpdateRateValue` appends a
+successful, unquoted Table 5 type-35 Number equal to the Java API result. Supply
+the update-rate FOM, object class, best-effort attribute, and designator with
+`hla.rti.tck.updateRateFom`, `hla.rti.tck.updateRateObjectClass`,
+`hla.rti.tck.updateRateBestEffortAttribute`, and
+`hla.rti.tck.updateRateDesignator`; focused Umbra JNI runs with file reporting
+pass under both callback models.
+
+The opt-in
+`java-tck.service-report-object-attribute-update-rate-lookup-failures` scenario
+checks seven ordered failed lookups for object instances, object classes,
+attributes, and update rates, followed by a successful object-class recovery.
+It verifies the exception classes, Table 5 argument names and types, serials
+0–7, null failure results, status, federate identity, and callback metadata.
+Invalid-handle report text is checked only for quoted form because providers
+format those values differently. Supply the update-rate FOM, object class,
+best-effort attribute, and designator with
+`hla.rti.tck.updateRateFom`, `hla.rti.tck.updateRateObjectClass`,
+`hla.rti.tck.updateRateBestEffortAttribute`, and
+`hla.rti.tck.updateRateDesignator`; focused Umbra JNI runs pass under both
+callback models.
+
+The opt-in `java-tck.service-report-federate-object-class-lookups` scenario
+checks the ordered `GetFederateHandle`, `GetFederateName`,
+`GetObjectClassHandle`, and `GetObjectClassName` reports, including supplied
+and returned Table 5 arguments, serials 0–3, status, federate identity, and
+callback metadata. Configure `fom-model-tck.xml` with
+`HLAobjectRoot.TckTypedObject`, the standard MIM, and `HLAinteger64Time`;
+focused Umbra JNI runs pass under both callback models.
+
+The opt-in `java-tck.service-report-federate-object-class-lookup-failures`
+scenario verifies four failed lookup reports followed by four successful
+federate/object-class lookup recoveries. It checks `NameNotFound`,
+`InvalidFederateHandle`, and `InvalidObjectClassHandle`, the ordered report
+arguments and serials 0–7, status, federate identity, and callback metadata.
+Because the Java API has no public invalid-handle constructor, the test uses
+typed empty handle encodings that the Umbra JNI bridge passes to the RTI as
+default invalid C++ handles. The report's invalid-handle text is checked for
+quoted form without assuming provider-specific formatting. Configure
+`fom-model-tck.xml` with `HLAobjectRoot.TckTypedObject`, the standard MIM, and
+`HLAinteger64Time`; focused Umbra JNI runs pass under both callback models.
 
 The default-run `java-tck.ordinary-multi-attribute-value-update-request-response`
 scenario uses the adapter-supplied multi-attribute FOM and names. It exercises
-full, first-only, and second-only instance requests, checks the provider callback
-attribute sets and request tags, and verifies each ordinary response's values,
+full, first-only, and second-only instance requests, checks publisher/subscriber
+object identity and the provider callback attribute sets and request tags, and
+verifies each ordinary response's values,
 tag, producer, reliable transportation, and receive-order metadata. Both callback
 modes passed the focused JNI gate with adapter-supplied FOM/names. The direct
 standard claims are limited to §§6.21, 6.21.5, 6.22, and 6.10.
 
-The opt-in `java-tck.regional-multi-attribute-update` scenario uses an
+The `java-tck.regional-multi-attribute-update` scenario uses an
 adapter-supplied multi-attribute FOM configured with
 `hla.rti.tck.multiAttributeFom`, the existing multi-attribute object/attribute
 name properties, and two dimensional names. It independently associates each
 published attribute with a different source region, verifies projection to two
-subscribers, mutates each source range to test independent filtering, then
-restores overlap and checks delivery resumes with the correct source-region
-metadata. It remains unsupported by default pending Java-provider runtime
-verification.
+subscribers, mutates source ranges to test independent filtering, and confirms
+delivery resumes after the ranges are restored. It also registers both
+attributes against both disjoint source regions and verifies that each
+subscriber receives each attribute once through its own region subscription.
+Callback-scoped copies of the conveyed regions are queried for their dimensions
+and bounds while the reflection callbacks are running.
 
-The opt-in `java-tck.allow-relaxed-ddm` scenario composes the adapter-supplied
+The `java-tck.allow-relaxed-ddm` scenario composes the adapter-supplied
 dimensional DDM FOM with and without its switch-declaration FOM. Across both
 object and interaction paths, it verifies that regions touching at their
 boundary are filtered in strict mode and admitted when the standard
 `getAllowRelaxedDDMSwitch` reports enabled, including source-region callback
-metadata. Configure the object, attribute, interaction, parameter, and two
-dimension names through the adapter. Provider runtime verification remains
-pending.
+metadata, and confirms that strictly overlapping regions are delivered with
+the switch either disabled or enabled. Configure the object, attribute,
+interaction, parameter, and two dimension names through the adapter.
 
-The opt-in `java-tck.regional-three-dimensional-overlap` scenario uses an
+The `java-tck.regional-three-dimensional-overlap` scenario uses an
 adapter-supplied three-dimensional FOM configured with
 `hla.rti.tck.threeDimensionalFom`, the existing DDM object/attribute names, and
 the first, second, and `hla.rti.tck.ddmThirdDimension` dimension names. It
 verifies discovery and reflection with complete three-axis overlap, suppresses
 reflection when each source axis is made disjoint in turn, then confirms
-delivery resumes after restoring overlap. It remains unsupported by default
-pending Java-provider runtime verification.
+delivery resumes after restoring overlap. The source-region copies conveyed
+with reflection are queried for their dimension set and exact bounds during
+callback dispatch. This internal case has no direct normative subsection
+mapping.
 
-The opt-in `java-tck.regional-declaration-relevance-advisories` scenario uses
+The `java-tck.regional-declaration-relevance-advisories` scenario uses
 the adapter-supplied DDM FOM and the configured object class, attribute,
 interaction class, and two dimensions. It verifies passive regional object and
 interaction subscriptions produce no relevance advisory, active declarations
 produce the corresponding start-registration and turn-interactions-on callbacks,
-and unsubscription produces the matching stop/off callbacks. Runtime
-verification against an installed Java provider remains pending.
+and unsubscription produces the matching stop/off callbacks. It also checks
+region-specific interaction advisory transitions, callback data for sends
+through separate regions, default-active subscription behavior, and stale-region
+rejection.
 
 The opt-in `java-tck.ownership-transfer-regional-update` scenario uses the
-adapter-supplied dimensional DDM FOM and configured object, attribute, and
-dimension names. It transfers an attribute to a new owner, checks that the
-former owner's regional update association is not inherited, then explicitly
-associates the new owner's region and verifies the new source-region designator.
-It covers both callback models and remains pending Java-provider runtime
-verification.
+adapter-supplied dimensional DDM FOM and configured object, attribute, two
+object dimensions, and unrelated dimension. It rejects an unrelated-dimension
+registration with `InvalidRegionContext`, transfers and reacquires the
+attribute, checks default-region delivery until explicit reassociation, and
+checks the new owner's source-region bounds from the callback's copied region.
+With Attribute Scope Advisory enabled, it also verifies no transient scope
+callbacks during Divestiture If Wanted or confirmed Negotiated Divestiture,
+then checks one out-of-scope and one in-scope callback in live controls. It
+passed both callback models on the local JNI provider; this is not
+independent-provider evidence.
 
 The opt-in `java-tck.ownership-transfer-deferred-regional-update` scenario
-stages the new owner's region association before transfer. It proves the current
-owner's updates continue to carry the current owner's region, then transfers the
-attribute and verifies the staged region becomes the new update source without
-a second association call. Provider runtime verification remains pending.
+stages the new owner's region association before transfer. It checks the current
+owner's update carries its distinct `[1,3]` source bounds while the staged
+association has `[6,8]` bounds, then transfers the attribute and verifies the
+first new-owner update carries the staged bounds without another association
+call. The receiver queries dimensions and bounds from each copied region during
+the reflection callback. It passed both callback models on the local JNI
+provider; this is not independent-provider evidence.
 
 The opt-in `java-tck.attribute-scope-advisories` scenario checks regional
 scope-in/scope-out callbacks caused by source reassociation and active
@@ -1254,18 +2065,41 @@ It enables standard service reporting only for one ordinary `sendInteraction`,
 then checks the received `HLAreportServiceInvocation` identity, all standard
 parameters, the reporting federate, `SendInteraction` service name and type,
 success indicator, empty exception, initial serial number, reliable transport,
-empty tag, and absence of regions. Its C++ base scenario passed independent
-installed-package runs in both callback models; Java provider execution remains
-unsupported by default pending verification with a Java provider.
+empty tag, a null Java producer field for the RTI-originated MOM interaction,
+and absence of regions. The Java TCK compiled against the pinned official API
+JAR, and focused runs with a matching Umbra JNI JAR/DLL pair passed in both
+callback models. The paired installed-package C++ CTest passed in both models.
+These are local Umbra runtime results, without an independent-provider or
+conformance claim.
+
+The opt-in `java-tck.service-report-receive-order-file-routing` scenario pairs
+that callback check with the C++ receive-order file-routing case. It reflects
+the publisher and receiver `HLAreportServiceFile` values, checks their initial
+configuration records and distinct file identities, verifies that the file
+switch gates appends, and checks two adjacent SendInteraction records with the
+type-40 parameter map. It also verifies that file reporting suppresses MOM
+callbacks and routes each federate's GetParameterHandle record to its own file.
+The adapter supplies a separate report directory for each callback-model run.
+Focused current-source JNI runs and paired C++ direct runs passed under both
+callback models. The files are checked while their federates are joined and
+removed during runtime cleanup. The scenario remains unsupported by default
+until other provider profiles opt in after their own runtime checks; these
+local results do not establish independent-provider behavior or conformance.
 
 The opt-in `java-tck.service-report-query-galt` scenario uses the adapter's FOM,
-standard MIM, logical-time implementation, and callback model. It establishes a
-time regulator, checks the defined GALT directly, then validates the successful
-`HLAreportServiceInvocation`, including its standard parameter set and returned
-GALT argument. It is paired with the promoted C++ scenario. The local JNI
-provider currently returns `ErrorReadingMIM` while creating the federation with
-the official, XML-well-formed 2025 MIM, before scenario assertions; it remains
-unsupported by default while the adapter/provider artifacts are reconciled.
+standard MIM, logical-time implementation, callback model, and service-report
+directory. It reflects the subject's `HLAreportServiceFile`, checks the defined
+GALT and its complete `HLAreportServiceInvocation`, then verifies that both
+Query GALT and Query Lookahead append the standard valid return records to the
+file without delivering callback reports. The shared 2025 service-report writer
+now uses the execution-scoped `HLAreliable` handle, matching public handle
+lookup. Strict current-source JNI runs passed under `HLA_EVOKED` and
+`HLA_IMMEDIATE`; the paired current-source C++ direct scenario also passed both
+models. The Java case remains unsupported by default until additional Java
+provider profiles opt in after their own verification. Results are under
+`out/java-tck/query-galt-java-port-20261104/fixed-java-results2/` and
+`out/mgw/cpp-tck-query-galt-handle-fix-20261104/`; no independent-provider or
+conformance claim is made.
 
 The opt-in `java-tck.service-report-next-message-request-available-boundary`
 scenario translates the promoted C++ boundary case. It queues a timestamped
@@ -1376,17 +2210,56 @@ timestamps 5, 5, and 7 for two constrained recipients. It accepts either order
 for the equal-time pair while requiring both updates before the time-5 grant,
 then verifies the later update before the time-7 grant, including exact values,
 tags, producer, timestamp, timestamp order, retraction handles, and resolvable
-transportation. Callback mode, FOM, and logical-time implementation come from
-the adapter; the scenario remains unsupported by default pending Java-provider
-execution.
+transportation. Its direct mapping is IEEE 1516.1-2025 §8.1.4 for timestamp
+ordering and delivery of the complete equal-time cohort; tie order remains
+unspecified. Default-enabled current-source Umbra JNI runs passed in evoked and
+immediate callback modes with both HLAinteger64Time and HLAfloat64Time. Results
+are in `out/java-tck/timestamped-attribute-order-cohort-review-20261104/`.
+Callback mode, FOM, and logical-time implementation remain adapter supplied;
+local execution does not establish independent-provider conformance.
 
-The `java-tck.order-type-controls` scenario changes the class default between
-receive and timestamp order around successive object registrations, applies a
-per-instance timestamp-order override, and verifies ordinary versus timestamped
-attribute callback delivery. It then sends a timestamped interaction explicitly
-set to receive order and checks its receive-order metadata and absent retraction
-handle. FOM, logical-time implementation, and callback model are adapter-supplied;
-the scenario remains unsupported by default until Java-provider execution.
+The `java-tck.timestamped-attribute-update-queued-passel-retraction` scenario
+sends two reliable attributes together at one timestamp, retracts an earlier
+queued update, and requires that update to produce neither a reflection nor a
+Request Retraction callback. After a later update, the receiver must get exactly
+one regionless reflection containing both attribute values with TIMESTAMP
+sent/received order, the second retraction handle, and `HLAreliable`
+transportation. Three direct mappings cover the bounded two-attribute passel
+requirements in IEEE 1516.1-2025 §6.1.12; the invalid-time check and retraction
+suppression are supplemental. Default-enabled current-source Umbra JNI runs
+passed in evoked and immediate callback modes with both HLAinteger64Time and
+HLAfloat64Time using `ddm-multi-attribute-tck.xml`. Results are in
+`out/java-tck/timestamped-attribute-queued-passel-retraction-review-20261104/`.
+The FOM, callback model, logical-time implementation, and provider are adapter
+supplied; local execution does not establish independent-provider conformance.
+
+The `java-tck.order-type-controls` scenario mirrors the C++ primary case: it
+changes class defaults around successive registrations, applies a per-instance
+timestamp override, and transfers that attribute to a second publisher. The
+new owner timestamp-sends an update and verifies its class-default RECEIVE order,
+including the absent retraction handle and timestamp-bearing callback metadata.
+It also checks the FDD RECEIVE interaction default, per-federate interaction-order
+changes, and regular plus regional timestamp-bearing sends. Direct mappings cover
+IEEE 1516.1-2025 §§8.24.4, 8.25, and 8.26.4 for the bounded behaviors stated in
+the scenario catalog; the test does not claim every §8.25.3 obligation. Focused
+current-source Umbra JNI runs passed both callback models with HLAinteger64Time.
+Results are in `out/java-tck/order-type-controls-java-port-20261114/`. The DDM
+FOM, provider, endpoint, logical-time implementation, names, dimension, and
+callback model are adapter-supplied through `hla.rti.tck.ddmFom`,
+`hla.rti.tck.ddmObjectClass`, `hla.rti.tck.ddmAttribute`,
+`hla.rti.tck.interactionClass`, `hla.rti.tck.parameter`, and
+`hla.rti.tck.dimension`. The scenario remains opt-in; these local runs do not
+establish independent-provider conformance.
+
+The opt-in `java-tck.mixed-order-attribute-passels-separate-messages` scenario
+puts one receive-order and one timestamp-order attribute in a single timestamped
+update. It verifies the receiver gets two separate, single-attribute reflection
+callbacks with the expected values, order metadata, tag, timestamp, and grants.
+This covers only the mapped §6.1.12 and §8.1.3 passel witnesses. Current-source
+Umbra JNI runs passed under HLA_EVOKED and HLA_IMMEDIATE with
+`ddm-multi-attribute-tck.xml` and `HLAinteger64Time`; results are in
+`out/java-tck/mixed-order-attribute-passels-java-port-20261114/`. These local
+runs do not establish independent-provider interoperability or conformance.
 
 The `java-tck.receive-order-attribute-update-callback-cancellation` scenario
 branches on the adapter-selected callback model. In evoked mode it withdraws
@@ -1427,13 +2300,14 @@ timestamp/retraction/order fields, and timestamped delivery before the matching
 time-advance grant. FOM and logical-time implementation remain adapter-supplied;
 provider runtime verification is still required.
 
-The opt-in `java-tck.attribute-update-order-classification` scenario sends an
-ordinary receive-order attribute update and then a timestamp-order update to
-the same receiver. It verifies distinct reflection callback paths, exact
-payload and metadata, timestamp/retraction/order fields, and timestamped
-delivery before the matching time-advance grant. FOM and logical-time
-implementation remain adapter-supplied; provider runtime verification is
-still required.
+The opt-in `java-tck.attribute-update-order-classification` scenario registers
+one instance under the FDD's RECEIVE default, then changes the class default to
+TIMESTAMP and registers a second instance. It verifies ordinary receive-order
+and timestamp-order reflection paths, exact payload and metadata,
+timestamp/retraction/order fields, and timestamped delivery before the matching
+time-advance grant. Its direct §8.1.4 mapping is limited to those selected
+default-order branches; it does not cover the full order matrix. FOM and
+logical-time implementation remain adapter-supplied.
 
 The opt-in `java-tck.custom-transportation-interaction-delivery` scenario uses
 the adapter-supplied rich FOM, typed interaction/parameter names, and
@@ -1567,7 +2441,9 @@ callback cutoffs are supplemental regressions, not independent-provider
 conformance claims.
 
 The default `java-tck.directed-interaction-publication-send-fence` scenario
-checks that a directed send to an already discovered object succeeds, a
+checks that a directed send to an already discovered object fails with
+`InteractionClassNotPublished` before publication and produces no callback.
+After publication, one callback preserves the target and interaction data; a
 whole-class unpublication rejects a later send, and republication restores
 delivery with the expected parameter, tag, producer, and adapter-selected
 transportation. It passed focused installed JNI runs in both callback models.
@@ -1585,15 +2461,22 @@ callback models. Ownership/universal eligibility remains supplemental under
 RL-028; independent-provider conformance is unverified.
 
 The default `java-tck.timestamped-directed-interaction-subscription-kind`
-scenario checks owner and universal delivery after a live directed-subscription
-kind change, timestamped callback metadata before Time Advance Grants, and
-valid versus invalid retraction results for regulating and non-regulating
-senders. Its Java source imports only the official IEEE 1516.1-2025 API;
-provider, FOM, logical time, endpoint, names, and callback model remain
-adapter-supplied. Focused evoked and immediate runs passed using a Java
-provider JAR rebuilt from source with the installed native library. The
-recipient eligibility matrix and positive-lookahead boundary are supplemental;
-independent-provider conformance is unverified.
+scenario sends a timestamped directed interaction to a registered target
+through by-ownership and universal subscriptions. It checks owner and
+universal delivery, suppression for a non-owner with only a by-ownership
+subscription, callback metadata before Time Advance Grants, and distinct valid
+retraction handles from regulating senders. A non-regulating sender returns no
+valid handle. Direct mappings are page 101 lines 104 and 116 -> §5.12, page 126
+line 179 -> §6.14, page 127 line 7 -> §6.14.3, and pages 184 line 91 and 185
+line 17 -> §8.1.7. The recipient-eligibility matrix and positive-lookahead
+boundary are supplemental assertions. Its Java source imports only the
+official IEEE 1516.1-2025 API; provider, FOM, logical time, endpoint, names,
+and callback model remain adapter-supplied. Independent-provider conformance
+is unverified. The Java TCK compiled against the pinned API JAR and passed
+focused current-source JNI runs with both callback models and both time
+factories (4/4). Results are in
+`out/java-tck/timestamped-directed-interaction-subscription-kind-review-20261104/`;
+those local-provider runs do not establish independent-provider conformance.
 
 The default `java-tck.directed-derived-object-target-eligibility` scenario runs the
 same ownership/universal distinction with an adapter-selected derived object
@@ -1772,8 +2655,10 @@ timestamped attribute update while the original owner is regulating, then
 divests and transfers that attribute before the constrained recipient advances.
 It checks both ownership callbacks and tags, the unowned interval, successful
 acquisition, and exact update value/tag/producer/time/order/retraction metadata
-at the constrained grant. Callback mode is adapter-selected. It remains
-unsupported by default pending execution against a Java provider.
+at the constrained grant. The case is default-enabled after passing current-source
+Umbra JNI runs with both callback models and both HLAinteger64Time and
+HLAfloat64Time. Evidence is in
+`out/java-tck/timestamped-attribute-ownership-transfer-review-20261104/`.
 
 The focused service-report scenarios decode standard
 `HLAreportServiceInvocation` callbacks through the public encoding API. The
@@ -1798,8 +2683,11 @@ The survivor assumes and acquires the attribute; retraction by the departed
 producer must fail with `FederateNotExecutionMember`, while a separate
 regulating clock permits the queued update to reach the survivor before its
 grant. It checks the original producer and complete timestamped reflection
-metadata. Callback mode remains adapter-selected, and the scenario stays
-unsupported by default pending Java-provider execution.
+metadata, including nonempty logical-time text and reflection before the matching grant. The case is default-enabled
+after current-source Umbra JNI runs passed with both callback models and both logical-time implementations. The four
+result files are in `out/java-tck/timestamped-attribute-source-resignation-review-20261104/`. Direct mappings cover
+resignation (§4.12), reflection metadata (§6.11), reflection before grant (§8.1.3), and queued passel delivery (§8.1.7);
+the post-resignation Retract failure is a supplemental boundary check.
 
 The `java-tck.timestamped-attribute-immediate-recipient-multi-transport-retraction`
 scenario sends one timestamped attribute update from a regulating publisher to
@@ -1812,9 +2700,16 @@ handle. Retract must then produce exactly one recipient-local
 `--fom-path` and may override `hla.rti.tck.timestampedAttributePasselObjectClass`,
 `hla.rti.tck.timestampedAttributePasselReliableAttribute`, and
 `hla.rti.tck.timestampedAttributePasselBestEffortAttribute` with
-`--jvm-argument`. The Java source compiles against the official API-only JAR;
-the scenario remains unsupported by default until run against an adapter's
-Java provider.
+`--jvm-argument`. The case is default-enabled after current-source Umbra JNI
+runs passed in evoked and immediate callback modes with both
+`HLAinteger64Time` and `HLAfloat64Time`. Results are in
+`out/java-tck/timestamped-attribute-immediate-recipient-multi-transport-retraction-review-20261104/`.
+Ten direct mappings cover update/reflection services, timestamped reflection
+metadata and passelization, and the recipient-local retraction callback. The
+page-184-l91 condition is intentionally unmapped because this scenario does not
+enter the Time Advancing state; exact sent/received order, callback order, and
+the second-Retract failure are supplemental. Local JNI runs do not establish
+independent-provider conformance.
 
 The `java-tck.timestamped-attribute-update-alternate-advances` scenario sends
 one timestamped attribute update to constrained receivers using Flush Queue,
@@ -1945,29 +2840,31 @@ after publisher TAR(2) with three-epsilon lookahead; compare that expectation
 with the adjacent interaction peer's explicit second-advance boundary before
 promoting Java or attributing the difference to the provider.
 
-The `java-tck.timestamped-directed-interaction-reenable` scenario preserves a
-timestamped directed interaction queued for a registered target while its
-receiver disables and re-enables Time Constrained. It verifies target discovery,
-directed publication/subscription, suppression through both boundaries,
-delivery-before-grant ordering, callback metadata (including target, payload,
-producer, transport, and retraction handle), grant/query times, and terminal
-retraction. Its callback model, FOM, logical-time implementation, and provider
-are adapter-supplied; it remains unsupported by default pending Java-provider
-execution. Its portable defaults target the parameter-bearing P0 declarations;
-adapters can override the object class, attribute, directed interaction, and
-parameter with `hla.rti.tck.timestampedDirectedObjectClass`,
+The `java-tck.timestamped-directed-interaction-reenable` scenario sends a
+timestamped directed interaction while its registered receiver is time
+constrained. Disabling Time Constrained releases the queued interaction through
+the receive-order directed callback, preserving its target, payload, tag,
+producer, and transport. Re-enabling Time Constrained does not redeliver it;
+after both federates request the interaction time, the receiver sees only its
+grant, and retracting the already-delivered message fails. Its callback model,
+FOM, logical-time implementation, and provider are adapter-supplied. Its
+portable defaults target the parameter-bearing P0 declarations; adapters can
+override the object class, attribute, directed interaction, and parameter with
+`hla.rti.tck.timestampedDirectedObjectClass`,
 `hla.rti.tck.timestampedDirectedAttribute`,
 `hla.rti.tck.timestampedDirectedInteractionClass`, and
 `hla.rti.tck.timestampedDirectedParameter`.
 
 The `java-tck.timestamped-directed-interaction-regulation-reenable` scenario
-keeps a timestamped directed message queued while the producer disables and
-re-enables Time Regulation with a three-epsilon lookahead. It checks Query
-Lookahead, target and payload metadata, delivery-before-grant ordering, both
-federates' grant/query times, and terminal retraction after delivery. It uses
-the same adapter-supplied directed FOM names and callback model as the directed
-Time Constrained re-enable case; it remains unsupported by default pending
-Java-provider execution.
+queues a timestamped directed message while the receiver is constrained, then
+disables and re-enables publisher Time Regulation with a three-epsilon
+lookahead. It checks Query Lookahead, no early delivery, one timestamped
+callback before the receiver's grant, callback metadata, both grant/query times,
+and `MessageCanNoLongerBeRetracted` after delivery. The publisher requests TAR
+at initial time +3ε and the receiver requests TAR at initial time +5ε. The
+scenario passed both callback models with both logical-time factories against
+the current-source JNI provider, using the same adapter-supplied directed FOM
+names as the Time Constrained re-enable case.
 
 The `java-tck.timestamped-directed-interaction-tar-nmr` scenario sends one
 timestamped directed interaction to two constrained receivers. One requests a
@@ -1984,30 +2881,61 @@ producer while its directed message is queued, and uses an independent clock
 federate to advance the frontier. It verifies that resignation does not release
 the callback prematurely, that retraction through the resigned producer fails
 with `FederateNotExecutionMember`, and that the receiver eventually gets the
-original target and message metadata before its requested-time grant. The case
-uses adapter-selected FOM names and callback model. Its P0 default object class
-is `HLAobjectRoot.TckObject.TckSecondaryObject`. A focused Java provider run
-passed in evoked mode but delivered the callback before the clock advance in
-immediate mode; the case remains unsupported by default pending a fresh green
-gate in both modes.
+original target, payload, tag, producer, timestamp/order, transport, and
+retraction metadata before its requested-time grant. The C++ universal directed
+subscription maps to the Java universal-subscription API. Direct mappings are
+page 185 line 17 -> §8.1.7, pages 194 lines 21 and 69 -> §8.8, and page 210
+line 21 -> §8.22.3. The case uses adapter-selected FOM names and callback
+model; its P0 default object class is
+`HLAobjectRoot.TckObject.TckSecondaryObject`. Default-enabled focused
+current-source JNI runs passed both callback models with HLAinteger64Time and
+HLAfloat64Time (4/4). Results are in
+`out/java-tck/timestamped-directed-interaction-source-resignation-review-20261104/`.
+Local JNI results do not establish independent-provider conformance.
 
 The `java-tck.timestamped-directed-interaction-source-resignation-fanout`
 scenario extends that lifecycle to two independently constrained recipients.
-Both queue a TAR at the directed message time; advancing the independent clock
-first releases exactly one receiver, while the other remains pending until a
-second clock advance. It checks per-recipient delivery-before-grant ordering,
-no duplicate delivery, target and payload identity, producer, timestamp/order,
+Both queue a TAR at the directed message time; the independent clock first
+releases exactly one receiver, while the other remains pending until a second
+clock advance. It checks per-recipient delivery-before-grant ordering, no
+duplicate delivery, target and payload identity, producer, timestamp/order,
 transport, tag, retraction metadata, and the post-resignation retraction
-exception. It uses adapter-supplied FOM names and callback model and remains
-unsupported by default pending Java-provider execution.
+exception. Direct mappings are page 185 line 17 -> §8.1.7, pages 194 lines 21
+and 69 -> §8.8, and page 210 line 21 -> §8.22.3. It uses adapter-supplied FOM
+names and callback model. Default-enabled focused current-source JNI runs
+passed both callback models with HLAinteger64Time and HLAfloat64Time (4/4).
+Results are in
+`out/java-tck/timestamped-directed-interaction-source-resignation-fanout-review-20261104/`.
+Local JNI results do not establish independent-provider conformance.
 
 The `java-tck.timestamped-directed-interaction-immediate-source-resignation`
-scenario sends a timestamped directed interaction to an unconstrained receiver,
-then immediately resigns the regulated producer. It checks exactly one later
-callback with the owner-held target, payload, tag, producer, timestamp, sent and
-received order, transport, and retraction metadata intact, and rejects an
-unexpected retraction callback. It uses adapter-supplied FOM names and callback
-model and remains unsupported by default pending Java-provider execution.
+scenario sends an accepted timestamped directed interaction to an unconstrained
+receiver, then immediately resigns the regulated producer. It checks exactly
+one callback with the owner-held target, payload, tag, producer, timestamp, sent
+and received order, transport, and retraction metadata intact, and rejects an
+unexpected retraction callback. Direct mappings are page 58 line 112 -> §4.12
+and pages 194 lines 45 and 69 -> §8.8. It uses adapter-supplied FOM names,
+logical-time implementation, and callback model. Default-enabled focused
+current-source JNI runs passed both callback models with HLAinteger64Time and
+HLAfloat64Time (4/4). Results are in
+`out/java-tck/timestamped-directed-interaction-immediate-source-resignation-review-20261104/`.
+Local JNI results do not establish independent-provider conformance.
+
+The default `java-tck.timestamped-attribute-update` case ports the portable C++
+ordinary timestamped-update scenario. A publisher sends one update that reaches
+an unconstrained receiver immediately and is retracted before the constrained
+receiver's grant, then sends a second update that the constrained receiver gets
+before its grant and that can no longer be retracted. It also checks unknown
+object and undefined-attribute update boundaries. Direct coverage is limited to
+page 194 line 45 -> §8.8 Reflect Attribute Values callback routing after TAR;
+exact grant time and callback order against Time Advance Grant are not claimed.
+Java uses a deleted public object handle and a standard-MIM attribute from a
+foreign class because the official Java API has no public invalid-handle
+constructor. Default-enabled current-source JNI runs passed both callback
+models with HLAinteger64Time and HLAfloat64Time (4/4), using the P0 FOM and
+HLAstandardMIM-2025.xml. Results are in
+`out/java-tck/timestamped-attribute-update-review-20261104/`. Local JNI results
+do not establish independent-provider conformance.
 
 The `java-tck.timestamped-directed-interaction-retraction-fanout` scenario
 queues a timestamped directed message for two constrained receivers, retracts
@@ -2073,11 +3001,20 @@ result when a message remains queued.
 
 The default `java-tck.nmra-no-pregrant-tso-floor` case covers the separate
 §8.11.3 available-request branch: NMRA(10) grants at 10 with no TSO delivered,
-then a timestamped interaction send at 10 throws `InvalidLogicalTime` while
-one at 11 is accepted with the queried lookahead of 1. Both direct Lab rows
-(page 199 lines 64 and 79) have a promoted C++ peer. Focused installed JNI
-runs passed in both callback models; independent-provider conformance and
-the received-TSO branch remain unverified.
+a second request at the current time 10 grants at 10, and a request at 9 throws
+`LogicalTimeAlreadyPassed`. A timestamped interaction send at 10 throws
+`InvalidLogicalTime`, while one at 11 is accepted with the queried lookahead
+of 1. Its direct mappings cover the two page-199 requirements plus the
+§8.11.3 current-time precondition and §8.11.5 past-time exception. Focused
+installed JNI runs passed in both callback models; independent-provider
+conformance and the received-TSO branch remain unverified.
+
+The default `java-tck.nmra-no-tso-waits-for-galt` case ports the two-member
+§8.11 sequence: an empty-input NMRA(5) remains pending while GALT is 1 and 4,
+then receives exactly one grant at 5 after the regulator advances to 4 with
+lookahead 1. The case checks both GALT boundaries and the final logical times.
+Focused current-source JNI runs passed in evoked and immediate callback models;
+independent-provider behavior and conformance are not claimed.
 
 The separate default `java-tck.nmr-no-pregrant-tso-floor` case exercises the
 NMR §8.10.2 no-pregrant-input branch: NMR(10) grants at 10 with no TSO
@@ -2105,9 +3042,293 @@ The default `java-tck.nmra-ro-earliest-tso-cohort` case is HLA_EVOKED-only.
 It checks two queued receive-order interactions, a complete timestamp-5
 cohort before the first NMRA grant at 5, then only the remaining timestamp-8
 interaction before the second grant at 8. The adapter supplies the provider,
-typed interaction/parameter names, FOM, endpoint, and time implementation.
+interaction/parameter names, FOM, endpoint, and time implementation.
 HLA_IMMEDIATE is explicitly unsupported for this request-boundary assertion;
 independent-provider conformance is not claimed.
+
+The default `java-tck.nmra-future-tso-arrival-pending-request` case ports the
+C++ future-arrival sequence: NMRA(10) is pending before a TSO interaction at 5
+arrives, and the interaction is delivered before the grant at 5; a second
+pending NMRA(10) receives a later interaction at exactly 10 before granting
+at 10. Its three direct page-198/199 mappings are limited to §8.11. Focused
+current-source JNI runs passed both callback models with HLAinteger64Time and
+HLAfloat64Time. The provider, FOM, interaction/parameter names, and logical-
+time implementation remain adapter inputs; interoperability and conformance
+are not claimed.
+
+The default `java-tck.nmr-future-tso-arrival-while-pending` case ports the
+same-time TSO cohort branch: NMR(10) is pending before two timestamp-5
+interactions arrive; it remains pending through bounded callback windows both
+before and after the send, then delivers both interactions before exactly one
+grant at 5 after the publisher advances. It checks payloads, tags, producer,
+timestamps, sent and received
+orders, retraction handles, callback order, and final requester time. Its four
+direct page-197 mappings are limited to §8.10.2. Focused current-source JNI
+runs passed HLA_EVOKED with HLAinteger64Time and HLAfloat64Time. This Java case
+uses two ambassadors in one JVM and does not reproduce the C++ process-topology
+check; HLA_IMMEDIATE, interoperability, and provider conformance are not
+claimed.
+
+The default `java-tck.timestamped-attribute-update-future-nmr-arrival` case
+checks one pending NMR path for timestamped Update Attribute Values: the
+publisher advances to 2 with lookahead 5, NMR(10) remains pending, and an
+update at 7 is reflected before the grant at 7. It checks object and attribute
+identity, payload, tag, producer, timestamp, order, retraction handle,
+transportation, pre-request GALT, and queried grant time. Its direct
+page-197-l20 mapping is limited to §8.10.2. The Java port passed both callback
+models with HLAinteger64Time and HLAfloat64Time on the current-source JNI
+provider. The Java callback API has no separate time-text argument, so the
+C++ time-text assertion is not represented. Provider, FOM, class, attribute,
+and logical-time inputs come from the adapter; independent-provider behavior
+and conformance are not claimed.
+
+The default `java-tck.timestamped-attribute-update-future-tara-arrival` case
+requests TARA(6) while GALT is 3, then sends a timestamped attribute update at
+5 and advances the regulator to 6. It verifies one reflection at 5 before one
+grant at 6, including object and attribute identity, payload, tag, producer,
+sent and received order, retraction handle, transport, callback order, and
+queried time. Its direct mappings cover §§8.12.3 and 8.14.4. Focused
+current-source JNI runs passed both callback models with HLAinteger64Time and
+HLAfloat64Time; installed-package C++ primary and contract runs passed the same
+callback-model and time-factory matrix. The Java callback API has no separate
+time-text argument, so that C++ assertion is not represented. Adapter supplies
+provider, FOM, class, attribute, and time; independent-provider behavior and
+conformance are not claimed.
+
+The default `java-tck.timestamped-object-deletion-future-nmr-arrival` case
+checks that NMR(10) remains pending until a timestamped Delete Object Instance
+at 7 arrives, then delivers one Remove Object Instance callback before one
+grant at 7. It validates object, producer, tag, timestamp, sent and received
+order, retraction handle, and queried receiver time. Its direct mappings cover
+§8.1.3 for the timestamped deletion sending and receiving relationship, §8.10.2,
+and the exercised deletion, removal, and retraction clauses in §§6.16, 6.16.4,
+and 6.17.1. Focused current-source JNI runs passed both callback
+models with HLAinteger64Time and HLAfloat64Time. The Java callback API has no
+separate time-text argument, so the corresponding C++-specific assertion is
+not represented. Adapter supplies provider, FOM, class, attribute, and time;
+independent-provider behavior and conformance are not claimed.
+
+The default `java-tck.timestamped-object-deletion-future-nmra-arrival` case
+checks that NMRA(10) remains pending until a timestamped Delete Object Instance
+at 7 arrives, then delivers one Remove Object Instance callback before one
+grant at 7. It validates object, producer, tag, timestamp, sent and received
+order, retraction handle, callback order, and queried receiver time. Its direct
+mappings cover §8.1.3 for the timestamped deletion sending and receiving relationship, §8.11,
+and the exercised deletion, removal, and retraction clauses in §§6.16, 6.16.4, and 6.17.1. Focused current-source JNI runs passed
+both callback models with HLAinteger64Time and HLAfloat64Time; installed-package
+C++ primary and contract runs passed the same callback-model and time-factory
+matrix. The Java callback API has no separate time-text argument, so the
+corresponding C++ assertion is not represented. Adapter supplies provider,
+FOM, class, attribute, and time; independent-provider behavior and conformance
+are not claimed.
+
+The default `java-tck.timestamped-object-deletion-future-tara-arrival` case
+requests TARA(6) while GALT is 3, then sends a timestamped deletion at 5 and
+advances the regulator to 6. It verifies one Remove Object Instance callback
+at 5 before one grant at 6, including object, producer, tag, sent and received
+order, retraction handle, callback order, pre-request GALT, and queried time.
+Its direct mappings cover §§8.1.3 and 8.14.4, the Lab's chapter-level §8
+mapping, and the exercised deletion, removal, and retraction clauses in
+§§6.16, 6.16.4, and 6.17.1. Focused current-source JNI runs passed both
+callback models with HLAinteger64Time and HLAfloat64Time. The Java callback API
+has no separate time-text argument, so the corresponding C++ assertion is not
+represented. Adapter supplies provider, FOM, class, attribute, and time;
+independent-provider behavior and conformance are not claimed.
+
+The default `java-tck.timestamped-interaction-tara-equal-boundary` case checks
+the equal-time TARA boundary sequence. The receiver queries GALT=5 and is
+granted TARA(5) while the publisher remains at 4 and before a timestamp-5
+interaction exists. After that grant, the publisher advances and sends at 5;
+the receiver gets the interaction after its first grant and before a later
+TARA(6) grant. Direct mappings cover chapter §8, §8.1.7, and §8.9, including
+the stated equal-time message and GALT boundary rules. Java current-source JNI
+runs passed both callback models with HLAinteger64Time and HLAfloat64Time (4/4);
+installed-package C++ primary and contract runs passed both callback models
+with both time factories (8/8). The mapping covers this controlled arrival
+sequence, not an interaction already queued before the first TARA request or
+other advance services. Adapter supplies provider, FOM, interaction class,
+parameter, callback model, and time; independent-provider behavior and
+conformance are not claimed.
+
+The default `java-tck.timestamped-interaction-tara-queued-equal-boundary` case
+sends a timestamped interaction at 2 before the receiver requests TARA(2). It
+checks that the interaction was not delivered before the request, then verifies
+exactly one interaction callback before exactly one grant, with the expected
+publisher and receiver grant times, handles, payload, tag, sent and received
+orders, and retraction handle. Its direct §8.9 mappings use the complete
+reconstructed clause text because RL-316 records that the pinned page-195
+candidate omits the enumerated delivery set. Java current-source JNI runs
+passed both callback models with HLAinteger64Time and HLAfloat64Time (4/4);
+installed-package C++ primary and contract runs passed both callback models
+with both time factories (8/8). The focused CTest query had no registrations;
+the direct TCK runner supplied the C++ evidence. This covers an equal-time TSO
+already queued before TARA, not a message arriving after the request or other
+advance services. Adapter supplies provider, FOM, interaction class, parameter,
+callback model, and time; independent-provider behavior and conformance are
+not claimed.
+
+The default `java-tck.timestamped-interaction-tara-strict-timestamp-cutoff`
+case sends timestamped interactions at 5 and 6. With publisher TAR(5) and
+receiver TARA(6), it verifies that timestamp 5 arrives before the first grant
+while timestamp 6 remains queued. After the receiver requests TARA(7) and the
+publisher requests TAR(6), it verifies timestamp 6 before the later grant.
+Its direct mapping is §8.14.4(e). Java current-source JNI runs passed both
+callback models with HLAinteger64Time and HLAfloat64Time (4/4); installed-
+package C++ primary runs passed the same matrix (4/4). The focused CTest query
+had no registrations. The Java test follows the C++ assertion surface and
+does not require the receiver grant time to equal its requested cutoff; the
+current-source JNI provider returned 5 for TARA(6). Adapter supplies provider,
+FOM, interaction class, parameter, callback model, and time; independent-
+provider behavior and conformance are not claimed.
+
+The `java-tck.timestamped-interaction-future-tara-arrival` case starts receiver
+TARA(6), confirms it remains pending, then sends a timestamp-5 interaction.
+After the publisher advances, it checks the interaction payload, tag, producer,
+timestamp order, transportation and retraction metadata, delivery-before-grant
+callback order, grant time, and queried time. Direct mappings are
+page-201-l52-16 -> §8.12.3 and page-204-l86-25 -> §8.14.4(e); this covers only
+the bounded TARA future-interaction path. Java current-source JNI runs passed
+HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time (2/2). The installed-package
+C++ consumer passed focused CTest and direct runs in both callback models (2/2
+each). Results are in
+`out/java-tck/timestamped-interaction-future-tara-arrival-java-port-20261113/`
+and `.build/cpp-tck-timestamped-interaction-future-tara-arrival-java-port-20261113/`.
+Adapter supplies provider, FOM, interaction class, parameter, callback model,
+and time; independent-provider behavior and conformance are not claimed.
+
+The `java-tck.tar-multi-regulator-acknowledged-tso-progress` case uses two
+regulating senders and one constrained receiver. The senders queue timestamped
+interactions at 3 and 5, then advance to 7 and 8. The receiver's TAR(4) delivers
+only the first interaction before grant 4; after that callback returns, TAR(6)
+delivers the second once before grant 6. It checks each producer, payload, tag,
+timestamp order, valid send retraction, and grant time. Direct mappings are
+page-182-l127-40 -> §8.1.6 and page-194-l21-3 -> §8.8. Java current-source JNI
+runs passed both callback models with HLAinteger64Time (2/2). The installed-
+package C++ consumer passed focused CTest and direct runs in both models (2/2
+each). Results are in
+`out/java-tck/tar-multi-regulator-acknowledged-tso-progress-java-port-20261113/`
+and `.build/cpp-tck-tar-multi-regulator-acknowledged-tso-progress-java-port-20261113/`.
+This checks public delivery and grant outcomes without prescribing a GALT
+formula. Adapter supplies provider, FOM, interaction class, parameter, callback
+model, and time; independent-provider behavior and conformance are not claimed.
+
+The `java-tck.timestamped-interaction-tar-equal-boundary` case retains the
+TAR(5) equal-time boundary sequence and also runs a TAR(6) case with queued
+timestamp-5 and timestamp-6 interactions. It checks both exact callbacks arrive
+in timestamp order before TAG(6), including payload, tag, producer, order,
+retraction handles, and the granted logical time. The added direct clause 8
+mappings cover the before-target and equal-target deliveries. Current-source
+JNI runs passed both callback models with HLAinteger64Time; results are in
+`out/java-tck/timestamped-interaction-tar-inclusive-target-java-port-20261114/`.
+This does not claim beyond-target suppression, a general GALT formula, or
+independent-provider conformance.
+
+The default `java-tck.timestamped-interaction-zero-lookahead-send-at-grant`
+case enables regulation with zero lookahead, grants publisher TARA(5), then
+sends a timestamped interaction at 5. It verifies there is no early callback,
+then checks the interaction, timestamp order, tag, retraction handle, and
+callback order before the receiver's TAR(5) grant. The direct mapping is to
+§8.9 through the internal timestamped-interaction delivery requirement. RL-417
+tracks the missing Requirements Lab permission extraction; the nearby
+page-195-l119-34 candidate is not used as send-permission evidence. Java
+current-source JNI runs passed both callback models with both time factories
+(4/4); installed-package C++ primary and contract runs passed the same matrix
+(8/8). The focused CTest query had no registrations. Adapter supplies provider,
+FOM, interaction class, parameter, callback model, and time; this evidence does
+not establish independent-provider behavior or conformance.
+
+The default `java-tck.timestamped-interaction-zero-lookahead-tar-send-boundary`
+case starts a zero-lookahead publisher's TAR(5). While its grant callback is
+pending, sending at 5 raises `InvalidLogicalTime`, while sending at 6 is
+accepted. It verifies the TAR(5) grant and that the receiver has not received
+the later interaction before advancing. Direct mappings are §6.12.3 and
+§8.1.2 Table 1; the Java case does not assert delivery at 6 or the adjacent
+post-grant rule. RL-312 tracks the pinned Lab extraction artifact. Focused Java
+current-source JNI runs passed HLA_EVOKED with both time factories (2/2), and
+installed-package C++ primary and contract runs passed the same time matrix
+(4/4). The focused Catch2 CTest selector had no registration. The adapter
+supplies provider, FOM, interaction class, parameter, time, and HLA_EVOKED;
+this does not establish independent-provider behavior or conformance.
+
+The default `java-tck.timestamped-directed-zero-lookahead-send-at-grant`
+case enables a constrained receiver and a zero-lookahead regulated sender,
+then verifies that the sender can issue a directed timestamped interaction at
+the time it just received from NMRA. A second timestamped send receives a
+distinct retraction designator and is retracted. The receiver then advances to
+the admitted send time; the test checks the directed callback's target,
+parameter, tag, producer, timestamp, TSO orders, and retraction handle before
+the matching grant. It also checks the sender's zero lookahead after its grant
+and verifies that the sender receives no copy of the directed interaction.
+Direct mappings are §8.11 for the post-NMRA send permission, §6.14 for distinct
+retraction designators, and §6.15.1 for the timestamped directed callback
+properties. The separate receive-order directed-callback rules and region
+behavior are outside this case. Java current-source JNI runs passed both
+callback models with HLAinteger64Time and HLAfloat64Time (4/4); installed-
+package C++ runs passed the same matrix (4/4). The focused CTest selector had
+no registrations. Both runs used the P0 TckObject/Value/TckInteraction/Payload
+declarations in `p0-tck.xml`; adapter supplies provider, FOM, callback model,
+and time. Independent-provider behavior and conformance are not claimed.
+
+The default `java-tck.timestamped-directed-zero-lookahead-tar-send-boundary`
+case starts TAR(5) with zero lookahead, verifies that a directed send at 5
+raises `InvalidLogicalTime`, and accepts a send at 6 before explicitly
+servicing the grant callback. The constrained owner stays unadvanced, and the
+test confirms it has not received the later send. Its selected requirement
+mapping is to §8; the direct Table 1 witness is §8.1.2 for timestamped Send
+Directed Interaction. RL-312 records the pinned Lab extraction artifact. The
+case uses HLA_EVOKED only. Java current-source JNI runs passed with
+HLAinteger64Time and HLAfloat64Time (2/2); installed-package C++ direct runs
+passed the same matrix (2/2). The focused CTest selector had no registrations.
+Both runs used the P0 TckObject/Value/TckInteraction/Payload declarations in
+`p0-tck.xml`. The test does not claim delivery of the send at 6, HLA_IMMEDIATE
+behavior, independent-provider behavior, or conformance.
+
+The default `java-tck.zero-lookahead-tar-tso-equality-rejection` case enables
+zero-lookahead regulation, advances the sender by three epsilons, and verifies
+the TAR grant and Query Logical Time. A timestamped interaction at the grant
+time raises `InvalidLogicalTime`; a strictly later timestamp returns a valid
+retraction handle. Its direct mappings are §8.1.5. It covers the TAR equality
+boundary only, with no NMR or continuation-rule claim. Java current-source JNI
+runs passed both callback models with HLAinteger64Time and HLAfloat64Time
+(4/4); installed-package C++ primary and contract runs passed the same matrix
+(8/8). The focused CTest query had no registrations. The adapter supplies the
+provider, root-hierarchy FOM with a parameter-free interaction class, time,
+and callback model; independent-provider behavior and conformance are not
+claimed.
+
+The default `java-tck.zero-lookahead-nmr-tso-equality-rejection` case enables
+zero-lookahead regulation, requests NMR to three epsilons beyond the initial
+time, and verifies the grant and Query Logical Time. Sending at the grant
+time raises `InvalidLogicalTime`; a strictly later timestamp returns a valid
+retraction handle. Its direct mapping is §8.1.5 and covers the NMR equality
+boundary only, with no TAR or continuation-rule claim. Java current-source JNI
+runs passed both callback models with HLAinteger64Time and HLAfloat64Time
+(4/4); installed-package C++ primary and contract runs passed the same matrix
+(8/8). The focused CTest query had no registrations. The adapter supplies the
+provider, root-hierarchy FOM with a parameter-free interaction class, time,
+and callback model; independent-provider behavior and conformance are not
+claimed.
+
+The default `java-tck.zero-lookahead-nmr-continuation-tara-equality-acceptance`
+case rejects a timestamp equal to a forward NMR grant, then requests a later
+TARA grant and accepts a timestamp equal to that grant. Its direct mapping is
+to the §8.1.5 continuation sentence. RL-417 tracks the missing precise Lab
+requirement for the §8.9 equal-time TARA permission, so this case makes no
+separate §8.9 claim. Java current-source JNI runs passed both callback models
+with HLAinteger64Time and HLAfloat64Time (4/4); installed-package C++ primary
+and contract runs passed the same matrix (8/8). The focused CTest query had no
+registrations. It does not generalize to other subsequent advance services or
+establish independent-provider behavior or conformance.
+
+The default `java-tck.zero-lookahead-nmra-tso-equality-acceptance` case
+requests NMRA with zero lookahead, then accepts a timestamped interaction at
+the grant time and checks the valid retraction return. Its direct mapping is
+the §8.11 post-grant permission only; it does not test NMRA delivery-set
+ordering or other advance services. Java current-source JNI runs passed both
+callback models with HLAinteger64Time and HLAfloat64Time (4/4); installed-
+package C++ primary and contract runs passed the same matrix (8/8). The
+focused CTest query had no registrations. This evidence does not establish
+independent-provider behavior or conformance.
 
 The default `java-tck.time-bounds-queries` case checks standard Query GALT and
 Query LITS bounds before, during, and after time regulation, including pending
@@ -2167,6 +3388,15 @@ the publisher advances to six. The promoted C++ peer's current source omits
 that advance and needs a separate fresh runtime audit; no exact-sequence
 parity or independent-provider conformance is claimed. FOM, object/attribute
 names, endpoint, time, and callback model remain adapter inputs.
+
+The adapter-required
+`java-tck.time-constrained-enable-retains-queued-tso-object-deletion` case
+checks the §8.6 stored-message branch for a timestamped object deletion while
+Time Constrained enablement is pending. It accepts the allowed RECEIVE-order
+removal before Time Constrained Enabled; otherwise, the retained removal must
+arrive with TIMESTAMP/TIMESTAMP order before TAR(6)'s grant. Focused current-
+source JNI and paired installed-package C++ runs passed in both callback
+models. This is local-provider evidence only.
 
 The default `java-tck.time-constrained-enable-receive-order-boundary` case
 checks two timestamped interactions delivered with RECEIVE order before
@@ -2443,6 +3673,13 @@ immediate mode checks the same registration, announcement, and barrier results
 without calling the evoked callback service. The scenario remains provider-
 unverified until run against an installed Java 1516.1-2025 provider.
 
+The focused `java-tck.synchronization-points-independent-tracking` twin registers
+two labels with distinct tags, checks both registration results and announcements,
+then completes one label while the other remains pending before completing the
+second. Profile-enabled local JNI runs passed under `HLA_EVOKED` and
+`HLA_IMMEDIATE` with the adapter-supplied `p0-tck.xml` and
+`HLAinteger64Time`; the direct mapping is limited to §4.1.3.
+
 ## Build
 
 From the repository root, use the shell-free Python runner. These commands are
@@ -2539,6 +3776,14 @@ exactly their two available dimensions after composition. The installed
 Java adapter and matching C++ primary/contract cases passed both callback
 models. Region operations, conflict branches, and cross-provider
 conformance are not claimed.
+
+The opt-in `java-tck.fom-interaction-inherited-available-dimensions` case
+uses the adapter DDM FOM through `hla.rti.tck.ddmFom` and checks that the base
+interaction class exposes exactly dimension X while its derived class exposes
+inherited X plus Y. It tests the public available-dimensions query only; send
+routing and region filtering are outside its claim. Focused local Umbra JNI
+runs passed with both callback models; behavior on other providers is
+unverified.
 
 `java-tck.fom-named-variant-alternative-merge` is a default-run positive
 §C.3 case: separately valid modules with disjoint enumerators on one named
@@ -2838,12 +4083,35 @@ name through `hla.rti.tck.ddmUnrelatedDimension`; provider runtime remains
 unverified.
 
 The opt-in `java-tck.regional-attribute-value-update-response-recheck` case
-requests an attribute update, moves the committed requester region out of
-overlap before the owner responds, verifies that the response is suppressed,
-then restores overlap and checks that a fresh request/response preserves the
-value, tag, producer, reliable transportation, and source-region designator.
-The DDM FOM, object/attribute names, and two dimensions remain adapter-supplied;
-provider runtime remains unverified.
+requests an attribute update while source and requester regions overlap, then
+moves the requester from `[0,1)` to `[1,2)`. These semi-open ranges touch but do
+not overlap, so the response is suppressed. After overlap is restored, the
+fresh response preserves the value, tag, producer, reliable transportation,
+and one source-region designator.
+The DDM FOM, object/attribute names, and two dimensions remain adapter-supplied.
+Focused Umbra JNI runs passed under both callback models; behavior on other
+providers remains unverified.
+
+The opt-in `java-tck.ddm-unsubscribe-preserves-other-class-subscription` case
+registers one ordinary and one regional object class before subscription, then
+checks their independent discovery and reflection paths as each final attribute
+subscription is removed. It uses the adapter DDM FOM through
+`hla.rti.tck.ddmFom` and the configured `hla.rti.tck.ddmObjectClass`,
+`hla.rti.tck.ddmAttribute`,
+`hla.rti.tck.knownClassObjectClass`, `hla.rti.tck.knownClassAttribute`,
+`hla.rti.tck.dimension`, and `hla.rti.tck.ddmSecondDimension` values. Focused
+Umbra JNI runs passed with both callback models; behavior on other providers is
+unverified.
+
+The opt-in `java-tck.ddm-available-attribute-services` case checks the
+available-attribute rule on ordinary Publish/Unpublish/Subscribe/Unsubscribe
+and regional Subscribe/Unsubscribe calls. Its adapter DDM FOM must provide the
+configured base and derived classes, base and derived attributes, and two
+shared dimensions using the `hla.rti.tck.knownClass*`,
+`hla.rti.tck.ddmFom`, `hla.rti.tck.dimension`, and
+`hla.rti.tck.ddmSecondDimension` properties. Focused Umbra JNI runs passed
+with both callback models; the exception type is checked as Java API behavior,
+and behavior on other providers is unverified.
 
 The opt-in `java-tck.regional-interaction-empty-subscription-sets` case checks
 that an empty regional subscription creates no delivery route and that an empty
@@ -2892,8 +4160,12 @@ errors, invalid range errors, and invalidation after deletion. Its FOM and
 object/interaction classes, attribute, parameter, dimensions, logical-time
 implementation, and callback model are adapter supplied. `decodeRegionHandle`
 is intentionally not represented because the official Java 2025
-`RTIambassador` has no corresponding service; provider runtime remains
-unverified.
+`RTIambassador` has no corresponding service. The focused scenario passed under
+both callback models against local Umbra JNI; other providers remain
+unverified. Membership-boundary checks use valid handles created through the
+standard API by a joined owner federate. Java has no portable default-invalid
+handle representation, so those exact C++ invalid-handle arguments are not
+represented.
 
 The opt-in `java-tck.region-range-validation` case accepts a committed range
 from zero through the adapter dimension's upper bound, then verifies that
@@ -2916,6 +4188,47 @@ registered-object update associations keep regions in use until unsubscribed or
 the object is deleted. The DDM FOM, object/interaction classes, attribute,
 parameter, two class dimensions, unrelated dimension, and callback model are
 adapter supplied; provider runtime remains unverified.
+
+The opt-in `java-tck.regional-object-attribute-dimension-inheritance` case uses
+the adapter-supplied multi-attribute FOM configured with
+`hla.rti.tck.multiAttributeFom`. It checks the base class's X dimension and the
+derived class's X/Y dimensions, rejects Y-only regional registration,
+subscription, value request, and update association for inherited `BaseValue`,
+then verifies X and X/Y receivers get only their matching attribute while a
+disjoint receiver gets neither. Focused local JNI runs passed under both
+callback models; its direct mappings are limited to §9.1.2 for this fixture.
+
+The opt-in `java-tck.regional-object-attribute-default-region-fdd-dimensions`
+case uses the same adapter-supplied multi-attribute FOM. It checks the declared
+X/Y upper bounds, rejects a Y-only subscription for inherited `BaseValue`,
+registers the derived object without explicit regions, then verifies that
+near-upper-bound X and Y subscriptions receive only inherited `BaseValue` and
+derived `DerivedValue`, respectively, through FDD default-region routing.
+Focused local JNI runs passed under both callback models; its direct mapping is
+limited to §9.1.2.
+
+The opt-in
+`java-tck.regional-object-attribute-unspecified-dimension-default-range` case
+also uses the adapter multi-attribute FOM. It explicitly checks that a
+`DerivedValue` source region specifies X only, then registers that attribute
+and verifies a Y-only receiver at the FDD default-range upper edge receives it
+while the inherited `BaseValue` X path remains independent. Focused local JNI
+runs passed under both callback models; the direct mapping is limited to the
+omitted-dimension default-range alternative in §9.1.2.
+
+The opt-in `java-tck.regional-object-attribute-excluded-dimension-not-realized`
+case uses an adapter FOM where X and Y are available to the object class but
+both are marked `Excluded`. It verifies the X-only positive delivery and checks
+that a Y-only receiver gets neither discovery nor reflection when an X-only
+source region is registered. Its direct mapping is limited to this §9.1.2
+realization behavior.
+
+The opt-in `java-tck.regional-interaction-partial-default-range` case uses the
+adapter restricted default-range FOM. It sends an interaction through a
+non-empty X-only source region and verifies the omitted Y dimension receives
+the FDD range `[0,5)`: an overlapping `[1,4)` subscriber receives once, while
+a `[6,9)` subscriber receives nothing. Focused local JNI runs passed under
+both callback models; its direct mappings are limited to §9.1.2.
 
 The opt-in `java-tck.passive-regional-interaction-transition` case starts two
 overlapping active regional subscriptions, transitions one to passive and
@@ -3051,3 +4364,111 @@ delivery, payload/source/order/retraction metadata, callback-before-grant order,
 and each recipient's grant time. Provider, time-managed FOM, logical-time
 implementation, and callback model remain adapter-supplied; provider runtime is
 unverified.
+
+The opt-in `java-tck.joined-federate-mom-added-attribute-same-rti-instance`
+case discovers the target federate's RTI-registered `HLAfederate` MOM object,
+verifies a FOM-added attribute is not RTI-owned, acquires and updates it on that
+same object, and checks a third federate's reflection, including value, tag,
+class, and object-name identity. The extension FOM, standard MIM, logical-time
+implementation, and callback model are adapter-supplied. Both focused local
+Umbra JNI runs fail at the pre-acquisition ownership query because the provider
+reports `attributeIsOwnedByRTI`; the matching installed-package C++ primary and
+contract pass under both callback models. Other-provider behavior remains
+unverified.
+
+The default-run `java-tck.federation-save-timestamp-eligibility` case checks
+that a timestamped save request is rejected with `FederateUnableToUseTime`
+before time regulation, with no save callbacks, then accepted after enabling
+regulation with the requested label and time. It maps the two direct
+IEEE 1516.1-2025 §4.19 requirement rows for Request Federation Save. Java runs
+passed in evoked and immediate modes; the paired installed-package C++ selectors
+passed focused CTest and direct runs in both modes. These are local-provider
+results, not independent-provider or conformance evidence.
+
+The default-run `java-tck.federation-save-request-replacement` case issues two
+timestamped save requests before either member advances. Both members receive
+their first grants at the superseded save time without initiating a save; at
+the replacement time, each receives one initiation with the replacement label
+and time. Both members then complete the save successfully. It maps the direct
+IEEE 1516.1-2025 §4.19 requirement for replacing an outstanding save request.
+Java evoked and immediate runs passed, as did the paired installed-package C++
+selectors. These are local-provider results, not independent-provider or
+conformance evidence.
+
+The default-run `java-tck.save-restore-queued-ro-interaction` case leaves one
+receive-order interaction pending while both members save. After federation
+destruction/recreation and public restore completion, the evoked subscriber
+receives the interaction exactly once with its original parameter and tag and
+the restored publisher identity. It maps the direct IEEE 1516.1-2025 §4.1.2
+requirement for preservation of queued messages through federation save. The
+focused Java HLA_EVOKED run and paired installed-package C++ consumer each
+passed 1/1. This case does not cover HLA_IMMEDIATE, timestamp-order delivery,
+attribute updates, all queued-message forms, independent-provider behavior, or
+conformance.
+
+The default-run `java-tck.restore-federate-type-count-mismatch` case saves two
+members with the same federate type, then resigns and rejoins one member under a
+different type while keeping the current total at two. The other member requests
+restore and receives one failure callback for that save; neither member receives
+Federation Restore Begun or Initiate Federate Restore. It maps the direct IEEE
+1516.1-2025 §4.1.2 requirement for federate-type counts to match saved state.
+Java evoked and immediate runs passed, as did the paired installed-package C++
+selectors. This is one mismatch witness, not exhaustive restore-state
+verification or conformance evidence.
+
+The default-run `java-tck.restore-federate-type-identity-rebinding` case saves
+two members of the same type, resigns both, and joins two differently named
+replacements under that same type. After restore is requested, it checks that
+each Initiate Federate Restore callback reports the saved name and the
+replacement member's current handle, then completes restore for both members.
+It maps the direct IEEE 1516.1-2025 §4.1.2 identity-rebinding requirement.
+Java evoked and immediate runs passed, as did the paired installed-package C++
+selectors. This is a bounded same-type witness, not exhaustive restore-state or
+membership-permutation verification, independent-provider behavior, or
+conformance.
+
+The opt-in `java-tck.fom-interaction-qualified-class-name-identity` loads the
+adapter's `fom-model-tck.xml` and resolves the two
+`TckClassNameProbe` interactions beneath different parents. It verifies that
+their handles differ and that each handle returns its complete qualified name.
+Java evoked and immediate runs passed, as did the paired installed-package C++
+selectors. Direct mappings are IEEE 1516.2-2025 §§4.3.2, 5.3, and 6.2.3. This
+is a qualified-identity witness only; it does not cover valid-name conventions,
+malformed-name rejection, exhaustive §3.3 coverage, or conformance.
+
+The opt-in `java-tck.fom-duplicate-object-class-attribute-name` supplies
+`invalid-duplicate-tck.xml` as the sole FOM module and checks that federation
+creation rejects the repeated `DuplicateValue` attribute name with a standard
+FOM error. It maps IEEE 1516.2-2025 §4.5.2. Java evoked and immediate runs
+passed, as did the paired installed-package C++ selectors. This is one
+same-class duplicate-name witness; inherited-name collisions, naming
+conventions, the table's NA entry rule, and conformance are outside its scope.
+
+The opt-in `java-tck.fom-basic-data-representation-endian-values` creates and
+joins one federation for each adapter-supplied basicData FOM declaring
+`Endian=Big` and `Endian=Little`, then resigns and destroys both executions.
+It maps IEEE 1516.2-2025 clauses 4 and 6.2.14. Java evoked and immediate runs
+passed, as did the paired installed-package C++ selectors. This confirms
+acceptance of those two FOM values only; it does not test payload byte order,
+other data representations, or conformance.
+
+The opt-in `java-tck.federate-selected-update-thresholds` uses two publishers
+that send an attribute at application-selected sample thresholds of two and
+three. The receiver verifies exactly five reflections, the sample values,
+threshold/sample tags, object identities, and producing federates. It maps
+Summary Rule 9 and Detailed Rule 9 (§6.4). Java evoked and immediate runs
+passed, as did the paired installed-package C++ selectors. The RTI does not
+evaluate these application thresholds; SOM documentation and conformance are
+outside the case.
+
+The adapter-required `java-tck.transport-public-new-session-interoperability`
+uses `tools/run_java_tck_transport_interop.py` to run the Java public
+`RTIambassador.connect(..., RtiConfiguration)` and `disconnect` calls against
+the independent literal-frame loopback peer. Java checks that the configured
+heartbeat settings were applied; the peer checks the New Session request and
+status, federate-originated heartbeat sequence and response correlation, and
+Close/Acknowledgement/EOF ordering. Both callback models are exercised. Its
+direct mappings cover IEEE 1516.1-2025 §§12.13.4.5, 12.13.4.5.1,
+12.13.4.5.2, 12.13.4.5.3, and 13.2.
+This is bounded Java API and wire-protocol evidence, not complete provider
+interoperability or conformance.

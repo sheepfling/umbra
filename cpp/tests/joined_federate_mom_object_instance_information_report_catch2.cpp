@@ -4,6 +4,9 @@
 #include "internal/handles/attribute_handle.hpp"
 #include "internal/handles/object_class_handle.hpp"
 #include "internal/handles/object_instance_handle.hpp"
+#include "internal/federation/federation_registry.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
+#include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
 #include <RTI/RTI1516.h>
@@ -12,9 +15,12 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifndef UMBRA_SOURCE_DIRECTORY
@@ -31,6 +37,7 @@ using rti1516_2025::AttributeHandleValueMap;
 using rti1516_2025::DataElement;
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
+using rti1516_2025::HLA_IMMEDIATE;
 using rti1516_2025::HLAoctet;
 using rti1516_2025::HLAvariableArray;
 using rti1516_2025::InteractionClassHandle;
@@ -143,33 +150,63 @@ std::vector<AttributeHandle> decodeAttributeHandleList(
 
 }  // namespace
 
-TEST_CASE(
-    "Embedded MOM requestObjectInstanceInformation reports known and NULL object state",
-    "[integration][development-profile][federation-management][mom]"
-    "[mom-request-report][object-management][interaction-management]"
-    "[callback-model][joined-federate-mom-object-instance-information-report]"
-    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
-    "[rti.service.publish-object-class-attributes]"
-    "[rti.service.register-object-instance][rti.service.local-delete-object-instance]"
-    "[rti.service.subscribe-object-class-attributes]"
-    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
-    "[rti.service.evoke-callback][federate.callback.discover-object-instance]"
-    "[federate.callback.receive-interaction]") {
+namespace {
+
+class ScopedEmbeddedFederationRegistry final {
+ public:
+  explicit ScopedEmbeddedFederationRegistry(
+      std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> replacement)
+      : previous_(
+            rti1516_2025::umbra_binding_detail::replaceEmbeddedFederationRegistryForTesting(
+                std::move(replacement))) {}
+  ScopedEmbeddedFederationRegistry(ScopedEmbeddedFederationRegistry const&) = delete;
+  ScopedEmbeddedFederationRegistry& operator=(
+      ScopedEmbeddedFederationRegistry const&) = delete;
+  ~ScopedEmbeddedFederationRegistry() noexcept {
+    if (previous_) {
+      static_cast<void>(
+          rti1516_2025::umbra_binding_detail::replaceEmbeddedFederationRegistryForTesting(
+              std::move(previous_)));
+    }
+  }
+
+ private:
+  std::shared_ptr<umbra::detail::EmbeddedFederationRegistry> previous_;
+};
+
+void verifyObjectInstanceInformationReport(bool immediate) {
+  auto const callbackModel = immediate ? HLA_IMMEDIATE : HLA_EVOKED;
   ReportingFederateAmbassador requesterReports;
   ReportingFederateAmbassador ownerReports;
+  std::uint64_t nextFomHandleValue = 0x1000U;
+  auto const registry =
+      std::make_shared<umbra::detail::EmbeddedFederationRegistry>(
+          nullptr,
+          nullptr,
+          [&nextFomHandleValue] {
+            return std::optional<std::uint64_t>{nextFomHandleValue++};
+          });
+  ScopedEmbeddedFederationRegistry registryScope(registry);
   auto requester = makeRti();
   auto owner = makeRti();
   auto const federationName = nextFederationName();
 
-  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(owner->connect(ownerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(requester->connect(requesterReports, callbackModel));
+  REQUIRE_NOTHROW(owner->connect(ownerReports, callbackModel));
   REQUIRE_NOTHROW(owner->createFederationExecution(
       federationName, restaurantFom().wstring(), standard_hla::mom::integer64_time));
   auto const requesterFederate = requester->joinFederationExecution(
       L"mom-object-instance-information-requester", L"requester", federationName);
   auto const ownerFederate = owner->joinFederationExecution(
       L"mom-object-instance-information-owner", L"owner", federationName);
+  auto const reliableTransportation = requester->getTransportationTypeHandle(
+      standard_hla::mom::reliable);
+  REQUIRE(reliableTransportation.isValid());
+  auto const reliableValue =
+      rti1516_2025::umbra_binding_detail::transportationTypeHandleValue(
+          reliableTransportation);
+  REQUIRE(reliableValue.has_value());
+  REQUIRE(*reliableValue != 1U);
 
   auto const requesterServer = requester->getObjectClassHandle(
       L"HLAobjectRoot.Employee.Server");
@@ -223,11 +260,15 @@ TEST_CASE(
       requestClass,
       ParameterHandleValueMap{{requestObject, ownedObject.encode()}},
       VariableLengthData{}));
-  REQUIRE(requesterReports.interactionReports.empty());
-  drainCallbacks(*requester);
+  if (immediate) {
+    REQUIRE(requesterReports.interactionReports.size() == 1U);
+  } else {
+    drainCallbacks(*requester);
+  }
   REQUIRE(requesterReports.interactionReports.size() == 1U);
   auto const& ownedReport = requesterReports.interactionReports.back();
   REQUIRE(ownedReport.interactionClass == reportClass);
+  REQUIRE(ownedReport.transportationType == reliableTransportation);
   REQUIRE(ownedReport.parameterValues.size() == 4U);
   REQUIRE(ownedReport.parameterValues.contains(reportObject));
   REQUIRE(ownedReport.parameterValues.contains(reportOwnedAttributes));
@@ -256,7 +297,9 @@ TEST_CASE(
   // a valid way to transition the requester's report to the MIM NULL shape.
   auto const observedObject = owner->registerObjectInstance(ownerServer);
   REQUIRE(observedObject.isValid());
-  drainCallbacks(*requester);
+  if (!immediate) {
+    drainCallbacks(*requester);
+  }
   REQUIRE(requesterReports.objectDiscoveryReports.size() == 1U);
   REQUIRE(requesterReports.objectDiscoveryReports.front().objectInstance == observedObject);
   REQUIRE(requesterReports.objectDiscoveryReports.front().objectClass == requesterServer);
@@ -266,9 +309,15 @@ TEST_CASE(
       requestClass,
       ParameterHandleValueMap{{requestObject, observedObject.encode()}},
       VariableLengthData{}));
-  drainCallbacks(*requester);
+  if (immediate) {
+    REQUIRE(requesterReports.interactionReports.size() == 1U);
+  } else {
+    REQUIRE(requesterReports.interactionReports.empty());
+    drainCallbacks(*requester);
+  }
   REQUIRE(requesterReports.interactionReports.size() == 1U);
   auto const& knownReport = requesterReports.interactionReports.back();
+  REQUIRE(knownReport.transportationType == reliableTransportation);
   REQUIRE(knownReport.parameterValues.size() == 4U);
   REQUIRE(decodeObjectInstanceHandle(
               knownReport.parameterValues.at(reportObject)) == observedObject);
@@ -288,11 +337,16 @@ TEST_CASE(
       requestClass,
       ParameterHandleValueMap{{requestObject, observedObject.encode()}},
       VariableLengthData{}));
-  REQUIRE(requesterReports.interactionReports.empty());
-  drainCallbacks(*requester);
+  if (immediate) {
+    REQUIRE(requesterReports.interactionReports.size() == 1U);
+  } else {
+    REQUIRE(requesterReports.interactionReports.empty());
+    drainCallbacks(*requester);
+  }
   REQUIRE(requesterReports.interactionReports.size() == 1U);
   auto const& nullReport = requesterReports.interactionReports.back();
   REQUIRE(nullReport.interactionClass == reportClass);
+  REQUIRE(nullReport.transportationType == reliableTransportation);
   REQUIRE(nullReport.parameterValues.size() == 2U);
   REQUIRE(nullReport.parameterValues.contains(reportObject));
   REQUIRE(nullReport.parameterValues.contains(reportOwnedAttributes));
@@ -312,4 +366,38 @@ TEST_CASE(
   REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(owner->disconnect());
+}
+
+}  // namespace
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstanceInformation reports known and NULL object state",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[callback-model][joined-federate-mom-object-instance-information-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.local-delete-object-instance]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.evoke-callback][federate.callback.discover-object-instance]"
+    "[federate.callback.receive-interaction]") {
+  verifyObjectInstanceInformationReport(false);
+}
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstanceInformation reports known and NULL object state immediately",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[callback-model][callback-immediate]"
+    "[joined-federate-mom-object-instance-information-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.local-delete-object-instance]"
+    "[rti.service.subscribe-object-class-attributes]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[federate.callback.discover-object-instance][federate.callback.receive-interaction]") {
+  verifyObjectInstanceInformationReport(true);
 }

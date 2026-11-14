@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java port resolves one configured object class and its class-scoped attribute, then verifies Get Attribute Name returns the exact configured name. It covers only this valid handle pair; it does not test invalid handles, inheritance, or broader support-service behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-attribute-name-lookup",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "ObjectClassHandle getObjectClassHandle(String name)",
+        "AttributeHandle getAttributeHandle(ObjectClassHandle objectClass, String name)",
+        "String getAttributeName(ObjectClassHandle objectClass, AttributeHandle attribute)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getAttributeName",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/AttributeNameLookupTck.java#run"
+      ]
+    }
+  ]
+}

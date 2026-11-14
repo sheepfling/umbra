@@ -31,6 +31,11 @@ final class NativeObjectInstanceHandle implements ObjectInstanceHandle {
       return Arrays.hashCode(encoded);
    }
 
+   @Override
+   public String toString() {
+      return NativeHandleText.format("ObjectInstanceHandle", encoded);
+   }
+
    private boolean sameEncoding(ObjectInstanceHandle other) {
       if (other.encodedLength() != encoded.length) return false;
       byte[] candidate = new byte[encoded.length];

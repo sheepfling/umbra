@@ -24,6 +24,7 @@ from typing import TypeAlias, cast
 ROOT = Path(__file__).resolve().parents[1]
 TCK_ROOT = ROOT / "packages" / "hla-rti-java-tck"
 SOURCE_ROOT = TCK_ROOT / "src" / "main" / "java"
+RESOURCE_ROOT = TCK_ROOT / "src" / "main" / "resources"
 DEFAULT_CLASSES = ROOT / "out" / "java-tck" / "classes"
 DEFAULT_API_PACKAGE_PREFIX = "hla.rti1516_2025"
 
@@ -109,6 +110,28 @@ def java_sources() -> list[Path]:
     return sources
 
 
+def copy_java_resources(classes_directory: Path, api_package_prefix: str) -> None:
+    if not RESOURCE_ROOT.exists():
+        return
+    for resource in sorted(RESOURCE_ROOT.rglob("*")):
+        if not resource.is_file():
+            continue
+        relative = resource.relative_to(RESOURCE_ROOT)
+        data = resource.read_bytes()
+        if relative.parts[:2] == ("META-INF", "services"):
+            service_type = relative.name
+            if service_type.startswith(DEFAULT_API_PACKAGE_PREFIX):
+                service_type = api_package_prefix + service_type[len(DEFAULT_API_PACKAGE_PREFIX) :]
+                relative = Path("META-INF") / "services" / service_type
+            text = data.decode("utf-8").replace(
+                DEFAULT_API_PACKAGE_PREFIX, api_package_prefix
+            )
+            data = text.encode("utf-8")
+        destination = classes_directory / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(data)
+
+
 def validate_api_package_prefix(value: str) -> str:
     if not re.fullmatch(
         r"[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*", value
@@ -165,7 +188,11 @@ def build_tck(
             portable = argument.replace("\\", "/")
             quoted_arguments.append('"' + portable.replace('"', '\\"') + '"')
         argument_file.write_text("\n".join(quoted_arguments) + "\n", encoding="utf-8")
-        return run_command([javac, "@" + str(argument_file)], cwd=ROOT)
+        result = run_command([javac, "@" + str(argument_file)], cwd=ROOT)
+        if result != 0:
+            return result
+        copy_java_resources(classes_directory, api_package_prefix)
+        return 0
 
 
 def add_property(command: list[str], name: str, value: str | None) -> None:

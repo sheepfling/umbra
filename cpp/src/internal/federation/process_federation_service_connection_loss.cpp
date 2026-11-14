@@ -41,6 +41,12 @@ bool ProcessFederationService::dispatchConnectionLossResult(
           state.attributeOwnershipAcquisitionEvents.end());
     }
   }
+  if (!result.saveNotifications.empty() &&
+      !enqueueFederationSaveNotifications(
+          federationName,
+          std::move(result.saveNotifications))) {
+    return false;
+  }
   if (!result.resignOwnershipAcquisitionWorkItems.empty() &&
       !enqueueAttributeOwnershipAcquisitionWorkItems(
           federationName,
@@ -157,6 +163,12 @@ bool ProcessFederationService::dispatchConnectionLossResult(
         return false;
       }
     }
+  }
+  if (departedFederateId &&
+      !enqueueFederationMomConditionalAttributeUpdate(
+          federationName,
+          {hla::utf8::mom::federates_in_federation})) {
+    return false;
   }
   return true;
 }

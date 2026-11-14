@@ -4,17 +4,113 @@
 #include <RTI/Exception.h>
 
 #include <algorithm>
+#include <filesystem>
 #include <limits>
+#include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
 namespace umbra::detail {
+namespace {
+
+bool isAsciiAlpha(wchar_t value) {
+  return (value >= L'a' && value <= L'z') ||
+      (value >= L'A' && value <= L'Z');
+}
+
+bool isAsciiAlphaNumeric(wchar_t value) {
+  return isAsciiAlpha(value) || (value >= L'0' && value <= L'9');
+}
+
+bool isUriDesignator(std::wstring_view value) {
+  auto const colon = value.find(L':');
+  if (colon == std::wstring_view::npos || colon == 0U ||
+      !isAsciiAlpha(value.front())) {
+    return false;
+  }
+  // Do not mistake a Windows drive prefix for a URI scheme.
+  if (colon == 1U && value.size() > 2U &&
+      (value[2] == L'/' || value[2] == L'\\')) {
+    return false;
+  }
+  return std::all_of(
+      value.begin() + 1,
+      value.begin() + static_cast<std::ptrdiff_t>(colon),
+      [](wchar_t character) {
+        return isAsciiAlphaNumeric(character) || character == L'+' ||
+            character == L'-' || character == L'.';
+      });
+}
+
+bool isInlineXml(std::wstring_view value) {
+  auto const first = value.find_first_not_of(L" \t\r\n");
+  return first != std::wstring_view::npos && value[first] == L'<';
+}
+
+std::wstring fileUrlForLocalFomModule(std::wstring_view designator) {
+  auto const path = std::filesystem::absolute(
+                        std::filesystem::path(std::wstring(designator)))
+                        .lexically_normal()
+                        .generic_u8string();
+  std::string pathUtf8;
+  pathUtf8.reserve(path.size());
+  for (char8_t const value : path) {
+    pathUtf8.push_back(static_cast<char>(value));
+  }
+
+  std::string url;
+  if (pathUtf8.starts_with("//")) {
+    url = "file:";
+  } else if (pathUtf8.starts_with('/')) {
+    url = "file://";
+  } else {
+    url = "file:///";
+  }
+
+  constexpr char hex[] = "0123456789ABCDEF";
+  for (unsigned char const value : pathUtf8) {
+    bool const unreserved =
+        (value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') ||
+        (value >= '0' && value <= '9') || value == '-' || value == '.' ||
+        value == '_' || value == '~' || value == '/' || value == ':';
+    if (unreserved) {
+      url.push_back(static_cast<char>(value));
+    } else {
+      url.push_back('%');
+      url.push_back(hex[value >> 4U]);
+      url.push_back(hex[value & 0x0FU]);
+    }
+  }
+  return std::wstring(url.begin(), url.end());
+}
+
+std::wstring federateProtocolFomModuleArgument(std::wstring value) {
+  if (value.empty() || isUriDesignator(value) || isInlineXml(value)) {
+    return value;
+  }
+  return fileUrlForLocalFomModule(value);
+}
+
+void normalizeFomModuleArguments(std::vector<std::wstring>& modules) {
+  for (auto& module : modules) {
+    module = federateProtocolFomModuleArgument(std::move(module));
+  }
+}
+
+}  // namespace
 
 void ProcessFederationClient::createFederationExecution(
     std::wstring federationName,
     std::vector<std::wstring> fomModules,
     std::optional<std::wstring> mimModule,
-    std::wstring logicalTimeImplementationName) {
+    std::wstring logicalTimeImplementationName,
+    bool hasFomInputs,
+    std::vector<std::wstring> unsupportedTransportationTypeNames) {
+  normalizeFomModuleArguments(fomModules);
+  if (mimModule) {
+    *mimModule = federateProtocolFomModuleArgument(std::move(*mimModule));
+  }
   auto response = request(
       TransportServiceOperation::create_federation_execution,
       encodeProcessFederationCreateRequest(
@@ -22,10 +118,12 @@ void ProcessFederationClient::createFederationExecution(
               std::move(federationName),
               std::move(fomModules),
               std::move(mimModule),
-              std::move(logicalTimeImplementationName)}));
+              std::move(logicalTimeImplementationName),
+              hasFomInputs,
+              std::move(unsupportedTransportationTypeNames)}));
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
-        requestFailure(response.operation, response.status));
+        requestFailure(response.operation, response.status), response.status);
   }
 }
 
@@ -88,6 +186,7 @@ ProcessFederationJoinResult ProcessFederationClient::joinFederationExecution(
     std::optional<std::wstring> requestedFederateName,
     std::vector<std::wstring> additionalFomModules,
     ProcessFederationJoinConnectionSnapshot connection) {
+  normalizeFomModuleArguments(additionalFomModules);
   auto joinedFederationName = federationName;
   auto response = request(
       TransportServiceOperation::join_federation_execution,
@@ -498,7 +597,9 @@ void ProcessFederationClient::reportServiceException(
       TransportServiceOperation::report_service_exception,
       encodeProcessFederationServiceExceptionRequest({
           std::move(federationName), federateId,
-          std::move(service), std::move(exception)}));
+          std::move(service), std::move(exception)}),
+      false,
+      true);
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));
@@ -517,7 +618,9 @@ void ProcessFederationClient::reportFailedServiceInvocation(
       encodeProcessFederationFailedServiceInvocationRequest({
           std::move(federationName), federateId, serviceType,
           std::move(service), std::move(suppliedArguments),
-          std::move(exception)}));
+          std::move(exception)}),
+      false,
+      true);
   if (response.status != TransportServiceStatus::ok) {
     throw ProcessFederationClientError(
         requestFailure(response.operation, response.status));

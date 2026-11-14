@@ -3,17 +3,18 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This contract records the portable C++ TCK check for direct ordinary regional attribute-update delivery. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies object registration with regions, source-region designators, current-overlap re-evaluation at callback delivery, receive-order evoked suppression after a region mutation, immediate delivery boundaries, restored overlap, and lifecycle cleanup without provider-specific names, registries, headers, or implementation behavior.",
+  "notes": "This contract records the portable C++ TCK check for direct ordinary regional attribute-update delivery. The source uses only the official IEEE 1516.1 C++ RTIambassador and FederateAmbassador APIs plus the standard library; the adapter supplies the provider package, dimensional FOM, endpoint, callback configuration, and any logical-time implementation. It verifies that non-default region realizations supplied to Subscribe Object Class Attributes With Regions control the regional callback route as committed overlap changes (p. 220 l. 65-75), that unsubscribing one exact class/region/attribute triple stops its route while a still-subscribed receiver remains a positive control (l. 77-81), that empty regional Subscribe/Unsubscribe calls leave an existing subscription unchanged (l. 86-91), and that a valid FOM region using a dimension unavailable to the subscribed class is rejected with InvalidRegionContext while a valid X/Y region subscription remains accepted. The same exercised dimension-subset rule appears in two source-derived candidate records at p. 220 l. 89-95 and l. 89-97; these are not distinct behaviors. It also checks the Register Object Instance With Regions source-region realization and callback metadata, callback-time overlap re-evaluation, evoked and immediate delivery boundaries, restored overlap, that Unassociate Regions For Updates stops the old source region controlling delivery, and that empty region sets passed separately to Associate and Unassociate Regions For Updates each leave the existing association effective, with an intervening update after each call. The non-empty Associate Regions For Updates setup, other regional update combinations, provider-specific behavior, and conformance remain separate.",
   "api_surfaces": [
     {
       "id": "standard-cpp-regional-attribute-update-callback-ddm-recheck",
       "owner": "IEEE 1516.1 C++ API",
       "language": "cpp",
-      "signature": "RTIambassador regional publication, subscription, registration, region modification, and Update Attribute Values services with FederateAmbassador discovery and reflection callbacks",
+      "signature": "RTIambassador regional publication, subscription, registration, association/unassociation, region modification, and Update Attribute Values services with FederateAmbassador discovery and reflection callbacks",
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1 RTIambassador regional attribute-update declarations",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/main.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheck",
+        "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp::scenarioRegionalAttributeUpdateCallbackDdmRecheckContract"
       ]
     }
   ]

@@ -6,7 +6,6 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
-import hla.rti1516_2025.MessageRetractionHandle;
 import hla.rti1516_2025.MessageRetractionReturn;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
@@ -21,12 +20,13 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
-/** Preserves timestamped directed delivery across Time Constrained re-enable. */
+/** Verifies receive-order conversion when a queued TSO is released by Time Constrained disable. */
 final class TimestampedDirectedInteractionConstrainedReenableTck {
    private TimestampedDirectedInteractionConstrainedReenableTck() {
    }
@@ -102,10 +102,8 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
 
          ObjectInstanceHandle target = receiver.registerObjectInstance(receiverObjectClass);
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(publisherRecorder.discoveries.contains(target),
-            "publisher did not discover the directed-interaction target");
+         await(callbackModel, () -> publisherRecorder.discoveries.contains(target),
+            "publisher target discovery", publisher);
 
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTimeFactory<?, ?> receiverTimeFactory = receiver.getTimeFactory();
@@ -117,17 +115,15 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          receiver.enableTimeConstrained();
          receiverConstrained = true;
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
-            "receiver did not report its initial Time Constrained callback");
+         await(callbackModel, () -> receiverRecorder.timeConstrainedEnabledCount == 1,
+            "initial receiver Time Constrained callback", receiver);
          publisher.enableTimeRegulation(epsilon);
          publisherRegulating = true;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
-            "publisher did not report its Time Regulation callback");
+         await(callbackModel, () -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "publisher Time Regulation callback", publisher);
 
          LogicalTime messageTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 4);
+         LogicalTime publisherTarget = messageTime;
          byte[] payload = new byte[] {(byte) 0xD1, 0x52};
          byte[] tag = new byte[] {0x52, 0x45, 0x45, 0x4E, 0x2D, 0x44};
          ParameterHandleValueMap values = publisher.getParameterHandleValueMapFactory().create(1);
@@ -136,42 +132,52 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
             publisherInteraction, target, values, tag, messageTime);
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid && sent.handle != null,
             "timestamped directed send returned no valid retraction handle");
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
+         settle(callbackModel, receiver);
+         JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.receiveOrderInteractions.isEmpty(),
             "directed interaction arrived before the receiver's grant");
 
          receiver.disableTimeConstrained();
          receiverConstrained = false;
-         JavaTckSupport.drain(receiver);
+         await(callbackModel,
+            () -> receiverRecorder.receiveOrderInteractions.size() == 1,
+            "queued directed interaction's receive-order callback on disable", receiver);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
-            "queued directed interaction arrived while Time Constrained was disabled");
+            "queued directed interaction was not converted to receive order on disable");
+         checkReceiveOrderInteraction(receiverRecorder.receiveOrderInteractions.get(0),
+            receiverInteraction, target, receiverParameter, payload, tag, producer, receiver);
          receiver.enableTimeConstrained();
          receiverConstrained = true;
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 2,
-            "receiver did not report its second Time Constrained callback");
-         JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
+         await(callbackModel, () -> receiverRecorder.timeConstrainedEnabledCount == 2,
+            "second receiver Time Constrained callback", receiver);
+         settle(callbackModel, receiver);
+         JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.receiveOrderInteractions.size() == 1,
             "queued directed interaction arrived during Time Constrained re-enable");
 
          receiverRecorder.callbackOrder.clear();
          publisherRecorder.callbackOrder.clear();
          receiver.timeAdvanceRequest(messageTime);
          publisher.timeAdvanceRequest(publisherTarget);
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(receiverRecorder.interactions.size() == 1,
-            "queued directed interaction was not delivered exactly once");
+         await(callbackModel,
+            () -> receiverRecorder.timeAdvanceGrant != null
+               && publisherRecorder.timeAdvanceGrant != null,
+            "publisher and receiver TAR grants", receiver, publisher);
+         settle(callbackModel, receiver, publisher);
+         JavaTckSupport.check(receiverRecorder.interactions.isEmpty()
+               && receiverRecorder.receiveOrderInteractions.size() == 1,
+            "directed interaction was redelivered after Time Constrained re-enable");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(
-               Arrays.asList("receiveDirectedInteraction", "timeAdvanceGrant")),
-            "directed delivery did not precede the receiver's grant");
+               Arrays.asList("timeAdvanceGrant")),
+            "receive-order conversion was followed by another directed callback");
          JavaTckSupport.check(messageTime.equals(receiverRecorder.timeAdvanceGrant)
                && publisherTarget.equals(publisherRecorder.timeAdvanceGrant),
             "time-advance grants did not report the requested times");
          JavaTckSupport.check(messageTime.equals(receiver.queryLogicalTime())
                && publisherTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries did not match the grants");
-         checkInteraction(receiverRecorder.interactions.get(0), receiverInteraction, target,
-            receiverParameter, payload, tag, producer, messageTime, sent.handle, receiver);
+         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 2,
+            "receiver did not complete one disable/re-enable cycle");
          expectException(() -> publisher.retract(sent.handle), "MessageCanNoLongerBeRetracted",
             "retracting the directed interaction after delivery");
       } finally {
@@ -248,26 +254,48 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
       return result;
    }
 
-   private static void checkInteraction(Interaction actual, InteractionClassHandle expectedClass,
-         ObjectInstanceHandle expectedObject, ParameterHandle expectedParameter,
-         byte[] expectedPayload, byte[] expectedTag, FederateHandle expectedProducer,
-         LogicalTime<?, ?> expectedTime, MessageRetractionHandle expectedRetraction,
-         RTIambassador inspector) throws Exception {
+   private static void checkReceiveOrderInteraction(Interaction actual,
+         InteractionClassHandle expectedClass, ObjectInstanceHandle expectedObject,
+         ParameterHandle expectedParameter, byte[] expectedPayload, byte[] expectedTag,
+         FederateHandle expectedProducer, RTIambassador inspector) throws Exception {
       JavaTckSupport.check(expectedClass.equals(actual.interactionClass)
             && expectedObject.equals(actual.object)
             && actual.parameters != null && actual.parameters.size() == 1
             && Arrays.equals(expectedPayload, actual.parameters.get(expectedParameter)),
-         "directed callback returned the wrong target or parameter");
+         "receive-order directed callback returned the wrong target or parameter");
       JavaTckSupport.check(Arrays.equals(expectedTag, actual.tag)
-            && expectedProducer.equals(actual.producer) && expectedTime.equals(actual.time),
-         "directed callback did not preserve tag, producer, or timestamp");
-      JavaTckSupport.check(actual.sentOrder == OrderType.TIMESTAMP
-            && actual.receivedOrder == OrderType.TIMESTAMP,
-         "directed callback returned the wrong sent or received order");
-      JavaTckSupport.check(expectedRetraction.equals(actual.retraction)
-            && actual.transportation != null
+            && expectedProducer.equals(actual.producer),
+         "receive-order directed callback changed the tag or producing federate");
+      JavaTckSupport.check(actual.transportation != null
             && !inspector.getTransportationTypeName(actual.transportation).isEmpty(),
-         "directed callback omitted the retraction or resolvable transport handle");
+         "receive-order directed callback omitted a resolvable transportation handle");
+   }
+
+   private static void await(CallbackModel model, BooleanSupplier condition,
+         String description, RTIambassador... ambassadors) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         for (RTIambassador ambassador : ambassadors) service(ambassador, model);
+         Thread.sleep(1L);
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static void settle(CallbackModel model, RTIambassador... ambassadors)
+         throws Exception {
+      long deadline = System.nanoTime() + 100_000_000L;
+      while (System.nanoTime() < deadline) {
+         for (RTIambassador ambassador : ambassadors) service(ambassador, model);
+         Thread.sleep(1L);
+      }
+   }
+
+   private static void service(RTIambassador ambassador, CallbackModel model) throws Exception {
+      if (model == CallbackModel.HLA_EVOKED) {
+         JavaTckSupport.drain(ambassador);
+      } else {
+         Thread.yield();
+      }
    }
 
    private static void expectException(CheckedOperation operation, String expected,
@@ -294,19 +322,16 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
       private byte[] tag;
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
-      private LogicalTime<?, ?> time;
-      private OrderType sentOrder;
-      private OrderType receivedOrder;
-      private MessageRetractionHandle retraction;
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabledCount;
-      private int timeConstrainedEnabledCount;
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private LogicalTime<?, ?> timeAdvanceGrant;
+      private volatile int timeRegulationEnabledCount;
+      private volatile int timeConstrainedEnabledCount;
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<Interaction> receiveOrderInteractions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -321,6 +346,17 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
                      && arguments.length >= 3) {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
+                     && arguments.length == 6) {
+                  Interaction interaction = new Interaction();
+                  interaction.interactionClass = (InteractionClassHandle) arguments[0];
+                  interaction.object = (ObjectInstanceHandle) arguments[1];
+                  interaction.parameters = ((ParameterHandleValueMap) arguments[2]).clone();
+                  interaction.tag = ((byte[]) arguments[3]).clone();
+                  interaction.transportation = (TransportationTypeHandle) arguments[4];
+                  interaction.producer = (FederateHandle) arguments[5];
+                  receiveOrderInteractions.add(interaction);
+                  callbackOrder.add(name);
+               } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 10) {
                   Interaction interaction = new Interaction();
                   interaction.interactionClass = (InteractionClassHandle) arguments[0];
@@ -329,10 +365,6 @@ final class TimestampedDirectedInteractionConstrainedReenableTck {
                   interaction.tag = ((byte[]) arguments[3]).clone();
                   interaction.transportation = (TransportationTypeHandle) arguments[4];
                   interaction.producer = (FederateHandle) arguments[5];
-                  interaction.time = (LogicalTime<?, ?>) arguments[6];
-                  interaction.sentOrder = (OrderType) arguments[7];
-                  interaction.receivedOrder = (OrderType) arguments[8];
-                  interaction.retraction = (MessageRetractionHandle) arguments[9];
                   interactions.add(interaction);
                   callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name) && arguments != null

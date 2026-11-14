@@ -843,6 +843,11 @@ void scenarioServiceReportInteractionSubscription(
   require(
       interactionClass.isValid(),
       "Interaction subscription service-report lookup returned an invalid interaction handle");
+  auto const subjectReportClass = subject.rtiAmbassador().getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
+  require(
+      subjectReportClass.isValid(),
+      "Interaction subscription service-report subject lookup returned an invalid HLAreportServiceInvocation handle");
   auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
   require(
@@ -879,10 +884,13 @@ void scenarioServiceReportInteractionSubscription(
   auto const quoted = [](std::wstring const& value) {
     return std::wstring{L"\""} + value + L"\"";
   };
-  auto const subscribeArguments = [&](std::wstring const& value, bool passive) {
+  // The API flag is `active`; Table 5 reports the corresponding passive indicator.
+  auto const subscribeArguments = [&](std::wstring const& value, bool expectedPassive) {
     return std::vector<ExpectedArgument>{
         {27, L"Interaction class designator", quoted(value)},
-        {6, L"Optional passive subscription indicator", passive ? L"true" : L"false"}};
+        {6,
+         L"Optional passive subscription indicator",
+         expectedPassive ? L"true" : L"false"}};
   };
   auto const unsubscribeArguments = [&](std::wstring const& value) {
     return std::vector<ExpectedArgument>{
@@ -995,6 +1003,19 @@ void scenarioServiceReportInteractionSubscription(
 
   requireException(
       [&] {
+        subject.rtiAmbassador().subscribeInteractionClass(subjectReportClass, true);
+      },
+      L"FederateServiceInvocationsAreBeingReportedViaMOM",
+      "subscribing to HLAreportServiceInvocation while service reporting is enabled");
+  verifyReport(
+      0U,
+      L"SubscribeInteractionClass",
+      subscribeArguments(subjectReportClass.toString(), false),
+      false,
+      L"FederateServiceInvocationsAreBeingReportedViaMOM");
+
+  requireException(
+      [&] {
         subject.rtiAmbassador().subscribeInteractionClass(
             rti::InteractionClassHandle{},
             false);
@@ -1002,7 +1023,7 @@ void scenarioServiceReportInteractionSubscription(
       L"InteractionClassNotDefined",
       "subscribing an undefined interaction class with service reporting enabled");
   verifyReport(
-      0U,
+      1U,
       L"SubscribeInteractionClass",
       subscribeArguments(invalid, true),
       false,
@@ -1012,21 +1033,21 @@ void scenarioServiceReportInteractionSubscription(
       L"InteractionClassNotDefined",
       "unsubscribing an undefined interaction class with service reporting enabled");
   verifyReport(
-      1U,
+      2U,
       L"UnsubscribeInteractionClass",
       unsubscribeArguments(invalid),
       false,
       L"InteractionClassNotDefined");
   subject.rtiAmbassador().subscribeInteractionClass(interactionClass, true);
   verifyReport(
-      2U,
+      3U,
       L"SubscribeInteractionClass",
       subscribeArguments(valid, false),
       true,
       L"");
   subject.rtiAmbassador().unsubscribeInteractionClass(interactionClass);
   verifyReport(
-      3U,
+      4U,
       L"UnsubscribeInteractionClass",
       unsubscribeArguments(valid),
       true,

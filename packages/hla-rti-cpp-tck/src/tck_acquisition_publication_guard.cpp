@@ -58,6 +58,17 @@ void scenarioAcquisitionPublicationGuardUnavailable(
       options,
       "acquisition publication-guard object discovery");
 
+  auto const ifAvailableObject =
+      owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      ifAvailableObject.isValid() && ifAvailableObject != object,
+      "If-Available publication-guard registration returned an invalid handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(ifAvailableObject); },
+      options,
+      "If-Available publication-guard object discovery");
+
   std::vector<std::uint8_t> const acquisitionTagBytes{0xA5U, 0x01U};
   std::vector<std::uint8_t> const denialTagBytes{0xD3U, 0x02U};
   std::vector<std::uint8_t> const divestitureTagBytes{0xE7U, 0x03U};
@@ -192,6 +203,43 @@ void scenarioAcquisitionPublicationGuardUnavailable(
           acquisition->attributes == requesterAttributes &&
           acquisition->tag == divestitureTagBytes,
       "Acquisition notification returned incorrect object, attributes, or tag");
+
+  requester.recorder().clearOwnershipRecords();
+  requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+      ifAvailableObject,
+      requesterAttributes,
+      acquisitionTag);
+  if (model == rti::HLA_EVOKED) {
+    require(
+        !requester.recorder().ownershipUnavailable().has_value(),
+        "If-Available result was delivered before the evoked callback was serviced");
+    requireException(
+        [&] {
+          requester.rtiAmbassador().unpublishObjectClassAttributes(
+              requesterClass,
+              requesterAttributes);
+        },
+        L"OwnershipAcquisitionPending",
+        "stopping publication before If-Available ownership-unavailable callback");
+  }
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipUnavailable().has_value(); },
+      options,
+      "If-Available publication-guard unavailable callback");
+  auto const ifAvailableResult = requester.recorder().ownershipUnavailable();
+  require(
+      ifAvailableResult->object == ifAvailableObject &&
+          ifAvailableResult->attributes == requesterAttributes &&
+          ifAvailableResult->tag == acquisitionTagBytes &&
+          owner.rtiAmbassador().isAttributeOwnedByFederate(
+              ifAvailableObject,
+              ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              ifAvailableObject,
+              requesterAttribute),
+      "If-Available publication-guard callback returned incorrect data or changed ownership");
+
   requester.rtiAmbassador().unpublishObjectClassAttributes(
       requesterClass,
       requesterAttributes);

@@ -13,6 +13,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -92,6 +93,10 @@ final class RegionalAutoProvideMultiSourceTck {
          checkDimension(owner, ownerClass, ownerDimension);
          checkDimension(flavor, flavorClass, flavorDimension);
          checkDimension(organic, organicClass, organicDimension);
+         flavorCallbacks.configureRegionInspection(flavor, flavorDimension,
+            new RangeBounds(0L, 2L));
+         organicCallbacks.configureRegionInspection(organic, organicDimension,
+            new RangeBounds(5L, 7L));
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerFlavorAttribute,
             ownerOrganicAttribute);
@@ -157,9 +162,9 @@ final class RegionalAutoProvideMultiSourceTck {
 
          TransportationTypeHandle reliable = owner.getTransportationTypeHandle("HLAreliable");
          verifyReflection(flavorCallbacks.reflections.get(0), registeredObject, flavorAttribute,
-            FLAVOR_VALUE, FLAVOR_TAG, reliable, producer, ownerFlavorRegion, "flavor");
+            FLAVOR_VALUE, FLAVOR_TAG, reliable, producer, "flavor");
          verifyReflection(organicCallbacks.reflections.get(0), registeredObject, organicAttribute,
-            ORGANIC_VALUE, ORGANIC_TAG, reliable, producer, ownerOrganicRegion, "organic");
+            ORGANIC_VALUE, ORGANIC_TAG, reliable, producer, "organic");
 
          flavor.unsubscribeObjectClassAttributesWithRegions(flavorClass, flavorPair);
          flavorSubscribed = false;
@@ -287,14 +292,12 @@ final class RegionalAutoProvideMultiSourceTck {
 
    private static void verifyReflection(Reflection reflection, ObjectInstanceHandle object,
          AttributeHandle attribute, byte[] value, byte[] tag,
-         TransportationTypeHandle reliable, FederateHandle producer, RegionHandle sourceRegion,
-         String subscriber) {
+         TransportationTypeHandle reliable, FederateHandle producer, String subscriber) {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
             && Arrays.equals(tag, reflection.tag)
             && reliable.equals(reflection.transportation) && producer.equals(reflection.producer)
-            && reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+            && reflection.regions != null && reflection.regions.size() == 1,
          subscriber + " scoped Auto Provide reflection changed its value or metadata");
    }
 
@@ -335,6 +338,9 @@ final class RegionalAutoProvideMultiSourceTck {
       private final AtomicReference<Throwable> callbackFailure;
       private final boolean provider;
       private final AtomicReference<RTIambassador> owner = new AtomicReference<>();
+      private final AtomicReference<RTIambassador> regionInspector = new AtomicReference<>();
+      private final AtomicReference<DimensionHandle> regionDimension = new AtomicReference<>();
+      private final AtomicReference<RangeBounds> regionBounds = new AtomicReference<>();
       private final AtomicReference<AttributeHandle> flavorAttribute = new AtomicReference<>();
       private final AtomicReference<AttributeHandle> organicAttribute = new AtomicReference<>();
 
@@ -347,15 +353,22 @@ final class RegionalAutoProvideMultiSourceTck {
          owner.set(ambassador); flavorAttribute.set(flavor); organicAttribute.set(organic);
       }
 
+      private void configureRegionInspection(RTIambassador ambassador, DimensionHandle dimension,
+            RangeBounds bounds) {
+         regionInspector.set(ambassador);
+         regionDimension.set(dimension);
+         regionBounds.set(bounds);
+      }
+
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+               if ("discoverObjectInstance".equals(name) && args != null && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery);
                } else if ("provideAttributeValueUpdate".equals(name) && provider
                      && args != null && args.length == 3) {
@@ -374,7 +387,26 @@ final class RegionalAutoProvideMultiSourceTck {
                   reflection.tag = ((byte[]) args[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) args[3];
                   reflection.producer = (FederateHandle) args[4];
-                  reflection.regions = (RegionHandleSet) args[5];
+                  RegionHandleSet callbackRegions = (RegionHandleSet) args[5];
+                  reflection.regions = callbackRegions == null ? null : callbackRegions.clone();
+                  try {
+                     JavaTckSupport.check(reflection.regions != null
+                           && reflection.regions.size() == 1,
+                        "regional Auto Provide multi-source callback did not convey one region copy");
+                     RegionHandle callbackRegion = reflection.regions.iterator().next();
+                     RTIambassador inspector = regionInspector.get();
+                     DimensionHandle expectedDimension = regionDimension.get();
+                     RangeBounds expectedBounds = regionBounds.get();
+                     DimensionHandleSet dimensions = inspector.getDimensionHandleSet(callbackRegion);
+                     JavaTckSupport.check(dimensions.size() == 1
+                           && dimensions.contains(expectedDimension),
+                        "regional Auto Provide multi-source region copy changed its dimension set");
+                     JavaTckSupport.check(inspector.getRangeBounds(callbackRegion, expectedDimension)
+                           .equals(expectedBounds),
+                        "regional Auto Provide multi-source region copy changed its range bounds");
+                  } catch (Throwable failure) {
+                     callbackFailure.compareAndSet(null, failure);
+                  }
                   reflections.add(reflection);
                }
                if (method.getDeclaringClass() == Object.class) {

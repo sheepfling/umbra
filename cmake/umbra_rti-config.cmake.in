@@ -4,10 +4,18 @@ set(umbra_rti_ABI_MAJOR_VERSION "@UMBRA_RTI_ABI_MAJOR_VERSION@")
 set(umbra_rti_RTI_LIBRARY_NAME "@UMBRA_RTI_LIBRARY_NAME@")
 set(umbra_rti_FEDTIME_LIBRARY_NAME "@UMBRA_FEDTIME_LIBRARY_NAME@")
 set(umbra_rti_AUTHORIZER_LIBRARY_NAME "@UMBRA_AUTHORIZER_LIBRARY_NAME@")
+set(umbra_rti_HLA_COMPILER_VERSION_MARKER "@_umbra_hla_compiler_marker@")
+set(umbra_rti_HLA_COMPILER_VERSION_MARKER_SOURCE "@UMBRA_HLA_COMPILER_VERSION_MARKER_SOURCE@")
+set(umbra_rti_HLA_LIBRARY_32BIT_MARKER "@_umbra_hla_library_32bit_marker@")
 
-if(@UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT@)
+# Static packages retain link-only implementation dependencies in the exported
+# target interface. Shared RTI packages encapsulate these dependencies.
+if(NOT @UMBRA_BUILD_SHARED_LIBRARIES@)
   include(CMakeFindDependencyMacro)
-  find_dependency(LibXml2 2.15 CONFIG)
+  find_dependency(OpenSSL 3.0 COMPONENTS SSL)
+  if(@UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT@)
+    find_dependency(LibXml2 2.15 CONFIG)
+  endif()
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/umbra_rti_targets.cmake")

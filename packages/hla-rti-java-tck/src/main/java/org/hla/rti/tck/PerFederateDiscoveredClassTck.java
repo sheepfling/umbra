@@ -145,29 +145,17 @@ final class PerFederateDiscoveredClassTck {
             "registration did not produce exactly one discovery per subscriber");
          Discovery baseDiscovery = baseCallbacks.discoveries.get(0);
          Discovery derivedDiscovery = derivedCallbacks.discoveries.get(0);
-         JavaTckSupport.check(baseClass.equals(baseDiscovery.objectClass)
-               && derivedClass.equals(derivedDiscovery.objectClass)
-               && !baseDiscovery.objectClass.equals(derivedDiscovery.objectClass),
-            "the same object did not have a different discovered class in each federate");
-         JavaTckSupport.check(objectName.equals(
-               baseSubscriber.getObjectInstanceName(baseDiscovery.object))
-               && objectName.equals(derivedSubscriber.getObjectInstanceName(derivedDiscovery.object)),
-            "subscriber-local object handles did not resolve to the registrant's object name");
-         JavaTckSupport.check(baseClass.equals(
-               baseSubscriber.getKnownObjectClassHandle(baseDiscovery.object))
-               && derivedClass.equals(derivedSubscriber.getKnownObjectClassHandle(derivedDiscovery.object))
-               && publisherDerivedClass.equals(publisher.getKnownObjectClassHandle(object)),
-            "Get Known Object Class Handle did not preserve each federate's discovered class");
+         assertStableClassViews(publisher, baseSubscriber, derivedSubscriber, object,
+            objectName, publisherDerivedClass, baseClass, derivedClass, baseDiscovery,
+            derivedDiscovery, publisherCallbacks, baseCallbacks, derivedCallbacks);
          if (verifyRegisteredClassImmutability) {
             baseSubscriber.subscribeObjectClassAttributes(
                baseSubscriberDerivedClass, baseSubscriberDerivedAttributes);
             baseSubscribedToDerived = true;
             pumpDuplicateCallbackWindow(baseSubscriber, derivedSubscriber, callbackModel);
-            JavaTckSupport.check(baseCallbacks.discoveries.size() == 1
-                  && baseClass.equals(baseCallbacks.discoveries.get(0).objectClass)
-                  && baseClass.equals(baseSubscriber.getKnownObjectClassHandle(baseDiscovery.object))
-                  && publisherDerivedClass.equals(publisher.getKnownObjectClassHandle(object)),
-               "adding a derived-class subscription changed the base subscriber's known object class");
+            assertStableClassViews(publisher, baseSubscriber, derivedSubscriber, object,
+               objectName, publisherDerivedClass, baseClass, derivedClass, baseDiscovery,
+               derivedDiscovery, publisherCallbacks, baseCallbacks, derivedCallbacks);
 
             derivedSubscriber.unsubscribeObjectClassAttributes(derivedClass, derivedAttributes);
             derivedSubscribed = false;
@@ -175,12 +163,9 @@ final class PerFederateDiscoveredClassTck {
                derivedSubscriberBaseClass, derivedSubscriberBaseAttributes);
             derivedSubscribedToBase = true;
             pumpDuplicateCallbackWindow(baseSubscriber, derivedSubscriber, callbackModel);
-            JavaTckSupport.check(derivedCallbacks.discoveries.size() == 1
-                  && derivedClass.equals(derivedCallbacks.discoveries.get(0).objectClass)
-                  && derivedClass.equals(
-                     derivedSubscriber.getKnownObjectClassHandle(derivedDiscovery.object))
-                  && publisherDerivedClass.equals(publisher.getKnownObjectClassHandle(object)),
-               "changing the derived subscriber to a base subscription changed its known object class");
+            assertStableClassViews(publisher, baseSubscriber, derivedSubscriber, object,
+               objectName, publisherDerivedClass, baseClass, derivedClass, baseDiscovery,
+               derivedDiscovery, publisherCallbacks, baseCallbacks, derivedCallbacks);
          }
       } finally {
          if (derivedJoined && derivedSubscribedToBase && derivedSubscriberBaseClass != null
@@ -220,6 +205,28 @@ final class PerFederateDiscoveredClassTck {
          if (baseConnected) disconnect(baseSubscriber);
          if (publisherConnected) disconnect(publisher);
       }
+   }
+
+   private static void assertStableClassViews(RTIambassador publisher,
+         RTIambassador baseSubscriber, RTIambassador derivedSubscriber,
+         ObjectInstanceHandle publisherObject, String objectName,
+         ObjectClassHandle publisherDerivedClass, ObjectClassHandle baseClass,
+         ObjectClassHandle derivedClass, Discovery baseDiscovery, Discovery derivedDiscovery,
+         Recorder publisherCallbacks, Recorder baseCallbacks, Recorder derivedCallbacks)
+         throws Exception {
+      JavaTckSupport.check(baseCallbacks.discoveries.size() == 1
+            && derivedCallbacks.discoveries.size() == 1
+            && publisherCallbacks.discoveries.isEmpty()
+            && baseClass.equals(baseDiscovery.objectClass)
+            && derivedClass.equals(derivedDiscovery.objectClass)
+            && objectName.equals(baseSubscriber.getObjectInstanceName(baseDiscovery.object))
+            && objectName.equals(derivedSubscriber.getObjectInstanceName(derivedDiscovery.object))
+            && baseClass.equals(baseSubscriber.getKnownObjectClassHandle(baseDiscovery.object))
+            && derivedClass.equals(
+               derivedSubscriber.getKnownObjectClassHandle(derivedDiscovery.object))
+            && publisherDerivedClass.equals(
+               publisher.getKnownObjectClassHandle(publisherObject)),
+         "registered or subscriber-known object class changed with a federate's class view");
    }
 
    private static void awaitDiscoveries(RTIambassador baseSubscriber,

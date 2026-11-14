@@ -4,18 +4,35 @@
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
   "standard_sections": [
-    "hla-1516.1-2025:clause-4"
+    "hla-1516.1-2025:clause-1.5",
+    "hla-1516.1-2025:clause-4",
+    "hla-1516.1-2025:clause-4.5"
   ],
   "selected_requirements_lab_requirement_ids": [
-    "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1"
+    "requirement-candidate-content-clauses-01-overview-page-018-l58-7",
+    "requirement-candidate-content-clauses-01-overview-page-018-l58-7-federate",
+    "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
+    "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7-no-intercommunication"
   ],
   "requirement_section_mappings": [
     {
+      "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l58-7",
+      "standard_section": "hla-1516.1-2025:clause-1.5"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l58-7-federate",
+      "standard_section": "hla-1516.1-2025:clause-1.5"
+    },
+    {
       "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-039-l4-1",
       "standard_section": "hla-1516.1-2025:clause-4"
+    },
+    {
+      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l43-7-no-intercommunication",
+      "standard_section": "hla-1516.1-2025:clause-4.5"
     }
   ],
-  "notes": "This portable C++ TCK scenario exercises clause 4's application participation behavior using only public IEEE 1516.1-2025 services: it creates two federation executions, joins multiple federates to each, and reuses one RTIambassador after resignation in the other execution. The adapter supplies the provider, baseline FOM, logical-time selection, and endpoint. Passing this scenario is API-level test evidence, not a claim of conformance.",
+  "notes": "The portable C++ and Java TCK scenarios exercise clause 1.5 case-sensitive federation/federate names, clause 4 application participation, and clause 4.5 federation-execution isolation with public IEEE 1516.1-2025 services. They use one ASCII case variant per name family and check exact-duplicate rejection and case-preserving reports. The Java case also checks same-execution receive-order object, attribute, interaction, and timestamped-interaction delivery controls while a peer in another execution receives no corresponding data callbacks and advances through the timestamped interval. The adapter supplies the provider, baseline FOM, logical-time selection, and endpoint. Passing locally is bounded API-level test evidence, not independent-provider validation or a claim of conformance.",
   "api_surfaces": [
     {
       "id": "standard-cpp-federation-participation-multiple-executions",
@@ -28,6 +45,50 @@
         "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutions",
         "packages/hla-rti-cpp-tck/src/tck_support_services_scenarios.cpp::scenarioFederateApplicationMultipleExecutionsContract",
         "cpp/tests/ieee1516_2025_federation_application_multiple_executions_catch2.cpp::One application may join multiple federates across multiple federation executions"
+      ]
+    },
+    {
+      "id": "standard-cpp-federation-execution-data-isolation",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, publishInteractionClass, subscribeInteractionClass, sendInteraction, changeInteractionOrderType, enableTimeRegulation, enableTimeConstrained, and timeAdvanceRequest",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "IEEE 1516.1 RTIambassador data and time-management services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions"
+      ]
+    },
+    {
+      "id": "standard-cpp-case-sensitive-federation-and-federate-names",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::createFederationExecution, listFederationExecutions, joinFederationExecution, and listFederationExecutionMembers",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "IEEE 1516.1 RTIambassador federation and member listing services",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_lifecycle_scenarios.cpp::scenarioApplicationMultipleFederatesAcrossExecutions"
+      ]
+    },
+    {
+      "id": "standard-java-case-sensitive-federation-and-federate-names",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador.createFederationExecution, listFederationExecutions, joinFederationExecution, and listFederationExecutionMembers; FederateAmbassador.reportFederationExecutions and reportFederationExecutionMembers",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RTIambassador and FederateAmbassador federation name services",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateApplicationMultipleExecutionsTck.java::run"
+      ]
+    },
+    {
+      "id": "standard-java-federation-execution-data-isolation",
+      "owner": "IEEE 1516.1 Java API",
+      "language": "java",
+      "signature": "RTIambassador.publishObjectClassAttributes, subscribeObjectClassAttributes, registerObjectInstance, updateAttributeValues, publishInteractionClass, subscribeInteractionClass, sendInteraction, changeInteractionOrderType, enableTimeRegulation, enableTimeConstrained, and timeAdvanceRequest",
+      "source": "official IEEE 1516.1-2025 Java API JAR",
+      "source_symbol": "hla.rti1516_2025.RTIambassador data and time-management services",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateApplicationMultipleExecutionsTck.java::verifyExecutionDataIsolation"
       ]
     }
   ]

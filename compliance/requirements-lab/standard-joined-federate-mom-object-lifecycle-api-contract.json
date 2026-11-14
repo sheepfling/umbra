@@ -3,17 +3,54 @@
   "kind": "api-reference",
   "document_id": "hla-1516.1-2025",
   "status": "experimental-public-api-not-conformance-evidence",
-  "notes": "This portable C++ TCK slice uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard HLAstandardMIM declarations, standard HLAunicodeString/HLAvariableArray encodings, and the C++ standard library. The adapter supplies the provider package, base FOM, standard MIM, additional FOM module, endpoint, callback model, and logical-time configuration when applicable. It checks active ordinary discovery and reflection of HLAmanager.HLAfederate, the reflected federate handle/name/type, a non-empty required HLAfederateHost Unicode value, Join-scoped HLAFOMmoduleDesignatorList, known-object value requests, public object-class/name lookups, and object removal on resignation. It does not assert platform-specific hostname spelling or execution location, filesystem reports, RTI-version values, private snapshots, provider registries, Umbra headers, or an RTI-originated producer handle.",
+  "notes": "This portable C++ TCK slice uses only the official IEEE 1516.1 RTIambassador and FederateAmbassador APIs, standard HLAstandardMIM declarations, standard HLAunicodeString/HLAvariableArray encodings, and the C++ standard library. The adapter supplies the provider package, base FOM, standard MIM, additional FOM module, endpoint, callback model, and logical-time configuration when applicable. It checks active ordinary discovery and reflection of HLAmanager.HLAfederate and HLAmanager.HLAfederation, the reflected federate/federation identity values, the predefined HLAfederate and HLAfederation Table 8 P-attribute sets, known-object and class-wide value requests, and the selected region-designator metadata. Through the official API it checks the HLAfederate region dimension and half-open unit bounds [n, n + 1), where n is Normalize Federate Handle(reflected HLAfederateHandle). On selected attribute updates it also checks empty user tags/no timestamped reflection callbacks; resignation removals are checked for empty tags/no timestamped removal callbacks. Region and metadata evidence is limited to the tested paths; it does not cover every periodic/conditional update or every RTI output. It does not assert platform-specific hostname spelling or execution location, filesystem reports, RTI-version values, private snapshots, provider registries, Umbra headers, or an RTI-originated producer handle.",
   "api_surfaces": [
     {
       "id": "standard-cpp-joined-federate-mom-object-lifecycle",
       "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 standard MIM",
       "language": "cpp",
-      "signature": "RTIambassador Join, ordinary MOM subscription and known-object Request Attribute Value Update; FederateAmbassador discovery, reflection, and removal callbacks",
+      "signature": "RTIambassador MIM federation creation/join, HLAfederate and HLAfederation MOM lookup, ordinary subscription, instance and object-class Request Attribute Value Update, region-designator callback switch, callback-scoped region dimension/range queries, and federate-handle normalization; FederateAmbassador discovery, reflection, and removal callbacks",
       "source": "third_party/ieee1516.1-2025/include/RTI",
-      "source_symbol": "RTIambassador and FederateAmbassador standard object-management declarations; HLAfederateHost, HLAunicodeString, and HLAvariableArray declarations and encodings",
+      "source_symbol": "RTIambassador::createFederationExecutionWithMIM, joinFederationExecution, getObjectClassHandle/getAttributeHandle, subscribeObjectClassAttributes, requestAttributeValueUpdate(ObjectInstanceHandle, AttributeHandleSet, VariableLengthData), requestAttributeValueUpdate(ObjectClassHandle, AttributeHandleSet, VariableLengthData), getDimensionHandleSet, getRangeBounds, normalizeFederateHandle; FederateAmbassador standard object-management and region-designator callback declarations; HLAfederateHost, HLAunicodeString, and HLAvariableArray declarations and encodings",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioJoinedFederateMomObjectLifecycle"
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-joined-federate-mom-subclass-instance-identity",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 FOM extension model",
+      "language": "cpp",
+      "signature": "RTIambassador::createFederationExecutionWithMIM with a FOM-added HLAfederate subclass; publishObjectClassAttributes, registerObjectInstance(ObjectClassHandle), subscribeObjectClassAttributes, getKnownObjectClassHandle, getObjectInstanceName, and getObjectInstanceHandle; FederateAmbassador::discoverObjectInstance",
+      "source": "third_party/ieee1516.1-2025/include/RTI; packages/hla-rti-cpp-tck/fom/mom-federate-subclass-instance-tck.xml",
+      "source_symbol": "RTIambassador object-class publication/registration/lookup services and FederateAmbassador::discoverObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-mom-subclass-inherited-attribute-no-rti-update",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 FOM extension model",
+      "language": "cpp",
+      "signature": "subscribeObjectClassAttributes for inherited HLAfederate Table 8 attributes on a FOM-added subclass; publishObjectClassAttributes, registerObjectInstance(ObjectClassHandle), joinFederationExecution, and evokeMultipleCallbacks; FederateAmbassador::reflectAttributeValues",
+      "source": "third_party/ieee1516.1-2025/include/RTI; packages/hla-rti-cpp-tck/fom/mom-federate-subclass-instance-tck.xml",
+      "source_symbol": "RTIambassador object-class publication/subscription/registration and callback-pump services; FederateAmbassador::reflectAttributeValues",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycle",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomObjectLifecycleContract"
+      ]
+    },
+    {
+      "id": "standard-cpp-mom-added-class-attribute-same-rti-instance",
+      "owner": "IEEE 1516.1 C++ API and IEEE 1516.2 FOM extension model",
+      "language": "cpp",
+      "signature": "createFederationExecutionWithMIM with a FOM-added HLAfederate attribute; subscribeObjectClassAttributes, discoverObjectInstance, queryAttributeOwnership, attributeIsNotOwned, attributeIsOwnedByRTI, publishObjectClassAttributes, attributeOwnershipAcquisition, attributeOwnershipAcquisitionNotification, isAttributeOwnedByFederate, updateAttributeValues, and reflectAttributeValues",
+      "source": "third_party/ieee1516.1-2025/include/RTI; packages/hla-rti-cpp-tck/fom/mom-federate-added-attribute-same-instance-tck.xml",
+      "source_symbol": "RTIambassador class publication/subscription, object discovery, ownership query, ownership acquisition, ownership-state query, and update services; FederateAmbassador discovery, not-owned/RTI-owned, acquisition, and reflection callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstance",
+        "packages/hla-rti-cpp-tck/src/tck_joined_federate_mom_object_lifecycle.cpp::scenarioJoinedFederateMomAddedAttributeSameRtiInstanceContract"
       ]
     }
   ]

@@ -15,6 +15,9 @@ import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,6 +26,8 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Checks the standard Federate MOM HLAreportServiceFile value via public reflection. */
 final class FederateMomReportServiceFileTck {
@@ -95,6 +100,11 @@ final class FederateMomReportServiceFileTck {
          String reportFile = decode(encoder, initialValues.get(reportFileAttribute));
          JavaTckSupport.check(reportFile != null && !reportFile.trim().isEmpty(),
             "HLAreportServiceFile did not expose a non-empty standard Unicode value");
+         String expectedCallbackModel = callbackModel == CallbackModel.HLA_EVOKED
+            ? "HLA_EVOKED" : "HLA_IMMEDIATE";
+         JavaTckSupport.check(expectedCallbackModel.equals(
+               initialReportCallbackModel(reportFile)),
+            "initial service-report record encoded the wrong CallbackModel");
 
          int reflectionStart = recorder.reflections.size();
          observer.requestAttributeValueUpdate(momObject,
@@ -129,6 +139,15 @@ final class FederateMomReportServiceFileTck {
       HLAunicodeString value = encoder.createHLAunicodeString();
       value.decode(bytes);
       return value.getValue();
+   }
+
+   private static String initialReportCallbackModel(String reportFile) throws Exception {
+      String contents = Files.readString(Path.of(reportFile), StandardCharsets.UTF_8);
+      Matcher callbackModel = Pattern.compile(
+         "\"CallbackModel\"\\s*:\\s*\"([^\"]+)\"").matcher(contents);
+      JavaTckSupport.check(callbackModel.find(),
+         "initial service-report record omitted CallbackModel");
+      return callbackModel.group(1);
    }
 
    private static byte[] encode(FederateHandle handle) throws Exception {

@@ -64,6 +64,31 @@
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
         "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
       ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l102-33",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1(b), Table 8; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 102",
+      "source_symbol": "HLAfederation P/S attribute designations",
+      "statement": "Table 8 designates all 16 listed HLAfederation attributes as published by the RTI. The TCK helper resolves the 16 standard attribute handles, subscribes to the set, requests it from the RTI-owned federation MOM instance, and verifies that every attribute is returned. It checks publication presence, not the semantic contents of the non-identity values.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_mom_table8_scenarios.cpp::verifyFederationMomTable8PublishedAttributes",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l96-31",
+      "clause_id": "clause-11.4.1",
+      "source": "IEEE 1516.1-2025 §11.4.1(a), RTI-owned MOM object-class publication; pinned Requirements Lab candidate",
+      "source_lines": "page 290, line 96",
+      "source_symbol": "RTI-owned HLAfederation MOM object-class instance",
+      "statement": "The TCK scenario discovers the RTI-owned HLAfederation MOM instance using the standard leaf object-class handle and instance name after federation creation.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentity",
+        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioFederationMomStaticIdentityContract"
+      ]
     }
   ]
 }

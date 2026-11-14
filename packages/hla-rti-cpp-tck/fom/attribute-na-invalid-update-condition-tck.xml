@@ -6,5 +6,6 @@
         <name>TckNaInvalidUpdateCondition</name><dataType>NA</dataType>
         <updateType>NA</updateType><updateCondition>On change</updateCondition>
         <transportation>HLAreliable</transportation><order>Receive</order>
+        <semantics>Invalid fixture pairing NA update type with an active condition.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

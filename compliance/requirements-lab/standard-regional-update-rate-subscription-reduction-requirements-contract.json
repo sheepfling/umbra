@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This portable C++ TCK evidence exercises the optional maximum update rate on an active regional attribute subscription and compares it with an overlapping regional subscription that omits the designator. It checks the named rate through the public per-attribute query, observes the rapid best-effort update withheld from the named-rate subscriber, and observes it at the omitted-rate subscriber. The evidence is bounded to the tested two-dimensional FOM, one best-effort attribute, and receive-order callbacks; it is not conformance or interoperability evidence.",
+  "requirements": [
+    {
+      "id": "umbra-tck-ddm-234-l56-17",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l56-17",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp",
+      "source_lines": "page 234, line 56",
+      "source_symbol": "scenarioMixedUpdateRateSubscriptions",
+      "statement": "The active regional subscription supplies the configured maximum update-rate designator, verifies that the object attribute is considered subscribed at the corresponding rate through Get Update Rate Value For Attribute, and confirms that a second rapid best-effort update is withheld from that subscriber.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptions",
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptionsContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-234-l59-18",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l59-18",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp",
+      "source_lines": "page 234, line 59",
+      "source_symbol": "scenarioMixedUpdateRateSubscriptions",
+      "statement": "The second active regional subscription omits the update-rate designator. The test observes that attribute's default-rate value through the public query and verifies that it is treated as subscribed at the default rate.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptions",
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptionsContract"
+      ]
+    },
+    {
+      "id": "umbra-tck-ddm-234-l62-19",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l62-19",
+      "clause_id": "clause-9.8",
+      "source": "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp",
+      "source_lines": "page 234, line 62",
+      "source_symbol": "scenarioMixedUpdateRateSubscriptions",
+      "statement": "After a first update, the test submits a second rapid best-effort update. The omitted-rate regional subscriber receives the second value and tag while the overlapping named-rate subscriber does not receive that update, providing bounded evidence that no update-rate reduction takes place for the omitted-rate subscription.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptions",
+        "packages/hla-rti-cpp-tck/src/tck_update_rate_scenarios.cpp::scenarioMixedUpdateRateSubscriptionsContract"
+      ]
+    }
+  ]
+}

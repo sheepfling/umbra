@@ -1,22 +1,14 @@
 #include "internal/handles/transportation_type_handle_directory.hpp"
 
 #include "internal/fom/fom_catalog.hpp"
-
-#include <limits>
+#include "internal/handles/fom_handle_allocator.hpp"
+#include "internal/handles/transportation_type_handle.hpp"
 
 namespace umbra::detail {
-namespace {
 
-constexpr std::uint64_t kReliableHandle = 1;
-constexpr std::uint64_t kBestEffortHandle = 2;
-
-bool isStandardName(std::string const& name) {
-  return name == "HLAreliable" || name == "HLAbestEffort";
-}
-
-}  // namespace
-
-bool TransportationTypeHandleDirectory::reconcile(FomCatalog const* catalog) {
+bool TransportationTypeHandleDirectory::reconcile(
+    FomCatalog const* catalog,
+    FomHandleAllocator& handleAllocator) {
   if (catalog == nullptr) {
     return true;
   }
@@ -25,14 +17,16 @@ bool TransportationTypeHandleDirectory::reconcile(FomCatalog const* catalog) {
     if (name.empty()) {
       return false;
     }
-    if (isStandardName(name) || handlesByName_.contains(name)) {
+    if (name == "HLAreliable" || name == "HLAbestEffort" ||
+        handlesByName_.contains(name)) {
       continue;
     }
-    if (nextHandle_ == 0) {
+    auto const allocatedHandle =
+        handleAllocator.allocate("transportation-type", name);
+    if (!allocatedHandle) {
       return false;
     }
-
-    std::uint64_t const handle = nextHandle_;
+    std::uint64_t const handle = *allocatedHandle;
     auto [namePosition, insertedName] = handlesByName_.emplace(name, handle);
     if (!insertedName) {
       continue;
@@ -48,10 +42,6 @@ bool TransportationTypeHandleDirectory::reconcile(FomCatalog const* catalog) {
       handlesByName_.erase(namePosition);
       throw;
     }
-
-    nextHandle_ = handle == std::numeric_limits<std::uint64_t>::max()
-        ? 0
-        : handle + 1;
   }
   return true;
 }
@@ -59,10 +49,12 @@ bool TransportationTypeHandleDirectory::reconcile(FomCatalog const* catalog) {
 std::optional<std::uint64_t> TransportationTypeHandleDirectory::handleFor(
     std::string const& transportationTypeName) const {
   if (transportationTypeName == "HLAreliable") {
-    return kReliableHandle;
+    return rti1516_2025::umbra_binding_detail::
+        kHlaReliableTransportationTypeValue;
   }
   if (transportationTypeName == "HLAbestEffort") {
-    return kBestEffortHandle;
+    return rti1516_2025::umbra_binding_detail::
+        kHlaBestEffortTransportationTypeValue;
   }
   auto const found = handlesByName_.find(transportationTypeName);
   return found == handlesByName_.end() ? std::nullopt : std::optional{found->second};
@@ -70,15 +62,15 @@ std::optional<std::uint64_t> TransportationTypeHandleDirectory::handleFor(
 
 std::optional<std::string> TransportationTypeHandleDirectory::nameFor(
     std::uint64_t handle) const {
-  switch (handle) {
-    case kReliableHandle:
-      return std::string{"HLAreliable"};
-    case kBestEffortHandle:
-      return std::string{"HLAbestEffort"};
-    default:
-      break;
+  if (handle == rti1516_2025::umbra_binding_detail::
+                    kHlaReliableTransportationTypeValue) {
+    return std::string{"HLAreliable"};
   }
-  if (handle < 3) {
+  if (handle == rti1516_2025::umbra_binding_detail::
+                    kHlaBestEffortTransportationTypeValue) {
+    return std::string{"HLAbestEffort"};
+  }
+  if (handle == 0) {
     return std::nullopt;
   }
   auto const found = namesByHandle_.find(handle);

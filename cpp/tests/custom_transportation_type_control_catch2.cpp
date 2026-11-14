@@ -54,6 +54,23 @@ class TransportationFederateAmbassador final
     TransportationTypeHandle transportationType;
   };
 
+  struct InteractionChange final {
+    InteractionClassHandle interactionClass;
+    TransportationTypeHandle transportationType;
+  };
+
+  struct InteractionQuery final {
+    FederateHandle federate;
+    InteractionClassHandle interactionClass;
+    TransportationTypeHandle transportationType;
+  };
+
+  struct InteractionDelivery final {
+    InteractionClassHandle interactionClass;
+    TransportationTypeHandle transportationType;
+    FederateHandle producingFederate;
+  };
+
   void discoverObjectInstance(
       ObjectInstanceHandle const& objectInstance,
       ObjectClassHandle const& objectClass,
@@ -81,9 +98,39 @@ class TransportationFederateAmbassador final
     attributeQueries.push_back({objectInstance, attribute, transportationType});
   }
 
+  void confirmInteractionTransportationTypeChange(
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override {
+    interactionChanges.push_back({interactionClass, transportationType});
+  }
+
+  void reportInteractionTransportationType(
+      FederateHandle const& federate,
+      InteractionClassHandle const& interactionClass,
+      TransportationTypeHandle const& transportationType) override {
+    interactionQueries.push_back({federate, interactionClass, transportationType});
+  }
+
+  void receiveInteraction(
+      InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const&,
+      rti1516_2025::VariableLengthData const&,
+      TransportationTypeHandle const& transportationType,
+      FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const*) override {
+    interactionDeliveries.push_back({
+        interactionClass,
+        transportationType,
+        producingFederate,
+    });
+  }
+
   std::vector<Discovery> discoveries;
   std::vector<AttributeChange> attributeChanges;
   std::vector<AttributeQuery> attributeQueries;
+  std::vector<InteractionChange> interactionChanges;
+  std::vector<InteractionQuery> interactionQueries;
+  std::vector<InteractionDelivery> interactionDeliveries;
 };
 
 std::unique_ptr<RTIambassador> makeRti() {
@@ -273,6 +320,147 @@ TEST_CASE(
   // The peer can query the public state, but its query does not alter the
   // owner's prior transportation-change callback ledger.
   REQUIRE(peerReports.attributeChanges.empty());
+  REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
+  REQUIRE_NOTHROW(owner->resignFederationExecution(
+      rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));
+  REQUIRE_NOTHROW(owner->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(peer->disconnect());
+  REQUIRE_NOTHROW(owner->disconnect());
+}
+
+TEST_CASE(
+    "Unsupported custom transportation falls back by reliability for declarations and requests",
+    "[integration][development-profile][federation-management][transportation]"
+    "[custom-transportation][transportation-fallback][2025]"
+    "[rti.service.query-attribute-transportation-type]"
+    "[rti.service.request-attribute-transportation-type-change]"
+    "[rti.service.query-interaction-transportation-type]"
+    "[rti.service.request-interaction-transportation-type-change]"
+    "[federate.callback.report-attribute-transportation-type]"
+    "[federate.callback.confirm-attribute-transportation-type-change]"
+    "[federate.callback.report-interaction-transportation-type]"
+    "[federate.callback.confirm-interaction-transportation-type-change]"
+    "[federate.callback.receive-interaction]") {
+  TransportationFederateAmbassador ownerReports;
+  TransportationFederateAmbassador peerReports;
+  auto owner = makeRti();
+  auto peer = makeRti();
+  auto const federationName = nextFederationName();
+  auto const testData =
+      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+  std::vector<std::wstring> const fomModules{
+      (testData / "transportation-reference-consumer-fom.xml").wstring(),
+      (testData / "transportation-reference-provider-fom.xml").wstring(),
+  };
+  auto const configuration = rti1516_2025::RtiConfiguration::createConfiguration()
+                                .withAdditionalSettings(
+                                    L"unsupportedTransportationTypes="
+                                    L"UmbraTransportationFixture,"
+                                    L"UmbraBestEffortTransportationFixture");
+
+  auto const connection = owner->connect(ownerReports, HLA_EVOKED, configuration);
+  REQUIRE(connection.additionalSettingsResult == rti1516_2025::SETTINGS_APPLIED);
+  REQUIRE_NOTHROW(peer->connect(peerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(owner->createFederationExecution(
+      federationName,
+      fomModules,
+      standard_hla::mom::integer64_time));
+  rti1516_2025::FederateHandle ownerHandle;
+  REQUIRE_NOTHROW(ownerHandle = owner->joinFederationExecution(
+      L"transport-fallback-owner", L"owner", federationName));
+  REQUIRE_NOTHROW(peer->joinFederationExecution(
+      L"transport-fallback-peer", L"peer", federationName));
+
+  auto const objectClass = owner->getObjectClassHandle(
+      fixture_hla::fom::transportation_fixture_object);
+  auto const reliableAttribute = owner->getAttributeHandle(
+      objectClass,
+      fixture_hla::fixture::umbra_transportation_fixture_attribute);
+  auto const bestEffortAttribute = owner->getAttributeHandle(
+      objectClass,
+      L"UmbraBestEffortTransportationFixtureAttribute");
+  auto const interaction = owner->getInteractionClassHandle(
+      fixture_hla::fom::transportation_fixture_interaction);
+  auto const reliable = owner->getTransportationTypeHandle(
+      standard_hla::mom::reliable);
+  auto const bestEffort = owner->getTransportationTypeHandle(
+      standard_hla::mom::best_effort);
+  auto const customReliable = owner->getTransportationTypeHandle(
+      fixture_hla::fixture::umbra_transportation_fixture);
+  auto const customBestEffort = owner->getTransportationTypeHandle(
+      L"UmbraBestEffortTransportationFixture");
+  REQUIRE(reliable.isValid());
+  REQUIRE(bestEffort.isValid());
+  REQUIRE(customReliable.isValid());
+  REQUIRE(customBestEffort.isValid());
+  REQUIRE(customReliable != reliable);
+  REQUIRE(customBestEffort != bestEffort);
+  REQUIRE(owner->getTransportationTypeName(customReliable) ==
+      fixture_hla::fixture::umbra_transportation_fixture);
+  REQUIRE(owner->getTransportationTypeName(customBestEffort) ==
+      L"UmbraBestEffortTransportationFixture");
+
+  auto const attributes = rti1516_2025::AttributeHandleSet{
+      reliableAttribute,
+      bestEffortAttribute,
+  };
+  REQUIRE_NOTHROW(owner->publishObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(peer->subscribeObjectClassAttributes(objectClass, attributes));
+  REQUIRE_NOTHROW(owner->publishInteractionClass(interaction));
+  REQUIRE_NOTHROW(peer->subscribeInteractionClass(interaction));
+  rti1516_2025::ObjectInstanceHandle objectInstance;
+  REQUIRE_NOTHROW(objectInstance = owner->registerObjectInstance(objectClass));
+
+  auto const evokeAll = [](RTIambassador& rti) {
+    while (rti.evokeCallback(0.0)) {
+    }
+  };
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(
+      objectInstance,
+      reliableAttribute));
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(
+      objectInstance,
+      bestEffortAttribute));
+  evokeAll(*owner);
+  REQUIRE(ownerReports.attributeQueries.size() == 2U);
+  REQUIRE(ownerReports.attributeQueries[0].attribute == reliableAttribute);
+  REQUIRE(ownerReports.attributeQueries[0].transportationType == reliable);
+  REQUIRE(ownerReports.attributeQueries[1].attribute == bestEffortAttribute);
+  REQUIRE(ownerReports.attributeQueries[1].transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(owner->requestAttributeTransportationTypeChange(
+      objectInstance,
+      rti1516_2025::AttributeHandleSet{reliableAttribute},
+      customBestEffort));
+  evokeAll(*owner);
+  REQUIRE(ownerReports.attributeChanges.size() == 1U);
+  REQUIRE(ownerReports.attributeChanges.back().transportationType == bestEffort);
+  REQUIRE_NOTHROW(owner->queryAttributeTransportationType(
+      objectInstance,
+      reliableAttribute));
+  evokeAll(*owner);
+  REQUIRE(ownerReports.attributeQueries.size() == 3U);
+  REQUIRE(ownerReports.attributeQueries.back().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(owner->queryInteractionTransportationType(ownerHandle, interaction));
+  evokeAll(*owner);
+  REQUIRE(ownerReports.interactionQueries.size() == 1U);
+  REQUIRE(ownerReports.interactionQueries.back().transportationType == reliable);
+  REQUIRE_NOTHROW(owner->requestInteractionTransportationTypeChange(
+      interaction,
+      customBestEffort));
+  evokeAll(*owner);
+  REQUIRE(ownerReports.interactionChanges.size() == 1U);
+  REQUIRE(ownerReports.interactionChanges.back().transportationType == bestEffort);
+
+  REQUIRE_NOTHROW(owner->sendInteraction(
+      interaction,
+      rti1516_2025::ParameterHandleValueMap{},
+      rti1516_2025::VariableLengthData{}));
+  evokeAll(*peer);
+  REQUIRE(peerReports.interactionDeliveries.size() == 1U);
+  REQUIRE(peerReports.interactionDeliveries.front().transportationType == bestEffort);
+
   REQUIRE_NOTHROW(peer->resignFederationExecution(rti1516_2025::NO_ACTION));
   REQUIRE_NOTHROW(owner->resignFederationExecution(
       rti1516_2025::CANCEL_THEN_DELETE_THEN_DIVEST));

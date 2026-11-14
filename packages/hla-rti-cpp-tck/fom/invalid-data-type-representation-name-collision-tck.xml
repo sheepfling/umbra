@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <dataTypes>
+    <basicDataRepresentations>
+      <basicData>
+        <name>TckGlobalTypeNameCollision</name>
+        <size>32</size>
+        <endian>Big</endian>
+        <encoding>32-bit big-endian integer representation.</encoding>
+      </basicData>
+    </basicDataRepresentations>
+    <simpleDataTypes>
+      <simpleData>
+        <name>TckGlobalTypeNameCollision</name>
+        <representation>HLAinteger32BE</representation>
+      </simpleData>
+    </simpleDataTypes>
+  </dataTypes>
+</objectModel>

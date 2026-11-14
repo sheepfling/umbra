@@ -1980,6 +1980,10 @@ void scenarioTarQueuedTsoBeforeGrant(
       options,
       "TAR regulator TAR(2) grant");
   require(
+      publisher.recorder().timeAdvanceGrants().front().encoded ==
+          encodeTime(*publisherTarget),
+      "TAR regulator did not advance to the time that establishes its next send floor");
+  require(
       receiver.recorder().timedInteractions().empty(),
       "TAR queued TSO was delivered before the receiver TAR was submitted");
 
@@ -2049,6 +2053,93 @@ void scenarioTarQueuedTsoBeforeGrant(
       receiver.recorder().callbackOrder() ==
           std::vector<std::string>{"interaction", "grant"},
       "TAR delivered the queued TSO after its time-advance grant");
+
+  auto const belowGrantMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().sendInteraction(
+            publisherClass,
+            values,
+            rti::VariableLengthData(tag.data(), tag.size()),
+            *belowGrantMessageTime);
+      },
+      L"InvalidLogicalTime",
+      "TAR producer send below current time plus lookahead after receiver grant");
+
+  auto const nextMessageTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      7U);
+  auto const nextPublisherTarget = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      3U);
+  auto const nextReceiverTarget = timeAfter(
+      *receiverTime.factory,
+      *receiverTime.initial,
+      *receiverTime.epsilon,
+      7U);
+  std::vector<std::uint8_t> nextPayload{0x54U, 0x41U, 0x52U, 0x2DU, 0x37U};
+  std::vector<std::uint8_t> nextTag{0x54U, 0x41U, 0x52U, 0x2DU, 0x37U};
+  rti::ParameterHandleValueMap nextValues;
+  nextValues.emplace(
+      publisherParameter,
+      rti::VariableLengthData(nextPayload.data(), nextPayload.size()));
+  auto const nextRetraction = publisher.rtiAmbassador().sendInteraction(
+      publisherClass,
+      nextValues,
+      rti::VariableLengthData(nextTag.data(), nextTag.size()),
+      *nextMessageTime);
+  require(
+      nextRetraction.isValid(),
+      "TAR producer send at the post-advance lookahead floor returned no retraction handle");
+
+  receiver.recorder().clearCallbackOrder();
+  receiver.rtiAmbassador().timeAdvanceRequest(*nextReceiverTarget);
+  publisher.rtiAmbassador().timeAdvanceRequest(*nextPublisherTarget);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "TAR regulator TAR(3) grant");
+  require(
+      publisher.recorder().timeAdvanceGrants().back().encoded ==
+          encodeTime(*nextPublisherTarget),
+      "TAR regulator did not advance to its second requested time");
+  waitFor(
+      receiver,
+      [&] {
+        return receiver.recorder().timedInteractions().size() == 2U &&
+            receiver.recorder().timeAdvanceGrants().size() == 2U;
+      },
+      options,
+      "TAR second queued TSO and grant callbacks");
+  auto const nextDelivery = receiver.recorder().timedInteractions().back();
+  require(
+      nextDelivery.interaction == receiverClass &&
+          nextDelivery.parameters.size() == 1U &&
+          nextDelivery.parameters.count(receiverParameter) == 1U &&
+          copyBytes(nextDelivery.parameters.at(receiverParameter)) == nextPayload &&
+          nextDelivery.tag == nextTag &&
+          nextDelivery.producer == publisher.federateHandle() &&
+          nextDelivery.time == encodeTime(*nextMessageTime) &&
+          nextDelivery.sentOrder == rti::TIMESTAMP &&
+          nextDelivery.receivedOrder == rti::TIMESTAMP &&
+          nextDelivery.retractionPresent &&
+          nextDelivery.retraction == copyBytes(nextRetraction.encode()),
+      "TAR delivered the wrong post-grant timestamped interaction or metadata");
+  require(
+      receiver.recorder().timeAdvanceGrants().back().encoded ==
+          encodeTime(*nextReceiverTarget) &&
+          receiver.recorder().callbackOrder() ==
+              std::vector<std::string>{"interaction", "grant"},
+      "TAR delivered the later legal TSO after the grant at its timestamp");
 
   receiver.resign(rti::NO_ACTION);
   publisher.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);

@@ -603,10 +603,26 @@ void verifyProcessTsoAttributeBeforeGrant(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
+      serviceOptions.createFomPreparation =
+          [](std::vector<std::wstring> const& fomModules,
+             std::optional<std::wstring> const& mimModule,
+             std::wstring const& logicalTimeImplementationName)
+          -> std::optional<umbra::detail::FederationDefinition> {
+        if (fomModules != std::vector<std::wstring>{
+                               L"urn:umbra:test:process-tso-attribute-scheduler-fom"} ||
+            mimModule || (!logicalTimeImplementationName.empty() &&
+                          logicalTimeImplementationName !=
+                              L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedProcessDefinition();
+      };
       ProcessFederationService service(
           registry,
           composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+          std::move(serviceOptions));
       auto senderConnection = listener->accept(
           nullptr,
           {"process-timestamped-attribute-scheduler-server", 0x9310U},
@@ -624,7 +640,6 @@ void verifyProcessTsoAttributeBeforeGrant(
             operation,
             "The process TSO attribute scheduler received an unexpected operation.");
       };
-
       serveExpected(sender, senderHandler,
                     TransportServiceOperation::create_federation_execution);
       serveExpected(sender, senderHandler,
@@ -638,6 +653,35 @@ void verifyProcessTsoAttributeBeforeGrant(
       serverReceiverConnection = receiverConnection;
       ProcessTransportSession receiver(receiverConnection);
       auto const receiverHandler = service.handlerFor(receiver);
+      auto serveReceiverTimeAdvanceAllowingReceiveOrderPolls = [&] {
+        bool timeAdvanceServed = false;
+        while (!timeAdvanceServed) {
+          auto const served = umbra::test::servePrimaryProcessRequest(
+              receiver,
+              receiverHandler,
+              [&](TransportServiceMessage const& request) {
+                if (request.operation ==
+                    TransportServiceOperation::receive_interaction) {
+                  return receiverHandler(request);
+                }
+                if (request.operation ==
+                    TransportServiceOperation::time_advance_request) {
+                  timeAdvanceServed = true;
+                  return receiverHandler(request);
+                }
+                throw std::runtime_error(
+                    "The process TSO attribute scheduler received an unexpected receiver operation while awaiting the post-enable advance.");
+              });
+          if (!served) {
+            throw std::runtime_error(
+                "The process TSO attribute scheduler lost the receiver's post-enable advance.");
+          }
+        }
+        serveExpected(
+            receiver,
+            receiverHandler,
+            TransportServiceOperation::report_successful_void_service_invocation);
+      };
       serveExpected(receiver, receiverHandler,
                     TransportServiceOperation::join_federation_execution);
       serveExpected(sender, senderHandler,
@@ -679,9 +723,7 @@ void verifyProcessTsoAttributeBeforeGrant(
           serveExpected, sender, senderHandler,
           TransportServiceOperation::enable_time_regulation);
       if (pendingTceTransition) {
-        umbra::test::serveExpectedProcessSuccessfulVoidService(
-            serveExpected, receiver, receiverHandler,
-            TransportServiceOperation::time_advance_request);
+        serveReceiverTimeAdvanceAllowingReceiveOrderPolls();
       }
       umbra::test::serveExpectedProcessSuccessfulVoidService(
           serveExpected, receiver, receiverHandler,
@@ -776,7 +818,8 @@ void verifyProcessTsoAttributeBeforeGrant(
                 senderFederate, callbackModel, senderConfiguration)
                 .addressUsed);
     REQUIRE_NOTHROW(senderRti->createFederationExecution(
-        federationName, L"server-owned-fom.xml"));
+        federationName,
+        L"urn:umbra:test:process-tso-attribute-scheduler-fom"));
     auto const senderHandle = senderRti->joinFederationExecution(
         senderName, L"process-timestamped-attribute-scheduler-type", federationName);
     REQUIRE(senderHandle.isValid());

@@ -91,6 +91,10 @@ void scenarioServiceReportReserveObjectInstanceName(
         report.parameters.count(parameterHandle) == 1U,
         "Object-name reservation service-report callback omitted a standard report parameter");
   }
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == owner.federateHandle(),
+      "Object-name reservation service-report callback identified the wrong federate");
 
   rti::HLAunicodeString service;
   service.decode(report.parameters.at(reportParameters[0]));
@@ -117,6 +121,39 @@ void scenarioServiceReportReserveObjectInstanceName(
   require(
       serial.get() == 0,
       "First object-name reservation service report did not use serial number zero");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 1U,
+      "ReserveObjectInstanceName report returned the wrong supplied-argument count");
+  auto const& suppliedName = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(suppliedName.get(0U)).get() == 53,
+      "ReserveObjectInstanceName report did not use the Table 5 String argument type");
+  require(
+      dynamic_cast<rti::HLAunicodeString const&>(suppliedName.get(1U)).get() == L"Name",
+      "ReserveObjectInstanceName report returned the wrong supplied-argument name");
+  require(
+      dynamic_cast<rti::HLAunicodeString const&>(suppliedName.get(2U)).get() ==
+          L"\"" + objectName + L"\"",
+      "ReserveObjectInstanceName report did not JSON-quote the supplied name");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() == L"null",
+      "Void ReserveObjectInstanceName report returned a non-Null value");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   owner.rtiAmbassador().setServiceReportingSwitch(false);

@@ -21,10 +21,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Confirms immediate delivery of an accepted timestamped directed message after its producer resigns. */
 final class TimestampedDirectedInteractionImmediateSourceResignationTck {
@@ -75,7 +76,7 @@ final class TimestampedDirectedInteractionImmediateSourceResignationTck {
          sender.publishObjectClassDirectedInteractions(senderClass,
             JavaTckSupport.interactionSet(sender, senderInteraction)); directedPublished = true;
          sender.changeInteractionOrderType(senderInteraction, OrderType.TIMESTAMP);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction)); receiverDirected = true;
 
          ObjectInstanceHandle target = owner.registerObjectInstance(ownerClass);
@@ -90,7 +91,7 @@ final class TimestampedDirectedInteractionImmediateSourceResignationTck {
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          sender.enableTimeRegulation(epsilon);
          JavaTckSupport.drain(sender);
-         JavaTckSupport.check(senderRec.timeRegulationEnabled == 1,
+         JavaTckSupport.check(senderRec.timeRegulationEnabled.get() == 1,
             "sender did not report Time Regulation enable");
          LogicalTime initial = sender.queryLogicalTime();
          JavaTckSupport.check(initial.equals(receiver.queryLogicalTime()),
@@ -109,7 +110,7 @@ final class TimestampedDirectedInteractionImmediateSourceResignationTck {
          JavaTckSupport.drain(receiver);
          JavaTckSupport.check(receiverRec.interactions.size() == 1,
             "accepted timestamped directed interaction was not delivered exactly once after sender resignation");
-         JavaTckSupport.check(receiverRec.retractions == 0,
+         JavaTckSupport.check(receiverRec.retractions.get() == 0,
             "sender resignation produced an unexpected message retraction callback");
          Interaction actual = receiverRec.interactions.get(0);
          JavaTckSupport.check(receiverRec.callbackOrder.equals(
@@ -184,16 +185,16 @@ final class TimestampedDirectedInteractionImmediateSourceResignationTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabled;
-      private int retractions;
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
+      private final AtomicInteger timeRegulationEnabled = new AtomicInteger();
+      private final AtomicInteger retractions = new AtomicInteger();
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("timeRegulationEnabled".equals(name)) ++timeRegulationEnabled;
+                if ("timeRegulationEnabled".equals(name)) timeRegulationEnabled.incrementAndGet();
                else if ("discoverObjectInstance".equals(name) && arguments != null && arguments.length >= 3)
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                else if ("receiveDirectedInteraction".equals(name) && arguments != null && arguments.length == 10) {
@@ -210,7 +211,7 @@ final class TimestampedDirectedInteractionImmediateSourceResignationTck {
                   event.retraction = (MessageRetractionHandle) arguments[9];
                   interactions.add(event); callbackOrder.add(name);
                } else if (name.startsWith("requestRetraction") || "requestRetraction".equals(name)) {
-                  ++retractions;
+                   retractions.incrementAndGet();
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK immediate source-resignation callbacks";

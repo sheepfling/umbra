@@ -750,6 +750,28 @@ std::optional<std::string> EmbeddedFederationRegistry::attributeTransportationNa
   return std::nullopt;
 }
 
+std::optional<std::string>
+EmbeddedFederationRegistry::effectiveTransportationTypeName(
+    Federation const& federation,
+    std::string const& declaredTransportationName) {
+  if (declaredTransportationName == "HLAreliable" ||
+      declaredTransportationName == "HLAbestEffort" ||
+      !federation.definition.unsupportedTransportationTypeNames.contains(
+          declaredTransportationName)) {
+    return declaredTransportationName;
+  }
+  if (!federation.definition.catalog) {
+    return std::nullopt;
+  }
+  auto const* declared = federation.definition.catalog->transportationType(
+      declaredTransportationName);
+  if (declared == nullptr) {
+    return std::nullopt;
+  }
+  return declared->reliable ? std::string{"HLAreliable"}
+                            : std::string{"HLAbestEffort"};
+}
+
 std::optional<rti1516_2025::OrderType> EmbeddedFederationRegistry::orderTypeFromName(
     std::string const& orderName) {
   if (orderName == "Receive") {
@@ -935,21 +957,27 @@ std::optional<std::string> EmbeddedFederationRegistry::effectiveAttributeTranspo
     std::uint64_t attributeHandle) {
   auto const owner = objectInstance.attributeOwnersByHandle.find(attributeHandle);
   if (owner == objectInstance.attributeOwnersByHandle.end()) {
-    return attributeTransportationName(
+    auto const declared = attributeTransportationName(
         federation,
         objectInstance.registeredObjectClassHandle,
         attributeHandle);
+    return declared
+        ? effectiveTransportationTypeName(federation, *declared)
+        : std::nullopt;
   }
 
   auto const effective = objectInstance.attributeTransportationTypes.find(attributeHandle);
   if (effective != objectInstance.attributeTransportationTypes.end()) {
-    return effective->second;
+    return effectiveTransportationTypeName(federation, effective->second);
   }
-  return attributeDefaultTransportationName(
+  auto const declared = attributeDefaultTransportationName(
       federation,
       owner->second,
       objectInstance.registeredObjectClassHandle,
       attributeHandle);
+  return declared
+      ? effectiveTransportationTypeName(federation, *declared)
+      : std::nullopt;
 }
 
 std::optional<std::string> EmbeddedFederationRegistry::effectiveInteractionTransportationName(
@@ -973,10 +1001,12 @@ std::optional<std::string> EmbeddedFederationRegistry::effectiveInteractionTrans
     auto const overrideType = declarations->second.interactionTransportationTypes.find(
         interactionClassHandle);
     if (overrideType != declarations->second.interactionTransportationTypes.end()) {
-      return overrideType->second;
+      return effectiveTransportationTypeName(federation, overrideType->second);
     }
   }
-  return interactionClass->transportation;
+  return effectiveTransportationTypeName(
+      federation,
+      interactionClass->transportation);
 }
 
 std::optional<std::set<std::uint64_t>> EmbeddedFederationRegistry::publishedObjectClassAttributes(

@@ -1,6 +1,8 @@
 #include "tck_joined_federate_mom_tso_length_periodic.hpp"
 #include "tck_main_scenarios.hpp"
 
+#include <RTI/encoding/BasicDataElements.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <optional>
@@ -44,6 +46,12 @@ void scenarioJoinedFederateMomTsoLengthPeriodic(
   auto const federateHandleAttribute = observer.rtiAmbassador().getAttributeHandle(
       observerFederateClass,
       L"HLAfederateHandle");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerFederateClass,
+      L"HLAfederateName");
+  auto const federateStateAttribute = observer.rtiAmbassador().getAttributeHandle(
+      observerFederateClass,
+      L"HLAfederateState");
   auto const tsoLengthAttribute = observer.rtiAmbassador().getAttributeHandle(
       observerFederateClass,
       L"HLATSOlength");
@@ -51,15 +59,24 @@ void scenarioJoinedFederateMomTsoLengthPeriodic(
       L"HLAreliable");
   require(
       observerFederateClass.isValid() && federateHandleAttribute.isValid() &&
+          federateNameAttribute.isValid() && federateStateAttribute.isValid() &&
           tsoLengthAttribute.isValid() && reliable.isValid() &&
           observer.rtiAmbassador().getObjectClassName(observerFederateClass) ==
               L"HLAobjectRoot.HLAmanager.HLAfederate" &&
+          observer.rtiAmbassador().getAttributeName(
+              observerFederateClass,
+              federateNameAttribute) == L"HLAfederateName" &&
+          observer.rtiAmbassador().getAttributeName(
+              observerFederateClass,
+              federateStateAttribute) == L"HLAfederateState" &&
           observer.rtiAmbassador().getAttributeName(
               observerFederateClass,
               tsoLengthAttribute) == L"HLATSOlength",
       "Joined-federate MOM TSO-length lookup returned inconsistent standard handles");
   rti::AttributeHandleSet const momAttributes{
       federateHandleAttribute,
+      federateNameAttribute,
+      federateStateAttribute,
       tsoLengthAttribute};
   observer.rtiAmbassador().subscribeObjectClassAttributes(
       observerFederateClass,
@@ -67,10 +84,9 @@ void scenarioJoinedFederateMomTsoLengthPeriodic(
       true,
       L"");
 
-  target.join(
-      options.ownerFederateName + L"-mom-tso-length-target",
-      options.federateType,
-      federation);
+  auto const targetFederateName =
+      options.ownerFederateName + L"-mom-tso-length-target";
+  target.join(targetFederateName, options.federateType, federation);
   publisher.join(
       options.ownerFederateName + L"-mom-tso-length-publisher",
       options.federateType,
@@ -147,6 +163,63 @@ void scenarioJoinedFederateMomTsoLengthPeriodic(
     require(reflection.has_value(), description + " produced no MOM reflection");
     verifyTsoLengthReflection(*reflection, expected, description);
   };
+  auto requestIdentityStateAndQueueStatus = [&](std::int32_t expectedTsoLength) {
+    auto const before = observer.recorder().reflections().size();
+    observer.rtiAmbassador().requestAttributeValueUpdate(
+        targetMomObject,
+        momAttributes,
+        rti::VariableLengthData{});
+    auto findCompleteRecord = [&]() -> std::optional<ReflectionRecord> {
+      auto const reflections = observer.recorder().reflections();
+      auto const begin = reflections.begin() +
+          static_cast<std::vector<ReflectionRecord>::difference_type>(before);
+      auto const iterator = std::find_if(
+          begin,
+          reflections.end(),
+          [&](ReflectionRecord const& reflection) {
+            return reflection.present && reflection.object == targetMomObject &&
+                reflection.values.size() == momAttributes.size() &&
+                reflection.values.count(federateHandleAttribute) == 1U &&
+                reflection.values.count(federateNameAttribute) == 1U &&
+                reflection.values.count(federateStateAttribute) == 1U &&
+                reflection.values.count(tsoLengthAttribute) == 1U;
+          });
+      if (iterator == reflections.end()) {
+        return std::nullopt;
+      }
+      return *iterator;
+    };
+    waitFor(
+        observer,
+        [&] { return findCompleteRecord().has_value(); },
+        options,
+        "joined-federate MOM identity, state, and queued-message status request");
+    auto const reflection = findCompleteRecord();
+    require(
+        reflection.has_value() && reflection->transportation == reliable &&
+            reflection->tag.empty() && !reflection->producer.isValid() &&
+            !reflection->regions.has_value(),
+        "Joined-federate MOM identity/state/queue snapshot returned non-standard reflection metadata");
+    require(
+        copyBytes(reflection->values.at(federateHandleAttribute)) ==
+            expectedTargetFederateHandle,
+        "Joined-federate MOM snapshot identified a different federate");
+    rti::HLAunicodeString decodedName;
+    decodedName.decode(reflection->values.at(federateNameAttribute));
+    require(
+        decodedName.get() == targetFederateName,
+        "Joined-federate MOM snapshot returned the wrong federate name");
+    rti::HLAinteger32BE decodedFederateState;
+    decodedFederateState.decode(reflection->values.at(federateStateAttribute));
+    require(
+        decodedFederateState.get() == 1,
+        "Joined-federate MOM snapshot returned the wrong joined-federate state");
+    rti::HLAinteger32BE decodedTsoLength;
+    decodedTsoLength.decode(reflection->values.at(tsoLengthAttribute));
+    require(
+        decodedTsoLength.get() == expectedTsoLength,
+        "Joined-federate MOM snapshot returned the wrong queued TSO count");
+  };
 
   auto const publisherInteraction = publisher.rtiAmbassador().getInteractionClassHandle(
       options.interactionClassName);
@@ -219,7 +292,7 @@ void scenarioJoinedFederateMomTsoLengthPeriodic(
   require(
       target.recorder().timedInteractions().empty(),
       "Joined-federate MOM TSO-length delivered the queued interaction before its grant");
-  requestTsoLength(1, "joined-federate MOM TSO-length direct value request");
+  requestIdentityStateAndQueueStatus(1);
 
   auto const setTiming = observer.rtiAmbassador().getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetTiming");

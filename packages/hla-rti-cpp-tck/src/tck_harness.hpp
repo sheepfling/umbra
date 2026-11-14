@@ -101,6 +101,7 @@ struct ReflectionRecord {
   rti::TransportationTypeHandle transportation;
   rti::FederateHandle producer;
   std::optional<rti::RegionHandleSet> regions;
+  std::chrono::steady_clock::time_point callbackTime;
 };
 
 struct InteractionRecord {
@@ -126,6 +127,7 @@ struct TimedInteractionRecord {
   bool retractionPresent = false;
   std::vector<std::uint8_t> retraction;
   std::optional<rti::RegionHandleSet> regions;
+  std::uint64_t callbackSequence = 0U;
 };
 
 struct DirectedInteractionRecord {
@@ -170,6 +172,9 @@ struct TimedReflectionRecord {
 struct LogicalTimeRecord {
   std::vector<std::uint8_t> encoded;
   std::wstring text;
+  std::uint64_t callbackSequence = 0U;
+  std::wstring implementationName;
+  bool isHLAfloat64Time = false;
 };
 
 struct RetractionRecord {
@@ -312,8 +317,15 @@ class Recorder final : public rti::FederateAmbassador {
 
   void reportFederationExecutions(
       rti::FederationExecutionInformationVector const& report) override {
-    std::lock_guard<std::mutex> lock(mutex_);
-    federationReports_.push_back(report);
+    std::function<void()> hook;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      federationReports_.push_back(report);
+      hook = federationExecutionsReportHook_;
+    }
+    if (hook) {
+      hook();
+    }
   }
 
   void reportFederationExecutionMembers(
@@ -388,7 +400,12 @@ class Recorder final : public rti::FederateAmbassador {
       std::lock_guard<std::mutex> lock(mutex_);
       federateSaveInitiations_.push_back(label);
       federateSaveTimes_.push_back(
-          LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+          LogicalTimeRecord{
+              copyBytes(time.encode()),
+              time.toString(),
+              0U,
+              time.implementationName(),
+              dynamic_cast<rti::HLAfloat64Time const*>(&time) != nullptr});
       callbackOrder_.push_back("federate-save-initiate");
       hook = federateSaveInitiateHook_;
     }
@@ -489,6 +506,7 @@ class Recorder final : public rti::FederateAmbassador {
       std::wstring const& objectInstanceName) override {
     std::lock_guard<std::mutex> lock(mutex_);
     reservationSucceeded_ = objectInstanceName;
+    reservationSucceededEvents_.push_back(objectInstanceName);
   }
 
   void objectInstanceNameReservationFailed(
@@ -518,7 +536,12 @@ class Recorder final : public rti::FederateAmbassador {
       rti::TransportationTypeHandle const& transportation,
       rti::FederateHandle const& producer,
       rti::RegionHandleSet const* regions) override {
+    auto const callbackTime = std::chrono::steady_clock::now();
     std::function<void(rti::RegionHandleSet const*)> hook;
+    std::function<void(
+        rti::ObjectInstanceHandle const&,
+        rti::AttributeHandleValueMap const&,
+        rti::RegionHandleSet const*)> detailedHook;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       reflection_.present = true;
@@ -530,12 +553,17 @@ class Recorder final : public rti::FederateAmbassador {
       reflection_.regions = regions == nullptr
           ? std::nullopt
           : std::optional<rti::RegionHandleSet>(*regions);
+      reflection_.callbackTime = callbackTime;
       reflections_.push_back(reflection_);
       ++reflectionCount_;
       hook = reflectionHook_;
+      detailedHook = detailedReflectionHook_;
     }
     if (hook) {
       hook(regions);
+    }
+    if (detailedHook) {
+      detailedHook(object, values, regions);
     }
   }
 
@@ -586,6 +614,10 @@ class Recorder final : public rti::FederateAmbassador {
       rti::FederateHandle const& producer,
       rti::RegionHandleSet const* regions) override {
     std::function<void(rti::RegionHandleSet const*)> hook;
+    std::function<void(
+        rti::InteractionClassHandle const&,
+        rti::ParameterHandleValueMap const&,
+        rti::RegionHandleSet const*)> detailedHook;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       interaction_.present = true;
@@ -599,9 +631,13 @@ class Recorder final : public rti::FederateAmbassador {
           : std::optional<rti::RegionHandleSet>(*regions);
       interactions_.push_back(interaction_);
       hook = receiveInteractionHook_;
+      detailedHook = detailedReceiveInteractionHook_;
     }
     if (hook) {
       hook(regions);
+    }
+    if (detailedHook) {
+      detailedHook(interaction, parameters, regions);
     }
   }
 
@@ -636,6 +672,7 @@ class Recorder final : public rti::FederateAmbassador {
               ? std::nullopt
               : std::optional<rti::RegionHandleSet>(*regions),
       };
+      record.callbackSequence = callbackSequence_++;
       timedInteractions_.push_back(std::move(record));
       callbackOrder_.push_back("interaction");
       timeConstrainedEnablementOrder_.push_back("interaction");
@@ -921,14 +958,24 @@ class Recorder final : public rti::FederateAmbassador {
   void timeRegulationEnabled(rti::LogicalTime const& time) override {
     std::lock_guard<std::mutex> lock(mutex_);
     timeRegulationEnabled_.push_back(
-        LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+        LogicalTimeRecord{
+            copyBytes(time.encode()),
+            time.toString(),
+            0U,
+            time.implementationName(),
+            dynamic_cast<rti::HLAfloat64Time const*>(&time) != nullptr});
     timeRegulationEnablementOrder_.push_back("regulation-enabled");
   }
 
   void timeConstrainedEnabled(rti::LogicalTime const& time) override {
     std::lock_guard<std::mutex> lock(mutex_);
     timeConstrainedEnabled_.push_back(
-        LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+        LogicalTimeRecord{
+            copyBytes(time.encode()),
+            time.toString(),
+            0U,
+            time.implementationName(),
+            dynamic_cast<rti::HLAfloat64Time const*>(&time) != nullptr});
     timeConstrainedEnablementOrder_.push_back("time-constrained-enabled");
     if (recordTimeConstrainedEnablementInCallbackOrder_) {
       callbackOrder_.push_back("time-constrained-enabled");
@@ -951,7 +998,12 @@ class Recorder final : public rti::FederateAmbassador {
   void timeAdvanceGrant(rti::LogicalTime const& time) override {
     std::lock_guard<std::mutex> lock(mutex_);
     timeAdvanceGrants_.push_back(
-        LogicalTimeRecord{copyBytes(time.encode()), time.toString()});
+        LogicalTimeRecord{
+            copyBytes(time.encode()),
+            time.toString(),
+            callbackSequence_++,
+            time.implementationName(),
+            dynamic_cast<rti::HLAfloat64Time const*>(&time) != nullptr});
     callbackOrder_.push_back("grant");
   }
 
@@ -993,6 +1045,38 @@ class Recorder final : public rti::FederateAmbassador {
     return false;
   }
 
+  bool listsFederationsInSingleReport(
+      std::map<std::wstring, std::wstring> const& expected) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto const& report : federationReports_) {
+      std::map<std::wstring, std::wstring> executions;
+      for (auto const& execution : report) {
+        executions[execution.federationExecutionName] =
+            execution.logicalTimeImplementationName;
+      }
+      if (std::includes(
+              executions.begin(), executions.end(), expected.begin(), expected.end())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool lastFederationExecutionReportOmits(
+      std::wstring const& federation) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (federationReports_.empty()) {
+      return false;
+    }
+    auto const& report = federationReports_.back();
+    return std::none_of(
+        report.begin(),
+        report.end(),
+        [&](rti::FederationExecutionInformation const& execution) {
+          return execution.federationExecutionName == federation;
+        });
+  }
+
   bool listsMembers(
       std::wstring const& federation,
       std::set<std::wstring> const& expected,
@@ -1009,6 +1093,29 @@ class Recorder final : public rti::FederateAmbassador {
       }
       if (std::includes(names.begin(), names.end(), expected.begin(), expected.end()) &&
           (exactCount == 0U || names.size() == exactCount)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool listsMembersInSingleReport(
+      std::wstring const& federation,
+      std::map<std::wstring, std::wstring> const& expected) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto const found = memberReports_.find(federation);
+    if (found == memberReports_.end()) {
+      return false;
+    }
+    for (auto const& report : found->second) {
+      if (report.size() != expected.size()) {
+        continue;
+      }
+      std::map<std::wstring, std::wstring> members;
+      for (auto const& member : report) {
+        members[member.federateName] = member.federateType;
+      }
+      if (std::includes(members.begin(), members.end(), expected.begin(), expected.end())) {
         return true;
       }
     }
@@ -1124,6 +1231,19 @@ class Recorder final : public rti::FederateAmbassador {
     return reservationSucceeded_.has_value() && reservationSucceeded_.value() == name;
   }
 
+  std::size_t reservationSucceededCount(std::wstring const& name) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return static_cast<std::size_t>(std::count(
+        reservationSucceededEvents_.begin(),
+        reservationSucceededEvents_.end(),
+        name));
+  }
+
+  bool hasSingleReservationOutcome() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return reservationSucceeded_.has_value() || reservationFailed_.has_value();
+  }
+
   bool reservationFailed(std::wstring const& name) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return reservationFailed_.has_value() && reservationFailed_.value() == name;
@@ -1139,6 +1259,12 @@ class Recorder final : public rti::FederateAmbassador {
     std::lock_guard<std::mutex> lock(mutex_);
     return multipleReservationFailed_.has_value() &&
         multipleReservationFailed_.value() == names;
+  }
+
+  bool hasMultipleReservationOutcome() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return multipleReservationSucceeded_.has_value() ||
+        multipleReservationFailed_.has_value();
   }
 
   DiscoveryRecord discovery() const {
@@ -1410,10 +1536,26 @@ class Recorder final : public rti::FederateAmbassador {
     reflectionHook_ = std::move(hook);
   }
 
+  void setDetailedReflectionHook(std::function<void(
+      rti::ObjectInstanceHandle const&,
+      rti::AttributeHandleValueMap const&,
+      rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    detailedReflectionHook_ = std::move(hook);
+  }
+
   void setReceiveInteractionHook(
       std::function<void(rti::RegionHandleSet const*)> hook) {
     std::lock_guard<std::mutex> lock(mutex_);
     receiveInteractionHook_ = std::move(hook);
+  }
+
+  void setDetailedReceiveInteractionHook(std::function<void(
+      rti::InteractionClassHandle const&,
+      rti::ParameterHandleValueMap const&,
+      rti::RegionHandleSet const*)> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    detailedReceiveInteractionHook_ = std::move(hook);
   }
 
   void setTimedInteractionHook(
@@ -1422,6 +1564,10 @@ class Recorder final : public rti::FederateAmbassador {
     timedInteractionHook_ = std::move(hook);
   }
 
+  void setFederationExecutionsReportHook(std::function<void()> hook) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    federationExecutionsReportHook_ = std::move(hook);
+  }
 
   void setFederateSaveInitiateHook(std::function<void()> hook) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1477,10 +1623,16 @@ class Recorder final : public rti::FederateAmbassador {
     ownershipOwnedByRtiEvents_.clear();
   }
 
+  void clearDivestitureConfirmation() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    divestitureConfirmation_.reset();
+  }
+
   void clearReservations() {
     std::lock_guard<std::mutex> lock(mutex_);
     reservationSucceeded_.reset();
     reservationFailed_.reset();
+    reservationSucceededEvents_.clear();
     multipleReservationSucceeded_.reset();
     multipleReservationFailed_.reset();
   }
@@ -1589,6 +1741,7 @@ class Recorder final : public rti::FederateAmbassador {
 
  private:
   mutable std::mutex mutex_;
+  std::uint64_t callbackSequence_ = 0U;
   bool connectionLost_ = false;
   std::wstring connectionLostDescription_;
   std::vector<std::wstring> federateResignedReasons_;
@@ -1613,6 +1766,7 @@ class Recorder final : public rti::FederateAmbassador {
   std::vector<rti::FederateRestoreStatusVector> federationRestoreStatusResponses_;
   std::optional<std::wstring> reservationSucceeded_;
   std::optional<std::wstring> reservationFailed_;
+  std::vector<std::wstring> reservationSucceededEvents_;
   std::optional<std::set<std::wstring>> multipleReservationSucceeded_;
   std::optional<std::set<std::wstring>> multipleReservationFailed_;
   DiscoveryRecord discovery_;
@@ -1670,9 +1824,18 @@ class Recorder final : public rti::FederateAmbassador {
       rti::AttributeHandleSet const&,
       rti::VariableLengthData const&)> ownershipReleaseHook_;
   std::function<void(rti::RegionHandleSet const*)> reflectionHook_;
+  std::function<void(
+      rti::ObjectInstanceHandle const&,
+      rti::AttributeHandleValueMap const&,
+      rti::RegionHandleSet const*)> detailedReflectionHook_;
   std::function<void(rti::RegionHandleSet const*)> timedReflectionHook_;
   std::function<void(rti::RegionHandleSet const*)> receiveInteractionHook_;
+  std::function<void(
+      rti::InteractionClassHandle const&,
+      rti::ParameterHandleValueMap const&,
+      rti::RegionHandleSet const*)> detailedReceiveInteractionHook_;
   std::function<void(rti::RegionHandleSet const*)> timedInteractionHook_;
+  std::function<void()> federationExecutionsReportHook_;
   std::function<void()> federateSaveInitiateHook_;
   std::optional<OwnershipEventRecord> ownershipAcquisitionCancellation_;
   std::optional<OwnershipEventRecord> ownershipNotOwned_;
@@ -1719,6 +1882,12 @@ class Session final {
     if (connected_) {
       throw std::runtime_error("Session::connect was called twice");
     }
+    auto rtiAddress = options_.rtiAddress;
+    if (role_ == "owner" && !options_.ownerRtiAddress.empty()) {
+      rtiAddress = options_.ownerRtiAddress;
+    } else if (role_ != "owner" && !options_.memberRtiAddress.empty()) {
+      rtiAddress = options_.memberRtiAddress;
+    }
     auto configurationName = options_.configurationName;
     if (role_ == "owner" && !options_.ownerConfigurationName.empty()) {
       configurationName = options_.ownerConfigurationName;
@@ -1726,7 +1895,7 @@ class Session final {
       configurationName = options_.memberConfigurationName;
     }
     rti::ConfigurationResult result;
-    if (configurationName.empty() && options_.rtiAddress.empty() &&
+    if (configurationName.empty() && rtiAddress.empty() &&
         options_.additionalSettings.empty()) {
       result = rti_->connect(ambassador_, callbackModel_);
     } else {
@@ -1734,8 +1903,8 @@ class Session final {
       if (!configurationName.empty()) {
         configuration.withConfigurationName(toWide(configurationName));
       }
-      if (!options_.rtiAddress.empty()) {
-        configuration.withRtiAddress(toWide(options_.rtiAddress));
+      if (!rtiAddress.empty()) {
+        configuration.withRtiAddress(toWide(rtiAddress));
       }
       if (!options_.additionalSettings.empty()) {
         configuration.withAdditionalSettings(toWide(options_.additionalSettings));
@@ -1791,15 +1960,18 @@ class Session final {
     connected_ = false;
   }
 
+  void abandonAfterConnectionLoss() noexcept {
+    joined_ = false;
+    connected_ = false;
+  }
+
+  void destroyAfterConnectionLoss() noexcept {
+    abandonAfterConnectionLoss();
+    rti_.reset();
+  }
+
   void pump() {
-    // The process adapter is a synchronous standard-API transport.  Its
-    // immediate callback path still needs a bounded official callback-service
-    // call to observe unsolicited frames; a provider with an asynchronous
-    // receive thread simply returns with the callback already delivered.
-    if (connected_ &&
-        (callbackModel_ == rti::HLA_EVOKED ||
-         (callbackModel_ == rti::HLA_IMMEDIATE &&
-          options_.connectionLossServerManaged))) {
+    if (connected_ && callbackModel_ == rti::HLA_EVOKED) {
       static_cast<void>(rti_->evokeCallback(0.0));
     }
   }
@@ -1871,8 +2043,10 @@ class Session final {
   Options const& options_;
   rti::CallbackModel callbackModel_;
   std::string role_;
-  std::unique_ptr<rti::RTIambassador> rti_;
+  // Keep the callback target alive until the RTIambassador and any immediate
+  // callback worker it owns have been destroyed.
   Recorder ambassador_;
+  std::unique_ptr<rti::RTIambassador> rti_;
   rti::FederateHandle federateHandle_;
   bool connected_ = false;
   bool joined_ = false;

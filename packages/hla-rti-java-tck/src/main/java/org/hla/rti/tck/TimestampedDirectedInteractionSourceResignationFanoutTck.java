@@ -21,10 +21,11 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Delivers one queued timestamped directed interaction independently to two receivers. */
 final class TimestampedDirectedInteractionSourceResignationFanoutTck {
@@ -93,9 +94,9 @@ final class TimestampedDirectedInteractionSourceResignationFanoutTck {
          publisher.publishObjectClassDirectedInteractions(publisherClass,
             JavaTckSupport.interactionSet(publisher, publisherInteraction)); directedPublished = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
-         first.subscribeObjectClassDirectedInteractions(firstClass,
+         first.subscribeObjectClassDirectedInteractionsUniversally(firstClass,
             JavaTckSupport.interactionSet(first, firstInteraction)); firstDirected = true;
-         second.subscribeObjectClassDirectedInteractions(secondClass,
+         second.subscribeObjectClassDirectedInteractionsUniversally(secondClass,
             JavaTckSupport.interactionSet(second, secondInteraction)); secondDirected = true;
 
          ObjectInstanceHandle target = owner.registerObjectInstance(ownerClass);
@@ -104,36 +105,49 @@ final class TimestampedDirectedInteractionSourceResignationFanoutTck {
                && firstRec.discoveries.contains(target) && secondRec.discoveries.contains(target),
             "producer and both receivers did not discover the owner-held target");
 
-         LogicalTimeFactory<?, ?> tf = publisher.getTimeFactory();
-         String timeName = tf.getName();
-         JavaTckSupport.check(timeName.equals(first.getTimeFactory().getName())
-               && timeName.equals(second.getTimeFactory().getName())
-               && timeName.equals(clock.getTimeFactory().getName()),
+         LogicalTimeFactory<?, ?> publisherTimeFactory = publisher.getTimeFactory();
+         LogicalTimeFactory<?, ?> firstTimeFactory = first.getTimeFactory();
+         LogicalTimeFactory<?, ?> secondTimeFactory = second.getTimeFactory();
+         LogicalTimeFactory<?, ?> clockTimeFactory = clock.getTimeFactory();
+         String timeName = publisherTimeFactory.getName();
+         JavaTckSupport.check(timeName.equals(firstTimeFactory.getName())
+               && timeName.equals(secondTimeFactory.getName())
+               && timeName.equals(clockTimeFactory.getName()),
             "federates selected different logical-time factories");
-         LogicalTimeInterval epsilon = (LogicalTimeInterval) tf.makeEpsilon();
-         LogicalTimeInterval lookahead = intervalOffset(epsilon, 5);
+         LogicalTimeInterval publisherEpsilon =
+            (LogicalTimeInterval) publisherTimeFactory.makeEpsilon();
+         LogicalTimeInterval firstEpsilon = (LogicalTimeInterval) firstTimeFactory.makeEpsilon();
+         LogicalTimeInterval secondEpsilon = (LogicalTimeInterval) secondTimeFactory.makeEpsilon();
+         LogicalTimeInterval clockEpsilon = (LogicalTimeInterval) clockTimeFactory.makeEpsilon();
+         LogicalTimeInterval publisherLookahead = intervalOffset(publisherEpsilon, 5);
+         LogicalTimeInterval clockLookahead = intervalOffset(clockEpsilon, 5);
          first.enableTimeConstrained(); firstConstrained = true;
          second.enableTimeConstrained(); secondConstrained = true;
          JavaTckSupport.drain(first); JavaTckSupport.drain(second);
-         JavaTckSupport.check(firstRec.timeConstrainedEnabled == 1 && secondRec.timeConstrainedEnabled == 1,
+         JavaTckSupport.check(firstRec.timeConstrainedEnabled.get() == 1
+               && secondRec.timeConstrainedEnabled.get() == 1,
             "both receivers must report Time Constrained enable");
-         publisher.enableTimeRegulation(lookahead); publisherRegulating = true;
+         publisher.enableTimeRegulation(publisherLookahead); publisherRegulating = true;
          JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRec.timeRegulationEnabled == 1,
+         JavaTckSupport.check(publisherRec.timeRegulationEnabled.get() == 1,
             "producer did not report Time Regulation enable");
-         clock.enableTimeRegulation(lookahead); clockRegulating = true;
+         clock.enableTimeRegulation(clockLookahead); clockRegulating = true;
          JavaTckSupport.drain(clock);
-         JavaTckSupport.check(clockRec.timeRegulationEnabled == 1,
+         JavaTckSupport.check(clockRec.timeRegulationEnabled.get() == 1,
             "clock did not report Time Regulation enable");
 
-         LogicalTime initial = publisher.queryLogicalTime();
-         JavaTckSupport.check(initial.equals(first.queryLogicalTime())
-               && initial.equals(second.queryLogicalTime()) && initial.equals(clock.queryLogicalTime()),
+         LogicalTime publisherInitial = publisher.queryLogicalTime();
+         LogicalTime firstInitial = first.queryLogicalTime();
+         LogicalTime secondInitial = second.queryLogicalTime();
+         LogicalTime clockInitial = clock.queryLogicalTime();
+         JavaTckSupport.check(publisherInitial.equals(firstInitial)
+               && publisherInitial.equals(secondInitial) && publisherInitial.equals(clockInitial),
             "federates began at different logical times");
-         LogicalTime messageTime = timeOffset(initial, epsilon, 6);
-         LogicalTime firstTarget = timeOffset(initial, epsilon, 6);
-         LogicalTime secondTarget = timeOffset(initial, epsilon, 6);
-         LogicalTime firstClockTarget = timeOffset(initial, epsilon, 2);
+         LogicalTime messageTime = timeOffset(publisherInitial, publisherEpsilon, 6);
+         LogicalTime firstTarget = timeOffset(firstInitial, firstEpsilon, 6);
+         LogicalTime secondTarget = timeOffset(secondInitial, secondEpsilon, 6);
+         LogicalTime firstClockTarget = timeOffset(clockInitial, clockEpsilon, 2);
+         LogicalTime secondClockTarget = timeOffset(clockInitial, clockEpsilon, 6);
          byte[] payload = new byte[] {0x44, 0x49, 0x52, 0x2D, 0x4D, 0x52};
          byte[] tag = new byte[] {0x44, 0x53, 0x4F, 0x2D, 0x4D, 0x52};
          ParameterHandleValueMap parameters = publisher.getParameterHandleValueMapFactory().create(1);
@@ -169,7 +183,6 @@ final class TimestampedDirectedInteractionSourceResignationFanoutTck {
          checkReceiver(firstRec, first, firstInteraction, firstParameter, target, payload, tag,
             producer, messageTime, sent.handle, firstTarget);
 
-         LogicalTime secondClockTarget = timeOffset(initial, epsilon, 6);
          second.timeAdvanceRequest(secondTarget);
          clock.timeAdvanceRequest(secondClockTarget);
          JavaTckSupport.drain(clock); JavaTckSupport.drain(second);
@@ -295,18 +308,18 @@ final class TimestampedDirectedInteractionSourceResignationFanoutTck {
    }
 
    private static final class Recorder {
-      private int timeRegulationEnabled;
-      private int timeConstrainedEnabled;
-      private final List<ObjectInstanceHandle> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
+      private final AtomicInteger timeRegulationEnabled = new AtomicInteger();
+      private final AtomicInteger timeConstrainedEnabled = new AtomicInteger();
+      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("timeRegulationEnabled".equals(name)) ++timeRegulationEnabled;
-               else if ("timeConstrainedEnabled".equals(name)) ++timeConstrainedEnabled;
+               if ("timeRegulationEnabled".equals(name)) timeRegulationEnabled.incrementAndGet();
+               else if ("timeConstrainedEnabled".equals(name)) timeConstrainedEnabled.incrementAndGet();
                else if ("discoverObjectInstance".equals(name) && arguments != null && arguments.length >= 3)
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                else if ("receiveDirectedInteraction".equals(name) && arguments != null && arguments.length == 10) {

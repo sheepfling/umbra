@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/umbra.iml" filepath="$PROJECT_DIR$/.idea/umbra.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/umbra_rti.iml" filepath="$PROJECT_DIR$/.idea/umbra_rti.iml" />
     </modules>
   </component>
 </project>

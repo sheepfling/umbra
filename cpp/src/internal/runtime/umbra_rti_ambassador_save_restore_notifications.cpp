@@ -492,6 +492,67 @@ void submitAmbassadorFederationRestoreNotifications(
         });
         break;
       case umbra::detail::FederationRestoreNotificationKind::completed:
+        if (notification.publicServiceReportRoute) {
+          std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
+              {umbra::detail::MomArgumentType::boolean,
+               L"Federation restore-success indicator",
+               umbra::detail::formatMomBoolean(notification.successful)}};
+          if (notification.successful) {
+            suppliedArguments.push_back({
+                umbra::detail::MomArgumentType::null_value,
+                L"Optional failure reason",
+                umbra::detail::formatMomNull()});
+          } else {
+            suppliedArguments.push_back({
+                umbra::detail::MomArgumentType::restore_failure_reason,
+                L"Optional failure reason",
+                umbra::detail::formatMomRestoreFailureReason(
+                    notification.failureReason)});
+          }
+          notification.publicServiceReportRoute(
+              L"FederationRestored",
+              umbra::detail::MomServiceType::federation_management,
+              suppliedArguments,
+              {umbra::detail::MomArgumentType::null_value,
+               L"",
+               umbra::detail::formatMomNull()},
+              true,
+              L"");
+        }
+        if (notification.serviceReportRoute) {
+          // §4.32 is RTI-initiated for each joined federate receiving restore
+          // completion. Append its result before exposing the callback.
+          notification.serviceReportRoute(
+              static_cast<std::uint16_t>(
+                  umbra::detail::MomServiceType::federation_management),
+              [successful = notification.successful,
+               failureReason = notification.failureReason](
+                  std::uint32_t serialNumber) {
+                std::vector<umbra::detail::MomServiceArgument> suppliedArguments{
+                    {umbra::detail::MomArgumentType::boolean,
+                     L"Federation restore-success indicator",
+                     umbra::detail::formatMomBoolean(successful)},
+                };
+                if (successful) {
+                  suppliedArguments.push_back({
+                      umbra::detail::MomArgumentType::null_value,
+                      L"Optional failure reason",
+                      umbra::detail::formatMomNull(),
+                  });
+                } else {
+                  suppliedArguments.push_back({
+                      umbra::detail::MomArgumentType::restore_failure_reason,
+                      L"Optional failure reason",
+                      umbra::detail::formatMomRestoreFailureReason(
+                          failureReason),
+                  });
+                }
+                return umbra::detail::formatMomSuccessfulVoidServiceReportRecord(
+                    serialNumber,
+                    L"FederationRestored",
+                    suppliedArguments);
+              });
+        }
         if (notification.successful) {
           notification.callbackRoute([
               federationName,

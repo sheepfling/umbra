@@ -9,6 +9,8 @@ namespace hla_rti_cpp_tck::detail {
 
 struct Options {
   std::filesystem::path fom;
+  std::filesystem::path schemaValidFom;
+  std::filesystem::path schemaInvalidFom;
   std::filesystem::path modelFom;
   std::filesystem::path rateFom;
   std::filesystem::path ddmFom;
@@ -42,12 +44,26 @@ struct Options {
   std::string junit;
   std::string connectionLossMarker;
   std::string connectionLossReadyMarker;
+  std::string connectionLossOutageMarker;
   bool connectionLossServerManaged = false;
+  std::string federateHeartbeatTimeoutReadyMarker;
+  std::string federateHeartbeatInactiveMarker;
+  std::string federateHeartbeatResumedMarker;
+  bool federateHeartbeatRecoveryServerManaged = false;
+  bool federateMissingRtiMessageTimeoutServerManaged = false;
+  std::string messageHistoryRecoveryMarker;
+  std::string messageHistorySessionPurgeTriggerMarker;
+  std::string messageHistoryResumeFailureTriggerMarker;
+  bool messageHistoryRecoveryServerManaged = false;
+  std::string nmrProcessRole;
+  std::filesystem::path nmrProcessCoordinationDirectory;
   std::string federationPrefix = "cpp-tck";
   std::string configurationName;
   std::string ownerConfigurationName;
   std::string memberConfigurationName;
   std::string rtiAddress;
+  std::string ownerRtiAddress;
+  std::string memberRtiAddress;
   std::string additionalSettings;
   std::filesystem::path serviceReportDirectory;
   std::wstring federationOverride;

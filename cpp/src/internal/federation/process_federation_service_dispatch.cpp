@@ -94,6 +94,8 @@ TransportServiceMessage ProcessFederationService::handle(
         return handleAcknowledgePushAttributeUpdate(session, request);
       case TransportServiceOperation::query_logical_time:
         return handleQueryLogicalTime(session, request);
+      case TransportServiceOperation::get_non_regulated_grant_switch:
+        return handleGetNonRegulatedGrantSwitch(session, request);
       case TransportServiceOperation::query_lookahead:
         return handleQueryLookahead(session, request);
       case TransportServiceOperation::modify_lookahead:
@@ -290,7 +292,12 @@ TransportServiceMessage ProcessFederationService::handle(
     }
   } catch (ProcessFederationServiceProtocolError const &) {
     return invalid(request);
-  } catch (std::exception const &) {
+  } catch (std::exception const& error) {
+    if (options_.failureDiagnosticForTesting) {
+      options_.failureDiagnosticForTesting(error.what());
+    }
+    return internalError(request);
+  } catch (...) {
     return internalError(request);
   }
   return invalid(request);

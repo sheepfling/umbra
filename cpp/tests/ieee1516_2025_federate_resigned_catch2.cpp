@@ -46,6 +46,9 @@ TEST_CASE(
   REQUIRE(forcedReports.resignationDescriptions == std::vector<std::wstring>{
       L"embedded RTI membership control removed this federate"});
   REQUIRE(forcedReports.faultDescriptions.empty());
+  REQUIRE_THROWS_AS(
+      forced->getFederateHandle(L"forced-resignation-target"),
+      rti1516_2025::FederateNotExecutionMember);
 
   // Federate Resigned leaves the connection alive but ends membership, so the
   // same RTI ambassador can immediately join the execution again.

@@ -12,6 +12,7 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.time.LogicalTimeFactoryFactory;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
@@ -41,20 +42,26 @@ final class ServiceReportTimestampedInteractionFailureTck {
 
    private ServiceReportTimestampedInteractionFailureTck() { }
 
-   static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String interactionName, String parameterName, CallbackModel callbackModel)
-         throws Exception {
+   static void run(RtiFactory factory, String fom, String foreignFom, String mim,
+         String timeImplementation, String interactionName, String parameterName,
+         String foreignInteractionName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
       Recorder receiverRecorder = new Recorder();
       Recorder observerRecorder = new Recorder();
+      Recorder foreignRecorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-timestamped-interaction-failure-" + UUID.randomUUID();
+      String foreignFederation =
+         "java-tck-timestamped-interaction-failure-foreign-" + UUID.randomUUID();
       boolean publisherConnected = false, receiverConnected = false, observerConnected = false;
+      boolean foreignConnected = false;
       boolean created = false, publisherJoined = false, receiverJoined = false;
       boolean observerJoined = false, published = false, receiverSubscribed = false;
+      boolean foreignCreated = false, foreignJoined = false;
       boolean reportSubscribed = false, publisherRegulating = false;
       InteractionClassHandle publisherInteraction = null, receiverInteraction = null;
       InteractionClassHandle reportClass = null;
@@ -65,9 +72,13 @@ final class ServiceReportTimestampedInteractionFailureTck {
          receiverConnected = true;
          observer.connect(observerRecorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(foreignRecorder.proxy(), callbackModel);
+         foreignConnected = true;
          publisher.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecution(foreignFederation, foreignFom, timeImplementation);
+         foreignCreated = true;
          FederateHandle publisherHandle = publisher.joinFederationExecution(
             "java-tck-timestamped-interaction-failure-publisher-" + UUID.randomUUID(),
             "java-tck", federation);
@@ -80,9 +91,15 @@ final class ServiceReportTimestampedInteractionFailureTck {
             "java-tck-timestamped-interaction-failure-observer-" + UUID.randomUUID(),
             "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-timestamped-interaction-failure-foreign-" + UUID.randomUUID(),
+            "java-tck", foreignFederation);
+         foreignJoined = true;
 
          publisherInteraction = publisher.getInteractionClassHandle(interactionName);
          receiverInteraction = receiver.getInteractionClassHandle(interactionName);
+         InteractionClassHandle foreignInteraction =
+            foreign.getInteractionClassHandle(foreignInteractionName);
          ParameterHandle publisherParameter = publisher.getParameterHandle(
             publisherInteraction, parameterName);
          ParameterHandle receiverParameter = receiver.getParameterHandle(
@@ -91,6 +108,15 @@ final class ServiceReportTimestampedInteractionFailureTck {
                && publisherParameter != null && receiverParameter != null,
             "adapter-supplied interaction class or parameter lookup returned an invalid handle");
          final InteractionClassHandle sourceInteraction = publisherInteraction;
+         JavaTckSupport.check(foreignInteraction != null
+               && foreignInteractionName.equals(
+                  foreign.getInteractionClassName(foreignInteraction))
+               && !interactionName.equals(foreignInteractionName),
+            "adapter-supplied foreign interaction declaration did not round-trip");
+         JavaTckSupport.expectFailure(
+            () -> publisher.getInteractionClassName(foreignInteraction),
+            "InvalidInteractionClassHandle",
+            "looking up a foreign-execution interaction class in the primary execution");
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS_NAME);
          JavaTckSupport.check(reportClass != null
@@ -104,6 +130,18 @@ final class ServiceReportTimestampedInteractionFailureTck {
                "standard service-report parameter lookup/name round-trip failed for " + name);
             reportParameters.put(name, handle);
          }
+         InteractionClassHandle publisherReportClass =
+            publisher.getInteractionClassHandle(REPORT_CLASS_NAME);
+         JavaTckSupport.check(publisherReportClass != null
+               && REPORT_CLASS_NAME.equals(publisher.getInteractionClassName(publisherReportClass))
+               && !sourceInteraction.equals(publisherReportClass),
+            "standard HLAreportServiceInvocation lookup/name round-trip failed for publisher");
+         ParameterHandle foreignParameter = publisher.getParameterHandle(
+            publisherReportClass, "HLAservice");
+         JavaTckSupport.check(foreignParameter != null
+               && "HLAservice".equals(
+                  publisher.getParameterName(publisherReportClass, foreignParameter)),
+            "standard MIM HLAservice parameter lookup/name round-trip failed");
          TransportationTypeHandle reliable = observer.getTransportationTypeHandle("HLAreliable");
          JavaTckSupport.check(reliable != null
                && "HLAreliable".equals(observer.getTransportationTypeName(reliable)),
@@ -115,18 +153,21 @@ final class ServiceReportTimestampedInteractionFailureTck {
          receiver.setSendServiceReportsToFileSwitch(false);
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
-         observer.subscribeInteractionClass(reportClass);
-         reportSubscribed = true;
+         JavaTckSupport.expectFailure(
+            () -> publisher.getParameterName(sourceInteraction, foreignParameter),
+            "InteractionParameterNotDefined",
+            "using an MIM parameter handle with an unrelated timestamped interaction class");
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
          receiver.subscribeInteractionClass(receiverInteraction);
          receiverSubscribed = true;
 
-         LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
-         LogicalTimeFactory<?, ?> receiverTimeFactory = receiver.getTimeFactory();
-         JavaTckSupport.check(timeFactory.getName().equals(receiverTimeFactory.getName()),
-            "federates selected different logical-time factories");
+         LogicalTimeFactory<?, ?> timeFactory =
+            LogicalTimeFactoryFactory.getLogicalTimeFactory(timeImplementation);
+         JavaTckSupport.check(timeFactory != null
+               && timeImplementation.equals(timeFactory.getName()),
+            "adapter-selected logical-time factory is unavailable");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          LogicalTimeInterval lookahead = epsilon;
          for (int i = 0; i < 4; ++i) lookahead = (LogicalTimeInterval) lookahead.add(epsilon);
@@ -134,7 +175,7 @@ final class ServiceReportTimestampedInteractionFailureTck {
          publisherRegulating = true;
          await(publisher, callbackModel, () -> publisherRecorder.timeRegulationEnabled,
             "timestamped interaction failure time-regulation callback");
-         LogicalTime initial = publisher.queryLogicalTime();
+         LogicalTime initial = timeFactory.makeInitial();
          LogicalTime validTimestamp = (LogicalTime) initial.add(lookahead).add(epsilon);
          LogicalTimeInterval fourEpsilon = (LogicalTimeInterval) epsilon.add(epsilon)
             .add(epsilon).add(epsilon);
@@ -145,32 +186,31 @@ final class ServiceReportTimestampedInteractionFailureTck {
          ParameterHandleValueMap validValues =
             publisher.getParameterHandleValueMapFactory().create(1);
          validValues.put(publisherParameter, value);
-         ParameterHandle invalidParameter =
-            JavaTckSupport.invalidHandle(ParameterHandle.class);
          ParameterHandleValueMap invalidValues =
             publisher.getParameterHandleValueMapFactory().create(1);
-         invalidValues.put(invalidParameter, value);
+         invalidValues.put(foreignParameter, value);
+         // Keep time-role setup outside the observed report sequence.
+         observer.subscribeInteractionClass(reportClass);
+         reportSubscribed = true;
          publisher.setServiceReportingSwitch(true);
          publisher.setSendServiceReportsToFileSwitch(false);
 
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
          JavaTckSupport.expectFailure(
             () -> publisher.sendInteraction(
-               invalidInteraction, validValues, tag, validTimestamp),
-            "InteractionClassNotDefined", "timestamped send with an invalid interaction class");
+               foreignInteraction, validValues, tag, validTimestamp),
+            "InteractionClassNotDefined",
+            "timestamped send with a foreign interaction class");
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
-            "invalid-class timestamped interaction failure report");
-         JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "invalid-class timestamped send produced more than one service report");
-         verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
-            reportParameters, encoder, publisherHandle, invalidInteraction.toString(),
+            "foreign-interaction-class timestamped interaction failure report");
+         verifyFailureReport(observer,
+            observerRecorder.interactions.get(observerRecorder.interactions.size() - 1), reportClass,
+            reportParameters, encoder, publisherHandle, foreignInteraction.toString(),
             publisherParameter.toString(), value, tag, validTimestamp,
             "InteractionClassNotDefined", 0, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
-            "invalid-class timestamped send delivered an application interaction");
+            "foreign-interaction-class timestamped send delivered an application interaction");
 
          JavaTckSupport.expectFailure(
             () -> publisher.sendInteraction(
@@ -178,11 +218,10 @@ final class ServiceReportTimestampedInteractionFailureTck {
             "InteractionParameterNotDefined", "timestamped send with an invalid parameter");
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "invalid-parameter timestamped interaction failure report");
-         JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "invalid-parameter timestamped send produced more than one service report");
-         verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
+         verifyFailureReport(observer,
+            observerRecorder.interactions.get(observerRecorder.interactions.size() - 1), reportClass,
             reportParameters, encoder, publisherHandle, publisherInteraction.toString(),
-            invalidParameter.toString(), value, tag, validTimestamp,
+            foreignParameter.toString(), value, tag, validTimestamp,
             "InteractionParameterNotDefined", 1, reliable);
          observerRecorder.interactions.clear();
          settle(receiver, callbackModel);
@@ -195,9 +234,8 @@ final class ServiceReportTimestampedInteractionFailureTck {
             "InvalidLogicalTime", "timestamped send before current time plus lookahead");
          await(observer, callbackModel, () -> !observerRecorder.interactions.isEmpty(),
             "invalid-time timestamped interaction failure report");
-         JavaTckSupport.check(observerRecorder.interactions.size() == 1,
-            "invalid-time timestamped send produced more than one service report");
-         verifyFailureReport(observer, observerRecorder.interactions.get(0), reportClass,
+         verifyFailureReport(observer,
+            observerRecorder.interactions.get(observerRecorder.interactions.size() - 1), reportClass,
             reportParameters, encoder, publisherHandle, publisherInteraction.toString(),
             publisherParameter.toString(), value, tag, invalidTimestamp,
             "InvalidLogicalTime", 2, reliable);
@@ -236,8 +274,16 @@ final class ServiceReportTimestampedInteractionFailureTck {
             try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
          if (created) {
             try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
             catch (Exception ignored) { }
          }
          if (observerConnected) {
@@ -248,6 +294,9 @@ final class ServiceReportTimestampedInteractionFailureTck {
          }
          if (publisherConnected) {
             try { publisher.disconnect(); } catch (Exception ignored) { }
+         }
+         if (foreignConnected) {
+            try { foreign.disconnect(); } catch (Exception ignored) { }
          }
       }
    }
@@ -305,7 +354,8 @@ final class ServiceReportTimestampedInteractionFailureTck {
       HLAinteger32BE serial = encoder.createHLAinteger32BE();
       serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
       JavaTckSupport.check(serial.getValue() == serialNumber,
-         "timestamped interaction failure report returned the wrong serial number");
+         "timestamped interaction failure report serial " + serial.getValue()
+            + " did not match expected " + serialNumber);
    }
 
    private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {

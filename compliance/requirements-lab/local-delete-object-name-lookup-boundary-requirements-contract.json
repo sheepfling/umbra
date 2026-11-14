@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.1-2025",
   "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
-  "notes": "The direct mapping is limited to the official 2025 C++ API declarations: section 6.18 for Local Delete Object Instance and section 10.8 for Get Object Instance Name. The test verifies the declared unknown-instance exception after the subscriber has locally forgotten the discovered object; it does not claim provider-independent conformance from one provider run.",
+  "notes": "The scenario retains direct 2025 C++ API mappings for Local Delete Object Instance (§6.18.1) and Get Object Instance Name (§10.8). It directly tests IEEE 1516.1-2025 §6.1.6 p108-l146-43 through both locally forgotten and resigning final-known federate paths; after ownership is relinquished and no joined federate knows each instance, a surviving federate can reserve the prior object name, showing the RTI deleted each orphan. This is public C++ TCK evidence, not a provider-independent conformance certification.",
   "requirements": [
     {
       "id": "cpp-1516.1-local-object-instance-deletion",
@@ -13,8 +13,8 @@
       "source_lines": "852-864",
       "statement": "The scenario invokes the standard Local Delete Object Instance service for a discovered object. It then probes the resulting local identity state without deleting the federation-wide object.",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
       ]
     },
     {
@@ -25,8 +25,20 @@
       "source_lines": "1742-1750",
       "statement": "Section 10.8 declares ObjectInstanceNotKnown for getObjectInstanceName when the handle is not known. The test confirms the discovered handle resolves before local deletion, expects ObjectInstanceNotKnown afterward for the forgetting federate, and confirms the publisher still resolves that handle.",
       "tests": [
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
-        "packages/hla-rti-cpp-tck/src/portable_tck.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
+      ]
+    },
+    {
+      "id": "requirement-candidate-content-clauses-06-object-management-page-108-l146-43",
+      "clause_id": "clause-6.1.6",
+      "source": "content/clauses/06-object-management-page-108.tex",
+      "source_symbol": "6.1.6 Orphan object instances",
+      "source_lines": "143-150",
+      "statement": "Consequently, orphan object instances are unreachable by any current or future federate and the RTI shall delete them.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
+        "packages/hla-rti-cpp-tck/src/tck_object_management_scenarios.cpp::scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable"
       ]
     }
   ]

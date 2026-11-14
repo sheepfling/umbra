@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused Java port resolves one configured interaction class and parameter, then verifies Get Parameter Name returns the exact configured name. It covers only this valid class/parameter pair; it does not test invalid names, invalid handles, or broader support-service behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-java-parameter-handle-name-lookup",
+      "owner": "RTIambassador",
+      "language": "java",
+      "signatures": [
+        "InteractionClassHandle getInteractionClassHandle(String name)",
+        "ParameterHandle getParameterHandle(InteractionClassHandle interactionClass, String name)",
+        "String getParameterName(InteractionClassHandle interactionClass, ParameterHandle parameter)"
+      ],
+      "source": "Pinned official IEEE 1516.1-2025 Java API artifact",
+      "source_symbol": "hla.rti1516_2025.RTIambassador#getParameterName",
+      "tests": [
+        "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ParameterHandleNameLookupTck.java#run"
+      ]
+    }
+  ]
+}

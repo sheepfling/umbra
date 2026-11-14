@@ -1,11 +1,14 @@
 package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.ObjectClassHandle;
+import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
@@ -43,7 +46,8 @@ final class ServiceReportRegionalInteractionSubscriptionTck {
    private ServiceReportRegionalInteractionSubscriptionTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String interactionName, String firstDimensionName, String secondDimensionName,
+         String objectClassName, String attributeName, String interactionName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
          CallbackModel callbackModel) throws Exception {
       JavaTckSupport.check(fom != null && !fom.isEmpty(),
          "adapter-supplied dimensional FOM is required");
@@ -84,10 +88,26 @@ final class ServiceReportRegionalInteractionSubscriptionTck {
          observer.setServiceReportingSwitch(false);
          observer.setSendServiceReportsToFileSwitch(false);
 
+         ObjectClassHandle objectClass = subject.getObjectClassHandle(objectClassName);
+         AttributeHandle attribute = subject.getAttributeHandle(objectClass, attributeName);
          interaction = subject.getInteractionClassHandle(interactionName);
+         ParameterHandle parameter = subject.getParameterHandle(interaction, parameterName);
          DimensionHandle first = subject.getDimensionHandle(firstDimensionName);
          DimensionHandle second = subject.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(subject.getAvailableDimensionsForInteractionClass(interaction)
+         JavaTckSupport.check(objectClass != null && attribute != null && interaction != null
+               && parameter != null && first != null && second != null && !first.equals(second),
+            "adapter FOM object, attribute, interaction, parameter, or dimension lookup failed");
+         JavaTckSupport.check(objectClassName.equals(subject.getObjectClassName(objectClass))
+               && attributeName.equals(subject.getAttributeName(objectClass, attribute))
+               && interactionName.equals(subject.getInteractionClassName(interaction))
+               && parameterName.equals(subject.getParameterName(interaction, parameter))
+               && firstDimensionName.equals(subject.getDimensionName(first))
+               && secondDimensionName.equals(subject.getDimensionName(second)),
+            "adapter FOM handle/name round-trip failed");
+         JavaTckSupport.check(subject.getAvailableDimensionsForObjectClass(objectClass)
+               .contains(first)
+               && subject.getAvailableDimensionsForObjectClass(objectClass).contains(second)
+               && subject.getAvailableDimensionsForInteractionClass(interaction)
                .contains(first)
                && subject.getAvailableDimensionsForInteractionClass(interaction).contains(second)
                && subject.getDimensionUpperBound(first) >= 10
@@ -231,12 +251,17 @@ final class ServiceReportRegionalInteractionSubscriptionTck {
       for (int index = 0; index < expectedArguments.size(); index++) {
          HLAfixedRecord argument = suppliedArguments.get(index);
          ExpectedArgument expected = expectedArguments.get(index);
-         JavaTckSupport.check(argument.size() == 3
-               && ((HLAinteger32BE) argument.get(0)).getValue() == expected.type
-               && expected.name.equals(((HLAunicodeString) argument.get(1)).getValue())
-               && expected.value.equals(((HLAunicodeString) argument.get(2)).getValue()),
+         JavaTckSupport.check(argument.size() == 3,
+            "regional subscription service report returned an argument with the wrong shape");
+         int actualType = ((HLAinteger32BE) argument.get(0)).getValue();
+         String actualName = ((HLAunicodeString) argument.get(1)).getValue();
+         String actualValue = ((HLAunicodeString) argument.get(2)).getValue();
+         JavaTckSupport.check(actualType == expected.type
+               && expected.name.equals(actualName) && expected.value.equals(actualValue),
             "regional subscription service report returned an incorrect argument at index "
-               + index);
+               + index + ": expected (" + expected.type + ", " + expected.name + ", "
+               + expected.value + "), received (" + actualType + ", " + actualName + ", "
+               + actualValue + ")");
       }
 
       HLAfixedRecord returnedArgument = fixedRecordPrototype(encoder);

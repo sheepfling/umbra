@@ -18,9 +18,11 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -107,8 +109,8 @@ final class ServiceReportAttributeUpdateTck {
             "ordinary update service-report object registration returned an invalid handle");
 
          AttributeHandleValueMap values = subject.getAttributeHandleValueMapFactory().create(1);
-         values.put(attribute, new byte[] {0x55, 0x41, 0x56});
-         byte[] tag = new byte[] {0x55, 0x41, 0x56};
+         values.put(attribute, new byte[] {0x01, 0x02});
+         byte[] tag = new byte[] {0x00, 0x01, (byte) 0xFE, (byte) 0xFF};
          subject.setServiceReportingSwitch(true);
          subject.updateAttributeValues(object, values, tag);
 
@@ -117,10 +119,16 @@ final class ServiceReportAttributeUpdateTck {
          Interaction report = observerRecorder.interactions.get(0);
          JavaTckSupport.check(observerRecorder.interactions.size() == 1
                && reportClass.equals(report.interaction)
-               && report.parameters.size() == REPORT_PARAMETER_NAMES.length
-               && report.tag.length == 0 && report.producer == null && report.regionsEmpty
-               && reliable.equals(report.transportation),
-            "ordinary attribute-update service report returned invalid callback metadata");
+               && report.parameters.size() == REPORT_PARAMETER_NAMES.length,
+            "ordinary attribute-update service report returned invalid interaction metadata");
+         JavaTckSupport.check(report.tag.length == 0,
+            "ordinary attribute-update service report returned a nonempty tag");
+         JavaTckSupport.check(report.regionsEmpty,
+            "ordinary attribute-update service report returned a nonempty region set");
+         JavaTckSupport.check(report.producer == null,
+            "ordinary attribute-update service report returned a producing federate");
+         JavaTckSupport.check(reliable.equals(report.transportation),
+            "ordinary attribute-update service report used the wrong transportation type");
          for (ParameterHandle handle : reportParameters.values()) {
             JavaTckSupport.check(report.parameters.containsKey(handle),
                "ordinary attribute-update service report omitted a standard parameter");
@@ -144,6 +152,50 @@ final class ServiceReportAttributeUpdateTck {
                && serviceType.getValue() == 2 && success.getValue()
                && exception.getValue().isEmpty() && serial.getValue() == 0,
             "ordinary attribute-update report contained an incorrect service result");
+
+         HLAfixedRecord argumentPrototype = fixedRecordPrototype(encoder);
+         HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+            index -> fixedRecordPrototype(encoder), argumentPrototype);
+         suppliedArguments.decode(report.parameters.get(
+            reportParameters.get("HLAsuppliedArguments")));
+         JavaTckSupport.check(suppliedArguments.size() == 4,
+            "ordinary attribute-update report returned an unexpected supplied-argument count");
+         HLAfixedRecord attributeValueArgument = suppliedArguments.get(1);
+         JavaTckSupport.check(attributeValueArgument.size() == 3,
+            "ordinary attribute-update map argument did not have three fields");
+         int reportedAttributeMapType =
+            ((HLAinteger32BE) attributeValueArgument.get(0)).getValue();
+         String reportedAttributeMapName =
+            ((HLAunicodeString) attributeValueArgument.get(1)).getValue();
+         String reportedAttributeMapValue =
+            ((HLAunicodeString) attributeValueArgument.get(2)).getValue();
+         String expectedAttributeMapValue = "{\"" + attribute.toString() + "\":\"AQI=\"}";
+         String mapPrefix = "{\"";
+         String mapSuffix = "\":\"AQI=\"}";
+         String keyValueSeparator = "\":\"";
+         int keyValueSeparatorIndex = reportedAttributeMapValue.indexOf(keyValueSeparator);
+         boolean mapContainsOneAttributeValue = reportedAttributeMapValue.startsWith(mapPrefix)
+            && reportedAttributeMapValue.endsWith(mapSuffix)
+            && keyValueSeparatorIndex > mapPrefix.length()
+            && keyValueSeparatorIndex == reportedAttributeMapValue.lastIndexOf(keyValueSeparator)
+            && reportedAttributeMapValue.length() > mapPrefix.length() + mapSuffix.length();
+         JavaTckSupport.check(reportedAttributeMapType == 2
+               && "Constrained set of attribute designator and value pairs".equals(
+                  reportedAttributeMapName)
+               && mapContainsOneAttributeValue
+               && expectedAttributeMapValue.equals(reportedAttributeMapValue),
+            "ordinary attribute-update report attribute-map record differed: type="
+               + reportedAttributeMapType + ", name=" + reportedAttributeMapName
+               + ", value=" + reportedAttributeMapValue + ", expected="
+               + expectedAttributeMapValue);
+         HLAfixedRecord userSuppliedTagArgument = suppliedArguments.get(2);
+         JavaTckSupport.check(userSuppliedTagArgument.size() == 3,
+            "ordinary attribute-update tag argument did not have three fields");
+         JavaTckSupport.check("User-supplied tag".equals(
+                  ((HLAunicodeString) userSuppliedTagArgument.get(1)).getValue())
+               && "\"AAH+/w==\"".equals(
+                  ((HLAunicodeString) userSuppliedTagArgument.get(2)).getValue()),
+            "ordinary attribute-update report did not encode its binary tag as Base64");
       } finally {
          if (observerJoined && reportSubscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); }
@@ -182,6 +234,14 @@ final class ServiceReportAttributeUpdateTck {
          else Thread.yield();
       }
       JavaTckSupport.check(condition.isMet(), "timed out waiting for " + description);
+   }
+
+   private static HLAfixedRecord fixedRecordPrototype(EncoderFactory encoder) {
+      HLAfixedRecord result = encoder.createHLAfixedRecord();
+      result.add(encoder.createHLAinteger32BE());
+      result.add(encoder.createHLAunicodeString());
+      result.add(encoder.createHLAunicodeString());
+      return result;
    }
 
    @FunctionalInterface

@@ -123,31 +123,45 @@ final class MultiAttributeSubscriptionProjectionTck {
 
          update(rti[0], object, firstAttributes[0], secondAttributes[0], true, false,
             0x33, 0x00, firstTag);
-         await(rti[1], () -> recorders[1].reflections().size() >= 2,
-            "both-attribute subscriber missed the first-only update");
-         await(rti[2], () -> recorders[2].reflections().size() >= 2,
-            "first-only subscriber missed its attribute update");
-         observeCount(rti[3], recorders[3], 1,
-            "second-only subscriber received an unrequested first-attribute update");
-         assertReflection(rti[1], recorders[1].reflections().get(1), recorders[1].discoveredObject,
-            firstAttributes[1], secondAttributes[1], new byte[] {0x33}, null,
-            firstTag, producer, "both-attribute subscriber first-only projection");
-         assertReflection(rti[2], recorders[2].reflections().get(1), recorders[2].discoveredObject,
-            firstAttributes[2], secondAttributes[2], new byte[] {0x33}, null,
-            firstTag, producer, "first-only subscriber projection");
-
          update(rti[0], object, firstAttributes[0], secondAttributes[0], false, true,
             0x00, 0x44, secondTag);
          await(rti[1], () -> recorders[1].reflections().size() >= 3,
-            "both-attribute subscriber missed the second-only update");
+            "both-attribute subscriber missed either consecutive selective update");
+         await(rti[2], () -> recorders[2].reflections().size() >= 2,
+            "first-only subscriber missed its matching update");
          await(rti[3], () -> recorders[3].reflections().size() >= 2,
-            "second-only subscriber missed its attribute update");
-         observeCount(rti[2], recorders[2], 2,
-            "first-only subscriber received an unrequested second-attribute update");
-         assertReflection(rti[1], recorders[1].reflections().get(2), recorders[1].discoveredObject,
+            "second-only subscriber missed its matching update");
+         for (int pass = 0; pass != 8; ++pass) {
+            JavaTckSupport.drain(rti[1]);
+            JavaTckSupport.drain(rti[2]);
+            JavaTckSupport.drain(rti[3]);
+         }
+         List<Reflection> bothUpdates = recorders[1].reflections();
+         List<Reflection> firstOnlyUpdates = recorders[2].reflections();
+         List<Reflection> secondOnlyUpdates = recorders[3].reflections();
+         JavaTckSupport.check(bothUpdates.size() == 3
+               && firstOnlyUpdates.size() == 2
+               && secondOnlyUpdates.size() == 2,
+            "consecutive Update Attribute Values invocations were merged, duplicated, or projected to an unsubscribed receiver");
+         Reflection bothFirstOnly = findByTag(bothUpdates, firstTag);
+         Reflection bothSecondOnly = findByTag(bothUpdates, secondTag);
+         Reflection firstOnlyFirst = findByTag(firstOnlyUpdates, firstTag);
+         Reflection secondOnlySecond = findByTag(secondOnlyUpdates, secondTag);
+         JavaTckSupport.check(bothFirstOnly != null && bothSecondOnly != null
+               && firstOnlyFirst != null && secondOnlySecond != null
+               && findByTag(firstOnlyUpdates, secondTag) == null
+               && findByTag(secondOnlyUpdates, firstTag) == null,
+            "consecutive update callbacks did not retain distinct tags for the matching subscriptions");
+         assertReflection(rti[1], bothFirstOnly, recorders[1].discoveredObject,
+            firstAttributes[1], secondAttributes[1], new byte[] {0x33}, null,
+            firstTag, producer, "both-attribute subscriber first-only projection");
+         assertReflection(rti[1], bothSecondOnly, recorders[1].discoveredObject,
             firstAttributes[1], secondAttributes[1], null, new byte[] {0x44},
             secondTag, producer, "both-attribute subscriber second-only projection");
-         assertReflection(rti[3], recorders[3].reflections().get(1), recorders[3].discoveredObject,
+         assertReflection(rti[2], firstOnlyFirst, recorders[2].discoveredObject,
+            firstAttributes[2], secondAttributes[2], new byte[] {0x33}, null,
+            firstTag, producer, "first-only subscriber projection");
+         assertReflection(rti[3], secondOnlySecond, recorders[3].discoveredObject,
             firstAttributes[3], secondAttributes[3], null, new byte[] {0x44},
             secondTag, producer, "second-only subscriber projection");
          JavaTckSupport.check(recorders[0].reflections().isEmpty(),
@@ -220,14 +234,13 @@ final class MultiAttributeSubscriptionProjectionTck {
          description + " received the wrong projected values or delivery metadata");
    }
 
-   private static void observeCount(RTIambassador ambassador, Recorder recorder,
-         int expected, String failure) throws Exception {
-      long deadline = System.nanoTime() + 250_000_000L;
-      while (System.nanoTime() < deadline) {
-         JavaTckSupport.drain(ambassador);
-         JavaTckSupport.check(recorder.reflections().size() == expected, failure);
-         Thread.yield();
+   private static Reflection findByTag(List<Reflection> reflections, byte[] tag) {
+      for (Reflection reflection : reflections) {
+         if (Arrays.equals(tag, reflection.tag)) {
+            return reflection;
+         }
       }
+      return null;
    }
 
    private static void await(RTIambassador ambassador, BooleanSupplier condition,

@@ -17,6 +17,7 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -80,7 +81,7 @@ final class RestoreTerminalTsoInteractionTck {
          MessageRetractionReturn discarded = sender.sendInteraction(
             interaction, parameters, tag, sendTime);
          JavaTckSupport.check(valid(discarded)
-               && !terminal.handle.equals(discarded.handle),
+               && !Arrays.equals(encode(terminal.handle), encode(discarded.handle)),
             "post-save interaction reused the terminal designator");
          sender.requestFederationRestore(saveLabel);
          await(sender, () -> callbacks.restoreRequestSucceeded == 1
@@ -113,6 +114,12 @@ final class RestoreTerminalTsoInteractionTck {
 
    private static boolean valid(MessageRetractionReturn value) {
       return value != null && value.retractionHandleIsValid && value.handle != null;
+   }
+
+   private static byte[] encode(MessageRetractionHandle handle) {
+      byte[] encoded = new byte[handle.encodedLength()];
+      handle.encode(encoded, 0);
+      return encoded;
    }
 
    private static void expectTerminal(RTIambassador member, MessageRetractionHandle handle)

@@ -211,11 +211,11 @@ final class FederationAutoProvideMomSwitchTck {
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name) && requester && args != null
-                     && args.length >= 3) {
+                     && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery);
                } else if ("provideAttributeValueUpdate".equals(name) && !requester
                      && args != null && args.length == 3) {

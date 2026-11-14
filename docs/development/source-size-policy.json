@@ -587,7 +587,12 @@
     {
       "path": "packages/hla-rti-cpp-tck/src/portable_tck.cpp",
       "max_lines": 24788,
-      "reason": "Growth-guard the existing central portable-scenario dispatcher at its measured 24,788 lines. This slice adds only route bindings; scenario behavior remains in thematic source files. Keep implementation out of this dispatcher and extract a cohesive category router before further growth, preserving scenario IDs, callback-model selection, and catalog validation."
+      "reason": "Keep the central portable-scenario dispatcher below the 24,788-line hard guard. The current worktree measures 25,819 lines (1,031 over the guard); this slice extracted the negotiated-divestiture confirmation flow into tck_negotiated_divestiture_confirmation_flow.cpp, but the dispatcher remains over budget and needs further cohesive category extraction. Keep new behavior in thematic sources, preserve scenario IDs/callback-model selection/catalog validation, and do not claim source-size health until the guard is met."
+    },
+    {
+      "path": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+      "max_lines": 15730,
+      "reason": "Ratchet the 15,730-line Java TCK runner after extracting its 1,596-line scenario-ID-to-test-selector mapping into JavaTckSelector.java and the external category registrations into JavaTckAdditionalScenarioRegistry.java, its DDM, FOM-dimension, and MOM registries, and FomAndHandleLookupScenarioRegistry.java. Behavioral checks live in focused per-scenario Java classes; this central file retains the larger scenario inventory, selection, callback configuration, and dispatch. Keep this measured guard and extract other cohesive category-owned registries before further growth."
     },
     {
       "path": "docs/planning/ROADMAP.md",
@@ -599,15 +604,115 @@
       "max_lines": 18000,
       "reason": "Growth-guard the historical Requirements Lab ledger (17,786 lines after Markdown spacing normalization); preserve append-only evidence and use the bounded query tool. Treat 18,000 as a hard split/index trigger."
     },
-    {
+        {
       "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-PROGRESS-LOG.md",
-      "max_lines": 12650,
-      "reason": "Append-only historical progress chronology (12,066 lines) with dated sections and stable heading links. Keep entries together for navigation; 12,650 is a hard extraction trigger. Before crossing it, split by date into indexed files and preserve legacy anchors."
+      "max_lines": 5000,
+      "reason": "Stable heading and fragment index for dated progress records. Detailed entries live in normal Markdown archives by date. Preserve original heading text/order and links; add date chunks before this 5,000-line growth guard."
+    },
+        {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md",
+      "max_lines": 5000,
+      "reason": "Stable heading and fragment index for dated review evidence. Detailed records live in normal Markdown archives by date. Preserve original heading text/order and links; add date chunks before this 5,000-line growth guard."
     },
     {
-      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-REVIEW-LEDGER.md",
-      "max_lines": 10500,
-      "reason": "Append-only review evidence ledger (9,941 lines) with dated sections and stable heading links. Keep entries together for navigation; 10,500 is a hard extraction trigger. Before crossing it, split by date into indexed files and preserve legacy anchors."
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-READER-REVIEW-ARCHIVE.md",
+      "max_lines": 5000,
+      "reason": "Dated reader-gap history extracted from the active guide index; retain original entries and legacy links. Split future history by date into indexed archives before exceeding this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-10-11.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-10-12.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-10-14.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-10-16-PART-1.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-10-16-PART-2.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-11-03.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-11-04.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-11-05.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/PROGRESS-2026-11-06.md",
+      "max_lines": 5000,
+      "reason": "Dated progress history chunk indexed by stable progress log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-09.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-11.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-12.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-14.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-15.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-10-16.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-11-03.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-11-04.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-11-05.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
+    },
+    {
+      "path": "docs/design/HLA-BEHAVIOR-FLOW-GUIDES-ARCHIVE/REVIEW-2026-11-06.md",
+      "max_lines": 5000,
+      "reason": "Dated review history chunk indexed by stable review log headings. Keep chronology and links intact; split further at date or entry boundaries before this 5,000-line growth guard."
     }
   ]
 }

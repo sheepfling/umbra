@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Verifies regional object delivery requires overlap in every declared dimension. */
 final class RegionalThreeDimensionalOverlapTck {
@@ -128,13 +130,18 @@ final class RegionalThreeDimensionalOverlapTck {
                && subscriberClass.equals(subscriberCallbacks.discoveries.get(0).objectClass),
             "three-dimensional regional discovery returned the wrong object or class");
 
+         installRegionInspection(subscriberCallbacks, subscriber, subscriberDimensions);
+
          FederateHandle producer = publisherFederate;
          update(publisher, object, publisherAttribute, new byte[] {0x10}, new byte[] {0x49, 0x31});
          await(subscriber, callbackModel,
             () -> !subscriberCallbacks.reflections.isEmpty(),
             "three-dimensional regional initial reflection");
+         settle(subscriber, callbackModel);
+         checkCallbackFailure(subscriberCallbacks);
          assertReflection(subscriberCallbacks.reflections.get(0), object, subscriberAttribute,
-            producer, new byte[] {0x10}, new byte[] {0x49, 0x31}, sourceRegion, subscriber);
+            producer, new byte[] {0x10}, new byte[] {0x49, 0x31}, subscriber,
+            subscriberCallbacks);
          int initialReflectionCount = subscriberCallbacks.reflections.size();
 
          verifyDimensionFilter(publisher, subscriber, callbackModel, object, publisherAttribute,
@@ -151,9 +158,11 @@ final class RegionalThreeDimensionalOverlapTck {
          await(subscriber, callbackModel,
             () -> subscriberCallbacks.reflections.size() > initialReflectionCount,
             "three-dimensional regional restored reflection");
+         settle(subscriber, callbackModel);
+         checkCallbackFailure(subscriberCallbacks);
          assertReflection(subscriberCallbacks.reflections.get(initialReflectionCount), object,
             subscriberAttribute, producer, new byte[] {0x30}, new byte[] {0x52, 0x31},
-            sourceRegion, subscriber);
+            subscriber, subscriberCallbacks);
       } finally {
          if (subscriberJoined && subscribed && subscriberClass != null && subscriberPairs != null) {
             try { subscriber.unsubscribeObjectClassAttributesWithRegions(subscriberClass, subscriberPairs); }
@@ -223,6 +232,7 @@ final class RegionalThreeDimensionalOverlapTck {
       commitRegion(publisher, sourceRegion);
       update(publisher, object, attribute, new byte[] {0x20}, new byte[] {0x53, 0x50});
       settle(subscriber, callbackModel);
+      checkCallbackFailure(callbackRecorder);
       JavaTckSupport.check(callbackRecorder.reflections.size() == expectedReflectionCount,
          "three-dimensional regional " + description + "-dimension disjoint source was delivered");
       publisher.setRangeBounds(sourceRegion, dimension, restored);
@@ -238,7 +248,7 @@ final class RegionalThreeDimensionalOverlapTck {
 
    private static void assertReflection(Reflection reflection, ObjectInstanceHandle object,
          AttributeHandle attribute, FederateHandle producer, byte[] expectedValue, byte[] expectedTag,
-         RegionHandle sourceRegion, RTIambassador receiver) throws Exception {
+         RTIambassador receiver, Recorder recorder) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(expectedValue, reflection.values.get(attribute))
             && Arrays.equals(expectedTag, reflection.tag)
@@ -247,8 +257,36 @@ final class RegionalThreeDimensionalOverlapTck {
       JavaTckSupport.check(reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty()
             && reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+            && recorder.inspectedRegionCallbacks.get() == recorder.reflections.size(),
          "three-dimensional regional reflection omitted transportation or source-region metadata");
+   }
+
+   private static void installRegionInspection(Recorder recorder, RTIambassador receiver,
+         DimensionHandle[] expectedDimensions) {
+      recorder.reflectionInspector = reflection -> {
+         JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1,
+            "three-dimensional regional callback omitted its copied source region");
+         RegionHandle callbackRegion = reflection.regions.iterator().next();
+         DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+         long[][] expectedBounds = {{0, 5}, {0, 2}, {0, 1}};
+         JavaTckSupport.check(dimensions.size() == expectedDimensions.length,
+            "three-dimensional callback region copy changed its dimension count");
+         for (int index = 0; index < expectedDimensions.length; index++) {
+            RangeBounds bounds = receiver.getRangeBounds(callbackRegion, expectedDimensions[index]);
+            JavaTckSupport.check(dimensions.contains(expectedDimensions[index])
+                  && bounds.lower == expectedBounds[index][0]
+                  && bounds.upper == expectedBounds[index][1],
+               "three-dimensional callback region copy changed its dimensions or source range");
+         }
+         recorder.inspectedRegionCallbacks.incrementAndGet();
+      };
+   }
+
+   private static void checkCallbackFailure(Recorder recorder) {
+      Throwable failure = recorder.callbackFailure.get();
+      if (failure != null) {
+         throw new AssertionError("Three-dimensional callback region inspection failed", failure);
+      }
    }
 
    private static void await(RTIambassador ambassador, CallbackModel callbackModel,
@@ -304,6 +342,9 @@ final class RegionalThreeDimensionalOverlapTck {
    private static final class Recorder {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final AtomicReference<Throwable> callbackFailure = new AtomicReference<>();
+      private final AtomicInteger inspectedRegionCallbacks = new AtomicInteger();
+      private volatile ReflectionInspector reflectionInspector;
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -312,7 +353,15 @@ final class RegionalThreeDimensionalOverlapTck {
                if ("discoverObjectInstance".equals(name) && arguments != null
                      && arguments.length == 4) discoveries.add(new Discovery(arguments));
                else if ("reflectAttributeValues".equals(name) && arguments != null
-                     && arguments.length == 6) reflections.add(new Reflection(arguments));
+                     && arguments.length == 6) {
+                  Reflection reflection = new Reflection(arguments);
+                  ReflectionInspector inspector = reflectionInspector;
+                  if (inspector != null) {
+                     try { inspector.inspect(reflection); }
+                     catch (Throwable failure) { callbackFailure.compareAndSet(null, failure); }
+                  }
+                  reflections.add(reflection);
+               }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK three-dimensional regional callbacks";
                   if ("hashCode".equals(name)) return System.identityHashCode(proxy);
@@ -321,5 +370,10 @@ final class RegionalThreeDimensionalOverlapTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface ReflectionInspector {
+      void inspect(Reflection reflection) throws Exception;
    }
 }

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "selected_requirements_lab_requirement_ids": [
+    "requirement-candidate-content-clauses-10-support-services-page-284-l158-49"
+  ],
+  "standard_sections": [
+    "hla-1516.1-2025:clause-10.58"
+  ],
+  "requirement_mappings": [
+    {
+      "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-284-l158-49",
+      "standard_section": "hla-1516.1-2025:clause-10.58"
+    }
+  ],
+  "mapping_note": "RL-422 records that the pinned Lab candidate is incorrectly labeled §10.57.6 and bound to evokeCallback. The candidate's source text belongs to §10.58 Evoke Multiple Callbacks; this local contract preserves the candidate ID while mapping only the tested public API behavior to §10.58.",
+  "notes": "This contract records a bounded C++ public-API timing witness. Three receive-order interactions are sent during a 200 ms Evoke Multiple Callbacks minimum interval; the scenario checks that all callbacks are delivered before return and that elapsed time is not shorter than the requested minimum beyond a 20 ms scheduler tolerance. It runs only under HLA_EVOKED because the tested API behavior is the evoked callback servicing interval. It does not establish maximum-duration behavior, HLA_IMMEDIATE behavior, Java parity, independent-provider interoperability, or RTI conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-evoke-multiple-callbacks-minimum-duration",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::evokeMultipleCallbacks(double approximateMinimumTimeInSeconds, double approximateMaximumTimeInSeconds)",
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador::evokeMultipleCallbacks (10.58)",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_evoke_multiple_callbacks_minimum_duration.cpp::scenarioEvokeMultipleCallbacksMinimumDuration"
+      ]
+    }
+  ]
+}

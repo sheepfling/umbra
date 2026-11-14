@@ -1,19 +1,7 @@
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 namespace {
-TEST_CASE(
-    "Embedded MOM requestPublications reports publication state and NULL responses",
-    "[integration][development-profile][federation-management][mom][mom-request-report]"
-    "[object-management][interaction-management][directed]"
-    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
-    "[rti.service.publish-object-class-attributes][rti.service.unpublish-object-class-attributes]"
-    "[rti.service.publish-interaction-class][rti.service.unpublish-interaction-class]"
-    "[rti.service.publish-object-class-directed-interactions]"
-    "[rti.service.unpublish-object-class-directed-interactions]"
-    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
-    "[rti.service.evoke-callback]"
-    "[federate.callback.receive-interaction]") {
+void verifyMOMRequestPublications(bool immediate) {
   ReportingFederateAmbassador subjectReports;
   ReportingFederateAmbassador observerReports;
   auto subject = makeRti();
@@ -22,7 +10,9 @@ TEST_CASE(
   auto const fomModule = resourcePath("examples/RestaurantFOMmodule-2025.xml").wstring();
 
   REQUIRE_NOTHROW(subject->connect(subjectReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(observer->connect(observerReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(observer->connect(
+      observerReports,
+      immediate ? rti1516_2025::HLA_IMMEDIATE : HLA_EVOKED));
   REQUIRE_NOTHROW(
       subject->createFederationExecution(federationName, fomModule, standard_hla::mom::integer64_time));
   FederateHandle subjectFederate;
@@ -97,7 +87,7 @@ TEST_CASE(
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(objectReportClass));
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(interactionReportClass));
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(directedReportClass));
-  while (observer->evokeCallback(0.0)) {
+  while (!immediate && observer->evokeCallback(0.0)) {
   }
   observerReports.interactionReports.clear();
 
@@ -119,8 +109,12 @@ TEST_CASE(
         requestClass,
         ParameterHandleValueMap{{requestFederateParameter, subjectFederate.encode()}},
         VariableLengthData{}));
-    REQUIRE(observerReports.interactionReports.empty());
-    while (observer->evokeCallback(0.0)) {
+    if (immediate) {
+      REQUIRE(observerReports.interactionReports.size() == 3U);
+    } else {
+      REQUIRE(observerReports.interactionReports.empty());
+    }
+    while (!immediate && observer->evokeCallback(0.0)) {
     }
     REQUIRE(observerReports.interactionReports.size() == 3U);
   };
@@ -228,5 +222,38 @@ TEST_CASE(
   REQUIRE_NOTHROW(subject->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(subject->disconnect());
   REQUIRE_NOTHROW(observer->disconnect());
+}
+
+TEST_CASE(
+    "Embedded MOM requestPublications reports publication state and NULL responses",
+    "[integration][development-profile][federation-management][mom][mom-request-report]"
+    "[object-management][interaction-management][directed]"
+    "[joined-federate-mom-publications-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-object-class-attributes][rti.service.unpublish-object-class-attributes]"
+    "[rti.service.publish-interaction-class][rti.service.unpublish-interaction-class]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.unpublish-object-class-directed-interactions]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.evoke-callback]"
+    "[federate.callback.receive-interaction]") {
+  verifyMOMRequestPublications(false);
+}
+
+TEST_CASE(
+    "Embedded MOM requestPublications reports publication state and NULL responses immediately",
+    "[integration][development-profile][federation-management][mom][mom-request-report]"
+    "[object-management][interaction-management][directed][callback-immediate]"
+    "[joined-federate-mom-publications-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.publish-object-class-attributes][rti.service.unpublish-object-class-attributes]"
+    "[rti.service.publish-interaction-class][rti.service.unpublish-interaction-class]"
+    "[rti.service.publish-object-class-directed-interactions]"
+    "[rti.service.unpublish-object-class-directed-interactions]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
+  verifyMOMRequestPublications(true);
 }
 }

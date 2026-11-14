@@ -228,9 +228,9 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
         interaction_mode_focus.get("lane_state") != "complete"
         or interaction_mode_focus.get("mapped_test_count") != 1
         or interaction_mode_focus.get("assertion_count") != 129
-        or interaction_mode_focus.get("requirement_count") != 1
+        or interaction_mode_focus.get("requirement_count") != 2
         or interaction_mode_focus.get("standard_section_count") != 1
-        or interaction_mode_focus.get("requirement_section_pair_count") != 1
+        or interaction_mode_focus.get("requirement_section_pair_count") != 2
     ):
         raise AssertionError("active/passive interaction mode focus card drifted")
     interaction_mode_pairs = {
@@ -243,6 +243,13 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     ) not in interaction_mode_pairs:
         raise AssertionError(
             "interaction-subscription report lost its direct §11.4.1 mapping"
+        )
+    if (
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+        "hla-1516.1-2025:clause-11.4.1",
+    ) not in interaction_mode_pairs:
+        raise AssertionError(
+            "interaction-subscription reports lost their Table 7 P-leaf mapping"
         )
     interaction_mode_handles = interaction_mode_focus.get("lane_handles")
     if (

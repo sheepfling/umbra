@@ -133,15 +133,21 @@ final class TimestampedAttributeUpdateRateReductionTck {
          bothValues.put(publisherReliable, reliableBytes);
          bothValues.put(publisherBestEffort, bestEffortBytes);
          LogicalTime firstTime = add(publisherInitial, offset(epsilon, 6));
-         LogicalTime secondTime = add(publisherInitial, offset(epsilon, 7));
-         LogicalTime thirdTime = add(publisherInitial, offset(epsilon, 8));
-         LogicalTime publisherTarget = add(publisherInitial, offset(epsilon, 2));
+         LogicalTime secondTime = add(publisherInitial, offset(epsilon, 8));
+         LogicalTime thirdTime = add(publisherInitial, offset(epsilon, 10));
+         LogicalTime fourthTime = add(publisherInitial, offset(epsilon, 12));
+         LogicalTime fifthTime = add(publisherInitial, offset(epsilon, 14));
+         LogicalTime publisherTargetOne = add(publisherInitial, offset(epsilon, 2));
+         LogicalTime publisherTargetTwo = add(publisherInitial, offset(epsilon, 4));
+         LogicalTime publisherTargetThree = add(publisherInitial, offset(epsilon, 6));
+         LogicalTime publisherTargetFour = add(publisherInitial, offset(epsilon, 8));
+         LogicalTime publisherTargetFive = add(publisherInitial, offset(epsilon, 10));
 
          MessageRetractionHandle firstRetraction = update(
             publisher, object, bothValues, tag, firstTime,
             "first timestamped update-rate passel");
          receiver.timeAdvanceRequest(firstTime);
-         publisher.timeAdvanceRequest(publisherTarget);
+         publisher.timeAdvanceRequest(publisherTargetOne);
          await(callbackModel, publisher, receiver,
             () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 1
                && receiverRecorder.timeAdvanceGrantTimes.size() >= 1
@@ -167,7 +173,7 @@ final class TimestampedAttributeUpdateRateReductionTck {
             publisher, object, bothValues, tag, secondTime,
             "second timestamped update-rate passel");
          receiver.timeAdvanceRequest(secondTime);
-         publisher.timeAdvanceRequest(publisherTarget);
+         publisher.timeAdvanceRequest(publisherTargetTwo);
          await(callbackModel, publisher, receiver,
             () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 2
                && receiverRecorder.timeAdvanceGrantTimes.size() >= 2
@@ -187,16 +193,78 @@ final class TimestampedAttributeUpdateRateReductionTck {
          MessageRetractionHandle suppressedRetraction = update(
             publisher, object, bestEffortOnly, tag, thirdTime,
             "third rate-limited best-effort update");
+         publisher.retract(suppressedRetraction);
          receiver.timeAdvanceRequest(thirdTime);
-         publisher.timeAdvanceRequest(publisherTarget);
+         publisher.timeAdvanceRequest(publisherTargetThree);
          await(callbackModel, publisher, receiver,
-            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 3,
-            "third publisher time-advance grant");
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 3
+               && receiverRecorder.timeAdvanceGrantTimes.size() >= 3,
+            "third pair of time-advance grants");
          JavaTckSupport.check(receiverRecorder.reflections.size() == 3,
             "all-best-effort passel was delivered despite the active update-rate limit");
-         publisher.retract(suppressedRetraction);
+         JavaTckSupport.check(thirdTime.equals(receiverRecorder.timeAdvanceGrantTimes.get(2)),
+            "suppressed timestamped update returned the wrong receiver time-advance grant");
          JavaTckSupport.expectFailure(() -> publisher.retract(suppressedRetraction),
-            "MessageCanNoLongerBeRetracted", "retracting a retracted suppressed passel twice");
+            "MessageCanNoLongerBeRetracted",
+            "retracting the suppressed passel after its time-advance grant");
+
+         TransportationTypeHandle reliableTransportation =
+            publisher.getTransportationTypeHandle("HLAreliable");
+         JavaTckSupport.check(reliableTransportation != null,
+            "reliable transportation lookup returned no handle");
+         AttributeHandleSet changedTransportationAttributes = JavaTckSupport.attributeSet(
+            publisher, publisherBestEffort);
+         publisher.requestAttributeTransportationTypeChange(
+            object, changedTransportationAttributes, reliableTransportation);
+         await(callbackModel, publisher,
+            () -> publisherRecorder.transportConfirmations.size() >= 1,
+            "reliable transportation change confirmation");
+         JavaTckSupport.check(publisherRecorder.transportConfirmations.size() == 1,
+            "transportation change returned more than one confirmation");
+         AttributeTransportConfirmation confirmation =
+            publisherRecorder.transportConfirmations.get(0);
+         JavaTckSupport.check(object.equals(confirmation.object)
+               && confirmation.attributes.size() == 1
+               && confirmation.attributes.contains(publisherBestEffort)
+               && "HLAreliable".equals(
+                  publisher.getTransportationTypeName(confirmation.transportation)),
+            "transportation change did not confirm reliable transport for the best-effort attribute");
+
+         MessageRetractionHandle fourthRetraction = update(
+            publisher, object, bestEffortOnly, tag, fourthTime,
+            "first timestamped update after switching to reliable transportation");
+         receiver.timeAdvanceRequest(fourthTime);
+         publisher.timeAdvanceRequest(publisherTargetFour);
+         await(callbackModel, publisher, receiver,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 4
+               && receiverRecorder.timeAdvanceGrantTimes.size() >= 4
+               && receiverRecorder.reflections.size() >= 4,
+            "first post-change reflection and time grants");
+         JavaTckSupport.check(receiverRecorder.reflections.size() == 4
+               && countAttribute(receiverRecorder.reflections, receiverReliable) == 2
+               && countAttribute(receiverRecorder.reflections, receiverBestEffort) == 2,
+            "first post-change update was not delivered exactly once with reliable transport");
+         assertReflection(receiver, receiverRecorder.reflections.get(3), object,
+            receiverBestEffort, bestEffortBytes, tag, publisherHandle, fourthTime,
+            fourthRetraction, "HLAreliable");
+
+         MessageRetractionHandle fifthRetraction = update(
+            publisher, object, bestEffortOnly, tag, fifthTime,
+            "second timestamped update after switching to reliable transportation");
+         receiver.timeAdvanceRequest(fifthTime);
+         publisher.timeAdvanceRequest(publisherTargetFive);
+         await(callbackModel, publisher, receiver,
+            () -> publisherRecorder.timeAdvanceGrantTimes.size() >= 5
+               && receiverRecorder.timeAdvanceGrantTimes.size() >= 5
+               && receiverRecorder.reflections.size() >= 5,
+            "second post-change reflection and time grants");
+         JavaTckSupport.check(receiverRecorder.reflections.size() == 5
+               && countAttribute(receiverRecorder.reflections, receiverReliable) == 2
+               && countAttribute(receiverRecorder.reflections, receiverBestEffort) == 3,
+            "second post-change update was suppressed after switching to reliable transport");
+         assertReflection(receiver, receiverRecorder.reflections.get(4), object,
+            receiverBestEffort, bestEffortBytes, tag, publisherHandle, fifthTime,
+            fifthRetraction, "HLAreliable");
 
          receiver.disableTimeConstrained();
          receiverConstrained = false;
@@ -206,6 +274,16 @@ final class TimestampedAttributeUpdateRateReductionTck {
          subscribed = false;
          publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
          published = false;
+         receiver.resignFederationExecution(ResignAction.NO_ACTION);
+         receiverJoined = false;
+         publisher.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+         publisherJoined = false;
+         publisher.destroyFederationExecution(federation);
+         created = false;
+         receiver.disconnect();
+         receiverConnected = false;
+         publisher.disconnect();
+         publisherConnected = false;
       } finally {
          if (receiverConstrained && receiverJoined) {
             try { receiver.disableTimeConstrained(); } catch (Exception ignored) { }
@@ -240,7 +318,10 @@ final class TimestampedAttributeUpdateRateReductionTck {
             catch (Exception ignored) { }
          }
          if (publisherJoined) {
-            try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            try {
+               publisher.resignFederationExecution(
+                  ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+            }
             catch (Exception ignored) { }
          }
          if (created) {
@@ -280,6 +361,8 @@ final class TimestampedAttributeUpdateRateReductionTck {
       JavaTckSupport.check(reflection.object.equals(object) && reflection.values.size() == 1
             && Arrays.equals(expectedValue, reflection.values.get(attribute)),
          "timestamped update-rate reflection returned the wrong object, attribute, or value");
+      JavaTckSupport.check(reflection.regions == null || reflection.regions.isEmpty(),
+         "timestamped update-rate reflection unexpectedly contained regions");
       JavaTckSupport.check(Arrays.equals(expectedTag, reflection.tag)
             && producer.equals(reflection.producer) && expectedTime.equals(reflection.time),
          "timestamped update-rate reflection changed tag, producer, or timestamp");
@@ -342,12 +425,27 @@ final class TimestampedAttributeUpdateRateReductionTck {
       private MessageRetractionHandle retraction;
    }
 
+   private static final class AttributeTransportConfirmation {
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleSet attributes;
+      private final TransportationTypeHandle transportation;
+
+      private AttributeTransportConfirmation(ObjectInstanceHandle object,
+            AttributeHandleSet attributes, TransportationTypeHandle transportation) {
+         this.object = object;
+         this.attributes = attributes.clone();
+         this.transportation = transportation;
+      }
+   }
+
    private static final class Recorder {
       private volatile int timeRegulationEnabled;
       private volatile int timeConstrainedEnabled;
       private final List<ObjectInstanceHandle> discoveredObjects = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<AttributeTransportConfirmation> transportConfirmations =
+         new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -379,6 +477,11 @@ final class TimestampedAttributeUpdateRateReductionTck {
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
                   timeAdvanceGrantTimes.add((LogicalTime<?, ?>) arguments[0]);
+               } else if ("confirmAttributeTransportationTypeChange".equals(name)
+                     && arguments != null && arguments.length == 3) {
+                  transportConfirmations.add(new AttributeTransportConfirmation(
+                     (ObjectInstanceHandle) arguments[0], (AttributeHandleSet) arguments[1],
+                     (TransportationTypeHandle) arguments[2]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK rate-reduction callbacks";

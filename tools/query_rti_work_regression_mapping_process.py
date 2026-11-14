@@ -601,7 +601,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated row is not mapped"
         )
-    if len(object_instances_updated_report.get("lab_requirement_ids", [])) != 1:
+    if len(object_instances_updated_report.get("lab_requirement_ids", [])) != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated requirement mapping drifted"
         )
@@ -631,7 +631,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated assertion total drifted"
         )
-    if object_instances_updated_report_focus.get("requirement_count") != 1:
+    if object_instances_updated_report_focus.get("requirement_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated requirement total drifted"
         )
@@ -639,7 +639,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated section total drifted"
         )
-    if object_instances_updated_report_focus.get("requirement_section_pair_count") != 1:
+    if object_instances_updated_report_focus.get("requirement_section_pair_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated direct pair drifted"
         )
@@ -688,7 +688,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         )
     if (
         len(object_instances_that_can_be_deleted_report.get("lab_requirement_ids", []))
-        != 1
+        != 2
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted requirement mapping drifted"
@@ -734,7 +734,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted assertion total drifted"
         )
-    if object_instances_that_can_be_deleted_report_focus.get("requirement_count") != 1:
+    if object_instances_that_can_be_deleted_report_focus.get("requirement_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted requirement total drifted"
         )
@@ -749,7 +749,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         object_instances_that_can_be_deleted_report_focus.get(
             "requirement_section_pair_count"
         )
-        != 1
+        != 2
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted direct pair drifted"
@@ -795,7 +795,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected row is not mapped"
         )
-    if len(object_instances_reflected_report.get("lab_requirement_ids", [])) != 1:
+    if len(object_instances_reflected_report.get("lab_requirement_ids", [])) != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected requirement mapping drifted"
         )

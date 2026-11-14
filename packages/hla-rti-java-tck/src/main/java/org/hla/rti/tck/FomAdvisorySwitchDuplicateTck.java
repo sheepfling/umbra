@@ -8,7 +8,7 @@ import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 
-/** Public known-class advisory switch witnesses for Annex C.8. */
+/** Public known-class advisory switch witnesses for Annex C.8 and §4.1.4.1. */
 final class FomAdvisorySwitchDuplicateTck {
    private FomAdvisorySwitchDuplicateTck() { }
 
@@ -34,21 +34,46 @@ final class FomAdvisorySwitchDuplicateTck {
             creator.destroyFederationExecution(federation);
             created = false;
          }
-         for (int order = 0; order < (orderConflict || omitted ? 2 : 1); order++) {
-            String first = order == 0 ? disabled : second;
-            String last = order == 0 ? second : disabled;
-            creator.createFederationExecution(federation,
-               new String[] {first, last}, timeImplementation);
-            created = true;
-            member.joinFederationExecution("java-tck-advisory-switch-member", federation);
-            memberJoined = true;
-            JavaTckSupport.check(member.getAdvisoriesUseKnownClassSwitch()
-                  == (orderConflict && order == 1),
-               "public known-class advisory query did not preserve first FOM setting");
-            member.resignFederationExecution(ResignAction.NO_ACTION);
-            memberJoined = false;
-            creator.destroyFederationExecution(federation);
-            created = false;
+         if (orderConflict) {
+            for (int order = 0; order < 2; order++) {
+               String first = order == 0 ? disabled : second;
+               String last = order == 0 ? second : disabled;
+               boolean expected = order == 1;
+               created = true;
+               JavaTckSupport.expectFailure(
+                  () -> creator.createFederationExecution(federation,
+                     new String[] {first, last}, timeImplementation),
+                  "InconsistentFOM", "combining conflicting known-class advisory switches");
+               created = false;
+
+               creator.createFederationExecution(federation,
+                  new String[] {first}, timeImplementation);
+               created = true;
+               member.joinFederationExecution("java-tck-advisory-switch-member", federation);
+               memberJoined = true;
+               JavaTckSupport.check(member.getAdvisoriesUseKnownClassSwitch() == expected,
+                  "valid Create retry did not preserve its single advisory-switch definition");
+               member.resignFederationExecution(ResignAction.NO_ACTION);
+               memberJoined = false;
+               creator.destroyFederationExecution(federation);
+               created = false;
+            }
+         } else {
+            for (int order = 0; order < (omitted ? 2 : 1); order++) {
+               String first = order == 0 ? disabled : second;
+               String last = order == 0 ? second : disabled;
+               creator.createFederationExecution(federation,
+                  new String[] {first, last}, timeImplementation);
+               created = true;
+               member.joinFederationExecution("java-tck-advisory-switch-member", federation);
+               memberJoined = true;
+               JavaTckSupport.check(!member.getAdvisoriesUseKnownClassSwitch(),
+                  "public known-class advisory query did not report Disabled");
+               member.resignFederationExecution(ResignAction.NO_ACTION);
+               memberJoined = false;
+               creator.destroyFederationExecution(federation);
+               created = false;
+            }
          }
       } finally {
          if (memberJoined) try { member.resignFederationExecution(ResignAction.NO_ACTION); }

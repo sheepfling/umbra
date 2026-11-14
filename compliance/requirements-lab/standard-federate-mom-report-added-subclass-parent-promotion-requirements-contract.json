@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "candidate-standard-api-requirement-traceability-not-conformance-evidence",
+  "notes": "This narrow trace covers only the IEEE 1516.1-2025 §11.3.1 parent-class subscription rule for a FOM-added HLAreport subclass. The test sends one subclass interaction and checks that the public callback reports the subscribed parent class, preserves all inherited parameters, and omits the subclass-only parameter. It does not claim complete MOM extension or conformance coverage.",
+  "requirements": [
+    {
+      "id": "cpp-tck-federate-mom-report-added-subclass-parent-promotion-drops-extension-parameter",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-10-support-services-page-289-l101-33",
+      "clause_id": "clause-11.3.1",
+      "source": "HLA Requirements Lab 2025 requirement record",
+      "source_symbol": "Parent subscription class promotion and extension parameter loss",
+      "statement": "If joined federates subscribe to the class of which an extension is a subclass, the interaction shall be promoted to the subscribed class and any new parameters shall be lost.",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_mom_report_added_subclass.cpp::scenarioFederateMomReportAddedSubclassPromotionDropsExtensionParameter"
+      ]
+    }
+  ]
+}

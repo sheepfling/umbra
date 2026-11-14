@@ -53,7 +53,8 @@ InteractionClassHandle UmbraRtiAmbassador::getInteractionClassHandle(
     }
     if (!handle) {
       throw NameNotFound(
-          L"The supplied interaction class name is not defined in this federation execution.");
+          L"The supplied interaction class name '" + interactionClassName +
+          L"' is not defined in this federation execution.");
     }
     return makeInteractionClassHandle(*handle);
   }
@@ -81,7 +82,8 @@ InteractionClassHandle UmbraRtiAmbassador::getInteractionClassHandle(
     auto const handle = registry.interactionClassHandleFor(*joinedFederationName_, *encodedName);
     if (!handle) {
       throw NameNotFound(
-          L"The supplied interaction class name is not defined in this federation execution.");
+          L"The supplied interaction class name '" + interactionClassName +
+          L"' is not defined in this federation execution.");
     }
     interactionClass = makeInteractionClassHandle(*handle);
   }
@@ -261,7 +263,20 @@ ParameterHandle UmbraRtiAmbassador::getParameterHandle(
       throw NameNotFound(
           L"The supplied parameter name is not defined for this interaction class.");
     }
-    return makeParameterHandle(*handle);
+    auto const parameter = makeParameterHandle(*handle);
+    appendSuccessfulServiceReportToFileIfSelected(
+        L"GetParameterHandle",
+        umbra::detail::MomServiceType::support_services,
+        {{umbra::detail::MomArgumentType::interaction_class_handle,
+          L"Interaction class handle",
+          umbra::detail::formatMomInteractionClassHandle(interactionClass)},
+         {umbra::detail::MomArgumentType::string,
+          L"Parameter name",
+          umbra::detail::formatMomString(parameterName)}},
+        {umbra::detail::MomArgumentType::parameter_handle,
+         L"Parameter handle",
+         umbra::detail::formatMomParameterHandle(parameter)});
+    return parameter;
   }
 #endif
   ParameterHandle parameter;

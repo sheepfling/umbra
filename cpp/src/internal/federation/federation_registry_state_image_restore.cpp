@@ -169,7 +169,7 @@ void EmbeddedFederationRegistry::restoreControlAndTimeFromStateImage(
     restoredTime.nextGeneration = savedTime.nextGeneration;
     restoredTime.minimumTimestampIsExclusive =
         (savedTime.flags & (1U << 7U)) != 0U;
-    restoredTime.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant =
+    restoredTime.allowEqualTimeTsoAfterAvailableGrant =
         (savedTime.flags & (1U << 8U)) != 0U;
     restoredTime.currentTime = decodeLogicalTimeEncoding(
         image.logicalTimeImplementationName,

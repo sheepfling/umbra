@@ -3,7 +3,7 @@
   "kind": "api-reference",
   "document_id": "hla-1516.2-2025",
   "status": "verified-focused-installed-package-not-conformance-evidence",
-  "notes": "Portable Update Rate table positivity preflight through official Federation Create and update-rate lookup services. The adapter supplies provider package, standard MIM, two schema-valid otherwise-matched FOM bindings, endpoint, logical time, and callback model. Zero is rejected with InconsistentFOM while 30.0 is accepted and publicly queryable. One focused packaged Umbra JNI Java parity runtime run passed (out/java-tck/positive-update-rate-jni-20261021.json); other Java providers, non-finite or omitted rates, private diagnostics, interoperability, and conformance are not claimed. The existing generic invalid-FOM corpus includes zero but permits multiple failure types and does not isolate this rule.",
+  "notes": "Portable Update Rate table preflight through official Federation Create and lookup services. Public Create Federation Execution with standard MIM rejects the schema-valid period-containing name Tck.InvalidRate as InconsistentFOM, rejects zero with InconsistentFOM, then accepts the positive decimal value 30.0 and exposes it through getUpdateRateValue. All three FOM fixtures validate against the pinned DIF XSD. Focused installed-package CTest and direct TCK execution each passed 4/4 across the primary/contract scenarios and HLA_EVOKED/HLA_IMMEDIATE (out/mgw/positive-update-rate-table-20261108.json and .xml). One prior packaged Umbra JNI Java parity run covers the older positive/zero scenario (out/java-tck/positive-update-rate-jni-20261021.json); Java parity for the newly added invalid-name check is not claimed. Non-finite or omitted rates, private diagnostics, interoperability, and conformance are not claimed.",
   "api_surfaces": [
     {
       "id": "standard-cpp-fom-positive-update-rate",
@@ -21,6 +21,14 @@
     {
       "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l114-22",
       "standard_section": "hla-1516.2-2025:clause-6.2.12"
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-064-l50-3",
+      "standard_section": "hla-1516.2-2025:clause-4.12.2"
+    },
+    {
+      "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-064-l54-4",
+      "standard_section": "hla-1516.2-2025:clause-4.12.2"
     }
   ]
 }

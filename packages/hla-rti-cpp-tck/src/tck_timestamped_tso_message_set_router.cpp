@@ -7,6 +7,7 @@
 #include "tck_nmr_regional_timestamped_interaction.hpp"
 #include "tck_nmra_future_timestamped_object_deletion.hpp"
 #include "tck_tara_future_timestamped_object_deletion.hpp"
+#include "tck_tara_future_timestamped_interaction.hpp"
 
 namespace hla_rti_cpp_tck::detail {
 namespace {
@@ -23,6 +24,10 @@ constexpr char taraDeletionScenario[] =
     "cpp-tck.timestamped-object-deletion-future-tara-arrival";
 constexpr char taraDeletionContractId[] =
     "cpp-tck.timestamped-object-deletion-future-tara-arrival-contract";
+constexpr char taraInteractionScenario[] =
+    "cpp-tck.timestamped-interaction-future-tara-arrival";
+constexpr char taraInteractionContractId[] =
+    "cpp-tck.timestamped-interaction-future-tara-arrival-contract";
 constexpr char regionalNmrScenario[] =
     "cpp-tck.nmr-regional-timestamped-interaction-message-set";
 constexpr char regionalNmrContractId[] =
@@ -76,6 +81,19 @@ std::optional<int> tryRunTimestampedTsoMessageSetScenario(
         taraDeletionContractId,
         scenarioTaraFutureTimestampedObjectDeletion,
         scenarioTaraFutureTimestampedObjectDeletionContract);
+  }
+  if (selectedScenario(
+          argc,
+          argv,
+          taraInteractionScenario,
+          taraInteractionContractId)) {
+    return runPortableScenarioPair(
+        argc,
+        argv,
+        taraInteractionScenario,
+        taraInteractionContractId,
+        scenarioTaraFutureTimestampedInteraction,
+        scenarioTaraFutureTimestampedInteractionContract);
   }
   if (selectedScenario(argc, argv, regionalNmrScenario, regionalNmrContractId)) {
     return runPortableScenarioPair(

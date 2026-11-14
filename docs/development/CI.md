@@ -143,6 +143,12 @@ cmake --build --preset mingw-shared-debug --parallel 4
 ctest --preset mingw-shared-debug --output-on-failure --parallel 4 --timeout 120
 ```
 
+On Windows, linking a `*_catch2` target now stages its runtime DLLs and runs
+`--help` with `PATH` limited to Windows system directories. A missing DLL or
+entry point fails the build. The portable C++ TCK uses the same check with its
+configured provider runtime directories; its CTest launches also use that
+restricted search path instead of inheriting the developer's full `PATH`.
+
 For the installed-package C++ TCK, install this same shared build into a
 disposable `out/` prefix, configure the current-package adapter against that
 prefix, and build its one reusable TCK runner:
@@ -232,6 +238,11 @@ The report helper combines these existing records to show per-translation-unit
 compile time and source lines, project versus external include fanout, the
 highest-fanout project headers, and link/archive actions. Use it after a build
 to compare a focused source split:
+
+When `tools/run_cpp_tck.py` is invoked with a Ninja or Makefile generator, it
+enables `CMAKE_EXPORT_COMPILE_COMMANDS`, so the adapter build directory can be
+inspected by the same report and build-quality history tools without a manual
+reconfigure.
 
 ```text
 python tools/report_compile_times.py out/mgw/catch2 --top 25 --write-json out/compile-time/catch2-before.json

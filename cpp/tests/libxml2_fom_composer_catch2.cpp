@@ -175,6 +175,37 @@ ScopedTemporaryFile mimWithConflictingTransportationNote() {
   return ScopedTemporaryFile(path);
 }
 
+ScopedTemporaryFile mimWithDifferentTransportationDescription() {
+  auto const source = resourcePath("mim/HLAstandardMIM-2025.xml");
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string mimText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const namePosition = mimText.find("<name>HLAreliable</name>");
+  REQUIRE(namePosition != std::string::npos);
+  auto const transportationPosition = mimText.rfind(
+      "<transportation>",
+      namePosition);
+  REQUIRE(transportationPosition != std::string::npos);
+  auto const descriptionStart = mimText.find("<semantics>", namePosition);
+  REQUIRE(descriptionStart != std::string::npos);
+  auto const descriptionEnd = mimText.find("</semantics>", descriptionStart);
+  REQUIRE(descriptionEnd != std::string::npos);
+  mimText.replace(
+      descriptionStart,
+      descriptionEnd + std::string("</semantics>").size() - descriptionStart,
+      "<semantics>Different descriptive text; the FDD definition is unchanged.</semantics>");
+
+  auto const path = temporaryFomModulePath("umbra-transport-description-difference");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << mimText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
 ScopedTemporaryFile restaurantModuleWithConflictingUpdateRateNote() {
   auto const source = resourcePath("examples/RestaurantFOMmodule-2025.xml");
   std::ifstream input(source, std::ios::binary);
@@ -221,6 +252,33 @@ ScopedTemporaryFile dimensionProviderWithConflictingDimension() {
       "<upperBound>101</upperBound>");
 
   auto const path = temporaryFomModulePath("umbra-dimension-duplicate-conflict");
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  REQUIRE(output.good());
+  output << fomText;
+  REQUIRE(output.good());
+  return ScopedTemporaryFile(path);
+}
+
+ScopedTemporaryFile dimensionProviderWithUnspecifiedUpperBound() {
+  auto const source = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "dimension-reference-provider-fom.xml";
+  std::ifstream input(source, std::ios::binary);
+  REQUIRE(input.good());
+  std::string fomText{
+      std::istreambuf_iterator<char>(input),
+      std::istreambuf_iterator<char>()};
+
+  auto const namePosition = fomText.find("<name>UmbraDimensionFixture</name>");
+  REQUIRE(namePosition != std::string::npos);
+  auto const upperBoundPosition = fomText.find("<upperBound>100</upperBound>", namePosition);
+  REQUIRE(upperBoundPosition != std::string::npos);
+  fomText.erase(upperBoundPosition,
+                std::string("<upperBound>100</upperBound>").size());
+  auto const valuePosition = fomText.find("<value>[0..100)</value>", namePosition);
+  REQUIRE(valuePosition != std::string::npos);
+  fomText.erase(valuePosition, std::string("<value>[0..100)</value>").size());
+
+  auto const path = temporaryFomModulePath("umbra-dimension-unspecified-upper-bound");
   std::ofstream output(path, std::ios::binary | std::ios::trunc);
   REQUIRE(output.good());
   output << fomText;
@@ -382,6 +440,10 @@ TEST_CASE("The FDD materializer accepts the supplied MIM and base FOM", "[unit][
   REQUIRE(pauseExecution->capability == "RegisterAchieve");
   REQUIRE(pauseExecution->semantics.find("time advance") != std::string::npos);
   REQUIRE(result.catalog->synchronizationPoint("InitialPublish") != nullptr);
+  auto const* beginTimeAdvance =
+      result.catalog->synchronizationPoint("BeginTimeAdvance");
+  REQUIRE(beginTimeAdvance != nullptr);
+  REQUIRE(beginTimeAdvance->capability == "Achieve");
   REQUIRE(result.catalog->synchronizationPoint("MissingSynchronizationPoint") == nullptr);
   REQUIRE(
       result.catalog->synchronizationPointLabels() ==
@@ -522,6 +584,28 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Internal FOM composition rejects explicit versus unspecified duplicate dimension upper bounds",
+    "[unit][internal-only][no-normative-mapping][2025][fom][composition][dimension-merge][internal-dimension-upper-bound]") {
+  auto const mim = resourcePath("mim/HLAstandardMIM-2025.xml");
+  auto const baseModule = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" /
+      "data" / "dimension-reference-provider-fom.xml";
+  auto const unspecifiedUpperBoundModule = dimensionProviderWithUnspecifiedUpperBound();
+
+  auto result = composer().compose({
+      validated(mim, FomModuleKind::mim, L"urn:umbra:test:mim-unspecified-bound"),
+      validated(baseModule, FomModuleKind::fom, L"urn:umbra:test:restaurant-explicit-bound"),
+      validated(unspecifiedUpperBoundModule.path(), FomModuleKind::fom,
+                L"urn:umbra:test:restaurant-unspecified-bound"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(result.diagnostics.find("Conflicting duplicate dimension") !=
+          std::string::npos);
+  REQUIRE(result.diagnostics.find("UmbraDimensionFixture") != std::string::npos);
+}
+
+TEST_CASE(
     "The FOM composition preflight applies the Annex C.5 synchronization duplicate rule",
     "[unit][fom][composition][annex-c][synchronization-merge]") {
   auto const conflictingModule = restaurantModuleWithConflictingSynchronizationNote();
@@ -626,6 +710,29 @@ TEST_CASE(
   CAPTURE(noteEquivalent.diagnostics);
   REQUIRE(noteEquivalent.status == FomCompositionStatus::valid);
   REQUIRE(noteEquivalent.catalog);
+}
+
+TEST_CASE(
+    "FOM composition ignores non-FDD transportation descriptions when detecting conflicts",
+    "[unit][fom][composition][clause-4.1.4.1][transportation-description]") {
+  auto const baseMim = resourcePath("mim/HLAstandardMIM-2025.xml");
+  auto const describedDifferently = mimWithDifferentTransportationDescription();
+
+  auto result = composer().compose({
+      validated(baseMim, FomModuleKind::mim, L"urn:umbra:test:mim-description-base"),
+      validated(describedDifferently.path(), FomModuleKind::mim,
+                L"urn:umbra:test:mim-description-different"),
+  });
+
+  CAPTURE(result.diagnostics);
+  REQUIRE(result.status == FomCompositionStatus::valid);
+  REQUIRE(result.fdd);
+  REQUIRE(result.fdd->xmlUtf8().find(
+              "Provide reliable delivery of data in the sense that TCP/IP delivers its data reliably") !=
+          std::string::npos);
+  REQUIRE(result.fdd->xmlUtf8().find(
+              "Different descriptive text; the FDD definition is unchanged.") ==
+          std::string::npos);
 }
 
 TEST_CASE(
@@ -909,8 +1016,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "The FOM composition preflight retains the first duplicate switch and reports Annex C.8 warnings",
-    "[unit][fom][composition][switches][annex-c]") {
+    "The FOM composition preflight rejects conflicting duplicate switch definitions",
+    "[unit][fom][composition][switches][annex-c][fom-switch-conflict-rejection]") {
   auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
   auto mim = validated(
       resourcePath("mim/HLAstandardMIM-2025.xml"),
@@ -953,23 +1060,23 @@ TEST_CASE(
 
   auto disabledFirst = materializer.compose({mim, disabled, enabled});
   CAPTURE(disabledFirst.diagnostics, disabledFirst.warnings.size());
-  REQUIRE(disabledFirst.status == FomCompositionStatus::valid);
-  REQUIRE(disabledFirst.catalog);
-  REQUIRE(disabledFirst.fdd);
-  REQUIRE_FALSE(disabledFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
-  REQUIRE(disabledFirst.catalog->federationSwitches().autoProvide);
-  REQUIRE(disabledFirst.fdd->xmlUtf8().find("<autoProvide isEnabled=\"true\"") != std::string::npos);
-  REQUIRE(disabledFirst.warnings.size() == 1);
-  REQUIRE(disabledFirst.warnings.front().find("nonRegulatedGrant") != std::string::npos);
-  REQUIRE(disabledFirst.warnings.front().find("first module") != std::string::npos);
+  REQUIRE(disabledFirst.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(disabledFirst.diagnostics.find("nonRegulatedGrant") != std::string::npos);
 
   auto enabledFirst = materializer.compose({mim, enabled, disabled});
   CAPTURE(enabledFirst.diagnostics, enabledFirst.warnings.size());
-  REQUIRE(enabledFirst.status == FomCompositionStatus::valid);
-  REQUIRE(enabledFirst.catalog);
-  REQUIRE(enabledFirst.catalog->timeManagementSwitches().nonRegulatedGrant);
-  REQUIRE(enabledFirst.catalog->federationSwitches().autoProvide);
-  REQUIRE(enabledFirst.warnings == disabledFirst.warnings);
+  REQUIRE(enabledFirst.status == FomCompositionStatus::inconsistent_modules);
+  REQUIRE(enabledFirst.diagnostics.find("nonRegulatedGrant") != std::string::npos);
+
+  auto disabledRetry = materializer.compose({mim, disabled});
+  REQUIRE(disabledRetry.status == FomCompositionStatus::valid);
+  REQUIRE(disabledRetry.catalog);
+  REQUIRE_FALSE(disabledRetry.catalog->timeManagementSwitches().nonRegulatedGrant);
+
+  auto enabledRetry = materializer.compose({mim, enabled});
+  REQUIRE(enabledRetry.status == FomCompositionStatus::valid);
+  REQUIRE(enabledRetry.catalog);
+  REQUIRE(enabledRetry.catalog->timeManagementSwitches().nonRegulatedGrant);
 }
 
 TEST_CASE(
@@ -2025,32 +2132,27 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "The FOM composition preflight requires standard object and interaction roots",
-    "[unit][fom][composition][root-hierarchy]") {
-  auto const testData = std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "cpp" / "tests" / "data";
+    "The FOM composer supplies omitted standard object and interaction roots",
+    "[unit][fom][composition][root-hierarchy][optional-roots]") {
   auto mim = validated(
       resourcePath("mim/HLAstandardMIM-2025.xml"),
       FomModuleKind::mim,
       L"urn:umbra:test:mim");
-  auto objectRoot = validated(
-      testData / "nonstandard-object-root-fom.xml",
+  auto optionalRootsFom = validated(
+      std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" / "hla-rti-cpp-tck" /
+          "fom" / "fom-root-classes-omitted-tck.xml",
       FomModuleKind::fom,
-      L"urn:umbra:test:nonstandard-object-root");
-  auto interactionRoot = validated(
-      testData / "nonstandard-interaction-root-fom.xml",
-      FomModuleKind::fom,
-      L"urn:umbra:test:nonstandard-interaction-root");
+      L"urn:umbra:test:optional-standard-roots");
 
   auto materializer = composer();
-  auto objectResult = materializer.compose({mim, objectRoot});
-  REQUIRE(objectResult.status == FomCompositionStatus::inconsistent_modules);
-  REQUIRE(objectResult.diagnostics.find("UmbraUnexpectedObjectRoot") != std::string::npos);
-  REQUIRE(objectResult.diagnostics.find("HLAobjectRoot") != std::string::npos);
-
-  auto interactionResult = materializer.compose({mim, interactionRoot});
-  REQUIRE(interactionResult.status == FomCompositionStatus::inconsistent_modules);
-  REQUIRE(interactionResult.diagnostics.find("UmbraUnexpectedInteractionRoot") != std::string::npos);
-  REQUIRE(interactionResult.diagnostics.find("HLAinteractionRoot") != std::string::npos);
+  auto optionalRootsResult = materializer.compose({mim, optionalRootsFom});
+  CAPTURE(optionalRootsResult.diagnostics);
+  REQUIRE(optionalRootsResult.status == FomCompositionStatus::valid);
+  REQUIRE(optionalRootsResult.catalog);
+  REQUIRE(optionalRootsResult.catalog->objectClass("HLAobjectRoot") != nullptr);
+  REQUIRE(optionalRootsResult.catalog->objectClass("HLAobjectRoot.TckObject") != nullptr);
+  REQUIRE(optionalRootsResult.catalog->interactionClass("HLAinteractionRoot") != nullptr);
+  REQUIRE(optionalRootsResult.catalog->interactionClass("HLAinteractionRoot.TckInteraction") != nullptr);
 
   auto standardResult = materializer.compose({
       mim,

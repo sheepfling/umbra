@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 /** Tests the standard Allow Relaxed DDM switch for touching object and interaction regions. */
@@ -47,6 +48,12 @@ final class AllowRelaxedDdmTck {
          attributeName, interactionClassName, parameterName, firstDimensionName,
          secondDimensionName, callbackModel, false);
       runInteraction(factory, ddmFom, switchesFom, timeImplementation, objectClassName,
+         attributeName, interactionClassName, parameterName, firstDimensionName,
+         secondDimensionName, callbackModel, true);
+      runStrictOverlap(factory, ddmFom, switchesFom, timeImplementation, objectClassName,
+         attributeName, interactionClassName, parameterName, firstDimensionName,
+         secondDimensionName, callbackModel, false);
+      runStrictOverlap(factory, ddmFom, switchesFom, timeImplementation, objectClassName,
          attributeName, interactionClassName, parameterName, firstDimensionName,
          secondDimensionName, callbackModel, true);
    }
@@ -98,6 +105,9 @@ final class AllowRelaxedDdmTck {
          check(publisher.getAllowRelaxedDDMSwitch() == enabled
                && subscriber.getAllowRelaxedDDMSwitch() == enabled,
             "Allow Relaxed DDM getter did not match adapter FOM composition");
+         check(publisher.getConveyRegionDesignatorSetsSwitch() == enabled
+               && subscriber.getConveyRegionDesignatorSetsSwitch() == enabled,
+            "Convey Region Designator Sets initial value did not match the FDD switch value");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
             publisher, publisherAttribute);
@@ -106,11 +116,19 @@ final class AllowRelaxedDdmTck {
          sourceRegion = createRegion(publisher, publisherDimensions, 0, 2, 0, 2);
          subscriptionRegion = createRegion(subscriber, subscriberDimensions, 2, 3, 2, 3);
          subscriber.setConveyRegionDesignatorSetsSwitch(true);
+         check(subscriber.getConveyRegionDesignatorSetsSwitch(),
+            "object subscriber did not enable source region designators");
          sourcePairs = pairList(publisher, publisherAttribute, sourceRegion);
          subscriptionPairs = pairList(subscriber, subscriberAttribute, subscriptionRegion);
          subscriber.subscribeObjectClassAttributesWithRegions(subscriberClass,
             subscriptionPairs, "");
          subscribed = true;
+         if (enabled) {
+            subscriberEvents.regionHook = regions -> {
+               checkCallbackRegion(subscriber, regions, subscriberDimensions, 0, 2, 0, 2);
+               subscriberEvents.inspectedSourceRegionCallbacks.incrementAndGet();
+            };
+         }
          object = publisher.registerObjectInstanceWithRegions(publisherClass, sourcePairs);
          ObjectInstanceHandle registered = object;
          if (enabled) {
@@ -137,13 +155,25 @@ final class AllowRelaxedDdmTck {
             check(registered.equals(reflection.object) && reflection.values.size() == 1
                   && Arrays.equals(value, reflection.values.get(subscriberAttribute))
                   && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer)
-                  && reflection.regions != null && reflection.regions.contains(sourceRegion),
+                  && reflection.regions != null && reflection.regions.size() == 1
+                  && subscriberEvents.inspectedSourceRegionCallbacks.get() == 1,
                "relaxed touching-region reflection changed payload or source-region metadata");
          } else {
             settle(subscriber, model);
             check(subscriberEvents.reflections.isEmpty(),
                "strict DDM reflected an update whose regions only touch");
          }
+         check(subscriberEvents.inspectedSourceRegionCallbacks.get()
+               == subscriberEvents.reflections.size(),
+            "object reflection omitted callback-scoped source region metadata");
+         requireRangeBounds(publisher, sourceRegion, publisherDimensions[0], 0, 2,
+            "Allow Relaxed DDM changed the object's source first-dimension range");
+         requireRangeBounds(publisher, sourceRegion, publisherDimensions[1], 0, 2,
+            "Allow Relaxed DDM changed the object's source second-dimension range");
+         requireRangeBounds(subscriber, subscriptionRegion, subscriberDimensions[0], 2, 3,
+            "Allow Relaxed DDM reduced the object's subscription first-dimension range");
+         requireRangeBounds(subscriber, subscriptionRegion, subscriberDimensions[1], 2, 3,
+            "Allow Relaxed DDM reduced the object's subscription second-dimension range");
       } finally {
          if (subscriberJoined && subscribed && subscriberClass != null && subscriptionPairs != null) {
             try { subscriber.unsubscribeObjectClassAttributesWithRegions(
@@ -240,9 +270,17 @@ final class AllowRelaxedDdmTck {
          sourceRegions = regionSet(publisher, sourceRegion);
          subscriptionRegions = regionSet(subscriber, subscriptionRegion);
          subscriber.setConveyRegionDesignatorSetsSwitch(true);
+         check(subscriber.getConveyRegionDesignatorSetsSwitch(),
+            "interaction subscriber did not enable source region designators");
          subscriber.subscribeInteractionClassWithRegions(subscriberInteraction,
             subscriptionRegions);
          subscribed = true;
+         if (enabled) {
+            subscriberEvents.regionHook = regions -> {
+               checkCallbackRegion(subscriber, regions, subscriberDimensions, 0, 2, 0, 2);
+               subscriberEvents.inspectedSourceRegionCallbacks.incrementAndGet();
+            };
+         }
 
          byte[] parameterValue = new byte[] {0x49, 0x4E, 0x54};
          byte[] tag = new byte[] {0x52, 0x58};
@@ -258,13 +296,25 @@ final class AllowRelaxedDdmTck {
                   && interaction.parameters.size() == 1
                   && Arrays.equals(parameterValue, interaction.parameters.get(subscriberParameter))
                   && Arrays.equals(tag, interaction.tag) && producer.equals(interaction.producer)
-                  && interaction.regions != null && interaction.regions.contains(sourceRegion),
+                  && interaction.regions != null && interaction.regions.size() == 1
+                  && subscriberEvents.inspectedSourceRegionCallbacks.get() == 1,
                "relaxed touching-region interaction changed data or region metadata");
          } else {
             settle(subscriber, model);
             check(subscriberEvents.interactions.isEmpty(),
                "strict DDM delivered an interaction whose regions only touch");
          }
+         check(subscriberEvents.inspectedSourceRegionCallbacks.get()
+               == subscriberEvents.interactions.size(),
+            "interaction omitted callback-scoped source region metadata");
+         requireRangeBounds(publisher, sourceRegion, publisherDimensions[0], 0, 2,
+            "Allow Relaxed DDM changed the interaction source first-dimension range");
+         requireRangeBounds(publisher, sourceRegion, publisherDimensions[1], 0, 2,
+            "Allow Relaxed DDM changed the interaction source second-dimension range");
+         requireRangeBounds(subscriber, subscriptionRegion, subscriberDimensions[0], 2, 3,
+            "Allow Relaxed DDM reduced the interaction subscription first-dimension range");
+         requireRangeBounds(subscriber, subscriptionRegion, subscriberDimensions[1], 2, 3,
+            "Allow Relaxed DDM reduced the interaction subscription second-dimension range");
       } finally {
          if (subscriberJoined && subscribed && subscriberInteraction != null
                && subscriptionRegions != null) {
@@ -284,6 +334,188 @@ final class AllowRelaxedDdmTck {
          cleanup(publisher, subscriber, federation, created, publisherJoined, subscriberJoined,
             publisherConnected, subscriberConnected);
       }
+   }
+
+   private static void runStrictOverlap(RtiFactory factory, String ddmFom, String switchesFom,
+         String timeImplementation, String objectClassName, String attributeName,
+         String interactionClassName, String parameterName, String firstDimensionName,
+         String secondDimensionName, CallbackModel model, boolean enabled) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder publisherEvents = new Recorder();
+      Recorder subscriberEvents = new Recorder();
+      String federation = "java-tck-relaxed-ddm-overlap-" + enabled + "-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false;
+      boolean attributesPublished = false, interactionPublished = false;
+      boolean attributesSubscribed = false, interactionSubscribed = false;
+      RegionHandle sourceRegion = null, subscriptionRegion = null;
+      ObjectInstanceHandle object = null;
+      ObjectClassHandle publisherObjectClass = null, subscriberObjectClass = null;
+      AttributeHandle publisherAttribute = null, subscriberAttribute = null;
+      AttributeHandleSet publisherAttributes = null, subscriberAttributes = null;
+      AttributeSetRegionSetPairList sourcePairs = null, subscriptionPairs = null;
+      InteractionClassHandle publisherInteraction = null, subscriberInteraction = null;
+      ParameterHandle publisherParameter = null, subscriberParameter = null;
+      RegionHandleSet sourceRegions = null, subscriptionRegions = null;
+      try {
+         publisher.connect(publisherEvents.proxy(), model);
+         publisherConnected = true;
+         subscriber.connect(subscriberEvents.proxy(), model);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation,
+            enabled ? new String[] {ddmFom, switchesFom} : new String[] {ddmFom},
+            timeImplementation);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-relaxed-ddm-overlap-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-relaxed-ddm-overlap-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherObjectClass = publisher.getObjectClassHandle(objectClassName);
+         subscriberObjectClass = subscriber.getObjectClassHandle(objectClassName);
+         publisherAttribute = publisher.getAttributeHandle(publisherObjectClass, attributeName);
+         subscriberAttribute = subscriber.getAttributeHandle(subscriberObjectClass, attributeName);
+         DimensionHandle[] publisherDimensions = dimensions(publisher, publisherObjectClass,
+            firstDimensionName, secondDimensionName);
+         DimensionHandle[] subscriberDimensions = dimensions(subscriber, subscriberObjectClass,
+            firstDimensionName, secondDimensionName);
+         publisherInteraction = publisher.getInteractionClassHandle(interactionClassName);
+         subscriberInteraction = subscriber.getInteractionClassHandle(interactionClassName);
+         publisherParameter = publisher.getParameterHandle(publisherInteraction, parameterName);
+         subscriberParameter = subscriber.getParameterHandle(subscriberInteraction, parameterName);
+         DimensionHandleSet publisherInteractionDimensions =
+            publisher.getAvailableDimensionsForInteractionClass(publisherInteraction);
+         DimensionHandleSet subscriberInteractionDimensions =
+            subscriber.getAvailableDimensionsForInteractionClass(subscriberInteraction);
+         check(publisherObjectClass.equals(subscriberObjectClass)
+               && publisherAttribute.equals(subscriberAttribute)
+               && Arrays.equals(publisherDimensions, subscriberDimensions)
+               && publisherInteraction.equals(subscriberInteraction)
+               && publisherParameter.equals(subscriberParameter)
+               && publisherInteractionDimensions.size() == 2
+               && publisherInteractionDimensions.contains(publisherDimensions[0])
+               && publisherInteractionDimensions.contains(publisherDimensions[1])
+               && subscriberInteractionDimensions.size() == 2
+               && subscriberInteractionDimensions.contains(subscriberDimensions[0])
+               && subscriberInteractionDimensions.contains(subscriberDimensions[1]),
+            "adapter DDM FOM returned inconsistent strict-overlap handles or dimensions");
+         check(publisher.getAllowRelaxedDDMSwitch() == enabled
+               && subscriber.getAllowRelaxedDDMSwitch() == enabled,
+            "strict-overlap federates joined with the wrong Allow Relaxed DDM value");
+
+         publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
+         subscriberAttributes = JavaTckSupport.attributeSet(subscriber, subscriberAttribute);
+         publisher.publishObjectClassAttributes(publisherObjectClass, publisherAttributes);
+         attributesPublished = true;
+         publisher.publishInteractionClass(publisherInteraction);
+         interactionPublished = true;
+         sourceRegion = createRegion(publisher, publisherDimensions, 1, 4, 1, 4);
+         subscriptionRegion = createRegion(subscriber, subscriberDimensions, 2, 5, 2, 5);
+         sourcePairs = pairList(publisher, publisherAttribute, sourceRegion);
+         subscriptionPairs = pairList(subscriber, subscriberAttribute, subscriptionRegion);
+         sourceRegions = regionSet(publisher, sourceRegion);
+         subscriptionRegions = regionSet(subscriber, subscriptionRegion);
+         subscriber.subscribeObjectClassAttributesWithRegions(subscriberObjectClass,
+            subscriptionPairs, "");
+         attributesSubscribed = true;
+         subscriber.subscribeInteractionClassWithRegions(subscriberInteraction,
+            subscriptionRegions);
+         interactionSubscribed = true;
+         object = publisher.registerObjectInstanceWithRegions(publisherObjectClass, sourcePairs);
+         ObjectInstanceHandle registered = object;
+         await(subscriber, model, () -> !subscriberEvents.discoveries.isEmpty(),
+            "strict-overlap object discovery");
+         Discovery discovery = subscriberEvents.discoveries.get(0);
+         check(registered.equals(discovery.object)
+               && subscriberObjectClass.equals(discovery.objectClass),
+            "strict-overlap discovery returned the wrong object identity");
+
+         byte[] updateValue = new byte[] {0x53, 0x55, 0x50};
+         byte[] updateTag = new byte[] {0x53, 0x55};
+         AttributeHandleValueMap values = publisher.getAttributeHandleValueMapFactory().create(1);
+         values.put(publisherAttribute, updateValue);
+         publisher.updateAttributeValues(object, values, updateTag);
+         await(subscriber, model, () -> !subscriberEvents.reflections.isEmpty(),
+            "strict-overlap object update");
+         Reflection reflection = subscriberEvents.reflections.get(0);
+         check(registered.equals(reflection.object) && reflection.values.size() == 1
+               && Arrays.equals(updateValue, reflection.values.get(subscriberAttribute))
+               && Arrays.equals(updateTag, reflection.tag),
+            "strict-overlap object update changed its delivered attribute or tag");
+
+         byte[] parameterValue = new byte[] {0x53, 0x55, 0x50, 0x49};
+         byte[] interactionTag = new byte[] {0x53, 0x55, 0x50, 0x54};
+         ParameterHandleValueMap parameters =
+            publisher.getParameterHandleValueMapFactory().create(1);
+         parameters.put(publisherParameter, parameterValue);
+         publisher.sendInteractionWithRegions(
+            publisherInteraction, parameters, sourceRegions, interactionTag);
+         await(subscriber, model, () -> !subscriberEvents.interactions.isEmpty(),
+            "strict-overlap interaction");
+         Interaction interaction = subscriberEvents.interactions.get(0);
+         check(subscriberInteraction.equals(interaction.interaction)
+               && interaction.parameters.size() == 1
+               && Arrays.equals(parameterValue, interaction.parameters.get(subscriberParameter))
+               && Arrays.equals(interactionTag, interaction.tag),
+            "strict-overlap interaction changed its delivered parameter or tag");
+      } finally {
+         if (subscriberJoined && attributesSubscribed && subscriberObjectClass != null
+               && subscriptionPairs != null) {
+            try { subscriber.unsubscribeObjectClassAttributesWithRegions(
+               subscriberObjectClass, subscriptionPairs); } catch (Exception ignored) { }
+         }
+         if (subscriberJoined && interactionSubscribed && subscriberInteraction != null
+               && subscriptionRegions != null) {
+            try { subscriber.unsubscribeInteractionClassWithRegions(
+               subscriberInteraction, subscriptionRegions); } catch (Exception ignored) { }
+         }
+         if (publisherJoined && object != null && sourcePairs != null) {
+            try { publisher.unassociateRegionsForUpdates(object, sourcePairs); }
+            catch (Exception ignored) { }
+         }
+         if (publisherJoined && attributesPublished && publisherObjectClass != null
+               && publisherAttributes != null) {
+            try { publisher.unpublishObjectClassAttributes(
+               publisherObjectClass, publisherAttributes); } catch (Exception ignored) { }
+         }
+         if (publisherJoined && interactionPublished && publisherInteraction != null) {
+            try { publisher.unpublishInteractionClass(publisherInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (subscriberJoined && subscriptionRegion != null) {
+            try { subscriber.deleteRegion(subscriptionRegion); } catch (Exception ignored) { }
+         }
+         if (publisherJoined && sourceRegion != null) {
+            try { publisher.deleteRegion(sourceRegion); } catch (Exception ignored) { }
+         }
+         cleanup(publisher, subscriber, federation, created, publisherJoined, subscriberJoined,
+            publisherConnected, subscriberConnected);
+      }
+   }
+
+   private static void checkCallbackRegion(RTIambassador receiver, RegionHandleSet regions,
+         DimensionHandle[] dimensions, long lower, long upper, long secondLower,
+         long secondUpper) throws Exception {
+      check(regions != null && regions.size() == 1,
+         "Allow Relaxed DDM callback omitted its single source region copy");
+      RegionHandle callbackRegion = regions.iterator().next();
+      DimensionHandleSet actualDimensions = receiver.getDimensionHandleSet(callbackRegion);
+      check(actualDimensions.size() == 2 && actualDimensions.contains(dimensions[0])
+            && actualDimensions.contains(dimensions[1]),
+         "Allow Relaxed DDM callback copy changed its dimensions");
+      RangeBounds firstBounds = receiver.getRangeBounds(callbackRegion, dimensions[0]);
+      RangeBounds secondBounds = receiver.getRangeBounds(callbackRegion, dimensions[1]);
+      check(firstBounds.lower == lower && firstBounds.upper == upper
+            && secondBounds.lower == secondLower && secondBounds.upper == secondUpper,
+         "Allow Relaxed DDM callback copy changed the source bounds");
+   }
+
+   private static void requireRangeBounds(RTIambassador ambassador, RegionHandle region,
+         DimensionHandle dimension, long lower, long upper, String message) throws Exception {
+      RangeBounds bounds = ambassador.getRangeBounds(region, dimension);
+      check(bounds.lower == lower && bounds.upper == upper, message);
    }
 
    private static DimensionHandle[] dimensions(RTIambassador ambassador,
@@ -416,6 +648,8 @@ final class AllowRelaxedDdmTck {
       final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      final AtomicInteger inspectedSourceRegionCallbacks = new AtomicInteger();
+      RegionHook regionHook;
       FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -425,9 +659,11 @@ final class AllowRelaxedDdmTck {
                   discoveries.add(new Discovery(args));
                } else if ("reflectAttributeValues".equals(name)
                      && args != null && args.length == 6) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) args[5]);
                   reflections.add(new Reflection(args));
                } else if ("receiveInteraction".equals(name)
                      && args != null && args.length == 6) {
+                  if (regionHook != null) regionHook.check((RegionHandleSet) args[5]);
                   interactions.add(new Interaction(args));
                }
                if (method.getDeclaringClass() == Object.class) {
@@ -438,5 +674,10 @@ final class AllowRelaxedDdmTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface RegionHook {
+      void check(RegionHandleSet regions) throws Exception;
    }
 }

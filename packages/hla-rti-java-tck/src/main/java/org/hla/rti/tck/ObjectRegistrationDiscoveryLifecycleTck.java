@@ -2,6 +2,7 @@ package org.hla.rti.tck;
 
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
+import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
@@ -11,9 +12,11 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BooleanSupplier;
 
 /** Verifies hierarchy-aware registration discovery and subscription eligibility. */
 final class ObjectRegistrationDiscoveryLifecycleTck {
@@ -22,14 +25,16 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
    private static final int BASE = 2;
    private static final int CANCELLED = 3;
    private static final int LATE = 4;
-   private static final int FEDERATE_COUNT = 5;
+   private static final int UNRELATED = 5;
+   private static final int FEDERATE_COUNT = 6;
 
    private ObjectRegistrationDiscoveryLifecycleTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String baseClassName,
          String derivedClassName, String identityAttributeName,
-         String derivedAttributeName, CallbackModel callbackModel) throws Exception {
+         String derivedAttributeName, String unrelatedClassName,
+         String unrelatedAttributeName, CallbackModel callbackModel) throws Exception {
       RTIambassador[] rti = new RTIambassador[FEDERATE_COUNT];
       Recorder[] recorders = new Recorder[FEDERATE_COUNT];
       boolean[] connected = new boolean[FEDERATE_COUNT];
@@ -38,7 +43,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
       boolean published = false;
       boolean federationCreated = false;
       String federation = "java-tck-object-registration-discovery-" + UUID.randomUUID();
-      String[] roles = {"publisher", "exact", "base", "cancelled", "late"};
+      String[] roles = {"publisher", "exact", "base", "cancelled", "late", "unrelated"};
       try {
          for (int i = 0; i < FEDERATE_COUNT; ++i) {
             rti[i] = factory.getRtiAmbassador();
@@ -55,6 +60,11 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                "registration-" + roles[i], federation);
             joined[i] = true;
          }
+
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].getObjectClassHandle(
+               baseClassName + ".TckMissingFddClass"),
+            "NameNotFound", "resolving an object class absent from the FDD vocabulary");
 
          ObjectClassHandle[] derivedClasses = new ObjectClassHandle[FEDERATE_COUNT];
          ObjectClassHandle[] baseClasses = new ObjectClassHandle[FEDERATE_COUNT];
@@ -78,6 +88,19 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                      derivedClasses[i], derivedAttributes[i])),
                "typed object registration FOM lookup returned a null handle");
          }
+         ObjectClassHandle unrelatedClass = rti[UNRELATED].getObjectClassHandle(
+            unrelatedClassName);
+         AttributeHandle unrelatedAttribute = rti[UNRELATED].getAttributeHandle(
+            unrelatedClass, unrelatedAttributeName);
+         JavaTckSupport.check(unrelatedClass != null && unrelatedAttribute != null
+               && unrelatedClassName.equals(rti[UNRELATED].getObjectClassName(unrelatedClass))
+               && unrelatedAttributeName.equals(
+                  rti[UNRELATED].getAttributeName(unrelatedClass, unrelatedAttribute)),
+            "adapter FOM did not resolve the unrelated subscriber class and attribute");
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].getAttributeHandle(
+               baseClasses[PUBLISHER], derivedAttributeName),
+            "NameNotFound", "resolving a derived-only attribute on its superclass");
          JavaTckSupport.check(rti[PUBLISHER].getAttributeHandle(
                baseClasses[PUBLISHER], identityAttributeName)
                .equals(identityAttributes[PUBLISHER]),
@@ -98,6 +121,19 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             rti[CANCELLED], derivedAttributes[CANCELLED]);
          AttributeHandleSet lateAttributes = JavaTckSupport.attributeSet(
             rti[LATE], derivedAttributes[LATE]);
+         AttributeHandleSet unrelatedAttributes = JavaTckSupport.attributeSet(
+            rti[UNRELATED], unrelatedAttribute);
+
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].publishObjectClassAttributes(
+               baseClasses[PUBLISHER],
+               JavaTckSupport.attributeSet(rti[PUBLISHER], derivedAttributes[PUBLISHER])),
+            "AttributeNotDefined", "publishing a derived-only attribute through its superclass");
+         JavaTckSupport.expectFailure(
+            () -> rti[BASE].subscribeObjectClassAttributes(
+               baseClasses[BASE],
+               JavaTckSupport.attributeSet(rti[BASE], derivedAttributes[BASE])),
+            "AttributeNotDefined", "subscribing to a derived-only attribute through its superclass");
 
          rti[EXACT].subscribeObjectClassAttributes(derivedClasses[EXACT], exactAttributes);
          subscribed[EXACT] = true;
@@ -106,6 +142,8 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          rti[CANCELLED].subscribeObjectClassAttributes(
             derivedClasses[CANCELLED], cancelledAttributes);
          subscribed[CANCELLED] = true;
+         rti[UNRELATED].subscribeObjectClassAttributes(unrelatedClass, unrelatedAttributes);
+         subscribed[UNRELATED] = true;
          rti[PUBLISHER].publishObjectClassAttributes(
             derivedClasses[PUBLISHER], publisherAttributes);
          published = true;
@@ -124,7 +162,7 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             "looking up an undiscovered object by name");
 
          if (callbackModel == CallbackModel.HLA_EVOKED) {
-            for (int index : new int[] {EXACT, BASE, CANCELLED}) {
+            for (int index : new int[] {EXACT, BASE, CANCELLED, UNRELATED}) {
                JavaTckSupport.check(recorders[index].discoveries.isEmpty(),
                   "evoked object discovery arrived before callback servicing");
             }
@@ -144,7 +182,8 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          } else {
             JavaTckSupport.check(recorders[EXACT].discoveries.size() == 1
                   && recorders[BASE].discoveries.size() == 1
-                  && recorders[CANCELLED].discoveries.size() == 1,
+                  && recorders[CANCELLED].discoveries.size() == 1
+                  && recorders[UNRELATED].discoveries.isEmpty(),
                "immediate registration did not discover the object once per subscriber");
             rti[CANCELLED].unsubscribeObjectClassAttributes(
                derivedClasses[CANCELLED], cancelledAttributes);
@@ -165,6 +204,51 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          }
          assertDiscovery(rti[LATE], recorders[LATE], objectName,
             derivedClasses[LATE], publisherName, "late exact-class discovery");
+
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            for (int pass = 0; pass < 8; ++pass) JavaTckSupport.drain(rti[UNRELATED]);
+            JavaTckSupport.check(recorders[CANCELLED].discoveries.isEmpty(),
+               "unsubscribed evoked subscriber received object discovery");
+            JavaTckSupport.expectFailure(
+               () -> rti[CANCELLED].getObjectInstanceHandle(objectName),
+               "ObjectInstanceNotKnown", "looking up an unsubscribed object by name");
+         } else {
+            rti[CANCELLED].unsubscribeObjectClassAttributes(
+               derivedClasses[CANCELLED], cancelledAttributes);
+            subscribed[CANCELLED] = false;
+            JavaTckSupport.check(recorders[CANCELLED].discoveries.size() == 1,
+               "immediate subscriber changed a delivered discovery count after unsubscribe");
+         }
+         JavaTckSupport.check(recorders[UNRELATED].discoveries.isEmpty(),
+            "an unrelated root-class subscription discovered a derived object");
+
+         byte[] identityValue = new byte[] {0x31, 0x32};
+         byte[] derivedValue = new byte[] {0x41, 0x42, 0x43};
+         byte[] updateTag = new byte[] {0x51, 0x52};
+         AttributeHandleValueMap update =
+            rti[PUBLISHER].getAttributeHandleValueMapFactory().create(2);
+         update.put(identityAttributes[PUBLISHER], identityValue.clone());
+         update.put(derivedAttributes[PUBLISHER], derivedValue.clone());
+         rti[PUBLISHER].updateAttributeValues(object, update, updateTag.clone());
+
+         assertReflectedAttribute(rti[EXACT], recorders[EXACT], callbackModel,
+            derivedAttributes[EXACT], derivedValue, updateTag, publisherName,
+            "exact-class post-discovery update");
+         assertReflectedAttribute(rti[BASE], recorders[BASE], callbackModel,
+            identityAttributes[BASE], identityValue, updateTag, publisherName,
+            "base-class post-discovery update");
+         assertReflectedAttribute(rti[LATE], recorders[LATE], callbackModel,
+            derivedAttributes[LATE], derivedValue, updateTag, publisherName,
+            "late-subscription post-discovery update");
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            for (int pass = 0; pass < 8; ++pass) {
+               JavaTckSupport.drain(rti[CANCELLED]);
+               JavaTckSupport.drain(rti[UNRELATED]);
+            }
+         }
+         JavaTckSupport.check(recorders[CANCELLED].reflections.isEmpty()
+               && recorders[UNRELATED].reflections.isEmpty(),
+            "cancelled or unrelated subscriber received the attribute update");
 
          rti[EXACT].subscribeObjectClassAttributes(derivedClasses[EXACT], exactAttributes);
          if (callbackModel == CallbackModel.HLA_EVOKED) {
@@ -190,9 +274,11 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             if (rti[i] != null && joined[i] && subscribed[i]) {
                try {
                   ObjectClassHandle subscribedClass = rti[i].getObjectClassHandle(
-                     i == BASE ? baseClassName : derivedClassName);
+                     i == BASE ? baseClassName
+                        : i == UNRELATED ? unrelatedClassName : derivedClassName);
                   AttributeHandle subscribedAttribute = rti[i].getAttributeHandle(
-                     subscribedClass, i == BASE ? identityAttributeName : derivedAttributeName);
+                     subscribedClass, i == BASE ? identityAttributeName
+                        : i == UNRELATED ? unrelatedAttributeName : derivedAttributeName);
                   rti[i].unsubscribeObjectClassAttributes(subscribedClass,
                      JavaTckSupport.attributeSet(rti[i], subscribedAttribute));
                } catch (Exception ignored) { }
@@ -233,7 +319,8 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
       ObjectClassHandle publisherClass = null, subscriberBaseClass = null;
       ObjectClassHandle subscriberDerivedClass = null;
       AttributeHandle publisherIdentity = null, publisherDerived = null;
-      AttributeHandle subscriberBaseIdentity = null, subscriberDerivedAttribute = null;
+      AttributeHandle subscriberBaseIdentity = null, subscriberDerivedIdentity = null;
+      AttributeHandle subscriberDerivedAttribute = null;
       AttributeHandleSet publisherAttributes = null;
       try {
          publisher.connect(publisherCallbacks.proxy(), callbackModel);
@@ -242,9 +329,11 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          federationCreated = true;
-         publisher.joinFederationExecution("java-tck-overlap-publisher", federation);
+         String publisherName = "java-tck-overlap-publisher";
+         publisher.joinFederationExecution(publisherName, "overlap-publisher", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-overlap-subscriber", federation);
+         subscriber.joinFederationExecution(
+            "java-tck-overlap-subscriber", "overlap-subscriber", federation);
          subscriberJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(derivedClassName);
@@ -254,12 +343,16 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          publisherDerived = publisher.getAttributeHandle(publisherClass, derivedAttributeName);
          subscriberBaseIdentity = subscriber.getAttributeHandle(
             subscriberBaseClass, identityAttributeName);
+         subscriberDerivedIdentity = subscriber.getAttributeHandle(
+            subscriberDerivedClass, identityAttributeName);
          subscriberDerivedAttribute = subscriber.getAttributeHandle(
             subscriberDerivedClass, derivedAttributeName);
          JavaTckSupport.check(publisherClass != null && subscriberBaseClass != null
                && subscriberDerivedClass != null && !subscriberBaseClass.equals(subscriberDerivedClass)
                && publisherIdentity != null && publisherDerived != null
-               && subscriberBaseIdentity != null && subscriberDerivedAttribute != null
+               && subscriberBaseIdentity != null && subscriberDerivedIdentity != null
+               && subscriberDerivedAttribute != null
+               && subscriberBaseIdentity.equals(subscriberDerivedIdentity)
                && derivedClassName.equals(publisher.getObjectClassName(publisherClass))
                && baseClassName.equals(subscriber.getObjectClassName(subscriberBaseClass))
                && derivedClassName.equals(
@@ -274,7 +367,8 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             JavaTckSupport.attributeSet(subscriber, subscriberBaseIdentity));
          baseSubscribed = true;
          subscriber.subscribeObjectClassAttributes(subscriberDerivedClass,
-            JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute));
+            JavaTckSupport.attributeSet(subscriber, subscriberDerivedIdentity,
+               subscriberDerivedAttribute));
          derivedSubscribed = true;
 
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
@@ -313,8 +407,27 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                && objectName.equals(subscriber.getObjectInstanceName(subscriberObject)),
             "overlapping subscriptions did not report the registered class and object identity");
 
+         subscriberCallbacks.reflections.clear();
+         byte[] identityValue = new byte[] {0x41, 0x42};
+         byte[] identityTag = new byte[] {0x51, 0x52};
+         AttributeHandleValueMap identityValues =
+            publisher.getAttributeHandleValueMapFactory().create(1);
+         identityValues.put(publisherIdentity, identityValue.clone());
+         publisher.updateAttributeValues(object, identityValues, identityTag.clone());
+         await(subscriber, callbackModel, () -> !subscriberCallbacks.reflections.isEmpty(),
+            "one reflection for the overlapping inherited attribute");
+         long reflectionQuietDeadline = System.nanoTime() + 150_000_000L;
+         while (System.nanoTime() < reflectionQuietDeadline) {
+            if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(subscriber);
+            else Thread.sleep(2L);
+         }
+         assertReflectedAttribute(subscriber, subscriberCallbacks, callbackModel,
+            subscriberBaseIdentity, identityValue, identityTag, publisherName,
+            "overlapping base/derived inherited-attribute update");
+
          subscriber.unsubscribeObjectClassAttributes(subscriberDerivedClass,
-            JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute));
+            JavaTckSupport.attributeSet(subscriber, subscriberDerivedIdentity,
+               subscriberDerivedAttribute));
          derivedSubscribed = false;
          subscriber.unsubscribeObjectClassAttributes(subscriberBaseClass,
             JavaTckSupport.attributeSet(subscriber, subscriberBaseIdentity));
@@ -329,9 +442,10 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          federationCreated = false;
       } finally {
          if (subscriberJoined && derivedSubscribed && subscriberDerivedClass != null
-               && subscriberDerivedAttribute != null) {
+               && subscriberDerivedIdentity != null && subscriberDerivedAttribute != null) {
             try { subscriber.unsubscribeObjectClassAttributes(subscriberDerivedClass,
-               JavaTckSupport.attributeSet(subscriber, subscriberDerivedAttribute)); }
+               JavaTckSupport.attributeSet(subscriber,
+                  subscriberDerivedIdentity, subscriberDerivedAttribute)); }
             catch (Exception ignored) { }
          }
          if (subscriberJoined && baseSubscribed && subscriberBaseClass != null
@@ -382,6 +496,41 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          description + " did not establish stable known-object identity lookups");
    }
 
+   private static void assertReflectedAttribute(RTIambassador rti, Recorder recorder,
+         CallbackModel callbackModel, AttributeHandle expectedAttribute,
+         byte[] expectedValue, byte[] expectedTag, String publisherName,
+         String description) throws Exception {
+      await(rti, callbackModel, () -> !recorder.reflections.isEmpty(), description);
+      JavaTckSupport.check(recorder.reflections.size() == 1
+            && recorder.discoveries.size() == 1,
+         description + " did not produce exactly one reflection for its discovered object");
+      Reflection actual = recorder.reflections.get(0);
+      byte[] actualValue = actual.values.get(expectedAttribute);
+      String actualProducer = rti.getFederateName(actual.producer);
+      boolean correctObject = actual.object.equals(recorder.discoveries.get(0).object);
+      boolean correctValue = actual.values.size() == 1
+            && actual.values.containsKey(expectedAttribute)
+            && Arrays.equals(expectedValue, actualValue);
+      boolean correctTag = Arrays.equals(expectedTag, actual.tag);
+      boolean correctProducer = publisherName.equals(actualProducer);
+      JavaTckSupport.check(correctObject && correctValue && correctTag && correctProducer,
+         description + " reflected object=" + actual.object + " (expected discovered object="
+            + recorder.discoveries.get(0).object + "), value count=" + actual.values.size()
+            + ", expected attribute present=" + actual.values.containsKey(expectedAttribute)
+            + ", value=" + Arrays.toString(actualValue) + ", tag=" + Arrays.toString(actual.tag)
+            + ", producer=" + actualProducer + " (expected " + publisherName + ")");
+   }
+
+   private static void await(RTIambassador ambassador, CallbackModel callbackModel,
+         BooleanSupplier condition, String description) throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
+         else Thread.sleep(2L);
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
    private static final class Discovery {
       private ObjectInstanceHandle object;
       private ObjectClassHandle objectClass;
@@ -389,8 +538,24 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
       private FederateHandle producer;
    }
 
+   private static final class Reflection {
+      private final ObjectInstanceHandle object;
+      private final AttributeHandleValueMap values;
+      private final byte[] tag;
+      private final FederateHandle producer;
+
+      private Reflection(ObjectInstanceHandle object, AttributeHandleValueMap values,
+            byte[] tag, FederateHandle producer) {
+         this.object = object;
+         this.values = values.clone();
+         this.tag = tag.clone();
+         this.producer = producer;
+      }
+   }
+
    private static final class Recorder {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -406,6 +571,12 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                   event.name = (String) arguments[2];
                   event.producer = (FederateHandle) arguments[3];
                   discoveries.add(event);
+               }
+               if ("reflectAttributeValues".equals(name)
+                     && arguments != null && arguments.length == 6) {
+                  reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleValueMap) arguments[1], (byte[]) arguments[2],
+                     (FederateHandle) arguments[4]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK object discovery recorder";

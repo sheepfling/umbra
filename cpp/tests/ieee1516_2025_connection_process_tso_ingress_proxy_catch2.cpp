@@ -60,6 +60,11 @@ std::filesystem::path resourcePath(std::filesystem::path const& relative) {
       "ieee1516.2-2025" / "resources" / relative;
 }
 
+std::filesystem::path ingressProxyFomPath() {
+  return std::filesystem::path(UMBRA_SOURCE_DIRECTORY) / "packages" /
+      "hla-rti-cpp-tck" / "fom" / "p0-tck.xml";
+}
+
 PrevalidatedFomModule validateModule(
     std::filesystem::path const& source,
     FomModuleKind kind,
@@ -79,23 +84,30 @@ PrevalidatedFomModule validateModule(
   return *result.module;
 }
 
-FederationDefinition composedDefinition() {
+FederationDefinition composedDefinition(bool usePortableTckFom = false) {
+  auto const interactionFom = usePortableTckFom
+      ? ingressProxyFomPath()
+      : resourcePath("examples/RestaurantFOMmodule-2025.xml");
+  auto const interactionDesignator = usePortableTckFom
+      ? L"urn:umbra:test:proxy-tck-interaction"
+      : L"urn:umbra:test:proxy-interaction-restaurant";
   std::vector<PrevalidatedFomModule> modules{
       validateModule(
           resourcePath("mim/HLAstandardMIM-2025.xml"),
           FomModuleKind::mim,
           L"urn:umbra:test:proxy-interaction-mim"),
       validateModule(
-          resourcePath("examples/RestaurantFOMmodule-2025.xml"),
+          interactionFom,
           FomModuleKind::fom,
-          L"urn:umbra:test:proxy-interaction-restaurant"),
+          interactionDesignator),
   };
   LibXml2FomModuleComposer composer(
       resourcePath("schemas/IEEE1516-FDD-2025.xsd"));
   auto result = composer.compose(modules);
   if (result.status != FomCompositionStatus::valid || !result.catalog ||
       !result.fdd) {
-    throw std::runtime_error("The ingress-proxy FOM did not compose.");
+    throw std::runtime_error(
+        "The ingress-proxy FOM did not compose: " + result.diagnostics);
   }
   return {
       std::move(result.modules),
@@ -235,7 +247,8 @@ void verifyPublicArrivalScenario(
     wchar_t const* scenarioName,
     bool requestAvailable,
     std::optional<ProcessTransportAddress> secondSenderAddress = std::nullopt,
-    rti1516_2025::CallbackModel callbackModel = HLA_IMMEDIATE) {
+    rti1516_2025::CallbackModel callbackModel = HLA_IMMEDIATE,
+    bool usePortableTckFom = false) {
   std::wstring const scenario(scenarioName);
   std::wstring const federationName =
       L"process-tso-ingress-proxy-" + scenario;
@@ -243,9 +256,11 @@ void verifyPublicArrivalScenario(
   std::wstring const senderOneName = federationName + L"-sender-one";
   std::wstring const senderTwoName = federationName + L"-sender-two";
   std::wstring const receiverName = federationName + L"-receiver";
-  constexpr wchar_t const* interactionName =
-      L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
-  constexpr wchar_t const* parameterName = L"TimelinessOk";
+  wchar_t const* const interactionName = usePortableTckFom
+      ? L"HLAinteractionRoot.TckPreferredTimestampInteraction"
+      : L"HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed";
+  wchar_t const* const parameterName =
+      usePortableTckFom ? L"Payload" : L"TimelinessOk";
 
   IngressFederateAmbassador senderOneFederate;
   IngressFederateAmbassador senderTwoFederate;
@@ -263,7 +278,12 @@ void verifyPublicArrivalScenario(
           })
               .addressUsed);
   REQUIRE_NOTHROW(senderOne->createFederationExecution(
-      federationName, L"server-owned-proxy-fom.xml"));
+      federationName,
+      (usePortableTckFom
+           ? ingressProxyFomPath()
+           : resourcePath("examples/RestaurantFOMmodule-2025.xml"))
+          .wstring(),
+      L"HLAinteger64Time"));
   auto const senderOneHandle = senderOne->joinFederationExecution(
       senderOneName, federateType, federationName);
   REQUIRE(senderOneHandle.isValid());
@@ -812,11 +832,26 @@ TEST_CASE(
     "[rti.service.next-message-request-available][federate.callback.receive-interaction]"
     "[federate.callback.time-advance-grant][2025]") {
   EmbeddedFederationRegistry registry;
+  umbra::detail::ProcessFederationServiceOptions serviceOptions;
+  serviceOptions.pushReceiveOrderEvents = true;
+  serviceOptions.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules != std::vector<std::wstring>{L"server-owned-proxy-fom.xml"} ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return composedDefinition();
+  };
   ProcessFederationServiceHost authority(
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
-      {"process-tso-ingress-proxy-authority", 0xB820U});
+      {"process-tso-ingress-proxy-authority", 0xB820U},
+      std::move(serviceOptions));
   authority.start();
 
   ProcessTransportProxyHost senderIngress(
@@ -1382,11 +1417,26 @@ TEST_CASE(
     "[rti.service.next-message-request-available][federate.callback.receive-interaction]"
     "[federate.callback.time-advance-grant][2025]") {
   EmbeddedFederationRegistry registry;
+  umbra::detail::ProcessFederationServiceOptions serviceOptions;
+  serviceOptions.pushReceiveOrderEvents = true;
+  serviceOptions.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"p0-tck.xml") == std::wstring::npos ||
+        mimModule || logicalTimeImplementationName != L"HLAinteger64Time") {
+      return std::nullopt;
+    }
+    return composedDefinition(true);
+  };
   ProcessFederationServiceHost authority(
       registry,
-      composedDefinition(),
+      composedDefinition(true),
       {"127.0.0.1", 0U},
-      {"process-tso-subprocess-authority", 0xB820U});
+      {"process-tso-subprocess-authority", 0xB820U},
+      std::move(serviceOptions));
   authority.start();
 
   TemporaryDirectory directory;
@@ -1403,13 +1453,19 @@ TEST_CASE(
         senderProxy.address(),
         receiverProxy.address(),
         L"subprocess-nmr",
-        false);
+        false,
+        std::nullopt,
+        HLA_IMMEDIATE,
+        true);
   }
   SECTION("NMRA through separate proxy processes") {
     verifyPublicArrivalScenario(
         senderProxy.address(),
         receiverProxy.address(),
         L"subprocess-nmra",
+        true,
+        std::nullopt,
+        HLA_IMMEDIATE,
         true);
   }
 
@@ -1477,11 +1533,26 @@ TEST_CASE(
     "[rti.service.next-message-request-available][rti.service.time-advance-request]"
     "[federate.callback.remove-object-instance][federate.callback.time-advance-grant][2025]") {
   EmbeddedFederationRegistry registry;
+  umbra::detail::ProcessFederationServiceOptions serviceOptions;
+  serviceOptions.pushReceiveOrderEvents = true;
+  serviceOptions.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules != std::vector<std::wstring>{L"server-owned-fom.xml"} ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return composedDefinition();
+  };
   ProcessFederationServiceHost authority(
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
-      {"process-tso-proxy-delete-authority", 0xB840U});
+      {"process-tso-proxy-delete-authority", 0xB840U},
+      std::move(serviceOptions));
   authority.start();
 
   TemporaryDirectory directory;

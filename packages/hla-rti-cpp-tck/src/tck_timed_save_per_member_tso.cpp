@@ -75,6 +75,14 @@ void runTimedSavePerMemberTso(
   require(retraction.isValid(),
           "Per-member TSO timed save send returned an invalid retraction handle");
   owner.rtiAmbassador().requestFederationSave(saveLabel, *saveTime);
+  static_cast<void>(ready.evokeMultipleCallbacks(0.01, 0.05));
+  static_cast<void>(delayed.evokeMultipleCallbacks(0.01, 0.05));
+  require(
+      ready.federateSaveInitiations().empty() &&
+          delayed.federateSaveInitiations().empty() &&
+          ready.recorder().callbackOrder().empty() &&
+          delayed.recorder().callbackOrder().empty(),
+      "Time-constrained members received Initiate Federate Save before requesting a time advance");
   ready.rtiAmbassador().timeAdvanceRequest(*saveTime);
   delayed.rtiAmbassador().timeAdvanceRequest(*saveTime);
   owner.rtiAmbassador().timeAdvanceRequest(*saveTime);

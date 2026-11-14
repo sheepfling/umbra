@@ -1,6 +1,7 @@
 #include "internal/handles/federate_handle.hpp"
 #include "internal/handles/interaction_class_handle.hpp"
 #include "internal/fom/hla_names.hpp"
+#include "internal/runtime/callback_region_designator_copies.hpp"
 #include "internal/runtime/ambassador_shared_utilities.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
@@ -57,13 +58,29 @@ void submitMomFomDataReport(
           auto const parameterValues = ambassadorProjectInteractionParameterValues(
               sentParameters,
               projection->receivedParameterHandles);
+          RegionHandleSet callbackRegionHandles;
+          CallbackRegionDesignatorCopies callbackRegionDesignatorCopies(
+              federationName, receivingFederateId);
+          RegionHandleSet const* optionalSentRegions = nullptr;
+          if (projection->conveyRegionDesignatorSets &&
+              !projection->sentRegionHandles.empty()) {
+            auto const copyStatus = callbackRegionDesignatorCopies.create(
+                projection->sentRegionHandles,
+                projection->sentRegionSnapshots,
+                callbackRegionHandles);
+            if (copyStatus != umbra::detail::RegionServiceStatus::applied) {
+              throw RTIinternalError(
+                  L"The embedded federation could not convey HLAreportFOMmoduleData region designators.");
+            }
+            optionalSentRegions = &callbackRegionHandles;
+          }
           recipient.receiveInteraction(
               makeInteractionClassHandle(projection->receivedInteractionClassHandle),
               parameterValues,
               VariableLengthData{},
               reliableTransportation,
               FederateHandle{},
-              nullptr);
+              optionalSentRegions);
         });
   }
 }

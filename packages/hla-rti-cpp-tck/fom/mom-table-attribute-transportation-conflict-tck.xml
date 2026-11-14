@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+  <modelIdentification>
+    <name>TCK MOM Table Attribute Transportation Conflict</name>
+    <type>FOM</type>
+  </modelIdentification>
+  <objects>
+    <objectClass>
+      <name>HLAobjectRoot</name>
+      <sharing>Neither</sharing>
+      <objectClass>
+        <name>HLAmanager</name>
+        <sharing>Neither</sharing>
+        <objectClass>
+          <name>HLAfederate</name>
+          <sharing>Publish</sharing>
+          <attribute>
+            <name>HLAfederateName</name>
+            <dataType>HLAunicodeString</dataType>
+            <updateType>Static</updateType>
+            <updateCondition>NA</updateCondition>
+            <valueRequired>true</valueRequired>
+            <ownership>NoTransfer</ownership>
+            <sharing>Publish</sharing>
+            <transportation>HLAbestEffort</transportation>
+            <order>Receive</order>
+            <semantics>Name of the joined federate supplied to a successful Join Federation Execution service invocation</semantics>
+          </attribute>
+        </objectClass>
+      </objectClass>
+    </objectClass>
+  </objects>
+</objectModel>

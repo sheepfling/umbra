@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records paired portable C++ TCK witnesses for IEEE 1516.1-2025 §12.13.5.1 TLS server-certificate validation. The positive case installs a self-signed TLS 1.3 server certificate and matching private key at the RTI process, trusts that certificate at the federate, and successfully connects; the successful handshake demonstrates presentation of the configured server certificate and possession of its corresponding private key. The negative case configures the federate to trust a different self-signed certificate with the same endpoint identity and requires RTIambassador::connect to throw the standard ConnectionFailed exception, directly exercising federate-side server-certificate validation. Both certificates identify 127.0.0.1 by subjectAltName. Provider-specific validation settings and trust-store environment configuration remain adapter-only. This does not claim client-certificate authentication, revocation checking, or overall provider conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-tls13-server-certificate-validation-connect",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect using RtiConfiguration::withRtiAddress and RtiConfiguration::withAdditionalSettings; positive case also uses List Federation Executions and its report callback",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::connect, RtiConfiguration::withRtiAddress, RtiConfiguration::withAdditionalSettings, ConfigurationResult::additionalSettingsResult, RTIambassador::listFederationExecutions, and ConnectionFailed",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_tls_transport.cpp::scenarioTls13ServerCertificateValidation",
+        "packages/hla-rti-cpp-tck/src/tck_tls_transport.cpp::scenarioTls13ServerCertificateValidationRejectsUntrusted"
+      ]
+    }
+  ]
+}

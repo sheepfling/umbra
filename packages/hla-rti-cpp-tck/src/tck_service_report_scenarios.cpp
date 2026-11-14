@@ -1,6 +1,483 @@
 #include "tck_main_scenarios.hpp"
+#include "tck_service_report_file_support.hpp"
 
 namespace hla_rti_cpp_tck::detail {
+
+void scenarioMomTableAnnexGPrecedenceServiceReportFile(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty() &&
+          !options.serviceReportDirectory.empty(),
+      "MOM table precedence testing requires the 2025 FOM, MIM, time implementation, and report directory");
+
+  Session publisher(options, model, "mom-precedence-report-file-publisher");
+  Session observer(options, model, "mom-precedence-report-file-observer");
+  auto const federation = federationName(
+      options,
+      "mom-table-annex-g-precedence-service-report-file");
+  auto const publisherName =
+      options.ownerFederateName + L"-mom-precedence-report-file-publisher";
+  service_report_file_support::connectWithServiceReportDirectory(publisher, options);
+  observer.connect();
+  publisher.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  observer.join(
+      options.memberFederateName + L"-mom-precedence-report-file-observer",
+      options.federateType,
+      federation);
+
+  auto const federateMomClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAfederateName");
+  auto const reportFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAreportServiceFile");
+  auto const serviceReportingAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAserviceReporting");
+  auto const sendToFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAsendServiceReportsToFile");
+  require(
+      federateMomClass.isValid() && federateNameAttribute.isValid() &&
+          reportFileAttribute.isValid() && serviceReportingAttribute.isValid() &&
+          sendToFileAttribute.isValid(),
+      "MOM table precedence lookup did not find the joined-federate report attributes");
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federateMomClass,
+      rti::AttributeHandleSet{
+          federateNameAttribute,
+          reportFileAttribute,
+          serviceReportingAttribute,
+          sendToFileAttribute},
+      true,
+      L"");
+
+  publisher.join(publisherName, options.federateType, federation);
+  require(
+      !publisher.rtiAmbassador().getServiceReportingSwitch() &&
+          !publisher.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "The precedence witness requires both report switches to start false");
+
+  std::optional<rti::ObjectInstanceHandle> publisherMomObject;
+  std::optional<std::filesystem::path> initialReportFile;
+  auto const observeInitialReportFile = [&] {
+    for (auto const& reflection : observer.recorder().reflections()) {
+      auto const name = std::find_if(
+          reflection.values.begin(),
+          reflection.values.end(),
+          [&](auto const& value) { return value.first == federateNameAttribute; });
+      auto const reportFile = std::find_if(
+          reflection.values.begin(),
+          reflection.values.end(),
+          [&](auto const& value) { return value.first == reportFileAttribute; });
+      if (name == reflection.values.end() || reportFile == reflection.values.end()) {
+        continue;
+      }
+      rti::HLAunicodeString decodedName;
+      decodedName.decode(name->second);
+      if (decodedName.get() != publisherName) {
+        continue;
+      }
+      rti::HLAunicodeString decodedReportFile;
+      decodedReportFile.decode(reportFile->second);
+      publisherMomObject = reflection.object;
+      initialReportFile = std::filesystem::path(decodedReportFile.get());
+      return !initialReportFile->empty();
+    }
+    return false;
+  };
+  waitFor(
+      observer,
+      publisher,
+      observeInitialReportFile,
+      options,
+      "joined-federate HLAreportServiceFile initial reflection");
+  require(
+      publisherMomObject.has_value() && initialReportFile.has_value() &&
+          std::filesystem::is_regular_file(*initialReportFile) &&
+          !service_report_file_support::readServiceReportFile(*initialReportFile).empty(),
+      "The static HLAreportServiceFile value did not identify the join-initialized report file while both switches were false");
+
+  auto const publisherReportFileValues = [&] {
+    std::vector<std::filesystem::path> values;
+    for (auto const& reflection : observer.recorder().reflections()) {
+      if (reflection.object != *publisherMomObject) {
+        continue;
+      }
+      auto const value = reflection.values.find(reportFileAttribute);
+      if (value == reflection.values.end()) {
+        continue;
+      }
+      rti::HLAunicodeString decoded;
+      decoded.decode(value->second);
+      values.emplace_back(decoded.get());
+    }
+    return values;
+  };
+  auto const requireStaticValue = [&] {
+    auto const values = publisherReportFileValues();
+    require(
+        values == std::vector<std::filesystem::path>{*initialReportFile},
+        "Switch changes altered or republished the static HLAreportServiceFile value");
+  };
+  auto const waitForAttributeReflectionAfter = [&](
+      rti::AttributeHandle const& attribute,
+      std::size_t firstReflection,
+      char const* const description) {
+    waitFor(
+        observer,
+        publisher,
+        [&] {
+          auto const reflections = observer.recorder().reflections();
+          for (auto index = firstReflection; index < reflections.size(); ++index) {
+            auto const& reflection = reflections[index];
+            if (reflection.object == *publisherMomObject &&
+                reflection.values.contains(attribute)) {
+              return true;
+            }
+          }
+          return false;
+        },
+        options,
+        description);
+  };
+
+  auto firstReflection = observer.recorder().reflections().size();
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  require(
+      publisher.rtiAmbassador().getServiceReportingSwitch(),
+      "The precedence witness could not enable Service Reporting");
+  waitForAttributeReflectionAfter(
+      serviceReportingAttribute,
+      firstReflection,
+      "Service Reporting MOM switch update");
+  requireStaticValue();
+
+  firstReflection = observer.recorder().reflections().size();
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  require(
+      publisher.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "The precedence witness could not enable Send Service Reports To File");
+  waitForAttributeReflectionAfter(
+      sendToFileAttribute,
+      firstReflection,
+      "Send Service Reports To File MOM switch update");
+  requireStaticValue();
+
+  firstReflection = observer.recorder().reflections().size();
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  require(
+      !publisher.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "The precedence witness could not disable Send Service Reports To File");
+  waitForAttributeReflectionAfter(
+      sendToFileAttribute,
+      firstReflection,
+      "Send Service Reports To File disable MOM switch update");
+  requireStaticValue();
+
+  firstReflection = observer.recorder().reflections().size();
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  require(
+      publisher.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "The precedence witness could not re-enable Send Service Reports To File");
+  waitForAttributeReflectionAfter(
+      sendToFileAttribute,
+      firstReflection,
+      "Send Service Reports To File re-enable MOM switch update");
+  requireStaticValue();
+
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  observer.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  publisher.disconnect();
+}
+
+void scenarioServiceReportFileSwitchLifecycle(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.fom.empty() && !options.mimFom.empty() &&
+          !options.logicalTimeImplementationName.empty() &&
+          !options.serviceReportDirectory.empty(),
+      "Service-report file lifecycle testing requires the 2025 FOM, MIM, time implementation, and report directory");
+
+  Session first(options, model, "service-report-file-lifecycle-first");
+  Session second(options, model, "service-report-file-lifecycle-second");
+  Session observer(options, model, "service-report-file-lifecycle-observer");
+  auto const federation = federationName(options, "service-report-file-switch-lifecycle");
+  std::wstring const firstName = L"service-report-file-lifecycle-first";
+  std::wstring const secondName = L"service-report-file-lifecycle-second";
+  service_report_file_support::connectWithServiceReportDirectory(first, options);
+  service_report_file_support::connectWithServiceReportDirectory(second, options);
+  observer.connect();
+  first.rtiAmbassador().createFederationExecutionWithMIM(
+      federation,
+      std::vector<std::wstring>{options.fom.wstring()},
+      options.mimFom.wstring(),
+      options.logicalTimeImplementationName);
+  observer.join(
+      options.memberFederateName + L"-service-report-file-lifecycle-observer",
+      options.federateType,
+      federation);
+
+  auto const federateMomClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAfederateName");
+  auto const reportFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAreportServiceFile");
+  auto const serviceReportingAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAserviceReporting");
+  auto const sendToFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAsendServiceReportsToFile");
+  require(
+      federateMomClass.isValid() && federateNameAttribute.isValid() &&
+          reportFileAttribute.isValid() && serviceReportingAttribute.isValid() &&
+          sendToFileAttribute.isValid(),
+      "The standard Federate MOM did not expose service-report file lifecycle attributes");
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federateMomClass,
+      rti::AttributeHandleSet{
+          federateNameAttribute,
+          reportFileAttribute,
+          serviceReportingAttribute,
+          sendToFileAttribute},
+      true,
+      L"");
+
+  first.join(firstName, options.federateType, federation);
+  second.join(secondName, options.federateType, federation);
+  require(
+      !first.rtiAmbassador().getServiceReportingSwitch() &&
+          !first.rtiAmbassador().getSendServiceReportsToFileSwitch() &&
+          !second.rtiAmbassador().getServiceReportingSwitch() &&
+          !second.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "Service-report switches did not start disabled for each joined federate");
+
+  using AdvertisedReport = std::pair<rti::ObjectInstanceHandle, std::filesystem::path>;
+  auto const findAdvertisedReport = [&] (
+      std::wstring const& federateName,
+      std::size_t firstReflection) -> std::optional<AdvertisedReport> {
+    auto const reflections = observer.recorder().reflections();
+    for (auto index = firstReflection; index < reflections.size(); ++index) {
+      auto const& reflection = reflections[index];
+      auto const name = reflection.values.find(federateNameAttribute);
+      auto const reportFile = reflection.values.find(reportFileAttribute);
+      if (name == reflection.values.end() || reportFile == reflection.values.end()) {
+        continue;
+      }
+      rti::HLAunicodeString decodedName;
+      decodedName.decode(name->second);
+      if (decodedName.get() != federateName) {
+        continue;
+      }
+      rti::HLAunicodeString decodedReportFile;
+      decodedReportFile.decode(reportFile->second);
+      if (decodedReportFile.get().empty()) {
+        throw std::runtime_error(
+            "Joined federate MOM advertised an empty HLAreportServiceFile value");
+      }
+      return AdvertisedReport{
+          reflection.object,
+          std::filesystem::path(decodedReportFile.get())};
+    }
+    return std::nullopt;
+  };
+
+  std::optional<AdvertisedReport> firstReport;
+  std::optional<AdvertisedReport> secondReport;
+  waitFor(
+      observer,
+      first,
+      [&] {
+        firstReport = findAdvertisedReport(firstName, 0U);
+        secondReport = findAdvertisedReport(secondName, 0U);
+        return firstReport.has_value() && secondReport.has_value();
+      },
+      options,
+      "two joined-federate HLAreportServiceFile reflections");
+  require(
+      firstReport->second != secondReport->second &&
+          std::filesystem::is_regular_file(firstReport->second) &&
+          std::filesystem::is_regular_file(secondReport->second),
+      "Distinct joined federates did not receive distinct existing service-report files");
+
+  auto const narrowAscii = [](std::wstring const& value) {
+    std::string result;
+    result.reserve(value.size());
+    for (auto const character : value) {
+      require(
+          character >= 0 && character <= 0x7f,
+          "The generated service-report lifecycle names must be ASCII for this text-file check");
+      result.push_back(static_cast<char>(character));
+    }
+    return result;
+  };
+  auto const callbackModelName = model == rti::HLA_IMMEDIATE
+      ? std::string{"HLA_IMMEDIATE"}
+      : std::string{"HLA_EVOKED"};
+  auto const verifyInitialRecord = [&](
+      std::filesystem::path const& file,
+      std::wstring const& federateName) {
+    auto const contents = service_report_file_support::readServiceReportFile(file);
+    auto const firstLineEnd = contents.find('\n');
+    auto const initialRecord = std::string_view(contents).substr(
+        0U,
+        firstLineEnd == std::string::npos ? contents.size() : firstLineEnd);
+    require(
+        initialRecord.find("\"CallbackModel\":\"" + callbackModelName + "\"") !=
+            std::string_view::npos &&
+            initialRecord.find(narrowAscii(federation)) != std::string_view::npos &&
+            initialRecord.find(narrowAscii(federateName)) != std::string_view::npos,
+        "The first service-report record omitted Connect, federation, or federate information");
+  };
+  verifyInitialRecord(firstReport->second, firstName);
+  verifyInitialRecord(secondReport->second, secondName);
+
+  auto const reportFileValuesForObject = [&](
+      rti::ObjectInstanceHandle const& object) {
+    std::vector<std::filesystem::path> values;
+    for (auto const& reflection : observer.recorder().reflections()) {
+      if (reflection.object != object) {
+        continue;
+      }
+      auto const reportFile = reflection.values.find(reportFileAttribute);
+      if (reportFile == reflection.values.end()) {
+        continue;
+      }
+      rti::HLAunicodeString decoded;
+      decoded.decode(reportFile->second);
+      values.emplace_back(decoded.get());
+    }
+    return values;
+  };
+  auto const requireStaticReportFile = [&](AdvertisedReport const& report) {
+    require(
+        reportFileValuesForObject(report.first) ==
+            std::vector<std::filesystem::path>{report.second},
+        "A service-report switch change altered or republished static HLAreportServiceFile");
+  };
+  requireStaticReportFile(*firstReport);
+  requireStaticReportFile(*secondReport);
+
+  first.rtiAmbassador().setServiceReportingSwitch(true);
+  first.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  auto firstBefore = service_report_file_support::readServiceReportFile(firstReport->second);
+  static_cast<void>(first.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  auto firstEnabled = service_report_file_support::readServiceReportFile(firstReport->second);
+  require(
+      firstEnabled.size() > firstBefore.size() &&
+          firstEnabled.find("\"HLAservice\":\"GetObjectClassHandle\"", firstBefore.size()) !=
+              std::string::npos,
+      "Both enabled reporting switches did not append the GetObjectClassHandle report record");
+
+  second.rtiAmbassador().setServiceReportingSwitch(true);
+  second.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  auto secondBefore = service_report_file_support::readServiceReportFile(secondReport->second);
+  static_cast<void>(second.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  auto secondEnabled = service_report_file_support::readServiceReportFile(secondReport->second);
+  require(
+      secondEnabled.size() > secondBefore.size() &&
+          secondEnabled.find("\"HLAservice\":\"GetObjectClassHandle\"", secondBefore.size()) !=
+              std::string::npos &&
+          service_report_file_support::readServiceReportFile(firstReport->second) == firstEnabled,
+      "A joined federate's report interaction did not append to its own unique file");
+
+  first.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  auto const firstFileDisabledBaseline =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  static_cast<void>(first.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  require(
+      service_report_file_support::readServiceReportFile(firstReport->second) ==
+          firstFileDisabledBaseline,
+      "Disabling file reporting appended a service report to the joined federate's file");
+
+  first.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  auto const firstFileReenabledBaseline =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  static_cast<void>(first.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  auto const firstFileReenabled =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  require(
+      firstFileReenabled.size() > firstFileReenabledBaseline.size() &&
+          firstFileReenabled.find(
+              "\"HLAservice\":\"GetObjectClassHandle\"",
+              firstFileReenabledBaseline.size()) != std::string::npos,
+      "Re-enabling file reporting did not append to the same joined-federate file");
+
+  first.rtiAmbassador().setServiceReportingSwitch(false);
+  auto const serviceReportingDisabledBaseline =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  static_cast<void>(first.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  require(
+      service_report_file_support::readServiceReportFile(firstReport->second) ==
+          serviceReportingDisabledBaseline,
+      "Disabling Service Reporting appended a service report while file reporting remained enabled");
+
+  first.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const serviceReportingReenabledBaseline =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  static_cast<void>(first.rtiAmbassador().getObjectClassHandle(L"HLAobjectRoot"));
+  auto const serviceReportingReenabled =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  require(
+      serviceReportingReenabled.size() > serviceReportingReenabledBaseline.size() &&
+          serviceReportingReenabled.find(
+              "\"HLAservice\":\"GetObjectClassHandle\"",
+              serviceReportingReenabledBaseline.size()) != std::string::npos,
+      "Re-enabling Service Reporting did not resume appending to the same file");
+  requireStaticReportFile(*firstReport);
+  requireStaticReportFile(*secondReport);
+
+  auto const firstMomReflectionCount = observer.recorder().reflections().size();
+  first.resign(rti::NO_ACTION);
+  auto const firstFileAfterResign =
+      service_report_file_support::readServiceReportFile(firstReport->second);
+  first.join(firstName, options.federateType, federation);
+  std::optional<AdvertisedReport> rejoinedReport;
+  waitFor(
+      observer,
+      first,
+      [&] {
+        rejoinedReport = findAdvertisedReport(firstName, firstMomReflectionCount);
+        return rejoinedReport.has_value();
+      },
+      options,
+      "rejoined federate's new HLAreportServiceFile reflection");
+  require(
+      rejoinedReport->second != firstReport->second &&
+          rejoinedReport->second != secondReport->second &&
+          std::filesystem::is_regular_file(rejoinedReport->second),
+      "A later join reused an existing joined-federate service-report file");
+  verifyInitialRecord(rejoinedReport->second, firstName);
+  require(
+      service_report_file_support::readServiceReportFile(firstReport->second) ==
+          firstFileAfterResign,
+      "The prior joined-federate report file changed after resignation and rejoin");
+
+  observer.resign(rti::NO_ACTION);
+  first.resign(rti::NO_ACTION);
+  second.resign(rti::NO_ACTION);
+  first.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  first.disconnect();
+  second.disconnect();
+}
 
 void scenarioServiceReportTimestampedAttributeUpdate(
     Options const& options,
@@ -19,7 +496,7 @@ void scenarioServiceReportTimestampedAttributeUpdate(
   Session receiver(options, model, "service-report-timestamped-attribute-receiver");
   Session observer(options, model, "service-report-timestamped-attribute-observer");
   auto const federation = federationName(options, "service-report-timestamped-attribute-update");
-  publisher.connect();
+  service_report_file_support::connectWithServiceReportDirectory(publisher, options);
   receiver.connect();
   observer.connect();
   publisher.rtiAmbassador().createFederationExecutionWithMIM(
@@ -27,8 +504,10 @@ void scenarioServiceReportTimestampedAttributeUpdate(
       std::vector<std::wstring>{options.fom.wstring()},
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
+  auto const publisherName =
+      options.ownerFederateName + L"-service-report-timestamped-attribute-publisher";
   publisher.join(
-      options.ownerFederateName + L"-service-report-timestamped-attribute-publisher",
+      publisherName,
       options.federateType,
       federation);
   receiver.join(
@@ -39,6 +518,45 @@ void scenarioServiceReportTimestampedAttributeUpdate(
       options.memberFederateName + L"-service-report-timestamped-attribute-observer",
       options.federateType,
       federation);
+
+  auto const federateMomClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAfederateName");
+  auto const reportFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAreportServiceFile");
+  require(
+      federateMomClass.isValid() && federateNameAttribute.isValid() &&
+          reportFileAttribute.isValid(),
+      "Standard Federate MOM did not expose HLAreportServiceFile");
+  rti::AttributeHandleSet const federateMomAttributes{
+      federateNameAttribute,
+      reportFileAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federateMomClass,
+      federateMomAttributes,
+      true,
+      L"");
+  std::optional<std::filesystem::path> publisherReportFile;
+  waitFor(
+      observer,
+      publisher,
+      [&] {
+        publisherReportFile = service_report_file_support::advertisedServiceReportFile(
+            observer.recorder(),
+            federateNameAttribute,
+            reportFileAttribute,
+            publisherName);
+        return publisherReportFile.has_value();
+      },
+      options,
+      "publisher HLAreportServiceFile MOM reflection");
+  require(
+      std::filesystem::is_regular_file(*publisherReportFile) &&
+          !service_report_file_support::readServiceReportFile(*publisherReportFile).empty(),
+      "Publisher HLAreportServiceFile did not identify a file with its initial record");
 
   auto const publisherClass = publisher.rtiAmbassador().getObjectClassHandle(
       options.objectClassName);
@@ -298,6 +816,11 @@ void scenarioServiceReportTimestampedAttributeUpdate(
   require(
       decodedSerial.get() == 0,
       "Timestamped attribute-update service report did not start at serial zero");
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters.at(7U))) ==
+          publisher.federateHandle(),
+      "Timestamped attribute-update service report identified the wrong publisher federate");
 
   receiver.recorder().clearCallbackOrder();
   publisher.recorder().clearCallbackOrder();
@@ -346,9 +869,180 @@ void scenarioServiceReportTimestampedAttributeUpdate(
           !reflection.regions.has_value(),
       "Timestamped attribute-update reflection returned non-standard data");
 
+  auto const fileTimestamp = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      8U);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const beforeFileReport =
+      service_report_file_support::readServiceReportFile(*publisherReportFile);
+  auto const fileRetraction = publisher.rtiAmbassador().updateAttributeValues(
+      object,
+      values,
+      tag,
+      *fileTimestamp);
+  require(
+      fileRetraction.isValid(),
+      "File-backed timestamped attribute update returned an invalid retraction handle");
+  auto const afterFileReport =
+      service_report_file_support::readServiceReportFile(*publisherReportFile);
+  auto const servicePosition = afterFileReport.find(
+      "\"HLAservice\":\"UpdateAttributeValues\"",
+      beforeFileReport.size());
+  require(
+      servicePosition != std::string::npos,
+      "Public HLAreportServiceFile did not append UpdateAttributeValues");
+  auto const recordLineBreak = afterFileReport.rfind('\n', servicePosition);
+  auto const recordStart = recordLineBreak == std::string::npos
+      ? 0U
+      : recordLineBreak + 1U;
+  auto const recordEnd = afterFileReport.find('\n', servicePosition);
+  auto const record = std::string_view(afterFileReport).substr(
+      recordStart,
+      (recordEnd == std::string::npos ? afterFileReport.size() : recordEnd) - recordStart);
+  auto const suppliedArgumentsPosition =
+      record.find("\"HLAsuppliedArguments\":[");
+  auto const suppliedArgumentsEnd = record.find(
+      "],\"HLAsuccessIndicator\"",
+      suppliedArgumentsPosition);
+  require(
+      suppliedArgumentsPosition != std::string_view::npos &&
+          suppliedArgumentsEnd != std::string_view::npos,
+      "Timestamped UpdateAttributeValues file report omitted its SuppliedArgumentList array");
+  auto const suppliedArgumentsArray = record.substr(
+      suppliedArgumentsPosition,
+      suppliedArgumentsEnd + 1U - suppliedArgumentsPosition);
+  constexpr std::string_view argumentRecordPrefix{"{\"HLAargumentType\":"};
+  std::size_t argumentRecordCount = 0U;
+  for (auto position = suppliedArgumentsArray.find(argumentRecordPrefix);
+       position != std::string_view::npos;) {
+    auto const nextPosition = suppliedArgumentsArray.find(
+        argumentRecordPrefix,
+        position + argumentRecordPrefix.size());
+    auto const argumentEnd = nextPosition == std::string_view::npos
+        ? suppliedArgumentsArray.find(']', position)
+        : nextPosition;
+    require(
+        argumentEnd != std::string_view::npos,
+        "Timestamped UpdateAttributeValues file report truncated an HLAargument record");
+    auto const argumentRecord = suppliedArgumentsArray.substr(
+        position,
+        argumentEnd - position);
+    auto const argumentNamePosition =
+        argumentRecord.find("\"HLAargumentName\":");
+    auto const argumentValuePosition =
+        argumentRecord.find("\"HLAargumentValue\":");
+    require(
+        argumentNamePosition != std::string_view::npos &&
+            argumentValuePosition != std::string_view::npos &&
+            argumentNamePosition < argumentValuePosition,
+        "Timestamped UpdateAttributeValues file array element omitted the HLAargument name/value fields");
+    ++argumentRecordCount;
+    position = nextPosition;
+  }
+  require(
+      argumentRecordCount == 4U,
+      "Timestamped UpdateAttributeValues file SuppliedArgumentList did not contain four HLAargument records");
+  std::string logicalTimeText;
+  for (auto const character : fileTimestamp->toString()) {
+    require(
+        character >= 0 && character <= 0x7f,
+        "LogicalTime diagnostic string was not ASCII");
+    logicalTimeText.push_back(static_cast<char>(character));
+  }
+  auto const expectedLogicalTimeArgument =
+      "\"HLAargumentType\":31,\"HLAargumentName\":\"Optional timestamp\","
+      "\"HLAargumentValue\":\"" + logicalTimeText + "\"";
+  require(
+      record.find(expectedLogicalTimeArgument) != std::string_view::npos,
+      "Timestamped UpdateAttributeValues file report did not encode type-31 LogicalTime as time.toString()");
+  auto const fileRetractionText = fileRetraction.toString();
+  auto const fileRetractionOpen = fileRetractionText.find(L'(');
+  auto const fileRetractionClose = fileRetractionText.find(L')');
+  require(
+      fileRetractionOpen != std::wstring::npos &&
+          fileRetractionClose > fileRetractionOpen + 1U,
+      "File-backed timestamped attribute update returned no standard retraction handle text");
+  std::string retractionPayload;
+  for (auto const character : fileRetractionText.substr(
+           fileRetractionOpen + 1U,
+           fileRetractionClose - fileRetractionOpen - 1U)) {
+    require(
+        character >= 0 && character <= 0x7f,
+        "MessageRetractionHandle payload was not ASCII");
+    retractionPayload.push_back(static_cast<char>(character));
+  }
+  auto const expectedRetractionArgument =
+      "\"HLAargumentType\":33,\"HLAargumentValue\":\"MessageRetractionHandle<" +
+      retractionPayload + ">\"";
+  require(
+      record.find(expectedRetractionArgument) != std::string_view::npos,
+      "Timestamped UpdateAttributeValues file report did not encode type-33 MessageRetractionHandle from its returned handle");
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+  publisher.rtiAmbassador().retract(fileRetraction);
+
+  auto const fileLookaheadTime = timeAfter(
+      *publisherTime.factory,
+      *publisherTime.initial,
+      *publisherTime.epsilon,
+      6U);
+  auto fileLookahead = publisherTime.factory->makeZero();
+  require(
+      fileLookahead != nullptr,
+      "Timestamped attribute-update service-report could not allocate a file lookahead interval");
+  fileLookahead->setToDifference(*fileLookaheadTime, *publisherTime.initial);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  publisher.rtiAmbassador().setServiceReportingSwitch(true);
+  auto const beforeLookaheadFileReport =
+      service_report_file_support::readServiceReportFile(*publisherReportFile);
+  publisher.rtiAmbassador().modifyLookahead(*fileLookahead);
+  auto const afterLookaheadFileReport =
+      service_report_file_support::readServiceReportFile(*publisherReportFile);
+  auto const lookaheadServicePosition = afterLookaheadFileReport.find(
+      "\"HLAservice\":\"ModifyLookahead\"",
+      beforeLookaheadFileReport.size());
+  require(
+      lookaheadServicePosition != std::string::npos,
+      "Public HLAreportServiceFile did not append ModifyLookahead");
+  auto const lookaheadLineBreak =
+      afterLookaheadFileReport.rfind('\n', lookaheadServicePosition);
+  auto const lookaheadRecordStart = lookaheadLineBreak == std::string::npos
+      ? 0U
+      : lookaheadLineBreak + 1U;
+  auto const lookaheadRecordEnd = afterLookaheadFileReport.find('\n', lookaheadServicePosition);
+  auto const lookaheadRecord = std::string_view(afterLookaheadFileReport).substr(
+      lookaheadRecordStart,
+      (lookaheadRecordEnd == std::string::npos
+           ? afterLookaheadFileReport.size()
+           : lookaheadRecordEnd) - lookaheadRecordStart);
+  std::string logicalTimeIntervalText;
+  for (auto const character : fileLookahead->toString()) {
+    require(
+        character >= 0 && character <= 0x7f,
+        "LogicalTimeInterval diagnostic string was not ASCII");
+    logicalTimeIntervalText.push_back(static_cast<char>(character));
+  }
+  auto const expectedLogicalTimeIntervalArgument =
+      "\"HLAargumentType\":32,\"HLAargumentName\":\"Requested lookahead\","
+      "\"HLAargumentValue\":\"" + logicalTimeIntervalText + "\"";
+  require(
+      lookaheadRecord.find(expectedLogicalTimeIntervalArgument) != std::string_view::npos,
+      "ModifyLookahead file report did not encode type-32 LogicalTimeInterval as interval.toString()");
+  require(
+      lookaheadRecord.find("\"HLAreturnedArgument\":[null]") != std::string_view::npos,
+      "Void ModifyLookahead file report did not encode the returned argument as Null");
+  publisher.rtiAmbassador().setServiceReportingSwitch(false);
+  publisher.rtiAmbassador().setSendServiceReportsToFileSwitch(false);
+
   receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
       receiverClass,
       receiverAttributes);
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      federateMomClass,
+      federateMomAttributes);
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   receiver.resign(rti::NO_ACTION);
   observer.resign(rti::NO_ACTION);
@@ -803,10 +1497,12 @@ void scenarioServiceReportSynchronization(
 
   Session subject(options, model, "service-report-synchronization-subject");
   Session observer(options, model, "service-report-synchronization-observer");
+  Session departed(options, model, "service-report-synchronization-departed");
   Session reportSink(options, model, "service-report-synchronization-report-sink");
   auto const federation = federationName(options, "service-report-synchronization");
   subject.connect();
   observer.connect();
+  departed.connect();
   reportSink.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
       federation,
@@ -821,6 +1517,13 @@ void scenarioServiceReportSynchronization(
       options.memberFederateName + L"-service-report-synchronization-observer",
       options.federateType,
       federation);
+  departed.join(
+      options.memberFederateName + L"-service-report-synchronization-departed",
+      options.federateType,
+      federation);
+  auto const departedFederateHandle = departed.federateHandle();
+  departed.resign(rti::NO_ACTION);
+  departed.disconnect();
   reportSink.join(
       options.memberFederateName + L"-service-report-synchronization-report-sink",
       options.federateType,
@@ -894,7 +1597,7 @@ void scenarioServiceReportSynchronization(
                                 std::vector<std::int32_t> const& expectedTypes,
                                 std::vector<std::wstring> const& expectedNames,
                                 std::int32_t expectedSerial,
-                                std::optional<std::wstring> expectedLastArgumentValue) {
+                                std::optional<std::wstring> expectedThirdArgumentValue) {
     require(
         report.interaction == reportClass &&
             report.parameters.size() == reportParameters.size() &&
@@ -937,10 +1640,10 @@ void scenarioServiceReportSynchronization(
           actualType == expectedTypes.at(index) &&
               actualName == expectedNames.at(index),
           "Synchronization service report returned the wrong supplied-argument shape");
-      if (expectedLastArgumentValue.has_value() && index == 2U) {
+      if (expectedThirdArgumentValue.has_value() && index == 2U) {
         require(
-            actualValue == expectedLastArgumentValue.value(),
-            "Synchronization service report returned the wrong failure reason value");
+            actualValue == expectedThirdArgumentValue.value(),
+            "Synchronization service report returned the wrong third argument value");
       }
     }
 
@@ -974,6 +1677,16 @@ void scenarioServiceReportSynchronization(
   rti::FederateHandleSet const synchronizationSet{
       subject.federateHandle(),
       observer.federateHandle()};
+  std::wstring expectedFederateHandleSet = L"[";
+  for (auto iterator = synchronizationSet.begin();
+       iterator != synchronizationSet.end();
+       ++iterator) {
+    if (iterator != synchronizationSet.begin()) {
+      expectedFederateHandleSet.push_back(L',');
+    }
+    expectedFederateHandleSet += L"\"" + iterator->toString() + L"\"";
+  }
+  expectedFederateHandleSet.push_back(L']');
   subject.rtiAmbassador().registerFederationSynchronizationPoint(
       label,
       tag,
@@ -1011,7 +1724,7 @@ void scenarioServiceReportSynchronization(
        L"User-supplied tag",
        L"Optional set of joined federate designators"},
       0,
-      std::nullopt);
+      expectedFederateHandleSet);
   verifyReport(
       latestReport(L"ConfirmSynchronizationPointRegistration"),
       L"ConfirmSynchronizationPointRegistration",
@@ -1060,7 +1773,7 @@ void scenarioServiceReportSynchronization(
        L"User-supplied tag",
        L"Optional set of joined federate designators"},
       3,
-      std::nullopt);
+      expectedFederateHandleSet);
   verifyReport(
       latestReport(L"ConfirmSynchronizationPointRegistration"),
       L"ConfirmSynchronizationPointRegistration",
@@ -1118,8 +1831,48 @@ void scenarioServiceReportSynchronization(
             completions.front().failedToSyncSet.count(observer.federateHandle()) == 1U,
         "Synchronization service-report completion returned the wrong failure set");
   }
+
+  // A previously joined but now-departed federate is still a valid handle
+  // value. Supplying it in the explicit set must report the second standard
+  // SynchronizationPointFailureReason enumerator rather than silently
+  // accepting a set member that is no longer joined.
+  std::wstring const departedMemberLabel =
+      L"service-report-synchronization-departed-member";
+  rti::FederateHandleSet const departedMemberSet{departedFederateHandle};
+  subject.rtiAmbassador().registerFederationSynchronizationPoint(
+      departedMemberLabel,
+      tag,
+      departedMemberSet);
+  waitForSessions(
+      {&subject, &reportSink},
+      [&] {
+        return subject.synchronizationPointRegistrations().size() == 3U &&
+            reportCount(L"RegisterFederationSynchronizationPoint") == 3U &&
+            reportCount(L"ConfirmSynchronizationPointRegistration") == 3U;
+      },
+      options,
+      "departed synchronization-set member failure report");
+  auto const departedMemberFailure =
+      subject.synchronizationPointRegistrations().back();
   require(
-      reportSink.recorder().interactions().size() == 7U,
+      !departedMemberFailure.succeeded &&
+          departedMemberFailure.label == departedMemberLabel &&
+          departedMemberFailure.failureReason.has_value() &&
+          departedMemberFailure.failureReason.value() ==
+              rti::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED,
+      "Departed synchronization-set member returned the wrong failure reason");
+  verifyReport(
+      latestReport(L"ConfirmSynchronizationPointRegistration"),
+      L"ConfirmSynchronizationPointRegistration",
+      {53, 6, 56},
+      {L"Synchronization point label",
+       L"Registration-success indicator",
+       L"Optional failure reason"},
+      8,
+      L"\"SYNCHRONIZATION_SET_MEMBER_NOT_JOINED\"");
+
+  require(
+      reportSink.recorder().interactions().size() == 9U,
       "Synchronization service-report sink received an unexpected report count");
 
   reportSink.rtiAmbassador().unsubscribeInteractionClass(reportClass);
@@ -1229,6 +1982,12 @@ void scenarioServiceReportFederateSaveBegun(
       },
       options,
       "Federate Save Begun initiation callbacks");
+  std::vector<std::wstring> const expectedSaveInitiations{saveLabel};
+  require(
+      subject.federateSaveInitiations() == expectedSaveInitiations &&
+          peer.federateSaveInitiations() == expectedSaveInitiations &&
+          observer.federateSaveInitiations() == expectedSaveInitiations,
+      "Initiate Federate Save did not instruct every joined member with the requested save label");
 
   subject.rtiAmbassador().federateSaveBegun();
   waitForSessions(
@@ -1303,7 +2062,7 @@ void scenarioServiceReportQueryGalt(
   Session regulator(options, model, "query-galt-service-report-regulator");
   Session observer(options, model, "query-galt-service-report-observer");
   auto const federation = federationName(options, "service-report-query-galt");
-  subject.connect();
+  service_report_file_support::connectWithServiceReportDirectory(subject, options);
   regulator.connect();
   observer.connect();
   subject.rtiAmbassador().createFederationExecutionWithMIM(
@@ -1311,10 +2070,8 @@ void scenarioServiceReportQueryGalt(
       std::vector<std::wstring>{options.fom.wstring()},
       options.mimFom.wstring(),
       options.logicalTimeImplementationName);
-  subject.join(
-      options.ownerFederateName + L"-query-galt-service-report-subject",
-      options.federateType,
-      federation);
+  auto const subjectName = options.ownerFederateName + L"-query-galt-service-report-subject";
+  subject.join(subjectName, options.federateType, federation);
   regulator.join(
       options.memberFederateName + L"-query-galt-service-report-regulator",
       options.federateType,
@@ -1323,6 +2080,45 @@ void scenarioServiceReportQueryGalt(
       options.memberFederateName + L"-query-galt-service-report-observer",
       options.federateType,
       federation);
+
+  auto const federateMomClass = observer.rtiAmbassador().getObjectClassHandle(
+      L"HLAobjectRoot.HLAmanager.HLAfederate");
+  auto const federateNameAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAfederateName");
+  auto const reportFileAttribute = observer.rtiAmbassador().getAttributeHandle(
+      federateMomClass,
+      L"HLAreportServiceFile");
+  require(
+      federateMomClass.isValid() && federateNameAttribute.isValid() &&
+          reportFileAttribute.isValid(),
+      "Query GALT service-report MOM lookup did not find HLAreportServiceFile");
+  rti::AttributeHandleSet const federateMomAttributes{
+      federateNameAttribute,
+      reportFileAttribute};
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      federateMomClass,
+      federateMomAttributes,
+      true,
+      L"");
+  std::optional<std::filesystem::path> subjectReportFile;
+  waitFor(
+      observer,
+      [&] {
+        subjectReportFile = service_report_file_support::advertisedServiceReportFile(
+            observer.recorder(),
+            federateNameAttribute,
+            reportFileAttribute,
+            subjectName);
+        return subjectReportFile.has_value();
+      },
+      options,
+      "Query GALT subject HLAreportServiceFile reflection");
+  auto const fileBeforeQuery =
+      service_report_file_support::readServiceReportFile(*subjectReportFile);
+  require(
+      std::filesystem::is_regular_file(*subjectReportFile) && !fileBeforeQuery.empty(),
+      "Query GALT HLAreportServiceFile did not identify a file with its initial record");
 
   auto const reportClass = observer.rtiAmbassador().getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
@@ -1443,14 +2239,20 @@ void scenarioServiceReportQueryGalt(
       .appendElement(rti::HLAunicodeString{})
       .appendElement(rti::HLAunicodeString{});
   returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  auto const reportedArgumentType =
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get();
+  auto const reportedArgumentName =
+      dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get();
   auto const reportedGalt =
       dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get();
-  auto const expectedText = L"\"" + expectedGalt->toString() + L"\"";
+  auto const expectedText =
+      L"{\"timeIsValid\":true,\"time\":\"" + expectedGalt->toString() + L"\"}";
   require(
-      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 31 &&
-          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get() == L"GALT" &&
+      reportedArgumentType == 58 && reportedArgumentName == L"GALT" &&
           reportedGalt == expectedText,
-      "QueryGALT service report did not preserve its standard logical-time return argument");
+      "QueryGALT service report did not preserve its standard TimeQueryReturn fields: expected type 58, name GALT, value " +
+          toNarrow(expectedText) + "; received type " + std::to_string(reportedArgumentType) +
+          ", name " + toNarrow(reportedArgumentName) + ", value " + toNarrow(reportedGalt));
   rti::HLAunicodeString exception;
   exception.decode(report.parameters.at(reportParameters[5]));
   rti::HLAinteger32BE serial;
@@ -1460,6 +2262,75 @@ void scenarioServiceReportQueryGalt(
           observer.rtiAmbassador().decodeFederateHandle(
               report.parameters.at(reportParameters[7])) == subject.federateHandle(),
       "QueryGALT service report returned an exception, wrong serial, or wrong federate");
+
+  auto const interactionCount = observer.recorder().interactions().size();
+  subject.rtiAmbassador().setServiceReportingSwitch(false);
+  subject.rtiAmbassador().setSendServiceReportsToFileSwitch(true);
+  subject.rtiAmbassador().setServiceReportingSwitch(true);
+  require(
+      subject.rtiAmbassador().getServiceReportingSwitch() &&
+          subject.rtiAmbassador().getSendServiceReportsToFileSwitch(),
+      "Query GALT file-reporting switches did not retain their enabled state");
+  auto fileReportedGalt = time.factory->makeInitial();
+  require(
+      fileReportedGalt != nullptr && subject.rtiAmbassador().queryGALT(*fileReportedGalt) &&
+          *fileReportedGalt == *expectedGalt,
+      "Query GALT returned a wrong or undefined value while file reporting was selected");
+  auto const fileAfterQuery =
+      service_report_file_support::readServiceReportFile(*subjectReportFile);
+  require(
+      fileAfterQuery.size() > fileBeforeQuery.size(),
+      "Query GALT did not append a service-report record to the advertised file (before=" +
+          std::to_string(fileBeforeQuery.size()) + ", after=" +
+          std::to_string(fileAfterQuery.size()) + ", interactions=" +
+          std::to_string(observer.recorder().interactions().size()) + ")");
+  auto const appendedFileRecords = fileAfterQuery.substr(fileBeforeQuery.size());
+  auto const expectedTimeField =
+      std::string{"\"time\":\""} + toNarrow(expectedGalt->toString()) + "\"";
+  require(
+      appendedFileRecords.find("\"HLAservice\":\"QueryGALT\"") != std::string::npos &&
+          appendedFileRecords.find("\"timeIsValid\":true") != std::string::npos &&
+          appendedFileRecords.find(expectedTimeField) != std::string::npos,
+      "Query GALT Table 5 file record omitted its service or valid time-query fields");
+
+  auto subjectTime = makeTimeContext(subject);
+  auto subjectLookahead = subjectTime.factory->makeZero();
+  require(
+      subjectLookahead != nullptr,
+      "Query Lookahead service-report factory returned no lookahead interval");
+  subjectLookahead->setToDifference(*expectedGalt, *subjectTime.initial);
+  subject.rtiAmbassador().enableTimeRegulation(*subjectLookahead);
+  waitFor(
+      subject,
+      [&] { return subject.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "Query Lookahead service-report time-regulation callback");
+  auto const fileBeforeLookaheadQuery =
+      service_report_file_support::readServiceReportFile(*subjectReportFile);
+  auto queriedLookahead = subjectTime.factory->makeZero();
+  require(
+      queriedLookahead != nullptr,
+      "Query Lookahead service-report factory returned no result interval");
+  subject.rtiAmbassador().queryLookahead(*queriedLookahead);
+  require(
+      *queriedLookahead == *subjectLookahead,
+      "Query Lookahead returned an interval different from the active regulator's lookahead");
+  auto const fileAfterLookaheadQuery =
+      service_report_file_support::readServiceReportFile(*subjectReportFile);
+  auto const appendedLookaheadRecords =
+      fileAfterLookaheadQuery.substr(fileBeforeLookaheadQuery.size());
+  auto const expectedLookaheadField =
+      std::string{"\"interval\":\""} + toNarrow(subjectLookahead->toString()) + "\"";
+  require(
+      appendedLookaheadRecords.find("\"HLAservice\":\"QueryLookahead\"") !=
+              std::string::npos &&
+          appendedLookaheadRecords.find("\"intervalIsValid\":true") !=
+              std::string::npos &&
+          appendedLookaheadRecords.find(expectedLookaheadField) != std::string::npos,
+      "Query Lookahead Table 5 file record omitted its service or valid interval-query fields");
+  require(
+      observer.recorder().interactions().size() == interactionCount,
+      "Time-query file reporting unexpectedly delivered an interaction report");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   subject.rtiAmbassador().setServiceReportingSwitch(false);

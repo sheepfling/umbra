@@ -6,5 +6,6 @@
         <name>TckPeriodicNaCondition</name>
         <dataType>HLAunicodeString</dataType><updateType>Periodic</updateType>
         <updateCondition>NA</updateCondition>
+        <semantics>Invalid fixture pairing a periodic update with an NA condition.</semantics>
     </attribute></objectClass></objects>
 </objectModel>

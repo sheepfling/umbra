@@ -46,10 +46,14 @@ final class SubscriptionInitialReflectionTck {
       try {
          publisher.connect(publisherRecorder.proxy(), callbackModel);
          publisherConnected = true;
+         subscriber.connect(subscriberRecorder.proxy(), callbackModel);
+         subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          publisher.joinFederationExecution("java-tck-initial-reflection-publisher", federation);
          publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-initial-reflection-subscriber", federation);
+         subscriberJoined = true;
 
          publisherClass = publisher.getObjectClassHandle(objectClassName);
          publisherFirst = publisher.getAttributeHandle(publisherClass, firstName);
@@ -70,25 +74,31 @@ final class SubscriptionInitialReflectionTck {
          currentValues.put(publisherSecond, currentSecond);
          publisher.updateAttributeValues(object, currentValues, new byte[0]);
 
-         subscriber.connect(subscriberRecorder.proxy(), callbackModel);
-         subscriberConnected = true;
-         subscriber.joinFederationExecution("java-tck-initial-reflection-subscriber", federation);
-         subscriberJoined = true;
          subscriberClass = subscriber.getObjectClassHandle(objectClassName);
          subscriberFirst = subscriber.getAttributeHandle(subscriberClass, firstName);
          subscriberSecond = subscriber.getAttributeHandle(subscriberClass, secondName);
          subscribedAttributes = subscriber.getAttributeHandleSetFactory().create();
          subscribedAttributes.add(subscriberFirst);
-         JavaTckSupport.drain(subscriber);
-         JavaTckSupport.check(subscriberRecorder.discoveredObject == null
+         for (int pass = 0; pass != 8; ++pass) {
+            JavaTckSupport.drain(subscriber);
+         }
+         JavaTckSupport.check(subscriberRecorder.discoveries.isEmpty()
                && subscriberRecorder.reflections.isEmpty(),
             "unsubscribed member received discovery or reflection before subscribing");
 
          subscriber.subscribeObjectClassAttributes(subscriberClass, subscribedAttributes);
          subscribed = true;
          awaitInitialDelivery(subscriber, subscriberRecorder);
-         ObjectInstanceHandle localObject = subscriberRecorder.discoveredObject;
+         List<Discovery> discoveries = subscriberRecorder.discoveries();
+         JavaTckSupport.check(discoveries.size() == 1,
+            "subscription to an existing object delivered a duplicate discovery");
+         Discovery discovery = discoveries.get(0);
+         ObjectInstanceHandle localObject = discovery.object;
          JavaTckSupport.check(objectName.equals(subscriber.getObjectInstanceName(localObject))
+               && object.equals(localObject)
+               && object.equals(discovery.object)
+               && subscriberClass.equals(discovery.objectClass)
+               && objectName.equals(discovery.name)
                && localObject.equals(subscriber.getObjectInstanceHandle(objectName))
                && subscriberClass.equals(subscriber.getKnownObjectClassHandle(localObject))
                && subscriberRecorder.reflections.size() == 1,
@@ -147,11 +157,11 @@ final class SubscriptionInitialReflectionTck {
          throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
       while (System.nanoTime() < deadline
-            && (recorder.discoveredObject == null || recorder.reflections.isEmpty())) {
+            && (recorder.discoveries.isEmpty() || recorder.reflections.isEmpty())) {
          JavaTckSupport.drain(subscriber);
          Thread.yield();
       }
-      JavaTckSupport.check(recorder.discoveredObject != null && !recorder.reflections.isEmpty(),
+      JavaTckSupport.check(!recorder.discoveries.isEmpty() && !recorder.reflections.isEmpty(),
          "subscription discovery and initial reflection did not arrive before the bounded deadline");
    }
 
@@ -186,8 +196,20 @@ final class SubscriptionInitialReflectionTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private final String name;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass, String name) {
+         this.object = object;
+         this.objectClass = objectClass;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private volatile ObjectInstanceHandle discoveredObject;
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
@@ -197,8 +219,9 @@ final class SubscriptionInitialReflectionTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)
-                     && arguments != null && arguments.length >= 1) {
-                  discoveredObject = (ObjectInstanceHandle) arguments[0];
+                     && arguments != null && arguments.length == 4) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1], (String) arguments[2]));
                } else if ("reflectAttributeValues".equals(name)
                      && arguments != null && arguments.length == 6) {
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
@@ -212,5 +235,7 @@ final class SubscriptionInitialReflectionTck {
                return null;
             });
       }
+
+      private List<Discovery> discoveries() { return List.copyOf(discoveries); }
    }
 }

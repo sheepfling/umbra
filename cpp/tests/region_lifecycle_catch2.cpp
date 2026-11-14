@@ -55,7 +55,7 @@ TEST_CASE(
     "[rti.service.create-region][rti.service.commit-region-modifications]"
     "[rti.service.delete-region][rti.service.get-dimension-handle-set]"
     "[rti.service.get-range-bounds][rti.service.set-range-bounds]"
-    "[rti.service.decode-region-handle]") {
+    "[rti.service.decode-region-handle][region-specification-range-set]") {
   rti1516_2025::NullFederateAmbassador unjoinedFederate;
   rti1516_2025::NullFederateAmbassador ownerFederate;
   rti1516_2025::NullFederateAmbassador foreignFederate;
@@ -107,21 +107,32 @@ TEST_CASE(
       owner->getDimensionHandle(fixture_hla::fixture::bar_quantity);
   auto const sodaFlavor =
       owner->getDimensionHandle(fixture_hla::fixture::soda_flavor);
+  auto const serverId =
+      owner->getDimensionHandle(fixture_hla::fixture::server_id);
   REQUIRE(barQuantity.isValid());
   REQUIRE(sodaFlavor.isValid());
+  REQUIRE(serverId.isValid());
 
-  auto const region =
-      owner->createRegion(DimensionHandleSet{barQuantity, sodaFlavor});
+  // FOM-provided ranges initialize BarQuantity and SodaFlavor. ServerId is
+  // Excluded and remains unset until the federate supplies its own range.
+  auto const region = owner->createRegion(
+      DimensionHandleSet{barQuantity, sodaFlavor, serverId});
   REQUIRE(region.isValid());
   REQUIRE(owner->getDimensionHandleSet(region) ==
-          DimensionHandleSet{barQuantity, sodaFlavor});
+          DimensionHandleSet{barQuantity, sodaFlavor, serverId});
   REQUIRE(owner->decodeRegionHandle(region.encode()) == region);
   REQUIRE_THROWS_AS(
       owner->decodeRegionHandle(VariableLengthData{}),
       rti1516_2025::CouldNotDecode);
 
+  auto const defaultBar = owner->getRangeBounds(region, barQuantity);
+  REQUIRE(defaultBar.getLowerBound() == 0UL);
+  REQUIRE(defaultBar.getUpperBound() == 25UL);
+  auto const defaultSoda = owner->getRangeBounds(region, sodaFlavor);
+  REQUIRE(defaultSoda.getLowerBound() == 0UL);
+  REQUIRE(defaultSoda.getUpperBound() == 4UL);
   REQUIRE_THROWS_AS(
-      owner->getRangeBounds(region, barQuantity),
+      owner->getRangeBounds(region, serverId),
       rti1516_2025::InvalidRegion);
   REQUIRE_THROWS_AS(
       owner->commitRegionModifications(RegionHandleSet{region}),
@@ -145,9 +156,7 @@ TEST_CASE(
       owner->commitRegionModifications(RegionHandleSet{region}),
       rti1516_2025::InvalidRegion);
   REQUIRE(owner->getRangeBounds(region, barQuantity).getUpperBound() == 10UL);
-  REQUIRE_THROWS_AS(
-      owner->getRangeBounds(region, sodaFlavor),
-      rti1516_2025::InvalidRegion);
+  REQUIRE(owner->getRangeBounds(region, sodaFlavor).getUpperBound() == 4UL);
 
   REQUIRE_THROWS_AS(
       foreign->commitRegionModifications(RegionHandleSet{region}),
@@ -167,19 +176,31 @@ TEST_CASE(
 
   REQUIRE_NOTHROW(
       owner->setRangeBounds(region, sodaFlavor, RangeBounds(1UL, 3UL)));
+  REQUIRE_NOTHROW(
+      owner->setRangeBounds(region, serverId, RangeBounds(0UL, 10UL)));
   REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{region}));
+  // Defaults and explicitly supplied ranges commit as one complete spec.
+  REQUIRE(owner->getDimensionHandleSet(region) ==
+          DimensionHandleSet{barQuantity, sodaFlavor, serverId});
   auto const committedBar = owner->getRangeBounds(region, barQuantity);
   auto const committedSoda = owner->getRangeBounds(region, sodaFlavor);
+  auto const committedServer = owner->getRangeBounds(region, serverId);
   REQUIRE(committedBar.getLowerBound() == 0UL);
   REQUIRE(committedBar.getUpperBound() == 10UL);
   REQUIRE(committedSoda.getLowerBound() == 1UL);
   REQUIRE(committedSoda.getUpperBound() == 3UL);
+  REQUIRE(committedServer.getLowerBound() == 0UL);
+  REQUIRE(committedServer.getUpperBound() == 10UL);
 
   REQUIRE_NOTHROW(
       owner->setRangeBounds(region, barQuantity, RangeBounds(5UL, 15UL)));
+  // Setting the same dimension again replaces its one range; it does not add
+  // another range to the region specification.
   auto const replacement = owner->getRangeBounds(region, barQuantity);
   REQUIRE(replacement.getLowerBound() == 5UL);
   REQUIRE(replacement.getUpperBound() == 15UL);
+  REQUIRE(owner->getDimensionHandleSet(region) ==
+          DimensionHandleSet{barQuantity, sodaFlavor, serverId});
   REQUIRE_NOTHROW(owner->commitRegionModifications(RegionHandleSet{region}));
   auto const recommitted = owner->getRangeBounds(region, barQuantity);
   REQUIRE(recommitted.getLowerBound() == 5UL);
@@ -188,8 +209,6 @@ TEST_CASE(
   // A region remains in use while a regional subscription is active.
   auto const interactionClass = owner->getInteractionClassHandle(
       fixture_hla::fom::main_course_served);
-  auto const serverId =
-      owner->getDimensionHandle(fixture_hla::fixture::server_id);
   REQUIRE(interactionClass.isValid());
   REQUIRE(serverId.isValid());
   auto const subscriptionRegion =

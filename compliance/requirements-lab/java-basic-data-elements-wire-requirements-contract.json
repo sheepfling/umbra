@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-focused-java-provider-runtime-not-conformance",
+  "notes": "Focused Java public-API evidence for IEEE 1516.1-2025 §12.12.4.2. The basic-data-elements scenario checks standard encoded bytes, decoded values, and malformed-input rejection through the Java DataElement API across the standard integer, floating-point, boolean, octet, ASCII, Unicode, octet-pair, and opaque-data helpers. The HLAopaqueData Table 27 cell has no individual immutable helper requirement candidate and receives no cell-level mapping here. C++ external pointer/storage and clone semantics are not asserted for Java; this evidence is not exhaustive Annex C coverage or conformance.",
+  "requirements": [
+    {
+      "id": "umbra-java-basic-data-elements-wire-and-decode",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/BasicDataElementsTck.java",
+      "source_symbol": "BasicDataElementsTck.runBasic",
+      "tests": [
+        "org.hla.rti.tck.RtiTckMain#basicDataElements"
+      ]
+    }
+  ]
+}

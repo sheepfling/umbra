@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records a compile-only portable C++ TCK check for the IEEE 1516.1-2025 logical-time header directory requirement. The scenario includes the standard LogicalTime, LogicalTimeInterval, LogicalTimeFactory, integer64/float64 time, interval, and factory headers using their RTI/time paths and verifies declaration availability. It does not test runtime behavior, LogicalTimeFactoryFactory placement, exhaustive Annex C coverage, conformance, or interoperability.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-logical-time-header-layout",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "Logical time declarations in RTI/time headers",
+      "source": "third_party/ieee1516.1-2025/include/RTI/time",
+      "source_symbol": "LogicalTime, LogicalTimeInterval, LogicalTimeFactory, and standard integer64/float64 declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_logical_time_header_layout.cpp::scenarioLogicalTimeHeaderLayoutContract"
+      ]
+    }
+  ]
+}

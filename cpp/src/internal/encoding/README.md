@@ -4,8 +4,9 @@ This directory owns small byte-level primitives. `byte_order.hpp` is the
 single implementation for fixed-width unsigned serialization and decoding;
 call sites must pass `ByteOrder::big` or `ByteOrder::little` explicitly so the
 wire contract is visible where a value is encoded. `handle_variable_array.hpp`
-builds on that utility for the shared eight-octet `HLAvariableArray` wire
-shape.
+builds on that utility for the 2010 eight-octet-identity `HLAvariableArray`
+wire shape. The 2025 handle encoding is separate and adds a stable handle-kind
+octet before its eight-octet identity; do not merge the two wire formats.
 
 `transport_wire.hpp` is the private process-boundary adapter for the
 2010/2025-neutral transport protocols. Its function names explicitly say
@@ -41,10 +42,11 @@ the public binding types and their version-specific return conversions remain
 outside the shared helper.
 
 The primitives do not define either public binding stream. The 2010 and 2025
-wrappers remain separate (`handle_variable_array_encoding_2010.hpp` versus
-`handle_variable_array_encoding.hpp`), and the 2025-only composite helpers
-live in `composite_2025.hpp`. Version-specific exception text, public types,
-and handle definitions stay in their respective source paths.
+handle encoders remain separate (`handle_variable_array_encoding_2010.hpp`
+versus `handle_variable_array_encoding.hpp`); only the 2010 wrapper uses the
+shared eight-octet helper. The 2025-only composite helpers live in
+`composite_2025.hpp`. Version-specific exception text, public types, and handle
+definitions stay in their respective source paths.
 
 These headers are private implementation details. Public IEEE binding types
 and their existing exception behavior remain the ownership boundary, while

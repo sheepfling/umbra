@@ -91,7 +91,8 @@ final class DelaySubscriptionEvaluationDirectedInteractionTck {
          Directed first = events.lastOrNull();
          JavaTckSupport.check(enabled ? events.directed.size() == 1
                : events.directed.size() <= 1,
-            "unexpected first directed-interaction delivery count");
+            "unexpected first directed-interaction delivery count for "
+               + (enabled ? "enabled" : "disabled") + " switch: " + events.directed.size());
          if (first != null) {
             verify(first, receiverInteraction, object, producer, "pre-subscription send");
          }

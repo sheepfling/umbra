@@ -3,11 +3,13 @@ package org.hla.rti.tck;
 import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
+import hla.rti1516_2025.ConfigurationResult;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
@@ -21,6 +23,19 @@ final class CallbackControlsObjectDiscoveryTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
+      run(factory, fom, objectClassName, attributeName, callbackModel, false);
+   }
+
+   static void run(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel,
+         boolean drainCallbacksBeforeResign) throws Exception {
+      run(factory, fom, objectClassName, attributeName, callbackModel,
+         null, null, drainCallbacksBeforeResign);
+   }
+
+   static void run(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, CallbackModel callbackModel, String rtiAddress,
+         String additionalSettings, boolean drainCallbacksBeforeResign) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder publisherRecorder = new Recorder();
@@ -34,9 +49,11 @@ final class CallbackControlsObjectDiscoveryTck {
       boolean published = false;
       boolean subscribed = false;
       try {
-         publisher.connect(publisherRecorder.proxy(), callbackModel);
+         connect(publisher, publisherRecorder, callbackModel, rtiAddress,
+            additionalSettings, "publisher");
          publisherConnected = true;
-         receiver.connect(receiverRecorder.proxy(), callbackModel);
+         connect(receiver, receiverRecorder, callbackModel, rtiAddress,
+            additionalSettings, "receiver");
          receiverConnected = true;
          publisher.createFederationExecution(federation, fom);
          created = true;
@@ -93,6 +110,10 @@ final class CallbackControlsObjectDiscoveryTck {
          subscribed = false;
          publisher.unpublishObjectClassAttributes(publisherClass, publisherAttributes);
          published = false;
+         if (drainCallbacksBeforeResign && callbackModel == CallbackModel.HLA_EVOKED) {
+            drainPendingCallbacks(publisher);
+            drainPendingCallbacks(receiver);
+         }
          receiver.resignFederationExecution(ResignAction.NO_ACTION);
          receiverJoined = false;
          publisher.resignFederationExecution(ResignAction.DELETE_OBJECTS);
@@ -139,6 +160,30 @@ final class CallbackControlsObjectDiscoveryTck {
       }
    }
 
+   private static void connect(RTIambassador ambassador, Recorder recorder,
+         CallbackModel callbackModel, String rtiAddress, String additionalSettings,
+         String role) throws Exception {
+      if ((rtiAddress == null || rtiAddress.isEmpty())
+            && (additionalSettings == null || additionalSettings.isEmpty())) {
+         ambassador.connect(recorder.proxy(), callbackModel);
+         return;
+      }
+      RtiConfiguration configuration = RtiConfiguration.createConfiguration();
+      if (rtiAddress != null && !rtiAddress.isEmpty()) {
+         configuration.withRtiAddress(rtiAddress);
+      }
+      if (additionalSettings != null && !additionalSettings.isEmpty()) {
+         configuration.withAdditionalSettings(additionalSettings);
+      }
+      ConfigurationResult result = ambassador.connect(
+         recorder.proxy(), callbackModel, configuration);
+      JavaTckSupport.check(result != null, role + " Connect returned null");
+      if (rtiAddress != null && !rtiAddress.isEmpty()) {
+         JavaTckSupport.check(result.addressUsed,
+            role + " Connect did not use the adapter-supplied endpoint");
+      }
+   }
+
    private static void await(RTIambassador ambassador, CallbackModel model,
          String objectClassName, Condition condition, String description) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
@@ -156,6 +201,10 @@ final class CallbackControlsObjectDiscoveryTck {
       } else {
          ambassador.getObjectClassHandle(objectClassName);
       }
+   }
+
+   private static void drainPendingCallbacks(RTIambassador ambassador) throws Exception {
+      while (ambassador.evokeMultipleCallbacks(0.0, 0.0)) { }
    }
 
    private interface Condition {

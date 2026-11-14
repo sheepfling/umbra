@@ -143,6 +143,44 @@ TransportServiceMessage ProcessFederationService::handleQueryLogicalTime(
                   std::move(bytes)}}));
 }
 
+TransportServiceMessage ProcessFederationService::handleGetNonRegulatedGrantSwitch(
+    ProcessTransportSession& session,
+    TransportServiceMessage const& request) {
+  auto const query =
+      decodeProcessFederationAttributeScopeAdvisorySwitchRequest(
+          request.payload);
+  {
+    std::scoped_lock lock(mutex_);
+    auto const state = sessions_.find(&session);
+    if (state == sessions_.end() ||
+        !state->second.federationName.has_value() ||
+        *state->second.federationName != query.federationName ||
+        state->second.federateId != query.federateId ||
+        !registry_.memberById(query.federationName, query.federateId)) {
+      return rejected(request);
+    }
+  }
+  auto const availability = registry_.serviceOperationStatus(
+      query.federationName, query.federateId);
+  if (availability != FederationServiceOperationStatus::available) {
+    return responseFor(
+        request,
+        TransportServiceStatus::ok,
+        encodeProcessFederationNonRegulatedGrantSwitchResult(
+            {availability}));
+  }
+  auto const switchValue = registry_.nonRegulatedGrantSwitchFor(
+      query.federationName, query.federateId);
+  if (!switchValue) {
+    return rejected(request);
+  }
+  return responseFor(
+      request,
+      TransportServiceStatus::ok,
+      encodeProcessFederationNonRegulatedGrantSwitchResult(
+          {FederationServiceOperationStatus::available, *switchValue}));
+}
+
 TransportServiceMessage ProcessFederationService::handleQueryLookahead(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {

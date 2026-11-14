@@ -113,6 +113,10 @@ void scenarioServiceReportRegisterObjectInstance(
         report.parameters.count(parameterHandle) == 1U,
         "Register-object service-report callback omitted a standard report parameter");
   }
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == subject.federateHandle(),
+      "Register-object service-report callback identified the wrong federate");
 
   rti::HLAunicodeString service;
   service.decode(report.parameters.at(reportParameters[0]));
@@ -139,6 +143,38 @@ void scenarioServiceReportRegisterObjectInstance(
   require(
       serial.get() == 0,
       "First register-object service report did not use serial number zero");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 1U,
+      "RegisterObjectInstance report returned the wrong supplied-argument count");
+  auto const& suppliedClass = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(suppliedClass.get(0U)).get() == 36 &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedClass.get(1U)).get() ==
+              L"Object class designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedClass.get(2U)).get() ==
+              L"\"" + subjectClass.toString() + L"\"",
+      "RegisterObjectInstance report returned the wrong ObjectClassHandle argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters.at(4U)));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get() ==
+              L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+              L"\"" + object.toString() + L"\"",
+      "RegisterObjectInstance report returned the wrong ObjectInstanceHandle result");
 
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   subject.rtiAmbassador().setServiceReportingSwitch(false);
@@ -275,6 +311,10 @@ void scenarioServiceReportDeleteObjectInstance(
         report.parameters.count(parameterHandle) == 1U,
         "Delete-object service-report callback omitted a standard report parameter");
   }
+  require(
+      observer.rtiAmbassador().decodeFederateHandle(
+          report.parameters.at(reportParameters[7])) == subject.federateHandle(),
+      "Delete-object service-report callback identified the wrong federate");
 
   rti::HLAunicodeString service;
   service.decode(report.parameters.at(reportParameters[0]));
@@ -291,6 +331,58 @@ void scenarioServiceReportDeleteObjectInstance(
   require(
       success.get(),
       "Delete-object service-report callback did not report a successful invocation");
+
+  rti::HLAfixedRecord argumentPrototype;
+  argumentPrototype.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  rti::HLAvariableArray suppliedArguments{argumentPrototype};
+  suppliedArguments.decode(report.parameters.at(reportParameters.at(3U)));
+  require(
+      suppliedArguments.size() == 3U,
+      "DeleteObjectInstance report returned the wrong supplied-argument count");
+  auto const& suppliedObject = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(0U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(suppliedObject.get(0U)).get() == 37 &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedObject.get(1U)).get() ==
+              L"Object instance designator" &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedObject.get(2U)).get() ==
+              L"\"" + object.toString() + L"\"",
+      "DeleteObjectInstance report returned the wrong ObjectInstanceHandle argument");
+
+  auto const& suppliedTag = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(1U));
+  // RL-399 leaves the numeric UserSuppliedTag HLAargumentType disputed; assert
+  // the stable Table 5 argument name and Base64 JSON value, not that number.
+  require(
+      dynamic_cast<rti::HLAunicodeString const&>(suppliedTag.get(1U)).get() ==
+              L"User-supplied tag" &&
+          dynamic_cast<rti::HLAunicodeString const&>(suppliedTag.get(2U)).get() ==
+              L"\"REVM\"",
+      "DeleteObjectInstance report returned the wrong user-tag argument value");
+
+  auto const& optionalTimestamp = dynamic_cast<rti::HLAfixedRecord const&>(
+      suppliedArguments.get(2U));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(optionalTimestamp.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(optionalTimestamp.get(1U)).get() ==
+              L"Optional timestamp" &&
+          dynamic_cast<rti::HLAunicodeString const&>(optionalTimestamp.get(2U)).get() ==
+              L"null",
+      "DeleteObjectInstance report returned the wrong absent-timestamp argument");
+
+  rti::HLAfixedRecord returnedArgument;
+  returnedArgument.appendElement(rti::HLAinteger32BE{})
+      .appendElement(rti::HLAunicodeString{})
+      .appendElement(rti::HLAunicodeString{});
+  returnedArgument.decode(report.parameters.at(reportParameters[4]));
+  require(
+      dynamic_cast<rti::HLAinteger32BE const&>(returnedArgument.get(0U)).get() == 34 &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(1U)).get().empty() &&
+          dynamic_cast<rti::HLAunicodeString const&>(returnedArgument.get(2U)).get() ==
+              L"null",
+      "Successful DeleteObjectInstance report returned the wrong void-return Null record");
   rti::HLAunicodeString exception;
   exception.decode(report.parameters.at(reportParameters[5]));
   require(
@@ -430,6 +522,10 @@ void scenarioServiceReportDeleteObjectInstanceFailure(
           report.parameters.count(parameterHandle) == 1U,
           "Failed delete-object service-report callback omitted a standard report parameter");
     }
+    require(
+        observer.rtiAmbassador().decodeFederateHandle(
+            report.parameters.at(reportParameters[7])) == subject.federateHandle(),
+        "Failed delete-object service-report callback identified the wrong federate");
 
     rti::HLAunicodeString service;
     service.decode(report.parameters.at(reportParameters[0]));
@@ -464,6 +560,25 @@ void scenarioServiceReportDeleteObjectInstanceFailure(
             dynamic_cast<rti::HLAunicodeString const&>(objectArgument.get(2U)).get() ==
                 L"\"" + expectedObjectValue + L"\"",
         "Failed delete-object service-report callback returned the wrong object argument");
+    auto const& tagArgument = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(1U));
+    // RL-399 leaves the numeric UserSuppliedTag HLAargumentType disputed;
+    // assert the stable argument name and encoded binary value, not that number.
+    require(
+        dynamic_cast<rti::HLAunicodeString const&>(tagArgument.get(1U)).get() ==
+                L"User-supplied tag" &&
+            dynamic_cast<rti::HLAunicodeString const&>(tagArgument.get(2U)).get() ==
+                L"\"cmVn\"",
+        "Failed delete-object service-report callback returned the wrong user-tag value");
+    auto const& optionalTimestamp = dynamic_cast<rti::HLAfixedRecord const&>(
+        suppliedArguments.get(2U));
+    require(
+        dynamic_cast<rti::HLAinteger32BE const&>(optionalTimestamp.get(0U)).get() == 34 &&
+            dynamic_cast<rti::HLAunicodeString const&>(optionalTimestamp.get(1U)).get() ==
+                L"Optional timestamp" &&
+            dynamic_cast<rti::HLAunicodeString const&>(optionalTimestamp.get(2U)).get() ==
+                L"null",
+        "Failed delete-object service-report callback returned the wrong absent timestamp");
     rti::HLAfixedRecord returnedArgument;
     returnedArgument.appendElement(rti::HLAinteger32BE{})
         .appendElement(rti::HLAunicodeString{})
@@ -500,6 +615,12 @@ void scenarioServiceReportDeleteObjectInstanceFailure(
       [&] { return observer.recorder().interaction().present; },
       options,
       "the successful delete-object service-report callback before stale failure");
+  auto const successfulReport = observer.recorder().interaction();
+  require(
+      successfulReport.parameters.count(reportParameters[7]) == 1U &&
+          observer.rtiAmbassador().decodeFederateHandle(
+              successfulReport.parameters.at(reportParameters[7])) == subject.federateHandle(),
+      "Successful delete-object service-report callback identified the wrong federate");
   waitFor(
       observer,
       [&] {

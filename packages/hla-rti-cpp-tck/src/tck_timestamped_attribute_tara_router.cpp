@@ -14,6 +14,12 @@ void scenarioNmrFutureTimestampedAttributeUpdate(
 void scenarioNmrFutureTimestampedAttributeUpdateContract(
     Options const& options,
     rti::CallbackModel model);
+void scenarioNmraFutureTimestampedAttributeUpdate(
+    Options const& options,
+    rti::CallbackModel model);
+void scenarioNmraFutureTimestampedAttributeUpdateContract(
+    Options const& options,
+    rti::CallbackModel model);
 
 namespace {
 
@@ -29,6 +35,10 @@ constexpr char nmrFutureArrivalScenario[] =
     "cpp-tck.timestamped-attribute-update-future-nmr-arrival";
 constexpr char nmrFutureArrivalContractId[] =
     "cpp-tck.timestamped-attribute-update-future-nmr-arrival-contract";
+constexpr char nmraFutureArrivalScenario[] =
+    "cpp-tck.timestamped-attribute-update-future-nmra-arrival";
+constexpr char nmraFutureArrivalContractId[] =
+    "cpp-tck.timestamped-attribute-update-future-nmra-arrival-contract";
 
 bool selectedScenario(
     int argc,
@@ -90,6 +100,19 @@ std::optional<int> tryRunTimestampedAttributeTaraScenario(
         nmrFutureArrivalContractId,
         scenarioNmrFutureTimestampedAttributeUpdate,
         scenarioNmrFutureTimestampedAttributeUpdateContract);
+  }
+  if (selectedScenario(
+          argc,
+          argv,
+          nmraFutureArrivalScenario,
+          nmraFutureArrivalContractId)) {
+    return runPortableScenarioPair(
+        argc,
+        argv,
+        nmraFutureArrivalScenario,
+        nmraFutureArrivalContractId,
+        scenarioNmraFutureTimestampedAttributeUpdate,
+        scenarioNmraFutureTimestampedAttributeUpdateContract);
   }
   return std::nullopt;
 }

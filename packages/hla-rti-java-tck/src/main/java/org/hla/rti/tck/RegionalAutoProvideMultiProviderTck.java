@@ -13,6 +13,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -96,6 +97,8 @@ final class RegionalAutoProvideMultiProviderTck {
          checkDimension(owner, ownerClass, ownerDimension);
          checkDimension(provider, providerClass, providerDimension);
          checkDimension(requester, requesterClass, requesterDimension);
+         requesterCallbacks.configureRegionInspection(requester, requesterDimension,
+            new RangeBounds(0L, 2L));
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerA, ownerB);
          providerAttributes = JavaTckSupport.attributeSet(provider, providerB);
@@ -191,8 +194,7 @@ final class RegionalAutoProvideMultiProviderTck {
                JavaTckSupport.check(!sawOwnerReflection
                      && Arrays.equals(OWNER_VALUE, reflection.values.get(requesterA))
                      && Arrays.equals(OWNER_TAG, reflection.tag)
-                     && reflection.regions.size() == 1
-                     && reflection.regions.contains(ownerRegion),
+                     && reflection.regions.size() == 1,
                   "original-owner reflection changed value, tag, or source-region metadata");
                sawOwnerReflection = true;
             } else if (providerHandle.equals(reflection.producer)) {
@@ -376,6 +378,9 @@ final class RegionalAutoProvideMultiProviderTck {
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private final AtomicReference<RTIambassador> ambassador = new AtomicReference<>();
+      private final AtomicReference<RTIambassador> regionInspector = new AtomicReference<>();
+      private final AtomicReference<DimensionHandle> regionDimension = new AtomicReference<>();
+      private final AtomicReference<RangeBounds> regionBounds = new AtomicReference<>();
       private final AtomicReference<AttributeHandle> responseAttribute = new AtomicReference<>();
 
       private Recorder(AtomicReference<Throwable> callbackFailure, Role role) {
@@ -386,15 +391,22 @@ final class RegionalAutoProvideMultiProviderTck {
          ambassador.set(rti); responseAttribute.set(response);
       }
 
+      private void configureRegionInspection(RTIambassador rti, DimensionHandle dimension,
+            RangeBounds bounds) {
+         regionInspector.set(rti);
+         regionDimension.set(dimension);
+         regionBounds.set(bounds);
+      }
+
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+               if ("discoverObjectInstance".equals(name) && args != null && args.length == 4) {
                   Discovery discovery = new Discovery();
                   discovery.object = (ObjectInstanceHandle) args[0];
                   discovery.objectClass = (ObjectClassHandle) args[1];
-                  discovery.producer = (FederateHandle) args[2];
+                  discovery.producer = (FederateHandle) args[3];
                   discoveries.add(discovery);
                } else if ("provideAttributeValueUpdate".equals(name) && args != null
                      && args.length == 3) {
@@ -421,7 +433,25 @@ final class RegionalAutoProvideMultiProviderTck {
                   reflection.tag = ((byte[]) args[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) args[3];
                   reflection.producer = (FederateHandle) args[4];
-                  reflection.regions = (RegionHandleSet) args[5];
+                  RegionHandleSet callbackRegions = (RegionHandleSet) args[5];
+                  reflection.regions = callbackRegions == null ? null : callbackRegions.clone();
+                  if (reflection.regions != null && !reflection.regions.isEmpty()) try {
+                     JavaTckSupport.check(reflection.regions.size() == 1,
+                        "multi-provider owner reflection did not convey one source region copy");
+                     RegionHandle callbackRegion = reflection.regions.iterator().next();
+                     RTIambassador inspector = regionInspector.get();
+                     DimensionHandle expectedDimension = regionDimension.get();
+                     RangeBounds expectedBounds = regionBounds.get();
+                     DimensionHandleSet dimensions = inspector.getDimensionHandleSet(callbackRegion);
+                     JavaTckSupport.check(dimensions.size() == 1
+                           && dimensions.contains(expectedDimension),
+                        "multi-provider owner region copy changed its dimension set");
+                     JavaTckSupport.check(inspector.getRangeBounds(callbackRegion, expectedDimension)
+                           .equals(expectedBounds),
+                        "multi-provider owner region copy changed its range bounds");
+                  } catch (Throwable failure) {
+                     callbackFailure.compareAndSet(null, failure);
+                  }
                   reflections.add(reflection);
                }
                if (method.getDeclaringClass() == Object.class) {

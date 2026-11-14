@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectModel xmlns="http://standards.ieee.org/IEEE1516-2025"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2025 IEEE1516-DIF-2025.xsd">
+    <modelIdentification>
+        <name>Portable HLA C++ TCK complete object-class scaffold provider</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2026-10-31</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <copyright>Public test fixture</copyright>
+        <releaseRestriction>NA</releaseRestriction>
+        <purpose>Complete the object-class scaffold in a companion module.</purpose>
+        <applicationDomain>Conformance testing</applicationDomain>
+        <description>This module supplies the sharing and semantics fields omitted by the scaffold module.</description>
+    </modelIdentification>
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <objectClass>
+                <name>TckScaffoldObjectClass</name>
+                <sharing>PublishSubscribe</sharing>
+                <semantics>A fully defined object class for the module-union test.</semantics>
+            </objectClass>
+        </objectClass>
+    </objects>
+</objectModel>

@@ -78,6 +78,8 @@ TransportServiceMessage ProcessFederationService::handleRetract(
     ProcessTransportSession& session,
     TransportServiceMessage const& request) {
   auto const retractRequest = decodeProcessFederationRetractRequest(request.payload);
+  auto const messageKey = ProcessFederationTsoMessageKey{
+      retractRequest.federationName, retractRequest.messageId};
   std::shared_ptr<FederateTimeState> producingTimeState;
   {
     std::scoped_lock lock(mutex_);
@@ -91,7 +93,7 @@ TransportServiceMessage ProcessFederationService::handleRetract(
         return rejected(request);
     }
     producingTimeState = state->second.timeState;
-    auto const owner = processTsoMessageProducers_.find(retractRequest.messageId);
+    auto const owner = processTsoMessageProducers_.find(messageKey);
     if (owner == processTsoMessageProducers_.end() ||
         owner->second != retractRequest.producingFederateId) {
       return responseFor(
@@ -197,8 +199,7 @@ TransportServiceMessage ProcessFederationService::handleRetract(
                 }),
             state.attributeUpdateEvents.end());
       }
-      auto pushed = pendingPushedRetractionRecipients_.find(
-          retractRequest.messageId);
+      auto pushed = pendingPushedRetractionRecipients_.find(messageKey);
       if (pushed != pendingPushedRetractionRecipients_.end()) {
         pushedRecipients = std::move(pushed->second);
         pendingPushedRetractionRecipients_.erase(pushed);
@@ -219,8 +220,8 @@ TransportServiceMessage ProcessFederationService::handleRetract(
     }
   } else if (status == ProcessFederationRetractStatus::message_no_longer_retractable) {
     std::scoped_lock lock(mutex_);
-    processTsoMessageProducers_.erase(retractRequest.messageId);
-    pendingPushedRetractionRecipients_.erase(retractRequest.messageId);
+    processTsoMessageProducers_.erase(messageKey);
+    pendingPushedRetractionRecipients_.erase(messageKey);
   }
   return responseFor(
       request,

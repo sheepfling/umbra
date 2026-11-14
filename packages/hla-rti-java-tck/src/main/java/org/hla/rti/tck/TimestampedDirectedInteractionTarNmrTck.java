@@ -109,10 +109,10 @@ final class TimestampedDirectedInteractionTarNmrTck {
          tarAttributesSubscribed = true;
          nmrReceiver.subscribeObjectClassAttributes(nmrClass, nmrAttributes);
          nmrAttributesSubscribed = true;
-         tarReceiver.subscribeObjectClassDirectedInteractions(tarClass,
+         tarReceiver.subscribeObjectClassDirectedInteractionsUniversally(tarClass,
             JavaTckSupport.interactionSet(tarReceiver, tarInteraction));
          tarDirectedSubscribed = true;
-         nmrReceiver.subscribeObjectClassDirectedInteractions(nmrClass,
+         nmrReceiver.subscribeObjectClassDirectedInteractionsUniversally(nmrClass,
             JavaTckSupport.interactionSet(nmrReceiver, nmrInteraction));
          nmrDirectedSubscribed = true;
 
@@ -155,6 +155,7 @@ final class TimestampedDirectedInteractionTarNmrTck {
          LogicalTime tarTarget = offset(initial, epsilon, 7);
          LogicalTime nmrTarget = offset(initial, epsilon, 10);
          LogicalTime publisherTarget = offset(initial, epsilon, 2);
+         LogicalTime publisherSafeTarget = offset(initial, epsilon, 3);
          byte[] payload = new byte[] {0x54, 0x41, 0x52, 0x2D, 0x4E};
          byte[] tag = new byte[] {0x54, 0x41, 0x52, 0x2D, 0x4D};
          ParameterHandleValueMap parameters =
@@ -182,12 +183,26 @@ final class TimestampedDirectedInteractionTarNmrTck {
          JavaTckSupport.drain(nmrReceiver);
          JavaTckSupport.drain(publisher);
 
+         JavaTckSupport.check(publisherRecorder.timeAdvanceGrants.size() == 1
+               && publisherTarget.equals(publisherRecorder.timeAdvanceGrants.get(0)),
+            "publisher did not reach the strict GALT boundary at its first TAR");
+         JavaTckSupport.check(tarRecorder.interactions.size() == 1
+               && nmrRecorder.interactions.size() == 1
+               && tarRecorder.timeAdvanceGrants.isEmpty(),
+            "TAR receiver was granted at the strict GALT boundary before the safe publisher TAR");
+
+         publisher.timeAdvanceRequest(publisherSafeTarget);
+         JavaTckSupport.drain(tarReceiver);
+         JavaTckSupport.drain(nmrReceiver);
+         JavaTckSupport.drain(publisher);
+
          JavaTckSupport.check(tarRecorder.interactions.size() == 1
                && nmrRecorder.interactions.size() == 1,
             "TAR and NMR did not each receive exactly one directed interaction");
-         JavaTckSupport.check(publisherRecorder.timeAdvanceGrants.size() == 1
-               && publisherTarget.equals(publisherRecorder.timeAdvanceGrants.get(0)),
-            "publisher TAR did not grant the requested logical time");
+         JavaTckSupport.check(publisherRecorder.timeAdvanceGrants.size() == 2
+               && publisherTarget.equals(publisherRecorder.timeAdvanceGrants.get(0))
+               && publisherSafeTarget.equals(publisherRecorder.timeAdvanceGrants.get(1)),
+            "publisher TARs did not grant the strict-boundary and safe logical times");
          JavaTckSupport.check(tarRecorder.timeAdvanceGrants.size() == 1
                && tarTarget.equals(tarRecorder.timeAdvanceGrants.get(0)),
             "TAR receiver did not grant its requested logical time");
@@ -205,7 +220,7 @@ final class TimestampedDirectedInteractionTarNmrTck {
             payload, tag, producer, messageTime, sent.handle, nmrReceiver, "NMR receiver");
          JavaTckSupport.check(tarTarget.equals(tarReceiver.queryLogicalTime())
                && messageTime.equals(nmrReceiver.queryLogicalTime())
-               && publisherTarget.equals(publisher.queryLogicalTime()),
+               && publisherSafeTarget.equals(publisher.queryLogicalTime()),
             "logical-time queries did not match the TAR, NMR, and producer grants");
          expectException(() -> publisher.retract(sent.handle), "MessageCanNoLongerBeRetracted",
             "retracting the directed interaction after both deliveries");

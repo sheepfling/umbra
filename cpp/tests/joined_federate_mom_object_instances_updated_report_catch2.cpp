@@ -27,6 +27,7 @@ namespace standard_hla = umbra::detail::hla::wide;
 
 using rti1516_2025::FederateHandle;
 using rti1516_2025::HLA_EVOKED;
+using rti1516_2025::HLA_IMMEDIATE;
 using rti1516_2025::HLAfixedRecord;
 using rti1516_2025::HLAinteger32BE;
 using rti1516_2025::HLAoctet;
@@ -132,27 +133,16 @@ std::vector<DecodedObjectClassCount> decodeObjectClassCounts(
   return decoded;
 }
 
-}  // namespace
-
-TEST_CASE(
-    "Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
-    "[integration][development-profile][federation-management][mom]"
-    "[mom-request-report][object-management][interaction-management]"
-    "[callback-model][joined-federate-mom-object-instances-updated-report]"
-    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
-    "[rti.service.publish-object-class-attributes]"
-    "[rti.service.register-object-instance][rti.service.update-attribute-values]"
-    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
-    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
-    "[rti.service.evoke-callback][federate.callback.receive-interaction]") {
+void verifyObjectInstancesUpdatedReport(bool immediate) {
   ReportingFederateAmbassador requesterReports;
   ReportingFederateAmbassador senderReports;
   auto requester = makeRti();
   auto sender = makeRti();
   auto const federationName = nextFederationName();
 
-  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
-  REQUIRE_NOTHROW(sender->connect(senderReports, HLA_EVOKED));
+  auto const callbackModel = immediate ? HLA_IMMEDIATE : HLA_EVOKED;
+  REQUIRE_NOTHROW(requester->connect(requesterReports, callbackModel));
+  REQUIRE_NOTHROW(sender->connect(senderReports, callbackModel));
   REQUIRE_NOTHROW(sender->createFederationExecution(
       federationName, restaurantFom().wstring(), standard_hla::mom::integer64_time));
 
@@ -224,10 +214,16 @@ TEST_CASE(
       requestClass,
       ParameterHandleValueMap{{requestFederate, senderFederate.encode()}},
       VariableLengthData{}));
-  // HLA_EVOKED keeps the RTI-originated report behind the callback boundary.
-  REQUIRE(requesterReports.interactionReports.size() == beforeRequest);
-  drainCallbacks(*requester);
-  REQUIRE(requesterReports.interactionReports.size() == beforeRequest + 1U);
+  if (immediate) {
+    // HLA_IMMEDIATE delivers the RTI-originated response before the public
+    // Send Interaction service returns.
+    REQUIRE(requesterReports.interactionReports.size() == beforeRequest + 1U);
+  } else {
+    // HLA_EVOKED keeps the RTI-originated report behind the callback boundary.
+    REQUIRE(requesterReports.interactionReports.size() == beforeRequest);
+    drainCallbacks(*requester);
+    REQUIRE(requesterReports.interactionReports.size() == beforeRequest + 1U);
+  }
 
   auto const& report = requesterReports.interactionReports.back();
   REQUIRE(report.interactionClass == reportClass);
@@ -259,4 +255,112 @@ TEST_CASE(
   REQUIRE_NOTHROW(sender->destroyFederationExecution(federationName));
   REQUIRE_NOTHROW(requester->disconnect());
   REQUIRE_NOTHROW(sender->disconnect());
+}
+
+}  // namespace
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstancesUpdated reports class-grouped counts",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[callback-model][joined-federate-mom-object-instances-updated-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.update-attribute-values]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.evoke-callback][federate.callback.receive-interaction]") {
+  verifyObjectInstancesUpdatedReport(false);
+}
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstancesUpdated reports class-grouped counts immediately",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][object-management][interaction-management]"
+    "[callback-immediate][joined-federate-mom-object-instances-updated-report]"
+    "[rti.service.get-object-class-handle][rti.service.get-attribute-handle]"
+    "[rti.service.publish-object-class-attributes]"
+    "[rti.service.register-object-instance][rti.service.update-attribute-values]"
+    "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[federate.callback.receive-interaction]") {
+  verifyObjectInstancesUpdatedReport(true);
+}
+
+TEST_CASE(
+    "Embedded MOM requestObjectInstancesUpdated returns NULL when no update information exists",
+    "[integration][development-profile][federation-management][mom]"
+    "[mom-request-report][mom-null-response]"
+    "[joined-federate-mom-object-instances-updated-null-response]"
+    "[rti.service.connect][rti.service.create-federation-execution]"
+    "[rti.service.join-federation-execution][rti.service.get-interaction-class-handle]"
+    "[rti.service.get-parameter-handle][rti.service.get-transportation-type-handle]"
+    "[rti.service.subscribe-interaction-class][rti.service.send-interaction]"
+    "[rti.service.evoke-callback][federate.callback.receive-interaction]") {
+  ReportingFederateAmbassador requesterReports;
+  ReportingFederateAmbassador subjectReports;
+  auto requester = makeRti();
+  auto subject = makeRti();
+  auto const federationName = nextFederationName();
+
+  REQUIRE_NOTHROW(requester->connect(requesterReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subject->connect(subjectReports, HLA_EVOKED));
+  REQUIRE_NOTHROW(subject->createFederationExecution(
+      federationName, restaurantFom().wstring(), standard_hla::mom::integer64_time));
+
+  REQUIRE_NOTHROW(requester->joinFederationExecution(
+      L"mom-object-instances-updated-null-requester", L"requester", federationName));
+  FederateHandle subjectFederate;
+  REQUIRE_NOTHROW(subjectFederate = subject->joinFederationExecution(
+      L"mom-object-instances-updated-null-subject", L"subject", federationName));
+
+  auto const requestClass = requester->getInteractionClassHandle(
+      standard_hla::mom::request_object_instances_updated);
+  auto const requestFederate = requester->getParameterHandle(
+      requestClass, standard_hla::mom::federate);
+  auto const reportClass = requester->getInteractionClassHandle(
+      standard_hla::mom::report_object_instances_updated);
+  auto const reportCounts = requester->getParameterHandle(
+      reportClass, standard_hla::mom::object_instance_counts);
+  auto const reliable = requester->getTransportationTypeHandle(
+      standard_hla::mom::reliable);
+  REQUIRE(requestClass.isValid());
+  REQUIRE(requestFederate.isValid());
+  REQUIRE(reportClass.isValid());
+  REQUIRE(reportCounts.isValid());
+  REQUIRE(reliable.isValid());
+  REQUIRE_NOTHROW(requester->subscribeInteractionClass(reportClass));
+
+  auto const reportsBeforeRequest = requesterReports.interactionReports.size();
+  REQUIRE_NOTHROW(requester->sendInteraction(
+      requestClass,
+      ParameterHandleValueMap{{requestFederate, subjectFederate.encode()}},
+      VariableLengthData{}));
+  // HLA_EVOKED keeps the RTI-originated NULL response behind the callback boundary.
+  REQUIRE(requesterReports.interactionReports.size() == reportsBeforeRequest);
+  drainCallbacks(*requester);
+  REQUIRE(requesterReports.interactionReports.size() == reportsBeforeRequest + 1U);
+
+  auto const& report = requesterReports.interactionReports.back();
+  REQUIRE(report.interactionClass == reportClass);
+  REQUIRE(report.parameterValues.size() == 1U);
+  REQUIRE(report.parameterValues.contains(reportCounts));
+  REQUIRE(report.transportationType == reliable);
+  REQUIRE_FALSE(report.producingFederate.isValid());
+  REQUIRE(report.userSuppliedTag.size() == 0U);
+  REQUIRE_FALSE(report.sentRegionsSupplied);
+
+  auto const& encodedCounts = report.parameterValues.at(reportCounts);
+  if (encodedCounts.size() != 0U) {
+    // Table 20 permits the undefined NULL value as an empty array; if the
+    // provider supplies an encoded array, it must contain no count records.
+    REQUIRE(decodeObjectClassCounts(encodedCounts).empty());
+  }
+
+  REQUIRE_NOTHROW(requester->unsubscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(requester->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(subject->resignFederationExecution(NO_ACTION));
+  REQUIRE_NOTHROW(subject->destroyFederationExecution(federationName));
+  REQUIRE_NOTHROW(requester->disconnect());
+  REQUIRE_NOTHROW(subject->disconnect());
 }

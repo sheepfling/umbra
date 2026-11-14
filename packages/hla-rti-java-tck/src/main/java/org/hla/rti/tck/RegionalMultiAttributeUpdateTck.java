@@ -21,11 +21,15 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /** Verifies independent per-attribute regional filtering for multi-attribute updates. */
 final class RegionalMultiAttributeUpdateTck {
@@ -52,6 +56,8 @@ final class RegionalMultiAttributeUpdateTck {
       boolean published = false;
       boolean flavorSubscribed = false;
       boolean organicSubscribed = false;
+      boolean flavorCrossProductSubscribed = false;
+      boolean organicCrossProductSubscribed = false;
       RegionHandle sourceFlavor = null;
       RegionHandle sourceOrganic = null;
       RegionHandle flavorRegion = null;
@@ -61,11 +67,17 @@ final class RegionalMultiAttributeUpdateTck {
       ObjectClassHandle organicClass = null;
       AttributeHandle firstAttribute = null;
       AttributeHandle secondAttribute = null;
+      AttributeHandleSet flavorCrossProductAttributes = null;
+      AttributeHandleSet organicCrossProductAttributes = null;
       AttributeHandleSet publishedAttributes = null;
       AttributeSetRegionSetPairList sourcePairs = null;
+      AttributeSetRegionSetPairList sourceCrossProductPair = null;
       AttributeSetRegionSetPairList flavorPairs = null;
       AttributeSetRegionSetPairList organicPairs = null;
+      AttributeSetRegionSetPairList flavorCrossProductPair = null;
+      AttributeSetRegionSetPairList organicCrossProductPair = null;
       ObjectInstanceHandle object = null;
+      ObjectInstanceHandle crossProductObject = null;
       try {
          publisher.connect(publisherCallbacks.proxy(), callbackModel);
          connected[0] = true;
@@ -89,6 +101,8 @@ final class RegionalMultiAttributeUpdateTck {
          firstAttribute = publisher.getAttributeHandle(publisherClass, firstAttributeName);
          secondAttribute = publisher.getAttributeHandle(publisherClass, secondAttributeName);
          AttributeHandle flavorFirst = flavor.getAttributeHandle(flavorClass, firstAttributeName);
+         AttributeHandle flavorSecond = flavor.getAttributeHandle(flavorClass, secondAttributeName);
+         AttributeHandle organicFirst = organic.getAttributeHandle(organicClass, firstAttributeName);
          AttributeHandle organicSecond = organic.getAttributeHandle(organicClass, secondAttributeName);
          DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
@@ -100,6 +114,8 @@ final class RegionalMultiAttributeUpdateTck {
                && publisherClass.equals(organicClass)
                && !firstAttribute.equals(secondAttribute)
                && firstAttribute.equals(flavorFirst)
+               && secondAttribute.equals(flavorSecond)
+               && firstAttribute.equals(organicFirst)
                && secondAttribute.equals(organicSecond)
                && publisherFirst.equals(flavorFirstDimension)
                && publisherFirst.equals(organicFirstDimension)
@@ -114,6 +130,10 @@ final class RegionalMultiAttributeUpdateTck {
          AttributeHandleSet secondSet = JavaTckSupport.attributeSet(publisher, secondAttribute);
          AttributeHandleSet flavorSet = JavaTckSupport.attributeSet(flavor, flavorFirst);
          AttributeHandleSet organicSet = JavaTckSupport.attributeSet(organic, organicSecond);
+         flavorCrossProductAttributes = JavaTckSupport.attributeSet(
+            flavor, flavorFirst, flavorSecond);
+         organicCrossProductAttributes = JavaTckSupport.attributeSet(
+            organic, organicFirst, organicSecond);
          publishedAttributes = JavaTckSupport.attributeSet(
             publisher, firstAttribute, secondAttribute);
          publisher.publishObjectClassAttributes(publisherClass, publishedAttributes);
@@ -147,23 +167,31 @@ final class RegionalMultiAttributeUpdateTck {
             () -> !flavorCallbacks.discoveries.isEmpty()
                && !organicCallbacks.discoveries.isEmpty(),
             "multi-attribute regional object discovery");
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
          JavaTckSupport.check(flavorClass.equals(flavorCallbacks.discoveries.get(0).objectClass)
                && organicClass.equals(organicCallbacks.discoveries.get(0).objectClass)
                && registeredObject.equals(flavorCallbacks.discoveries.get(0).object)
                && registeredObject.equals(organicCallbacks.discoveries.get(0).object),
             "multi-attribute regional discovery returned the wrong object class or handle");
 
+         installSingleSourceRegionInspection(flavorCallbacks, flavor,
+            flavorFirstDimension, flavorSecondDimension, 0, 2, "Flavor");
+         installSingleSourceRegionInspection(organicCallbacks, organic,
+            organicFirstDimension, organicSecondDimension, 5, 7, "Organic");
+
          updateBoth(publisher, object, firstAttribute, secondAttribute,
             new byte[] {0x46, 0x31}, new byte[] {0x4f, 0x31}, new byte[] {0x49, 0x31});
          awaitBoth(flavor, organic, callbackModel,
             () -> !flavorCallbacks.reflections.isEmpty() && !organicCallbacks.reflections.isEmpty(),
             "multi-attribute regional initial reflections");
+         settleBoth(flavor, organic, callbackModel);
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
          assertReflection(flavorCallbacks.reflections.get(0), object, flavorFirst,
             publisherFederate, new byte[] {0x46, 0x31}, new byte[] {0x49, 0x31},
-            sourceFlavor, flavor, "initial Flavor projection");
+            flavor, flavorCallbacks, "initial Flavor projection");
          assertReflection(organicCallbacks.reflections.get(0), object, organicSecond,
             publisherFederate, new byte[] {0x4f, 0x31}, new byte[] {0x49, 0x31},
-            sourceOrganic, organic, "initial Organic projection");
+            organic, organicCallbacks, "initial Organic projection");
 
          int flavorBeforeXDisjoint = flavorCallbacks.reflections.size();
          int organicBeforeXDisjoint = organicCallbacks.reflections.size();
@@ -174,12 +202,13 @@ final class RegionalMultiAttributeUpdateTck {
          await(organic, callbackModel,
             () -> organicCallbacks.reflections.size() > organicBeforeXDisjoint,
             "surviving Organic reflection after the Flavor source range moves");
-         settle(flavor, callbackModel);
+         settleBoth(flavor, organic, callbackModel);
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
          JavaTckSupport.check(flavorCallbacks.reflections.size() == flavorBeforeXDisjoint,
             "X-only source mutation leaked delivery for the independently associated attribute");
          assertReflection(organicCallbacks.reflections.get(organicBeforeXDisjoint), object,
             organicSecond, publisherFederate, new byte[] {0x4f, 0x58}, new byte[] {0x58, 0x31},
-            sourceOrganic, organic, "Organic projection after the Flavor range moves");
+            organic, organicCallbacks, "Organic projection after the Flavor range moves");
 
          publisher.setRangeBounds(sourceOrganic, publisherSecond, new RangeBounds(8, 9));
          commitRegion(publisher, sourceOrganic);
@@ -188,6 +217,7 @@ final class RegionalMultiAttributeUpdateTck {
          updateBoth(publisher, object, firstAttribute, secondAttribute,
             new byte[] {0x46, 0x4e}, new byte[] {0x4f, 0x4e}, new byte[] {0x4e, 0x31});
          settleBoth(flavor, organic, callbackModel);
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
          JavaTckSupport.check(flavorCallbacks.reflections.size() == flavorBeforeFullyDisjoint
                && organicCallbacks.reflections.size() == organicBeforeFullyDisjoint,
             "fully disjoint source regions delivered an update");
@@ -203,13 +233,80 @@ final class RegionalMultiAttributeUpdateTck {
             () -> flavorCallbacks.reflections.size() > flavorBeforeRestore
                && organicCallbacks.reflections.size() > organicBeforeRestore,
             "restored multi-attribute regional reflections");
+         settleBoth(flavor, organic, callbackModel);
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
          assertReflection(flavorCallbacks.reflections.get(flavorBeforeRestore), object,
             flavorFirst, publisherFederate, new byte[] {0x46, 0x52}, new byte[] {0x52, 0x31},
-            sourceFlavor, flavor, "restored Flavor projection");
+            flavor, flavorCallbacks, "restored Flavor projection");
          assertReflection(organicCallbacks.reflections.get(organicBeforeRestore), object,
             organicSecond, publisherFederate, new byte[] {0x4f, 0x52}, new byte[] {0x52, 0x31},
-            sourceOrganic, organic, "restored Organic projection");
+            organic, organicCallbacks, "restored Organic projection");
+
+         flavorCrossProductPair = pairList(flavor, flavorCrossProductAttributes, flavorRegion);
+         organicCrossProductPair = pairList(organic, organicCrossProductAttributes, organicRegion);
+         flavor.subscribeObjectClassAttributesWithRegions(flavorClass, flavorCrossProductPair);
+         flavorCrossProductSubscribed = true;
+         organic.subscribeObjectClassAttributesWithRegions(organicClass, organicCrossProductPair);
+         organicCrossProductSubscribed = true;
+         sourceCrossProductPair = pairList(publisher, publishedAttributes,
+            sourceFlavor, sourceOrganic);
+         crossProductObject = publisher.registerObjectInstanceWithRegions(
+            publisherClass, sourceCrossProductPair);
+         JavaTckSupport.check(crossProductObject != null,
+            "multi-attribute attribute-region cross-product registration returned no handle");
+         ObjectInstanceHandle registeredCrossProductObject = crossProductObject;
+         awaitBoth(flavor, organic, callbackModel,
+            () -> flavorCallbacks.discoveries.stream().anyMatch(
+                  discovery -> registeredCrossProductObject.equals(discovery.object))
+               && organicCallbacks.discoveries.stream().anyMatch(
+                  discovery -> registeredCrossProductObject.equals(discovery.object)),
+            "multi-attribute attribute-region cross-product discovery");
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
+
+         AtomicInteger flavorCrossProductRegionCallbacks = new AtomicInteger();
+         AtomicInteger organicCrossProductRegionCallbacks = new AtomicInteger();
+         installCrossProductRegionInspection(flavorCallbacks, flavor,
+            flavorFirstDimension, flavorSecondDimension, registeredCrossProductObject,
+            flavorCrossProductRegionCallbacks, "Flavor");
+         installCrossProductRegionInspection(organicCallbacks, organic,
+            organicFirstDimension, organicSecondDimension, registeredCrossProductObject,
+            organicCrossProductRegionCallbacks, "Organic");
+
+         byte[] crossProductFirstValue = {0x46, 0x58};
+         byte[] crossProductSecondValue = {0x4f, 0x58};
+         byte[] crossProductTag = {0x58, 0x50};
+         updateBoth(publisher, crossProductObject, firstAttribute, secondAttribute,
+            crossProductFirstValue, crossProductSecondValue, crossProductTag);
+         awaitBoth(flavor, organic, callbackModel,
+            () -> hasBothAttributes(flavorCallbacks.reflections, registeredCrossProductObject,
+                  flavorFirst, flavorSecond)
+               && hasBothAttributes(organicCallbacks.reflections, registeredCrossProductObject,
+                  organicFirst, organicSecond),
+            "multi-attribute attribute-region cross-product reflections");
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
+         settleBoth(flavor, organic, callbackModel);
+         checkCallbackFailures(publisherCallbacks, flavorCallbacks, organicCallbacks);
+         assertCrossProductProjection(flavorCallbacks, registeredCrossProductObject,
+            flavorFirst, flavorSecond, publisherFederate, crossProductFirstValue,
+            crossProductSecondValue, crossProductTag, flavor, flavorCrossProductRegionCallbacks,
+            "Flavor cross-product projection");
+         assertCrossProductProjection(organicCallbacks, registeredCrossProductObject,
+            organicFirst, organicSecond, publisherFederate, crossProductFirstValue,
+            crossProductSecondValue, crossProductTag, organic, organicCrossProductRegionCallbacks,
+            "Organic cross-product projection");
       } finally {
+         if (joined[1] && flavorCrossProductSubscribed && flavorCrossProductPair != null
+               && flavorClass != null) {
+            try { flavor.unsubscribeObjectClassAttributesWithRegions(
+               flavorClass, flavorCrossProductPair); }
+            catch (Exception ignored) { }
+         }
+         if (joined[2] && organicCrossProductSubscribed && organicCrossProductPair != null
+               && organicClass != null) {
+            try { organic.unsubscribeObjectClassAttributesWithRegions(
+               organicClass, organicCrossProductPair); }
+            catch (Exception ignored) { }
+         }
          if (joined[1] && flavorSubscribed && flavorPairs != null && flavorClass != null) {
             try { flavor.unsubscribeObjectClassAttributesWithRegions(flavorClass, flavorPairs); }
             catch (Exception ignored) { }
@@ -220,6 +317,11 @@ final class RegionalMultiAttributeUpdateTck {
          }
          if (joined[0] && object != null && sourcePairs != null) {
             try { publisher.unassociateRegionsForUpdates(object, sourcePairs); }
+            catch (Exception ignored) { }
+         }
+         if (joined[0] && crossProductObject != null && sourceCrossProductPair != null) {
+            try { publisher.unassociateRegionsForUpdates(
+               crossProductObject, sourceCrossProductPair); }
             catch (Exception ignored) { }
          }
          if (joined[0] && published && publisherClass != null && publishedAttributes != null) {
@@ -292,10 +394,28 @@ final class RegionalMultiAttributeUpdateTck {
       return result;
    }
 
+   private static AttributeSetRegionSetPairList pairList(RTIambassador ambassador,
+         AttributeHandleSet attributes, RegionHandle firstRegion,
+         RegionHandle secondRegion) throws Exception {
+      AttributeSetRegionSetPairList result =
+         ambassador.getAttributeSetRegionSetPairListFactory().create(1);
+      result.add(new AttributeRegionAssociation(
+         attributes, regionSet(ambassador, firstRegion, secondRegion)));
+      return result;
+   }
+
    private static RegionHandleSet regionSet(RTIambassador ambassador, RegionHandle region)
          throws Exception {
       RegionHandleSet result = ambassador.getRegionHandleSetFactory().create();
       result.add(region);
+      return result;
+   }
+
+   private static RegionHandleSet regionSet(RTIambassador ambassador,
+         RegionHandle firstRegion, RegionHandle secondRegion) throws Exception {
+      RegionHandleSet result = ambassador.getRegionHandleSetFactory().create();
+      result.add(firstRegion);
+      result.add(secondRegion);
       return result;
    }
 
@@ -320,9 +440,115 @@ final class RegionalMultiAttributeUpdateTck {
       publisher.updateAttributeValues(object, values, tag.clone());
    }
 
+   private static void installSingleSourceRegionInspection(Recorder recorder,
+         RTIambassador receiver, DimensionHandle firstDimension, DimensionHandle secondDimension,
+         long lower, long upper, String description) {
+      recorder.reflectionInspector = reflection -> {
+         JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1,
+            description + " reflection omitted its callback-scoped source region copy");
+         RegionHandle callbackRegion = reflection.regions.iterator().next();
+         DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+         RangeBounds firstBounds = receiver.getRangeBounds(callbackRegion, firstDimension);
+         RangeBounds secondBounds = receiver.getRangeBounds(callbackRegion, secondDimension);
+         JavaTckSupport.check(dimensions.size() == 2
+               && dimensions.contains(firstDimension) && dimensions.contains(secondDimension)
+               && firstBounds.lower == lower && firstBounds.upper == upper
+               && secondBounds.lower == lower && secondBounds.upper == upper,
+            description + " callback region copy changed its dimensions or range bounds");
+         recorder.inspectedRegionCallbacks.incrementAndGet();
+      };
+   }
+
+   private static void installCrossProductRegionInspection(Recorder recorder,
+         RTIambassador receiver, DimensionHandle firstDimension, DimensionHandle secondDimension,
+         ObjectInstanceHandle object, AtomicInteger inspectedCallbacks, String description) {
+      recorder.reflectionInspector = reflection -> {
+         if (!object.equals(reflection.object)) return;
+         JavaTckSupport.check(reflection.regions != null && !reflection.regions.isEmpty(),
+            description + " cross-product reflection omitted its callback source region set");
+         boolean sawMatchingSourceRegion = false;
+         for (RegionHandle callbackRegion : reflection.regions) {
+            DimensionHandleSet dimensions = receiver.getDimensionHandleSet(callbackRegion);
+            RangeBounds firstBounds = receiver.getRangeBounds(callbackRegion, firstDimension);
+            RangeBounds secondBounds = receiver.getRangeBounds(callbackRegion, secondDimension);
+            boolean isFlavorRegion = firstBounds.lower == 0 && firstBounds.upper == 2
+               && secondBounds.lower == 0 && secondBounds.upper == 2;
+            boolean isOrganicRegion = firstBounds.lower == 5 && firstBounds.upper == 7
+               && secondBounds.lower == 5 && secondBounds.upper == 7;
+            JavaTckSupport.check(dimensions.size() == 2
+                  && dimensions.contains(firstDimension) && dimensions.contains(secondDimension)
+                  && (isFlavorRegion || isOrganicRegion),
+               description + " cross-product callback copied an unknown source region");
+            sawMatchingSourceRegion = sawMatchingSourceRegion
+               || ("Flavor".equals(description) ? isFlavorRegion : isOrganicRegion);
+         }
+         JavaTckSupport.check(sawMatchingSourceRegion,
+            description + " cross-product callback omitted its matching source region");
+         inspectedCallbacks.incrementAndGet();
+         recorder.inspectedRegionCallbacks.incrementAndGet();
+      };
+   }
+
+   private static boolean hasBothAttributes(List<Reflection> reflections,
+         ObjectInstanceHandle object, AttributeHandle firstAttribute,
+         AttributeHandle secondAttribute) {
+      boolean sawFirst = false;
+      boolean sawSecond = false;
+      for (Reflection reflection : reflections) {
+         if (!object.equals(reflection.object)) continue;
+         sawFirst |= reflection.values.containsKey(firstAttribute);
+         sawSecond |= reflection.values.containsKey(secondAttribute);
+      }
+      return sawFirst && sawSecond;
+   }
+
+   private static void assertCrossProductProjection(Recorder recorder,
+         ObjectInstanceHandle object, AttributeHandle firstAttribute,
+         AttributeHandle secondAttribute, FederateHandle producer, byte[] firstValue,
+         byte[] secondValue, byte[] tag, RTIambassador receiver,
+         AtomicInteger inspectedCallbacks, String description) throws Exception {
+      Set<AttributeHandle> observedAttributes = new HashSet<>();
+      for (Reflection reflection : recorder.reflections) {
+         if (!object.equals(reflection.object)) continue;
+         JavaTckSupport.check(Arrays.equals(tag, reflection.tag)
+               && producer.equals(reflection.producer)
+               && reflection.transportation != null
+               && !receiver.getTransportationTypeName(reflection.transportation).isEmpty()
+               && reflection.regions != null && !reflection.regions.isEmpty(),
+            description + " changed callback metadata or omitted its source region designator");
+         for (Map.Entry<AttributeHandle, byte[]> value : reflection.values.entrySet()) {
+            AttributeHandle attribute = value.getKey();
+            JavaTckSupport.check(attribute.equals(firstAttribute)
+                  || attribute.equals(secondAttribute),
+               description + " included an attribute outside the requested set");
+            JavaTckSupport.check(observedAttributes.add(attribute),
+               description + " delivered a cross-product attribute more than once");
+            byte[] expectedValue = attribute.equals(firstAttribute) ? firstValue : secondValue;
+            JavaTckSupport.check(Arrays.equals(expectedValue, value.getValue()),
+               description + " returned the wrong value for a cross-product attribute");
+         }
+      }
+      JavaTckSupport.check(observedAttributes.size() == 2
+            && observedAttributes.contains(firstAttribute)
+            && observedAttributes.contains(secondAttribute)
+            && inspectedCallbacks.get() > 0,
+         description + " did not observe both attributes and their source region copies");
+      JavaTckSupport.check(recorder.inspectedRegionCallbacks.get() == recorder.reflections.size(),
+         description + " had a reflection callback without callback-scoped region inspection");
+   }
+
+   private static void checkCallbackFailures(Recorder... recorders) {
+      for (Recorder recorder : recorders) {
+         Throwable failure = recorder.callbackFailure.get();
+         if (failure != null) {
+            throw new AssertionError("Regional multi-attribute callback inspection failed", failure);
+         }
+      }
+   }
+
    private static void assertReflection(Reflection reflection, ObjectInstanceHandle object,
          AttributeHandle attribute, FederateHandle producer, byte[] expectedValue, byte[] expectedTag,
-         RegionHandle sourceRegion, RTIambassador receiver, String description) throws Exception {
+         RTIambassador receiver, Recorder recorder, String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(expectedValue, reflection.values.get(attribute))
             && Arrays.equals(expectedTag, reflection.tag)
@@ -331,7 +557,7 @@ final class RegionalMultiAttributeUpdateTck {
       JavaTckSupport.check(reflection.transportation != null
             && !receiver.getTransportationTypeName(reflection.transportation).isEmpty()
             && reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
+            && recorder.inspectedRegionCallbacks.get() == recorder.reflections.size(),
          description + " did not preserve its transportation or source-region metadata");
    }
 
@@ -411,6 +637,9 @@ final class RegionalMultiAttributeUpdateTck {
    private static final class Recorder {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final AtomicReference<Throwable> callbackFailure = new AtomicReference<>();
+      private final AtomicInteger inspectedRegionCallbacks = new AtomicInteger();
+      private volatile ReflectionInspector reflectionInspector;
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
@@ -419,7 +648,15 @@ final class RegionalMultiAttributeUpdateTck {
                if ("discoverObjectInstance".equals(name) && arguments != null
                      && arguments.length == 4) discoveries.add(new Discovery(arguments));
                else if ("reflectAttributeValues".equals(name) && arguments != null
-                     && arguments.length == 6) reflections.add(new Reflection(arguments));
+                     && arguments.length == 6) {
+                  Reflection reflection = new Reflection(arguments);
+                  ReflectionInspector inspector = reflectionInspector;
+                  if (inspector != null) {
+                     try { inspector.inspect(reflection); }
+                     catch (Throwable failure) { callbackFailure.compareAndSet(null, failure); }
+                  }
+                  reflections.add(reflection);
+               }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK regional multi-attribute callbacks";
                   if ("hashCode".equals(name)) return System.identityHashCode(proxy);
@@ -428,5 +665,10 @@ final class RegionalMultiAttributeUpdateTck {
                return null;
             });
       }
+   }
+
+   @FunctionalInterface
+   private interface ReflectionInspector {
+      void inspect(Reflection reflection) throws Exception;
    }
 }

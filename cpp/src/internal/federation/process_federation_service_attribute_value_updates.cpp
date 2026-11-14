@@ -19,10 +19,16 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
   auto const updateRequest =
       decodeProcessFederationUpdateAttributeValuesRequest(request.payload);
   std::shared_ptr<rti1516_2025::LogicalTime const> updateTimestamp;
+  std::wstring logicalTimeImplementationName;
   if (updateRequest.timestamp) {
+    auto const definition = registry_.definitionFor(updateRequest.federationName);
+    if (!definition) {
+      return rejected(request);
+    }
+    logicalTimeImplementationName = definition->logicalTimeImplementationName;
     updateTimestamp = decodeProcessLogicalTime(
         *updateRequest.timestamp,
-        federationDefinition_->logicalTimeImplementationName);
+        logicalTimeImplementationName);
   }
   std::shared_ptr<FederateTimeState> producingTimeState;
   {
@@ -172,7 +178,8 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
     messageId = result.messageId;
     std::scoped_lock lock(mutex_);
     processTsoMessageProducers_.emplace(
-        messageId,
+        ProcessFederationTsoMessageKey{
+            updateRequest.federationName, messageId},
         updateRequest.producingFederateId);
   }
 
@@ -395,7 +402,8 @@ TransportServiceMessage ProcessFederationService::handleUpdateAttributeValues(
         // The push frame crosses the process callback boundary below. Pull
         // mode records the same recipient now so a producer Retract can
         // suppress a queued event before the receiver polls it.
-        pendingPushedRetractionRecipients_[messageId].push_back(
+        pendingPushedRetractionRecipients_[ProcessFederationTsoMessageKey{
+            updateRequest.federationName, messageId}].push_back(
             receivingSessionPointer);
       }
       if (recipientCount != std::numeric_limits<std::uint32_t>::max()) {

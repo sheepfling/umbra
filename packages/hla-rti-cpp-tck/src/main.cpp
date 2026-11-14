@@ -93,6 +93,7 @@
 #include "tck_joined_federate_mom_reflections_received_counts.hpp"
 #include "tck_factory_identity.hpp"
 #include "tck_main_scenarios.hpp"
+#include "tck_allow_relaxed_ddm_overlap_superset.hpp"
 #include "tck_object_removal_fanout_scenarios.hpp"
 #include "tck_custom_transportation_interaction_scenarios.hpp"
 #include "tck_scenario_dispatch.hpp"
@@ -775,10 +776,10 @@ void scenarioLogicalTimeFactory(Options const& options, rti::CallbackModel model
   *copied = *second;
   require(*copied == *second, "logical-time assignment did not preserve the value");
   auto underflow = time.factory->makeInitial();
-  requireException(
-      [&] { *underflow -= *time.epsilon; },
-      L"IllegalTimeArithmetic",
-      "logical-time subtraction before initial");
+  *underflow -= *time.epsilon;
+  require(
+      *underflow == *time.initial,
+      "logical-time subtraction below initial did not preserve the initial value");
   auto finalBoundary = time.factory->makeFinal();
   *finalBoundary += *time.epsilon;
   require(finalBoundary->isFinal(),
@@ -930,6 +931,14 @@ void scenarioTimeAdvance(Options const& options, rti::CallbackModel model) {
   require(
       regulatorTime.factory->getName() == constrainedTime.factory->getName(),
       "joined federates selected different logical-time factories");
+  require(
+      regulatorTime.factory->getName() == regulatorTime.initial->implementationName() &&
+          regulatorTime.factory->getName() == regulatorTime.epsilon->implementationName(),
+      "regulator logical-time ADTs did not match the supplied implementation");
+  require(
+      constrainedTime.factory->getName() == constrainedTime.initial->implementationName() &&
+          constrainedTime.factory->getName() == constrainedTime.epsilon->implementationName(),
+      "constrained logical-time ADTs did not match the supplied implementation");
 
   regulator.rtiAmbassador().enableTimeRegulation(*regulatorTime.epsilon);
   waitFor(
@@ -1200,7 +1209,8 @@ void requirePortableServiceReport(
     PortableServiceReportArgument const& expectedReturned,
     rti::Integer32 expectedSerial,
     std::string const& description,
-    rti::Integer16 expectedServiceType);
+    rti::Integer16 expectedServiceType,
+    bool expectRegionDesignators);
 
 void scenarioServiceReportTimestampedDirectedInteractionContract(
     Options const& options,
@@ -1218,12 +1228,15 @@ void requirePortableServiceReport(
     PortableServiceReportArgument const& expectedReturned,
     rti::Integer32 expectedSerial,
     std::string const& description,
-    rti::Integer16 expectedServiceType) {
+    rti::Integer16 expectedServiceType,
+    bool expectRegionDesignators) {
   require(
       report.interaction == reportClass &&
           report.parameters.size() == reportParameters.size() &&
           report.tag.empty() && !report.producer.isValid() &&
-          !report.regions.has_value() &&
+          (expectRegionDesignators
+               ? report.regions.has_value() && report.regions->size() == 1U
+               : !report.regions.has_value()) &&
           report.transportation ==
               observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable"),
       description + " returned non-standard metadata");
@@ -1304,7 +1317,8 @@ void requirePortableServiceReportFailure(
     std::vector<PortableServiceReportArgument> const& expectedSupplied,
     std::wstring const& expectedException,
     rti::Integer32 expectedSerial,
-    std::string const& description) {
+    std::string const& description,
+    rti::Integer16 expectedServiceType) {
   require(
       report.interaction == reportClass &&
           report.parameters.size() == reportParameters.size() &&
@@ -1327,7 +1341,7 @@ void requirePortableServiceReportFailure(
   rti::HLAinteger16BE decodedServiceType;
   decodedServiceType.decode(report.parameters.at(reportParameters.at(1U)));
   require(
-      decodedServiceType.get() == 6,
+      decodedServiceType.get() == expectedServiceType,
       description + " returned the wrong service type");
   rti::HLAboolean decodedSuccess;
   decodedSuccess.decode(report.parameters.at(reportParameters.at(2U)));
@@ -1664,6 +1678,11 @@ void scenarioResignUnconditionalDivestiture(
   require(assumption->object == object &&
               assumption->attributes == expectedDivestiture && assumption->tag.empty(),
           "Resign-divestiture offered the wrong attributes or tag");
+  require(
+      !peer.rtiAmbassador().isAttributeOwnedByFederate(
+          object,
+          *peerAttributes.begin()),
+      "Resign-time assumption offer transferred ownership before the surviving federate invoked acquisition");
 
   std::vector<std::uint8_t> acquisitionTagBytes{0xD1U, 0x25U};
   rti::VariableLengthData acquisitionTag(
@@ -1710,17 +1729,27 @@ void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
   rti::InteractionClassHandle interactionClass;
   rti::ParameterHandle parameter;
   handles(owner, options, objectClass, attribute, interactionClass, parameter);
+  auto const secondAttribute = owner.rtiAmbassador().getAttributeHandle(
+      objectClass, options.secondaryAttributeName);
+  require(secondAttribute.isValid() && secondAttribute != attribute,
+          "Attribute update fixture did not provide a distinct second attribute");
   rti::AttributeHandleSet attributes;
   attributes.insert(attribute);
+  attributes.insert(secondAttribute);
   owner.rtiAmbassador().publishObjectClassAttributes(objectClass, attributes);
   member.rtiAmbassador().subscribeObjectClassAttributes(objectClass, attributes, true, L"");
   auto const passiveClass = passive.rtiAmbassador().getObjectClassHandle(options.objectClassName);
   auto const passiveAttribute =
       passive.rtiAmbassador().getAttributeHandle(passiveClass, options.attributeName);
-  require(passiveClass.isValid() && passiveAttribute.isValid(),
+  auto const passiveSecondAttribute = passive.rtiAmbassador().getAttributeHandle(
+      passiveClass, options.secondaryAttributeName);
+  require(passiveClass.isValid() && passiveAttribute.isValid() &&
+              passiveSecondAttribute.isValid() &&
+              passiveSecondAttribute != passiveAttribute,
           "Passive attribute-update handle lookup returned an invalid handle");
   rti::AttributeHandleSet passiveAttributes;
   passiveAttributes.insert(passiveAttribute);
+  passiveAttributes.insert(passiveSecondAttribute);
   passive.rtiAmbassador().subscribeObjectClassAttributes(
       passiveClass, passiveAttributes, false, L"");
   auto const object = owner.rtiAmbassador().registerObjectInstance(objectClass);
@@ -1737,20 +1766,28 @@ void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
           "Passive discovery returned the wrong object handle");
 
   std::vector<std::uint8_t> value{0x10U, 0x20U, 0x30U};
+  std::vector<std::uint8_t> secondValue{0x31U, 0x32U};
   std::vector<std::uint8_t> tagBytes{0x54U, 0x43U, 0x4BU};
   rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
   rti::AttributeHandleValueMap values;
   values.emplace(attribute, rti::VariableLengthData(value.data(), value.size()));
+  values.emplace(
+      secondAttribute,
+      rti::VariableLengthData(secondValue.data(), secondValue.size()));
   owner.rtiAmbassador().updateAttributeValues(object, values, tag);
 
   waitFor(member, [&] { return member.recorder().reflection().present; }, options,
           "ordinary attribute reflection");
   auto const reflected = member.recorder().reflection();
   require(reflected.object == object, "Reflection returned the wrong object handle");
-  require(reflected.values.size() == 1U && reflected.values.count(attribute) == 1U,
+  require(reflected.values.size() == 2U &&
+              reflected.values.count(attribute) == 1U &&
+              reflected.values.count(secondAttribute) == 1U,
           "Reflection returned the wrong attribute set");
   require(copyBytes(reflected.values.at(attribute)) == value,
           "Reflection returned the wrong attribute value");
+  require(copyBytes(reflected.values.at(secondAttribute)) == secondValue,
+          "Reflection returned the wrong second attribute value");
   require(reflected.tag == tagBytes, "Reflection returned the wrong user tag");
   require(reflected.producer == owner.federateHandle(),
           "Reflection returned the wrong producing federate");
@@ -1763,9 +1800,12 @@ void scenarioAttributeUpdate(Options const& options, rti::CallbackModel model) {
   require(passiveReflection.present,
           "Passive object subscription did not receive active-relevance reflection");
   require(passiveReflection.object == object &&
-              passiveReflection.values.size() == 1U &&
+              passiveReflection.values.size() == 2U &&
               passiveReflection.values.count(passiveAttribute) == 1U &&
-              copyBytes(passiveReflection.values.at(passiveAttribute)) == value,
+              passiveReflection.values.count(passiveSecondAttribute) == 1U &&
+              copyBytes(passiveReflection.values.at(passiveAttribute)) == value &&
+              copyBytes(passiveReflection.values.at(passiveSecondAttribute)) ==
+                  secondValue,
           "Passive reflection returned the wrong object or attribute value");
   require(passiveReflection.tag == tagBytes,
           "Passive reflection returned the wrong user tag");
@@ -1931,10 +1971,33 @@ void scenarioInteractionPublicationSendFence(
           publisherParameter.isValid() && subscriberParameter.isValid(),
       "interaction publication send fence lookup returned an invalid handle");
 
-  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
   subscriber.rtiAmbassador().subscribeInteractionClass(
       subscriberInteraction,
       true);
+
+  std::vector<std::uint8_t> const unpublishedValue{0x4EU, 0x4FU, 0x50U};
+  std::vector<std::uint8_t> const unpublishedTag{0x50U, 0x52U, 0x45U};
+  rti::ParameterHandleValueMap unpublishedParameters;
+  unpublishedParameters.emplace(
+      publisherParameter,
+      rti::VariableLengthData(
+          unpublishedValue.data(), unpublishedValue.size()));
+  rti::VariableLengthData unpublishedTagData(
+      unpublishedTag.data(), unpublishedTag.size());
+  requireException(
+      [&] {
+        publisher.rtiAmbassador().sendInteraction(
+            publisherInteraction,
+            unpublishedParameters,
+            unpublishedTagData);
+      },
+      L"InteractionClassNotPublished",
+      "sending an interaction before publication");
+  require(
+      !subscriber.recorder().interaction().present,
+      "unpublished interaction unexpectedly delivered a callback");
+
+  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
   publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
 
   std::vector<std::uint8_t> const fencedValue{
@@ -2076,6 +2139,8 @@ void scenarioInteraction(Options const& options, rti::CallbackModel model) {
           "Interaction delivery returned the wrong producing federate");
   require(received.transportation.isValid(),
           "Interaction delivery returned an invalid transportation handle");
+  require(member.recorder().timedInteractions().empty(),
+          "receive-order interaction was delivered through the timestamped callback overload");
   for (int pass = 0; pass != 8; ++pass) {
     passive.pump();
   }
@@ -2089,155 +2154,12 @@ void scenarioInteraction(Options const& options, rti::CallbackModel model) {
           "Passive interaction delivery returned the wrong class or parameter value");
   require(passiveReceived.tag == tagBytes,
           "Passive interaction delivery returned the wrong user tag");
+  require(passive.recorder().timedInteractions().empty(),
+          "passive receive-order interaction used the timestamped callback overload");
 
   owner.resign(rti::NO_ACTION);
   member.resign(rti::NO_ACTION);
   passive.resign(rti::NO_ACTION);
-}
-
-void scenarioInteractionMultiRecipientFifo(
-    Options const& options,
-    rti::CallbackModel model) {
-  Session publisher(options, model, "ordinary-interaction-fanout-publisher");
-  Session first(options, model, "ordinary-interaction-fanout-first");
-  Session second(options, model, "ordinary-interaction-fanout-second");
-  auto const federation = federationName(
-      options,
-      "ordinary-interaction-multi-recipient-fifo");
-  connectAndJoin(publisher, first, options, federation, options.fom);
-  second.connect();
-  second.join(
-      options.memberFederateName + L"-second",
-      options.federateType,
-      federation);
-
-  auto const publisherInteraction =
-      publisher.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const firstInteraction =
-      first.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const secondInteraction =
-      second.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
-      publisherInteraction,
-      options.parameterName);
-  auto const firstParameter = first.rtiAmbassador().getParameterHandle(
-      firstInteraction,
-      options.parameterName);
-  auto const secondParameter = second.rtiAmbassador().getParameterHandle(
-      secondInteraction,
-      options.parameterName);
-  require(
-      publisherInteraction.isValid() && firstInteraction.isValid() &&
-          secondInteraction.isValid() && publisherParameter.isValid() &&
-          firstParameter.isValid() && secondParameter.isValid(),
-      "ordinary interaction multi-recipient FIFO lookup returned an invalid handle");
-
-  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
-  first.rtiAmbassador().subscribeInteractionClass(firstInteraction, true);
-  second.rtiAmbassador().subscribeInteractionClass(secondInteraction, true);
-  publisher.recorder().clearInteraction();
-  first.recorder().clearInteraction();
-  second.recorder().clearInteraction();
-
-  auto send = [&](std::vector<std::uint8_t> const& value,
-                  std::vector<std::uint8_t> const& tagBytes) {
-    rti::ParameterHandleValueMap parameters;
-    parameters.emplace(
-        publisherParameter,
-        rti::VariableLengthData(value.data(), value.size()));
-    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
-    publisher.rtiAmbassador().sendInteraction(
-        publisherInteraction,
-        parameters,
-        tag);
-  };
-
-  std::vector<std::uint8_t> const firstValue{
-      0x46U, 0x49U, 0x52U, 0x53U, 0x54U};
-  std::vector<std::uint8_t> const firstTag{0x31U};
-  std::vector<std::uint8_t> const secondValue{
-      0x53U, 0x45U, 0x43U, 0x4FU, 0x4EU, 0x44U};
-  std::vector<std::uint8_t> const secondTag{0x32U};
-  send(firstValue, firstTag);
-  send(secondValue, secondTag);
-
-  waitForSessions(
-      {&first, &second},
-      [&] {
-        return first.recorder().interactions().size() >= 2U &&
-            second.recorder().interactions().size() >= 2U;
-      },
-      options,
-      "ordinary interaction multi-recipient FIFO delivery");
-  require(
-      publisher.recorder().interactions().empty(),
-      "ordinary interaction multi-recipient FIFO delivered an interaction back to its sender");
-
-  auto assertDelivery = [&](Session& receiver,
-                            rti::InteractionClassHandle const& interaction,
-                            rti::ParameterHandle const& parameter,
-                            std::string const& description) {
-    auto const received = receiver.recorder().interactions();
-    require(
-        received.size() == 2U,
-        description + " returned an unexpected callback count");
-    auto assertRecord = [&](InteractionRecord const& record,
-                            std::vector<std::uint8_t> const& expectedValue,
-                            std::vector<std::uint8_t> const& expectedTag,
-                            std::string const& orderDescription) {
-      require(
-          record.interaction == interaction && record.parameters.size() == 1U &&
-              record.parameters.count(parameter) == 1U &&
-              copyBytes(record.parameters.at(parameter)) == expectedValue,
-          orderDescription + " returned the wrong interaction or parameter value");
-      require(
-          record.tag == expectedTag,
-          orderDescription + " returned the wrong user tag");
-      require(
-          record.producer == publisher.federateHandle(),
-          orderDescription + " returned the wrong producing federate");
-      require(
-          record.transportation.isValid() &&
-              !receiver.rtiAmbassador()
-                   .getTransportationTypeName(record.transportation)
-                   .empty(),
-          orderDescription + " returned an unknown transportation type");
-    };
-    assertRecord(
-        received.front(),
-        firstValue,
-        firstTag,
-        description + " first receive-order callback");
-    assertRecord(
-        received.back(),
-        secondValue,
-        secondTag,
-        description + " second receive-order callback");
-  };
-  assertDelivery(
-      first,
-      firstInteraction,
-      firstParameter,
-      "first ordinary interaction recipient");
-  assertDelivery(
-      second,
-      secondInteraction,
-      secondParameter,
-      "second ordinary interaction recipient");
-
-  first.rtiAmbassador().unsubscribeInteractionClass(firstInteraction);
-  second.rtiAmbassador().unsubscribeInteractionClass(secondInteraction);
-  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
-  second.resign(rti::NO_ACTION);
-  first.resign(rti::NO_ACTION);
-  publisher.resign(rti::NO_ACTION);
-  publisher.rtiAmbassador().destroyFederationExecution(federation);
-  second.disconnect();
-  first.disconnect();
-  publisher.disconnect();
 }
 
 void scenarioAttributeMultiRecipientFifo(
@@ -8531,6 +8453,12 @@ void scenarioOverlappingObjectClassSubscriptionsSingleDiscoveryContract(
   scenarioOverlappingObjectClassSubscriptionsSingleDiscovery(options, model);
 }
 
+void scenarioObjectClassAbstractionSubscriptionContract(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioObjectClassAbstractionSubscription(options, model);
+}
+
 void scenarioPerFederateDiscoveredClassContract(
     Options const& options,
     rti::CallbackModel model) {
@@ -8583,12 +8511,6 @@ void scenarioInteractionPublicationSendFenceContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioInteractionPublicationSendFence(options, model);
-}
-
-void scenarioInteractionMultiRecipientFifoContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioInteractionMultiRecipientFifo(options, model);
 }
 
 void scenarioAttributeMultiRecipientFifoContract(
@@ -9796,6 +9718,17 @@ void scenarioNegotiatedDivestitureCancellation(
         "negotiated divestiture delivered an ordinary release request before cancellation");
   }
 
+  requester.pump();
+  require(
+      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
+          !requester.rtiAmbassador().isAttributeOwnedByFederate(
+              object,
+              requesterAttribute) &&
+          !requester.recorder().ownershipAcquisition().has_value(),
+      "negotiated divestiture did not remain pending with ownership at the divesting federate");
+
+  owner.recorder().clearDivestitureConfirmation();
+  requester.recorder().clearOwnershipRecords();
   owner.rtiAmbassador().cancelNegotiatedAttributeOwnershipDivestiture(
       object,
       ownerAttributes);
@@ -9809,6 +9742,12 @@ void scenarioNegotiatedDivestitureCancellation(
       releaseRequest->object == object && releaseRequest->attributes == ownerAttributes &&
           releaseRequest->tag == acquisitionTagBytes,
       "canceled negotiated divestiture did not restore the ordinary release request");
+  owner.pump();
+  requester.pump();
+  require(
+      !owner.recorder().divestitureConfirmation().has_value() &&
+          !requester.recorder().ownershipAcquisition().has_value(),
+      "successful negotiated-divestiture cancellation left a stale confirmation or acquisition callback");
   require(
       owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
           !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterAttribute),
@@ -9826,6 +9765,10 @@ void scenarioNegotiatedDivestitureCancellation(
   require(
       cancellation->object == object && cancellation->attributes == requesterAttributes,
       "ownership acquisition cancellation returned the wrong object or attributes");
+  requester.pump();
+  require(
+      !requester.recorder().ownershipAcquisition().has_value(),
+      "canceled ownership acquisition later transferred the attribute");
   require(
       owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
           !requester.rtiAmbassador().isAttributeOwnedByFederate(object, requesterAttribute),
@@ -10120,6 +10063,14 @@ void scenarioNegotiatedWillingToAcquireContinuation(
         object,
         secondAttributes,
         secondWillingTag);
+    requireException(
+        [&] {
+          firstCandidate.rtiAmbassador().unpublishObjectClassAttributes(
+              firstClass,
+              firstAttributes);
+        },
+        L"OwnershipAcquisitionPending",
+        "unpublishing a Willing-to-Acquire candidate before transfer resolution");
   }
   require(
       !firstCandidate.recorder().ownershipAcquisition().has_value() &&
@@ -10890,13 +10841,25 @@ void scenarioRegionalDeclarationRelevanceAdvisories(
       0UL,
       2UL);
   auto const interactionRegionSet = rti::RegionHandleSet{interactionRegion};
+  auto const secondInteractionRegion = createDdmRegion(
+      subscriber,
+      subscriberHandles,
+      3UL,
+      5UL,
+      3UL,
+      5UL);
+  auto const secondInteractionRegionSet =
+      rti::RegionHandleSet{secondInteractionRegion};
   subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
       interactionRegionSet,
       false);
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
   require(
       publisher.recorder().interactionsOn().empty(),
-      "passive regional interaction subscription changed interaction relevance");
+      "passive regional interaction subscription caused Turn Interactions On at another joined federate");
 
   subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
@@ -10913,22 +10876,198 @@ void scenarioRegionalDeclarationRelevanceAdvisories(
               publisherHandles.interactionClass,
       "active regional interaction subscription returned the wrong turn-on advisory");
 
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      rti::RegionHandleSet{},
+      false);
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
+  require(
+      publisher.recorder().interactionsOn().size() == 1U &&
+          publisher.recorder().interactionsOff().empty(),
+      "an empty regional invocation changed the active state of an existing region pair");
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      secondInteractionRegionSet,
+      false);
+  for (int pass = 0; pass != 8; ++pass) {
+    publisher.pump();
+  }
+  require(
+      publisher.recorder().interactionsOn().size() == 1U &&
+          publisher.recorder().interactionsOff().empty(),
+      "passive status for a second region changed the first region's active advisory state");
+
+  auto const publisherInteractionRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      0UL,
+      2UL,
+      0UL,
+      2UL);
+  auto const publisherSecondInteractionRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      3UL,
+      5UL,
+      3UL,
+      5UL);
+  std::vector<std::uint8_t> regionalSubscriptionValue{0x72U, 0x65U, 0x67U};
+  std::vector<std::uint8_t> regionalSubscriptionTag{0x61U, 0x64U, 0x64U};
+  rti::ParameterHandleValueMap regionalSubscriptionParameters;
+  regionalSubscriptionParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(
+          regionalSubscriptionValue.data(),
+          regionalSubscriptionValue.size()));
+  rti::VariableLengthData regionalSubscriptionUserTag(
+      regionalSubscriptionTag.data(),
+      regionalSubscriptionTag.size());
+  auto verifyRegionalSubscriptionDelivery = [&](rti::RegionHandle const& sourceRegion,
+                                                std::string const& description) {
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        regionalSubscriptionParameters,
+        rti::RegionHandleSet{sourceRegion},
+        regionalSubscriptionUserTag);
+    waitFor(
+        subscriber,
+        [&] { return subscriber.recorder().interaction().present; },
+        options,
+        description);
+    auto const received = subscriber.recorder().interaction();
+    require(
+        received.interaction == subscriberHandles.interactionClass &&
+            received.parameters.size() == 1U &&
+            received.parameters.count(subscriberHandles.parameter) == 1U &&
+            copyBytes(received.parameters.at(subscriberHandles.parameter)) ==
+                regionalSubscriptionValue &&
+            received.tag == regionalSubscriptionTag,
+        description + " returned the wrong interaction data");
+    subscriber.recorder().clearInteraction();
+  };
+  verifyRegionalSubscriptionDelivery(
+      publisherSecondInteractionRegion,
+      "newly added passive regional interaction subscription delivery");
+  verifyRegionalSubscriptionDelivery(
+      publisherInteractionRegion,
+      "existing regional interaction subscription delivery after region addition");
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      interactionRegionSet,
+      false);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOff().size() >= 1U; },
+      options,
+      "active regional interaction subscription changed to passive");
+  require(
+      publisher.recorder().interactionsOff().size() == 1U &&
+          publisher.recorder().interactionsOff().front() ==
+              publisherHandles.interactionClass,
+      "passive regional resubscription did not turn off active interaction relevance");
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      interactionRegionSet,
+      true);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOn().size() >= 2U; },
+      options,
+      "regional interaction relevance re-enabled after passive transition");
+  require(
+      publisher.recorder().interactionsOn().size() == 2U &&
+          publisher.recorder().interactionsOn().back() ==
+              publisherHandles.interactionClass,
+      "active regional resubscription after passive transition returned the wrong advisory");
+
   subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
       interactionRegionSet);
   waitFor(
       publisher,
-      [&] { return publisher.recorder().interactionsOff().size() >= 1U; },
+      [&] { return publisher.recorder().interactionsOff().size() >= 2U; },
       options,
       "regional interaction turn-off advisory");
   require(
-      publisher.recorder().interactionsOff().size() == 1U &&
-          publisher.recorder().interactionsOff().front() ==
+      publisher.recorder().interactionsOff().size() == 2U &&
+          publisher.recorder().interactionsOff().back() ==
               publisherHandles.interactionClass,
       "regional interaction unsubscription returned the wrong turn-off advisory");
 
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      secondInteractionRegionSet,
+      true);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOn().size() >= 3U; },
+      options,
+      "second region's passive subscription activated independently");
+  require(
+      publisher.recorder().interactionsOn().size() == 3U &&
+          publisher.recorder().interactionsOn().back() ==
+              publisherHandles.interactionClass,
+      "activating the second region returned the wrong interaction advisory");
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      secondInteractionRegionSet);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOff().size() >= 3U; },
+      options,
+      "second region's active subscription turned off independently");
+  require(
+      publisher.recorder().interactionsOff().size() == 3U &&
+          publisher.recorder().interactionsOff().back() ==
+              publisherHandles.interactionClass,
+      "unsubscribing the second region returned the wrong interaction advisory");
+
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      secondInteractionRegionSet);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOn().size() >= 4U; },
+      options,
+      "omitted regional interaction subscription indicator defaulted active");
+  require(
+      publisher.recorder().interactionsOn().size() == 4U &&
+          publisher.recorder().interactionsOn().back() ==
+              publisherHandles.interactionClass,
+      "omitting the regional interaction subscription indicator returned the wrong advisory");
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      secondInteractionRegionSet);
+  waitFor(
+      publisher,
+      [&] { return publisher.recorder().interactionsOff().size() >= 4U; },
+      options,
+      "omitted-indicator regional interaction subscription turned off");
+  require(
+      publisher.recorder().interactionsOff().size() == 4U &&
+          publisher.recorder().interactionsOff().back() ==
+              publisherHandles.interactionClass,
+      "unsubscribing the omitted-indicator region returned the wrong advisory");
+
+  subscriber.rtiAmbassador().deleteRegion(secondInteractionRegion);
+  requireException(
+      [&] {
+        subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+            subscriberHandles.interactionClass,
+            secondInteractionRegionSet,
+            false);
+      },
+      L"InvalidRegion",
+      "subscribing with a deleted regional interaction designator");
   subscriber.rtiAmbassador().deleteRegion(interactionRegion);
   subscriber.rtiAmbassador().deleteRegion(objectRegion);
+  publisher.rtiAmbassador().deleteRegion(publisherSecondInteractionRegion);
+  publisher.rtiAmbassador().deleteRegion(publisherInteractionRegion);
   publisher.rtiAmbassador().unpublishInteractionClass(
       publisherHandles.interactionClass);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
@@ -10947,12 +11086,88 @@ void scenarioRegionalDeclarationRelevanceAdvisoriesContract(
   scenarioRegionalDeclarationRelevanceAdvisories(options, model);
 }
 
+void scenarioRegionalSendNoRetractionDesignator(
+    Options const& options,
+    rti::CallbackModel model) {
+  verifyRegionalSendNoRetractionDesignatorContract();
+  Session owner(options, model, "owner");
+  Session receiver(options, model, "member");
+  auto const federation =
+      federationName(options, "regional-send-no-retraction-designator");
+  connectAndJoin(owner, receiver, options, federation, options.ddmFom);
+
+  auto const ownerHandles = ddmHandles(owner, options);
+  auto const receiverHandles = ddmHandles(receiver, options);
+  verifyDdmClassDimensions(
+      owner,
+      options,
+      ownerHandles,
+      "regional send without a retraction designator");
+  owner.rtiAmbassador().publishInteractionClass(ownerHandles.interactionClass);
+  auto const sourceRegion =
+      createDdmRegion(owner, ownerHandles, 1UL, 5UL, 1UL, 5UL);
+  auto const receiverRegion =
+      createDdmRegion(receiver, receiverHandles, 2UL, 6UL, 2UL, 6UL);
+  auto const receiverRegions = rti::RegionHandleSet{receiverRegion};
+  receiver.rtiAmbassador().subscribeInteractionClassWithRegions(
+      receiverHandles.interactionClass,
+      receiverRegions,
+      true);
+
+  std::vector<std::uint8_t> payload{0x6EU, 0x6CU};
+  std::vector<std::uint8_t> tag{0x4EU, 0x52U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      ownerHandles.parameter,
+      rti::VariableLengthData(payload.data(), payload.size()));
+  rti::VariableLengthData userTag(tag.data(), tag.size());
+  owner.rtiAmbassador().sendInteractionWithRegions(
+      ownerHandles.interactionClass,
+      parameters,
+      rti::RegionHandleSet{sourceRegion},
+      userTag);
+
+  waitFor(
+      receiver,
+      [&] { return receiver.recorder().interactions().size() == 1U; },
+      options,
+      "ordinary regional interaction delivery without a retraction designator");
+  auto const received = receiver.recorder().interactions();
+  require(
+      received.size() == 1U &&
+          received.front().interaction == receiverHandles.interactionClass &&
+          received.front().parameters.size() == 1U &&
+          received.front().parameters.count(receiverHandles.parameter) == 1U &&
+          copyBytes(received.front().parameters.at(receiverHandles.parameter)) == payload &&
+          received.front().tag == tag &&
+          received.front().producer == owner.federateHandle() &&
+          receiver.recorder().timedInteractions().empty(),
+      "ordinary Send Interaction With Regions did not deliver the expected receive-order interaction");
+
+  receiver.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      receiverHandles.interactionClass,
+      receiverRegions);
+  owner.rtiAmbassador().unpublishInteractionClass(ownerHandles.interactionClass);
+  owner.rtiAmbassador().deleteRegion(sourceRegion);
+  receiver.rtiAmbassador().deleteRegion(receiverRegion);
+  owner.resign(rti::NO_ACTION);
+  receiver.resign(rti::NO_ACTION);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  owner.disconnect();
+  receiver.disconnect();
+}
+
 void scenarioRegionalInteractionRouting(Options const& options, rti::CallbackModel model) {
   Session owner(options, model, "owner");
   Session overlap(options, model, "member");
   Session disjoint(options, model, "passive");
   auto const federation = federationName(options, "regional-interaction-routing");
-  connectAndJoin(owner, overlap, options, federation, options.ddmFom);
+  auto const defaultRangeFom = options.scenarioFoms.find(
+      "ddm-region-realization-default-range");
+  require(
+      defaultRangeFom != options.scenarioFoms.end(),
+      "regional interaction routing requires its restricted default-range FOM");
+  connectAndJoin(owner, overlap, options, federation, defaultRangeFom->second);
   disjoint.connect();
   disjoint.join(
       options.memberFederateName + L"-regional-interaction-disjoint",
@@ -10965,6 +11180,400 @@ void scenarioRegionalInteractionRouting(Options const& options, rti::CallbackMod
   verifyDdmClassDimensions(owner, options, ownerHandles, "regional interaction routing");
 
   owner.rtiAmbassador().publishInteractionClass(ownerHandles.interactionClass);
+  auto const regionTemplate = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{
+          ownerHandles.firstDimension,
+          ownerHandles.secondDimension});
+  require(regionTemplate.isValid(), "regional routing region creation returned an invalid handle");
+  auto const regionTemplateSet = rti::RegionHandleSet{regionTemplate};
+  std::vector<std::uint8_t> templateProbeValue{0x52U};
+  rti::ParameterHandleValueMap templateProbeParameters;
+  templateProbeParameters.emplace(
+      ownerHandles.parameter,
+      rti::VariableLengthData(
+          templateProbeValue.data(),
+          templateProbeValue.size()));
+  rti::VariableLengthData templateProbeTag;
+  auto sendWithRegionTemplate = [&] {
+    owner.rtiAmbassador().sendInteractionWithRegions(
+        ownerHandles.interactionClass,
+        templateProbeParameters,
+        regionTemplateSet,
+        templateProbeTag);
+  };
+  requireException(
+      [&] { sendWithRegionTemplate(); },
+      L"InvalidRegion",
+      "sending an interaction before setting region-template bounds");
+  owner.rtiAmbassador().setRangeBounds(
+      regionTemplate,
+      ownerHandles.firstDimension,
+      rti::RangeBounds(1UL, 5UL));
+  requireException(
+      [&] { sendWithRegionTemplate(); },
+      L"InvalidRegion",
+      "sending an interaction before setting every specified region dimension");
+  owner.rtiAmbassador().setRangeBounds(
+      regionTemplate,
+      ownerHandles.secondDimension,
+      rti::RangeBounds(1UL, 5UL));
+  requireException(
+      [&] { sendWithRegionTemplate(); },
+      L"InvalidRegion",
+      "sending an interaction before committing region-template bounds");
+  owner.rtiAmbassador().commitRegionModifications(regionTemplateSet);
+  sendWithRegionTemplate();
+  owner.rtiAmbassador().deleteRegion(regionTemplate);
+
+  auto const specifiedDimensionRegion = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{ownerHandles.firstDimension});
+  owner.rtiAmbassador().setRangeBounds(
+      specifiedDimensionRegion,
+      ownerHandles.firstDimension,
+      rti::RangeBounds(1UL, 5UL));
+  owner.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{specifiedDimensionRegion});
+  auto const committedSpecifiedDimensions =
+      owner.rtiAmbassador().getDimensionHandleSet(specifiedDimensionRegion);
+  require(
+      committedSpecifiedDimensions.size() == 1U &&
+          committedSpecifiedDimensions.count(ownerHandles.firstDimension) == 1U &&
+          committedSpecifiedDimensions.count(ownerHandles.secondDimension) == 0U,
+      "setting ranges and committing changed the region's Create Region dimension set");
+  owner.rtiAmbassador().deleteRegion(specifiedDimensionRegion);
+
+  auto const omittedDimensionSourceRegion = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{ownerHandles.firstDimension});
+  owner.rtiAmbassador().setRangeBounds(
+      omittedDimensionSourceRegion,
+      ownerHandles.firstDimension,
+      rti::RangeBounds(1UL, 5UL));
+  auto const omittedDimensionSourceRegions =
+      rti::RegionHandleSet{omittedDimensionSourceRegion};
+  owner.rtiAmbassador().commitRegionModifications(omittedDimensionSourceRegions);
+
+  auto const omittedDimensionReceiverRegion = overlap.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{overlapHandles.secondDimension});
+  auto const omittedDimensionReceiverRegions =
+      rti::RegionHandleSet{omittedDimensionReceiverRegion};
+  overlap.rtiAmbassador().setRangeBounds(
+      omittedDimensionReceiverRegion,
+      overlapHandles.secondDimension,
+      rti::RangeBounds(6UL, 9UL));
+  overlap.rtiAmbassador().commitRegionModifications(omittedDimensionReceiverRegions);
+  auto sendWithOmittedDimension = [&](std::uint8_t tagValue) {
+    std::vector<std::uint8_t> value{0x72U};
+    std::vector<std::uint8_t> tag{tagValue};
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        ownerHandles.parameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData userTag(tag.data(), tag.size());
+    owner.rtiAmbassador().sendInteractionWithRegions(
+        ownerHandles.interactionClass,
+        parameters,
+        omittedDimensionSourceRegions,
+        userTag);
+  };
+  auto requireNoRegionalInteractionForProbe = [&](std::string const& failure) {
+    auto const deadline =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+    while (std::chrono::steady_clock::now() < deadline) {
+      overlap.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    require(overlap.recorder().interactions().empty(), failure);
+  };
+
+  auto const emptyInteractionRegions = rti::RegionHandleSet{};
+  overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      emptyInteractionRegions,
+      true);
+  sendWithOmittedDimension(0x6FU);
+  requireNoRegionalInteractionForProbe(
+      "an empty regional interaction subscription created a delivery route");
+
+  overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      omittedDimensionReceiverRegions,
+      true);
+  sendWithOmittedDimension(0x70U);
+  requireNoRegionalInteractionForProbe(
+      "an omitted interaction-region dimension ignored its FOM default range [0..5)");
+
+  overlap.rtiAmbassador().setRangeBounds(
+      omittedDimensionReceiverRegion,
+      overlapHandles.secondDimension,
+      rti::RangeBounds(1UL, 4UL));
+  sendWithOmittedDimension(0x76U);
+  requireNoRegionalInteractionForProbe(
+      "Set Range Bounds changed a committed interaction subscription before commit");
+
+  overlap.rtiAmbassador().commitRegionModifications(omittedDimensionReceiverRegions);
+  sendWithOmittedDimension(0x71U);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().interactions().size() == 1U; },
+      options,
+      "interaction delivery inside the omitted dimension's FOM default range");
+  auto const defaultRangeInteractions = overlap.recorder().interactions();
+  require(
+      defaultRangeInteractions.size() == 1U &&
+          defaultRangeInteractions.front().tag == std::vector<std::uint8_t>{0x71U},
+      "the omitted interaction-region dimension did not use its configured FOM default range");
+
+  overlap.recorder().clearInteraction();
+  overlap.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      emptyInteractionRegions);
+  sendWithOmittedDimension(0x7AU);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().interactions().size() == 1U; },
+      options,
+      "an empty regional interaction unsubscription preserving the existing route");
+  auto const emptyUnsubscribeInteractions = overlap.recorder().interactions();
+  require(
+      emptyUnsubscribeInteractions.size() == 1U &&
+          emptyUnsubscribeInteractions.front().tag == std::vector<std::uint8_t>{0x7AU},
+      "an empty regional interaction unsubscription changed the active route");
+
+  overlap.recorder().clearInteraction();
+  overlap.rtiAmbassador().setRangeBounds(
+      omittedDimensionReceiverRegion,
+      overlapHandles.secondDimension,
+      rti::RangeBounds(6UL, 9UL));
+  sendWithOmittedDimension(0x77U);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().interactions().size() == 1U; },
+      options,
+      "the committed interaction subscription's prior bounds before commit");
+  auto const pendingBoundsInteractions = overlap.recorder().interactions();
+  require(
+      pendingBoundsInteractions.size() == 1U &&
+          pendingBoundsInteractions.front().tag == std::vector<std::uint8_t>{0x77U},
+      "Set Range Bounds changed a committed interaction subscription before commit");
+
+  overlap.recorder().clearInteraction();
+  overlap.rtiAmbassador().setRangeBounds(
+      omittedDimensionReceiverRegion,
+      overlapHandles.secondDimension,
+      rti::RangeBounds(1UL, 4UL));
+  overlap.rtiAmbassador().commitRegionModifications(omittedDimensionReceiverRegions);
+  sendWithOmittedDimension(0x78U);
+  waitFor(
+      overlap,
+      [&] { return overlap.recorder().interactions().size() == 1U; },
+      options,
+      "the most recent bounds set before region commit");
+  auto const latestBoundsInteractions = overlap.recorder().interactions();
+  require(
+      latestBoundsInteractions.size() == 1U &&
+          latestBoundsInteractions.front().tag == std::vector<std::uint8_t>{0x78U},
+      "Commit Region Modifications did not use the most recent pending bounds");
+
+  overlap.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      omittedDimensionReceiverRegions);
+  overlap.recorder().clearInteraction();
+  sendWithOmittedDimension(0x79U);
+  requireNoRegionalInteractionForProbe(
+      "an unsubscribed interaction-region pair remained active for delivery");
+
+  overlap.recorder().clearInteraction();
+  auto const specifiedDimensionReceiverRegion = overlap.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{overlapHandles.firstDimension});
+  auto const specifiedDimensionReceiverRegions =
+      rti::RegionHandleSet{specifiedDimensionReceiverRegion};
+  auto verifySpecifiedDimensionRange = [&](rti::RangeBounds const& receiverBounds,
+                                           std::uint8_t tagValue,
+                                           bool expectedDelivery,
+                                           std::string const& boundaryDescription) {
+    overlap.recorder().clearInteraction();
+    overlap.rtiAmbassador().setRangeBounds(
+        specifiedDimensionReceiverRegion,
+        overlapHandles.firstDimension,
+        receiverBounds);
+    overlap.rtiAmbassador().commitRegionModifications(specifiedDimensionReceiverRegions);
+    overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
+        overlapHandles.interactionClass,
+        specifiedDimensionReceiverRegions,
+        true);
+    sendWithOmittedDimension(tagValue);
+    if (expectedDelivery) {
+      waitFor(
+          overlap,
+          [&] { return overlap.recorder().interactions().size() == 1U; },
+          options,
+          "regional interaction delivery at " + boundaryDescription);
+    } else {
+      requireNoRegionalInteractionForProbe(
+          "regional interaction unexpectedly delivered at " + boundaryDescription);
+    }
+    auto const received = overlap.recorder().interactions();
+    require(
+        expectedDelivery
+            ? received.size() == 1U &&
+                  received.front().tag == std::vector<std::uint8_t>{tagValue}
+            : received.empty(),
+        "the specified X realization range did not preserve the source interval at " +
+            boundaryDescription);
+    overlap.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+        overlapHandles.interactionClass,
+        specifiedDimensionReceiverRegions);
+  };
+  verifySpecifiedDimensionRange(
+      rti::RangeBounds(0UL, 1UL),
+      0x72U,
+      false,
+      "the lower outside boundary [0..1)");
+  verifySpecifiedDimensionRange(
+      rti::RangeBounds(1UL, 2UL),
+      0x73U,
+      true,
+      "the lower included boundary [1..2)");
+  verifySpecifiedDimensionRange(
+      rti::RangeBounds(4UL, 5UL),
+      0x74U,
+      true,
+      "the upper included boundary [4..5)");
+  verifySpecifiedDimensionRange(
+      rti::RangeBounds(5UL, 6UL),
+      0x75U,
+      false,
+      "the upper outside boundary [5..6)");
+  overlap.rtiAmbassador().deleteRegion(specifiedDimensionReceiverRegion);
+
+  auto const modifiedSubscriptionRegion = overlap.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{overlapHandles.firstDimension});
+  auto const modifiedSubscriptionRegions =
+      rti::RegionHandleSet{modifiedSubscriptionRegion};
+  overlap.rtiAmbassador().setRangeBounds(
+      modifiedSubscriptionRegion,
+      overlapHandles.firstDimension,
+      rti::RangeBounds(1UL, 5UL));
+  overlap.rtiAmbassador().commitRegionModifications(modifiedSubscriptionRegions);
+  overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      modifiedSubscriptionRegions,
+      true);
+  auto const modificationSourceRegion = owner.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{
+          ownerHandles.firstDimension,
+          ownerHandles.secondDimension});
+  auto const modificationSourceRegions =
+      rti::RegionHandleSet{modificationSourceRegion};
+  auto sendWithExplicitRegionBounds = [&](unsigned long firstLower,
+                                          unsigned long firstUpper,
+                                          unsigned long secondLower,
+                                          unsigned long secondUpper,
+                                          std::uint8_t tagValue) {
+    owner.rtiAmbassador().setRangeBounds(
+        modificationSourceRegion,
+        ownerHandles.firstDimension,
+        rti::RangeBounds(firstLower, firstUpper));
+    owner.rtiAmbassador().setRangeBounds(
+        modificationSourceRegion,
+        ownerHandles.secondDimension,
+        rti::RangeBounds(secondLower, secondUpper));
+    owner.rtiAmbassador().commitRegionModifications(modificationSourceRegions);
+    std::vector<std::uint8_t> value{0x73U};
+    std::vector<std::uint8_t> tag{tagValue};
+    rti::ParameterHandleValueMap parameters;
+    parameters.emplace(
+        ownerHandles.parameter,
+        rti::VariableLengthData(value.data(), value.size()));
+    rti::VariableLengthData userTag(tag.data(), tag.size());
+    owner.rtiAmbassador().sendInteractionWithRegions(
+        ownerHandles.interactionClass,
+        parameters,
+        modificationSourceRegions,
+        userTag);
+  };
+  auto verifyModifiedSubscriptionDefaultRange = [&](unsigned long sourceXLower,
+                                                     unsigned long sourceXUpper,
+                                                     unsigned long sourceYLower,
+                                                     unsigned long sourceYUpper,
+                                                     std::uint8_t tagValue,
+                                                     bool expectedDelivery,
+                                                     std::string const& description) {
+    overlap.recorder().clearInteraction();
+    sendWithExplicitRegionBounds(
+        sourceXLower,
+        sourceXUpper,
+        sourceYLower,
+        sourceYUpper,
+        tagValue);
+    if (expectedDelivery) {
+      waitFor(
+          overlap,
+          [&] { return overlap.recorder().interactions().size() == 1U; },
+          options,
+          description);
+    } else {
+      requireNoRegionalInteractionForProbe(
+          "an unspecified dimension's FOM default range was lost " + description);
+    }
+    auto const received = overlap.recorder().interactions();
+    require(
+        expectedDelivery
+            ? received.size() == 1U &&
+                  received.front().tag == std::vector<std::uint8_t>{tagValue}
+            : received.empty(),
+        "modified regional subscription had the wrong default-range outcome: " +
+            description);
+  };
+  verifyModifiedSubscriptionDefaultRange(
+      2UL,
+      3UL,
+      6UL,
+      9UL,
+      0x80U,
+      false,
+      "before changing the active subscription's region specification");
+  verifyModifiedSubscriptionDefaultRange(
+      2UL,
+      3UL,
+      1UL,
+      4UL,
+      0x81U,
+      true,
+      "for the in-default-range control before modification");
+
+  // Keep the region associated with its subscription while committing new
+  // X bounds; the derived realization must continue to include default Y.
+  overlap.rtiAmbassador().setRangeBounds(
+      modifiedSubscriptionRegion,
+      overlapHandles.firstDimension,
+      rti::RangeBounds(6UL, 9UL));
+  overlap.rtiAmbassador().commitRegionModifications(modifiedSubscriptionRegions);
+  verifyModifiedSubscriptionDefaultRange(
+      7UL,
+      8UL,
+      6UL,
+      9UL,
+      0x82U,
+      false,
+      "after changing the active subscription's region specification");
+  verifyModifiedSubscriptionDefaultRange(
+      7UL,
+      8UL,
+      1UL,
+      4UL,
+      0x83U,
+      true,
+      "for the in-default-range control after modification");
+  overlap.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      modifiedSubscriptionRegions);
+  overlap.rtiAmbassador().deleteRegion(modifiedSubscriptionRegion);
+  owner.rtiAmbassador().deleteRegion(modificationSourceRegion);
+  overlap.recorder().clearInteraction();
+  overlap.rtiAmbassador().deleteRegion(omittedDimensionReceiverRegion);
+  owner.rtiAmbassador().deleteRegion(omittedDimensionSourceRegion);
+
   auto const sourceRegion = createDdmRegion(owner, ownerHandles, 1UL, 5UL, 1UL, 5UL);
   auto const overlapRegion =
       createDdmRegion(overlap, overlapHandles, 2UL, 6UL, 2UL, 6UL);
@@ -10985,6 +11594,166 @@ void scenarioRegionalInteractionRouting(Options const& options, rti::CallbackMod
           description + " changed the adapter-declared custom transport");
     }
   };
+
+  auto const unrelatedDimension = owner.rtiAmbassador().getDimensionHandle(
+      L"TckUnrelatedDimension");
+  require(unrelatedDimension.isValid(),
+          "default-region equivalence FOM omitted its unrelated FDD dimension");
+  auto const allFddDimensions = rti::DimensionHandleSet{
+      ownerHandles.firstDimension,
+      ownerHandles.secondDimension,
+      unrelatedDimension};
+  require(
+      allFddDimensions.size() == 3U &&
+          unrelatedDimension != ownerHandles.firstDimension &&
+          unrelatedDimension != ownerHandles.secondDimension,
+      "the unrelated FDD dimension does not have a distinct handle");
+  auto const fullRangeSourceRegion =
+      owner.rtiAmbassador().createRegion(allFddDimensions);
+  require(fullRangeSourceRegion.isValid(),
+          "creating a full-FDD-dimension explicit region returned an invalid handle");
+  for (auto const& dimension : allFddDimensions) {
+    auto const upperBound = owner.rtiAmbassador().getDimensionUpperBound(dimension);
+    require(upperBound > 0UL,
+            "default-region equivalence FOM has a non-positive dimension upper bound");
+    owner.rtiAmbassador().setRangeBounds(
+        fullRangeSourceRegion,
+        dimension,
+        rti::RangeBounds(0UL, upperBound));
+  }
+  owner.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{fullRangeSourceRegion});
+  require(
+      owner.rtiAmbassador().getDimensionHandleSet(fullRangeSourceRegion) ==
+          allFddDimensions,
+      "the explicit region did not retain every dimension in the test FDD");
+  for (auto const& dimension : allFddDimensions) {
+    auto const bounds = owner.rtiAmbassador().getRangeBounds(
+        fullRangeSourceRegion, dimension);
+    require(
+        bounds.getLowerBound() == 0UL &&
+            bounds.getUpperBound() ==
+                owner.rtiAmbassador().getDimensionUpperBound(dimension),
+        "the explicit FDD region did not retain a full [0, upperBound) range");
+  }
+
+  auto const ownerInteractionDimensions =
+      owner.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+          ownerHandles.interactionClass);
+  require(
+      ownerInteractionDimensions.size() == 2U &&
+          ownerInteractionDimensions.count(ownerHandles.firstDimension) == 1U &&
+          ownerInteractionDimensions.count(ownerHandles.secondDimension) == 1U &&
+          ownerInteractionDimensions.count(unrelatedDimension) == 0U,
+      "the source interaction's FDD dimensions no longer match the regional routing FOM");
+  auto const fullRangeInteractionSourceRegion =
+      owner.rtiAmbassador().createRegion(ownerInteractionDimensions);
+  require(fullRangeInteractionSourceRegion.isValid(),
+          "creating an interaction-dimension full-range source region returned an invalid handle");
+  for (auto const& dimension : ownerInteractionDimensions) {
+    auto const upperBound = owner.rtiAmbassador().getDimensionUpperBound(dimension);
+    owner.rtiAmbassador().setRangeBounds(
+        fullRangeInteractionSourceRegion,
+        dimension,
+        rti::RangeBounds(0UL, upperBound));
+  }
+  auto const fullRangeInteractionSourceRegions =
+      rti::RegionHandleSet{fullRangeInteractionSourceRegion};
+  owner.rtiAmbassador().commitRegionModifications(fullRangeInteractionSourceRegions);
+  require(
+      owner.rtiAmbassador().getDimensionHandleSet(fullRangeInteractionSourceRegion) ==
+          ownerInteractionDimensions,
+      "the valid interaction source region changed its Create Region dimension set");
+
+  auto const interactionDimensions =
+      overlap.rtiAmbassador().getAvailableDimensionsForInteractionClass(
+          overlapHandles.interactionClass);
+  require(
+      interactionDimensions == rti::DimensionHandleSet{
+          overlapHandles.firstDimension,
+          overlapHandles.secondDimension} &&
+          interactionDimensions.count(unrelatedDimension) == 0U,
+      "the test FOM no longer isolates its third, unrelated dimension");
+  auto const fullRangeReceiverRegion = overlap.rtiAmbassador().createRegion(
+      interactionDimensions);
+  auto const fullRangeReceiverRegions =
+      rti::RegionHandleSet{fullRangeReceiverRegion};
+  for (auto const& dimension : interactionDimensions) {
+    overlap.rtiAmbassador().setRangeBounds(
+        fullRangeReceiverRegion,
+        dimension,
+        rti::RangeBounds(
+            0UL,
+            overlap.rtiAmbassador().getDimensionUpperBound(dimension)));
+  }
+  overlap.rtiAmbassador().commitRegionModifications(fullRangeReceiverRegions);
+  overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      fullRangeReceiverRegions,
+      true);
+
+  std::vector<std::uint8_t> equivalenceValue{0xA4U};
+  rti::ParameterHandleValueMap equivalenceParameters;
+  equivalenceParameters.emplace(
+      ownerHandles.parameter,
+      rti::VariableLengthData(
+          equivalenceValue.data(), equivalenceValue.size()));
+  std::vector<std::uint8_t> incompatibleContextTag{0xAFU};
+  rti::VariableLengthData incompatibleContextUserTag(
+      incompatibleContextTag.data(), incompatibleContextTag.size());
+  overlap.recorder().clearInteraction();
+  requireException(
+      [&] {
+        owner.rtiAmbassador().sendInteractionWithRegions(
+            ownerHandles.interactionClass,
+            equivalenceParameters,
+            rti::RegionHandleSet{fullRangeSourceRegion},
+            incompatibleContextUserTag);
+      },
+      L"InvalidRegionContext",
+      "regional interaction send with a full-FDD region containing an unavailable dimension");
+  requireNoRegionalInteractionForProbe(
+      "an interaction send rejected for its unrelated FDD dimension created a delivery route");
+  owner.rtiAmbassador().deleteRegion(fullRangeSourceRegion);
+
+  auto sendEquivalenceProbe = [&](std::uint8_t tagValue, bool withExplicitRegion) {
+    std::vector<std::uint8_t> tagBytes{tagValue};
+    rti::VariableLengthData tag(tagBytes.data(), tagBytes.size());
+    if (withExplicitRegion) {
+      owner.rtiAmbassador().sendInteractionWithRegions(
+          ownerHandles.interactionClass,
+          equivalenceParameters,
+          fullRangeInteractionSourceRegions,
+          tag);
+    } else {
+      owner.rtiAmbassador().sendInteraction(
+          ownerHandles.interactionClass,
+          equivalenceParameters,
+          tag);
+    }
+    waitFor(
+        overlap,
+        [&] { return overlap.recorder().interaction().present; },
+        options,
+        "full-range explicit/default interaction equivalence");
+    auto const callback = overlap.recorder().interaction();
+    require(
+        callback.interaction == overlapHandles.interactionClass &&
+            callback.tag == tagBytes && callback.parameters.size() == 1U &&
+            copyBytes(callback.parameters.at(overlapHandles.parameter)) ==
+                equivalenceValue,
+        "full-range explicit/default interaction changed the callback result");
+    overlap.recorder().clearInteraction();
+  };
+  sendEquivalenceProbe(0xA1U, false);
+  sendEquivalenceProbe(0xA2U, true);
+  owner.rtiAmbassador().deleteRegion(fullRangeInteractionSourceRegion);
+  sendEquivalenceProbe(0xA3U, false);
+  overlap.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      overlapHandles.interactionClass,
+      fullRangeReceiverRegions);
+  overlap.rtiAmbassador().deleteRegion(fullRangeReceiverRegion);
+
   overlap.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   disjoint.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   overlap.rtiAmbassador().subscribeInteractionClassWithRegions(
@@ -11152,6 +11921,13 @@ void scenarioDefaultRegionInteractionRouting(
       1UL,
       0UL,
       1UL);
+  auto const publisherSubscriptionRegion = createDdmRegion(
+      publisher,
+      publisherHandles,
+      0UL,
+      1UL,
+      0UL,
+      1UL);
   auto const regionalRegion = createDdmRegion(
       regional,
       regionalHandles,
@@ -11167,6 +11943,8 @@ void scenarioDefaultRegionInteractionRouting(
       2UL,
       3UL);
   auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
+  auto const publisherSubscriptionRegionSet =
+      rti::RegionHandleSet{publisherSubscriptionRegion};
   auto const regionalRegionSet = rti::RegionHandleSet{regionalRegion};
   auto const mixedRegionSet = rti::RegionHandleSet{mixedRegion};
 
@@ -11276,6 +12054,15 @@ void scenarioDefaultRegionInteractionRouting(
           firstCallbackRegion->secondDimensionBounds.getLowerBound() == 0UL &&
           firstCallbackRegion->secondDimensionBounds.getUpperBound() == 1UL,
       "default-region interaction callback copy did not preserve source dimensions and bounds");
+  auto const firstNoLoopbackDeadline =
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+  while (std::chrono::steady_clock::now() < firstNoLoopbackDeadline) {
+    publisher.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  require(
+      publisher.recorder().interactions().empty(),
+      "Send Interaction With Regions delivered an induced callback to its subscribed sender");
   waitFor(
       mixed,
       [&] { return mixed.recorder().interactions().size() >= 1U; },
@@ -11295,6 +12082,13 @@ void scenarioDefaultRegionInteractionRouting(
           firstMixed.producer == publisher.federateHandle() &&
           firstMixed.transportation.isValid(),
       "ordinary interaction subscription beside a disjoint regional declaration changed delivery metadata");
+  publisher.rtiAmbassador().subscribeInteractionClass(
+      publisherHandles.interactionClass,
+      true);
+  publisher.rtiAmbassador().subscribeInteractionClassWithRegions(
+      publisherHandles.interactionClass,
+      publisherSubscriptionRegionSet,
+      true);
 
   mixed.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       mixedHandles.interactionClass,
@@ -11336,6 +12130,15 @@ void scenarioDefaultRegionInteractionRouting(
           secondMixed.producer == publisher.federateHandle() &&
           secondMixed.transportation.isValid(),
       "default-region interaction restoration changed ordinary delivery metadata");
+  auto const secondNoLoopbackDeadline =
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+  while (std::chrono::steady_clock::now() < secondNoLoopbackDeadline) {
+    publisher.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  require(
+      publisher.recorder().interactions().empty(),
+      "Send Interaction With Regions delivered an induced callback to its subscribed sender after regional unsubscription");
 
   mixed.rtiAmbassador().subscribeInteractionClassWithRegions(
       mixedHandles.interactionClass,
@@ -11378,6 +12181,87 @@ void scenarioDefaultRegionInteractionRouting(
       thirdRegional.regions.has_value() && thirdRegional.regions->empty() &&
           thirdMixed.regions.has_value() && thirdMixed.regions->empty(),
       "default-region interaction ordinary send did not convey an empty source region");
+  auto const thirdNoLoopbackDeadline =
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+  while (std::chrono::steady_clock::now() < thirdNoLoopbackDeadline) {
+    publisher.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  require(
+      publisher.recorder().interactions().empty(),
+      "ordinary Send Interaction delivered an induced callback to its subscribed sender");
+
+  regional.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(false);
+  require(
+      !regional.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
+      "regional interaction receiver did not disable region designator callbacks");
+  std::vector<std::uint8_t> fourthValue{0x09U, 0x0aU};
+  std::vector<std::uint8_t> fourthTag{0x0bU, 0x0cU};
+  rti::ParameterHandleValueMap fourthParameters;
+  fourthParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(fourthValue.data(), fourthValue.size()));
+  rti::VariableLengthData fourthUserTag(fourthTag.data(), fourthTag.size());
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      fourthParameters,
+      sourceRegionSet,
+      fourthUserTag);
+  waitFor(
+      regional,
+      mixed,
+      [&] {
+        return regional.recorder().interactions().size() >= 4U &&
+            mixed.recorder().interactions().size() >= 4U;
+      },
+      options,
+      "interaction delivery with per-federate region designator switches");
+  auto const fourthRegionalInteractions = regional.recorder().interactions();
+  auto const fourthMixedInteractions = mixed.recorder().interactions();
+  auto const& fourthRegional = fourthRegionalInteractions.back();
+  auto const& fourthMixed = fourthMixedInteractions.back();
+  require(
+      copyBytes(fourthRegional.parameters.at(regionalHandles.parameter)) == fourthValue &&
+          fourthRegional.tag == fourthTag && !fourthRegional.regions.has_value(),
+      "disabled Convey Region Designator Sets switch did not omit the callback region set");
+  require(
+      copyBytes(fourthMixed.parameters.at(mixedHandles.parameter)) == fourthValue &&
+          fourthMixed.tag == fourthTag && fourthMixed.regions.has_value() &&
+          fourthMixed.regions->size() == 1U,
+      "one federate's disabled Convey Region Designator Sets switch affected another receiver");
+
+  regional.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
+  require(
+      regional.rtiAmbassador().getConveyRegionDesignatorSetsSwitch(),
+      "regional interaction receiver did not re-enable region designator callbacks");
+  std::vector<std::uint8_t> fifthValue{0x0dU, 0x0eU};
+  std::vector<std::uint8_t> fifthTag{0x0fU, 0x10U};
+  rti::ParameterHandleValueMap fifthParameters;
+  fifthParameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(fifthValue.data(), fifthValue.size()));
+  rti::VariableLengthData fifthUserTag(fifthTag.data(), fifthTag.size());
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      fifthParameters,
+      sourceRegionSet,
+      fifthUserTag);
+  waitFor(
+      regional,
+      mixed,
+      [&] {
+        return regional.recorder().interactions().size() >= 5U &&
+            mixed.recorder().interactions().size() >= 5U;
+      },
+      options,
+      "interaction region designators after switch re-enable");
+  auto const fifthRegionalInteractions = regional.recorder().interactions();
+  auto const& fifthRegional = fifthRegionalInteractions.back();
+  require(
+      copyBytes(fifthRegional.parameters.at(regionalHandles.parameter)) == fifthValue &&
+          fifthRegional.tag == fifthTag && fifthRegional.regions.has_value() &&
+          fifthRegional.regions->size() == 1U,
+      "re-enabled Convey Region Designator Sets switch did not restore the sent region set");
 
   mixed.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       mixedHandles.interactionClass,
@@ -11386,9 +12270,15 @@ void scenarioDefaultRegionInteractionRouting(
   regional.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       regionalHandles.interactionClass,
       regionalRegionSet);
+  publisher.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      publisherHandles.interactionClass,
+      publisherSubscriptionRegionSet);
+  publisher.rtiAmbassador().unsubscribeInteractionClass(
+      publisherHandles.interactionClass);
   publisher.rtiAmbassador().unpublishInteractionClass(
       publisherHandles.interactionClass);
   publisher.rtiAmbassador().deleteRegion(sourceRegion);
+  publisher.rtiAmbassador().deleteRegion(publisherSubscriptionRegion);
   regional.rtiAmbassador().deleteRegion(regionalRegion);
   mixed.rtiAmbassador().deleteRegion(mixedRegion);
   mixed.resign(rti::NO_ACTION);
@@ -11406,19 +12296,142 @@ void scenarioDefaultRegionInteractionRoutingContract(
   scenarioDefaultRegionInteractionRouting(options, model);
 }
 
+void scenarioZeroDimensionalRegionalInteractionFomDefaultRange(
+    Options const& options,
+    rti::CallbackModel model) {
+  auto const defaultRangeFom = options.scenarioFoms.find(
+      "ddm-region-realization-default-range");
+  require(
+      defaultRangeFom != options.scenarioFoms.end(),
+      "Zero-dimensional interaction default realization requires a restricted default-range FOM");
+
+  Session publisher(options, model, "zero-dimensional-default-range-publisher");
+  Session subscriber(options, model, "zero-dimensional-default-range-subscriber");
+  auto const federation = federationName(
+      options,
+      "zero-dimensional-regional-interaction-default-range");
+  connectAndJoin(publisher, subscriber, options, federation, defaultRangeFom->second);
+
+  auto const publisherHandles = ddmHandles(publisher, options);
+  auto const subscriberHandles = ddmHandles(subscriber, options);
+  verifyDdmClassDimensions(
+      publisher,
+      options,
+      publisherHandles,
+      "zero-dimensional interaction default realization");
+  require(
+      publisherHandles.interactionClass == subscriberHandles.interactionClass &&
+          publisherHandles.parameter == subscriberHandles.parameter,
+      "zero-dimensional interaction default realization resolved different declaration handles");
+
+  publisher.rtiAmbassador().publishInteractionClass(
+      publisherHandles.interactionClass);
+  auto const zeroRegion = publisher.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{});
+  require(
+      zeroRegion.isValid() &&
+          publisher.rtiAmbassador().getDimensionHandleSet(zeroRegion).empty(),
+      "zero-dimensional default realization did not start from an empty region specification");
+  publisher.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{zeroRegion});
+
+  auto const receiverRegion = subscriber.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{subscriberHandles.secondDimension});
+  auto const receiverRegions = rti::RegionHandleSet{receiverRegion};
+  subscriber.rtiAmbassador().setRangeBounds(
+      receiverRegion,
+      subscriberHandles.secondDimension,
+      rti::RangeBounds(6UL, 9UL));
+  subscriber.rtiAmbassador().commitRegionModifications(receiverRegions);
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      receiverRegions,
+      true);
+
+  std::vector<std::uint8_t> value{0x2aU, 0x15U};
+  rti::ParameterHandleValueMap parameters;
+  parameters.emplace(
+      publisherHandles.parameter,
+      rti::VariableLengthData(value.data(), value.size()));
+  auto sendWithEmptySpecification = [&](std::uint8_t tagValue) {
+    std::vector<std::uint8_t> tag{tagValue};
+    rti::VariableLengthData userTag(tag.data(), tag.size());
+    publisher.rtiAmbassador().sendInteractionWithRegions(
+        publisherHandles.interactionClass,
+        parameters,
+        rti::RegionHandleSet{zeroRegion},
+        userTag);
+  };
+
+  sendWithEmptySpecification(0x41U);
+  auto const outsideDefaultDeadline =
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+  while (std::chrono::steady_clock::now() < outsideDefaultDeadline) {
+    subscriber.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  require(
+      subscriber.recorder().interactions().empty(),
+      "an empty region specification treated the available Y default [0..5) as an unconstrained wildcard");
+
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      receiverRegions);
+  subscriber.rtiAmbassador().setRangeBounds(
+      receiverRegion,
+      subscriberHandles.secondDimension,
+      rti::RangeBounds(1UL, 4UL));
+  subscriber.rtiAmbassador().commitRegionModifications(receiverRegions);
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      receiverRegions,
+      true);
+  sendWithEmptySpecification(0x42U);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() == 1U; },
+      options,
+      "empty interaction region realization overlapping its available FOM default range");
+  auto const received = subscriber.recorder().interactions();
+  require(
+      received.size() == 1U &&
+          received.front().tag == std::vector<std::uint8_t>{0x42U},
+      "empty region specification did not realize the available Y dimension's FOM default [0..5)");
+
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      receiverRegions);
+  subscriber.rtiAmbassador().deleteRegion(receiverRegion);
+  publisher.rtiAmbassador().deleteRegion(zeroRegion);
+  publisher.rtiAmbassador().unpublishInteractionClass(
+      publisherHandles.interactionClass);
+  subscriber.resign(rti::NO_ACTION);
+  publisher.resign(rti::NO_ACTION);
+  publisher.rtiAmbassador().destroyFederationExecution(federation);
+  subscriber.disconnect();
+  publisher.disconnect();
+}
+
 void scenarioZeroDimensionalRegionalInteraction(
     Options const& options,
     rti::CallbackModel model) {
+  auto const excludedDimensionsFom = options.scenarioFoms.find(
+      "ddm-region-realization-excluded-dimensions");
   require(
-      !options.ddmFom.empty(),
-      "Zero-dimensional regional interaction requires an adapter-supplied dimensional FOM");
+      excludedDimensionsFom != options.scenarioFoms.end(),
+      "Zero-dimensional interaction non-overlap requires an all-excluded available-dimensions FOM");
 
   Session publisher(options, model, "zero-dimensional-regional-interaction-publisher");
   Session subscriber(options, model, "zero-dimensional-regional-interaction-subscriber");
   auto const federation = federationName(
       options,
       "zero-dimensional-regional-interaction");
-  connectAndJoin(publisher, subscriber, options, federation, options.ddmFom);
+  connectAndJoin(
+      publisher,
+      subscriber,
+      options,
+      federation,
+      excludedDimensionsFom->second);
 
   auto const publisherHandles = ddmHandles(publisher, options);
   auto const subscriberHandles = ddmHandles(subscriber, options);
@@ -11519,6 +12532,8 @@ void scenarioZeroDimensionalRegionalInteraction(
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   subscriber.disconnect();
   publisher.disconnect();
+
+  scenarioZeroDimensionalRegionalInteractionFomDefaultRange(options, model);
 }
 
 void scenarioZeroDimensionalRegionalInteractionContract(
@@ -11530,19 +12545,27 @@ void scenarioZeroDimensionalRegionalInteractionContract(
 void scenarioMultiRegionInteractionRouting(
     Options const& options,
     rti::CallbackModel model) {
+  auto const excludedDimensionsFom = options.scenarioFoms.find(
+      "ddm-region-realization-excluded-dimensions");
   require(
-      !options.ddmFom.empty(),
-      "Multi-region interaction routing requires an adapter-supplied dimensional FOM");
+      excludedDimensionsFom != options.scenarioFoms.end(),
+      "Multi-region interaction routing requires the adapter's excluded-dimension FOM");
 
   Session publisher(options, model, "owner");
   Session first(options, model, "member");
   Session second(options, model, "member");
   Session combined(options, model, "member");
   Session disjoint(options, model, "member");
+  Session noCommon(options, model, "member");
   auto const federation = federationName(
       options,
       "multi-region-interaction-routing");
-  connectAndJoin(publisher, first, options, federation, options.ddmFom);
+  connectAndJoin(
+      publisher,
+      first,
+      options,
+      federation,
+      excludedDimensionsFom->second);
   second.connect();
   second.join(
       options.memberFederateName + L"-multi-region-interaction-second",
@@ -11569,6 +12592,10 @@ void scenarioMultiRegionInteractionRouting(
       options,
       publisherHandles,
       "multi-region interaction routing");
+  require(
+      !publisher.rtiAmbassador().getAllowRelaxedDDMSwitch() &&
+          !first.rtiAmbassador().getAllowRelaxedDDMSwitch(),
+      "multi-region strict-boundary evidence requires Allow Relaxed DDM to be disabled");
   require(
       publisherHandles.interactionClass == firstHandles.interactionClass &&
           publisherHandles.interactionClass == secondHandles.interactionClass &&
@@ -11708,7 +12735,7 @@ void scenarioMultiRegionInteractionRouting(
   installRegionSnapshotHook(second, secondHandles, secondRegionSnapshots);
   installRegionSnapshotHook(combined, combinedHandles, combinedRegionSnapshots);
 
-  auto const recipients = std::vector<Session*>{
+  auto recipients = std::vector<Session*>{
       &first,
       &second,
       &combined,
@@ -11883,6 +12910,148 @@ void scenarioMultiRegionInteractionRouting(
       combinedRegionSnapshots,
       "combined first-source interaction");
 
+  first.rtiAmbassador().setRangeBounds(
+      firstRegion,
+      firstHandles.firstDimension,
+      rti::RangeBounds(2UL, 4UL));
+  first.rtiAmbassador().commitRegionModifications(firstSubscription);
+  std::vector<std::uint8_t> touchingValue{0x91U};
+  std::vector<std::uint8_t> touchingTag{0x49U, 0x34U};
+  send(firstSource, touchingValue, touchingTag);
+  waitForSessions(
+      recipients,
+      [&] {
+        return first.recorder().interactions().size() == 2U &&
+            second.recorder().interactions().size() == 2U &&
+            combined.recorder().interactions().size() == 4U &&
+            disjoint.recorder().interactions().empty();
+      },
+      options,
+      "strict multi-region touching-boundary suppression");
+  verify(
+      combined,
+      combinedHandles,
+      3U,
+      touchingValue,
+      touchingTag,
+      firstSource,
+      combinedRegionSnapshots,
+      "combined strict touching-boundary control");
+
+  first.rtiAmbassador().setRangeBounds(
+      firstRegion,
+      firstHandles.firstDimension,
+      rti::RangeBounds(1UL, 3UL));
+  first.rtiAmbassador().commitRegionModifications(firstSubscription);
+  std::vector<std::uint8_t> overlappingValue{0x92U};
+  std::vector<std::uint8_t> overlappingTag{0x49U, 0x35U};
+  send(firstSource, overlappingValue, overlappingTag);
+  waitForSessions(
+      recipients,
+      [&] {
+        return first.recorder().interactions().size() == 3U &&
+            second.recorder().interactions().size() == 2U &&
+            combined.recorder().interactions().size() == 5U &&
+            disjoint.recorder().interactions().empty();
+      },
+      options,
+      "strict multi-region interior-overlap delivery");
+  verify(
+      first,
+      firstHandles,
+      2U,
+      overlappingValue,
+      overlappingTag,
+      firstSource,
+      firstRegionSnapshots,
+      "first strict interior-overlap interaction");
+  verify(
+      combined,
+      combinedHandles,
+      4U,
+      overlappingValue,
+      overlappingTag,
+      firstSource,
+      combinedRegionSnapshots,
+      "combined strict interior-overlap interaction");
+
+  noCommon.connect();
+  noCommon.join(
+      options.memberFederateName + L"-multi-region-interaction-no-common",
+      options.federateType,
+      federation);
+  auto const noCommonHandles = ddmHandles(noCommon, options);
+  require(
+      publisherHandles.interactionClass == noCommonHandles.interactionClass &&
+          publisherHandles.parameter == noCommonHandles.parameter &&
+          publisherHandles.firstDimension == noCommonHandles.firstDimension &&
+          publisherHandles.secondDimension == noCommonHandles.secondDimension &&
+          publisherHandles.firstDimension != noCommonHandles.secondDimension,
+      "no-common-dimension subscriber resolved inconsistent or duplicate DDM handles");
+  recipients.push_back(&noCommon);
+  auto const noCommonSubscriptionRegion =
+      noCommon.rtiAmbassador().createRegion(
+          rti::DimensionHandleSet{noCommonHandles.secondDimension});
+  noCommon.rtiAmbassador().setRangeBounds(
+      noCommonSubscriptionRegion,
+      noCommonHandles.secondDimension,
+      rti::RangeBounds(8UL, 9UL));
+  rti::RegionHandleSet const noCommonSubscription{
+      noCommonSubscriptionRegion};
+  noCommon.rtiAmbassador().commitRegionModifications(noCommonSubscription);
+  noCommon.rtiAmbassador().subscribeInteractionClassWithRegions(
+      noCommonHandles.interactionClass,
+      noCommonSubscription,
+      true);
+
+  auto const noCommonSource = publisher.rtiAmbassador().createRegion(
+      rti::DimensionHandleSet{publisherHandles.firstDimension});
+  publisher.rtiAmbassador().setRangeBounds(
+      noCommonSource,
+      publisherHandles.firstDimension,
+      rti::RangeBounds(8UL, 9UL));
+  publisher.rtiAmbassador().commitRegionModifications(
+      rti::RegionHandleSet{noCommonSource});
+  require(
+      publisherHandles.firstDimension == disjointHandles.firstDimension &&
+          publisherHandles.secondDimension == disjointHandles.secondDimension &&
+          publisherHandles.firstDimension != disjointHandles.secondDimension,
+      "separate federates resolved inconsistent or duplicate DDM dimension handles");
+  require(
+      publisher.rtiAmbassador().getDimensionHandleSet(noCommonSource) ==
+              rti::DimensionHandleSet{publisherHandles.firstDimension} &&
+          noCommon.rtiAmbassador().getDimensionHandleSet(
+              noCommonSubscriptionRegion) ==
+              rti::DimensionHandleSet{noCommonHandles.secondDimension},
+      "no-common-dimension interaction regions unexpectedly share a dimension");
+  std::vector<std::uint8_t> noCommonValue{0x91U};
+  std::vector<std::uint8_t> noCommonTag{0x49U, 0x34U};
+  send(
+      rti::RegionHandleSet{noCommonSource},
+      noCommonValue,
+      noCommonTag);
+  for (int pass = 0; pass != 8; ++pass) {
+    for (auto* recipient : recipients) {
+      recipient->pump();
+    }
+  }
+  require(
+      noCommon.recorder().interactions().empty(),
+      "the Y-only subscription received " +
+          std::to_string(noCommon.recorder().interactions().size()) +
+          " interaction(s) from the X-only source region");
+  require(
+      first.recorder().interactions().size() == 3U &&
+          second.recorder().interactions().size() == 2U &&
+          combined.recorder().interactions().size() == 5U &&
+          disjoint.recorder().interactions().size() == 1U,
+      "no-common-dimension probe unexpectedly changed other receiver callback counts");
+  noCommon.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      noCommonHandles.interactionClass,
+      noCommonSubscription);
+  publisher.rtiAmbassador().deleteRegion(noCommonSource);
+  noCommon.rtiAmbassador().deleteRegion(noCommonSubscriptionRegion);
+
   first.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       firstHandles.interactionClass,
       firstSubscription);
@@ -11892,9 +13061,6 @@ void scenarioMultiRegionInteractionRouting(
   combined.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       combinedHandles.interactionClass,
       combinedSubscription);
-  disjoint.rtiAmbassador().unsubscribeInteractionClassWithRegions(
-      disjointHandles.interactionClass,
-      disjointSubscription);
   publisher.rtiAmbassador().unpublishInteractionClass(
       publisherHandles.interactionClass);
   publisher.rtiAmbassador().deleteRegion(sourceFirst);
@@ -11903,14 +13069,15 @@ void scenarioMultiRegionInteractionRouting(
   second.rtiAmbassador().deleteRegion(secondRegion);
   combined.rtiAmbassador().deleteRegion(combinedFirstRegion);
   combined.rtiAmbassador().deleteRegion(combinedSecondRegion);
-  disjoint.rtiAmbassador().deleteRegion(disjointRegion);
   disjoint.resign(rti::NO_ACTION);
+  noCommon.resign(rti::NO_ACTION);
   combined.resign(rti::NO_ACTION);
   second.resign(rti::NO_ACTION);
   first.resign(rti::NO_ACTION);
   publisher.resign(rti::NO_ACTION);
   publisher.rtiAmbassador().destroyFederationExecution(federation);
   disjoint.disconnect();
+  noCommon.disconnect();
   combined.disconnect();
   second.disconnect();
   first.disconnect();
@@ -11965,8 +13132,17 @@ void scenarioRegionalInteractionEmptySubscriptionSets(
       2UL,
       0UL,
       2UL);
+  auto const absentSubscriptionRegion = createDdmRegion(
+      subscriber,
+      subscriberHandles,
+      5UL,
+      7UL,
+      5UL,
+      7UL);
   auto const sourceRegionSet = rti::RegionHandleSet{sourceRegion};
   auto const subscriptionRegionSet = rti::RegionHandleSet{subscriptionRegion};
+  auto const absentSubscriptionRegionSet =
+      rti::RegionHandleSet{absentSubscriptionRegion};
 
   subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   std::vector<std::pair<unsigned long, unsigned long>> callbackFirstDimensionBounds;
@@ -12097,13 +13273,57 @@ void scenarioRegionalInteractionEmptySubscriptionSets(
 
   subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
+      absentSubscriptionRegionSet);
+  auto const absentUnsubscribeTag =
+      std::vector<std::uint8_t>{0x41U, 0x42U, 0x53U};
+  send(absentUnsubscribeTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() >= 3U; },
+      options,
+      "regional interaction delivery after unsubscribing an absent region");
+  require(
+      subscriber.recorder().interactions().size() == 3U,
+      "unsubscribing an absent region changed the active regional interaction route");
+  verifyInteraction(
+      2U,
+      absentUnsubscribeTag,
+      "regional interaction delivery after unsubscribing an absent region");
+
+  subscriber.rtiAmbassador().deleteRegion(absentSubscriptionRegion);
+  requireException(
+      [&] {
+        subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+            subscriberHandles.interactionClass,
+            absentSubscriptionRegionSet);
+      },
+      L"InvalidRegion",
+      "regional interaction unsubscription with a deleted region designator");
+  auto const deletedRegionUnsubscribeTag =
+      std::vector<std::uint8_t>{0x44U, 0x45U, 0x4CU};
+  send(deletedRegionUnsubscribeTag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interactions().size() >= 4U; },
+      options,
+      "regional interaction delivery after rejecting a deleted unsubscribe region");
+  require(
+      subscriber.recorder().interactions().size() == 4U,
+      "rejected deleted-region unsubscription changed the active route");
+  verifyInteraction(
+      3U,
+      deletedRegionUnsubscribeTag,
+      "regional interaction delivery after rejecting a deleted unsubscribe region");
+
+  subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
       subscriptionRegionSet);
   auto const unsubscribedTag =
       std::vector<std::uint8_t>{0x55U, 0x4EU, 0x53U};
   send(unsubscribedTag);
   pumpSubscriber();
   require(
-      subscriber.recorder().interactions().size() == 2U,
+      subscriber.recorder().interactions().size() == 4U,
       "non-empty regional interaction unsubscription failed to remove the route");
 
   subscriber.rtiAmbassador().deleteRegion(subscriptionRegion);
@@ -12370,18 +13590,39 @@ void scenarioRegionalInteractionSubscriptionFiltering(
     }
   };
 
-  // An ordinary declaration remains independent from an explicit regional
-  // declaration, and an empty regional declaration does not create a default
-  // subscription or turn an explicitly regional send into an ordinary send.
-  subscriber.rtiAmbassador().subscribeInteractionClass(
-      subscriberHandles.interactionClass);
+  // An empty regional set is not a default-region or ordinary subscription.
   subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
       rti::RegionHandleSet{},
       true);
+  subscriber.recorder().clearInteraction();
+  publisher.rtiAmbassador().sendInteraction(
+      publisherHandles.interactionClass,
+      parameters,
+      tag);
+  drainSubscriber();
+  require(
+      !subscriber.recorder().interaction().present,
+      "an empty regional subscription set created a default interaction subscription");
+
+  subscriber.recorder().clearInteraction();
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      parameters,
+      rti::RegionHandleSet{},
+      tag);
+  drainSubscriber();
+  require(
+      !subscriber.recorder().interaction().present,
+      "an empty regional subscription set received an explicitly empty regional send");
   subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
       rti::RegionHandleSet{});
+
+  // An ordinary declaration remains independent from an explicit regional
+  // declaration, and does not make a later regional send ordinary.
+  subscriber.rtiAmbassador().subscribeInteractionClass(
+      subscriberHandles.interactionClass);
   subscriber.recorder().clearInteraction();
   publisher.rtiAmbassador().sendInteraction(
       publisherHandles.interactionClass,
@@ -12406,12 +13647,35 @@ void scenarioRegionalInteractionSubscriptionFiltering(
       !subscriber.recorder().interaction().present,
       "an explicitly empty regional interaction send used the ordinary subscription");
 
-  // Removing only the ordinary declaration makes the committed regional
-  // declaration the complete routing filter.
+  // Ordinary subscription changes remain independent from the committed
+  // regional declaration, both when added and when removed.
   subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
       subscriberHandles.interactionClass,
       rti::RegionHandleSet{subscriberRegion},
       true);
+  subscriber.rtiAmbassador().subscribeInteractionClassWithRegions(
+      subscriberHandles.interactionClass,
+      rti::RegionHandleSet{subscriberRegion},
+      true);
+  subscriber.rtiAmbassador().subscribeInteractionClass(
+      subscriberHandles.interactionClass);
+  subscriber.recorder().clearInteraction();
+  publisher.rtiAmbassador().sendInteractionWithRegions(
+      publisherHandles.interactionClass,
+      parameters,
+      rti::RegionHandleSet{sourceRegion},
+      tag);
+  waitFor(
+      subscriber,
+      [&] { return subscriber.recorder().interaction().present; },
+      options,
+      "regional interaction after ordinary subscription addition");
+  assertInteraction(subscriber.recorder().interaction(), false);
+  drainSubscriber();
+  require(
+      subscriber.recorder().interactions().size() == 1U,
+      "ordinary subscription addition changed the existing regional subscription set");
+
   subscriber.rtiAmbassador().unsubscribeInteractionClass(
       subscriberHandles.interactionClass);
   subscriber.recorder().clearInteraction();
@@ -12426,6 +13690,10 @@ void scenarioRegionalInteractionSubscriptionFiltering(
       options,
       "regional interaction through the explicit subscription");
   assertInteraction(subscriber.recorder().interaction(), false);
+  drainSubscriber();
+  require(
+      subscriber.recorder().interactions().size() == 1U,
+      "ordinary unsubscription changed the existing regional subscription set");
 
   subscriber.rtiAmbassador().setConveyRegionDesignatorSetsSwitch(true);
   require(
@@ -12638,6 +13906,19 @@ void scenarioAllowRelaxedDdm(Options const& options, rti::CallbackModel model) {
     return modules;
   };
 
+  auto requireRangeBounds = [](
+      rti::RTIambassador& ambassador,
+      rti::RegionHandle region,
+      rti::DimensionHandle dimension,
+      unsigned long lower,
+      unsigned long upper,
+      std::string const& context) {
+    auto const bounds = ambassador.getRangeBounds(region, dimension);
+    require(
+        bounds.getLowerBound() == lower && bounds.getUpperBound() == upper,
+        context);
+  };
+
   auto runObject = [&](bool enabled) {
     Session publisher(options, model, enabled ? "relaxed-object-enabled" : "relaxed-object-strict");
     Session subscriber(options, model, enabled ? "relaxed-object-member-enabled" : "relaxed-object-member-strict");
@@ -12663,6 +13944,10 @@ void scenarioAllowRelaxedDdm(Options const& options, rti::CallbackModel model) {
         publisher.rtiAmbassador().getAllowRelaxedDDMSwitch() == enabled &&
             subscriber.rtiAmbassador().getAllowRelaxedDDMSwitch() == enabled,
         "Allow Relaxed DDM object composition did not match the adapter switch FOM");
+    require(
+        publisher.rtiAmbassador().getConveyRegionDesignatorSetsSwitch() == enabled &&
+            subscriber.rtiAmbassador().getConveyRegionDesignatorSetsSwitch() == enabled,
+        "Convey Region Designator Sets initial value did not match the FDD switch value");
     auto const publisherHandles = ddmHandles(publisher, options);
     auto const subscriberHandles = ddmHandles(subscriber, options);
     verifyDdmClassDimensions(
@@ -12789,6 +14074,35 @@ void scenarioAllowRelaxedDdm(Options const& options, rti::CallbackModel model) {
           !subscriber.recorder().reflection().present,
           "strict DDM unexpectedly reflected a touching object update");
     }
+
+    requireRangeBounds(
+        publisher.rtiAmbassador(),
+        sourceRegion,
+        publisherHandles.firstDimension,
+        0UL,
+        2UL,
+        "Allow Relaxed DDM changed the object's source first-dimension range");
+    requireRangeBounds(
+        publisher.rtiAmbassador(),
+        sourceRegion,
+        publisherHandles.secondDimension,
+        0UL,
+        2UL,
+        "Allow Relaxed DDM changed the object's source second-dimension range");
+    requireRangeBounds(
+        subscriber.rtiAmbassador(),
+        subscriptionRegion,
+        subscriberHandles.firstDimension,
+        2UL,
+        3UL,
+        "Allow Relaxed DDM reduced the object's subscription first-dimension range");
+    requireRangeBounds(
+        subscriber.rtiAmbassador(),
+        subscriptionRegion,
+        subscriberHandles.secondDimension,
+        2UL,
+        3UL,
+        "Allow Relaxed DDM reduced the object's subscription second-dimension range");
 
     subscriber.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
         subscriberHandles.objectClass,
@@ -12928,6 +14242,35 @@ void scenarioAllowRelaxedDdm(Options const& options, rti::CallbackModel model) {
           "strict DDM unexpectedly delivered a touching interaction");
     }
 
+    requireRangeBounds(
+        publisher.rtiAmbassador(),
+        sourceRegion,
+        publisherHandles.firstDimension,
+        0UL,
+        2UL,
+        "Allow Relaxed DDM changed the interaction source first-dimension range");
+    requireRangeBounds(
+        publisher.rtiAmbassador(),
+        sourceRegion,
+        publisherHandles.secondDimension,
+        0UL,
+        2UL,
+        "Allow Relaxed DDM changed the interaction source second-dimension range");
+    requireRangeBounds(
+        subscriber.rtiAmbassador(),
+        subscriptionRegion,
+        subscriberHandles.firstDimension,
+        2UL,
+        3UL,
+        "Allow Relaxed DDM reduced the interaction subscription first-dimension range");
+    requireRangeBounds(
+        subscriber.rtiAmbassador(),
+        subscriptionRegion,
+        subscriberHandles.secondDimension,
+        2UL,
+        3UL,
+        "Allow Relaxed DDM reduced the interaction subscription second-dimension range");
+
     subscriber.rtiAmbassador().unsubscribeInteractionClassWithRegions(
         subscriberHandles.interactionClass,
         subscriptionRegions);
@@ -12945,6 +14288,7 @@ void scenarioAllowRelaxedDdm(Options const& options, rti::CallbackModel model) {
   runObject(true);
   runInteraction(false);
   runInteraction(true);
+  verifyAllowRelaxedDdmStrictOverlap(options, model);
 }
 
 void scenarioRegionalMultiAttributeUpdate(
@@ -13258,12 +14602,244 @@ void scenarioRegionalMultiAttributeUpdate(
       {0x52U, 0x31U},
       "multi-attribute regional restored Organic reflection");
 
+  rti::AttributeHandleSet const flavorCrossProductAttributes{
+      flavorHandles.firstAttribute,
+      flavorHandles.secondAttribute};
+  rti::AttributeHandleSet const organicCrossProductAttributes{
+      organicHandles.firstAttribute,
+      organicHandles.secondAttribute};
+  rti::AttributeHandleSetRegionHandleSetPairVector const flavorCrossProductPair{{
+      flavorCrossProductAttributes,
+      rti::RegionHandleSet{flavorRegion}}};
+  rti::AttributeHandleSetRegionHandleSetPairVector const organicCrossProductPair{{
+      organicCrossProductAttributes,
+      rti::RegionHandleSet{organicRegion}}};
+  flavor.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      flavorHandles.objectClass,
+      flavorCrossProductPair);
+  organic.rtiAmbassador().subscribeObjectClassAttributesWithRegions(
+      organicHandles.objectClass,
+      organicCrossProductPair);
+
+  rti::AttributeHandleSetRegionHandleSetPairVector const sourceCrossProductPair{{
+      rti::AttributeHandleSet{
+          publisherHandles.firstAttribute,
+          publisherHandles.secondAttribute},
+      rti::RegionHandleSet{sourceFlavor, sourceOrganic}}};
+  auto const crossProductObject =
+      publisher.rtiAmbassador().registerObjectInstanceWithRegions(
+          publisherHandles.objectClass,
+          sourceCrossProductPair);
+  require(
+      crossProductObject.isValid(),
+      "multi-attribute attribute-region cross-product registration returned an invalid handle");
+  waitFor(
+      flavor,
+      organic,
+      [&] {
+        return flavor.recorder().hasDiscovery(crossProductObject) &&
+            organic.recorder().hasDiscovery(crossProductObject);
+      },
+      options,
+      "multi-attribute attribute-region cross-product discovery");
+  flavor.recorder().clearReflection();
+  organic.recorder().clearReflection();
+
+  std::size_t flavorCrossProductRegionCallbacks = 0U;
+  flavor.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    require(
+        regions != nullptr && !regions->empty(),
+        "multi-attribute Flavor cross-product reflection omitted its source region set");
+    bool sawFlavorSourceRegion = false;
+    for (auto const& callbackRegion : *regions) {
+      require(
+          flavor.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+              rti::DimensionHandleSet{
+                  flavorHandles.firstDimension,
+                  flavorHandles.secondDimension},
+          "multi-attribute Flavor cross-product callback changed the region dimensions");
+      auto const firstBounds = flavor.rtiAmbassador().getRangeBounds(
+          callbackRegion,
+          flavorHandles.firstDimension);
+      auto const secondBounds = flavor.rtiAmbassador().getRangeBounds(
+          callbackRegion,
+          flavorHandles.secondDimension);
+      bool const isFlavorRegion =
+          firstBounds.getLowerBound() == 0UL &&
+          firstBounds.getUpperBound() == 2UL &&
+          secondBounds.getLowerBound() == 0UL &&
+          secondBounds.getUpperBound() == 2UL;
+      bool const isOrganicRegion =
+          firstBounds.getLowerBound() == 5UL &&
+          firstBounds.getUpperBound() == 7UL &&
+          secondBounds.getLowerBound() == 5UL &&
+          secondBounds.getUpperBound() == 7UL;
+      require(
+          isFlavorRegion || isOrganicRegion,
+          "multi-attribute Flavor cross-product callback conveyed an unknown source region");
+      sawFlavorSourceRegion = sawFlavorSourceRegion || isFlavorRegion;
+    }
+    require(
+        sawFlavorSourceRegion,
+        "multi-attribute Flavor cross-product callback omitted its matching source region");
+    ++flavorCrossProductRegionCallbacks;
+  });
+  std::size_t organicCrossProductRegionCallbacks = 0U;
+  organic.recorder().setReflectionHook([&](rti::RegionHandleSet const* regions) {
+    require(
+        regions != nullptr && !regions->empty(),
+        "multi-attribute Organic cross-product reflection omitted its source region set");
+    bool sawOrganicSourceRegion = false;
+    for (auto const& callbackRegion : *regions) {
+      require(
+          organic.rtiAmbassador().getDimensionHandleSet(callbackRegion) ==
+              rti::DimensionHandleSet{
+                  organicHandles.firstDimension,
+                  organicHandles.secondDimension},
+          "multi-attribute Organic cross-product callback changed the region dimensions");
+      auto const firstBounds = organic.rtiAmbassador().getRangeBounds(
+          callbackRegion,
+          organicHandles.firstDimension);
+      auto const secondBounds = organic.rtiAmbassador().getRangeBounds(
+          callbackRegion,
+          organicHandles.secondDimension);
+      bool const isFlavorRegion =
+          firstBounds.getLowerBound() == 0UL &&
+          firstBounds.getUpperBound() == 2UL &&
+          secondBounds.getLowerBound() == 0UL &&
+          secondBounds.getUpperBound() == 2UL;
+      bool const isOrganicRegion =
+          firstBounds.getLowerBound() == 5UL &&
+          firstBounds.getUpperBound() == 7UL &&
+          secondBounds.getLowerBound() == 5UL &&
+          secondBounds.getUpperBound() == 7UL;
+      require(
+          isFlavorRegion || isOrganicRegion,
+          "multi-attribute Organic cross-product callback conveyed an unknown source region");
+      sawOrganicSourceRegion = sawOrganicSourceRegion || isOrganicRegion;
+    }
+    require(
+        sawOrganicSourceRegion,
+        "multi-attribute Organic cross-product callback omitted its matching source region");
+    ++organicCrossProductRegionCallbacks;
+  });
+
+  std::vector<std::uint8_t> crossProductFirstValue{0x46U, 0x58U};
+  std::vector<std::uint8_t> crossProductSecondValue{0x4FU, 0x58U};
+  std::vector<std::uint8_t> crossProductTag{0x58U, 0x50U};
+  rti::AttributeHandleValueMap crossProductValues;
+  crossProductValues.emplace(
+      publisherHandles.firstAttribute,
+      rti::VariableLengthData(
+          crossProductFirstValue.data(),
+          crossProductFirstValue.size()));
+  crossProductValues.emplace(
+      publisherHandles.secondAttribute,
+      rti::VariableLengthData(
+          crossProductSecondValue.data(),
+          crossProductSecondValue.size()));
+  publisher.rtiAmbassador().updateAttributeValues(
+      crossProductObject,
+      crossProductValues,
+      rti::VariableLengthData(crossProductTag.data(), crossProductTag.size()));
+
+  auto hasBothCrossProductAttributes = [&](Session& subscriber,
+                                           rti::AttributeHandle const& firstAttribute,
+                                           rti::AttributeHandle const& secondAttribute) {
+    bool sawFirst = false;
+    bool sawSecond = false;
+    for (auto const& reflection : subscriber.recorder().reflections()) {
+      if (reflection.object != crossProductObject) {
+        continue;
+      }
+      sawFirst = sawFirst || reflection.values.count(firstAttribute) == 1U;
+      sawSecond = sawSecond || reflection.values.count(secondAttribute) == 1U;
+    }
+    return sawFirst && sawSecond;
+  };
+  waitFor(
+      flavor,
+      organic,
+      [&] {
+        return hasBothCrossProductAttributes(
+                   flavor,
+                   flavorHandles.firstAttribute,
+                   flavorHandles.secondAttribute) &&
+            hasBothCrossProductAttributes(
+                organic,
+                organicHandles.firstAttribute,
+                organicHandles.secondAttribute);
+      },
+      options,
+      "multi-attribute attribute-region cross-product reflections");
+
+  auto assertCrossProductProjection = [&](Session& subscriber,
+                                          rti::AttributeHandle const& firstAttribute,
+                                          rti::AttributeHandle const& secondAttribute,
+                                          std::size_t regionCallbackCount,
+                                          std::string const& description) {
+    rti::AttributeHandleSet observedAttributes;
+    for (auto const& reflection : subscriber.recorder().reflections()) {
+      if (reflection.object != crossProductObject) {
+        continue;
+      }
+      require(
+          reflection.tag == crossProductTag &&
+              reflection.producer == publisher.federateHandle() &&
+              reflection.transportation.isValid() &&
+              reflection.regions.has_value() &&
+              !reflection.regions->empty(),
+          description + " changed callback metadata or omitted its region designator");
+      for (auto const& value : reflection.values) {
+        require(
+            value.first == firstAttribute || value.first == secondAttribute,
+            description + " included an attribute outside the requested set");
+        require(
+            observedAttributes.insert(value.first).second,
+            description + " delivered a cross-product attribute more than once");
+        auto const& expectedValue = value.first == firstAttribute
+            ? crossProductFirstValue
+            : crossProductSecondValue;
+        require(
+            copyBytes(value.second) == expectedValue,
+            description + " returned the wrong value for a cross-product attribute");
+      }
+    }
+    require(
+        observedAttributes == rti::AttributeHandleSet{
+            firstAttribute,
+            secondAttribute} &&
+            regionCallbackCount > 0U,
+        description + " did not observe both attributes associated with this region");
+  };
+  assertCrossProductProjection(
+      flavor,
+      flavorHandles.firstAttribute,
+      flavorHandles.secondAttribute,
+      flavorCrossProductRegionCallbacks,
+      "multi-attribute Flavor cross-product projection");
+  assertCrossProductProjection(
+      organic,
+      organicHandles.firstAttribute,
+      organicHandles.secondAttribute,
+      organicCrossProductRegionCallbacks,
+      "multi-attribute Organic cross-product projection");
+
   flavor.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       flavorHandles.objectClass,
       flavorPairs);
+  flavor.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      flavorHandles.objectClass,
+      flavorCrossProductPair);
   organic.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
       organicHandles.objectClass,
       organicPairs);
+  organic.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(
+      organicHandles.objectClass,
+      organicCrossProductPair);
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(
+      crossProductObject,
+      sourceCrossProductPair);
   publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePairs);
   publisher.rtiAmbassador().unpublishObjectClassAttributes(
       publisherHandles.objectClass,
@@ -14027,6 +15603,9 @@ void scenarioTimestampedRegionalInteraction(
       *secondTime);
   require(secondRetraction.isValid(),
           "second timestamped regional interaction returned an invalid retraction handle");
+  require(
+      copyBytes(firstRetraction.encode()) != copyBytes(secondRetraction.encode()),
+      "two timestamped regional interactions in one federation returned the same message retraction designator");
   waitFor(
       immediate,
       [&] { return immediate.recorder().timedInteractions().size() >= 2U; },
@@ -15738,17 +17317,19 @@ void scenarioRegionalBoundaries(Options const& options, rti::CallbackModel model
   owner.rtiAmbassador().commitRegionModifications(rti::RegionHandleSet{emptyRegion});
   owner.rtiAmbassador().deleteRegion(emptyRegion);
 
+  auto const dimensionWithoutInitialRange = ddmUnrelatedDimensionHandle(owner, options);
   auto const uncommittedRegion = owner.rtiAmbassador().createRegion(
       rti::DimensionHandleSet{
           ownerHandles.firstDimension,
-          ownerHandles.secondDimension});
+          ownerHandles.secondDimension,
+          dimensionWithoutInitialRange});
   requireException(
       [&] {
         static_cast<void>(owner.rtiAmbassador().getRangeBounds(
-            uncommittedRegion, ownerHandles.firstDimension));
+            uncommittedRegion, dimensionWithoutInitialRange));
       },
       L"InvalidRegion",
-      "range lookup for an uncommitted region");
+      "range lookup for a region dimension without an initial range");
   requireException(
       [&] {
         owner.rtiAmbassador().commitRegionModifications(
@@ -15763,6 +17344,10 @@ void scenarioRegionalBoundaries(Options const& options, rti::CallbackModel model
   owner.rtiAmbassador().setRangeBounds(
       uncommittedRegion,
       ownerHandles.secondDimension,
+      rti::RangeBounds(1UL, 5UL));
+  owner.rtiAmbassador().setRangeBounds(
+      uncommittedRegion,
+      dimensionWithoutInitialRange,
       rti::RangeBounds(1UL, 5UL));
   owner.rtiAmbassador().commitRegionModifications(
       rti::RegionHandleSet{uncommittedRegion});
@@ -17070,6 +18655,10 @@ void scenarioFqrTimedFederationSaveCallback(
 
   sender.rtiAmbassador().publishInteractionClass(senderInteraction);
   sender.rtiAmbassador().changeInteractionOrderType(senderInteraction, rti::TIMESTAMP);
+  constrainedRegulator.rtiAmbassador().publishInteractionClass(interaction);
+  constrainedRegulator.rtiAmbassador().changeInteractionOrderType(
+      interaction,
+      rti::TIMESTAMP);
   constrainedRegulator.rtiAmbassador().subscribeInteractionClass(interaction, true);
 
   constrainedRegulator.rtiAmbassador().enableTimeConstrained();
@@ -17167,6 +18756,29 @@ void scenarioFqrTimedFederationSaveCallback(
   requireTimeEquals(*logicalTime, *timeAfter(
       *actorTime.factory, *actorTime.initial, *actorTime.epsilon, 5U),
       "FQR timed-save logical-time query");
+
+  // FQR(10) granted at 5. With lookahead 1, timestamp 8 is above the
+  // post-grant floor (5 + 1), but below the still-pending request floor
+  // (10 + 1). Accepting it proves the constraint eased when FQG ended Time
+  // Advancing with a grant below the requested time.
+  auto const easedConstraintTimestamp = timeAfter(
+      *actorTime.factory,
+      *actorTime.initial,
+      *actorTime.epsilon,
+      8U);
+  rti::ParameterHandleValueMap actorParameters;
+  actorParameters.emplace(
+      parameter,
+      rti::VariableLengthData(payloadBytes.data(), payloadBytes.size()));
+  auto const postEarlyGrantRetraction =
+      constrainedRegulator.rtiAmbassador().sendInteraction(
+          interaction,
+          actorParameters,
+          tag,
+          *easedConstraintTimestamp);
+  require(
+      postEarlyGrantRetraction.isValid(),
+      "FQR post-early-grant timestamped interaction had no retraction handle");
 
   constrainedRegulator.recorder().clearCallbackOrder();
   try {
@@ -19683,10 +21295,17 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.rti-ambassador-factory-contract",
       "cpp-tck.variable-length-data-contract",
       "cpp-tck.logical-time-contract",
+      "cpp-tck.logical-time-header-layout",
+      "cpp-tck.logical-time-interval-nonnegative",
       "cpp-tck.data-element-contract",
       "cpp-tck.basic-data-elements-contract",
+      "cpp-tck.basic-data-element-encode-decode-contract",
+      "cpp-tck.basic-data-element-value-operations-contract",
+      "cpp-tck.complex-data-element-constituent-access",
       "cpp-tck.composite-data-elements-contract",
       "cpp-tck.exception-hierarchy-contract",
+      "cpp-tck.exception-name-string",
+      "cpp-tck.fom-name-case-sensitivity-contract",
       "cpp-tck.standard-exception-boundaries-contract",
       "cpp-tck.federate-application-multiple-executions-contract",
       "cpp-tck.post-resignation-service-boundaries",
@@ -19698,6 +21317,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.runtime-identity-contract",
       "cpp-tck.null-federate-ambassador-contract",
       "cpp-tck.logical-time-factory-factory-contract",
+      "cpp-tck.federation-supplied-custom-tradt",
       "cpp-tck.logical-time-data-elements-contract",
       "cpp-tck.connection-callback-contract",
       "cpp-tck.callback-reentrancy",
@@ -19707,12 +21327,20 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federation-management-requires-connection",
       "cpp-tck.declaration-management-contract",
       "cpp-tck.interaction-full-unpublication",
+      "cpp-tck.declaration-publish-before-send",
+      "cpp-tck.declaration-time-position-independence",
+      "cpp-tck.declaration-register-before-publish",
+      "cpp-tck.declaration-directed-send-before-publish",
       "cpp-tck.unsubscribe-last-attribute-stops-discovery",
       "cpp-tck.attribute-unsubscribe-stops-reflection",
       "cpp-tck.attribute-unsubscribe-stops-reflection-contract",
       "cpp-tck.base-subscription-rejects-derived-only-attribute",
       "cpp-tck.base-subscription-rejects-derived-only-attribute-contract",
       "cpp-tck.base-publication-rejects-derived-only-attribute",
+      "cpp-tck.ddm-available-attribute-services",
+      "cpp-tck.ddm-available-attribute-services-contract",
+      "cpp-tck.ddm-unsubscribe-preserves-other-class-subscription",
+      "cpp-tck.ddm-unsubscribe-preserves-other-class-subscription-contract",
       "cpp-tck.object-management-contract",
       "cpp-tck.attribute-interaction-contract",
       "cpp-tck.directed-interaction-contract",
@@ -19727,6 +21355,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.if-available-ownership-restore-unavailable-callback-contract",
       "cpp-tck.ownership-query-save-restore-results-contract",
       "cpp-tck.synchronization-point-contract",
+      "cpp-tck.synchronization-points-independent-tracking-contract",
       "cpp-tck.synchronization-point-explicit-set-late-join",
       "cpp-tck.synchronization-point-explicit-set-late-join-contract",
       "cpp-tck.federation-save-restore-contract",
@@ -19741,6 +21370,32 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.alternate-time-advances-contract",
       "cpp-tck.non-regulating-federate-peer-advance-independence-contract",
       "cpp-tck.support-services-contract",
+      "cpp-tck.attribute-name-lookup",
+      "cpp-tck.interaction-class-handle-lookup",
+      "cpp-tck.parameter-handle-name-lookup",
+      "cpp-tck.available-object-class-dimensions",
+      "cpp-tck.available-interaction-class-dimensions",
+      "cpp-tck.dimension-handle-name-lookup",
+      "cpp-tck.dimension-handle-set-for-region",
+      "cpp-tck.unconveyed-peer-region-dimension-handle-set-invalid-region",
+      "cpp-tck.range-bounds-for-region",
+      "cpp-tck.unconveyed-peer-region-range-bounds-invalid-region",
+      "cpp-tck.invalid-region-designator-range-bounds-invalid-region",
+      "cpp-tck.handle-normalization-equal-instances",
+      "cpp-tck.normalize-interaction-class-handle-region-coordinate",
+      "cpp-tck.normalize-object-instance-handle-region-coordinate",
+      "cpp-tck.evoke-callback-empty-queue-timeout",
+      "cpp-tck.evoke-callback-single-dispatch-pending-indicator",
+      "cpp-tck.evoke-callback-wait-duration-precision",
+      "cpp-tck.evoke-callback-immediate-no-effect",
+      "cpp-tck.evoke-multiple-callbacks-pending-indicator",
+      "cpp-tck.disable-callbacks-gates-evoke-services",
+      "cpp-tck.evoked-callback-no-concurrency",
+      "cpp-tck.federate-initiated-concurrency-different-ambassadors",
+      "cpp-tck.normalize-object-class-handle-region-coordinate",
+      "cpp-tck.handle-encoding-mim-data-types",
+      "cpp-tck.handle-parameter-value-round-trip",
+      "cpp-tck.handle-decoder-semantic-validity",
       "cpp-tck.transport-order-contract",
       "cpp-tck.relevance-advisories-contract",
       "cpp-tck.attribute-relevance-known-class",
@@ -19803,7 +21458,10 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-lookup-lifecycle-contract",
       "cpp-tck.parameter-lookup-lifecycle-contract",
       "cpp-tck.dimension-lookup-lifecycle-contract",
+      "cpp-tck.fom-basic-data-representation-endian-values-contract",
       "cpp-tck.fom-standard-invalid-input-corpus-contract",
+      "cpp-tck.fom-noncompliant-module-contract",
+      "cpp-tck.fom-incomplete-class-definition-contract",
       "cpp-tck.fom-invalid-create-atomicity-contract",
       "cpp-tck.fom-invalid-composite-join-atomicity-contract",
       "cpp-tck.fom-invalid-mim-create-atomicity-contract",
@@ -19819,6 +21477,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-matching-data-types-contract",
       "cpp-tck.fom-object-class-dimension-merge-contract",
       "cpp-tck.fom-interaction-class-dimension-merge-contract",
+      "cpp-tck.fom-interaction-inherited-available-dimensions-contract",
       "cpp-tck.fom-named-variant-alternative-merge-contract",
       "cpp-tck.fom-extendable-variant-hlaother-contract",
       "cpp-tck.fom-enumerated-value-collision-contract",
@@ -19835,6 +21494,14 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dynamic-update-condition-valid-contract",
       "cpp-tck.fom-dynamic-update-condition-rejections-contract",
       "cpp-tck.fom-attribute-value-required-sharing-contract",
+      "cpp-tck.fom-attribute-table-nonblank-semantics-contract",
+      "cpp-tck.fom-reference-data-type-name-convention-contract",
+      "cpp-tck.fom-simple-data-type-name-convention-contract",
+      "cpp-tck.fom-model-identification-name-valid-contract",
+      "cpp-tck.fom-enumerated-data-type-name-convention-contract",
+      "cpp-tck.fom-enumerator-name-convention-contract",
+      "cpp-tck.fom-array-data-type-name-convention-contract",
+      "cpp-tck.fom-array-element-type-reference-contract",
       "cpp-tck.fom-root-hierarchy-contract",
       "cpp-tck.fom-tag-data-type-categories-contract",
       "cpp-tck.fom-inherited-member-names-contract",
@@ -19844,6 +21511,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-element-category-contract",
       "cpp-tck.fom-record-member-category-contract",
       "cpp-tck.fom-variant-discriminant-category-contract",
+      "cpp-tck.fom-variant-record-encoding-contract",
+      "cpp-tck.fom-variant-alternative-type-category-contract",
+      "cpp-tck.fom-variant-alternative-name-convention-contract",
+      "cpp-tck.fom-variant-discriminant-name-convention-contract",
+      "cpp-tck.fom-variant-record-name-convention-contract",
       "cpp-tck.fom-variant-enumerator-syntax-contract",
       "cpp-tck.fom-variant-enumerator-membership-contract",
       "cpp-tck.fom-variant-range-semantics-contract",
@@ -19865,13 +21537,16 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dimension-default-range-contract",
       "cpp-tck.fom-synchronization-duplicate-equal-contract",
       "cpp-tck.fom-synchronization-duplicate-note-conflict-contract",
+      "cpp-tck.fom-synchronization-table-validation-contract",
       "cpp-tck.fom-transportation-duplicate-equal-contract",
       "cpp-tck.fom-transportation-duplicate-note-conflict-contract",
+      "cpp-tck.fom-transportation-description-ignored-contract",
       "cpp-tck.fom-update-rate-duplicate-equal-contract",
       "cpp-tck.fom-update-rate-duplicate-note-conflict-contract",
       "cpp-tck.fom-switch-duplicate-equal-contract",
       "cpp-tck.fom-switch-duplicate-order-contract",
       "cpp-tck.fom-switch-duplicate-omitted-contract",
+      "cpp-tck.fom-automatic-resign-action-setting-contract",
       "cpp-tck.fom-advisory-switch-duplicate-equal-contract",
       "cpp-tck.fom-advisory-switch-duplicate-order-contract",
       "cpp-tck.fom-advisory-switch-duplicate-omitted-contract",
@@ -19894,6 +21569,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-timestamped-delete-object-instance-failure-contract",
       "cpp-tck.service-report-timestamped-interaction-contract",
       "java-tck.api-surface-inventory",
+      "cpp-tck.annex-c-api-header-inventory",
+      "cpp-tck.language-api-transparency",
+      "cpp-tck.three-library-set-contract",
       "java-tck.overloads-and-exceptions",
       "java-tck.encoder-round-trip",
       "java-tck.malformed-inputs",
@@ -19911,12 +21589,22 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.explicit-mim-creation-contract",
       "cpp-tck.federation-mom-current-fdd",
       "cpp-tck.federation-mom-current-fdd-contract",
+      "cpp-tck.federation-mom-change-attribute-order-type",
+      "cpp-tck.federation-mom-change-attribute-order-type-contract",
+      "cpp-tck.federation-mom-service-actor-identity",
+      "cpp-tck.federation-mom-service-actor-identity-contract",
       "cpp-tck.fom-service-usage-merge",
       "cpp-tck.fom-service-usage-merge-contract",
       "cpp-tck.fom-note-collision-remap",
       "cpp-tck.fom-note-collision-remap-contract",
       "cpp-tck.federation-mom-content-reports",
       "cpp-tck.federation-mom-content-reports-contract",
+      "cpp-tck.federate-mom-set-switches-extra-parameter",
+      "cpp-tck.federate-mom-category-c-interaction",
+      "cpp-tck.federate-mom-report-added-subclass-not-sent",
+      "cpp-tck.federate-mom-report-added-subclass-full-interaction",
+      "cpp-tck.federate-mom-report-added-subclass-parent-promotion-drops-extension-parameter",
+      "cpp-tck.service-report-invocation-extension-parameter-not-sent",
       "cpp-tck.federation-mom-synchronization-queries",
       "cpp-tck.federation-mom-synchronization-queries-contract",
       "cpp-tck.service-report-order-transportation-lookups",
@@ -19963,6 +21651,16 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.service-report-synchronization-contract",
       "cpp-tck.service-report-federate-save-begun",
       "cpp-tck.service-report-federate-save-begun-contract",
+      "cpp-tck.service-report-save-failure-reason-file",
+      "cpp-tck.service-report-save-failure-reason-file-contract",
+      "cpp-tck.service-report-save-status-file",
+      "cpp-tck.service-report-save-status-file-contract",
+      "cpp-tck.service-report-service-group-file",
+      "cpp-tck.service-report-service-group-file-contract",
+      "cpp-tck.service-report-federation-execution-information-file",
+      "cpp-tck.service-report-federation-execution-information-file-contract",
+      "cpp-tck.service-report-federation-execution-members-file",
+      "cpp-tck.service-report-federation-execution-members-file-contract",
       "cpp-tck.service-report-regional-interaction",
       "cpp-tck.service-report-regional-interaction-contract",
       "cpp-tck.service-report-regional-interaction-subscription",
@@ -19999,6 +21697,8 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.time-advance",
       "cpp-tck.time-advance-contract",
       "java-tck.support-services",
+      "cpp-tck.fom-name-case-sensitivity",
+      "cpp-tck.fom-handle-uniqueness",
       "cpp-tck.standard-order-and-transportation-lookups",
       "cpp-tck.standard-order-and-transportation-lookups-contract",
       "cpp-tck.standard-exception-boundaries",
@@ -20051,7 +21751,21 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.object-publication-registration-fence-contract",
       "cpp-tck.order-type-controls",
       "cpp-tck.order-type-controls-contract",
+      "cpp-tck.order-type-inherited-attribute-default-scope",
+      "cpp-tck.order-type-inherited-attribute-default-scope-contract",
+      "cpp-tck.order-type-fdd-default-initialization",
+      "cpp-tck.order-type-fdd-default-initialization-contract",
+      "cpp-tck.order-type-default-order-class-handle-validation",
+      "cpp-tck.order-type-default-order-class-handle-validation-contract",
       "cpp-tck.regional-multi-attribute-update",
+      "cpp-tck.regional-object-attribute-dimension-inheritance",
+      "cpp-tck.regional-object-attribute-dimension-inheritance-contract",
+      "cpp-tck.regional-object-attribute-default-region-fdd-dimensions",
+      "cpp-tck.regional-object-attribute-default-region-fdd-dimensions-contract",
+      "cpp-tck.regional-object-attribute-unspecified-dimension-default-range",
+      "cpp-tck.regional-object-attribute-unspecified-dimension-default-range-contract",
+      "cpp-tck.regional-object-attribute-excluded-dimension-not-realized",
+      "cpp-tck.regional-object-attribute-excluded-dimension-not-realized-contract",
       "cpp-tck.regional-three-dimensional-overlap",
       "java-tck.attribute-interaction",
       "cpp-tck.receive-order-attribute-update-callback-cancellation",
@@ -20069,6 +21783,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.attribute-multi-recipient-fifo-contract",
       "cpp-tck.ordinary-multi-attribute-subscription-projection",
       "cpp-tck.ordinary-multi-attribute-subscription-projection-contract",
+      "cpp-tck.attribute-subscription-mode-exclusivity",
+      "cpp-tck.attribute-subscription-mode-exclusivity-contract",
       "cpp-tck.subscription-initial-reflection-projection",
       "cpp-tck.subscription-initial-reflection-projection-contract",
       "cpp-tck.ordinary-multi-attribute-value-update-request-response",
@@ -20227,6 +21943,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.timestamped-default-region-interaction-regulation-reenable",
       "cpp-tck.timestamped-default-region-interaction-regulation-reenable-contract",
       "cpp-tck.timestamped-object-deletion",
+      "cpp-tck.timestamped-update-before-delete",
       "cpp-tck.timestamped-local-delete-object",
       "cpp-tck.timestamped-local-delete-attribute",
       "cpp-tck.timestamped-local-delete-object-contract",
@@ -20263,20 +21980,35 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.nmr-request-below-galt-immediate-grant-contract",
       "cpp-tck.nmr-lits-below-galt-immediate-grant",
       "cpp-tck.nmr-lits-below-galt-immediate-grant-contract",
+      "cpp-tck.nmr-no-tso-undefined-galt-nrg",
+      "cpp-tck.nmr-no-tso-undefined-galt-nrg-contract",
+      "cpp-tck.nmra-no-tso-undefined-galt-nrg",
+      "cpp-tck.nmra-no-tso-undefined-galt-nrg-contract",
       "cpp-tck.nmra-no-pregrant-tso-floor",
       "cpp-tck.nmra-no-pregrant-tso-floor-contract",
       "cpp-tck.send-message-time-state-preservation-granted",
       "cpp-tck.send-message-time-state-preservation-granted-contract",
       "cpp-tck.available-time-advances-inclusive-galt",
       "cpp-tck.available-time-advances-inclusive-galt-contract",
+      "cpp-tck.tara-undefined-galt-nrg",
+      "cpp-tck.tara-undefined-galt-nrg-contract",
       "cpp-tck.tar-acknowledged-tso-galt-release",
       "cpp-tck.tar-acknowledged-tso-galt-release-contract",
+      "cpp-tck.tar-multi-regulator-acknowledged-tso-progress",
       "cpp-tck.time-constrained-enable-galt-equality",
       "cpp-tck.time-constrained-enable-galt-equality-contract",
       "cpp-tck.time-constrained-enable-regulating-federate-current-time",
       "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract",
       "cpp-tck.time-regulation-enable-actual-lookahead-tso-send",
       "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract",
+      "cpp-tck.zero-lookahead-tar-tso-equality-rejection",
+      "cpp-tck.zero-lookahead-tar-tso-equality-rejection-contract",
+      "cpp-tck.zero-lookahead-nmr-tso-equality-rejection",
+      "cpp-tck.zero-lookahead-nmr-tso-equality-rejection-contract",
+      "cpp-tck.zero-lookahead-nmr-continuation-tara-equality-acceptance",
+      "cpp-tck.zero-lookahead-nmr-continuation-tara-equality-acceptance-contract",
+      "cpp-tck.zero-lookahead-nmra-tso-equality-acceptance",
+      "cpp-tck.zero-lookahead-nmra-tso-equality-acceptance-contract",
       "cpp-tck.time-role-pending-enable",
       "cpp-tck.time-role-pending-enable-contract",
       "cpp-tck.disable-time-regulation-send-order",
@@ -20316,6 +22048,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-unpublish-region-release-contract",
       "cpp-tck.regional-object-update",
       "cpp-tck.regional-object-update-contract",
+      "cpp-tck.associate-regions-for-updates-replaces-default-region",
+      "cpp-tck.register-object-instance-with-regions-atomicity",
+      "cpp-tck.register-object-instance-with-regions-omitted-attributes-default-region",
+      "cpp-tck.register-object-instance-with-regions-empty-region-set-default-region",
+      "cpp-tck.register-object-instance-with-regions-invalid-region",
       "cpp-tck.regional-attribute-value-update-response-recheck",
       "cpp-tck.regional-attribute-value-update-response-recheck-contract",
       "cpp-tck.regional-attribute-update-callback-ddm-recheck",
@@ -20324,6 +22061,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-attribute-value-request-filtering-contract",
       "cpp-tck.default-region-object-routing",
       "cpp-tck.default-region-object-routing-contract",
+      "cpp-tck.regional-subscription-triple-isolation",
+      "cpp-tck.regional-subscription-triple-isolation-contract",
       "cpp-tck.default-region-registration-names",
       "cpp-tck.default-region-registration-names-contract",
       "cpp-tck.passive-regional-subscription",
@@ -20342,10 +22081,15 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-declaration-relevance-advisories-contract",
       "cpp-tck.regional-interaction-routing",
       "cpp-tck.regional-interaction-routing-contract",
+      "cpp-tck.regional-send-no-retraction-designator",
       "cpp-tck.default-region-interaction-routing",
       "cpp-tck.default-region-interaction-routing-contract",
+      "cpp-tck.default-region-interaction-unsubscribe-isolation",
+      "cpp-tck.default-region-interaction-unsubscribe-isolation-contract",
       "cpp-tck.zero-dimensional-regional-interaction",
       "cpp-tck.zero-dimensional-regional-interaction-contract",
+      "cpp-tck.regional-interaction-partial-default-range",
+      "cpp-tck.regional-interaction-partial-default-range-contract",
       "cpp-tck.multi-region-interaction-routing",
       "cpp-tck.multi-region-interaction-routing-contract",
       "cpp-tck.regional-interaction-empty-subscription-sets",
@@ -20373,6 +22117,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.regional-boundaries",
       "java-tck.synchronization",
       "cpp-tck.synchronization-points",
+      "cpp-tck.synchronization-points-independent-tracking",
       "cpp-tck.callback-controls",
       "cpp-tck.callback-controls-contract",
       "cpp-tck.callback-controls-attribute-update",
@@ -20413,6 +22158,9 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.callback-controls-ownership-query-contract",
       "cpp-tck.callback-controls-synchronization",
       "cpp-tck.callback-controls-synchronization-contract",
+      "cpp-tck.evoke-multiple-callbacks-minimum-duration",
+      "cpp-tck.evoke-multiple-callbacks-maximum-duration",
+      "cpp-tck.evoke-multiple-callbacks-millisecond-precision",
       "cpp-tck.callback-controls-time-advance",
       "cpp-tck.callback-controls-time-advance-contract",
       "cpp-tck.callback-controls-save-restore",
@@ -20510,11 +22258,25 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.mixed-update-rate-subscriptions-contract",
       "cpp-tck.timestamped-attribute-update-rate-reduction",
       "cpp-tck.timestamped-attribute-update-rate-reduction-contract",
+      "cpp-tck.update-rate-wall-clock-spacing",
+      "cpp-tck.update-rate-wall-clock-spacing-contract",
+      "cpp-tck.synchronous-update-rate-message-drop",
+      "cpp-tck.synchronous-update-rate-message-drop-contract",
       "cpp-tck.handle-wire-formats",
       "cpp-tck.handle-wire-formats-contract",
       "java-tck.ownership",
       "cpp-tck.partial-attribute-ownership-transfer",
       "cpp-tck.partial-attribute-ownership-transfer-contract",
+      "cpp-tck.unconditional-divestiture-mixed-set-atomicity",
+      "cpp-tck.unconditional-divestiture-mixed-set-atomicity-contract",
+      "cpp-tck.unconditional-divestiture-assumption-coalescing",
+      "cpp-tck.unconditional-divestiture-assumption-coalescing-contract",
+      "cpp-tck.negotiated-divestiture-confirmation-coalescing",
+      "cpp-tck.negotiated-divestiture-confirmation-coalescing-contract",
+      "cpp-tck.negotiated-divestiture-waiting-recovery",
+      "cpp-tck.negotiated-divestiture-waiting-recovery-contract",
+      "cpp-tck.attribute-ownership-release-coalescing",
+      "cpp-tck.attribute-ownership-release-coalescing-contract",
       "cpp-tck.ownership-acquisition-publication-fence",
       "cpp-tck.ownership-acquisition-publication-fence-contract",
       "cpp-tck.ownership-query-partition-cleanup",
@@ -20550,6 +22312,8 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.ordinary-edges-contract",
       "cpp-tck.fom-model",
       "cpp-tck.fom-qualified-class-name-identity",
+      "cpp-tck.fom-interaction-class-hierarchy",
+      "cpp-tck.fom-interaction-qualified-class-name-identity",
       "cpp-tck.custom-transportation-interaction-delivery",
       "cpp-tck.custom-transportation-interaction-delivery-contract",
       "cpp-tck.custom-transportation-regional-attribute-delivery",
@@ -20569,10 +22333,15 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-update-rate-value-stability",
       "cpp-tck.interaction-class-lookup-lifecycle",
       "cpp-tck.object-class-lookup-lifecycle",
+      "cpp-tck.known-object-class-and-instance-handle-lookup",
       "cpp-tck.attribute-lookup-lifecycle",
       "cpp-tck.parameter-lookup-lifecycle",
       "cpp-tck.dimension-lookup-lifecycle",
+      "cpp-tck.fom-basic-data-representation-endian-values",
       "cpp-tck.fom-standard-invalid-input-corpus",
+      "cpp-tck.fom-noncompliant-module",
+      "cpp-tck.fom-duplicate-object-class-attribute-name",
+      "cpp-tck.fom-incomplete-class-definition",
       "cpp-tck.fom-invalid-create-atomicity",
       "cpp-tck.fom-invalid-composite-join-atomicity",
       "cpp-tck.fom-invalid-mim-create-atomicity",
@@ -20588,6 +22357,7 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-matching-data-types",
       "cpp-tck.fom-object-class-dimension-merge",
       "cpp-tck.fom-interaction-class-dimension-merge",
+      "cpp-tck.fom-interaction-inherited-available-dimensions",
       "cpp-tck.fom-named-variant-alternative-merge",
       "cpp-tck.fom-extendable-variant-hlaother",
       "cpp-tck.fom-enumerated-value-collision",
@@ -20604,6 +22374,14 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dynamic-update-condition-valid",
       "cpp-tck.fom-dynamic-update-condition-rejections",
       "cpp-tck.fom-attribute-value-required-sharing",
+      "cpp-tck.fom-attribute-table-nonblank-semantics",
+      "cpp-tck.fom-reference-data-type-name-convention",
+      "cpp-tck.fom-simple-data-type-name-convention",
+      "cpp-tck.fom-model-identification-name-valid",
+      "cpp-tck.fom-enumerated-data-type-name-convention",
+      "cpp-tck.fom-enumerator-name-convention",
+      "cpp-tck.fom-array-data-type-name-convention",
+      "cpp-tck.fom-array-element-type-reference",
       "cpp-tck.fom-root-hierarchy",
       "cpp-tck.fom-tag-data-type-categories",
       "cpp-tck.fom-inherited-member-names",
@@ -20613,6 +22391,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-array-element-category",
       "cpp-tck.fom-record-member-category",
       "cpp-tck.fom-variant-discriminant-category",
+      "cpp-tck.fom-variant-record-encoding",
+      "cpp-tck.fom-variant-alternative-type-category",
+      "cpp-tck.fom-variant-alternative-name-convention",
+      "cpp-tck.fom-variant-discriminant-name-convention",
+      "cpp-tck.fom-variant-record-name-convention",
       "cpp-tck.fom-variant-enumerator-syntax",
       "cpp-tck.fom-variant-enumerator-membership",
       "cpp-tck.fom-variant-range-semantics",
@@ -20634,18 +22417,41 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.fom-dimension-default-range",
       "cpp-tck.fom-synchronization-duplicate-equal",
       "cpp-tck.fom-synchronization-duplicate-note-conflict",
+      "cpp-tck.fom-synchronization-table-validation",
       "cpp-tck.fom-transportation-duplicate-equal",
       "cpp-tck.fom-transportation-duplicate-note-conflict",
+      "cpp-tck.fom-transportation-description-ignored",
       "cpp-tck.fom-update-rate-duplicate-equal",
       "cpp-tck.fom-update-rate-duplicate-note-conflict",
       "cpp-tck.fom-switch-duplicate-equal",
       "cpp-tck.fom-switch-duplicate-order",
       "cpp-tck.fom-switch-duplicate-omitted",
+      "cpp-tck.fom-automatic-resign-action-setting",
       "cpp-tck.fom-advisory-switch-duplicate-equal",
       "cpp-tck.fom-advisory-switch-duplicate-order",
       "cpp-tck.fom-advisory-switch-duplicate-omitted",
       "cpp-tck.connection-loss-cleanup",
+      "cpp-tck.federate-reconnect-timeout",
+      "cpp-tck.federate-heartbeat-timeout-recovery",
+      "cpp-tck.federate-missing-rti-message-timeout-recovers",
+      "cpp-tck.federate-idle-heartbeat-preserves-session",
       "cpp-tck.connection-loss-cleanup-contract",
+      "cpp-tck.connection-fault-join-response-replay",
+      "cpp-tck.connection-fault-federate-request-replay",
+      "cpp-tck.connection-fault-rti-closed-resume-fails",
+      "cpp-tck.connection-fault-registration-response-replay",
+      "cpp-tck.connection-fault-create-federation-response-replay",
+      "cpp-tck.connection-fault-reservation-response-replay",
+      "cpp-tck.connection-fault-delete-object-response-replay",
+      "cpp-tck.connection-fault-attribute-update-response-replay",
+      "cpp-tck.connection-fault-send-interaction-response-replay",
+      "cpp-tck.connection-fault-time-regulation-response-replay",
+      "cpp-tck.connection-fault-time-constrained-response-replay",
+      "cpp-tck.connection-fault-time-advance-request-response-replay",
+      "cpp-tck.connection-fault-time-advance-request-available-response-replay",
+      "cpp-tck.connection-fault-next-message-request-response-replay",
+      "cpp-tck.connection-fault-next-message-request-available-response-replay",
+      "cpp-tck.connection-fault-inactive-session-purge",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture",
       "cpp-tck.connection-loss-automatic-unconditional-divestiture-contract",
       "cpp-tck.connection-loss-automatic-delete-then-divest",
@@ -20663,7 +22469,10 @@ std::vector<std::string> allScenarioIds() {
 void printHelp() {
   std::cout <<
       "Usage: hla_rti_cpp_tck --fom FILE [options]\n"
+      "  --common-arguments-file FILE  Read common options, one argument per line\n"
       "  --scenario ID                 Repeat; default is every configured scenario\n"
+      "  --schema-valid-fom FILE       XSD-valid 2025 FDD for Annex F tests\n"
+      "  --schema-invalid-fom FILE     Well-formed XSD-invalid 2025 FDD for Annex F tests\n"
       "  --model-fom FILE              Rich FOM model supplied by the adapter\n"
       "  --fom-custom-transportation NAME\n"
       "                                Custom transportation name in the rich FOM\n"
@@ -20713,6 +22522,8 @@ void printHelp() {
       "  --provider-id ID              Result metadata only\n"
       "  --rti-address ADDRESS         Standard RtiConfiguration address\n"
       "  --configuration-name NAME     Standard RtiConfiguration name\n"
+      "  --owner-rti-address ADDRESS   Owner-specific adapter endpoint\n"
+      "  --member-rti-address ADDRESS  Member-specific adapter endpoint\n"
       "  --additional-settings VALUE   Standard RtiConfiguration settings\n"
       "  --service-report-directory DIR Embedded-profile service-report directory\n"
       "  --federation-prefix PREFIX    Prefix for unique federation names\n"
@@ -20775,8 +22586,23 @@ void printHelp() {
       "  --unsupported-time-implementation NAME\n"
       "                                Adapter-declared unavailable time factory\n"
       "  --connection-loss-server-managed\n"
+      "  --federate-heartbeat-recovery-server-managed\n"
+      "  --federate-heartbeat-timeout-ready-marker FILE\n"
+      "  --federate-heartbeat-inactive-marker FILE\n"
+      "  --federate-heartbeat-resumed-marker FILE\n"
+      "  --federate-missing-rti-message-timeout-server-managed\n"
+      "  --message-history-recovery-server-managed\n"
+      "  --message-history-recovery-marker FILE\n"
       "                                Adapter already controls the loss lifecycle\n"
+      "  --message-history-session-purge-trigger-marker FILE\n"
+      "                                Ask the adapter to drop the member transport\n"
+      "  --nmr-process-role requester|publisher\n"
+      "                                Run one NMR cohort federate in this process\n"
+      "  --nmr-process-coordination-directory DIR\n"
+      "                                Adapter rendezvous directory for process roles\n"
       "  --connection-loss-marker FILE Write callback completion marker for an adapter\n"
+      "  --connection-loss-outage-marker FILE\n"
+      "                                Wait for the adapter's confirmed outage boundary\n"
       "  --timeout-ms N                Callback wait timeout, default 5000\n"
       "  --results FILE                Write machine-readable JSON results\n"
       "  --junit FILE                  Write JUnit XML results\n"
@@ -20800,6 +22626,12 @@ Options parseOptions(int argc, char** argv) {
     if (argument == "--fom") {
       requireValue(index, argc, argv, argument);
       options.fom = argv[++index];
+    } else if (argument == "--schema-valid-fom") {
+      requireValue(index, argc, argv, argument);
+      options.schemaValidFom = argv[++index];
+    } else if (argument == "--schema-invalid-fom") {
+      requireValue(index, argc, argv, argument);
+      options.schemaInvalidFom = argv[++index];
     } else if (argument == "--model-fom") {
       requireValue(index, argc, argv, argument);
       options.modelFom = argv[++index];
@@ -20949,6 +22781,39 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--connection-loss-ready-marker") {
       requireValue(index, argc, argv, argument);
       options.connectionLossReadyMarker = argv[++index];
+    } else if (argument == "--connection-loss-outage-marker") {
+      requireValue(index, argc, argv, argument);
+      options.connectionLossOutageMarker = argv[++index];
+    } else if (argument == "--federate-heartbeat-recovery-server-managed") {
+      options.federateHeartbeatRecoveryServerManaged = true;
+    } else if (argument == "--federate-heartbeat-timeout-ready-marker") {
+      requireValue(index, argc, argv, argument);
+      options.federateHeartbeatTimeoutReadyMarker = argv[++index];
+    } else if (argument == "--federate-heartbeat-inactive-marker") {
+      requireValue(index, argc, argv, argument);
+      options.federateHeartbeatInactiveMarker = argv[++index];
+    } else if (argument == "--federate-heartbeat-resumed-marker") {
+      requireValue(index, argc, argv, argument);
+      options.federateHeartbeatResumedMarker = argv[++index];
+    } else if (argument == "--federate-missing-rti-message-timeout-server-managed") {
+      options.federateMissingRtiMessageTimeoutServerManaged = true;
+    } else if (argument == "--message-history-recovery-server-managed") {
+      options.messageHistoryRecoveryServerManaged = true;
+    } else if (argument == "--message-history-recovery-marker") {
+      requireValue(index, argc, argv, argument);
+      options.messageHistoryRecoveryMarker = argv[++index];
+    } else if (argument == "--message-history-session-purge-trigger-marker") {
+      requireValue(index, argc, argv, argument);
+      options.messageHistorySessionPurgeTriggerMarker = argv[++index];
+    } else if (argument == "--message-history-resume-failure-trigger-marker") {
+      requireValue(index, argc, argv, argument);
+      options.messageHistoryResumeFailureTriggerMarker = argv[++index];
+    } else if (argument == "--nmr-process-role") {
+      requireValue(index, argc, argv, argument);
+      options.nmrProcessRole = argv[++index];
+    } else if (argument == "--nmr-process-coordination-directory") {
+      requireValue(index, argc, argv, argument);
+      options.nmrProcessCoordinationDirectory = argv[++index];
     } else if (argument == "--federation-prefix") {
       requireValue(index, argc, argv, argument);
       options.federationPrefix = argv[++index];
@@ -20976,6 +22841,12 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--rti-address") {
       requireValue(index, argc, argv, argument);
       options.rtiAddress = argv[++index];
+    } else if (argument == "--owner-rti-address") {
+      requireValue(index, argc, argv, argument);
+      options.ownerRtiAddress = argv[++index];
+    } else if (argument == "--member-rti-address") {
+      requireValue(index, argc, argv, argument);
+      options.memberRtiAddress = argv[++index];
     } else if (argument == "--additional-settings") {
       requireValue(index, argc, argv, argument);
       options.additionalSettings = argv[++index];
@@ -21427,6 +23298,21 @@ int run(Options const& options) {
                  callback.second != rti::HLA_IMMEDIATE) {
         result.status = "skipped";
         result.message = "requires an HLA_IMMEDIATE callback model";
+      } else if (scenario == "cpp-tck.federate-heartbeat-timeout-recovery" &&
+                 !options.federateHeartbeatRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed federate-heartbeat recovery fixture";
+      } else if (scenario == "cpp-tck.federate-missing-rti-message-timeout-recovers" &&
+                 callback.second != rti::HLA_EVOKED) {
+        result.status = "skipped";
+        result.message =
+            "requires HLA_EVOKED to observe an otherwise-idle federate";
+      } else if (scenario == "cpp-tck.federate-missing-rti-message-timeout-recovers" &&
+                 !options.federateMissingRtiMessageTimeoutServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires its adapter-managed heartbeat-reply suppression fixture";
       } else if ((scenario == "cpp-tck.connection-loss-cleanup" ||
            scenario == "cpp-tck.connection-loss-cleanup-contract" ||
            scenario == "cpp-tck.federate-lost-mom-report" ||
@@ -21440,6 +23326,86 @@ int run(Options const& options) {
           !options.connectionLossServerManaged) {
         result.status = "skipped";
         result.message = "requires an adapter-managed connection-loss fixture";
+      } else if (scenario == "cpp-tck.connection-fault-join-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-federate-request-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-rti-closed-resume-fails" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-registration-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-create-federation-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-reservation-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-delete-object-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-attribute-update-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-send-interaction-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-time-regulation-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-time-constrained-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-time-advance-request-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-time-advance-request-available-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-next-message-request-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-next-message-request-available-response-replay" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed process message-history fault fixture";
+      } else if (scenario == "cpp-tck.connection-fault-inactive-session-purge" &&
+                 !options.messageHistoryRecoveryServerManaged) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-managed inactive-session purge fixture";
       } else if ((scenario == "cpp-tck.standard-exception-boundaries" ||
                   scenario == "cpp-tck.standard-exception-boundaries-contract") &&
                  options.fom.empty()) {
@@ -21529,6 +23495,34 @@ int run(Options const& options) {
                  options.modelFom.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied rich FOM model";
+      } else if ((scenario == "cpp-tck.regional-interaction-routing" ||
+                  scenario == "cpp-tck.regional-interaction-routing-contract") &&
+                 options.scenarioFoms.count("ddm-region-realization-default-range") == 0U) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied restricted default-range FOM for interaction region realization";
+      } else if ((scenario == "cpp-tck.zero-dimensional-regional-interaction" ||
+                  scenario == "cpp-tck.zero-dimensional-regional-interaction-contract") &&
+                 (options.scenarioFoms.count("ddm-region-realization-default-range") == 0U ||
+                  options.scenarioFoms.count(
+                      "ddm-region-realization-excluded-dimensions") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied excluded-dimension and restricted default-range FOMs";
+      } else if ((scenario == "cpp-tck.regional-object-attribute-excluded-dimension-not-realized" ||
+                  scenario == "cpp-tck.regional-object-attribute-excluded-dimension-not-realized-contract") &&
+                 options.scenarioFoms.count(
+                     "ddm-region-realization-excluded-dimensions") == 0U) {
+        result.status = "skipped";
+        result.message =
+            "requires the adapter-supplied excluded-dimension object FOM";
+      } else if ((scenario == "cpp-tck.regional-interaction-partial-default-range" ||
+                  scenario == "cpp-tck.regional-interaction-partial-default-range-contract") &&
+                 options.scenarioFoms.count(
+                     "ddm-region-realization-default-range") == 0U) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied restricted default-range FOM for partial interaction regions";
       } else if (scenario == "cpp-tck.directed-interaction-subscription-accumulation" &&
                  options.scenarioFoms.find(
                      "directed-interaction-subscription-accumulation") ==
@@ -21544,6 +23538,12 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied FDD-preferred attribute order FOM";
+      } else if (scenario == "cpp-tck.timestamped-update-before-delete" &&
+                 options.scenarioFoms.find(
+                     "timestamped-update-before-delete") == options.scenarioFoms.end()) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied timestamp-preferred attribute FOM";
       } else if ((scenario == "cpp-tck.restore-pending-flush-queue-request" ||
                   scenario == "cpp-tck.restore-pending-flush-queue-request-contract") &&
                  options.scenarioFoms.find(
@@ -21552,6 +23552,38 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied non-regulated-grant FOM for pending FQR restore";
+      } else if ((scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant" ||
+                  scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant-contract" ||
+                  scenario == "cpp-tck.nmr-no-tso-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.nmr-no-tso-undefined-galt-nrg-contract") &&
+                 (options.scenarioFoms.count("nmr-undefined-galt-nrg-disabled") == 0U ||
+                  options.scenarioFoms.count("nmr-undefined-galt-nrg-enabled") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied NMR FOMs with non-regulated grant disabled and enabled";
+      } else if ((scenario == "cpp-tck.nmra-no-tso-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.nmra-no-tso-undefined-galt-nrg-contract") &&
+                 (options.scenarioFoms.count("nmra-undefined-galt-nrg-disabled") == 0U ||
+                  options.scenarioFoms.count("nmra-undefined-galt-nrg-enabled") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied NMRA FOMs with non-regulated grant disabled and enabled";
+      } else if ((scenario == "cpp-tck.tara-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.tara-undefined-galt-nrg-contract" ||
+                  scenario == "cpp-tck.tara-no-tso-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.tara-no-tso-undefined-galt-nrg-contract") &&
+                 (options.scenarioFoms.count("tara-undefined-galt-nrg-disabled") == 0U ||
+                  options.scenarioFoms.count("tara-undefined-galt-nrg-enabled") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied TARA FOMs with non-regulated grant disabled and enabled";
+      } else if ((scenario == "cpp-tck.fqr-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.fqr-undefined-galt-nrg-contract") &&
+                 (options.scenarioFoms.count("fqr-undefined-galt-nrg-disabled") == 0U ||
+                  options.scenarioFoms.count("fqr-undefined-galt-nrg-enabled") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied FOMs with non-regulated grant disabled and enabled";
       } else if ((scenario == "cpp-tck.fom-additional-module-join-atomicity" ||
                   scenario == "cpp-tck.fom-additional-module-join-atomicity-contract" ||
                   scenario == "cpp-tck.fom-transportation-handle-stability" ||
@@ -21574,6 +23606,14 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied dimensional FOM and two dimensions";
+      } else if ((scenario == "cpp-tck.ddm-available-attribute-services" ||
+                  scenario == "cpp-tck.ddm-available-attribute-services-contract" ||
+                  scenario == "cpp-tck.ddm-unsubscribe-preserves-other-class-subscription" ||
+                  scenario == "cpp-tck.ddm-unsubscribe-preserves-other-class-subscription-contract") &&
+                 (options.ddmFom.empty() || options.ddmDimensionNames.size() < 2U)) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied DDM FOM and two dimensions";
       } else if ((scenario == "cpp-tck.interaction-class-lookup-lifecycle" ||
                   scenario == "cpp-tck.interaction-class-lookup-lifecycle-contract" ||
                   scenario == "cpp-tck.object-class-lookup-lifecycle" ||
@@ -21583,10 +23623,38 @@ int run(Options const& options) {
         result.message = "requires an adapter-supplied additional FOM module";
       } else if ((scenario == "cpp-tck.fom-standard-invalid-input-corpus" ||
                   scenario == "cpp-tck.fom-standard-invalid-input-corpus-contract") &&
-                 (options.fom.empty() || options.standardInvalidFomModules.empty())) {
+                 (options.fom.empty() || options.standardInvalidFomModules.empty() ||
+                  options.schemaValidFom.empty() || options.schemaInvalidFom.empty() ||
+                  options.invalidFomModules.empty())) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied base, XSD validity, and invalid FOM modules";
+      } else if ((scenario == "cpp-tck.fom-basic-data-representation-endian-values" ||
+                  scenario == "cpp-tck.fom-basic-data-representation-endian-values-contract") &&
+                 (options.scenarioFoms.count(
+                      "basic-data-representation-endian-big") == 0U ||
+                  options.scenarioFoms.count(
+                      "basic-data-representation-endian-little") == 0U)) {
         result.status = "skipped";
         result.message =
-            "requires adapter-supplied base FOM and standard-invalid FOM modules";
+            "requires adapter-supplied Big and Little basic-data Endian FOM fixtures";
+      } else if ((scenario == "cpp-tck.fom-noncompliant-module" ||
+                  scenario == "cpp-tck.fom-noncompliant-module-contract") &&
+                 (options.fom.empty() ||
+                  options.scenarioFoms.count("noncompliant-update-rate") == 0U ||
+                  options.scenarioFoms.count("noncompliant-module-atomicity") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied valid base, invalid-rate, and mixed atomicity FOM modules";
+      } else if ((scenario == "cpp-tck.fom-incomplete-class-definition" ||
+                  scenario == "cpp-tck.fom-incomplete-class-definition-contract") &&
+                 (options.fom.empty() ||
+                  options.scenarioFoms.count("incomplete-object-class-scaffold") == 0U ||
+                  options.scenarioFoms.count("complete-object-class-scaffold-provider") == 0U ||
+                  options.scenarioFoms.count("incomplete-interaction-class-scaffold") == 0U ||
+                  options.scenarioFoms.count("complete-interaction-class-scaffold-provider") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter-supplied base FOM and incomplete/complete object and interaction class modules";
       } else if ((scenario == "cpp-tck.fom-invalid-create-atomicity" ||
                   scenario == "cpp-tck.fom-invalid-create-atomicity-contract") &&
                  options.invalidFomModules.empty()) {
@@ -21639,16 +23707,25 @@ int run(Options const& options) {
                   scenario == "cpp-tck.fom-interaction-parameter-merge-conflict-contract") &&
                  (options.interactionParameterBaseFom.empty() ||
                   options.interactionParameterDisjointFom.empty() ||
-                  options.interactionParameterConflictFom.empty())) {
+                  options.interactionParameterConflictFom.empty() ||
+                  options.scenarioFoms.count(
+                      "interaction-transportation-conflict") == 0U ||
+                  options.scenarioFoms.count("interaction-order-conflict") == 0U ||
+                  options.scenarioFoms.count(
+                      "interaction-parameter-unresolved-data-type") == 0U ||
+                  options.scenarioFoms.count("interaction-order-invalid-value") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied Annex C.3 interaction-parameter FOM modules";
+        result.message = "requires adapter-supplied interaction-parameter and transportation/order conflict FOM modules";
       } else if ((scenario == "cpp-tck.fom-object-attribute-merge-conflict" ||
                   scenario == "cpp-tck.fom-object-attribute-merge-conflict-contract") &&
                  (options.objectAttributeBaseFom.empty() ||
                   options.objectAttributeDisjointFom.empty() ||
-                  options.objectAttributeConflictFom.empty())) {
+                  options.objectAttributeConflictFom.empty() ||
+                  options.scenarioFoms.count(
+                      "object-attribute-transportation-conflict") == 0U ||
+                  options.scenarioFoms.count("object-attribute-order-conflict") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied Annex C.3 object-attribute FOM modules";
+        result.message = "requires adapter-supplied object-attribute merge and transportation/order conflict FOM modules";
       } else if ((scenario == "cpp-tck.fom-object-class-semantics-conflict" ||
                   scenario == "cpp-tck.fom-object-class-semantics-conflict-contract") &&
                  (options.objectAttributeBaseFom.empty() ||
@@ -21689,9 +23766,12 @@ int run(Options const& options) {
       } else if ((scenario == "cpp-tck.fom-enumerated-value-collision" ||
                   scenario == "cpp-tck.fom-enumerated-value-collision-contract") &&
                  (options.scenarioFoms.count("enumerated-value-collision-first") == 0U ||
-                  options.scenarioFoms.count("enumerated-value-collision-second") == 0U)) {
+                  options.scenarioFoms.count("enumerated-value-collision-second") == 0U ||
+                  options.scenarioFoms.count("enumerated-value-merge-first") == 0U ||
+                  options.scenarioFoms.count("enumerated-value-merge-second") == 0U)) {
         result.status = "skipped";
-        result.message = "requires two adapter-supplied enumerated-collision FOM modules";
+        result.message =
+            "requires adapter-supplied enumerated-merge and collision FOM modules";
       } else if ((scenario == "cpp-tck.fom-nonextendable-variant-alternative-conflict" ||
                   scenario == "cpp-tck.fom-nonextendable-variant-alternative-conflict-contract") &&
                  (options.scenarioFoms.count("nonextendable-variant-first") == 0U ||
@@ -21818,17 +23898,32 @@ int run(Options const& options) {
                   scenario == "cpp-tck.fom-array-element-category-contract") &&
                  (options.scenarioFoms.count("array-element-valid") == 0U ||
                   options.scenarioFoms.count("array-element-omitted") == 0U ||
-                  options.scenarioFoms.count("array-element-basic") == 0U)) {
+                   options.scenarioFoms.count("array-element-basic") == 0U ||
+                   options.scenarioFoms.count("array-element-invalid-name") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied array Element Type FOM modules";
+        result.message =
+            "requires adapter-supplied array Element Type and invalid-name FOM modules";
       } else if ((scenario == "cpp-tck.fom-record-member-category" ||
                   scenario == "cpp-tck.fom-record-member-category-contract") &&
                  (options.scenarioFoms.count("record-member-valid") == 0U ||
+                  options.scenarioFoms.count("record-member-field-types") == 0U ||
+                  options.scenarioFoms.count(
+                      "record-member-encoding-mismatch") == 0U ||
                   options.scenarioFoms.count("record-member-omitted") == 0U ||
                   options.scenarioFoms.count("record-member-basic-field") == 0U ||
-                  options.scenarioFoms.count("record-member-basic-alternative") == 0U)) {
+                  options.scenarioFoms.count("record-member-basic-alternative") == 0U ||
+                  options.scenarioFoms.count(
+                      "record-member-reserved-hla-name") == 0U ||
+                  options.scenarioFoms.count(
+                      "record-member-reserved-na-name") == 0U ||
+                  options.scenarioFoms.count(
+                      "record-member-reserved-hla-field-name") == 0U ||
+                  options.scenarioFoms.count(
+                      "record-member-reserved-na-field-name") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied record member FOM modules";
+        result.message =
+            "requires adapter-supplied fixed-record encoding, member type, "
+            "Record Name, and Field Name FOM modules";
       } else if ((scenario == "cpp-tck.fom-variant-discriminant-category" ||
                   scenario == "cpp-tck.fom-variant-discriminant-category-contract") &&
                  (options.scenarioFoms.count("variant-discriminant-valid") == 0U ||
@@ -21838,6 +23933,36 @@ int run(Options const& options) {
                   options.scenarioFoms.count("variant-discriminant-na") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied variant discriminant FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-record-name-convention" ||
+                  scenario == "cpp-tck.fom-variant-record-name-convention-contract") &&
+                 (options.scenarioFoms.count("variant-record-valid-name") == 0U ||
+                  options.scenarioFoms.count("variant-record-invalid-name") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant record name FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-discriminant-name-convention" ||
+                  scenario == "cpp-tck.fom-variant-discriminant-name-convention-contract") &&
+                 (options.scenarioFoms.count("variant-discriminant-valid-name") == 0U ||
+                  options.scenarioFoms.count("variant-discriminant-invalid-name") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant discriminant name FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-alternative-name-convention" ||
+                  scenario == "cpp-tck.fom-variant-alternative-name-convention-contract") &&
+                 (options.scenarioFoms.count("variant-alternative-valid-name") == 0U ||
+                  options.scenarioFoms.count("variant-alternative-invalid-name") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant alternative name FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-alternative-type-category" ||
+                  scenario == "cpp-tck.fom-variant-alternative-type-category-contract") &&
+                 (options.scenarioFoms.count("variant-alternative-type-valid") == 0U ||
+                  options.scenarioFoms.count("variant-alternative-type-invalid") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant alternative type FOM modules";
+      } else if ((scenario == "cpp-tck.fom-variant-record-encoding" ||
+                  scenario == "cpp-tck.fom-variant-record-encoding-contract") &&
+                 (options.scenarioFoms.count("variant-record-encoding-valid") == 0U ||
+                  options.scenarioFoms.count("variant-record-encoding-invalid") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied variant record encoding FOM modules";
       } else if ((scenario == "cpp-tck.fom-variant-enumerator-syntax" ||
                   scenario == "cpp-tck.fom-variant-enumerator-syntax-contract") &&
                  (options.scenarioFoms.count("variant-enumerator-range") == 0U ||
@@ -21886,9 +24011,13 @@ int run(Options const& options) {
                   options.scenarioFoms.count("representation-missing-enumerated") == 0U ||
                   options.scenarioFoms.count("representation-invalid-special") == 0U ||
                   options.scenarioFoms.count("representation-invalid-basic") == 0U ||
+                  options.scenarioFoms.count(
+                      "representation-invalid-basic-name") == 0U ||
+                  options.scenarioFoms.count(
+                      "representation-invalid-reference-name") == 0U ||
                   options.scenarioFoms.count("reference-attribute-provider") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied data-representation FOM modules";
+        result.message = "requires adapter-supplied data-representation and name-rule FOM modules";
       } else if ((scenario == "cpp-tck.fom-transportation-reference-resolution" ||
                   scenario == "cpp-tck.fom-transportation-reference-resolution-contract") &&
                  (options.scenarioFoms.count("transportation-reference-consumer") == 0U ||
@@ -21900,7 +24029,8 @@ int run(Options const& options) {
                   scenario == "cpp-tck.fom-directed-reference-resolution-contract") &&
                  (options.scenarioFoms.count("directed-reference-object") == 0U ||
                   options.scenarioFoms.count("directed-reference-interaction") == 0U ||
-                  options.scenarioFoms.count("directed-reference-missing") == 0U)) {
+                  options.scenarioFoms.count("directed-reference-missing") == 0U ||
+                  options.scenarioFoms.count("directed-reference-invalid-sharing") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied directed-reference FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-reference-resolution" ||
@@ -21936,6 +24066,19 @@ int run(Options const& options) {
                    options.scenarioFoms.count("synchronization-duplicate-note-conflict") == 0U))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied synchronization-duplicate FOM modules";
+      } else if ((scenario == "cpp-tck.fom-synchronization-table-validation" ||
+                  scenario == "cpp-tck.fom-synchronization-table-validation-contract") &&
+                 (options.scenarioFoms.count("sync-cap-na") == 0U ||
+                  options.scenarioFoms.count("sync-cap-action") == 0U ||
+                  options.scenarioFoms.count("sync-label-invalid") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied synchronization-table FOM modules";
+      } else if ((scenario == "cpp-tck.fom-transportation-description-ignored" ||
+                  scenario == "cpp-tck.fom-transportation-description-ignored-contract") &&
+                 (options.scenarioFoms.count("transportation-duplicate-base") == 0U ||
+                  options.scenarioFoms.count("transportation-description-different") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied transportation base and description-difference FOM modules";
       } else if ((scenario == "cpp-tck.fom-transportation-duplicate-equal" ||
                   scenario == "cpp-tck.fom-transportation-duplicate-equal-contract" ||
                   scenario == "cpp-tck.fom-transportation-duplicate-note-conflict" ||
@@ -21946,9 +24089,15 @@ int run(Options const& options) {
                    options.scenarioFoms.count("transportation-duplicate-equal") == 0U) ||
                   ((scenario == "cpp-tck.fom-transportation-duplicate-note-conflict" ||
                     scenario == "cpp-tck.fom-transportation-duplicate-note-conflict-contract") &&
-                   options.scenarioFoms.count("transportation-duplicate-note-conflict") == 0U))) {
+                   (options.scenarioFoms.count("transportation-duplicate-note-conflict") == 0U ||
+                    options.scenarioFoms.count(
+                        "transportation-duplicate-reliability-conflict") == 0U ||
+                    options.scenarioFoms.count(
+                        "transportation-table-invalid-name") == 0U ||
+                    options.scenarioFoms.count(
+                        "transportation-table-invalid-reliability") == 0U)))) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied transportation-duplicate FOM modules";
+        result.message = "requires adapter-supplied transportation duplicate, conflict, invalid-name, and invalid-reliability FOM modules";
       } else if ((scenario == "cpp-tck.fom-update-rate-duplicate-equal" ||
                   scenario == "cpp-tck.fom-update-rate-duplicate-equal-contract" ||
                   scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict" ||
@@ -21956,12 +24105,15 @@ int run(Options const& options) {
                  (options.scenarioFoms.count("update-rate-duplicate-base") == 0U ||
                   ((scenario == "cpp-tck.fom-update-rate-duplicate-equal" ||
                     scenario == "cpp-tck.fom-update-rate-duplicate-equal-contract") &&
-                   options.scenarioFoms.count("update-rate-duplicate-equal") == 0U) ||
+                   (options.scenarioFoms.count("update-rate-duplicate-equal") == 0U ||
+                    options.scenarioFoms.count("update-rate-unique-merge") == 0U)) ||
                   ((scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict" ||
                     scenario == "cpp-tck.fom-update-rate-duplicate-note-conflict-contract") &&
-                   options.scenarioFoms.count("update-rate-duplicate-note-conflict") == 0U))) {
+                   (options.scenarioFoms.count("update-rate-duplicate-note-conflict") == 0U ||
+                    options.scenarioFoms.count(
+                        "update-rate-duplicate-rate-conflict") == 0U)))) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied update-rate-duplicate FOM modules";
+        result.message = "requires adapter-supplied update-rate duplicate, note, and maximum-rate conflict FOM modules";
       } else if ((scenario == "cpp-tck.fom-switch-duplicate-equal" ||
                   scenario == "cpp-tck.fom-switch-duplicate-equal-contract" ||
                   scenario == "cpp-tck.fom-switch-duplicate-order" ||
@@ -21998,6 +24150,19 @@ int run(Options const& options) {
                    options.scenarioFoms.count("advisory-switch-duplicate-omitted") == 0U))) {
         result.status = "skipped";
         result.message = "requires adapter-supplied advisory-switch-duplicate FOM modules";
+      } else if ((scenario == "cpp-tck.fom-automatic-resign-action-setting" ||
+                  scenario == "cpp-tck.fom-automatic-resign-action-setting-contract") &&
+                 (options.mimFom.empty() ||
+                  options.logicalTimeImplementationName.empty() ||
+                  options.scenarioFoms.count("resign-invalid") == 0U ||
+                  options.scenarioFoms.count("resign-uncond") == 0U ||
+                  options.scenarioFoms.count("resign-delete") == 0U ||
+                  options.scenarioFoms.count("resign-cancel") == 0U ||
+                  options.scenarioFoms.count("resign-delete-divest") == 0U ||
+                  options.scenarioFoms.count("resign-cancel-delete-divest") == 0U ||
+                  options.scenarioFoms.count("resign-no-action") == 0U)) {
+        result.status = "skipped";
+        result.message = "requires adapter-supplied MIM and allowed/invalid Automatic Resign Action FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-input-type" ||
                   scenario == "cpp-tck.fom-dimension-input-type-contract") &&
                  (options.mimFom.empty() ||
@@ -22012,7 +24177,10 @@ int run(Options const& options) {
                   options.scenarioFoms.count("dimension-input-description-na-invalid") == 0U ||
                   options.scenarioFoms.count("dimension-input-description-text") == 0U ||
                   options.scenarioFoms.count("dimension-input-description-named-na") == 0U ||
-                  options.scenarioFoms.count("dimension-input-description-named-text") == 0U)) {
+                  options.scenarioFoms.count("dimension-input-description-named-text") == 0U ||
+                  options.scenarioFoms.count("dimension-table-input-description-empty") == 0U ||
+                  options.scenarioFoms.count("dimension-table-normalization-empty") == 0U ||
+                  options.scenarioFoms.count("dimension-table-output-semantics-empty") == 0U)) {
         result.status = "skipped";
         result.message = "requires adapter-supplied MIM and dimension description FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-input-na-exclusivity" ||
@@ -22051,10 +24219,12 @@ int run(Options const& options) {
       } else if ((scenario == "cpp-tck.fom-positive-update-rate" ||
                   scenario == "cpp-tck.fom-positive-update-rate-contract") &&
                  (options.mimFom.empty() ||
+                  options.scenarioFoms.count(
+                      "update-rate-invalid-name-preflight") == 0U ||
                   options.scenarioFoms.count("update-rate-zero-preflight") == 0U ||
                   options.scenarioFoms.count("update-rate-positive-preflight") == 0U)) {
         result.status = "skipped";
-        result.message = "requires adapter-supplied MIM and update-rate preflight FOM modules";
+        result.message = "requires adapter-supplied MIM and update-rate naming/positivity preflight FOM modules";
       } else if ((scenario == "cpp-tck.fom-dimension-default-range" ||
                   scenario == "cpp-tck.fom-dimension-default-range-contract") &&
                  (options.mimFom.empty() ||
@@ -22068,6 +24238,13 @@ int run(Options const& options) {
                  options.additionalFomModules.empty()) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied extension FOM module";
+      } else if ((scenario == "cpp-tck.federation-mom-content-reports" ||
+                  scenario == "cpp-tck.federation-mom-content-reports-contract") &&
+                 (options.fom.empty() || options.mimFom.empty() ||
+                  options.scenarioFoms.count("service-usage-second") == 0U)) {
+        result.status = "skipped";
+        result.message =
+            "requires adapter FOM, standard MIM, and second service-usage FOM module";
       } else if ((scenario == "cpp-tck.fom-service-usage-merge" ||
                   scenario == "cpp-tck.fom-service-usage-merge-contract") &&
                  (options.mimFom.empty() ||
@@ -22095,6 +24272,19 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied Auto Provide FOM";
       } else if ((scenario == "cpp-tck.regional-multi-attribute-update" ||
+                  scenario == "cpp-tck.regional-object-attribute-dimension-inheritance" ||
+                  scenario == "cpp-tck.regional-object-attribute-dimension-inheritance-contract" ||
+                  scenario == "cpp-tck.regional-object-attribute-default-region-fdd-dimensions" ||
+                  scenario == "cpp-tck.regional-object-attribute-default-region-fdd-dimensions-contract" ||
+                  scenario == "cpp-tck.regional-object-attribute-unspecified-dimension-default-range" ||
+                  scenario == "cpp-tck.regional-object-attribute-unspecified-dimension-default-range-contract" ||
+                  scenario == "cpp-tck.attribute-subscription-mode-exclusivity" ||
+                  scenario == "cpp-tck.attribute-subscription-mode-exclusivity-contract" ||
+                  scenario == "cpp-tck.regional-subscription-triple-isolation" ||
+                  scenario == "cpp-tck.regional-subscription-triple-isolation-contract" ||
+                  scenario == "cpp-tck.register-object-instance-with-regions-omitted-attributes-default-region" ||
+                  scenario == "cpp-tck.register-object-instance-with-regions-empty-region-set-default-region" ||
+                  scenario == "cpp-tck.register-object-instance-with-regions-invalid-region" ||
                   scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot" ||
                   scenario == "cpp-tck.timestamped-attribute-reflect-region-designator-callback-snapshot-contract") &&
                  options.multiAttributeFom.empty()) {
@@ -22157,6 +24347,8 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-unpublish-region-release-contract" ||
                  scenario == "cpp-tck.regional-object-update" ||
                  scenario == "cpp-tck.regional-object-update-contract" ||
+                 scenario == "cpp-tck.associate-regions-for-updates-replaces-default-region" ||
+                 scenario == "cpp-tck.register-object-instance-with-regions-atomicity" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck" ||
                  scenario == "cpp-tck.regional-attribute-value-update-response-recheck-contract" ||
                  scenario == "cpp-tck.regional-attribute-update-callback-ddm-recheck" ||
@@ -22165,6 +24357,8 @@ int run(Options const& options) {
                  scenario == "cpp-tck.regional-attribute-value-request-filtering-contract" ||
                   scenario == "cpp-tck.default-region-object-routing" ||
                   scenario == "cpp-tck.default-region-object-routing-contract" ||
+                 scenario == "cpp-tck.default-region-interaction-unsubscribe-isolation" ||
+                 scenario == "cpp-tck.default-region-interaction-unsubscribe-isolation-contract" ||
                   scenario == "cpp-tck.default-region-registration-names" ||
                   scenario == "cpp-tck.default-region-registration-names-contract" ||
                   scenario == "cpp-tck.passive-regional-subscription" ||
@@ -22177,8 +24371,6 @@ int run(Options const& options) {
                  scenario == "cpp-tck.attribute-scope-advisories-contract" ||
                  scenario == "cpp-tck.regional-declaration-relevance-advisories" ||
                  scenario == "cpp-tck.regional-declaration-relevance-advisories-contract" ||
-                 scenario == "cpp-tck.regional-interaction-routing" ||
-                 scenario == "cpp-tck.regional-interaction-routing-contract" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot" ||
                  scenario == "cpp-tck.regional-interaction-source-region-snapshot-contract" ||
                  scenario == "cpp-tck.regional-interaction-subscription-filtering" ||
@@ -22279,6 +24471,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
                   scenario == "cpp-tck.attribute-fdd-preferred-order-default" ||
                   scenario == "cpp-tck.attribute-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.timestamped-update-before-delete" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-preferred-order" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-preferred-order-contract" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order" ||
@@ -22363,6 +24556,12 @@ int run(Options const& options) {
                   scenario == "cpp-tck.timestamped-attribute-source-resignation" ||
                   scenario == "cpp-tck.timestamped-attribute-order-cohort" ||
                   scenario == "cpp-tck.order-type-controls" ||
+                  scenario == "cpp-tck.order-type-inherited-attribute-default-scope" ||
+                  scenario == "cpp-tck.order-type-inherited-attribute-default-scope-contract" ||
+                  scenario == "cpp-tck.order-type-fdd-default-initialization" ||
+                  scenario == "cpp-tck.order-type-fdd-default-initialization-contract" ||
+                  scenario == "cpp-tck.order-type-default-order-class-handle-validation" ||
+                  scenario == "cpp-tck.order-type-default-order-class-handle-validation-contract" ||
                   scenario == "cpp-tck.timestamped-attribute-update-no-fanout" ||
                   scenario == "cpp-tck.timestamped-attribute-update-alternate-advances" ||
                   scenario == "cpp-tck.timestamped-attribute-update-flush-queue-future-input" ||
@@ -22417,6 +24616,10 @@ int run(Options const& options) {
                   scenario == "cpp-tck.nmr-request-below-galt-immediate-grant-contract" ||
                   scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant" ||
                   scenario == "cpp-tck.nmr-lits-below-galt-immediate-grant-contract" ||
+                  scenario == "cpp-tck.nmr-no-tso-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.nmr-no-tso-undefined-galt-nrg-contract" ||
+                  scenario == "cpp-tck.nmra-no-tso-undefined-galt-nrg" ||
+                  scenario == "cpp-tck.nmra-no-tso-undefined-galt-nrg-contract" ||
                   scenario == "cpp-tck.nmra-no-pregrant-tso-floor" ||
                   scenario == "cpp-tck.nmra-no-pregrant-tso-floor-contract" ||
                   scenario == "cpp-tck.send-message-time-state-preservation-granted" ||
@@ -22427,6 +24630,14 @@ int run(Options const& options) {
                   scenario == "cpp-tck.time-constrained-enable-regulating-federate-current-time-contract" ||
                   scenario == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send" ||
                   scenario == "cpp-tck.time-regulation-enable-actual-lookahead-tso-send-contract" ||
+                  scenario == "cpp-tck.zero-lookahead-tar-tso-equality-rejection" ||
+                  scenario == "cpp-tck.zero-lookahead-tar-tso-equality-rejection-contract" ||
+                  scenario == "cpp-tck.zero-lookahead-nmr-tso-equality-rejection" ||
+                  scenario == "cpp-tck.zero-lookahead-nmr-tso-equality-rejection-contract" ||
+                  scenario == "cpp-tck.zero-lookahead-nmr-continuation-tara-equality-acceptance" ||
+                  scenario == "cpp-tck.zero-lookahead-nmr-continuation-tara-equality-acceptance-contract" ||
+                  scenario == "cpp-tck.zero-lookahead-nmra-tso-equality-acceptance" ||
+                  scenario == "cpp-tck.zero-lookahead-nmra-tso-equality-acceptance-contract" ||
                   scenario == "cpp-tck.time-role-pending-enable" ||
                   scenario == "cpp-tck.time-role-pending-enable-contract" ||
                   scenario == "cpp-tck.disable-time-regulation-send-order" ||
@@ -22455,6 +24666,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.available-time-advances-inclusive-galt-contract" ||
                   scenario == "cpp-tck.tar-acknowledged-tso-galt-release" ||
                   scenario == "cpp-tck.tar-acknowledged-tso-galt-release-contract" ||
+                  scenario == "cpp-tck.tar-multi-regulator-acknowledged-tso-progress" ||
                   scenario == "cpp-tck.time-bounds-queries" ||
                   scenario == "cpp-tck.time-bounds-queries-contract" ||
                   scenario == "cpp-tck.query-lits-source-resignation" ||
@@ -22533,6 +24745,7 @@ int run(Options const& options) {
                   scenario == "cpp-tck.interaction-fdd-preferred-order-default-contract" ||
                   scenario == "cpp-tck.attribute-fdd-preferred-order-default" ||
                   scenario == "cpp-tck.attribute-fdd-preferred-order-default-contract" ||
+                  scenario == "cpp-tck.timestamped-update-before-delete" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-preferred-order" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-preferred-order-contract" ||
                   scenario == "cpp-tck.timestamped-delete-privilege-timestamp-order" ||

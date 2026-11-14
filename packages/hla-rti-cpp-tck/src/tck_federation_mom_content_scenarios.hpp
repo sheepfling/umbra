@@ -4,6 +4,10 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+[[nodiscard]] std::wstring composedCurrentFdd(
+    Options const&, rti::CallbackModel, std::vector<std::wstring> const&,
+    std::string const&);
+
 void scenarioFederationMomCurrentFdd(Options const&, rti::CallbackModel);
 void scenarioFederationMomCurrentFddContract(Options const&, rti::CallbackModel);
 void scenarioFomServiceUsageMerge(Options const&, rti::CallbackModel);

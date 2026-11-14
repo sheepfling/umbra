@@ -13,10 +13,14 @@ Umbra also supplies the standard reference-library shape: an
 `HLAauthorizer`, an `AuthorizerFactory` that creates it, and
 `HLAauthorizerFactoryFactory::getAuthorizerFactory`. The separate static
 `umbra::authorizer` target implements the library-level
-`AuthorizerFactoryFactory::getAuthorizerFactory` entry point and forwards a
-standard-name request to the built-in factory. An unknown name produces no
-factory. This preserves the C++ API/library seam without inventing custom
-authorizer discovery before the required runtime configuration exists.
+`AuthorizerFactoryFactory::getAuthorizerFactory` entry point. It asks the
+optional provider bridge for the requested service, then falls back to the
+built-in `HLAauthorizerFactoryFactory` when the provider is absent or returns
+no matching factory. A configured but unavailable provider returns no factory;
+with no provider configured, an unknown name also produces no factory. The
+embedded RID adapter has its own selection path for non-reference services;
+the [authorization flow guide](HLA-2025-AUTHORIZATION-FLOW-GUIDE.md#how-umbra-selects-an-enabled-service-factory)
+records its branches and limits.
 
 The embedded profile loads authorization configuration during Connect. Its
 Connect overloads therefore have this deliberately bounded behavior:
@@ -95,14 +99,78 @@ or credential-file failures produce a generic `RTIinternalError` from Connect.
 The global password is not accepted through `additionalSettings` and is not
 copied into the service-report connection snapshot.
 
+### Shared profile parser and RTI protocol timeouts
+
+The same parser also reads Umbra's `[rti.<profile>]` sections from this file.
+Its INI-like section syntax is implementation-defined; it is not the standard's
+text-file grammar. An authorization section and an RTI section with the same
+name contribute to one selected profile, and each section type may appear at
+most once:
+
+```ini
+[authorization.default]
+service=HLAauthorizer
+globalPasswordFile=global-password.txt
+
+[rti.default]
+RTI_TIMEOUT_HEART=90.25
+RTI_TIMEOUT_PURGE=1200
+```
+
+The official `RtiConfiguration::configurationName` selects both sections by
+profile name. The `[rti.<profile>]` section accepts `RTI_TIMEOUT_HEART` and
+`RTI_TIMEOUT_PURGE` as positive decimal seconds with up to three fractional
+digits, converted to milliseconds. Duplicate recognized sections or keys,
+unknown keys within either recognized section, zero or malformed durations
+are rejected. When timeout settings are loaded, Umbra also rejects an
+effective purge duration shorter than the effective heartbeat duration. A
+missing RID path, or a file with no recognized profiles, leaves the RTI's
+timeout defaults in place; if profiles exist but the selected name does not,
+profile lookup fails. The private host defaults are 180 seconds for heartbeat
+timeout and 600 seconds for purge timeout; the implementation labels these as
+Table 31 values in the [2025 host options](../../cpp/src/internal/federation/process_federation_service_host.hpp#L21).
+
+Two [internal timeout-profile cases](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L650)
+cover default and named profiles, conversion to milliseconds, propagation into
+host options, and an empty RTI section using defaults. The adjacent
+[invalid-profile case](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L695)
+rejects zero, more than three fractional digits, purge shorter than heartbeat,
+and duplicate keys. Both are tagged `internal-only` and
+`no-normative-mapping`; they establish Umbra parser behavior, not HLA
+conformance. The [process-host RID case](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L680)
+uses parsed values and exercises retention, resume, and eventual purge, without
+asserting exact timeout boundaries. These cases were not rerun during this
+documentation review.
+
+Build ownership follows the same edition boundary: the parser is compiled into
+the 2025 `umbra_rti` target ([source list](../../CMakeLists.txt#L460),
+[2025 API link](../../CMakeLists.txt#L501)); `umbra_rti_2010` is a separate
+target ([boundary](../../CMakeLists.txt#L510)). Its focused test source is
+included in the 2025 Catch2 target
+([test list](../../cmake/catch2_executable_targets.cmake#L7)).
+
 The configured authorizer is retained by the ambassador for the connection
 lifetime and released at Disconnect. The embedded operation gates now cover
 Create, Create-With-MIM, Destroy, and Join; the selected operation-test
 evidence and its setup limitations are recorded in the linked flow guide.
-This slice does not implement custom authorizer-library loading. The static
-`umbra::authorizer` artifact still does not establish the standard's
-platform-specific dynamic library nomenclature, third-party direct-link,
-interoperability, or conformance requirements.
+
+Umbra implements an implementation-specific shared-library provider bridge
+for non-reference service names. A non-empty `UMBRA_AUTHORIZER_PROVIDER_LIBRARY`
+must name an absolute path to a library exporting
+`umbra_authorizer_factory_v1`, which returns a 2025 `AuthorizerFactory` for a
+requested service name. The loader caches its result on first lookup and keeps
+the library loaded while its provider instance lives. In the RID path, a
+configured but unusable provider (relative path, load failure, or missing
+entry point) makes the profile invalid. If a usable provider returns no
+factory with the requested name, Umbra tries the standard
+`HLAauthorizerFactoryFactory` lookup and requires that result to match. The
+[provider loader](../../cpp/src/internal/runtime/authorizer_factory_provider.cpp#L82)
+and [RID selection branch](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L339)
+are source evidence; the current [authorization Catch2 suite](../../cpp/tests/ieee1516_2025_authorization_catch2.cpp#L371)
+does not contain focused provider-loading, fallback, or failure cases. This
+bridge is Umbra policy, not an IEEE requirement, and does not establish the
+standard's platform-specific dynamic library nomenclature, third-party
+direct-link, interoperability, or conformance requirements.
 
 ## Traceability and tests
 

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The focused C++ TCK starts a negotiated divestiture while an eligible joined federate is present, then has that federate request acquisition. After the owner receives Request Divestiture Confirmation, the test verifies ownership remains with the owner and completes the transfer with Attribute Ownership Divestiture If Wanted rather than Confirm Divestiture. It verifies the returned divested set, acquisition callback, and final ownership. This directly covers one alternate terminal path in §7.3 p. 156 l. 20; it does not cover the separate Unpublish Object Class Attributes example. Assertions use only the official C++ API; provider, adapter, endpoint, FOM, and callback-model setup remain external inputs.",
+  "requirements": [
+    {
+      "id": "cpp-tck-negotiated-divestiture-if-wanted-completion",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5",
+      "clause_id": "clause-7.3",
+      "source": "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_if_wanted_completion.cpp",
+      "source_symbol": "scenarioNegotiatedDivestitureIfWantedCompletion",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_if_wanted_completion.cpp::scenarioNegotiatedDivestitureIfWantedCompletion"
+      ]
+    }
+  ],
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-negotiated-divestiture-if-wanted-completion",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::negotiatedAttributeOwnershipDivestiture, RTIambassador::attributeOwnershipAcquisition, RTIambassador::attributeOwnershipDivestitureIfWanted, and standard ownership callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador and FederateAmbassador ownership-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_negotiated_divestiture_if_wanted_completion.cpp::scenarioNegotiatedDivestitureIfWantedCompletion"
+      ]
+    }
+  ]
+}

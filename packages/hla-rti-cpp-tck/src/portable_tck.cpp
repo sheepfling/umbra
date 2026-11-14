@@ -1,25 +1,35 @@
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+
 #include <RTI/encoding/BasicDataElements.h>
 #include <RTI/encoding/HLAfixedRecord.h>
 #include <RTI/encoding/HLAvariableArray.h>
 
 #include "tck_harness.hpp"
+#include "tck_argument_file.hpp"
 #include "tck_api_foundation.hpp"
 #include "tck_configuration_authorization.hpp"
 #include "tck_factory_identity.hpp"
 #include "tck_fom_module_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
+#include "tck_nmra_galt_boundary_router.hpp"
+#include "tck_nmr_message_set_router.hpp"
 #include "tck_post_resignation_valid_input_scenarios.hpp"
 #include "tck_transport_order_type_change.hpp"
 
 namespace hla_rti_cpp_tck::detail {
+void scenarioNegotiatedDivestitureConfirmationFlow(
+    Options const&, rti::CallbackModel);
+void scenarioNegotiatedDivestitureConfirmationFlowContract(
+    Options const&, rti::CallbackModel);
 void scenarioFqrPostgrantLowerTsoRetraction(Options const&, rti::CallbackModel);
 void scenarioFqrPostgrantLowerTsoRetractionContract(Options const&, rti::CallbackModel);
 void scenarioFqgPostgrantDeliveryCutoff(Options const&, rti::CallbackModel);
 void scenarioFqgPostgrantDeliveryCutoffContract(Options const&, rti::CallbackModel);
 void scenarioTarQueuedTsoBeforeGrant(Options const&, rti::CallbackModel);
 void scenarioTarQueuedTsoBeforeGrantContract(Options const&, rti::CallbackModel);
-void scenarioNmrLitsBelowGaltImmediateGrant(Options const&, rti::CallbackModel);
-void scenarioNmrLitsBelowGaltImmediateGrantContract(Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableRetainsQueuedTsoAttribute(
     Options const&, rti::CallbackModel);
 void scenarioTimeConstrainedEnableRetainsQueuedTsoAttributeContract(
@@ -46,6 +56,7 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_regional_auto_provide_scenarios.hpp"
 #include "tck_custom_transportation_scenarios.hpp"
 #include "tck_portable_mom_declaration_queries.hpp"
+#include "tck_federate_mom_object_instance_information.hpp"
 #include "tck_portable_region_service_reports.hpp"
 #include "tck_portable_mom_interaction_counts.hpp"
 #include "tck_portable_resignation_ownership.hpp"
@@ -65,6 +76,9 @@ void scenarioTimeConstrainedDisableQueuedDirectedToReceiveOrderContract(
 #include "tck_timed_save_per_member_tso.hpp"
 #include "tck_timed_save_flush_queue_admission.hpp"
 #include "tck_timed_save_available_admission.hpp"
+#include "tck_untimed_save_time_constrained_admission.hpp"
+#include "tck_federate_save_timestamp_eligibility.hpp"
+#include "tck_federation_save_request_replacement.hpp"
 #include "tck_timed_save_next_message_admission.hpp"
 #include "tck_timed_save_available_next_message_member_admission.hpp"
 #include "tck_timed_save_resigned_constrained_member.hpp"
@@ -212,6 +226,30 @@ constexpr char federationMomStaticIdentityScenario[] =
     "cpp-tck.federation-mom-static-identity";
 constexpr char federationMomStaticIdentityContractScenario[] =
     "cpp-tck.federation-mom-static-identity-contract";
+constexpr char federationMomSLeafSubscriptionScenario[] =
+    "cpp-tck.federation-mom-s-leaf-subscription";
+constexpr char federationMomSLeafSubscriptionContractScenario[] =
+    "cpp-tck.federation-mom-s-leaf-subscription-contract";
+constexpr char federationMomChangeAttributeOrderTypeScenario[] =
+    "cpp-tck.federation-mom-change-attribute-order-type";
+constexpr char federationMomChangeAttributeOrderTypeContractScenario[] =
+    "cpp-tck.federation-mom-change-attribute-order-type-contract";
+constexpr char federationMomServiceActorIdentityScenario[] =
+    "cpp-tck.federation-mom-service-actor-identity";
+constexpr char federationMomServiceActorIdentityContractScenario[] =
+    "cpp-tck.federation-mom-service-actor-identity-contract";
+constexpr char federationMomChangeInteractionOrderTypeScenario[] =
+    "cpp-tck.federation-mom-change-interaction-order-type";
+constexpr char federationMomChangeInteractionOrderTypeContractScenario[] =
+    "cpp-tck.federation-mom-change-interaction-order-type-contract";
+constexpr char momServiceOptionalAttributeListUnsubscribeScenario[] =
+    "cpp-tck.mom-service-optional-attribute-list-unsubscribe";
+constexpr char momServiceOptionalAttributeListUnsubscribeContractScenario[] =
+    "cpp-tck.mom-service-optional-attribute-list-unsubscribe-contract";
+constexpr char momOwnershipTransferProhibitionScenario[] =
+    "cpp-tck.mom-ownership-transfer-prohibition";
+constexpr char momOwnershipTransferProhibitionContractScenario[] =
+    "cpp-tck.mom-ownership-transfer-prohibition-contract";
 constexpr char federationMomStaticSwitchesScenario[] =
     "cpp-tck.federation-mom-static-switches";
 constexpr char federationMomStaticSwitchesContractScenario[] =
@@ -776,6 +814,30 @@ constexpr char serviceReportFederateSaveBegunScenario[] =
     "cpp-tck.service-report-federate-save-begun";
 constexpr char serviceReportFederateSaveBegunContractScenario[] =
     "cpp-tck.service-report-federate-save-begun-contract";
+constexpr char momSaveRestoreInteractionsScenario[] =
+    "cpp-tck.mom-save-restore-interactions";
+constexpr char momSaveRestoreInteractionsContractScenario[] =
+    "cpp-tck.mom-save-restore-interactions-contract";
+constexpr char serviceReportSaveFailureReasonFileScenario[] =
+    "cpp-tck.service-report-save-failure-reason-file";
+constexpr char serviceReportSaveFailureReasonFileContractScenario[] =
+    "cpp-tck.service-report-save-failure-reason-file-contract";
+constexpr char serviceReportSaveStatusFileScenario[] =
+    "cpp-tck.service-report-save-status-file";
+constexpr char serviceReportSaveStatusFileContractScenario[] =
+    "cpp-tck.service-report-save-status-file-contract";
+constexpr char serviceReportServiceGroupFileScenario[] =
+    "cpp-tck.service-report-service-group-file";
+constexpr char serviceReportServiceGroupFileContractScenario[] =
+    "cpp-tck.service-report-service-group-file-contract";
+constexpr char serviceReportFederationExecutionInformationFileScenario[] =
+    "cpp-tck.service-report-federation-execution-information-file";
+constexpr char serviceReportFederationExecutionInformationFileContractScenario[] =
+    "cpp-tck.service-report-federation-execution-information-file-contract";
+constexpr char serviceReportFederationExecutionMembersFileScenario[] =
+    "cpp-tck.service-report-federation-execution-members-file";
+constexpr char serviceReportFederationExecutionMembersFileContractScenario[] =
+    "cpp-tck.service-report-federation-execution-members-file-contract";
 constexpr char automaticResignDirectiveDeleteObjectsId[] =
     "cpp-tck.automatic-resign-directive-delete-objects";
 constexpr char automaticResignDirectiveDeleteObjectsContractId[] =
@@ -878,6 +940,22 @@ constexpr char regionalMultiAttributeUpdateScenario[] =
     "cpp-tck.regional-multi-attribute-update";
 constexpr char regionalMultiAttributeUpdateContractId[] =
     "cpp-tck.regional-multi-attribute-update-contract";
+constexpr char regionalObjectAttributeDimensionInheritanceScenario[] =
+    "cpp-tck.regional-object-attribute-dimension-inheritance";
+constexpr char regionalObjectAttributeDimensionInheritanceContractScenario[] =
+    "cpp-tck.regional-object-attribute-dimension-inheritance-contract";
+constexpr char regionalObjectAttributeDefaultRegionFddDimensionsScenario[] =
+    "cpp-tck.regional-object-attribute-default-region-fdd-dimensions";
+constexpr char regionalObjectAttributeDefaultRegionFddDimensionsContractScenario[] =
+    "cpp-tck.regional-object-attribute-default-region-fdd-dimensions-contract";
+constexpr char regionalObjectAttributeUnspecifiedDimensionDefaultRangeScenario[] =
+    "cpp-tck.regional-object-attribute-unspecified-dimension-default-range";
+constexpr char regionalObjectAttributeUnspecifiedDimensionDefaultRangeContractScenario[] =
+    "cpp-tck.regional-object-attribute-unspecified-dimension-default-range-contract";
+constexpr char regionalObjectAttributeExcludedDimensionNotRealizedScenario[] =
+    "cpp-tck.regional-object-attribute-excluded-dimension-not-realized";
+constexpr char regionalObjectAttributeExcludedDimensionNotRealizedContractScenario[] =
+    "cpp-tck.regional-object-attribute-excluded-dimension-not-realized-contract";
 constexpr char regionalThreeDimensionalOverlapScenario[] =
     "cpp-tck.regional-three-dimensional-overlap";
 constexpr char regionalThreeDimensionalOverlapContractId[] =
@@ -913,6 +991,10 @@ constexpr char joinedFederateMomObjectLifecycleScenario[] =
     "cpp-tck.joined-federate-mom-object-lifecycle";
 constexpr char joinedFederateMomObjectLifecycleContractId[] =
     "cpp-tck.joined-federate-mom-object-lifecycle-contract";
+constexpr char joinedFederateMomAddedAttributeSameRtiInstanceScenario[] =
+    "cpp-tck.joined-federate-mom-added-attribute-same-rti-instance";
+constexpr char joinedFederateMomAddedAttributeSameRtiInstanceContractId[] =
+    "cpp-tck.joined-federate-mom-added-attribute-same-rti-instance-contract";
 constexpr char joinedFederateMomDeletableObjectReportScenario[] =
     "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report";
 constexpr char joinedFederateMomDeletableObjectReportContractId[] =
@@ -1367,6 +1449,18 @@ constexpr char timedSaveAvailableAdmissionScenario[] =
     "cpp-tck.timed-save-available-admission";
 constexpr char timedSaveAvailableAdmissionContractId[] =
     "cpp-tck.timed-save-available-admission-contract";
+constexpr char untimedSaveTimeConstrainedAdmissionScenario[] =
+    "cpp-tck.untimed-save-time-constrained-admission";
+constexpr char untimedSaveTimeConstrainedAdmissionContractId[] =
+    "cpp-tck.untimed-save-time-constrained-admission-contract";
+constexpr char federateSaveTimestampEligibilityScenario[] =
+    "cpp-tck.federation-save-timestamp-eligibility";
+constexpr char federateSaveTimestampEligibilityContractId[] =
+    "cpp-tck.federation-save-timestamp-eligibility-contract";
+constexpr char federationSaveRequestReplacementScenario[] =
+    "cpp-tck.federation-save-request-replacement";
+constexpr char federationSaveRequestReplacementContractId[] =
+    "cpp-tck.federation-save-request-replacement-contract";
 constexpr char timedSaveNextMessageAdmissionScenario[] =
     "cpp-tck.timed-save-next-message-admission";
 constexpr char timedSaveNextMessageAdmissionContractId[] =
@@ -1521,6 +1615,8 @@ constexpr char fqrPostgrantLowerTsoRetractionContractId[] =
     "cpp-tck.fqr-postgrant-lower-tso-retraction-contract";
 constexpr char fqrNonTimeConstrainedInTransitTsoScenario[] =
     "cpp-tck.fqr-non-time-constrained-in-transit-tso";
+constexpr char fqrTimestampedObjectDeletionKnownStateScenario[] =
+    "cpp-tck.flush-queue-timestamped-object-deletion-known-state";
 constexpr char fqgPostgrantDeliveryCutoffScenario[] =
     "cpp-tck.fqg-postgrant-delivery-cutoff";
 constexpr char fqgPostgrantDeliveryCutoffContractId[] =
@@ -1573,46 +1669,6 @@ constexpr char nextMessageRequestScenario[] =
     "cpp-tck.next-message-request";
 constexpr char nextMessageRequestContractId[] =
     "cpp-tck.next-message-request-contract";
-constexpr char nmrNoPregrantTsoFloorScenario[] =
-    "cpp-tck.nmr-no-pregrant-tso-floor";
-constexpr char nmrNoPregrantTsoFloorContractId[] =
-    "cpp-tck.nmr-no-pregrant-tso-floor-contract";
-constexpr char nmrReceivedTsoFloorScenario[] =
-    "cpp-tck.nmr-received-tso-floor";
-constexpr char nmrReceivedTsoFloorContractId[] =
-    "cpp-tck.nmr-received-tso-floor-contract";
-constexpr char nmrReceivedTsoAttributeUpdateFloorScenario[] =
-    "cpp-tck.nmr-received-tso-attribute-update-floor";
-constexpr char nmrReceivedTsoAttributeUpdateFloorContractId[] =
-    "cpp-tck.nmr-received-tso-attribute-update-floor-contract";
-constexpr char nmrReceivedTsoDirectedInteractionFloorScenario[] =
-    "cpp-tck.nmr-received-tso-directed-interaction-floor";
-constexpr char nmrReceivedTsoDirectedInteractionFloorContractId[] =
-    "cpp-tck.nmr-received-tso-directed-interaction-floor-contract";
-constexpr char nmrEmptyMessageSetGrantTimeScenario[] =
-    "cpp-tck.nmr-empty-message-set-grant-time";
-constexpr char nmrEmptyMessageSetGrantTimeContractId[] =
-    "cpp-tck.nmr-empty-message-set-grant-time-contract";
-constexpr char nmrRequestBelowGaltImmediateGrantScenario[] =
-    "cpp-tck.nmr-request-below-galt-immediate-grant";
-constexpr char nmrRequestBelowGaltImmediateGrantContractId[] =
-    "cpp-tck.nmr-request-below-galt-immediate-grant-contract";
-constexpr char nmrLitsBelowGaltImmediateGrantScenario[] =
-    "cpp-tck.nmr-lits-below-galt-immediate-grant";
-constexpr char nmrLitsBelowGaltImmediateGrantContractId[] =
-    "cpp-tck.nmr-lits-below-galt-immediate-grant-contract";
-constexpr char nmraNoPregrantTsoFloorScenario[] =
-    "cpp-tck.nmra-no-pregrant-tso-floor";
-constexpr char nmraNoPregrantTsoFloorContractId[] =
-    "cpp-tck.nmra-no-pregrant-tso-floor-contract";
-constexpr char nmraReceivedTsoActualLookaheadFloorScenario[] =
-    "cpp-tck.nmra-received-tso-actual-lookahead-floor";
-constexpr char nmraReceivedTsoActualLookaheadFloorContractId[] =
-    "cpp-tck.nmra-received-tso-actual-lookahead-floor-contract";
-constexpr char nmraRoEarliestTsoCohortScenario[] =
-    "cpp-tck.nmra-ro-earliest-tso-cohort";
-constexpr char nmraRoEarliestTsoCohortContractId[] =
-    "cpp-tck.nmra-ro-earliest-tso-cohort-contract";
 constexpr char sendMessageTimeStatePreservationGrantedScenario[] =
     "cpp-tck.send-message-time-state-preservation-granted";
 constexpr char sendMessageTimeStatePreservationGrantedContractId[] =
@@ -1621,10 +1677,20 @@ constexpr char availableTimeAdvancesInclusiveGaltScenario[] =
     "cpp-tck.available-time-advances-inclusive-galt";
 constexpr char availableTimeAdvancesInclusiveGaltContractId[] =
     "cpp-tck.available-time-advances-inclusive-galt-contract";
+constexpr char taraUndefinedGaltNrgScenario[] =
+    "cpp-tck.tara-undefined-galt-nrg";
+constexpr char taraUndefinedGaltNrgContractId[] =
+    "cpp-tck.tara-undefined-galt-nrg-contract";
+constexpr char taraNoTsoUndefinedGaltNrgScenario[] =
+    "cpp-tck.tara-no-tso-undefined-galt-nrg";
+constexpr char taraNoTsoUndefinedGaltNrgContractId[] =
+    "cpp-tck.tara-no-tso-undefined-galt-nrg-contract";
 constexpr char tarAcknowledgedTsoGaltReleaseScenario[] =
     "cpp-tck.tar-acknowledged-tso-galt-release";
 constexpr char tarAcknowledgedTsoGaltReleaseContractId[] =
     "cpp-tck.tar-acknowledged-tso-galt-release-contract";
+constexpr char tarMultiRegulatorAcknowledgedTsoProgressScenario[] =
+    "cpp-tck.tar-multi-regulator-acknowledged-tso-progress";
 constexpr char timeConstrainedEnableAtGaltEqualityScenario[] =
     "cpp-tck.time-constrained-enable-galt-equality";
 constexpr char timeConstrainedEnableAtGaltEqualityContractId[] =
@@ -1772,6 +1838,10 @@ constexpr char transportationTypeChangeScenario[] =
     "cpp-tck.transportation-type-change";
 constexpr char transportationTypeChangeContractId[] =
     "cpp-tck.transportation-type-change-contract";
+constexpr char privilegeAttributeAvailabilityScenario[] =
+    "cpp-tck.privilege-attribute-availability";
+constexpr char privilegeAttributeAvailabilityContractId[] =
+    "cpp-tck.privilege-attribute-availability-contract";
 constexpr char orderTypeChangeScenario[] = "cpp-tck.order-type-change";
 constexpr char orderTypeChangeContractId[] =
     "cpp-tck.order-type-change-contract";
@@ -1785,6 +1855,10 @@ constexpr char javaSynchronizationScenario[] = "java-tck.synchronization";
 constexpr char synchronizationPointsScenario[] = "cpp-tck.synchronization-points";
 constexpr char synchronizationPointContractScenario[] =
     "cpp-tck.synchronization-point-contract";
+constexpr char synchronizationPointIndependentTrackingScenario[] =
+    "cpp-tck.synchronization-points-independent-tracking";
+constexpr char synchronizationPointIndependentTrackingContractScenario[] =
+    "cpp-tck.synchronization-points-independent-tracking-contract";
 constexpr char synchronizationExplicitSetLateJoinScenario[] =
     "cpp-tck.synchronization-point-explicit-set-late-join";
 constexpr char synchronizationExplicitSetLateJoinContractScenario[] =
@@ -1880,11 +1954,26 @@ void scenarioFactoryDiscoveryPortable(Options const&, rti::CallbackModel) {
 void scenarioRTIambassadorFactoryPortableContract(
     Options const&,
     rti::CallbackModel) {
+  using CreateRTIambassadorMethod =
+      std::unique_ptr<rti::RTIambassador> (rti::RTIambassadorFactory::*)();
+  static_assert(
+      std::is_same_v<
+          decltype(&rti::RTIambassadorFactory::createRTIambassador),
+          CreateRTIambassadorMethod>,
+      "the 2025 factory must expose a public zero-argument createRTIambassador");
+
   rti::RTIambassadorFactory firstFactory;
   auto firstAmbassador = firstFactory.createRTIambassador();
   require(
       static_cast<bool>(firstAmbassador),
       "RTIambassadorFactory did not create a standard RTIambassador");
+  requireException(
+      [&] {
+        static_cast<void>(
+            firstAmbassador->getObjectClassHandle(L"HLAobjectRoot"));
+      },
+      L"NotConnected",
+      "a factory-created RTIambassador did not dispatch a pre-Connect service");
 
   rti::RTIambassadorFactory secondFactory;
   auto secondAmbassador = secondFactory.createRTIambassador();
@@ -2442,6 +2531,19 @@ void scenarioServiceReportResignFederationExecutionPortable(
       serial.get() >= 0,
       "Resignation service-report callback returned a negative serial number");
 
+  requirePortableServiceReport(
+      observer,
+      report,
+      reportClass,
+      reportParameters,
+      L"ResignFederationExecution",
+      {{44, L"HLAresignAction", L"\"NO_ACTION\""}},
+      {34, L"", L"null"},
+      serial.get(),
+      "ResignFederationExecution service report",
+      0,
+      false);
+
   observer.rtiAmbassador().unsubscribeInteractionClass(reportClass);
   observer.resign(rti::NO_ACTION);
   subject.rtiAmbassador().destroyFederationExecution(federation);
@@ -2453,207 +2555,6 @@ void scenarioServiceReportResignFederationExecutionContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioServiceReportResignFederationExecutionPortable(options, model);
-}
-
-void scenarioFederateLostMomReportPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      options.connectionLossServerManaged,
-      "Federate-lost MOM reporting requires an adapter-managed fault fixture");
-  require(
-      !options.fom.empty(),
-      "Federate-lost MOM reporting requires an adapter-supplied application FOM module");
-  require(
-      !options.mimFom.empty(),
-      "Federate-lost MOM reporting requires an adapter-supplied standard MIM");
-  auto withStage = [](char const* stage, auto&& operation) -> decltype(operation()) {
-    try {
-      return operation();
-    } catch (rti::Exception const& error) {
-      throw std::runtime_error(
-          std::string("HLAreportFederateLost ") + stage + ": " +
-          toNarrow(error.name()) + ": " + toNarrow(error.what()));
-    } catch (std::exception const& error) {
-      throw std::runtime_error(
-          std::string("HLAreportFederateLost ") + stage + ": " + error.what());
-    }
-  };
-
-  Session observer(options, model, "owner");
-  Session lost(options, model, "member");
-  auto const federation = federationName(options, "federate-lost-mom-report");
-  auto const observerConnection = withStage(
-      "observer connect failed", [&] { return observer.connect(); });
-  auto const lostConnection = withStage(
-      "lost-member connect failed", [&] { return lost.connect(); });
-  require(
-      observerConnection.addressUsed && lostConnection.addressUsed,
-      "The adapter rtiAddress was not selected for both federates: " +
-          options.rtiAddress);
-  // The application module supplies the non-empty FOM module list required
-  // for a valid federation create; the tested interaction remains defined by
-  // the standard MIM and no application-class behavior is asserted.
-  withStage("federation creation failed", [&] {
-    observer.rtiAmbassador().createFederationExecutionWithMIM(
-        federation,
-        std::vector<std::wstring>{options.fom.wstring()},
-        options.mimFom.wstring(),
-        options.logicalTimeImplementationName);
-  });
-
-  auto const observerName = options.ownerFederateName;
-  auto const lostName = options.memberFederateName;
-  withStage("observer join failed", [&] {
-    observer.join(observerName, options.federateType, federation);
-  });
-  withStage("lost-member join failed", [&] {
-    lost.join(lostName, options.federateType, federation);
-  });
-  auto const lostFederate = lost.federateHandle();
-
-  auto const reportClass = withStage("interaction-class lookup failed", [&] {
-    return observer.rtiAmbassador().getInteractionClassHandle(
-        L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportFederateLost");
-  });
-  require(reportClass.isValid(), "HLAreportFederateLost lookup returned an invalid handle");
-  auto const federateParameter = withStage("HLAfederate parameter lookup failed", [&] {
-    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfederate");
-  });
-  auto const nameParameter = withStage("HLAfederateName parameter lookup failed", [&] {
-    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfederateName");
-  });
-  auto const timeParameter = withStage("HLAtimeStamp parameter lookup failed", [&] {
-    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAtimeStamp");
-  });
-  auto const faultParameter = withStage("HLAfaultDescription parameter lookup failed", [&] {
-    return observer.rtiAmbassador().getParameterHandle(reportClass, L"HLAfaultDescription");
-  });
-  require(
-      federateParameter.isValid() && nameParameter.isValid() &&
-          timeParameter.isValid() && faultParameter.isValid(),
-      "HLAreportFederateLost parameter lookup returned an invalid handle");
-  withStage("subscription failed", [&] {
-    observer.rtiAmbassador().subscribeInteractionClass(reportClass);
-  });
-
-  if (!options.connectionLossReadyMarker.empty()) {
-    std::ofstream readyMarker(
-        options.connectionLossReadyMarker,
-        std::ios::binary | std::ios::trunc);
-    require(
-        static_cast<bool>(readyMarker),
-        "Could not write the connection-loss readiness marker");
-    readyMarker << "ready\n";
-    require(
-        static_cast<bool>(readyMarker),
-        "Could not flush the connection-loss readiness marker");
-  }
-  auto const lossDeadline = std::chrono::steady_clock::now() +
-      std::chrono::milliseconds(options.timeoutMilliseconds);
-  while (std::chrono::steady_clock::now() < lossDeadline &&
-         (!lost.recorder().hasConnectionLost() ||
-          !observer.recorder().interaction().present)) {
-    for (Session* federate : {&lost, &observer}) {
-      try {
-        static_cast<void>(
-            federate->rtiAmbassador().evokeMultipleCallbacks(0.0, 0.05));
-      } catch (...) {
-        // A provider may surface the socket fault on an evoke operation before
-        // queuing ConnectionLost; continue servicing both federates.
-      }
-    }
-    if (!lost.recorder().hasConnectionLost() ||
-        !observer.recorder().interaction().present) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-  }
-  require(
-      lost.recorder().hasConnectionLost(),
-      "Timed out waiting for HLAreportFederateLost delivery connectionLost callback");
-  require(
-      !lost.recorder().connectionLostDescription().empty(),
-      "HLAreportFederateLost delivery connectionLost did not provide a fault description");
-  require(
-      observer.recorder().interaction().present,
-      "Timed out waiting for the subscribed HLAreportFederateLost callback");
-  if (!options.connectionLossMarker.empty()) {
-    std::ofstream marker(
-        options.connectionLossMarker,
-        std::ios::binary | std::ios::trunc);
-    require(
-        static_cast<bool>(marker),
-        "Could not write the connection-loss completion marker");
-    marker << "callback-ok\n";
-    require(
-        static_cast<bool>(marker),
-        "Could not flush the connection-loss completion marker");
-  }
-
-  auto const report = observer.recorder().interaction();
-  require(
-      report.interaction == reportClass &&
-          report.parameters.size() == 4U &&
-          report.parameters.count(federateParameter) == 1U &&
-          report.parameters.count(nameParameter) == 1U &&
-          report.parameters.count(timeParameter) == 1U &&
-          report.parameters.count(faultParameter) == 1U,
-      "HLAreportFederateLost callback returned the wrong identity or parameter set");
-  auto const reliable = withStage("HLAreliable lookup failed", [&] {
-    return observer.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable");
-  });
-  require(
-      report.transportation == reliable,
-      "HLAreportFederateLost callback did not use reliable transportation");
-
-  auto const reportedFederate = withStage("federate-handle decoding failed", [&] {
-    return observer.rtiAmbassador().decodeFederateHandle(
-        report.parameters.at(federateParameter));
-  });
-  require(
-      reportedFederate == lostFederate,
-      "HLAreportFederateLost identified the wrong joined federate");
-  rti::HLAunicodeString reportedName;
-  withStage("federate-name decoding failed", [&] {
-    reportedName.decode(report.parameters.at(nameParameter));
-  });
-  require(
-      reportedName.get() == lostName,
-      "HLAreportFederateLost returned the wrong federate name");
-  auto timeFactory = withStage("logical-time factory creation failed", [&] {
-    return rti::HLAlogicalTimeFactoryFactory::makeLogicalTimeFactory(
-        options.logicalTimeImplementationName);
-  });
-  require(timeFactory != nullptr, "The adapter logical-time factory was unavailable");
-  auto reportedTime = withStage("logical timestamp decoding failed", [&] {
-    return timeFactory->decodeLogicalTime(report.parameters.at(timeParameter));
-  });
-  require(
-      reportedTime != nullptr && !reportedTime->toString().empty(),
-      "HLAreportFederateLost did not encode a standard logical timestamp");
-  rti::HLAunicodeString faultDescription;
-  withStage("fault-description decoding failed", [&] {
-    faultDescription.decode(report.parameters.at(faultParameter));
-  });
-
-  try {
-    lost.disconnect();
-  } catch (...) {
-    // The connection-loss callback may follow an implementation's forced disconnect.
-  }
-  withStage("observer resignation failed", [&] {
-    observer.resign(rti::NO_ACTION);
-  });
-  withStage("federation destruction failed", [&] {
-    observer.rtiAmbassador().destroyFederationExecution(federation);
-  });
-  withStage("observer disconnect failed", [&] { observer.disconnect(); });
-}
-
-void scenarioFederateLostMomReportContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioFederateLostMomReportPortable(options, model);
 }
 
 void scenarioHandleNormalizationMembershipBoundariesPortable(
@@ -3439,87 +3340,6 @@ void scenarioForeignObjectInstanceHandleLookupBoundaryContractPortable(
   scenarioForeignObjectInstanceHandleLookupBoundaryPortable(options, model);
 }
 
-void scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty(),
-      "Local-delete object-name lookup testing requires an adapter-supplied FOM");
-
-  Session owner(options, model, "local-delete-name-owner");
-  Session member(options, model, "local-delete-name-member");
-  auto const federation =
-      federationName(options, "local-delete-object-name-lookup-boundary");
-  connectAndJoin(owner, member, options, federation, options.fom);
-
-  auto const ownerClass =
-      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
-  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
-      ownerClass,
-      options.attributeName);
-  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
-  owner.rtiAmbassador().publishObjectClassAttributes(
-      ownerClass,
-      ownerAttributes);
-
-  auto const memberClass =
-      member.rtiAmbassador().getObjectClassHandle(options.objectClassName);
-  auto const memberAttribute = member.rtiAmbassador().getAttributeHandle(
-      memberClass,
-      options.attributeName);
-  rti::AttributeHandleSet const memberAttributes{memberAttribute};
-  member.rtiAmbassador().subscribeObjectClassAttributes(
-      memberClass,
-      memberAttributes);
-
-  member.recorder().clearDiscovery();
-  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
-  require(object.isValid(), "Local-delete name-lookup setup returned an invalid object handle");
-  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
-  require(!objectName.empty(), "Local-delete name-lookup setup returned an empty object name");
-  waitFor(
-      member,
-      [&] { return member.recorder().hasDiscovery(object); },
-      options,
-      "local-delete name-lookup object discovery");
-  auto const discovery = member.recorder().discovery();
-  require(
-      discovery.object == object &&
-          member.rtiAmbassador().getObjectInstanceName(discovery.object) == objectName,
-      "Discovered object identity did not resolve before local deletion");
-
-  member.rtiAmbassador().localDeleteObjectInstance(discovery.object);
-  requireException(
-      [&] {
-        static_cast<void>(
-            member.rtiAmbassador().getObjectInstanceName(discovery.object));
-      },
-      L"ObjectInstanceNotKnown",
-      "looking up the name of a locally forgotten object instance");
-  require(
-      owner.rtiAmbassador().getObjectInstanceName(object) == objectName,
-      "Local deletion changed the publishing federate's object identity");
-
-  owner.rtiAmbassador().deleteObjectInstance(object, rti::VariableLengthData{});
-  member.rtiAmbassador().unsubscribeObjectClassAttributes(
-      memberClass,
-      memberAttributes);
-  owner.rtiAmbassador().unpublishObjectClassAttributes(
-      ownerClass,
-      ownerAttributes);
-  owner.resign(rti::NO_ACTION);
-  member.resign(rti::NO_ACTION);
-  owner.rtiAmbassador().destroyFederationExecution(federation);
-  owner.disconnect();
-  member.disconnect();
-}
-
-void scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable(options, model);
-}
-
 void scenarioRemoteDeleteKnownObjectClassLookupBoundaryPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -3969,6 +3789,12 @@ void scenarioFqrPostgrantLowerTsoRetractionContractPortable(
   scenarioFqrPostgrantLowerTsoRetractionContract(options, model);
 }
 
+void scenarioFqrTimestampedObjectDeletionKnownStatePortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioFqrTimestampedObjectDeletionKnownState(options, model);
+}
+
 void scenarioFqgPostgrantDeliveryCutoffPortable(
     Options const& options,
     rti::CallbackModel model) {
@@ -4209,126 +4035,6 @@ void scenarioNextMessageRequestContractPortable(
   scenarioNextMessageRequestContract(options, model);
 }
 
-void scenarioNmrNoPregrantTsoFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrNoPregrantTsoFloor(options, model);
-}
-
-void scenarioNmrNoPregrantTsoFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrNoPregrantTsoFloorContract(options, model);
-}
-
-void scenarioNmrReceivedTsoFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoFloor(options, model);
-}
-
-void scenarioNmrReceivedTsoFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoFloorContract(options, model);
-}
-
-void scenarioNmrReceivedTsoAttributeUpdateFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoAttributeUpdateFloor(options, model);
-}
-
-void scenarioNmrReceivedTsoAttributeUpdateFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoAttributeUpdateFloorContract(options, model);
-}
-
-void scenarioNmrReceivedTsoDirectedInteractionFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoDirectedInteractionFloor(options, model);
-}
-
-void scenarioNmrReceivedTsoDirectedInteractionFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrReceivedTsoDirectedInteractionFloorContract(options, model);
-}
-
-void scenarioNmrEmptyMessageSetGrantTimePortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrEmptyMessageSetGrantTime(options, model);
-}
-
-void scenarioNmrEmptyMessageSetGrantTimeContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrEmptyMessageSetGrantTimeContract(options, model);
-}
-
-void scenarioNmrRequestBelowGaltImmediateGrantPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrRequestBelowGaltImmediateGrant(options, model);
-}
-
-void scenarioNmrRequestBelowGaltImmediateGrantContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrRequestBelowGaltImmediateGrantContract(options, model);
-}
-
-void scenarioNmrLitsBelowGaltImmediateGrantPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrLitsBelowGaltImmediateGrant(options, model);
-}
-
-void scenarioNmrLitsBelowGaltImmediateGrantContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmrLitsBelowGaltImmediateGrantContract(options, model);
-}
-
-void scenarioNmraNoPregrantTsoFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraNoPregrantTsoFloor(options, model);
-}
-
-void scenarioNmraNoPregrantTsoFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraNoPregrantTsoFloorContract(options, model);
-}
-
-void scenarioNmraReceivedTsoActualLookaheadFloorPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraReceivedTsoActualLookaheadFloor(options, model);
-}
-
-void scenarioNmraReceivedTsoActualLookaheadFloorContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraReceivedTsoActualLookaheadFloorContract(options, model);
-}
-
-void scenarioNmraQueuedRoAndEarliestTsoCohortPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraQueuedRoAndEarliestTsoCohort(options, model);
-}
-
-void scenarioNmraQueuedRoAndEarliestTsoCohortContractPortable(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNmraQueuedRoAndEarliestTsoCohortContract(options, model);
-}
-
 void scenarioSendMessageTimeStatePreservationGrantedPortable(
     Options const& options, rti::CallbackModel model) {
   scenarioSendMessageTimeStatePreservationGranted(options, model);
@@ -4343,6 +4049,30 @@ void scenarioAvailableTimeAdvancesInclusiveGaltPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAvailableTimeAdvancesInclusiveGalt(options, model);
+}
+
+void scenarioTaraUndefinedGaltNrgPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTaraUndefinedGaltNrg(options, model);
+}
+
+void scenarioTaraUndefinedGaltNrgContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTaraUndefinedGaltNrgContract(options, model);
+}
+
+void scenarioTaraNoTsoUndefinedGaltNrgPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTaraNoTsoUndefinedGaltNrg(options, model);
+}
+
+void scenarioTaraNoTsoUndefinedGaltNrgContractPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTaraNoTsoUndefinedGaltNrgContract(options, model);
 }
 
 void scenarioAvailableTimeAdvancesInclusiveGaltContractPortable(
@@ -4361,6 +4091,12 @@ void scenarioTarAcknowledgedTsoGaltReleaseContractPortable(
     Options const& options,
     rti::CallbackModel model) {
   scenarioTarAcknowledgedTsoGaltReleaseContract(options, model);
+}
+
+void scenarioTarMultiRegulatorAcknowledgedTsoProgressPortable(
+    Options const& options,
+    rti::CallbackModel model) {
+  scenarioTarMultiRegulatorAcknowledgedTsoProgress(options, model);
 }
 
 void scenarioTimeConstrainedEnableAtGaltEqualityPortable(
@@ -4974,7 +4710,304 @@ void scenarioSynchronizationPointsPortable(
             "explicit synchronization completion returned an unexpected failure set");
   }
 
+  // An explicitly empty set has the same all-joined-federates announcement
+  // behavior as the overload that omits the set.
+  std::wstring const emptySetLabel = L"tck-empty-set-synchronization";
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      emptySetLabel,
+      tag,
+      emptySynchronizationSet);
+  waitForSessions(
+      {&first, &second, &third},
+      [&] {
+        return first.synchronizationPointRegistrations().size() >= 3U &&
+            first.synchronizationPointAnnouncements().size() >= 3U &&
+            second.synchronizationPointAnnouncements().size() >= 3U &&
+            third.synchronizationPointAnnouncements().size() >= 2U;
+      },
+      options,
+      "empty synchronization-set announcement to all joined federates");
+  auto const emptySetRegistration = first.synchronizationPointRegistrations().back();
+  require(emptySetRegistration.succeeded &&
+              emptySetRegistration.label == emptySetLabel,
+          "empty synchronization-set registration did not succeed");
+  for (auto* session : {&first, &second, &third}) {
+    auto const announcements = session->synchronizationPointAnnouncements();
+    require(announcements.back().label == emptySetLabel &&
+                announcements.back().tag == tagBytes,
+            "empty synchronization set did not announce the label and tag to every joined federate");
+  }
+
+  first.rtiAmbassador().synchronizationPointAchieved(emptySetLabel);
+  second.rtiAmbassador().synchronizationPointAchieved(emptySetLabel);
+  third.rtiAmbassador().synchronizationPointAchieved(emptySetLabel);
+  waitForSessions(
+      {&first, &second, &third},
+      [&] {
+        return first.federationSynchronized().size() >= 3U &&
+            second.federationSynchronized().size() >= 3U &&
+            third.federationSynchronized().size() >= 2U;
+      },
+      options,
+      "empty synchronization-set completion by all joined federates");
+  for (auto* session : {&first, &second, &third}) {
+    auto const completions = session->federationSynchronized();
+    require(completions.back().label == emptySetLabel &&
+                completions.back().failedToSyncSet.empty(),
+            "empty synchronization set did not complete for every joined federate");
+  }
+
+  Session outsider(options, model, "foreign-federation-member");
+  auto const foreignFederation = federationName(
+      options,
+      "synchronization-member-foreign-execution");
+  outsider.connect();
+  outsider.rtiAmbassador().createFederationExecution(
+      foreignFederation,
+      options.fom.wstring(),
+      options.logicalTimeImplementationName);
+  outsider.join(L"tck-outsider", options.federateType, foreignFederation);
+
+  std::wstring const foreignMemberLabel = L"tck-foreign-federation-member";
+  rti::FederateHandleSet const mixedSynchronizationSet{
+      first.federateHandle(),
+      outsider.federateHandle()};
+  auto const registrationCountBeforeForeignMember =
+      first.synchronizationPointRegistrations().size();
+  auto const firstAnnouncementCountBeforeForeignMember =
+      first.synchronizationPointAnnouncements().size();
+  auto const secondAnnouncementCountBeforeForeignMember =
+      second.synchronizationPointAnnouncements().size();
+  auto const thirdAnnouncementCountBeforeForeignMember =
+      third.synchronizationPointAnnouncements().size();
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      foreignMemberLabel,
+      tag,
+      mixedSynchronizationSet);
+  waitFor(
+      first,
+      [&] {
+        return first.synchronizationPointRegistrations().size() >
+            registrationCountBeforeForeignMember;
+      },
+      options,
+      "registration failure for a handle joined to another federation");
+  auto const foreignMemberRegistration =
+      first.synchronizationPointRegistrations().back();
+  require(!foreignMemberRegistration.succeeded &&
+              foreignMemberRegistration.label == foreignMemberLabel &&
+              foreignMemberRegistration.failureReason.has_value() &&
+              foreignMemberRegistration.failureReason.value() ==
+                  rti::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED,
+          "foreign-federation member did not cause the standard synchronization-set failure");
+  require(
+      first.synchronizationPointAnnouncements().size() ==
+              firstAnnouncementCountBeforeForeignMember &&
+          second.synchronizationPointAnnouncements().size() ==
+              secondAnnouncementCountBeforeForeignMember &&
+          third.synchronizationPointAnnouncements().size() ==
+              thirdAnnouncementCountBeforeForeignMember,
+      "failed foreign-federation registration announced the synchronization point");
+
+  rti::FederateHandleSet const validRetrySet{
+      first.federateHandle(),
+      second.federateHandle()};
+  auto const registrationCountBeforeRetry =
+      first.synchronizationPointRegistrations().size();
+  auto const firstAnnouncementCountBeforeRetry =
+      first.synchronizationPointAnnouncements().size();
+  auto const secondAnnouncementCountBeforeRetry =
+      second.synchronizationPointAnnouncements().size();
+  auto const thirdAnnouncementCountBeforeRetry =
+      third.synchronizationPointAnnouncements().size();
+  auto const firstCompletionCountBeforeRetry =
+      first.federationSynchronized().size();
+  auto const secondCompletionCountBeforeRetry =
+      second.federationSynchronized().size();
+  auto const thirdCompletionCountBeforeRetry =
+      third.federationSynchronized().size();
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      foreignMemberLabel,
+      tag,
+      validRetrySet);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.synchronizationPointRegistrations().size() >
+                registrationCountBeforeRetry &&
+            first.synchronizationPointAnnouncements().size() >
+                firstAnnouncementCountBeforeRetry &&
+            second.synchronizationPointAnnouncements().size() >
+                secondAnnouncementCountBeforeRetry;
+      },
+      options,
+      "valid registration retry after a rejected foreign-federation member");
+  auto const retryRegistration =
+      first.synchronizationPointRegistrations().back();
+  require(retryRegistration.succeeded &&
+              retryRegistration.label == foreignMemberLabel,
+          "failed registration changed federation state and prevented a valid retry");
+  for (auto* session : {&first, &second}) {
+    auto const announcements = session->synchronizationPointAnnouncements();
+    require(announcements.back().label == foreignMemberLabel &&
+                announcements.back().tag == tagBytes,
+            "valid retry did not announce the failed label and supplied tag");
+  }
+  require(
+      third.synchronizationPointAnnouncements().size() ==
+          thirdAnnouncementCountBeforeRetry,
+      "valid retry announced to a federate outside its explicit set");
+  first.rtiAmbassador().synchronizationPointAchieved(foreignMemberLabel);
+  second.rtiAmbassador().synchronizationPointAchieved(foreignMemberLabel);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.federationSynchronized().size() >
+                firstCompletionCountBeforeRetry &&
+            second.federationSynchronized().size() >
+                secondCompletionCountBeforeRetry;
+      },
+      options,
+      "completion of valid registration retry");
+  for (auto* session : {&first, &second}) {
+    auto const completions = session->federationSynchronized();
+    require(completions.back().label == foreignMemberLabel &&
+                completions.back().failedToSyncSet.empty(),
+            "valid retry did not complete after the failed registration attempt");
+  }
+  require(
+      third.federationSynchronized().size() == thirdCompletionCountBeforeRetry,
+      "valid retry completed for a federate outside its explicit set");
+
+  outsider.resign(rti::NO_ACTION);
+  outsider.rtiAmbassador().destroyFederationExecution(foreignFederation);
+  outsider.disconnect();
+
+  Session resignedMember(options, model, "resigned-synchronization-member");
+  resignedMember.connect();
+  resignedMember.join(
+      L"tck-resigned-sync-member",
+      options.federateType,
+      federation);
+  rti::FederateHandle const resignedMemberHandle =
+      resignedMember.federateHandle();
+  resignedMember.resign(rti::NO_ACTION);
+  resignedMember.disconnect();
+
+  std::wstring const resignedMemberLabel =
+      L"tck-resigned-before-synchronization-confirmation";
+  rti::FederateHandleSet const resignedSynchronizationSet{
+      first.federateHandle(),
+      resignedMemberHandle};
+  auto const registrationCountBeforeResignedMember =
+      first.synchronizationPointRegistrations().size();
+  auto const firstAnnouncementCountBeforeResignedMember =
+      first.synchronizationPointAnnouncements().size();
+  auto const secondAnnouncementCountBeforeResignedMember =
+      second.synchronizationPointAnnouncements().size();
+  auto const thirdAnnouncementCountBeforeResignedMember =
+      third.synchronizationPointAnnouncements().size();
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      resignedMemberLabel,
+      tag,
+      resignedSynchronizationSet);
+  waitFor(
+      first,
+      [&] {
+        return first.synchronizationPointRegistrations().size() >
+            registrationCountBeforeResignedMember;
+      },
+      options,
+      "registration failure for a designated federate that resigned before registration");
+  auto const resignedMemberRegistration =
+      first.synchronizationPointRegistrations().back();
+  require(!resignedMemberRegistration.succeeded &&
+              resignedMemberRegistration.label == resignedMemberLabel &&
+              resignedMemberRegistration.failureReason.has_value() &&
+              resignedMemberRegistration.failureReason.value() ==
+                  rti::SYNCHRONIZATION_SET_MEMBER_NOT_JOINED,
+          "previously joined designated federate did not fail synchronization registration after resignation");
+  require(
+      first.synchronizationPointAnnouncements().size() ==
+              firstAnnouncementCountBeforeResignedMember &&
+          second.synchronizationPointAnnouncements().size() ==
+              secondAnnouncementCountBeforeResignedMember &&
+          third.synchronizationPointAnnouncements().size() ==
+              thirdAnnouncementCountBeforeResignedMember,
+      "failed registration for a resigned member announced the synchronization point");
+
+  std::wstring const resignationDuringSyncLabel =
+      L"tck-resignation-after-synchronization-announcement";
+  auto const registrationCountBeforeResignationDuringSync =
+      first.synchronizationPointRegistrations().size();
+  auto const firstAnnouncementCountBeforeResignationDuringSync =
+      first.synchronizationPointAnnouncements().size();
+  auto const secondAnnouncementCountBeforeResignationDuringSync =
+      second.synchronizationPointAnnouncements().size();
+  auto const thirdAnnouncementCountBeforeResignationDuringSync =
+      third.synchronizationPointAnnouncements().size();
+  auto const firstCompletionCountBeforeResignationDuringSync =
+      first.federationSynchronized().size();
+  auto const secondCompletionCountBeforeResignationDuringSync =
+      second.federationSynchronized().size();
+  auto const thirdCompletionCountBeforeResignationDuringSync =
+      third.federationSynchronized().size();
+  first.rtiAmbassador().registerFederationSynchronizationPoint(
+      resignationDuringSyncLabel,
+      tag);
+  waitForSessions(
+      {&first, &second, &third},
+      [&] {
+        return first.synchronizationPointRegistrations().size() >
+                registrationCountBeforeResignationDuringSync &&
+            first.synchronizationPointAnnouncements().size() >
+                firstAnnouncementCountBeforeResignationDuringSync &&
+            second.synchronizationPointAnnouncements().size() >
+                secondAnnouncementCountBeforeResignationDuringSync &&
+            third.synchronizationPointAnnouncements().size() >
+                thirdAnnouncementCountBeforeResignationDuringSync;
+      },
+      options,
+      "synchronization announcement before a member resigns");
+  auto const resignationDuringSyncRegistration =
+      first.synchronizationPointRegistrations().back();
+  require(resignationDuringSyncRegistration.succeeded &&
+              resignationDuringSyncRegistration.label ==
+                  resignationDuringSyncLabel,
+          "synchronization registration failed before the member resignation");
+  for (auto* session : {&first, &second, &third}) {
+    auto const announcements = session->synchronizationPointAnnouncements();
+    require(announcements.back().label == resignationDuringSyncLabel &&
+                announcements.back().tag == tagBytes,
+            "synchronization announcement omitted the label or tag before resignation");
+  }
+
   third.resign(rti::NO_ACTION);
+  first.rtiAmbassador().synchronizationPointAchieved(
+      resignationDuringSyncLabel);
+  second.rtiAmbassador().synchronizationPointAchieved(
+      resignationDuringSyncLabel);
+  waitForSessions(
+      {&first, &second},
+      [&] {
+        return first.federationSynchronized().size() >
+                firstCompletionCountBeforeResignationDuringSync &&
+            second.federationSynchronized().size() >
+                secondCompletionCountBeforeResignationDuringSync;
+      },
+      options,
+      "synchronization completion after removing a resigned member");
+  for (auto* session : {&first, &second}) {
+    auto const completions = session->federationSynchronized();
+    require(completions.back().label == resignationDuringSyncLabel &&
+                completions.back().failedToSyncSet.empty(),
+            "resigned member remained in the pending synchronization set");
+  }
+  require(
+      third.federationSynchronized().size() ==
+          thirdCompletionCountBeforeResignationDuringSync,
+      "resigned member received synchronization completion after leaving the set");
+
   second.resign(rti::NO_ACTION);
   first.resign(rti::NO_ACTION);
   first.rtiAmbassador().destroyFederationExecution(federation);
@@ -5372,6 +5405,10 @@ void scenarioFederationAutoProvideMomSwitch(
       requesterSetSwitches,
       requesterAutoProvide,
       false);
+  require(
+      !owner.rtiAmbassador().getAutoProvideSwitch() &&
+          !requester.rtiAmbassador().getAutoProvideSwitch(),
+      "Get Auto Provide Switch did not return FALSE after federation-wide disable");
   static_cast<void>(registerAndObserveDiscovery(
       "federation MOM Auto Provide disabled discovery"));
   drainOwnerCallbacks();
@@ -5386,6 +5423,10 @@ void scenarioFederationAutoProvideMomSwitch(
       requesterSetSwitches,
       requesterAutoProvide,
       true);
+  require(
+      owner.rtiAmbassador().getAutoProvideSwitch() &&
+          requester.rtiAmbassador().getAutoProvideSwitch(),
+      "Get Auto Provide Switch did not return TRUE after federation-wide enable");
   auto const enabledObject = registerAndObserveDiscovery(
       "federation MOM Auto Provide enabled discovery");
   waitFor(
@@ -5412,6 +5453,10 @@ void scenarioFederationAutoProvideMomSwitch(
       ownerSetSwitches,
       ownerAutoProvide,
       false);
+  require(
+      !owner.rtiAmbassador().getAutoProvideSwitch() &&
+          !requester.rtiAmbassador().getAutoProvideSwitch(),
+      "Get Auto Provide Switch did not return FALSE after federation-wide re-disable");
   static_cast<void>(registerAndObserveDiscovery(
       "federation MOM Auto Provide disabled-again discovery"));
   drainOwnerCallbacks();
@@ -5434,142 +5479,6 @@ void scenarioFederationAutoProvideMomSwitchContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioFederationAutoProvideMomSwitch(options, model);
-}
-
-void scenarioFederateServiceReportingMomSwitch(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty() && !options.mimFom.empty() &&
-          !options.logicalTimeImplementationName.empty(),
-      "Federate MOM Service Reporting testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
-
-  Session federate(options, model, "owner");
-  auto const federation = federationName(
-      options,
-      "federate-service-reporting-mom-switch");
-  federate.connect();
-  federate.rtiAmbassador().createFederationExecutionWithMIM(
-      federation,
-      std::vector<std::wstring>{options.fom.wstring()},
-      options.mimFom.wstring(),
-      options.logicalTimeImplementationName);
-  federate.join(
-      options.ownerFederateName + L"-service-reporting-mom-switch",
-      options.federateType,
-      federation);
-
-  auto const setSwitches = federate.rtiAmbassador().getInteractionClassHandle(
-      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
-  auto const serviceReporting = federate.rtiAmbassador().getParameterHandle(
-      setSwitches,
-      L"HLAserviceReporting");
-  require(
-      setSwitches.isValid() && serviceReporting.isValid(),
-      "Standard federate-MOM Service Reporting lookup returned an invalid handle");
-  require(
-      !federate.rtiAmbassador().getServiceReportingSwitch(),
-      "Standard MIM Service Reporting switch did not start false");
-
-  auto setReportingThroughMom = [&](bool const enabled) {
-    rti::ParameterHandleValueMap const parameters{
-        {serviceReporting, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
-    federate.rtiAmbassador().sendInteraction(
-        setSwitches,
-        parameters,
-        rti::VariableLengthData{});
-    require(
-        federate.rtiAmbassador().getServiceReportingSwitch() == enabled,
-        std::string("HLAsetSwitches HLAserviceReporting did not set the switch to ") +
-            (enabled ? "true" : "false"));
-  };
-  setReportingThroughMom(true);
-  setReportingThroughMom(false);
-
-  federate.resign(rti::NO_ACTION);
-  federate.rtiAmbassador().destroyFederationExecution(federation);
-  federate.disconnect();
-}
-
-void scenarioFederateServiceReportingMomSwitchContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioFederateServiceReportingMomSwitch(options, model);
-}
-
-void scenarioFederateExceptionReportingMomSwitch(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty() && !options.mimFom.empty() &&
-          !options.logicalTimeImplementationName.empty(),
-      "Federate MOM Exception Reporting testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
-
-  Session federate(options, model, "owner");
-  auto const federation = federationName(
-      options,
-      "federate-exception-reporting-mom-switch");
-  federate.connect();
-  federate.rtiAmbassador().createFederationExecutionWithMIM(
-      federation,
-      std::vector<std::wstring>{options.fom.wstring()},
-      options.mimFom.wstring(),
-      options.logicalTimeImplementationName);
-  federate.join(
-      options.ownerFederateName + L"-exception-reporting-mom-switch",
-      options.federateType,
-      federation);
-
-  auto const setSwitches = federate.rtiAmbassador().getInteractionClassHandle(
-      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
-  auto const exceptionReporting = federate.rtiAmbassador().getParameterHandle(
-      setSwitches,
-      L"HLAexceptionReporting");
-  require(
-      setSwitches.isValid() && exceptionReporting.isValid(),
-      "Standard federate-MOM Exception Reporting lookup returned an invalid handle");
-  require(
-      !federate.rtiAmbassador().getExceptionReportingSwitch(),
-      "Standard MIM Exception Reporting switch did not start false");
-
-  auto const initialServiceReporting =
-      federate.rtiAmbassador().getServiceReportingSwitch();
-  auto const initialResignAction =
-      federate.rtiAmbassador().getAutomaticResignDirective();
-  auto const initialFileReporting =
-      federate.rtiAmbassador().getSendServiceReportsToFileSwitch();
-  auto setReportingThroughMom = [&](bool const enabled) {
-    rti::ParameterHandleValueMap const parameters{
-        {exceptionReporting, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
-    federate.rtiAmbassador().sendInteraction(
-        setSwitches,
-        parameters,
-        rti::VariableLengthData{});
-    require(
-        federate.rtiAmbassador().getExceptionReportingSwitch() == enabled,
-        std::string("HLAsetSwitches HLAexceptionReporting did not set the switch to ") +
-            (enabled ? "true" : "false"));
-    require(
-        federate.rtiAmbassador().getServiceReportingSwitch() ==
-                initialServiceReporting &&
-            federate.rtiAmbassador().getAutomaticResignDirective() ==
-                initialResignAction &&
-            federate.rtiAmbassador().getSendServiceReportsToFileSwitch() ==
-                initialFileReporting,
-        "HLAsetSwitches HLAexceptionReporting changed a neighboring federate switch");
-  };
-  setReportingThroughMom(true);
-  setReportingThroughMom(false);
-
-  federate.resign(rti::NO_ACTION);
-  federate.rtiAmbassador().destroyFederationExecution(federation);
-  federate.disconnect();
-}
-
-void scenarioFederateExceptionReportingMomSwitchContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioFederateExceptionReportingMomSwitch(options, model);
 }
 
 template <typename Getter, typename Setter>
@@ -7829,6 +7738,7 @@ void runFederationMomFederatesInFederationScenario(
         cursor == bytes.size(),
         "HLAfederatesInFederation contains trailing bytes after its standard array");
     return result;
+
   };
   auto const hasExactRoster = [](
       std::vector<rti::FederateHandle> const& actual,
@@ -7911,6 +7821,7 @@ void scenarioFederationMomStaticIdentity(
     Options const& options,
     rti::CallbackModel model) {
   runFederationMomStaticIdentityScenario(options, model);
+  verifyFederationMomTable8PublishedAttributes(options, model);
 }
 
 void scenarioFederationMomStaticIdentityContract(
@@ -8006,12 +7917,52 @@ void scenarioFederateExceptionReportDelivery(
       ambassador.getParameterHandle(reportClass, L"HLAfederate");
   auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
   auto const joinedFederate = ambassador.getFederateHandle(federateName);
+  auto const federateDimension = ambassador.getDimensionHandle(L"HLAfederate");
   require(
       reportClass.isValid() && serviceParameter.isValid() &&
           exceptionParameter.isValid() && federateParameter.isValid() &&
-          reliable.isValid() && joinedFederate.isValid(),
+          reliable.isValid() && joinedFederate.isValid() &&
+          federateDimension.isValid() &&
+          ambassador.getDimensionName(federateDimension) == L"HLAfederate",
       "Standard MIM HLAreportException lookups returned an invalid handle");
+  auto const normalizedFederateHandle =
+      ambassador.normalizeFederateHandle(joinedFederate);
+  require(
+      normalizedFederateHandle != std::numeric_limits<unsigned long>::max(),
+      "Normalize Federate Handle returned no representable point-range upper bound");
   ambassador.subscribeInteractionClass(reportClass, true);
+  ambassador.setConveyRegionDesignatorSetsSwitch(true);
+  require(
+      ambassador.getConveyRegionDesignatorSetsSwitch(),
+      "HLAreportException region verification could not enable conveyed region designators");
+  federate.recorder().setDetailedReceiveInteractionHook(
+      [&](rti::InteractionClassHandle const& interaction,
+          rti::ParameterHandleValueMap const& parameters,
+          rti::RegionHandleSet const* regions) {
+        if (interaction != reportClass) {
+          return;
+        }
+        require(
+            regions != nullptr && regions->size() == 1U,
+            "HLAreportException did not carry exactly one update-region designator");
+        auto const federateParameterValue = parameters.find(federateParameter);
+        require(
+            federateParameterValue != parameters.end() &&
+                copyBytes(federateParameterValue->second) ==
+                    copyBytes(joinedFederate.encode()),
+            "HLAreportException update region could not be tied to its HLAfederate parameter");
+        require(
+            ambassador.getDimensionHandleSet(*regions->begin()) ==
+                rti::DimensionHandleSet{federateDimension},
+            "HLAreportException update region specified a dimension other than HLAfederate");
+        auto const bounds = ambassador.getRangeBounds(
+            *regions->begin(),
+            federateDimension);
+        require(
+            bounds.getLowerBound() == normalizedFederateHandle &&
+                bounds.getUpperBound() == normalizedFederateHandle + 1UL,
+            "HLAreportException HLAfederate point range did not match Normalize Federate Handle");
+      });
 
   auto drainCallbacks = [&] {
     while (ambassador.evokeCallback(0.0)) {
@@ -8037,8 +7988,13 @@ void scenarioFederateExceptionReportDelivery(
     require(
         report.present && report.interaction == reportClass &&
             report.parameters.size() == 3U &&
-            report.transportation == reliable && !report.producer.isValid(),
+            report.transportation == reliable && !report.producer.isValid() &&
+            report.tag.empty() && report.regions.has_value() &&
+            report.regions->size() == 1U,
         "HLAreportException callback metadata or parameter set was not standard");
+    require(
+        federate.recorder().timedInteractions().empty(),
+        "HLAreportException with standard MIM Receive order used a timestamped callback");
     rti::HLAunicodeString serviceName;
     rti::HLAunicodeString exceptionText;
     require(
@@ -8290,67 +8246,87 @@ void scenarioFederateMomExceptionMissingParameter(
       L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus");
   auto const statusReportClass = ambassador.getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederation.HLAreport.HLAreportSynchronizationPointStatus");
+  auto const setSwitches = ambassador.getInteractionClassHandle(
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
   require(
       reportClass.isValid() && serviceParameter.isValid() &&
           exceptionParameter.isValid() && parameterErrorParameter.isValid() &&
           federateParameter.isValid() && reliable.isValid() &&
           joinedFederate.isValid() && requestClass.isValid() &&
-          statusReportClass.isValid(),
+          statusReportClass.isValid() && setSwitches.isValid(),
       "Standard MIM synchronization-status exception-report lookups returned an invalid handle");
   ambassador.subscribeInteractionClass(reportClass, true);
   ambassador.subscribeInteractionClass(statusReportClass, true);
 
-  // HLArequestSynchronizationPointStatus declares HLAsyncPointName. Sending
-  // the interaction with no parameters exercises the standard MIM missing-
-  // parameter report without depending on provider-specific exception text.
   rti::ParameterHandleValueMap const noParameters;
-  try {
-    ambassador.sendInteraction(
-        requestClass,
-        noParameters,
-        rti::VariableLengthData{});
-  } catch (rti::Exception const&) {
-    // The required HLAreportMOMexception callback is the portable oracle.
-  }
-  while (ambassador.evokeCallback(0.0)) {
-  }
+  auto sendWithoutParameters = [&](rti::InteractionClassHandle const& interaction) {
+    try {
+      ambassador.sendInteraction(
+          interaction,
+          noParameters,
+          rti::VariableLengthData{});
+    } catch (rti::Exception const&) {
+      // The required HLAreportMOMexception callback is the portable oracle.
+    }
+    while (ambassador.evokeCallback(0.0)) {
+    }
+  };
+  auto verifyMissingParameterReport = [&](
+      InteractionRecord const& report,
+      std::wstring const& expectedInteractionName) {
+    require(
+        report.present && report.interaction == reportClass &&
+            report.parameters.size() == 4U && report.transportation == reliable,
+        "HLAreportMOMexception callback metadata or parameter set was not standard");
+    require(
+        report.parameters.find(serviceParameter) != report.parameters.end() &&
+            report.parameters.find(exceptionParameter) != report.parameters.end() &&
+            report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
+            report.parameters.find(federateParameter) != report.parameters.end(),
+        "HLAreportMOMexception omitted a required standard parameter");
 
+    rti::HLAunicodeString serviceName;
+    rti::HLAunicodeString exceptionText;
+    rti::HLAboolean parameterError;
+    serviceName.decode(report.parameters.at(serviceParameter));
+    exceptionText.decode(report.parameters.at(exceptionParameter));
+    parameterError.decode(report.parameters.at(parameterErrorParameter));
+    require(
+        serviceName.get() == expectedInteractionName,
+        "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
+    require(
+        !exceptionText.get().empty(),
+        "HLAreportMOMexception did not provide a textual problem description");
+    require(
+        parameterError.get(),
+        "HLAreportMOMexception did not mark the missing interaction parameter");
+    require(
+        copyBytes(report.parameters.at(federateParameter)) ==
+            copyBytes(joinedFederate.encode()),
+        "HLAreportMOMexception identified a different joined federate");
+  };
+
+  // HLArequestSynchronizationPointStatus declares HLAsyncPointName. Sending
+  // no parameters exercises the required-parameter path in §11.4.1.
+  sendWithoutParameters(requestClass);
   auto const reports = federate.recorder().interactions();
   require(
       reports.size() == 1U,
       "A request missing HLAsyncPointName did not deliver exactly one HLAreportMOMexception");
-  auto const& report = reports.front();
-  require(
-      report.present && report.interaction == reportClass &&
-          report.parameters.size() == 4U && report.transportation == reliable,
-      "HLAreportMOMexception callback metadata or parameter set was not standard");
-  require(
-      report.parameters.find(serviceParameter) != report.parameters.end() &&
-          report.parameters.find(exceptionParameter) != report.parameters.end() &&
-          report.parameters.find(parameterErrorParameter) != report.parameters.end() &&
-          report.parameters.find(federateParameter) != report.parameters.end(),
-      "HLAreportMOMexception omitted a required standard parameter");
+  verifyMissingParameterReport(
+      reports.front(),
+      L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus");
 
-  rti::HLAunicodeString serviceName;
-  rti::HLAunicodeString exceptionText;
-  rti::HLAboolean parameterError;
-  serviceName.decode(report.parameters.at(serviceParameter));
-  exceptionText.decode(report.parameters.at(exceptionParameter));
-  parameterError.decode(report.parameters.at(parameterErrorParameter));
+  // Clause 11.4.1 also requires at least one HLAsetSwitches parameter.
+  // Confirm the zero-parameter form is reported as malformed by the RTI.
+  sendWithoutParameters(setSwitches);
+  auto const allReports = federate.recorder().interactions();
   require(
-      serviceName.get() ==
-          L"HLAinteractionRoot.HLAmanager.HLAfederation.HLArequest.HLArequestSynchronizationPointStatus",
-      "HLAreportMOMexception did not identify the fully qualified standard MOM interaction");
-  require(
-      !exceptionText.get().empty(),
-      "HLAreportMOMexception did not provide a textual problem description");
-  require(
-      parameterError.get(),
-      "HLAreportMOMexception did not mark the missing interaction parameter");
-  require(
-      copyBytes(report.parameters.at(federateParameter)) ==
-          copyBytes(joinedFederate.encode()),
-      "HLAreportMOMexception identified a different joined federate");
+      allReports.size() == 2U,
+      "An HLAsetSwitches interaction with no parameters did not deliver one HLAreportMOMexception");
+  verifyMissingParameterReport(
+      allReports.back(),
+      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
 
   ambassador.unsubscribeInteractionClass(statusReportClass);
   ambassador.unsubscribeInteractionClass(reportClass);
@@ -8611,231 +8587,6 @@ void scenarioFederateMomFomModuleContentReportContract(
   scenarioFederateMomFomModuleContentReport(options, model);
 }
 
-void scenarioFederateMomObjectInstanceInformation(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty() && !options.mimFom.empty() &&
-          !options.logicalTimeImplementationName.empty() &&
-          !options.objectClassName.empty() && !options.attributeName.empty(),
-      "Federate MOM object-information reporting requires adapter-supplied FOM, standard MIM, object class, attribute, and logical-time configuration");
-
-  Session requester(options, model, "member");
-  Session owner(options, model, "owner");
-  auto const federation = federationName(
-      options,
-      "federate-mom-object-instance-information");
-  requester.connect();
-  owner.connect();
-  owner.rtiAmbassador().createFederationExecutionWithMIM(
-      federation,
-      std::vector<std::wstring>{options.fom.wstring()},
-      options.mimFom.wstring(),
-      options.logicalTimeImplementationName);
-  auto const requesterName =
-      options.memberFederateName + L"-mom-object-information-requester";
-  auto const ownerName = options.ownerFederateName + L"-mom-object-information-owner";
-  requester.join(requesterName, options.federateType, federation);
-  owner.join(ownerName, options.federateType, federation);
-
-  auto& ambassador = requester.rtiAmbassador();
-  auto const requesterClass =
-      ambassador.getObjectClassHandle(options.objectClassName);
-  auto const requesterAttribute =
-      ambassador.getAttributeHandle(requesterClass, options.attributeName);
-  auto const requesterFederate = ambassador.getFederateHandle(requesterName);
-  auto const ownerClass =
-      owner.rtiAmbassador().getObjectClassHandle(options.objectClassName);
-  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
-      ownerClass,
-      options.attributeName);
-  require(
-      requesterClass.isValid() && requesterAttribute.isValid() &&
-          requesterFederate.isValid() && ownerClass.isValid() &&
-          ownerAttribute.isValid(),
-      "Adapter-supplied object class or attribute lookup returned an invalid handle");
-  ambassador.publishObjectClassAttributes(
-      requesterClass,
-      rti::AttributeHandleSet{requesterAttribute});
-  owner.rtiAmbassador().publishObjectClassAttributes(
-      ownerClass,
-      rti::AttributeHandleSet{ownerAttribute});
-  ambassador.subscribeObjectClassAttributes(
-      requesterClass,
-      rti::AttributeHandleSet{requesterAttribute},
-      true);
-
-  auto const reportClass = ambassador.getInteractionClassHandle(
-      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportObjectInstanceInformation");
-  auto const reportObjectParameter =
-      ambassador.getParameterHandle(reportClass, L"HLAobjectInstance");
-  auto const reportOwnedAttributesParameter =
-      ambassador.getParameterHandle(reportClass, L"HLAownedInstanceAttributeList");
-  auto const reportRegisteredClassParameter =
-      ambassador.getParameterHandle(reportClass, L"HLAregisteredClass");
-  auto const reportKnownClassParameter =
-      ambassador.getParameterHandle(reportClass, L"HLAknownClass");
-  auto const reportFederateParameter =
-      ambassador.getParameterHandle(reportClass, L"HLAfederate");
-  auto const requestClass = ambassador.getInteractionClassHandle(
-      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstanceInformation");
-  auto const requestObjectParameter =
-      ambassador.getParameterHandle(requestClass, L"HLAobjectInstance");
-  auto const reliable = ambassador.getTransportationTypeHandle(L"HLAreliable");
-  require(
-      reportClass.isValid() && reportObjectParameter.isValid() &&
-          reportOwnedAttributesParameter.isValid() &&
-          reportRegisteredClassParameter.isValid() &&
-          reportKnownClassParameter.isValid() &&
-          reportFederateParameter.isValid() && requestClass.isValid() &&
-          requestObjectParameter.isValid() && reliable.isValid(),
-      "Standard MIM object-information request/report lookup returned an invalid handle");
-  ambassador.subscribeInteractionClass(reportClass);
-
-  auto decodeOwnedAttributes = [&](rti::VariableLengthData const& encoded) {
-    // HLAattributeHandleList is a variable array whose elements are encoded
-    // attribute-handle byte arrays, as declared by the standard MIM.
-    rti::HLAvariableArray const attributeHandlePrototype{rti::HLAoctet{}};
-    rti::HLAvariableArray handles{
-        static_cast<rti::DataElement const&>(attributeHandlePrototype)};
-    handles.decode(encoded);
-    std::vector<rti::AttributeHandle> decoded;
-    decoded.reserve(handles.size());
-    for (std::size_t index = 0; index != handles.size(); ++index) {
-      auto const& encodedAttribute =
-          dynamic_cast<rti::HLAvariableArray const&>(handles.get(index));
-      decoded.push_back(
-          ambassador.decodeAttributeHandle(encodedAttribute.encode()));
-    }
-    return decoded;
-  };
-  auto requestInformation = [&](rti::ObjectInstanceHandle const& object,
-                                std::string const& description) {
-    requester.recorder().clearInteraction();
-    rti::ParameterHandleValueMap const parameters{
-        {requestObjectParameter, object.encode()}};
-    ambassador.sendInteraction(
-        requestClass,
-        parameters,
-        rti::VariableLengthData{});
-    waitFor(
-        requester,
-        [&] { return !requester.recorder().interactions().empty(); },
-        options,
-        description);
-    auto const reports = requester.recorder().interactions();
-    require(
-        reports.size() == 1U,
-        description + " did not deliver exactly one object-information report");
-    return reports.front();
-  };
-  auto requireReportBase = [&](InteractionRecord const& report,
-                               rti::ObjectInstanceHandle const& object) {
-    require(
-        report.present && report.interaction == reportClass &&
-            report.transportation == reliable &&
-            report.parameters.find(reportObjectParameter) != report.parameters.end() &&
-            report.parameters.find(reportOwnedAttributesParameter) !=
-                report.parameters.end(),
-        "Object-information report omitted its standard identity/list fields or used non-reliable delivery");
-    auto const inheritedFederateParameterCount =
-        report.parameters.count(reportFederateParameter);
-    require(
-        report.parameters.size() == 2U +
-                (report.parameters.count(reportRegisteredClassParameter) != 0U ? 1U : 0U) +
-                (report.parameters.count(reportKnownClassParameter) != 0U ? 1U : 0U) +
-                inheritedFederateParameterCount,
-        "Object-information report included parameters outside its MIM-defined response shape");
-    require(
-        ambassador.decodeObjectInstanceHandle(
-            report.parameters.at(reportObjectParameter)) == object,
-        "Object-information report identified a different object instance");
-    if (inheritedFederateParameterCount == 1U) {
-      require(
-          copyBytes(report.parameters.at(reportFederateParameter)) ==
-              copyBytes(requesterFederate.encode()),
-          "Object-information report identified a different joined federate");
-    }
-  };
-
-  auto const ownedObject = ambassador.registerObjectInstance(requesterClass);
-  require(ownedObject.isValid(), "Object-information test registration returned an invalid handle");
-  auto const ownedReport = requestInformation(
-      ownedObject,
-      "the requesting federate's owned object-information report");
-  requireReportBase(ownedReport, ownedObject);
-  auto const ownedAttributes = decodeOwnedAttributes(
-      ownedReport.parameters.at(reportOwnedAttributesParameter));
-  require(
-      std::find(ownedAttributes.begin(), ownedAttributes.end(), requesterAttribute) !=
-          ownedAttributes.end(),
-      "Object-information report omitted the requesting federate's owned application attribute");
-  require(
-      ownedReport.parameters.count(reportRegisteredClassParameter) == 1U &&
-          ownedReport.parameters.count(reportKnownClassParameter) == 1U &&
-          ambassador.decodeObjectClassHandle(
-              ownedReport.parameters.at(reportRegisteredClassParameter)) == requesterClass &&
-          ambassador.decodeObjectClassHandle(
-              ownedReport.parameters.at(reportKnownClassParameter)) == requesterClass,
-      "Owned object-information report returned the wrong registered or known class");
-
-  auto const observedObject = owner.rtiAmbassador().registerObjectInstance(ownerClass);
-  require(observedObject.isValid(), "Remote object-information registration returned an invalid handle");
-  waitFor(
-      requester,
-      [&] { return requester.recorder().hasDiscovery(observedObject); },
-      options,
-      "discovery of the object-information query target");
-  require(
-      ambassador.getKnownObjectClassHandle(observedObject) == requesterClass,
-      "Object-information query target was discovered with a different class");
-
-  auto const knownReport = requestInformation(
-      observedObject,
-      "the known object-information report");
-  requireReportBase(knownReport, observedObject);
-  require(
-      decodeOwnedAttributes(
-          knownReport.parameters.at(reportOwnedAttributesParameter)).empty(),
-      "Known-object information report included attributes not owned by the requesting federate");
-  require(
-      knownReport.parameters.count(reportRegisteredClassParameter) == 1U &&
-          knownReport.parameters.count(reportKnownClassParameter) == 1U &&
-          ambassador.decodeObjectClassHandle(
-              knownReport.parameters.at(reportRegisteredClassParameter)) == requesterClass &&
-          ambassador.decodeObjectClassHandle(
-              knownReport.parameters.at(reportKnownClassParameter)) == requesterClass,
-      "Known-object information report returned the wrong registered or known class");
-
-  ambassador.localDeleteObjectInstance(observedObject);
-  auto const nullReport = requestInformation(
-      observedObject,
-      "the NULL object-information report after local deletion");
-  requireReportBase(nullReport, observedObject);
-  require(
-      decodeOwnedAttributes(
-          nullReport.parameters.at(reportOwnedAttributesParameter)).empty() &&
-          nullReport.parameters.count(reportRegisteredClassParameter) == 0U &&
-          nullReport.parameters.count(reportKnownClassParameter) == 0U,
-      "NULL object-information report did not use the standard empty-list/class-omission shape");
-
-  ambassador.unsubscribeInteractionClass(reportClass);
-  ambassador.unsubscribeObjectClassAttributes(
-      requesterClass,
-      rti::AttributeHandleSet{requesterAttribute});
-  requester.resign(rti::DELETE_OBJECTS);
-  owner.resign(rti::DELETE_OBJECTS);
-  owner.rtiAmbassador().destroyFederationExecution(federation);
-  requester.disconnect();
-  owner.disconnect();
-}
-
-void scenarioFederateMomObjectInstanceInformationContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioFederateMomObjectInstanceInformation(options, model);
-}
-
 void scenarioFederateMomExceptionReportServicePrecondition(
     Options const& options,
     rti::CallbackModel model) {
@@ -8877,14 +8628,30 @@ void scenarioFederateMomExceptionReportServicePrecondition(
           federateParameter.isValid() && reliable.isValid() &&
           joinedFederate.isValid(),
       "Standard MIM HLAreportMOMexception lookups returned an invalid handle");
-  ambassador.subscribeInteractionClass(reportClass, true);
-
   auto const serviceInvocationClass = ambassador.getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportServiceInvocation");
   require(
       serviceInvocationClass.isValid(),
       "Standard MIM HLAreportServiceInvocation lookup returned an invalid handle");
   ambassador.subscribeInteractionClass(serviceInvocationClass, true);
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "The standard Service Reporting switch did not begin disabled");
+  ambassador.setServiceReportingSwitch(false);
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "Setting Service Reporting to FALSE did not leave the switch disabled while subscribed");
+  try {
+    ambassador.setServiceReportingSwitch(true);
+  } catch (rti::Exception const&) {
+    // The standard behavior is the unchanged disabled state; no exception
+    // class is prescribed by the switch restriction itself.
+  }
+  require(
+      !ambassador.getServiceReportingSwitch(),
+      "The public Set Service Reporting Switch enabled reporting while the federate was subscribed to HLAreportServiceInvocation");
+
+  ambassador.subscribeInteractionClass(reportClass, true);
 
   auto const setSwitches = ambassador.getInteractionClassHandle(
       L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
@@ -8958,16 +8725,32 @@ void scenarioFederateMomExceptionReportServicePrecondition(
   // The standard MIM permits enabling Service Reporting once this federate
   // no longer subscribes to the report interaction that would carry it.
   ambassador.unsubscribeInteractionClass(serviceInvocationClass);
+  ambassador.setServiceReportingSwitch(true);
+  require(
+      ambassador.getServiceReportingSwitch(),
+      "The public Set Service Reporting Switch did not enable reporting after its MOM subscription precondition was removed");
   setServiceReporting(true);
   require(
       ambassador.getServiceReportingSwitch(),
       "Service Reporting did not enable after its MIM subscription precondition was removed");
+  bool serviceReportSubscriptionRejected = false;
+  try {
+    ambassador.subscribeInteractionClass(serviceInvocationClass, true);
+  } catch (rti::Exception const&) {
+    serviceReportSubscriptionRejected = true;
+  }
+  require(
+      serviceReportSubscriptionRejected,
+      "A joined federate with Service Reporting enabled subscribed to HLAreportServiceInvocation");
+  require(
+      ambassador.getServiceReportingSwitch(),
+      "A rejected HLAreportServiceInvocation subscription changed Service Reporting");
   while (ambassador.evokeCallback(0.0)) {
   }
   reports = federate.recorder().interactions();
   require(
       reports.size() == 1U && reports.front().interaction == reportClass,
-      "A successful Service Reporting enable produced an unexpected subscribed report");
+      "The rejected HLAreportServiceInvocation subscription produced an unexpected report");
 
   setServiceReporting(false);
   require(
@@ -8985,80 +8768,6 @@ void scenarioFederateMomExceptionReportServicePreconditionContract(
   scenarioFederateMomExceptionReportServicePrecondition(options, model);
 }
 
-void scenarioFederateSendServiceReportsToFileMomSwitch(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty() && !options.mimFom.empty() &&
-          !options.logicalTimeImplementationName.empty(),
-      "Federate MOM report-destination testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
-
-  Session federate(options, model, "owner");
-  auto const federation = federationName(
-      options,
-      "federate-send-service-reports-to-file-mom-switch");
-  federate.connect();
-  federate.rtiAmbassador().createFederationExecutionWithMIM(
-      federation,
-      std::vector<std::wstring>{options.fom.wstring()},
-      options.mimFom.wstring(),
-      options.logicalTimeImplementationName);
-  federate.join(
-      options.ownerFederateName + L"-report-file-destination-mom-switch",
-      options.federateType,
-      federation);
-
-  auto& ambassador = federate.rtiAmbassador();
-  require(
-      !ambassador.getServiceReportingSwitch(),
-      "Standard MIM Service Reporting switch did not start false; report destination must remain inactive in this state-only scenario");
-  auto const initialFileReporting =
-      ambassador.getSendServiceReportsToFileSwitch();
-  auto const initialExceptionReporting =
-      ambassador.getExceptionReportingSwitch();
-  auto const initialResignAction = ambassador.getAutomaticResignDirective();
-  auto const setSwitches = ambassador.getInteractionClassHandle(
-      L"HLAinteractionRoot.HLAmanager.HLAfederate.HLAadjust.HLAsetSwitches");
-  auto const sendReportsToFile = ambassador.getParameterHandle(
-      setSwitches,
-      L"HLAsendServiceReportsToFile");
-  require(
-      setSwitches.isValid() && sendReportsToFile.isValid(),
-      "Standard federate-MOM report-destination lookup returned an invalid handle");
-
-  auto setReportDestinationThroughMom = [&](bool const enabled) {
-    rti::ParameterHandleValueMap const parameters{
-        {sendReportsToFile, rti::HLAinteger32BE{enabled ? 1 : 0}.encode()}};
-    ambassador.sendInteraction(
-        setSwitches,
-        parameters,
-        rti::VariableLengthData{});
-    require(
-        ambassador.getSendServiceReportsToFileSwitch() == enabled,
-        std::string("HLAsetSwitches HLAsendServiceReportsToFile did not set the switch to ") +
-            (enabled ? "true" : "false"));
-    require(
-        !ambassador.getServiceReportingSwitch() &&
-            ambassador.getExceptionReportingSwitch() ==
-                initialExceptionReporting &&
-            ambassador.getAutomaticResignDirective() == initialResignAction,
-        "HLAsetSwitches HLAsendServiceReportsToFile changed a neighboring federate switch");
-  };
-  setReportDestinationThroughMom(false);
-  setReportDestinationThroughMom(true);
-  setReportDestinationThroughMom(initialFileReporting);
-
-  federate.resign(rti::NO_ACTION);
-  federate.rtiAmbassador().destroyFederationExecution(federation);
-  federate.disconnect();
-}
-
-void scenarioFederateSendServiceReportsToFileMomSwitchContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioFederateSendServiceReportsToFileMomSwitch(options, model);
-}
-
 void scenarioFederateAutomaticResignActionMomSwitch(
     Options const& options,
     rti::CallbackModel model) {
@@ -9068,6 +8777,7 @@ void scenarioFederateAutomaticResignActionMomSwitch(
       "Federate MOM Automatic Resign Action testing requires adapter-supplied FOM, standard MIM, and logical-time configuration");
 
   Session federate(options, model, "owner");
+  Session observer(options, model, "observer");
   auto const federation = federationName(
       options,
       "federate-automatic-resign-action-mom-switch");
@@ -9081,6 +8791,11 @@ void scenarioFederateAutomaticResignActionMomSwitch(
       options.ownerFederateName + L"-automatic-resign-action-mom-switch",
       options.federateType,
       federation);
+  observer.connect();
+  observer.join(
+      options.memberFederateName + L"-automatic-resign-action-mom-observer",
+      options.federateType,
+      federation);
 
   auto& ambassador = federate.rtiAmbassador();
   require(
@@ -9088,6 +8803,8 @@ void scenarioFederateAutomaticResignActionMomSwitch(
       "Standard MIM Service Reporting switch did not start false for the Automatic Resign Action switch test");
   auto const initialResignAction =
       ambassador.getAutomaticResignDirective();
+  auto const observerInitialResignAction =
+      observer.rtiAmbassador().getAutomaticResignDirective();
   auto const initialExceptionReporting =
       ambassador.getExceptionReportingSwitch();
   auto const initialFileReporting =
@@ -9116,6 +8833,10 @@ void scenarioFederateAutomaticResignActionMomSwitch(
         ambassador.getAutomaticResignDirective() == action,
         "HLAsetSwitches HLAautomaticResignAction did not set the requested standard enum");
     require(
+        observer.rtiAmbassador().getAutomaticResignDirective() ==
+            observerInitialResignAction,
+        "HLAsetSwitches HLAautomaticResignAction changed another joined federate's directive");
+    require(
         !ambassador.getServiceReportingSwitch() &&
             ambassador.getExceptionReportingSwitch() ==
                 initialExceptionReporting &&
@@ -9127,8 +8848,10 @@ void scenarioFederateAutomaticResignActionMomSwitch(
   setResignActionThroughMom(rti::DELETE_OBJECTS);
   setResignActionThroughMom(initialResignAction);
 
+  observer.resign(rti::NO_ACTION);
   federate.resign(rti::NO_ACTION);
   federate.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
   federate.disconnect();
 }
 
@@ -10722,125 +10445,6 @@ void scenarioInteractionPublicationSendTransitionContract(
   scenarioInteractionPublicationSendTransition(options, model);
 }
 
-void scenarioInteractionActiveAndPassiveSubscriptionModes(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty(),
-      "Active/passive interaction-subscription testing requires an adapter-supplied FOM");
-
-  Session publisher(options, model, "interaction-subscription-modes-publisher");
-  Session activeSubscriber(options, model, "interaction-subscription-modes-active");
-  Session passiveSubscriber(options, model, "interaction-subscription-modes-passive");
-  auto const federation = federationName(
-      options,
-      "interaction-active-and-passive-subscription-modes");
-  connectAndJoin(
-      publisher,
-      activeSubscriber,
-      options,
-      federation,
-      options.fom);
-  passiveSubscriber.connect();
-  passiveSubscriber.join(
-      options.memberFederateName + L"-passive-interaction-subscription",
-      options.federateType,
-      federation);
-
-  auto const publisherInteraction =
-      publisher.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const activeInteraction =
-      activeSubscriber.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const passiveInteraction =
-      passiveSubscriber.rtiAmbassador().getInteractionClassHandle(
-          options.interactionClassName);
-  auto const publisherParameter = publisher.rtiAmbassador().getParameterHandle(
-      publisherInteraction,
-      options.parameterName);
-  auto const activeParameter = activeSubscriber.rtiAmbassador().getParameterHandle(
-      activeInteraction,
-      options.parameterName);
-  auto const passiveParameter = passiveSubscriber.rtiAmbassador().getParameterHandle(
-      passiveInteraction,
-      options.parameterName);
-  require(
-      publisherInteraction.isValid() && activeInteraction.isValid() &&
-          passiveInteraction.isValid() && publisherParameter.isValid() &&
-          activeParameter.isValid() && passiveParameter.isValid(),
-      "Active/passive interaction lookup returned an invalid standard handle");
-
-  publisher.rtiAmbassador().publishInteractionClass(publisherInteraction);
-  activeSubscriber.rtiAmbassador().subscribeInteractionClass(
-      activeInteraction,
-      true);
-  passiveSubscriber.rtiAmbassador().subscribeInteractionClass(
-      passiveInteraction,
-      false);
-
-  std::vector<std::uint8_t> const value{0x41U, 0x50U};
-  rti::ParameterHandleValueMap parameters;
-  parameters.emplace(
-      publisherParameter,
-      rti::VariableLengthData(value.data(), value.size()));
-  publisher.rtiAmbassador().sendInteraction(
-      publisherInteraction,
-      parameters,
-      rti::VariableLengthData{});
-
-  if (model == rti::HLA_EVOKED) {
-    require(
-        activeSubscriber.recorder().interactions().empty() &&
-            passiveSubscriber.recorder().interactions().empty(),
-        "Active/passive interaction callbacks arrived before evoked callback servicing");
-  }
-  waitFor(
-      activeSubscriber,
-      [&] { return activeSubscriber.recorder().interactions().size() >= 1U; },
-      options,
-      "active ordinary interaction delivery");
-  auto assertDelivery = [&](Session& receiver,
-                            rti::InteractionClassHandle const& expectedInteraction,
-                            rti::ParameterHandle const& expectedParameter,
-                            std::string const& description) {
-    auto const received = receiver.recorder().interactions();
-    require(
-        received.size() == 1U && received.front().present &&
-            received.front().interaction == expectedInteraction &&
-            received.front().parameters.size() == 1U &&
-            received.front().parameters.count(expectedParameter) == 1U &&
-            copyBytes(received.front().parameters.at(expectedParameter)) == value,
-        description + " received the wrong class, parameter, or parameter value");
-  };
-  assertDelivery(
-      activeSubscriber,
-      activeInteraction,
-      activeParameter,
-      "active interaction subscriber");
-  require(
-      publisher.recorder().interactions().empty(),
-      "Ordinary interaction callback looped back to its publisher");
-
-  passiveSubscriber.rtiAmbassador().unsubscribeInteractionClass(
-      passiveInteraction);
-  activeSubscriber.rtiAmbassador().unsubscribeInteractionClass(activeInteraction);
-  passiveSubscriber.resign(rti::NO_ACTION);
-  activeSubscriber.resign(rti::NO_ACTION);
-  publisher.rtiAmbassador().unpublishInteractionClass(publisherInteraction);
-  publisher.resign(rti::NO_ACTION);
-  publisher.rtiAmbassador().destroyFederationExecution(federation);
-  passiveSubscriber.disconnect();
-  activeSubscriber.disconnect();
-  publisher.disconnect();
-}
-
-void scenarioInteractionActiveAndPassiveSubscriptionModesContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioInteractionActiveAndPassiveSubscriptionModes(options, model);
-}
-
 void scenarioReceiveOrderObjectRemoval(
     Options const& options,
     rti::CallbackModel model) {
@@ -11756,6 +11360,36 @@ void scenarioOwnershipAcquisitionIfAvailable(
         unavailableObject,
         requesterAttributes,
         unavailableTag);
+    requester.rtiAmbassador().attributeOwnershipAcquisition(
+        unavailableObject,
+        requesterAttributes,
+        unavailableTag);
+    waitFor(
+        owner,
+        [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+        options,
+        "If Available to regular acquisition pending release request");
+    auto const releaseRequest = owner.recorder().ownershipReleaseRequest();
+    require(
+        releaseRequest->object == unavailableObject &&
+            releaseRequest->attributes == ownerAttributes &&
+            releaseRequest->tag == unavailableTagBytes,
+        "regular acquisition from Willing to Acquire requested release with wrong metadata");
+    require(
+        !requester.recorder().ownershipUnavailable().has_value() &&
+            !requester.recorder().ownershipAcquisition().has_value() &&
+            owner.rtiAmbassador().isAttributeOwnedByFederate(
+                unavailableObject,
+                ownerAttribute) &&
+            !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                unavailableObject,
+                requesterAttribute),
+        "regular acquisition from Willing to Acquire did not enter Acquisition Pending");
+    owner.recorder().clearOwnershipRecords();
+    owner.rtiAmbassador().attributeOwnershipReleaseDenied(
+        unavailableObject,
+        ownerAttributes,
+        unavailableTag);
   }
   waitFor(
       requester,
@@ -11789,6 +11423,168 @@ void scenarioOwnershipAcquisitionIfAvailable(
   require(
       !owner.recorder().ownershipReleaseRequest().has_value(),
       "If Available ownership-acquisition unavailable requested owner release");
+
+  if (model == rti::HLA_EVOKED) {
+    std::vector<std::uint8_t> const overrideIfAvailableTagBytes{
+        0x52U, 0xA1U};
+    std::vector<std::uint8_t> const overrideRegularTagBytes{
+        0x52U, 0xA2U};
+    std::vector<std::uint8_t> const overrideDivestitureTagBytes{
+        0x52U, 0xA3U};
+    rti::VariableLengthData const overrideIfAvailableTag(
+        overrideIfAvailableTagBytes.data(),
+        overrideIfAvailableTagBytes.size());
+    rti::VariableLengthData const overrideRegularTag(
+        overrideRegularTagBytes.data(),
+        overrideRegularTagBytes.size());
+    rti::VariableLengthData const overrideDivestitureTag(
+        overrideDivestitureTagBytes.data(),
+        overrideDivestitureTagBytes.size());
+
+    auto const successfulOverrideObject =
+        owner.rtiAmbassador().registerObjectInstance(ownerClass);
+    require(
+        successfulOverrideObject.isValid(),
+        "Successful override registration returned an invalid object handle");
+    waitFor(
+        requester,
+        [&] { return requester.recorder().hasDiscovery(successfulOverrideObject); },
+        options,
+        "successful override object discovery");
+    owner.recorder().clearOwnershipRecords();
+    requester.recorder().clearOwnershipRecords();
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        successfulOverrideObject,
+        requesterAttributes,
+        overrideIfAvailableTag);
+    requester.rtiAmbassador().attributeOwnershipAcquisition(
+        successfulOverrideObject,
+        requesterAttributes,
+        overrideRegularTag);
+    waitFor(
+        owner,
+        [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+        options,
+        "successful override owner release request");
+    auto const successfulOverrideReleaseRequest =
+        owner.recorder().ownershipReleaseRequest();
+    require(
+        successfulOverrideReleaseRequest->object == successfulOverrideObject &&
+            successfulOverrideReleaseRequest->attributes == ownerAttributes &&
+            successfulOverrideReleaseRequest->tag == overrideRegularTagBytes &&
+            !requester.recorder().ownershipUnavailable().has_value() &&
+            !requester.recorder().ownershipAcquisition().has_value() &&
+            owner.rtiAmbassador().isAttributeOwnedByFederate(
+                successfulOverrideObject,
+                ownerAttribute) &&
+            !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                successfulOverrideObject,
+                requesterAttribute),
+        "regular acquisition did not remain pending after overriding If Available");
+    rti::AttributeHandleSet successfulOverrideDivestedAttributes;
+    owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+        successfulOverrideObject,
+        ownerAttributes,
+        overrideDivestitureTag,
+        successfulOverrideDivestedAttributes);
+    require(
+        successfulOverrideDivestedAttributes == ownerAttributes,
+        "Successful override divestiture returned the wrong attribute set");
+    waitFor(
+        requester,
+        [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+        options,
+        "successful override acquisition notification");
+    auto const successfulOverrideAcquisition =
+        requester.recorder().ownershipAcquisition();
+    require(
+        successfulOverrideAcquisition->object == successfulOverrideObject &&
+            successfulOverrideAcquisition->attributes == requesterAttributes &&
+            successfulOverrideAcquisition->tag == overrideDivestitureTagBytes &&
+            !requester.recorder().ownershipUnavailable().has_value() &&
+            requester.recorder().ownershipUnavailableEvents().empty() &&
+            requester.rtiAmbassador().isAttributeOwnedByFederate(
+                successfulOverrideObject,
+                requesterAttribute),
+        "Successful override did not terminate in the ownership notification");
+    requester.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+        successfulOverrideObject,
+        requesterAttributes,
+        rti::VariableLengthData{});
+
+    auto const canceledOverrideObject =
+        owner.rtiAmbassador().registerObjectInstance(ownerClass);
+    require(
+        canceledOverrideObject.isValid(),
+        "Canceled override registration returned an invalid object handle");
+    waitFor(
+        requester,
+        [&] { return requester.recorder().hasDiscovery(canceledOverrideObject); },
+        options,
+        "canceled override object discovery");
+    owner.recorder().clearOwnershipRecords();
+    requester.recorder().clearOwnershipRecords();
+    requester.rtiAmbassador().attributeOwnershipAcquisitionIfAvailable(
+        canceledOverrideObject,
+        requesterAttributes,
+        overrideIfAvailableTag);
+    requester.rtiAmbassador().attributeOwnershipAcquisition(
+        canceledOverrideObject,
+        requesterAttributes,
+        overrideRegularTag);
+    waitFor(
+        owner,
+        [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+        options,
+        "canceled override owner release request");
+    auto const canceledOverrideReleaseRequest =
+        owner.recorder().ownershipReleaseRequest();
+    require(
+        canceledOverrideReleaseRequest->object == canceledOverrideObject &&
+            canceledOverrideReleaseRequest->attributes == ownerAttributes &&
+            canceledOverrideReleaseRequest->tag == overrideRegularTagBytes &&
+            !requester.recorder().ownershipUnavailable().has_value() &&
+            !requester.recorder().ownershipAcquisition().has_value() &&
+            owner.rtiAmbassador().isAttributeOwnedByFederate(
+                canceledOverrideObject,
+                ownerAttribute) &&
+            !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                canceledOverrideObject,
+                requesterAttribute),
+        "regular acquisition was not pending before successful cancellation");
+    owner.recorder().clearOwnershipRecords();
+    requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+        canceledOverrideObject,
+        requesterAttributes);
+    waitFor(
+        requester,
+        [&] {
+          return requester.recorder().ownershipAcquisitionCancellation().has_value();
+        },
+        options,
+        "canceled override confirmation");
+    auto const canceledOverrideConfirmation =
+        requester.recorder().ownershipAcquisitionCancellation();
+    require(
+        canceledOverrideConfirmation->object == canceledOverrideObject &&
+            canceledOverrideConfirmation->attributes == requesterAttributes &&
+            canceledOverrideConfirmation->tag.empty() &&
+            requester.recorder().ownershipAcquisitionCancellationEvents().size() ==
+                1U &&
+            !requester.recorder().ownershipUnavailable().has_value() &&
+            !requester.recorder().ownershipAcquisition().has_value() &&
+            owner.rtiAmbassador().isAttributeOwnedByFederate(
+                canceledOverrideObject,
+                ownerAttribute) &&
+            !requester.rtiAmbassador().isAttributeOwnedByFederate(
+                canceledOverrideObject,
+                requesterAttribute),
+        "Successful cancellation did not terminate the overridden request");
+    static_cast<void>(owner.evokeMultipleCallbacks(0.0, 0.0));
+    require(
+        !owner.recorder().ownershipReleaseRequest().has_value(),
+        "canceled override retained a stale owner release request");
+  }
 
   std::vector<std::uint8_t> const acquisitionTagBytes{
       0x3CU,
@@ -12072,6 +11868,15 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
       object,
       requesterAttributes,
       acquisitionTag);
+  requireException(
+      [&] {
+        requester.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+            object,
+            requesterAttributes,
+            acquisitionTag);
+      },
+      L"AttributeNotOwned",
+      "unconditionally divesting attributes while their acquisition is pending");
   requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
       object,
       requesterAttributes);
@@ -12187,6 +11992,102 @@ void scenarioAttributeOwnershipAcquisitionCancellation(
         requesterClass,
         oneAttribute);
   }
+
+  // A cancellation can lose the race to a completed divestiture. In that
+  // case the failed cancel is reported by the ownership-acquisition
+  // notification, which also confirms the transfer to the requester.
+  requester.rtiAmbassador().publishObjectClassAttributes(
+      requesterClass,
+      requesterAttributes);
+  auto const failedCancellationObject =
+      owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      failedCancellationObject.isValid(),
+      "Failed-cancellation ownership registration returned an invalid object handle");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().hasDiscovery(failedCancellationObject); },
+      options,
+      "failed-cancellation ownership discovery");
+  owner.recorder().clearOwnershipRecords();
+  requester.recorder().clearOwnershipRecords();
+  std::vector<std::uint8_t> const failedCancellationAcquisitionTagBytes{
+      0xA6U, 0x25U};
+  std::vector<std::uint8_t> const failedCancellationDivestitureTagBytes{
+      0xD6U, 0x25U};
+  rti::VariableLengthData const failedCancellationAcquisitionTag(
+      failedCancellationAcquisitionTagBytes.data(),
+      failedCancellationAcquisitionTagBytes.size());
+  rti::VariableLengthData const failedCancellationDivestitureTag(
+      failedCancellationDivestitureTagBytes.data(),
+      failedCancellationDivestitureTagBytes.size());
+  requester.rtiAmbassador().attributeOwnershipAcquisition(
+      failedCancellationObject,
+      requesterAttributes,
+      failedCancellationAcquisitionTag);
+  waitFor(
+      owner,
+      [&] { return owner.recorder().ownershipReleaseRequest().has_value(); },
+      options,
+      "failed-cancellation owner release request");
+  auto const failedCancellationReleaseRequest =
+      owner.recorder().ownershipReleaseRequest();
+  require(
+      failedCancellationReleaseRequest->object == failedCancellationObject &&
+          failedCancellationReleaseRequest->attributes == ownerAttributes &&
+          failedCancellationReleaseRequest->tag ==
+              failedCancellationAcquisitionTagBytes,
+      "Failed-cancellation owner release request returned the wrong metadata");
+  rti::AttributeHandleSet failedCancellationDivestedAttributes;
+  owner.rtiAmbassador().attributeOwnershipDivestitureIfWanted(
+      failedCancellationObject,
+      ownerAttributes,
+      failedCancellationDivestitureTag,
+      failedCancellationDivestedAttributes);
+  require(
+      failedCancellationDivestedAttributes == ownerAttributes,
+      "Failed-cancellation divestiture did not transfer the requested attributes");
+  requireException(
+      [&] {
+        requester.rtiAmbassador().cancelAttributeOwnershipAcquisition(
+            failedCancellationObject,
+            requesterAttributes);
+      },
+      L"AttributeAlreadyOwned",
+      "canceling after the pending acquisition has been granted");
+  waitFor(
+      requester,
+      [&] { return requester.recorder().ownershipAcquisition().has_value(); },
+      options,
+      "failed-cancellation ownership-acquisition notification");
+  auto const failedCancellationAcquisition =
+      requester.recorder().ownershipAcquisition();
+  require(
+      failedCancellationAcquisition->object == failedCancellationObject &&
+          failedCancellationAcquisition->attributes == requesterAttributes &&
+          failedCancellationAcquisition->tag ==
+              failedCancellationDivestitureTagBytes &&
+          requester.recorder().ownershipAcquisitionCancellationEvents().empty(),
+      "Failed cancellation did not report the exact acquisition notification");
+  require(
+      !owner.rtiAmbassador().isAttributeOwnedByFederate(
+          failedCancellationObject,
+          ownerAttribute) &&
+          !owner.rtiAmbassador().isAttributeOwnedByFederate(
+              failedCancellationObject,
+              ownerSecondAttribute) &&
+          requester.rtiAmbassador().isAttributeOwnedByFederate(
+              failedCancellationObject,
+              requesterAttribute) &&
+          requester.rtiAmbassador().isAttributeOwnedByFederate(
+              failedCancellationObject,
+              requesterSecondAttribute),
+      "Failed-cancellation acquisition notification did not confirm ownership transfer");
+
+  requester.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
+      failedCancellationObject,
+      requesterAttributes,
+      rti::VariableLengthData{});
   owner.rtiAmbassador().unpublishObjectClassAttributes(
       ownerClass,
       ownerAttributes);
@@ -12201,148 +12102,6 @@ void scenarioAttributeOwnershipAcquisitionCancellationContract(
     Options const& options,
     rti::CallbackModel model) {
   scenarioAttributeOwnershipAcquisitionCancellation(options, model);
-}
-
-void scenarioNegotiatedDivestitureConfirmationFlow(
-    Options const& options,
-    rti::CallbackModel model) {
-  require(
-      !options.fom.empty(),
-      "Negotiated-divestiture testing requires an adapter-supplied FOM");
-
-  Session owner(options, model, "negotiated-divestiture-owner");
-  Session acquirer(options, model, "negotiated-divestiture-acquirer");
-  auto const federation = federationName(
-      options,
-      "negotiated-divestiture-confirmation-flow");
-  connectAndJoin(owner, acquirer, options, federation, options.fom);
-
-  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
-      options.objectClassName);
-  auto const acquirerClass = acquirer.rtiAmbassador().getObjectClassHandle(
-      options.objectClassName);
-  auto const ownerAttribute = owner.rtiAmbassador().getAttributeHandle(
-      ownerClass,
-      options.attributeName);
-  auto const acquirerAttribute = acquirer.rtiAmbassador().getAttributeHandle(
-      acquirerClass,
-      options.attributeName);
-  require(
-      ownerClass.isValid() && acquirerClass.isValid() &&
-          ownerAttribute.isValid() && acquirerAttribute.isValid(),
-      "Negotiated-divestiture lookup returned an invalid standard handle");
-
-  rti::AttributeHandleSet const ownerAttributes{ownerAttribute};
-  rti::AttributeHandleSet const acquirerAttributes{acquirerAttribute};
-  owner.rtiAmbassador().publishObjectClassAttributes(
-      ownerClass,
-      ownerAttributes);
-  acquirer.rtiAmbassador().publishObjectClassAttributes(
-      acquirerClass,
-      acquirerAttributes);
-  acquirer.rtiAmbassador().subscribeObjectClassAttributes(
-      acquirerClass,
-      acquirerAttributes,
-      true,
-      L"");
-
-  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
-  require(
-      object.isValid(),
-      "Negotiated-divestiture registration returned an invalid object handle");
-  waitFor(
-      acquirer,
-      [&] { return acquirer.recorder().hasDiscovery(object); },
-      options,
-      "negotiated-divestiture object discovery");
-
-  require(
-      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
-          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
-              object,
-              acquirerAttribute),
-      "Negotiated-divestiture setup did not establish the standard initial ownership state");
-
-  std::vector<std::uint8_t> const divestitureTagBytes{0x10U, 0xD1U};
-  std::vector<std::uint8_t> const acquisitionRequestTagBytes{0x20U, 0xA2U};
-  std::vector<std::uint8_t> const confirmationTagBytes{0x30U, 0xC3U};
-  rti::VariableLengthData const divestitureTag(
-      divestitureTagBytes.data(),
-      divestitureTagBytes.size());
-  rti::VariableLengthData const acquisitionRequestTag(
-      acquisitionRequestTagBytes.data(),
-      acquisitionRequestTagBytes.size());
-  rti::VariableLengthData const confirmationTag(
-      confirmationTagBytes.data(),
-      confirmationTagBytes.size());
-
-  owner.recorder().clearOwnershipRecords();
-  acquirer.recorder().clearOwnershipRecords();
-  owner.rtiAmbassador().negotiatedAttributeOwnershipDivestiture(
-      object,
-      ownerAttributes,
-      divestitureTag);
-  acquirer.rtiAmbassador().attributeOwnershipAcquisition(
-      object,
-      acquirerAttributes,
-      acquisitionRequestTag);
-
-  waitFor(
-      owner,
-      [&] { return owner.recorder().divestitureConfirmation().has_value(); },
-      options,
-      "negotiated-divestiture confirmation request");
-  auto const confirmationRequest = owner.recorder().divestitureConfirmation();
-  require(
-      confirmationRequest->object == object &&
-          confirmationRequest->attributes == ownerAttributes &&
-          confirmationRequest->tag == acquisitionRequestTagBytes,
-      "Negotiated-divestiture confirmation request returned the wrong object, attributes, or acquisition tag");
-  require(
-      owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
-          !acquirer.rtiAmbassador().isAttributeOwnedByFederate(
-              object,
-              acquirerAttribute) &&
-          !acquirer.recorder().ownershipAcquisition().has_value(),
-      "Negotiated divestiture transferred ownership before confirmation");
-
-  owner.rtiAmbassador().confirmDivestiture(
-      object,
-      ownerAttributes,
-      confirmationTag);
-  waitFor(
-      acquirer,
-      [&] { return acquirer.recorder().ownershipAcquisition().has_value(); },
-      options,
-      "negotiated-divestiture acquisition notification");
-  auto const acquisition = acquirer.recorder().ownershipAcquisition();
-  require(
-      acquisition->object == object &&
-          acquisition->attributes == acquirerAttributes &&
-          acquisition->tag == confirmationTagBytes,
-      "Negotiated-divestiture acquisition notification returned the wrong object, attributes, or confirmation tag");
-  require(
-      !owner.rtiAmbassador().isAttributeOwnedByFederate(object, ownerAttribute) &&
-          acquirer.rtiAmbassador().isAttributeOwnedByFederate(
-              object,
-              acquirerAttribute),
-      "Confirm Divestiture did not transfer ownership to the acquirer");
-
-  acquirer.rtiAmbassador().unconditionalAttributeOwnershipDivestiture(
-      object,
-      acquirerAttributes,
-      rti::VariableLengthData{});
-  acquirer.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
-  owner.resign(rti::CANCEL_THEN_DELETE_THEN_DIVEST);
-  owner.rtiAmbassador().destroyFederationExecution(federation);
-  acquirer.disconnect();
-  owner.disconnect();
-}
-
-void scenarioNegotiatedDivestitureConfirmationFlowContract(
-    Options const& options,
-    rti::CallbackModel model) {
-  scenarioNegotiatedDivestitureConfirmationFlow(options, model);
 }
 
 void scenarioAttributeOwnershipReleaseDenied(
@@ -13480,7 +13239,8 @@ void scenarioAutomaticResignDirectiveDeleteObjects(
   waitForConnectionLossAndSignal(
       lost,
       options,
-      "automatic resign directive delete-object cleanup");
+      "automatic resign directive delete-object cleanup",
+      model);
   waitFor(
       survivor,
       [&] {
@@ -14913,6 +14673,16 @@ int runTransportationTypeChangeScenarios(int argc, char** argv) {
       scenarioTransportationTypeChangeContract);
 }
 
+int runPrivilegeAttributeAvailabilityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      privilegeAttributeAvailabilityScenario,
+      privilegeAttributeAvailabilityContractId,
+      scenarioPrivilegeAttributeAvailability,
+      scenarioPrivilegeAttributeAvailabilityContract);
+}
+
 int runOrderTypeChangeScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -15223,6 +14993,68 @@ int runFederationMomStaticIdentityScenarios(int argc, char** argv) {
       federationMomStaticIdentityContractScenario,
       scenarioFederationMomStaticIdentity,
       scenarioFederationMomStaticIdentityContract);
+}
+
+int runFederationMomSLeafSubscriptionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomSLeafSubscriptionScenario,
+      federationMomSLeafSubscriptionContractScenario,
+      scenarioFederationMomSLeafSubscription,
+      scenarioFederationMomSLeafSubscriptionContract);
+}
+
+int runFederationMomChangeAttributeOrderTypeScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomChangeAttributeOrderTypeScenario,
+      federationMomChangeAttributeOrderTypeContractScenario,
+      scenarioFederationMomChangeAttributeOrderType,
+      scenarioFederationMomChangeAttributeOrderTypeContract);
+}
+
+int runFederationMomServiceActorIdentityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomServiceActorIdentityScenario,
+      federationMomServiceActorIdentityContractScenario,
+      scenarioFederationMomServiceActorIdentity,
+      scenarioFederationMomServiceActorIdentityContract);
+}
+
+int runFederationMomChangeInteractionOrderTypeScenarios(
+    int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      federationMomChangeInteractionOrderTypeScenario,
+      federationMomChangeInteractionOrderTypeContractScenario,
+      scenarioFederationMomChangeInteractionOrderType,
+      scenarioFederationMomChangeInteractionOrderTypeContract);
+}
+
+int runMomServiceOptionalAttributeListUnsubscribeScenarios(
+    int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      momServiceOptionalAttributeListUnsubscribeScenario,
+      momServiceOptionalAttributeListUnsubscribeContractScenario,
+      scenarioMomServiceOptionalAttributeListUnsubscribe,
+      scenarioMomServiceOptionalAttributeListUnsubscribeContract);
+}
+
+int runMomOwnershipTransferProhibitionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      momOwnershipTransferProhibitionScenario,
+      momOwnershipTransferProhibitionContractScenario,
+      scenarioMomOwnershipTransferProhibition,
+      scenarioMomOwnershipTransferProhibitionContract);
 }
 
 int runFederationMomStaticSwitchesScenarios(int argc, char** argv) {
@@ -16145,6 +15977,70 @@ int runServiceReportFederateSaveBegunScenarios(int argc, char** argv) {
       scenarioServiceReportFederateSaveBegunContractPortable);
 }
 
+int runMomSaveRestoreInteractionsScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      momSaveRestoreInteractionsScenario,
+      momSaveRestoreInteractionsContractScenario,
+      scenarioMomSaveRestoreInteractions,
+      scenarioMomSaveRestoreInteractionsContract);
+}
+
+int runServiceReportSaveFailureReasonFileScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportSaveFailureReasonFileScenario,
+      serviceReportSaveFailureReasonFileContractScenario,
+      scenarioServiceReportSaveFailureReasonFilePortable,
+      scenarioServiceReportSaveFailureReasonFileContractPortable);
+}
+
+int runServiceReportSaveStatusFileScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportSaveStatusFileScenario,
+      serviceReportSaveStatusFileContractScenario,
+      scenarioServiceReportSaveStatusFilePortable,
+      scenarioServiceReportSaveStatusFileContractPortable);
+}
+
+int runServiceReportServiceGroupFileScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportServiceGroupFileScenario,
+      serviceReportServiceGroupFileContractScenario,
+      scenarioServiceReportServiceGroupFilePortable,
+      scenarioServiceReportServiceGroupFileContractPortable);
+}
+
+int runServiceReportFederationExecutionInformationFileScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportFederationExecutionInformationFileScenario,
+      serviceReportFederationExecutionInformationFileContractScenario,
+      scenarioServiceReportFederationExecutionInformationFilePortable,
+      scenarioServiceReportFederationExecutionInformationFileContractPortable);
+}
+
+int runServiceReportFederationExecutionMembersFileScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      serviceReportFederationExecutionMembersFileScenario,
+      serviceReportFederationExecutionMembersFileContractScenario,
+      scenarioServiceReportFederationExecutionMembersFilePortable,
+      scenarioServiceReportFederationExecutionMembersFileContractPortable);
+}
+
 int runServiceReportTimestampedAttributeUpdateScenarios(
     int argc,
     char** argv) {
@@ -16223,6 +16119,8 @@ int runSynchronizationPointScenarios(int argc, char** argv) {
       if (selected != javaSynchronizationScenario &&
           selected != synchronizationPointsScenario &&
           selected != synchronizationPointContractScenario &&
+          selected != synchronizationPointIndependentTrackingScenario &&
+          selected != synchronizationPointIndependentTrackingContractScenario &&
           selected != synchronizationExplicitSetLateJoinScenario &&
           selected != synchronizationExplicitSetLateJoinContractScenario) {
         continue;
@@ -16238,6 +16136,12 @@ int runSynchronizationPointScenarios(int argc, char** argv) {
               callback.second);
         } else if (selected == synchronizationPointContractScenario) {
           scenarioSynchronizationPointPortableContract(options, callback.second);
+        } else if (selected == synchronizationPointIndependentTrackingScenario) {
+          scenarioSynchronizationPointIndependentTracking(options, callback.second);
+        } else if (selected == synchronizationPointIndependentTrackingContractScenario) {
+          scenarioSynchronizationPointIndependentTrackingContract(
+              options,
+              callback.second);
         } else {
           scenarioSynchronizationPointsPortable(options, callback.second);
         }
@@ -16461,6 +16365,18 @@ int runJoinedFederateMomObjectLifecycleScenarios(int argc, char** argv) {
       joinedFederateMomObjectLifecycleContractId,
       scenarioJoinedFederateMomObjectLifecycle,
       scenarioJoinedFederateMomObjectLifecycleContract);
+}
+
+int runJoinedFederateMomAddedAttributeSameRtiInstanceScenarios(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      joinedFederateMomAddedAttributeSameRtiInstanceScenario,
+      joinedFederateMomAddedAttributeSameRtiInstanceContractId,
+      scenarioJoinedFederateMomAddedAttributeSameRtiInstance,
+      scenarioJoinedFederateMomAddedAttributeSameRtiInstanceContract);
 }
 
 int runJoinedFederateMomDeletableObjectReportScenarios(
@@ -17463,6 +17379,30 @@ int runTimedSaveAvailableAdmissionScenarios(int argc, char** argv) {
       scenarioTimedSaveAvailableAdmissionContract, true);
 }
 
+int runUntimedSaveTimeConstrainedAdmissionScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, untimedSaveTimeConstrainedAdmissionScenario,
+      untimedSaveTimeConstrainedAdmissionContractId,
+      scenarioUntimedSaveTimeConstrainedAdmission,
+      scenarioUntimedSaveTimeConstrainedAdmissionContract, true);
+}
+
+int runFederateSaveTimestampEligibilityScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, federateSaveTimestampEligibilityScenario,
+      federateSaveTimestampEligibilityContractId,
+      scenarioFederateSaveTimestampEligibility,
+      scenarioFederateSaveTimestampEligibilityContract);
+}
+
+int runFederationSaveRequestReplacementScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc, argv, federationSaveRequestReplacementScenario,
+      federationSaveRequestReplacementContractId,
+      scenarioFederationSaveRequestReplacement,
+      scenarioFederationSaveRequestReplacementContract);
+}
+
 int runTimedSaveNextMessageAdmissionScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc, argv, timedSaveNextMessageAdmissionScenario,
@@ -17760,7 +17700,7 @@ int runRestoreObjectSnapshotStatusScenarios(int argc, char** argv) {
       restoreObjectSnapshotStatusContractId,
       scenarioRestoreObjectSnapshotStatus,
       scenarioRestoreObjectSnapshotStatusContract,
-      CallbackScope::ImmediateOnly);
+      CallbackScope::All);
 }
 
 int runFqrPostgrantLowerTsoRetractionScenarios(int argc, char** argv) {
@@ -17781,6 +17721,16 @@ int runFqrNonTimeConstrainedInTransitTsoScenario(int argc, char** argv) {
       fqrNonTimeConstrainedInTransitTsoScenario,
       scenarioFqrNonTimeConstrainedInTransitTso,
       scenarioFqrNonTimeConstrainedInTransitTso);
+}
+
+int runFqrTimestampedObjectDeletionKnownStateScenario(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      fqrTimestampedObjectDeletionKnownStateScenario,
+      fqrTimestampedObjectDeletionKnownStateScenario,
+      scenarioFqrTimestampedObjectDeletionKnownStatePortable,
+      scenarioFqrTimestampedObjectDeletionKnownStatePortable);
 }
 
 int runFqgPostgrantDeliveryCutoffScenarios(int argc, char** argv) {
@@ -17909,106 +17859,6 @@ int runNextMessageRequestScenarios(int argc, char** argv) {
       scenarioNextMessageRequestContractPortable);
 }
 
-int runNmraNoPregrantTsoFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmraNoPregrantTsoFloorScenario,
-      nmraNoPregrantTsoFloorContractId,
-      scenarioNmraNoPregrantTsoFloorPortable,
-      scenarioNmraNoPregrantTsoFloorContractPortable);
-}
-
-int runNmraReceivedTsoActualLookaheadFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmraReceivedTsoActualLookaheadFloorScenario,
-      nmraReceivedTsoActualLookaheadFloorContractId,
-      scenarioNmraReceivedTsoActualLookaheadFloorPortable,
-      scenarioNmraReceivedTsoActualLookaheadFloorContractPortable);
-}
-
-int runNmraRoEarliestTsoCohortScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmraRoEarliestTsoCohortScenario,
-      nmraRoEarliestTsoCohortContractId,
-      scenarioNmraQueuedRoAndEarliestTsoCohortPortable,
-      scenarioNmraQueuedRoAndEarliestTsoCohortContractPortable);
-}
-
-int runNmrNoPregrantTsoFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrNoPregrantTsoFloorScenario,
-      nmrNoPregrantTsoFloorContractId,
-      scenarioNmrNoPregrantTsoFloorPortable,
-      scenarioNmrNoPregrantTsoFloorContractPortable);
-}
-
-int runNmrReceivedTsoFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrReceivedTsoFloorScenario,
-      nmrReceivedTsoFloorContractId,
-      scenarioNmrReceivedTsoFloorPortable,
-      scenarioNmrReceivedTsoFloorContractPortable);
-}
-
-int runNmrReceivedTsoAttributeUpdateFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrReceivedTsoAttributeUpdateFloorScenario,
-      nmrReceivedTsoAttributeUpdateFloorContractId,
-      scenarioNmrReceivedTsoAttributeUpdateFloorPortable,
-      scenarioNmrReceivedTsoAttributeUpdateFloorContractPortable);
-}
-
-int runNmrReceivedTsoDirectedInteractionFloorScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrReceivedTsoDirectedInteractionFloorScenario,
-      nmrReceivedTsoDirectedInteractionFloorContractId,
-      scenarioNmrReceivedTsoDirectedInteractionFloorPortable,
-      scenarioNmrReceivedTsoDirectedInteractionFloorContractPortable);
-}
-
-int runNmrEmptyMessageSetGrantTimeScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrEmptyMessageSetGrantTimeScenario,
-      nmrEmptyMessageSetGrantTimeContractId,
-      scenarioNmrEmptyMessageSetGrantTimePortable,
-      scenarioNmrEmptyMessageSetGrantTimeContractPortable);
-}
-
-int runNmrRequestBelowGaltImmediateGrantScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrRequestBelowGaltImmediateGrantScenario,
-      nmrRequestBelowGaltImmediateGrantContractId,
-      scenarioNmrRequestBelowGaltImmediateGrantPortable,
-      scenarioNmrRequestBelowGaltImmediateGrantContractPortable);
-}
-
-int runNmrLitsBelowGaltImmediateGrantScenarios(int argc, char** argv) {
-  return runPortableScenarioPair(
-      argc,
-      argv,
-      nmrLitsBelowGaltImmediateGrantScenario,
-      nmrLitsBelowGaltImmediateGrantContractId,
-      scenarioNmrLitsBelowGaltImmediateGrantPortable,
-      scenarioNmrLitsBelowGaltImmediateGrantContractPortable);
-}
-
 int runSendMessageTimeStatePreservationGrantedScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -18029,6 +17879,26 @@ int runAvailableTimeAdvancesInclusiveGaltScenarios(int argc, char** argv) {
       scenarioAvailableTimeAdvancesInclusiveGaltContractPortable);
 }
 
+int runTaraUndefinedGaltNrgScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      taraUndefinedGaltNrgScenario,
+      taraUndefinedGaltNrgContractId,
+      scenarioTaraUndefinedGaltNrgPortable,
+      scenarioTaraUndefinedGaltNrgContractPortable);
+}
+
+int runTaraNoTsoUndefinedGaltNrgScenarios(int argc, char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      taraNoTsoUndefinedGaltNrgScenario,
+      taraNoTsoUndefinedGaltNrgContractId,
+      scenarioTaraNoTsoUndefinedGaltNrgPortable,
+      scenarioTaraNoTsoUndefinedGaltNrgContractPortable);
+}
+
 int runNonRegulatingFederatePeerAdvanceScenarios(int argc, char** argv) {
   return runPortableScenarioPair(
       argc,
@@ -18047,6 +17917,18 @@ int runTarAcknowledgedTsoGaltReleaseScenarios(int argc, char** argv) {
       tarAcknowledgedTsoGaltReleaseContractId,
       scenarioTarAcknowledgedTsoGaltReleasePortable,
       scenarioTarAcknowledgedTsoGaltReleaseContractPortable);
+}
+
+int runTarMultiRegulatorAcknowledgedTsoProgressScenario(
+    int argc,
+    char** argv) {
+  return runPortableScenarioPair(
+      argc,
+      argv,
+      tarMultiRegulatorAcknowledgedTsoProgressScenario,
+      tarMultiRegulatorAcknowledgedTsoProgressScenario,
+      scenarioTarMultiRegulatorAcknowledgedTsoProgressPortable,
+      scenarioTarMultiRegulatorAcknowledgedTsoProgressPortable);
 }
 
 int runTimeConstrainedEnableAtGaltEqualityScenarios(int argc, char** argv) {
@@ -19665,6 +19547,30 @@ PortableScenario regionalDdmScenario(std::string const& id) {
   if (id == regionalMultiAttributeUpdateContractId) {
     return scenarioRegionalMultiAttributeUpdateContract;
   }
+  if (id == regionalObjectAttributeDimensionInheritanceScenario) {
+    return scenarioRegionalObjectAttributeDimensionInheritance;
+  }
+  if (id == regionalObjectAttributeDimensionInheritanceContractScenario) {
+    return scenarioRegionalObjectAttributeDimensionInheritanceContract;
+  }
+  if (id == regionalObjectAttributeDefaultRegionFddDimensionsScenario) {
+    return scenarioRegionalObjectAttributeDefaultRegionFddDimensions;
+  }
+  if (id == regionalObjectAttributeDefaultRegionFddDimensionsContractScenario) {
+    return scenarioRegionalObjectAttributeDefaultRegionFddDimensionsContract;
+  }
+  if (id == regionalObjectAttributeUnspecifiedDimensionDefaultRangeScenario) {
+    return scenarioRegionalObjectAttributeUnspecifiedDimensionDefaultRange;
+  }
+  if (id == regionalObjectAttributeUnspecifiedDimensionDefaultRangeContractScenario) {
+    return scenarioRegionalObjectAttributeUnspecifiedDimensionDefaultRangeContract;
+  }
+  if (id == regionalObjectAttributeExcludedDimensionNotRealizedScenario) {
+    return scenarioRegionalObjectAttributeExcludedDimensionNotRealized;
+  }
+  if (id == regionalObjectAttributeExcludedDimensionNotRealizedContractScenario) {
+    return scenarioRegionalObjectAttributeExcludedDimensionNotRealizedContract;
+  }
   if (id == regionalThreeDimensionalOverlapScenario) {
     return scenarioRegionalThreeDimensionalOverlap;
   }
@@ -19753,7 +19659,13 @@ int runRegionalDdmScenarios(int argc, char** argv) {
         result.status = "skipped";
         result.message = "requires an adapter-supplied dimensional FOM";
       } else if ((selected == regionalMultiAttributeUpdateScenario ||
-                  selected == regionalMultiAttributeUpdateContractId) &&
+                  selected == regionalMultiAttributeUpdateContractId ||
+                  selected == regionalObjectAttributeDimensionInheritanceScenario ||
+                  selected == regionalObjectAttributeDimensionInheritanceContractScenario ||
+                  selected == regionalObjectAttributeDefaultRegionFddDimensionsScenario ||
+                  selected == regionalObjectAttributeDefaultRegionFddDimensionsContractScenario ||
+                  selected == regionalObjectAttributeUnspecifiedDimensionDefaultRangeScenario ||
+                  selected == regionalObjectAttributeUnspecifiedDimensionDefaultRangeContractScenario) &&
                  options.multiAttributeFom.empty()) {
         result.status = "skipped";
         result.message =
@@ -20327,6 +20239,22 @@ bool hasJoinedFederateMomObjectLifecycleScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == joinedFederateMomObjectLifecycleScenario ||
         scenario == joinedFederateMomObjectLifecycleContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasJoinedFederateMomAddedAttributeSameRtiInstanceScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == joinedFederateMomAddedAttributeSameRtiInstanceScenario ||
+        scenario == joinedFederateMomAddedAttributeSameRtiInstanceContractId) {
       return true;
     }
   }
@@ -21534,6 +21462,36 @@ bool hasTimedSaveAvailableAdmissionScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasUntimedSaveTimeConstrainedAdmissionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == untimedSaveTimeConstrainedAdmissionScenario ||
+        scenario == untimedSaveTimeConstrainedAdmissionContractId) return true;
+  }
+  return false;
+}
+
+bool hasFederateSaveTimestampEligibilityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federateSaveTimestampEligibilityScenario ||
+        scenario == federateSaveTimestampEligibilityContractId) return true;
+  }
+  return false;
+}
+
+bool hasFederationSaveRequestReplacementScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") continue;
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationSaveRequestReplacementScenario ||
+        scenario == federationSaveRequestReplacementContractId) return true;
+  }
+  return false;
+}
+
 bool hasTimedSaveNextMessageAdmissionScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") continue;
@@ -21930,6 +21888,16 @@ bool hasFqrNonTimeConstrainedInTransitTsoScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasFqrTimestampedObjectDeletionKnownStateScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) == fqrTimestampedObjectDeletionKnownStateScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasFqgPostgrantDeliveryCutoffScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -22104,146 +22072,6 @@ bool hasNextMessageRequestScenario(int argc, char** argv) {
   return false;
 }
 
-bool hasNmraNoPregrantTsoFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmraNoPregrantTsoFloorScenario ||
-        scenario == nmraNoPregrantTsoFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmraReceivedTsoActualLookaheadFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmraReceivedTsoActualLookaheadFloorScenario ||
-        scenario == nmraReceivedTsoActualLookaheadFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmraRoEarliestTsoCohortScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmraRoEarliestTsoCohortScenario ||
-        scenario == nmraRoEarliestTsoCohortContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrNoPregrantTsoFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrNoPregrantTsoFloorScenario ||
-        scenario == nmrNoPregrantTsoFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrReceivedTsoFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrReceivedTsoFloorScenario ||
-        scenario == nmrReceivedTsoFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrReceivedTsoAttributeUpdateFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrReceivedTsoAttributeUpdateFloorScenario ||
-        scenario == nmrReceivedTsoAttributeUpdateFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrReceivedTsoDirectedInteractionFloorScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrReceivedTsoDirectedInteractionFloorScenario ||
-        scenario == nmrReceivedTsoDirectedInteractionFloorContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrEmptyMessageSetGrantTimeScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrEmptyMessageSetGrantTimeScenario ||
-        scenario == nmrEmptyMessageSetGrantTimeContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrRequestBelowGaltImmediateGrantScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrRequestBelowGaltImmediateGrantScenario ||
-        scenario == nmrRequestBelowGaltImmediateGrantContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool hasNmrLitsBelowGaltImmediateGrantScenario(int argc, char** argv) {
-  for (int index = 1; index + 1 < argc; ++index) {
-    if (std::string(argv[index]) != "--scenario") {
-      continue;
-    }
-    auto const scenario = std::string(argv[index + 1]);
-    if (scenario == nmrLitsBelowGaltImmediateGrantScenario ||
-        scenario == nmrLitsBelowGaltImmediateGrantContractId) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool hasSendMessageTimeStatePreservationGrantedScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -22272,6 +22100,34 @@ bool hasAvailableTimeAdvancesInclusiveGaltScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasTaraUndefinedGaltNrgScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == taraUndefinedGaltNrgScenario ||
+        scenario == taraUndefinedGaltNrgContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTaraNoTsoUndefinedGaltNrgScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == taraNoTsoUndefinedGaltNrgScenario ||
+        scenario == taraNoTsoUndefinedGaltNrgContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasNonRegulatingFederatePeerAdvanceScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -22294,6 +22150,19 @@ bool hasTarAcknowledgedTsoGaltReleaseScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == tarAcknowledgedTsoGaltReleaseScenario ||
         scenario == tarAcknowledgedTsoGaltReleaseContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasTarMultiRegulatorAcknowledgedTsoProgressScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) == "--scenario" &&
+        std::string(argv[index + 1]) ==
+            tarMultiRegulatorAcknowledgedTsoProgressScenario) {
       return true;
     }
   }
@@ -23020,6 +22889,20 @@ bool hasTransportationTypeChangeScenario(int argc, char** argv) {
   return false;
 }
 
+bool hasPrivilegeAttributeAvailabilityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == privilegeAttributeAvailabilityScenario ||
+        scenario == privilegeAttributeAvailabilityContractId) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool hasOrderTypeChangeScenario(int argc, char** argv) {
   for (int index = 1; index + 1 < argc; ++index) {
     if (std::string(argv[index]) != "--scenario") {
@@ -23418,6 +23301,92 @@ bool hasFederationMomStaticIdentityScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == federationMomStaticIdentityScenario ||
         scenario == federationMomStaticIdentityContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomSLeafSubscriptionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomSLeafSubscriptionScenario ||
+        scenario == federationMomSLeafSubscriptionContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomChangeAttributeOrderTypeScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomChangeAttributeOrderTypeScenario ||
+        scenario == federationMomChangeAttributeOrderTypeContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomServiceActorIdentityScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomServiceActorIdentityScenario ||
+        scenario == federationMomServiceActorIdentityContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasFederationMomChangeInteractionOrderTypeScenario(
+    int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == federationMomChangeInteractionOrderTypeScenario ||
+        scenario == federationMomChangeInteractionOrderTypeContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMomServiceOptionalAttributeListUnsubscribeScenario(
+    int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == momServiceOptionalAttributeListUnsubscribeScenario ||
+        scenario == momServiceOptionalAttributeListUnsubscribeContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMomOwnershipTransferProhibitionScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == momOwnershipTransferProhibitionScenario ||
+        scenario == momOwnershipTransferProhibitionContractScenario) {
       return true;
     }
   }
@@ -24648,6 +24617,94 @@ bool hasServiceReportFederateSaveBegunScenario(int argc, char** argv) {
     auto const scenario = std::string(argv[index + 1]);
     if (scenario == serviceReportFederateSaveBegunScenario ||
         scenario == serviceReportFederateSaveBegunContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasMomSaveRestoreInteractionsScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == momSaveRestoreInteractionsScenario ||
+        scenario == momSaveRestoreInteractionsContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportSaveFailureReasonFileScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportSaveFailureReasonFileScenario ||
+        scenario == serviceReportSaveFailureReasonFileContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportSaveStatusFileScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportSaveStatusFileScenario ||
+        scenario == serviceReportSaveStatusFileContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportServiceGroupFileScenario(int argc, char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportServiceGroupFileScenario ||
+        scenario == serviceReportServiceGroupFileContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportFederationExecutionInformationFileScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportFederationExecutionInformationFileScenario ||
+        scenario == serviceReportFederationExecutionInformationFileContractScenario) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasServiceReportFederationExecutionMembersFileScenario(
+    int argc,
+    char** argv) {
+  for (int index = 1; index + 1 < argc; ++index) {
+    if (std::string(argv[index]) != "--scenario") {
+      continue;
+    }
+    auto const scenario = std::string(argv[index + 1]);
+    if (scenario == serviceReportFederationExecutionMembersFileScenario ||
+        scenario == serviceReportFederationExecutionMembersFileContractScenario) {
       return true;
     }
   }
@@ -26037,6 +26094,23 @@ bool hasRegionalAutoProvideCallbackControlScenario(int argc, char** argv) {
 
 int main(int argc, char** argv) {
   try {
+    auto arguments =
+        hla_rti_cpp_tck::detail::expandArgumentFiles(argc, argv);
+    std::vector<char*> argumentPointers;
+    argumentPointers.reserve(arguments.size());
+    for (auto& argument : arguments) {
+      argumentPointers.push_back(argument.data());
+    }
+    argc = static_cast<int>(argumentPointers.size());
+    argv = argumentPointers.data();
+
+    if (auto const routed =
+            tryRunNmraGaltBoundaryScenario(argc, argv)) {
+      return *routed;
+    }
+    if (auto const routed = tryRunNmrMessageSetScenario(argc, argv)) {
+      return *routed;
+    }
     if (hasServiceReportConnectFailureScenario(argc, argv)) {
       return runServiceReportConnectFailureScenario(argc, argv);
     }
@@ -26127,6 +26201,9 @@ int main(int argc, char** argv) {
     }
     if (hasJoinedFederateMomObjectLifecycleScenario(argc, argv)) {
       return runJoinedFederateMomObjectLifecycleScenarios(argc, argv);
+    }
+    if (hasJoinedFederateMomAddedAttributeSameRtiInstanceScenario(argc, argv)) {
+      return runJoinedFederateMomAddedAttributeSameRtiInstanceScenarios(argc, argv);
     }
     if (hasJoinedFederateMomDeletableObjectReportScenario(argc, argv)) {
       return runJoinedFederateMomDeletableObjectReportScenarios(argc, argv);
@@ -26420,6 +26497,15 @@ int main(int argc, char** argv) {
     if (hasTimedSaveAvailableAdmissionScenario(argc, argv)) {
       return runTimedSaveAvailableAdmissionScenarios(argc, argv);
     }
+    if (hasUntimedSaveTimeConstrainedAdmissionScenario(argc, argv)) {
+      return runUntimedSaveTimeConstrainedAdmissionScenarios(argc, argv);
+    }
+    if (hasFederateSaveTimestampEligibilityScenario(argc, argv)) {
+      return runFederateSaveTimestampEligibilityScenarios(argc, argv);
+    }
+    if (hasFederationSaveRequestReplacementScenario(argc, argv)) {
+      return runFederationSaveRequestReplacementScenarios(argc, argv);
+    }
     if (hasTimedSaveNextMessageAdmissionScenario(argc, argv)) {
       return runTimedSaveNextMessageAdmissionScenarios(argc, argv);
     }
@@ -26537,6 +26623,9 @@ int main(int argc, char** argv) {
     if (hasFqrNonTimeConstrainedInTransitTsoScenario(argc, argv)) {
       return runFqrNonTimeConstrainedInTransitTsoScenario(argc, argv);
     }
+    if (hasFqrTimestampedObjectDeletionKnownStateScenario(argc, argv)) {
+      return runFqrTimestampedObjectDeletionKnownStateScenario(argc, argv);
+    }
     if (hasFqgPostgrantDeliveryCutoffScenario(argc, argv)) {
       return runFqgPostgrantDeliveryCutoffScenarios(argc, argv);
     }
@@ -26574,47 +26663,26 @@ int main(int argc, char** argv) {
     if (hasNextMessageRequestScenario(argc, argv)) {
       return runNextMessageRequestScenarios(argc, argv);
     }
-    if (hasNmrNoPregrantTsoFloorScenario(argc, argv)) {
-      return runNmrNoPregrantTsoFloorScenarios(argc, argv);
-    }
-    if (hasNmrReceivedTsoFloorScenario(argc, argv)) {
-      return runNmrReceivedTsoFloorScenarios(argc, argv);
-    }
-    if (hasNmrReceivedTsoAttributeUpdateFloorScenario(argc, argv)) {
-      return runNmrReceivedTsoAttributeUpdateFloorScenarios(argc, argv);
-    }
-    if (hasNmrReceivedTsoDirectedInteractionFloorScenario(argc, argv)) {
-      return runNmrReceivedTsoDirectedInteractionFloorScenarios(argc, argv);
-    }
-    if (hasNmrEmptyMessageSetGrantTimeScenario(argc, argv)) {
-      return runNmrEmptyMessageSetGrantTimeScenarios(argc, argv);
-    }
-    if (hasNmrRequestBelowGaltImmediateGrantScenario(argc, argv)) {
-      return runNmrRequestBelowGaltImmediateGrantScenarios(argc, argv);
-    }
-    if (hasNmrLitsBelowGaltImmediateGrantScenario(argc, argv)) {
-      return runNmrLitsBelowGaltImmediateGrantScenarios(argc, argv);
-    }
-    if (hasNmraNoPregrantTsoFloorScenario(argc, argv)) {
-      return runNmraNoPregrantTsoFloorScenarios(argc, argv);
-    }
-    if (hasNmraReceivedTsoActualLookaheadFloorScenario(argc, argv)) {
-      return runNmraReceivedTsoActualLookaheadFloorScenarios(argc, argv);
-    }
-    if (hasNmraRoEarliestTsoCohortScenario(argc, argv)) {
-      return runNmraRoEarliestTsoCohortScenarios(argc, argv);
-    }
     if (hasSendMessageTimeStatePreservationGrantedScenario(argc, argv)) {
       return runSendMessageTimeStatePreservationGrantedScenarios(argc, argv);
     }
     if (hasAvailableTimeAdvancesInclusiveGaltScenario(argc, argv)) {
       return runAvailableTimeAdvancesInclusiveGaltScenarios(argc, argv);
     }
+    if (hasTaraUndefinedGaltNrgScenario(argc, argv)) {
+      return runTaraUndefinedGaltNrgScenarios(argc, argv);
+    }
+    if (hasTaraNoTsoUndefinedGaltNrgScenario(argc, argv)) {
+      return runTaraNoTsoUndefinedGaltNrgScenarios(argc, argv);
+    }
     if (hasNonRegulatingFederatePeerAdvanceScenario(argc, argv)) {
       return runNonRegulatingFederatePeerAdvanceScenarios(argc, argv);
     }
     if (hasTarAcknowledgedTsoGaltReleaseScenario(argc, argv)) {
       return runTarAcknowledgedTsoGaltReleaseScenarios(argc, argv);
+    }
+    if (hasTarMultiRegulatorAcknowledgedTsoProgressScenario(argc, argv)) {
+      return runTarMultiRegulatorAcknowledgedTsoProgressScenario(argc, argv);
     }
     if (hasTimeConstrainedEnableAtGaltEqualityScenario(argc, argv)) {
       return runTimeConstrainedEnableAtGaltEqualityScenarios(argc, argv);
@@ -26789,6 +26857,9 @@ int main(int argc, char** argv) {
     if (hasTransportationTypeChangeScenario(argc, argv)) {
       return runTransportationTypeChangeScenarios(argc, argv);
     }
+    if (hasPrivilegeAttributeAvailabilityScenario(argc, argv)) {
+      return runPrivilegeAttributeAvailabilityScenarios(argc, argv);
+    }
     if (hasOrderTypeChangeScenario(argc, argv)) {
       return runOrderTypeChangeScenarios(argc, argv);
     }
@@ -26878,6 +26949,24 @@ int main(int argc, char** argv) {
     }
     if (hasFederationMomStaticIdentityScenario(argc, argv)) {
       return runFederationMomStaticIdentityScenarios(argc, argv);
+    }
+    if (hasFederationMomSLeafSubscriptionScenario(argc, argv)) {
+      return runFederationMomSLeafSubscriptionScenarios(argc, argv);
+    }
+    if (hasFederationMomChangeAttributeOrderTypeScenario(argc, argv)) {
+      return runFederationMomChangeAttributeOrderTypeScenarios(argc, argv);
+    }
+    if (hasFederationMomServiceActorIdentityScenario(argc, argv)) {
+      return runFederationMomServiceActorIdentityScenarios(argc, argv);
+    }
+    if (hasFederationMomChangeInteractionOrderTypeScenario(argc, argv)) {
+      return runFederationMomChangeInteractionOrderTypeScenarios(argc, argv);
+    }
+    if (hasMomServiceOptionalAttributeListUnsubscribeScenario(argc, argv)) {
+      return runMomServiceOptionalAttributeListUnsubscribeScenarios(argc, argv);
+    }
+    if (hasMomOwnershipTransferProhibitionScenario(argc, argv)) {
+      return runMomOwnershipTransferProhibitionScenarios(argc, argv);
     }
     if (hasFederationMomStaticSwitchesScenario(argc, argv)) {
       return runFederationMomStaticSwitchesScenarios(argc, argv);
@@ -27133,6 +27222,24 @@ int main(int argc, char** argv) {
     }
     if (hasServiceReportFederateSaveBegunScenario(argc, argv)) {
       return runServiceReportFederateSaveBegunScenarios(argc, argv);
+    }
+    if (hasMomSaveRestoreInteractionsScenario(argc, argv)) {
+      return runMomSaveRestoreInteractionsScenarios(argc, argv);
+    }
+    if (hasServiceReportSaveFailureReasonFileScenario(argc, argv)) {
+      return runServiceReportSaveFailureReasonFileScenarios(argc, argv);
+    }
+    if (hasServiceReportSaveStatusFileScenario(argc, argv)) {
+      return runServiceReportSaveStatusFileScenarios(argc, argv);
+    }
+    if (hasServiceReportServiceGroupFileScenario(argc, argv)) {
+      return runServiceReportServiceGroupFileScenarios(argc, argv);
+    }
+    if (hasServiceReportFederationExecutionInformationFileScenario(argc, argv)) {
+      return runServiceReportFederationExecutionInformationFileScenarios(argc, argv);
+    }
+    if (hasServiceReportFederationExecutionMembersFileScenario(argc, argv)) {
+      return runServiceReportFederationExecutionMembersFileScenarios(argc, argv);
     }
     if (hasServiceReportTimestampedAttributeUpdateScenario(argc, argv)) {
       return runServiceReportTimestampedAttributeUpdateScenarios(argc, argv);

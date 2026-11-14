@@ -248,6 +248,7 @@ final class TimedFederationSaveRestoreTck {
       boolean senderRegulating = false;
       boolean subscribed = false;
       boolean published = false;
+      boolean actorPublished = false;
       InteractionClassHandle actorInteraction = null;
       InteractionClassHandle senderInteraction = null;
       try {
@@ -274,6 +275,9 @@ final class TimedFederationSaveRestoreTck {
          sender.publishInteractionClass(senderInteraction);
          published = true;
          sender.changeInteractionOrderType(senderInteraction, OrderType.TIMESTAMP);
+         constrainedRegulator.publishInteractionClass(actorInteraction);
+         actorPublished = true;
+         constrainedRegulator.changeInteractionOrderType(actorInteraction, OrderType.TIMESTAMP);
          constrainedRegulator.subscribeInteractionClass(actorInteraction);
          subscribed = true;
 
@@ -341,6 +345,19 @@ final class TimedFederationSaveRestoreTck {
                && delivered.retraction != null && sent.handle.equals(delivered.retraction),
             "FQR timed-save delivered incorrect queued interaction data");
 
+         // FQR(10) granted at 5. With lookahead 1, timestamp 8 is above the
+         // post-grant floor (5 + 1), but below the former request floor (10 + 1).
+         LogicalTime easedConstraintTimestamp = offset(actorInitial, epsilon, 8);
+         ParameterHandleValueMap actorParameters =
+            constrainedRegulator.getParameterHandleValueMapFactory().create(1);
+         actorParameters.put(actorParameter, payload.clone());
+         MessageRetractionReturn postEarlyGrantSent = constrainedRegulator.sendInteraction(
+            actorInteraction, actorParameters, tag.clone(), easedConstraintTimestamp);
+         JavaTckSupport.check(postEarlyGrantSent != null
+               && postEarlyGrantSent.retractionHandleIsValid
+               && postEarlyGrantSent.handle != null,
+            "FQR post-early-grant timestamped interaction was not accepted");
+
          constrainedRegulator.timeAdvanceRequest(laterAdvance);
          sender.timeAdvanceRequest(laterAdvance);
          await(callbackModel, objectClassName, "FQR timed-save initiation callbacks",
@@ -381,6 +398,10 @@ final class TimedFederationSaveRestoreTck {
          }
          if (published && senderJoined && senderInteraction != null) {
             try { sender.unpublishInteractionClass(senderInteraction); }
+            catch (Exception ignored) { }
+         }
+         if (actorPublished && actorJoined && actorInteraction != null) {
+            try { constrainedRegulator.unpublishInteractionClass(actorInteraction); }
             catch (Exception ignored) { }
          }
          if (senderJoined) resign(sender);

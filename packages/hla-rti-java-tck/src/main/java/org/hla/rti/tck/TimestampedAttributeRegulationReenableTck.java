@@ -110,7 +110,7 @@ final class TimestampedAttributeRegulationReenableTck {
          JavaTckSupport.check(initial.equals(receiver.queryLogicalTime()),
             "publisher and receiver began at different logical times");
          LogicalTime updateTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 2);
+         LogicalTime publisherTarget = offset(initial, epsilon, 3);
          LogicalTimeInterval changedLookahead = offset(epsilon, 3);
          byte[] value = new byte[] {(byte) 0xb7, 0x2c, (byte) 0x91};
          byte[] tag = new byte[] {0x43, 0x48, 0x47, 0x41};

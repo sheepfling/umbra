@@ -1,16 +1,85 @@
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "ieee1516_2025_federation_management_fixture_support.hpp"
 
 namespace {
+class RegionInspectingMomReportAmbassador final
+    : public rti1516_2025::NullFederateAmbassador {
+ public:
+  struct InteractionReport final {
+    rti1516_2025::InteractionClassHandle interactionClass;
+    rti1516_2025::ParameterHandleValueMap parameterValues;
+    rti1516_2025::VariableLengthData userSuppliedTag;
+    rti1516_2025::TransportationTypeHandle transportationType;
+    rti1516_2025::FederateHandle producingFederate;
+    bool sentRegionsSupplied = false;
+    rti1516_2025::RegionHandleSet sentRegions;
+    bool regionInspectionFailed = false;
+    std::set<std::wstring> sentRegionDimensionNames;
+    std::map<std::wstring, std::pair<unsigned long, unsigned long>> sentRegionBounds;
+  };
+
+  void receiveInteraction(
+      rti1516_2025::InteractionClassHandle const& interactionClass,
+      rti1516_2025::ParameterHandleValueMap const& parameterValues,
+      rti1516_2025::VariableLengthData const& userSuppliedTag,
+      rti1516_2025::TransportationTypeHandle const& transportationType,
+      rti1516_2025::FederateHandle const& producingFederate,
+      rti1516_2025::RegionHandleSet const* optionalSentRegions) override {
+    InteractionReport report{
+        interactionClass,
+        parameterValues,
+        userSuppliedTag,
+        transportationType,
+        producingFederate,
+        optionalSentRegions != nullptr,
+    };
+    if (optionalSentRegions != nullptr) {
+      report.sentRegions = *optionalSentRegions;
+      if (regionQueryAmbassador == nullptr) {
+        report.regionInspectionFailed = true;
+      } else {
+        try {
+          for (auto const& region : *optionalSentRegions) {
+            auto const dimensions = regionQueryAmbassador->getDimensionHandleSet(region);
+            for (auto const& dimension : dimensions) {
+              auto const name = regionQueryAmbassador->getDimensionName(dimension);
+              auto const bounds = regionQueryAmbassador->getRangeBounds(region, dimension);
+              report.sentRegionDimensionNames.insert(name);
+              report.sentRegionBounds.emplace(
+                  name,
+                  std::pair{bounds.getLowerBound(), bounds.getUpperBound()});
+            }
+          }
+        } catch (...) {
+          report.regionInspectionFailed = true;
+        }
+      }
+    }
+    interactionReports.push_back(std::move(report));
+  }
+
+  rti1516_2025::RTIambassador* regionQueryAmbassador = nullptr;
+  std::vector<InteractionReport> interactionReports;
+};
+
 TEST_CASE(
     "Embedded MOM requestFOMmoduleData reports retained joined module content",
     "[integration][development-profile][federation-management][mom][mom-request-report]"
+    "[mom-ddm-service-prohibition]"
+    "[requirement-candidate-content-clauses-11-management-object-model-page-291-l77-25-ddm]"
+    "[mom-table7-federate-fom-module-data]"
     "[federation-management][interaction-management]"
     "[rti.service.get-interaction-class-handle][rti.service.get-parameter-handle]"
     "[rti.service.subscribe-interaction-class][rti.service.unsubscribe-interaction-class]"
     "[rti.service.send-interaction][rti.service.evoke-callback]"
     "[federate.callback.receive-interaction]") {
   ReportingFederateAmbassador subjectReports;
-  ReportingFederateAmbassador observerReports;
+  RegionInspectingMomReportAmbassador observerReports;
   auto subject = makeRti();
   auto observer = makeRti();
   auto const federationName = nextFederationName();
@@ -28,6 +97,7 @@ TEST_CASE(
       std::vector<std::wstring>{fomModule}));
   REQUIRE_NOTHROW(observer->joinFederationExecution(
       L"mom-fom-module-observer", L"observer", federationName));
+  observerReports.regionQueryAmbassador = observer.get();
 
   auto const requestClass = subject->getInteractionClassHandle(
       standard_hla::mom::request_fom_module_data_federate);
@@ -49,6 +119,8 @@ TEST_CASE(
   REQUIRE(reportDataParameter.isValid());
 
   REQUIRE_NOTHROW(observer->subscribeInteractionClass(reportClass));
+  REQUIRE_NOTHROW(observer->setConveyRegionDesignatorSetsSwitch(true));
+  auto const normalizedSubject = observer->normalizeFederateHandle(subjectFederate);
   while (observer->evokeCallback(0.0)) {
   }
   observerReports.interactionReports.clear();
@@ -72,7 +144,14 @@ TEST_CASE(
   REQUIRE(report.transportationType == observer->getTransportationTypeHandle(
       standard_hla::mom::reliable));
   REQUIRE_FALSE(report.producingFederate.isValid());
-  REQUIRE_FALSE(report.sentRegionsSupplied);
+  REQUIRE(report.sentRegionsSupplied);
+  REQUIRE(report.sentRegions.size() == 1U);
+  REQUIRE_FALSE(report.regionInspectionFailed);
+  CHECK((report.sentRegionDimensionNames == std::set<std::wstring>{L"HLAfederate"}));
+  REQUIRE(report.sentRegionBounds.size() == 1U);
+  CHECK((report.sentRegionBounds.at(L"HLAfederate") ==
+         std::pair<unsigned long, unsigned long>{
+             normalizedSubject, normalizedSubject + 1UL}));
 
   rti1516_2025::HLAinteger32BE decodedIndicator;
   REQUIRE_NOTHROW(decodedIndicator.decode(

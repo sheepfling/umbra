@@ -12,9 +12,12 @@ Event ProcessFederationClient::receivePendingEvent(bool receiveFromStream) {
   std::scoped_lock lock(transactionMutex_);
   auto const found = std::find_if(
       pendingEvents_.begin(), pendingEvents_.end(),
-      [](PendingEvent const& event) { return std::holds_alternative<Event>(event); });
+      [](PendingEventEnvelope const& event) {
+        return !event.callbackRequestSequenceNumber &&
+            std::holds_alternative<Event>(event.event);
+      });
   if (found != pendingEvents_.end()) {
-    auto event = std::move(std::get<Event>(*found));
+    auto event = std::move(std::get<Event>(found->event));
     pendingEvents_.erase(found);
     return event;
   }
@@ -31,7 +34,9 @@ std::size_t ProcessFederationClient::pendingEventCount() const noexcept {
   std::scoped_lock lock(transactionMutex_);
   return static_cast<std::size_t>(std::count_if(
       pendingEvents_.begin(), pendingEvents_.end(),
-      [](PendingEvent const& event) { return std::holds_alternative<Event>(event); }));
+      [](PendingEventEnvelope const& event) {
+        return std::holds_alternative<Event>(event.event);
+      }));
 }
 
 }  // namespace umbra::detail

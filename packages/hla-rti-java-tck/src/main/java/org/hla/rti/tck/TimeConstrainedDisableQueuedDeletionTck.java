@@ -76,6 +76,9 @@ final class TimeConstrainedDisableQueuedDeletionTck {
          JavaTckSupport.check(queuedObject != null && laterObject != null
                && !queuedObject.equals(laterObject),
             "Time Constrained deletion disable did not register two distinct objects");
+         String queuedObjectName = publisher.getObjectInstanceName(queuedObject);
+         JavaTckSupport.check(queuedObjectName != null && !queuedObjectName.isEmpty(),
+            "Time Constrained deletion disable returned an empty queued-object name");
          await(receiver, callbackModel,
             () -> receiverCallbacks.discoveries.contains(queuedObject)
                && receiverCallbacks.discoveries.contains(laterObject),
@@ -110,6 +113,14 @@ final class TimeConstrainedDisableQueuedDeletionTck {
             "future object removal escaped before Time Constrained was disabled");
 
          receiver.disableTimeConstrained();
+         JavaTckSupport.expectFailure(
+            () -> receiver.getObjectInstanceHandle(queuedObjectName),
+            "ObjectInstanceNotKnown",
+            "queued object name lookup immediately after disabling Time Constrained");
+         JavaTckSupport.expectFailure(
+            () -> receiver.getKnownObjectClassHandle(queuedObject),
+            "ObjectInstanceNotKnown",
+            "queued object class lookup immediately after disabling Time Constrained");
          await(receiver, callbackModel,
             () -> receiverCallbacks.untimed.size() == 1,
             "queued object removal as receive order after disable");

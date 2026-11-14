@@ -94,12 +94,32 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   }
 
   void timeAdvanceGrant(rti1516_2025::LogicalTime const& time) override {
-    ++timeAdvanceGrantCount;
-    timeAdvanceGrantImplementation = time.implementationName();
+    auto implementation = time.implementationName();
+    auto value = std::int64_t{-1};
     if (auto const* integerTime =
             dynamic_cast<rti1516_2025::HLAinteger64Time const*>(&time)) {
-      timeAdvanceGrantValue = integerTime->getTime();
+      value = integerTime->getTime();
     }
+    {
+      std::lock_guard lock(timeAdvanceGrantMutex_);
+      timeAdvanceGrantImplementation = std::move(implementation);
+      timeAdvanceGrantValue = value;
+      ++timeAdvanceGrantCount_;
+    }
+    timeAdvanceGrantCondition_.notify_all();
+  }
+
+  [[nodiscard]] std::size_t timeAdvanceGrantCount() const {
+    std::lock_guard lock(timeAdvanceGrantMutex_);
+    return timeAdvanceGrantCount_;
+  }
+
+  [[nodiscard]] bool waitForTimeAdvanceGrantCount(
+      std::size_t count,
+      std::chrono::milliseconds timeout) const {
+    std::unique_lock lock(timeAdvanceGrantMutex_);
+    return timeAdvanceGrantCondition_.wait_for(
+        lock, timeout, [this, count] { return timeAdvanceGrantCount_ >= count; });
   }
 
   void flushQueueGrant(
@@ -122,7 +142,6 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   std::wstring timeRegulationEnabledImplementation;
   std::size_t timeConstrainedEnabledCount = 0U;
   std::wstring timeConstrainedEnabledImplementation;
-  std::size_t timeAdvanceGrantCount = 0U;
   std::wstring timeAdvanceGrantImplementation;
   std::int64_t timeAdvanceGrantValue = -1;
   std::size_t flushQueueGrantCount = 0U;
@@ -130,6 +149,11 @@ class ProcessTimeFederateAmbassador final : public NullFederateAmbassador {
   std::wstring flushQueueGrantOptimisticImplementation;
   std::int64_t flushQueueGrantValue = -1;
   std::int64_t flushQueueGrantOptimisticValue = -1;
+
+ private:
+  mutable std::mutex timeAdvanceGrantMutex_;
+  mutable std::condition_variable timeAdvanceGrantCondition_;
+  std::size_t timeAdvanceGrantCount_ = 0U;
 };
 
 class ProcessSynchronizationFederateAmbassador final
@@ -462,7 +486,13 @@ enum class ProcessTimeAdvanceRequestKind { tar, nmr, nmra, tara };
 
 void verifyProcessTimeAdvanceFederationScheduler(
     ProcessTimeAdvanceRequestKind requestKind,
-    CallbackModel const callbackModel = HLA_EVOKED) {
+    CallbackModel const callbackModel = HLA_EVOKED,
+    bool const verifyNmraGaltBoundary = false) {
+  if (verifyNmraGaltBoundary &&
+      requestKind != ProcessTimeAdvanceRequestKind::nmra) {
+    throw std::invalid_argument(
+        "The staged GALT boundary scenario requires NMRA.");
+  }
   constexpr wchar_t const* federationName =
       L"process-time-advance-federation-scheduler-execution";
   constexpr wchar_t const* regulatingName =
@@ -478,10 +508,23 @@ void verifyProcessTimeAdvanceFederationScheduler(
   std::thread server([&] {
     try {
       EmbeddedFederationRegistry registry;
+      ProcessFederationServiceOptions serviceOptions;
+      serviceOptions.pushReceiveOrderEvents = callbackModel == HLA_IMMEDIATE;
+      serviceOptions.createFomPreparation =
+          [](std::vector<std::wstring> const& fomModules,
+             std::optional<std::wstring> const& mimModule,
+             std::wstring const& logicalTimeImplementationName)
+          -> std::optional<umbra::detail::FederationDefinition> {
+        if (fomModules != std::vector<std::wstring>{
+                               L"urn:umbra:test:time-advance-scheduler-fom"} ||
+            mimModule || (!logicalTimeImplementationName.empty() &&
+                          logicalTimeImplementationName != L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedProcessDefinition();
+      };
       ProcessFederationService service(
-          registry,
-          composedProcessDefinition(),
-          ProcessFederationServiceOptions{callbackModel == HLA_IMMEDIATE});
+          registry, composedProcessDefinition(), std::move(serviceOptions));
       auto regulatingConnection = listener->accept(
           nullptr,
           {"process-time-advance-scheduler-server", 0x9210U},
@@ -555,21 +598,69 @@ void verifyProcessTimeAdvanceFederationScheduler(
                constrainedSession,
                constrainedHandler,
                TransportServiceOperation::report_successful_void_service_invocation) ||
+           (verifyNmraGaltBoundary &&
+            (!serveExpected(
+                 constrainedSession,
+                 constrainedHandler,
+                 TransportServiceOperation::query_time_bounds) ||
+             !serveExpected(
+                 constrainedSession,
+                 constrainedHandler,
+                 TransportServiceOperation::report_successful_service_invocation))) ||
            !serveExpected(
                constrainedSession,
                constrainedHandler,
                callbackModel == HLA_IMMEDIATE
                    ? TransportServiceOperation::get_object_class_handle
-                   : TransportServiceOperation::receive_interaction) ||
-           !serveExpected(
-               regulatingSession,
-               regulatingHandler,
-               TransportServiceOperation::time_advance_request) ||
-           !serveExpected(
-               regulatingSession,
-               regulatingHandler,
-               TransportServiceOperation::report_successful_void_service_invocation) ||
-           !serveExpected(
+                   : TransportServiceOperation::receive_interaction)) {
+        throw std::runtime_error(
+            "The process time-advance scheduler server lost a temporal request.");
+      }
+      auto const regulatingAdvanceCount = verifyNmraGaltBoundary ? 2U : 1U;
+      for (std::size_t index = 0U; index < regulatingAdvanceCount; ++index) {
+        auto const accepted =
+            serveExpected(
+                regulatingSession,
+                regulatingHandler,
+                TransportServiceOperation::time_advance_request) &&
+            serveExpected(
+                regulatingSession,
+                regulatingHandler,
+                TransportServiceOperation::report_successful_void_service_invocation);
+        if (!accepted) {
+          throw std::runtime_error(
+              "The process time-advance scheduler server lost a regulator advance.");
+        }
+        if (verifyNmraGaltBoundary) {
+          if (!serveExpected(
+                  constrainedSession,
+                  constrainedHandler,
+                  TransportServiceOperation::query_time_bounds) ||
+              !serveExpected(
+                  constrainedSession,
+                  constrainedHandler,
+                  TransportServiceOperation::report_successful_service_invocation)) {
+            throw std::runtime_error(
+                "The process time-advance scheduler server lost a staged GALT observation.");
+          }
+          // An HLA_EVOKED final grant is already queued locally by the time
+          // the client queries the bound, so Evoke consumes it without an
+          // additional process poll. Earlier empty polls and immediate-mode
+          // call fences still cross the service boundary.
+          if (callbackModel == HLA_IMMEDIATE || index == 0U) {
+            if (!serveExpected(
+                    constrainedSession,
+                    constrainedHandler,
+                    callbackModel == HLA_IMMEDIATE
+                        ? TransportServiceOperation::get_object_class_handle
+                        : TransportServiceOperation::receive_interaction)) {
+              throw std::runtime_error(
+                  "The process time-advance scheduler server lost a staged callback poll.");
+            }
+          }
+        }
+      }
+      if (!serveExpected(
                regulatingSession,
                regulatingHandler,
                TransportServiceOperation::resign_federation_execution) ||
@@ -611,7 +702,7 @@ void verifyProcessTimeAdvanceFederationScheduler(
                 regulatingFederate, callbackModel, regulatingConfiguration)
                 .addressUsed);
     REQUIRE_NOTHROW(regulatingRti->createFederationExecution(
-        federationName, L"server-owned-fom.xml"));
+        federationName, L"urn:umbra:test:time-advance-scheduler-fom"));
     auto const regulatingHandle = regulatingRti->joinFederationExecution(
         regulatingName, L"process-time-advance-scheduler-type", federationName);
     REQUIRE(regulatingHandle.isValid());
@@ -658,7 +749,12 @@ void verifyProcessTimeAdvanceFederationScheduler(
       REQUIRE_NOTHROW(
           constrainedRti->timeAdvanceRequest(rti1516_2025::HLAinteger64Time(5)));
     }
-    REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
+    REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 0U);
+    rti1516_2025::HLAinteger64Time observedGalt;
+    if (verifyNmraGaltBoundary) {
+      REQUIRE(constrainedRti->queryGALT(observedGalt));
+      REQUIRE(observedGalt.getTime() < 5);
+    }
     // The deferred request has no grant yet. HLA_EVOKED performs its
     // receive-order poll through Evoke; HLA_IMMEDIATE uses an ordinary
     // public call as the process-event polling fence.
@@ -668,27 +764,67 @@ void verifyProcessTimeAdvanceFederationScheduler(
       static_cast<void>(
           constrainedRti->getObjectClassHandle(standard_hla::fom::object_root));
     }
-    REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
+    REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 0U);
 
-    REQUIRE_NOTHROW(regulatingRti->timeAdvanceRequest(
-        rti1516_2025::HLAinteger64Time(5)));
-    if (callbackModel == HLA_EVOKED) {
-      REQUIRE(regulatingFederate.timeAdvanceGrantCount == 0U);
-      static_cast<void>(regulatingRti->evokeCallback(0.0));
-    } else {
-      REQUIRE(regulatingFederate.timeAdvanceGrantCount == 1U);
-    }
-    REQUIRE(regulatingFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(regulatingFederate.timeAdvanceGrantValue == 5);
+    auto const regulatingAdvanceTimes = verifyNmraGaltBoundary
+        ? std::array<std::int64_t, 2>{3, 4}
+        : std::array<std::int64_t, 2>{5, 5};
+    auto const regulatingAdvanceCount = verifyNmraGaltBoundary ? 2U : 1U;
+    for (std::size_t index = 0U; index < regulatingAdvanceCount; ++index) {
+      REQUIRE_NOTHROW(regulatingRti->timeAdvanceRequest(
+          rti1516_2025::HLAinteger64Time(regulatingAdvanceTimes[index])));
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE(regulatingFederate.timeAdvanceGrantCount() == index);
+        static_cast<void>(regulatingRti->evokeCallback(0.0));
+      } else {
+        REQUIRE(regulatingFederate.waitForTimeAdvanceGrantCount(
+            index + 1U, std::chrono::seconds(2)));
+      }
+      REQUIRE(regulatingFederate.timeAdvanceGrantCount() == index + 1U);
+      REQUIRE(regulatingFederate.timeAdvanceGrantValue ==
+              regulatingAdvanceTimes[index]);
 
-    if (callbackModel == HLA_EVOKED) {
-      REQUIRE(constrainedFederate.timeAdvanceGrantCount == 0U);
-      static_cast<void>(constrainedRti->evokeCallback(0.0));
-    } else {
-      REQUIRE(constrainedFederate.timeAdvanceGrantCount == 1U);
+      if (verifyNmraGaltBoundary) {
+        REQUIRE(constrainedRti->queryGALT(observedGalt));
+        if (index == 0U) {
+          REQUIRE(observedGalt.getTime() < 5);
+        } else {
+          REQUIRE(observedGalt.getTime() == 5);
+        }
+        if (callbackModel == HLA_EVOKED) {
+          REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 0U);
+          static_cast<void>(constrainedRti->evokeCallback(0.0));
+        } else {
+          if (index == 0U) {
+            REQUIRE_FALSE(constrainedFederate.waitForTimeAdvanceGrantCount(
+                1U, std::chrono::milliseconds(100)));
+          } else {
+            REQUIRE(constrainedFederate.waitForTimeAdvanceGrantCount(
+                1U, std::chrono::seconds(2)));
+          }
+          static_cast<void>(constrainedRti->getObjectClassHandle(
+              standard_hla::fom::object_root));
+        }
+        if (index == 0U) {
+          REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 0U);
+        } else {
+          REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 1U);
+          REQUIRE(constrainedFederate.timeAdvanceGrantValue == 5);
+        }
+      }
     }
-    REQUIRE(constrainedFederate.timeAdvanceGrantCount == 1U);
-    REQUIRE(constrainedFederate.timeAdvanceGrantValue == 5);
+
+    if (!verifyNmraGaltBoundary) {
+      if (callbackModel == HLA_EVOKED) {
+        REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 0U);
+        static_cast<void>(constrainedRti->evokeCallback(0.0));
+      } else {
+        REQUIRE(constrainedFederate.waitForTimeAdvanceGrantCount(
+            1U, std::chrono::seconds(2)));
+      }
+      REQUIRE(constrainedFederate.timeAdvanceGrantCount() == 1U);
+      REQUIRE(constrainedFederate.timeAdvanceGrantValue == 5);
+    }
 
     REQUIRE_NOTHROW(regulatingRti->resignFederationExecution(NO_ACTION));
     regulatingJoined = false;
@@ -769,6 +905,24 @@ TEST_CASE(
     "[federate.callback.time-advance-grant]"
     "[process-time-advance-federation-scheduler][process-no-tso-cross-federate-nmra-scheduler][2025]") {
   verifyProcessTimeAdvanceFederationScheduler(ProcessTimeAdvanceRequestKind::nmra);
+}
+
+TEST_CASE(
+    "RTIambassadors defer a cross-federate NMRA grant until safe when no TSO is sent",
+    "[integration][foundation][time-management][time-role][time-advance][transport]"
+    "[process-boundary][public-endpoint][multi-federate][scheduler]"
+    "[rti.service.enable-time-regulation][rti.service.enable-time-constrained]"
+    "[rti.service.next-message-request-available][rti.service.query-galt]"
+    "[rti.service.time-advance-request][federate.callback.time-advance-grant]"
+    "[process-time-advance-nmra-no-tso-grant][HLA_EVOKED][HLA_IMMEDIATE][2025]") {
+  SECTION("HLA_EVOKED") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmra, HLA_EVOKED, true);
+  }
+  SECTION("HLA_IMMEDIATE") {
+    verifyProcessTimeAdvanceFederationScheduler(
+        ProcessTimeAdvanceRequestKind::nmra, HLA_IMMEDIATE, true);
+  }
 }
 
 TEST_CASE(

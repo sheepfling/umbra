@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The portable C++ TCK scenarios use only standard RTIambassador calls. They cover federation creation/join and federate-handle lookup, object-class publication, object-name reservation, named RegisterObjectInstance, DeleteObjectInstance, UpdateAttributeValues, SendInteraction, EnableTimeRegulation, EnableTimeConstrained, TimeAdvanceRequest, TimeAdvanceRequestAvailable, NextMessageRequest, Query Logical Time, RemoveObjectInstance callbacks, reflectAttributeValues, receiveInteraction, timeRegulationEnabled, timeConstrainedEnabled and timeAdvanceGrant callbacks, and object handle/name lookups. A process adapter injects socket faults; the fixture is not part of the public API surface and the results are not evidence of interoperability or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-connection-message-history-recovery",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect, createFederationExecutionWithMIM, joinFederationExecution, getFederateHandle, getObjectClassHandle, getAttributeHandle, getInteractionClassHandle, getParameterHandle, publishObjectClassAttributes, subscribeObjectClassAttributes, publishInteractionClass, subscribeInteractionClass, reserveObjectInstanceName, registerObjectInstance, deleteObjectInstance, updateAttributeValues, sendInteraction, enableTimeRegulation, enableTimeConstrained, timeAdvanceRequest, timeAdvanceRequestAvailable, nextMessageRequest, queryLogicalTime, getObjectInstanceName, getObjectInstanceHandle, FederateAmbassador::removeObjectInstance, FederateAmbassador::reflectAttributeValues, FederateAmbassador::receiveInteraction, FederateAmbassador::timeRegulationEnabled, FederateAmbassador::timeConstrainedEnabled, FederateAmbassador::timeAdvanceGrant, resignFederationExecution, and disconnect",
+      "exception_types": [],
+      "source": "third_party/ieee1516.1-2025/include/RTI/RTIambassador.h",
+      "source_symbol": "RTIambassador federation lifecycle/object management and FederateAmbassador removal callback declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultJoinResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultFederateRequestReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultRegistrationResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultCreateFederationResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultReservationResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultDeleteObjectResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultAttributeUpdateResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultSendInteractionResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeRegulationResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeConstrainedResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeAdvanceRequestResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultTimeAdvanceRequestAvailableResponseReplay",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultNextMessageRequestResponseReplay"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 #include "tck_main_scenarios.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace hla_rti_cpp_tck::detail {
@@ -96,6 +98,9 @@ void scenarioDirectedInteractionSubscriptionAccumulation(
       subscriberObjectClass,
       secondSubscription,
       true);
+  subscriberAmbassador.unsubscribeObjectClassDirectedInteractions(
+      subscriberObjectClass,
+      rti::InteractionClassHandleSet{});
 
   auto const target = publisherAmbassador.registerObjectInstance(publisherObjectClass);
   require(target.isValid(), "directed-subscription accumulation target handle was invalid");
@@ -176,12 +181,36 @@ void scenarioDirectedInteractionSubscriptionAccumulation(
                   secondDelivery->parameters.at(subscriberSecondParameter).data())),
       "sequential directed subscriptions changed class delivery or selected a timestamped callback overload");
 
+  auto const deliveredBeforeFullUnsubscribe = deliveries.size();
   subscriberAmbassador.unsubscribeObjectClassDirectedInteractions(
-      subscriberObjectClass,
-      firstSubscription);
-  subscriberAmbassador.unsubscribeObjectClassDirectedInteractions(
-      subscriberObjectClass,
-      secondSubscription);
+      subscriberObjectClass);
+  publisherAmbassador.sendDirectedInteraction(
+      publisherFirstInteraction,
+      target,
+      firstParameters,
+      firstTag);
+  publisherAmbassador.sendDirectedInteraction(
+      publisherSecondInteraction,
+      target,
+      secondParameters,
+      secondTag);
+
+  auto const observationMilliseconds = std::max(
+      1,
+      std::min(options.timeoutMilliseconds, 500));
+  auto const deadline = std::chrono::steady_clock::now() +
+      std::chrono::milliseconds(observationMilliseconds);
+  do {
+    subscriber.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  } while (std::chrono::steady_clock::now() < deadline);
+  require(
+      subscriber.recorder().directedInteractions().size() ==
+              deliveredBeforeFullUnsubscribe &&
+          subscriber.recorder().timedDirectedInteractions().empty() &&
+          subscriber.recorder().interactions().empty(),
+      "full object-class directed unsubscription delivered a subsequent interaction callback");
+
   subscriberAmbassador.unsubscribeObjectClassAttributes(
       subscriberObjectClass,
       subscriberAttributes);

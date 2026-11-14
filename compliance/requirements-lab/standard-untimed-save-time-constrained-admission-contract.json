@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "Bounded C++ contract for the pinned source refinement requirement requirement-source-refinement-save-admission-state-constraint -> IEEE 1516.1-2025 §4.1.1. In HLA_EVOKED mode, request an untimed federation save while two joined members are Time Constrained and idle, and confirm neither receives Initiate Federate Save before requesting a time advance. Hold the regulating member below the pending TARs; after both constrained members enter Time Advancing, each receives the matching untimed save initiation before its pending grant, then all three members complete the save. This does not assert immediate admission after only one constrained member enters Time Advancing, exhaustive save-state coverage, HLA_IMMEDIATE behavior, transport interoperability, Java parity, or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-untimed-save-time-constrained-admission",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador requestFederationSave, enableTimeConstrained, enableTimeRegulation, timeAdvanceRequest, federateSaveBegun, federateSaveComplete; FederateAmbassador initiateFederateSave, timeAdvanceGrant, federationSaved",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1-2025 federation-save and time-management interfaces",
+      "tests": [
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp",
+        "packages/hla-rti-cpp-tck/src/tck_untimed_save_time_constrained_admission.cpp::scenarioUntimedSaveTimeConstrainedAdmission",
+        "packages/hla-rti-cpp-tck/src/tck_untimed_save_time_constrained_admission.cpp::scenarioUntimedSaveTimeConstrainedAdmissionContract"
+      ]
+    }
+  ]
+}

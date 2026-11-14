@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "verified-installed-package-public-tck-evidence-not-conformance",
+  "notes": "Focused public C++ TCK evidence for IEEE 1516.1-2025 §12.12.4.2 p. 380 l. 39-12. Under both HLA_EVOKED and HLA_IMMEDIATE, the case calls encode() and decode() on every basic data-element helper class declared by the pinned Table 26 API and asserts that two decoded simple values per helper equal their sources. It also asserts a representative exact-byte vector for each of the 25 helpers, including the MIM-defined HLAboolean values and selected numeric, octet, ASCII, and UTF-16 forms. The HLAunicodeString vector checks a supplementary-character payload and its three-code-unit count. These helper-level checks do not validate the FOM/SOM/MIM basic-representation table fields under §6.2.14 or establish exhaustive Annex C conformance.",
+  "requirements": [
+    {
+      "id": "umbra-cpp-table-26-basic-data-element-encode-decode",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12",
+      "clause_id": "clause-12.12.4.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_data_encoding_value_operations.cpp",
+      "source_symbol": "scenarioBasicDataElementEncodeDecodeContract",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_data_encoding_value_operations.cpp::scenarioBasicDataElementEncodeDecodeContract"
+      ]
+    }
+  ]
+}

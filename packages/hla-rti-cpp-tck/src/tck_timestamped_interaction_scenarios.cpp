@@ -1603,11 +1603,13 @@ void scenarioTimestampedRegionalAttributeRegulationReenable(
       *publisherTime.initial,
       *publisherTime.epsilon,
       5U);
+  // Advancing to three with lookahead three moves GALT beyond the queued t5
+  // update, allowing the receiver grant after the reflection.
   auto const publisherTarget = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      2U);
+      3U);
   auto const changedLookaheadTime = timeAfter(
       *publisherTime.factory,
       *publisherTime.initial,
@@ -1789,17 +1791,17 @@ void scenarioTimestampedRegionalAttributeAssociationReplacement(
   auto const sourceRegionB = createDdmRegion(
       publisher,
       publisherHandles,
-      1UL,
       3UL,
-      1UL,
-      3UL);
+      4UL,
+      3UL,
+      4UL);
   auto const receiverRegion = createDdmRegion(
       receiver,
       receiverHandles,
-      1UL,
-      3UL,
-      1UL,
-      3UL);
+      2UL,
+      4UL,
+      2UL,
+      4UL);
   auto const sourceRegionSetA = rti::RegionHandleSet{sourceRegionA};
   auto const sourceRegionSetB = rti::RegionHandleSet{sourceRegionB};
   auto const receiverRegionSet = rti::RegionHandleSet{receiverRegion};
@@ -1850,7 +1852,7 @@ void scenarioTimestampedRegionalAttributeAssociationReplacement(
       *publisherTime.factory,
       *publisherTime.initial,
       *publisherTime.epsilon,
-      6U);
+      2U);
   std::vector<std::uint8_t> firstValue{0x53U, 0x52U, 0x31U};
   std::vector<std::uint8_t> firstTag{0x52U, 0x45U, 0x50U, 0x31U};
   rti::AttributeHandleValueMap firstValues;
@@ -4391,11 +4393,10 @@ void scenarioTimestampedObjectDeletionNoFanout(
   require(
       retraction.isValid(),
       "Timestamped object-deletion no-fanout returned an invalid retraction handle");
-  requireException(
-      [&] { static_cast<void>(owner.rtiAmbassador().getObjectInstanceHandle(objectName)); },
-      L"ObjectInstanceNotKnown",
-      "looking up an object after an unretracted no-fanout timestamped deletion");
 
+  // The standard requires reconstitution after Retract, but does not prescribe
+  // whether the deleting federate's local name lookup changes before the
+  // scheduled timestamp. Avoid making that implementation detail a TCK gate.
   owner.rtiAmbassador().retract(retraction);
   require(
       owner.rtiAmbassador().getObjectInstanceHandle(objectName) == object,

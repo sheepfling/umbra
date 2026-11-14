@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "IEEE 1516.1-2025 §12.13.4.6(b)(5) requires a corresponding HLA_CALLBACK_RESPONSE for each HLA_CALLBACK_REQUEST and requires the callback-request sequence number in that response. Table 46 defines the four-byte big-endian In response to field at payload bytes 24–27, followed by the encoded service response. The public C++ object-discovery TCK observes every type-22 request in its exercised scenario and pairs it one-for-one with a type-23 response on the same connection and session using that field; it also checks the successful CallbackSucceeded protobuf value. This is bounded evidence for the exercised discovery callback path, not every possible callback family, callback-failure encoding, independent-provider interoperability, or complete conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-callback-response-sequence-correlation",
+      "owner": "IEEE 1516.1-2025 C++ API",
+      "language": "cpp",
+      "signature": "The public object-discovery TCK case invokes FederateAmbassador::discoverObjectInstance; a transparent loopback observer verifies that each observed HLA_CALLBACK_REQUEST receives one HLA_CALLBACK_RESPONSE whose Table 46 In response to field equals the request sequence number",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "FederateAmbassador::discoverObjectInstance",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_callback_controls_object_ownership.cpp::scenarioCallbackControlsObjectDiscovery"
+      ]
+    }
+  ]
+}

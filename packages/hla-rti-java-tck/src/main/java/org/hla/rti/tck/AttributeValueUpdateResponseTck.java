@@ -13,6 +13,7 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.exceptions.AttributeNotOwned;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -71,6 +72,21 @@ final class AttributeValueUpdateResponseTck {
          ObjectInstanceHandle knownObject = memberRecorder.discoveredObject;
          JavaTckSupport.check(object.equals(knownObject),
             "member discovery returned a different object handle");
+
+         AttributeHandleValueMap unauthorizedValues =
+            member.getAttributeHandleValueMapFactory().create(1);
+         unauthorizedValues.put(memberAttribute, new byte[] {(byte) 0xfa});
+         boolean unauthorizedUpdateRejected = false;
+         try {
+            member.updateAttributeValues(knownObject, unauthorizedValues, new byte[0]);
+         } catch (AttributeNotOwned expected) {
+            unauthorizedUpdateRejected = true;
+         }
+         JavaTckSupport.check(unauthorizedUpdateRejected,
+            "non-owner update did not throw AttributeNotOwned");
+         JavaTckSupport.check(ownerRecorder.provided().isEmpty()
+               && memberRecorder.reflections().isEmpty(),
+            "rejected non-owner update produced a provider callback or reflection");
 
          ownerRecorder.clearProvided();
          memberRecorder.clearReflections();

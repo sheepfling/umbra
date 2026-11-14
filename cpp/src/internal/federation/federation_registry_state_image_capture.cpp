@@ -1,5 +1,6 @@
 #include "internal/federation/federation_registry.hpp"
 #include "internal/federation/federation_state_image.hpp"
+#include "internal/fom/fom_catalog.hpp"
 
 #include <RTI/encoding/BasicDataElements.h>
 
@@ -52,6 +53,76 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
     std::wstring const& federationName) {
   FederationStateImage image;
   image.federationName = federationName;
+  image.fomHandlesPresent = true;
+  auto const* catalog = federation.definition.catalog.get();
+  auto const appendFomHandle = [&image](
+                                   FederationStateImageFomHandleKind kind,
+                                   std::string const& name,
+                                   std::string const& containingName,
+                                   std::optional<std::uint64_t> handle) {
+    if (name.empty() || !handle || *handle == 0U) {
+      throw std::logic_error(
+          "A federation save could not capture a semantic FOM handle identity.");
+    }
+    image.fomHandles.push_back({kind, name, containingName, *handle});
+  };
+  if (catalog != nullptr) {
+    if (!federation.objectClassHandles || !federation.attributeHandles ||
+        !federation.interactionClassHandles || !federation.parameterHandles ||
+        !federation.dimensionHandles) {
+      throw std::logic_error(
+          "A federation save has no complete live FOM handle directory.");
+    }
+    for (auto const& name : catalog->objectClassNames()) {
+      appendFomHandle(
+          FederationStateImageFomHandleKind::object_class,
+          name,
+          {},
+          federation.objectClassHandles->handleFor(name));
+      auto const* objectClass = catalog->objectClass(name);
+      if (objectClass == nullptr) {
+        throw std::logic_error(
+            "A federation save encountered an unknown object class in its FOM catalog.");
+      }
+      for (auto const& [attributeName, definition] : objectClass->declaredAttributes) {
+        static_cast<void>(definition);
+        appendFomHandle(
+            FederationStateImageFomHandleKind::attribute,
+            attributeName,
+            name,
+            federation.attributeHandles->handleFor(
+                catalog, name, attributeName));
+      }
+    }
+    for (auto const& name : catalog->interactionClassNames()) {
+      appendFomHandle(
+          FederationStateImageFomHandleKind::interaction_class,
+          name,
+          {},
+          federation.interactionClassHandles->handleFor(name));
+      auto const* interactionClass = catalog->interactionClass(name);
+      if (interactionClass == nullptr) {
+        throw std::logic_error(
+            "A federation save encountered an unknown interaction class in its FOM catalog.");
+      }
+      for (auto const& [parameterName, definition] : interactionClass->declaredParameters) {
+        static_cast<void>(definition);
+        appendFomHandle(
+            FederationStateImageFomHandleKind::parameter,
+            parameterName,
+            name,
+            federation.parameterHandles->handleFor(
+                catalog, name, parameterName));
+      }
+    }
+    for (auto const& name : catalog->dimensionNames()) {
+      appendFomHandle(
+          FederationStateImageFomHandleKind::dimension,
+          name,
+          {},
+          federation.dimensionHandles->handleFor(name));
+    }
+  }
   image.logicalTimeImplementationName =
       federation.definition.logicalTimeImplementationName;
   image.normalizationSeed = federation.normalizationSeed;
@@ -825,7 +896,7 @@ FederationStateImage EmbeddedFederationRegistry::stateImageFor(
         (state.timeRegulationPending ? 1U << 5U : 0U) |
         (state.timeConstrainedPending ? 1U << 6U : 0U) |
         (state.minimumTimestampIsExclusive ? 1U << 7U : 0U) |
-        (state.allowEqualTimeTsoAfterTimeAdvanceRequestAvailableGrant
+        (state.allowEqualTimeTsoAfterAvailableGrant
              ? 1U << 8U
              : 0U);
     savedTime.pendingGeneration = state.pendingTimeAdvanceGeneration;

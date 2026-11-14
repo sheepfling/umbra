@@ -220,6 +220,11 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
 
   std::unique_ptr<LogicalTimeFactory> getTimeFactory() const override;
 
+  // JNI value conversion uses the selected factory internally. Calling the
+  // public getTimeFactory service from those helpers would emit an observable
+  // service report for work the Java caller did not request.
+  std::unique_ptr<LogicalTimeFactory> makeLogicalTimeFactoryForJavaBinding() const;
+
 
   FederateHandle getFederateHandle(std::wstring const& federateName) override;
 
@@ -842,6 +847,8 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   // ambassador state and queues the official Connection Lost callback without
   // consulting the process-local registry.
   void handleProcessTransportFailure(std::wstring faultDescription);
+  [[nodiscard]] bool handleProcessFederateResignation(
+      std::wstring reasonForResign);
   [[nodiscard]] bool handleEmbeddedFederateResignation(
       std::wstring reasonForResign);
   [[nodiscard]] bool handleEmbeddedMembershipLoss(
@@ -863,6 +870,62 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   void startPeriodicMomScheduler();
   void stopPeriodicMomScheduler() noexcept;
   void periodicMomSchedulerLoop(std::stop_token stopToken);
+  [[nodiscard]] bool handleEmbeddedMomResignFederationExecutionRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomInteractionSubscriptionRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomSynchronizationPointAchievedRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomUnconditionalDivestitureRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomInteractionDeclarationRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomObjectAttributePublicationRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomObjectDirectedInteractionPublicationRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
+  [[nodiscard]] bool handleEmbeddedMomTimeManagementInteractionRequest(
+      std::optional<std::wstring>& federationName,
+      std::optional<std::uint64_t> const& producingFederateId,
+      std::optional<std::uint64_t> const& interactionClassHandle,
+      InteractionClassHandle const& interactionClass,
+      ParameterHandleValueMap const& parameterValues,
+      VariableLengthData const& userSuppliedTag);
   [[nodiscard]] bool handleEmbeddedMomInteractionControlRequest(
       std::optional<std::wstring>& federationName,
       std::optional<std::uint64_t> const& producingFederateId,
@@ -892,7 +955,7 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   ServiceReportConnectionSnapshot serviceReportConnection_;
 #if defined(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
   std::shared_ptr<umbra::detail::TransportConnection> transportConnection_;
-  // A configured tcp:// address selects the private process-boundary client.
+  // A configured tcp:// or tls:// address selects the private process client.
   // The public RTI surface owns this lifetime, while the protocol and service
   // payloads remain internal until their standards mapping is complete.
   std::unique_ptr<umbra::detail::ProcessFederationClient>
@@ -920,6 +983,7 @@ class UmbraRtiAmbassador final : public RtiAmbassadorShell {
   std::optional<std::filesystem::path> processServiceReportFile_;
   umbra::detail::FomStandardEdition fomStandardEdition_ =
       umbra::detail::FomStandardEdition::ieee1516_2025;
+  std::set<std::string> unsupportedTransportationTypeNames_;
   std::shared_ptr<umbra::detail::FederateTimeState> federateTimeState_;
   std::jthread periodicMomScheduler_;
 #endif
