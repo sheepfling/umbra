@@ -74,10 +74,14 @@ claim is made.
 The opt-in `java-tck.federate-initiated-concurrency-different-ambassadors`
 case joins two distinct `RTIambassador` instances to one federation, holds the
 owner's `reportFederationExecutions` callback while the member invokes
-`listFederationExecutions`, then releases and evokes both reports. It maps the
-two direct p. 358 requirements to IEEE 1516.1-2025 §12.8. Five focused
-current-source JNI runs passed under `HLA_EVOKED`; `HLA_IMMEDIATE` is outside
-this case's scope.
+`getInteractionClassHandle("HLAinteractionRoot")` and
+`getInteractionClassName`, then `listFederationExecutions`; it finally releases
+and evokes both reports. The exact class-name round trip exercises public
+request/response association while the owner's list response is pending. The
+direct p. 358 requirements map to IEEE 1516.1-2025 §12.8; p. 397 l. 126-41
+maps to §12.13.4.1. The test does not inspect numeric sequence values or claim
+overall conformance. A fresh current-source JNI run passed under
+`HLA_EVOKED`; `HLA_IMMEDIATE` is outside this case's scope.
 The `java-tck.evoked-callback-no-concurrency` case holds one
 `reportFederationExecutions` callback open while a second thread calls
 `evokeCallback` on the same ambassador. It verifies the second callback does
@@ -207,12 +211,13 @@ the input map's `byte[]` and the receiver must still get the original bytes.
 Eight other standard Java handle factories must reject the interaction
 parameter bytes with `CouldNotDecode`. Its direct mappings are p. 353 l. 120,
 123, and 132-43 to §12.2, p. 377 l. 210-68 to §12.11.7, and p. 396 l. 186-61
-to §12.13.3.3. Focused current-source JNI runs under both callback models
-executed the two value-map paths and then failed at the existing federate-handle
-type-rejection assertion: `FederateHandleFactory.decode` accepted the
-object-instance encoding. Results are under
+to §12.13.3.3. After rebuilding the JNI native library from the current
+checkout with MinGW/Ninja and rebuilding the Java provider bridge, the focused
+case passed under both callback models. An earlier failure used the stale
+2026-10-21 DLL and is superseded. Results are under
 `out/java-tck/handle-parameter-value-round-trip-map-copy-20261114/`; these
-provider-local runs are execution evidence, not conformance evidence.
+provider-local runs are execution evidence, not independent-provider
+interoperability or conformance evidence.
 The `java-tck.malformed-inputs` scenario now mirrors the promoted C++ case:
 it rejects missing and malformed FOM inputs, adapter-supplied invalid FOM
 modules, and truncated `HLAinteger32BE` data, then disconnects through the

@@ -6163,7 +6163,8 @@
       ],
       "default_status": "run",
       "promotion": "promoted",
-      "parity_scope_note": "The Java counterpart now checks the same interaction-parameter and attribute-value routes, original-byte delivery after caller mutation, and matching ObjectInstanceHandle factory reconstitution. The focused Java run reaches these assertions before exposing the current provider's existing wrong-factory decode failure. Java byte[] behavior does not claim C++ VariableLengthData pointer or assignment semantics."
+      "parity_scope_note": "The Java counterpart now checks the same interaction-parameter and attribute-value routes, original-byte delivery after caller mutation, and matching ObjectInstanceHandle factory reconstitution and wrong-type rejection. The focused Java case passes both callback models against a freshly built current-checkout JNI provider. Java byte[] behavior does not claim C++ VariableLengthData pointer or assignment semantics.",
+      "evidence_note": "Built the installed-package C++ TCK adapter from the current checkout and ran cpp-tck.handle-parameter-value-round-trip against the MinGW installed package with the P0 FOM and HLAinteger64Time. The scenario passed under HLA_EVOKED and HLA_IMMEDIATE; cpp_tck.py validated both callback results against the catalog. Evidence: out/java-tck/cpp-tck-handle-value-20261114/handle-value-cpp-verified.json and per-model result/JUnit files below portable-tck/tck-results. This is local installed-package evidence, not independent-provider conformance."
     },
     {
       "id": "cpp-tck.handle-decoder-semantic-validity",
@@ -15049,7 +15050,7 @@
       "cpp_test": "src/tck_support_services_scenarios.cpp#scenarioConcurrentCallsDifferentAmbassadors",
       "runner_id": "cpp-tck.federate-initiated-concurrency-different-ambassadors",
       "parity": "java-tck.federate-initiated-concurrency-different-ambassadors",
-      "parity_scope_note": "Java parity covers the same distinct-RTIambassador joined-service concurrency under HLA_EVOKED. It permits sequential processing and does not require the member service to return before the owner's held callback finishes; no overall RTI conformance claim.",
+      "parity_scope_note": "The Java parity case now also covers the bounded p. 397 lines 126-41 -> section 12.13.4.1 public-behavior witness: while the owner List Federation Executions response is pending, the member resolves HLAinteractionRoot to a handle and back to its exact name. It retains the distinct-ambassador HLA_EVOKED concurrency checks, permits sequential service processing, and does not inspect numeric session IDs or sequence values; no overall RTI conformance claim.",
       "callback_models": [
         "evoked"
       ],

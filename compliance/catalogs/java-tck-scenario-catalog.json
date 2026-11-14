@@ -67706,6 +67706,8 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.listFederationExecutions",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getInteractionClassName",
         "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
@@ -67747,8 +67749,9 @@
           "standard_section": "hla-1516.1-2025:clause-12.13.4.1"
         }
       ],
-      "mapping_note": "Java parity covers the same distinct-RTIambassador joined-service concurrency under HLA_EVOKED. It permits sequential processing and does not require the member service to return before the owner's held callback finishes; no overall RTI conformance claim.",
+      "mapping_note": "In addition to the distinct-RTIambassador joined-service concurrency mapped from p. 358 to IEEE 1516.1-2025 section 12.8, the Java mirror checks the p. 397 lines 126-41 request/response association path mapped to section 12.13.4.1: while the owner list response is pending, the member resolves HLAinteractionRoot to a handle and back to its exact name. The Java test does not inspect numeric session IDs or sequence values, require concurrent service return, or claim overall conformance.",
       "mapping_classification": "direct-requirement-mapped",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed a focused HLA_EVOKED run using the current-source Java provider bridge and the fresh MinGW/Ninja native DLL. This run includes Get Interaction Class Handle and Get Interaction Class Name on the member while the owner List Federation Executions response is pending. Results: out/java-tck/federate-initiated-concurrency-different-ambassadors-sequence-association-20261114/results/current-source.results.json and current-source.junit.xml. This is local-provider execution evidence, not independent-provider interoperability or overall conformance.",
       "exclusion": "Opt-in Java TCK scenario: RtiTckMain registers defaultEnabled=false, so it is reported unsupported by the default suite unless selected through a capability profile or enabled with -Dhla.rti.tck.runUnverified=true."
     },
     {
@@ -68610,7 +68613,7 @@
       ],
       "mapping_note": "The Java case sends a registered ObjectInstanceHandle encoding in both an interaction parameter and an attribute value, verifies byte-preserving receive, decodes each value with ObjectInstanceHandleFactory, and confirms the same object name. Eight other standard Java handle factories must reject the encoding with CouldNotDecode. For both receive-order services the receiver holds callbacks until the call returns; the sender then mutates the caller-owned byte[] in the input map, and the receiver must still get the original bytes. Direct mappings cover p. 353 l. 120, 123, and 132-43 -> §12.2, p. 377 l. 210-68 -> §12.11.7, and p. 396 l. 186-61 -> §12.13.3.3. Scope is one object-instance handle and the tested ParameterHandleValueMap/AttributeHandleValueMap services; no private message encoding, other handle classes, or other value-map routes are claimed.",
       "mapping_classification": "direct-requirement-mapped",
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and executed the interaction and attribute value-map delivery, post-return byte[] mutation, byte-preservation, and matching-factory decode assertions under HLA_EVOKED and HLA_IMMEDIATE using the current-source Umbra JNI provider. Both focused runs then failed at the existing cross-type check because FederateHandleFactory.decode accepted the object-instance encoding. Results: out/java-tck/handle-parameter-value-round-trip-map-copy-20261114/{evoked,immediate}-after-transfer.{results.json,junit.xml}. This is provider-local execution evidence, not conformance or interoperability evidence."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. After rebuilding the JNI native library from the current checkout with the MinGW/Ninja configuration and rebuilding the Java provider bridge, the interaction and attribute value-map delivery, post-return byte[] mutation, byte-preservation, matching-factory decode, and wrong-type rejection assertions passed under HLA_EVOKED and HLA_IMMEDIATE. An earlier failure used the stale 2026-10-21 DLL and is superseded. Results: out/java-tck/handle-parameter-value-round-trip-map-copy-20261114/fresh-current-{evoked,immediate}.{results.json,junit.xml}. This is provider-local execution evidence, not independent-provider interoperability or conformance evidence."
     },
     {
       "id": "java-tck.logical-time-factory-factory-contract",

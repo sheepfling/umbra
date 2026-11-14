@@ -2,6 +2,7 @@ package org.hla.rti.tck;
 
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
@@ -67,6 +68,13 @@ final class FederateInitiatedConcurrencyDifferentAmbassadorsTck {
          memberJoined = true;
 
          owner.listFederationExecutions();
+         InteractionClassHandle memberInteractionClass =
+            member.getInteractionClassHandle("HLAinteractionRoot");
+         JavaTckSupport.check(memberInteractionClass != null
+               && "HLAinteractionRoot".equals(
+                  member.getInteractionClassName(memberInteractionClass)),
+            "the member did not associate its interaction-class lookup response with the correct request while the owner list response was pending");
+
          ownerEvoker = new Thread(() -> {
             try {
                owner.evokeCallback(0.25);
