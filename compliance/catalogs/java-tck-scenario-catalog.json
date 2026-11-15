@@ -52071,7 +52071,19 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedObjectDeletionFailure",
       "parity": "cpp-tck.service-report-timestamped-delete-object-instance-failure",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and logical-time implementation."
+      "exclusion": "Default-disabled because execution requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and Java provider, and this row must be opted in with --run-unverified. The local Umbra JNI bundle passed both callback models on 2026-11-15; results do not establish independent-provider interoperability or conformance.",
+      "parity_scope_note": "The C++ primary uses a default-invalid ObjectInstanceHandle for the ObjectInstanceNotKnown branch. The public Java API has no default-invalid handle constructor, so Java deletes a previously valid same-federation object with reporting disabled and then submits that stale handle. Both branches assert the exception, callback report fields, serial, and no application removal; the substitute setup and report payload are supplemental and unmapped. The §6.16.4 mapping is limited to the invalid optional timestamp constraint.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "HLAobjectRoot.TckObject and Value from the adapter FOM",
+        "callback model selected by the adapter; opt-in via --run-unverified"
+      ],
+      "evidence_note": "The Java scenario compiled against the pinned official 2025 API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched local Umbra JNI bundle at out/java-tck/federate-lost-mom-report-20261103/provider-current (JAR and DLL). The paired installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the 2026-11-10 MinGW package. Java catalog validation and focused C++ evidence validation passed. Java results: out/java-tck/service-report-timestamped-object-deletion-failure-parity-20261115/results; C++ results: out/mgw/cpp-tck-service-report-timestamped-delete-object-failure-java-parity-20261115. A 2026-11-14 current-source JNI native rebuild attempt failed before producing a DLL because the dirty worktree has unrelated MSVC compile errors; no current-source JNI bridge claim is made. No independent-provider or conformance claim."
     },
     {
       "id": "java-tck.service-report-attribute-update",
