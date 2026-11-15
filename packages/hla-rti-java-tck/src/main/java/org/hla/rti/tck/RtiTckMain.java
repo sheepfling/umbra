@@ -8280,7 +8280,8 @@ public final class RtiTckMain {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-local-object-instance-deletion",
                "cpp-1516.1-object-deletion-negative-boundaries",
-               "cpp-1516.1-object-registration-discovery"
+               "cpp-1516.1-object-registration-discovery",
+               "requirement-candidate-table-5-p299-r001"
             }, false), RtiTckMain::serviceReportLocalDeleteFailure);
       run(new Scenario("java-tck.service-report-register-object-instance",
             "standard MOM report arguments and discovery callback for object registration",

@@ -50199,8 +50199,22 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-local-object-instance-deletion",
         "cpp-1516.1-object-deletion-negative-boundaries",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-table-5-p299-r001"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-table-5-p299-r001"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to Table 5 p.299 r001 -> IEEE 1516.1-2025 §11.5.1. For both the unknown-handle and stale-object LocalDeleteObjectInstance failure reports, Java decodes HLAreturnedArgument and checks type 34, empty argument name, and the literal null value. The supplied object designator, exception, serial, invoking federate, service status, and successful middle call remain supplemental evidence. This does not claim general Table 5 or §11.5.1 coverage, independent-provider interoperability, or conformance.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -50221,6 +50235,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportLocalDeleteFailure",
       "parity": "cpp-tck.service-report-local-delete-object-instance-failure",
       "default_status": "unsupported",
+      "evidence_note": "The current-source Java case exercises unknown-handle and stale-object LocalDeleteObjectInstance failure reports with a successful local-delete call between them. It checks each type-34 Null returned argument plus the supplied object argument shape, failure exception and status, serial, and invoking-federate identity. Focused Umbra JNI runs passed under HLA_EVOKED and HLA_IMMEDIATE with the pinned IEEE 1516.1-2025 API JAR, p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value: out/java-tck/service-report-local-delete-failure-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Paired current-source C++ primary and contract results: out/cpp-tck/service-report-local-delete-failure-parity-20261115/paired-results.json and paired-junit.xml. Direct mapping is limited to Table 5 p.299 r001; evidence is local JNI/provider only.",
       "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support."
     },
     {
