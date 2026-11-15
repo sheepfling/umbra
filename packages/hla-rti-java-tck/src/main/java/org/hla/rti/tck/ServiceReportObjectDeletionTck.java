@@ -159,7 +159,8 @@ final class ServiceReportObjectDeletionTck {
                () -> subject.deleteObjectInstance(staleObjectForUnknownCase, tag),
                "ObjectInstanceNotKnown", "deleteObjectInstance with an unknown stale object");
             verifyFailureReport(observer, recorder, reportClass, reportParameters, reliable,
-               subjectHandle, encoder, staleObjectForUnknownCase.toString(), 0, callbackModel);
+               subjectHandle, encoder, tag, staleObjectForUnknownCase.toString(), 0,
+               callbackModel);
          }
          subject.deleteObjectInstance(object, tag);
          await(observer, callbackModel, () -> !recorder.interactions.isEmpty(),
@@ -252,7 +253,7 @@ final class ServiceReportObjectDeletionTck {
                () -> subject.deleteObjectInstance(object, tag),
                "ObjectInstanceNotKnown", "deleteObjectInstance with a stale object");
             verifyFailureReport(observer, recorder, reportClass, reportParameters, reliable,
-               subjectHandle, encoder, object.toString(), 2, callbackModel);
+               subjectHandle, encoder, tag, object.toString(), 2, callbackModel);
          }
       } finally {
          if (subjectJoined) {
@@ -293,7 +294,8 @@ final class ServiceReportObjectDeletionTck {
    private static void verifyFailureReport(RTIambassador observer, Recorder recorder,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> parameters,
          TransportationTypeHandle reliable, FederateHandle subject, EncoderFactory encoder,
-         String objectDesignator, int serialNumber, CallbackModel callbackModel) throws Exception {
+         byte[] expectedTag, String objectDesignator, int serialNumber,
+         CallbackModel callbackModel) throws Exception {
       await(observer, callbackModel, () -> !recorder.interactions.isEmpty(),
          "failed DeleteObjectInstance HLAreportServiceInvocation callback");
       JavaTckSupport.check(recorder.interactions.size() == 1,
@@ -335,12 +337,31 @@ final class ServiceReportObjectDeletionTck {
       JavaTckSupport.check(supplied.size() == 3,
          "failed delete-object report returned the wrong supplied-argument count");
       HLAfixedRecord objectArgument = supplied.get(0);
-      JavaTckSupport.check(((HLAinteger32BE) objectArgument.get(0)).getValue() == 37
+      JavaTckSupport.check(objectArgument.size() == 3
+            && ((HLAinteger32BE) objectArgument.get(0)).getValue() == 37
             && "Object instance designator".equals(
                ((HLAunicodeString) objectArgument.get(1)).getValue())
             && ("\"" + objectDesignator + "\"").equals(
                ((HLAunicodeString) objectArgument.get(2)).getValue()),
          "failed delete-object report returned the wrong object argument");
+
+      HLAfixedRecord tagArgument = supplied.get(1);
+      // RL-399 disputes the numeric UserSuppliedTag type; retain its stable name and value.
+      JavaTckSupport.check(tagArgument.size() == 3
+            && "User-supplied tag".equals(
+               ((HLAunicodeString) tagArgument.get(1)).getValue())
+            && ("\"" + Base64.getEncoder().encodeToString(expectedTag) + "\"").equals(
+               ((HLAunicodeString) tagArgument.get(2)).getValue()),
+         "failed delete-object report returned the wrong user-tag argument value");
+
+      HLAfixedRecord optionalTimestamp = supplied.get(2);
+      JavaTckSupport.check(optionalTimestamp.size() == 3
+            && ((HLAinteger32BE) optionalTimestamp.get(0)).getValue() == 34
+            && "Optional timestamp".equals(
+               ((HLAunicodeString) optionalTimestamp.get(1)).getValue())
+            && "null".equals(((HLAunicodeString) optionalTimestamp.get(2)).getValue()),
+         "failed delete-object report returned the wrong absent-timestamp argument");
+
       HLAfixedRecord returned = fixedRecordPrototype(encoder);
       returned.decode(event.parameters.get(parameters.get("HLAreturnedArgument")));
       JavaTckSupport.check(((HLAinteger32BE) returned.get(0)).getValue() == 34

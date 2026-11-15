@@ -8305,7 +8305,7 @@ public final class RtiTckMain {
                "requirement-candidate-table-5-p299-r004"
             }, false), RtiTckMain::serviceReportObjectDeletion);
       run(new Scenario("java-tck.service-report-delete-object-instance-failure",
-            "standard MOM reports for unknown and stale object deletion",
+            "standard MOM report argument payloads for unknown and stale object deletion",
             "mom-service-reporting",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.getFederateHandleFactory;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;HLAfixedRecord.decode;HLAvariableArray.decode;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
             new String[] {
@@ -8313,7 +8313,13 @@ public final class RtiTckMain {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-object-instance-deletion",
                "cpp-1516.1-object-deletion-negative-boundaries",
-               "cpp-1516.1-object-registration-discovery"
+               "cpp-1516.1-object-registration-discovery",
+               "requirement-candidate-table-5-p299-r001",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+               "requirement-candidate-table-5-p299-r004"
             }, false), RtiTckMain::serviceReportObjectDeletionFailure);
       run(new Scenario("java-tck.named-registration",
             "reserve, consume, contend for, and reuse standard named object instances",

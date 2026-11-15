@@ -50375,7 +50375,7 @@
     {
       "id": "java-tck.service-report-delete-object-instance-failure",
       "category": "mom-service-reporting",
-      "title": "Verify service reports for unknown and stale DeleteObjectInstance calls",
+      "title": "Verify standard MOM report argument payloads for unknown and stale object deletion",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -50415,14 +50415,22 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-instance-deletion",
         "cpp-1516.1-object-deletion-negative-boundaries",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-table-5-p299-r004"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -50444,7 +50452,40 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectDeletionFailure",
       "parity": "cpp-tck.service-report-delete-object-instance-failure",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support."
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both failure reports decode their supplied-argument arrays and require exactly three records."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The ObjectInstanceHandle designator and stable User-supplied tag and Optional timestamp names/values are checked; RL-399 leaves the UserSuppliedTag numeric type unasserted."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned HLAargumentRecord is decoded for each failed service invocation."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both failed calls return the standard void-return Null encoding."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned argument is checked as Null: Table 5 type 34, empty name, and value null."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The ObjectInstanceHandle argument checks Table 5 type code 37, exact name, and quoted API handle or invalid-handle value."
+        }
+      ],
+      "mapping_note": "Both Java failure reports now verify the three supplied records, the ObjectInstanceHandle designator, the stable User-supplied tag name and Base64 JSON value, the absent-timestamp Null, and the returned type-34 Null. The middle successful report and decoded HLAfederate identity are additional case evidence. Direct mappings remain limited to the six existing candidates under IEEE 1516.1-2025 §11.5.1. The RL-399 UserSuppliedTag numeric type conflict remains deliberately unasserted; exception and serial checks are additional assertions, and no complete section or conformance claim is made."
     },
     {
       "id": "java-tck.named-registration",
