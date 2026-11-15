@@ -963,7 +963,7 @@ adapter-supplied report directories; results are in
 The assertions cover only the public MOM values and resulting records observed
 by this fixture, not filesystem failure handling or report-interaction
 delivery while file logging is disabled.
-The opt-in `java-tck.fom-update-rate-value-stability` scenario checks the
+The default-run `java-tck.fom-update-rate-value-stability` scenario checks the
 selected base FOM entries `TckFast=25.0` and `TckSlow=0.5`, confirms
 `TckAdditionalRate` is unavailable before the extension module is joined, then
 checks `TckAdditionalRate=2.0` and the unchanged base values through both the
@@ -971,12 +971,12 @@ owner and extension joiner. Supply `fom-model-tck.xml` through
 `hla.rti.tck.updateRateFom`, `fom-extension-tck.xml` through
 `hla.rti.tck.additionalFom`, and the designators through
 `hla.rti.tck.updateRateFastDesignator`, `hla.rti.tck.updateRateDesignator`, and
-`hla.rti.tck.fomAdditionalUpdateRate`. The Java TCK passed ten focused
-current-source JNI runs, five per callback model; the paired C++ primary and
-contract cases passed 4/4 focused installed-package CTests. This is evidence
-for these selected fixture entries; the public API does not enumerate
-arbitrary FDD update-rate tables, and independent-provider behavior remains
-unverified.
+`hla.rti.tck.fomAdditionalUpdateRate`. Focused default runs passed 1/1 under
+each callback model against current-source JNI; results/JUnit are in
+`out/java-tck/fom-update-rate-value-stability-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This is evidence for these selected fixture entries; the public API does not
+enumerate arbitrary FDD update-rate tables, and independent-provider behavior
+and conformance remain unverified.
 The opt-in `java-tck.fom-invalid-create-atomicity` scenario retries federation
 creation with each adapter-supplied invalid FOM path, then creates and joins a
 valid federation using the same name to prove failures did not reserve it.

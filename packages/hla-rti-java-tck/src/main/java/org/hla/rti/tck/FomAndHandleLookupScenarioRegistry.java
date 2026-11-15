@@ -139,7 +139,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "fom-composition",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getUpdateRateValue;RTIambassador.joinFederationExecution(additionalFomModules);RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-update-rates"},
-            false),
+            true),
          RtiTckMain::fomUpdateRateValueStability);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-invalid-create-atomicity",
             "Reject invalid FOM create inputs without reserving the federation name",

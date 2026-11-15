@@ -11595,7 +11595,8 @@
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-update-rates",
-          "standard_section": "hla-1516.1-2025:clause-4.1.4"
+          "standard_section": "hla-1516.1-2025:clause-4.1.4",
+          "note": "The public getUpdateRateValue service returns the selected base entries TckFast=25.0 and TckSlow=0.5 before and after additional-module Join. It rejects the extension-only TckAdditionalRate before Join, then both existing and joining federates observe that entry as 2.0. Evidence is limited to these three fixture entries."
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
@@ -11612,15 +11613,16 @@
         "evoked",
         "immediate"
       ],
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
-        "base FOM declaring TckFast=25.0 and TckSlow=0.5",
-        "additional FOM module declaring TckAdditionalRate=2.0",
+        "current-source Umbra JNI provider",
+        "hla.rti.tck.updateRateFom: fom-model-tck.xml declaring TckFast=25.0 and TckSlow=0.5",
+        "hla.rti.tck.additionalFom: fom-extension-tck.xml declaring TckAdditionalRate=2.0",
+        "hla.rti.tck.updateRateFastDesignator=TckFast, hla.rti.tck.updateRateDesignator=TckSlow, hla.rti.tck.fomAdditionalUpdateRate=TckAdditionalRate",
         "HLAinteger64Time and HLA_EVOKED or HLA_IMMEDIATE callback model"
       ],
-      "evidence_note": "The Java TCK was rebuilt against the pinned IEEE 1516.1-2025 API JAR and passed ten focused current-source Umbra JNI runs with fom-model-tck.xml and fom-extension-tck.xml: five HLA_EVOKED and five HLA_IMMEDIATE. Each JUnit report has 910 testcases with zero failures or errors. Traceability export: out/java-tck/fom-update-rate-value-stability-java-port-20261106/current-source/traceability.json. The paired current-source installed-package C++ primary and contract CTests passed 4/4 across both callback models; both combined result bundles validated with tools/cpp_tck.py. Independent-provider behavior remains unverified.",
-      "exclusion": "Default-disabled pending adapter inputs: requires a base rate FOM, additional FOM module, TckFast and TckSlow names, TckAdditionalRate name, logical-time implementation, callback model, and Java IEEE 1516.1-2025 provider. Configure hla.rti.tck.updateRateFom, hla.rti.tck.additionalFom, hla.rti.tck.updateRateFastDesignator, hla.rti.tck.updateRateDesignator, and hla.rti.tck.fomAdditionalUpdateRate. Current-source JNI runs are recorded in evidence_note; independent-provider behavior remains unverified."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official API, fom-model-tck.xml, fom-extension-tck.xml, HLAinteger64Time, TckFast, TckSlow, and TckAdditionalRate. Results/JUnit: out/java-tck/fom-update-rate-value-stability-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-invalid-create-atomicity",
