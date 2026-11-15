@@ -8085,7 +8085,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ddm-region-lifecycle",
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportDeleteRegion);
+            }, true), RtiTckMain::serviceReportDeleteRegion);
       run(new Scenario("java-tck.service-report-create-region",
             "standard MOM report for creating a region",
             "mom-service-reporting",

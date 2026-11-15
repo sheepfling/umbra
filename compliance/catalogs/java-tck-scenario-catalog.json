@@ -48814,11 +48814,21 @@
         "standard-service-report-delete-region-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension under HLA_EVOKED and HLA_IMMEDIATE. The Java case checks one type-42 Region designator report with exact handle text, Null return, empty exception, serial 0, federate, and callback metadata, then verifies getDimensionHandleSet rejects the deleted region with InvalidRegion. Results: out/java-tck/region-service-report-parity-20261103/results/delete-region-{hla_evoked,hla_immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct §11.5.1 Table 14/Table 5 HLAargument encoding witness: the successful DeleteRegion report encodes the public RegionHandle as one type-42 Region designator with the exact handle text. The InvalidRegion and RegionNotCreatedByThisFederate failure reports and disabled-reporting boundary are supplemental. This covers one service/argument shape only; it does not claim complete Table 5 or §11.5.1 coverage, or conformance.",
+      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override, using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension. The successful report verifies the type-42 Region designator argument, exact handle text, Null return, serial 0, and metadata. Supplemental checks verify repeated-delete InvalidRegion (serial 1), foreign-owned-region RegionNotCreatedByThisFederate (serial 2), exact arguments and report metadata, and that the deleted-region query emits no report after service reporting is disabled. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package; scoped C++ validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/delete-region-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}; combined export: out/java-tck/delete-region-java-parity-20261115/provider-neutral-validation.json; C++ results/JUnit: out/mgw/cpp-tck-service-report-delete-region-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportDeleteRegion",
       "parity": "cpp-tck.service-report-delete-region",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM and dimension name, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run"
     },
     {
       "id": "java-tck.service-report-create-region",

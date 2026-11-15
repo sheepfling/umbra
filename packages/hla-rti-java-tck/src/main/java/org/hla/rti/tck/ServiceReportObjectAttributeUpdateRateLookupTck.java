@@ -28,6 +28,7 @@ import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
+import hla.rti1516_2025.exceptions.InvalidRegion;
 import hla.rti1516_2025.exceptions.RegionNotCreatedByThisFederate;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
@@ -1297,7 +1298,9 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
       boolean regionCreated = false;
+      boolean foreignRegionCreated = false;
       RegionHandle region = null;
+      RegionHandle foreignRegion = null;
       InteractionClassHandle reportClass = null;
       try {
          subject.connect(emptyCallbacks(), callbackModel);
@@ -1363,16 +1366,68 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
                new Argument(42, "Region designator", quoted(region.toString()))
             }, new Argument(34, "", "null"), 0, 5);
 
+         boolean repeatedDeleteRejected = false;
+         try {
+            subject.deleteRegion(region);
+         } catch (InvalidRegion expected) {
+            repeatedDeleteRejected = true;
+         }
+         JavaTckSupport.check(repeatedDeleteRejected,
+            "DeleteRegion accepted an already-deleted region");
+         awaitReportCount(observer, recorder, callbackModel, 2,
+            "failed DeleteRegion InvalidRegion service-report callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+         JavaTckSupport.check(recorder.events.size() == 2,
+            "DeleteRegion success and failure delivered an unexpected number of service reports");
+         verifyReport(observer, subjectFederate, recorder.events.get(1), encoder, reportClass,
+            reportParameters, reliable, "DeleteRegion",
+            new Argument[] {
+               new Argument(42, "Region designator", quoted(region.toString()))
+            }, new Argument(34, "", "null"), 1, 5, true, false, "InvalidRegion");
+
+         DimensionHandle observerDimension = observer.getDimensionHandle(dimensionName);
+         JavaTckSupport.check(observerDimension != null,
+            "DeleteRegion foreign-region dimension lookup returned null");
+         DimensionHandleSet foreignDimensions = observer.getDimensionHandleSetFactory().create();
+         foreignDimensions.add(observerDimension);
+         foreignRegion = observer.createRegion(foreignDimensions);
+         foreignRegionCreated = true;
+         JavaTckSupport.check(foreignRegion != null,
+            "DeleteRegion foreign-region setup returned a null handle");
+         boolean foreignRegionRejected = false;
+         try {
+            subject.deleteRegion(foreignRegion);
+         } catch (RegionNotCreatedByThisFederate expected) {
+            foreignRegionRejected = true;
+         }
+         JavaTckSupport.check(foreignRegionRejected,
+            "DeleteRegion accepted a region created by another joined federate");
+         awaitReportCount(observer, recorder, callbackModel, 3,
+            "failed DeleteRegion RegionNotCreatedByThisFederate service-report callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+         JavaTckSupport.check(recorder.events.size() == 3,
+            "DeleteRegion success and failures delivered an unexpected number of service reports");
+         verifyReport(observer, subjectFederate, recorder.events.get(2), encoder, reportClass,
+            reportParameters, reliable, "DeleteRegion",
+            new Argument[] {
+               new Argument(42, "Region designator", quoted(foreignRegion.toString()))
+            }, new Argument(34, "", "null"), 2, 5, true, false,
+            "RegionNotCreatedByThisFederate");
+
          subject.setServiceReportingSwitch(false);
          RegionHandle deletedRegion = region;
          JavaTckSupport.expectFailure(() -> subject.getDimensionHandleSet(deletedRegion),
             "InvalidRegion", "looking up dimensions after region deletion");
+         JavaTckSupport.check(recorder.events.size() == 3,
+            "disabled service reporting delivered a GetDimensionHandleSet failure report");
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
-         observer.resignFederationExecution(ResignAction.NO_ACTION);
-         observerJoined = false;
          subject.resignFederationExecution(ResignAction.NO_ACTION);
          subjectJoined = false;
+         observer.deleteRegion(foreignRegion);
+         foreignRegionCreated = false;
+         observer.resignFederationExecution(ResignAction.NO_ACTION);
+         observerJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
       } finally {
@@ -1383,6 +1438,10 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
          if (regionCreated && region != null) {
             try { subject.deleteRegion(region); }
+            catch (Exception ignored) { }
+         }
+         if (foreignRegionCreated && foreignRegion != null) {
+            try { observer.deleteRegion(foreignRegion); }
             catch (Exception ignored) { }
          }
          if (observerJoined) resign(observer);
