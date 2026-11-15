@@ -20,6 +20,16 @@ ordinary and timestamped interaction delivery (including the RO-positive/TSO-gat
 support lookups, negative cases, relevance
 advisories, directed interactions, derived-target subscription eligibility,
 and transportation/order controls. The
+`java-tck.federate-mom-object-instances-updated-mim-attribute` case mirrors
+the paired C++ TCK's `HLAobjectInstancesUpdated` witness: it checks zero before
+updates, one after repeated updates to one object, two after a second object,
+and three through a periodic `HLAsetTiming` report after updating a third
+object twice. A later direct request agrees, and the value remains three after
+periodic reporting is disabled. It maps only the exact MIM definition in
+IEEE 1516.1-2025 §11.4.1. Focused Java runs passed under both callback models;
+the paired C++ primary/contract tests passed 4/4. This is local-provider
+evidence, not independent-provider behavior or conformance.
+The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the
 target attribute. It checks `AttributeNotOwned` and verifies that two separate
