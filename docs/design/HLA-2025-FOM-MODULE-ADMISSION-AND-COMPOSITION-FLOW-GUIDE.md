@@ -1306,4 +1306,4 @@ equivalence, or general IEEE conformance.
   that the resulting runtime implements every declared model feature.
 - It does not expand or map the HLA Requirements Lab.
 
-[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.
+[^worktree-source]: The source/test evidence marked here was checked against a worktree containing active 2025 implementation/test edits; those edits are not bundled with the published documentation revision. Read each line citation against its exact source revision. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records which references resolve at published candidate HEAD and which require source stabilization and semantic recheck.

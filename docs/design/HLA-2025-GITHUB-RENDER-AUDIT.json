@@ -1,29 +1,29 @@
 {
   "title": "IEEE 1516.1-2025 GitHub Mermaid Render Audit",
   "schema_version": 1,
-  "audit_date": "2026-11-12",
+  "audit_date": "2026-11-15",
   "hosted_branch": "feature/hla-2025-docs-candidate-20261107",
-  "hosted_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+  "hosted_revision": "431152817283718923c06a07e4154ca785e7033a",
   "scope": "Earlier branch snapshots remain in their historical fields. The increment-457 live recheck at the current published branch head is recorded in latest_interactive_full_hydration_recheck; the increment-356/374 audit remains historical in interactive_published_mermaid_audit. This audit does not assert normative correctness or click-through validation for every link.",
   "summary": {
     "guides_checked": 32,
     "http_200": 32,
     "http_404": 0,
-    "hosted_diagrams": 508,
-    "rendered": 508,
+    "hosted_diagrams": 515,
+    "rendered": 515,
     "failed": 0,
     "pending": 0,
     "fully_rendered_pages": 32
   },
   "current_worktree": {
-    "head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+    "head_revision": "431152817283718923c06a07e4154ca785e7033a",
     "guide_count": 32,
     "diagram_count": 515,
     "local_rendered_diagrams": 515,
     "local_screenshot_reviewed_diagrams": 515,
     "time_management_guide_lines": 2621,
     "hosted_time_guide_lines": 2621,
-    "candidate_matches_hosted": false,
+    "candidate_matches_hosted": true,
     "new_mom_reports_guide_present_locally": true,
     "new_mom_reports_guide_hosted_status": 200,
     "mermaid_compatibility_scan": {
@@ -128,11 +128,11 @@
     "head_unresolved_targets": 4,
     "hosted_unresolved_references": 9,
     "hosted_unresolved_targets": 4,
-    "candidate_base_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473",
+    "candidate_base_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "also_checked_against_revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943",
     "worktree_unresolved_references": 0,
     "worktree_only_reference": "The private current-worktree test case “Process federation client resumes its joined session after socket loss” remains prose-only evidence: it checks that the private client can list the joined member after socket reconnection, not a public ambassador’s Not Connected transition, and it has no Markdown source-line link.",
-    "cross_revision_note": "Increment 529 resolves 4,805/4,805 unique references in the worktree. Candidate HEAD e10fa19a, primary HEAD e6321e84, and initial-work c9c5a9e4 each resolve 4,796/4,805; the same nine anchors in four active source/test files remain outside those committed revisions."
+    "cross_revision_note": "Increment 532: all 4,805 references resolve in the current candidate worktree and at primary HEAD 4b50f50e0a985bbca7a4094a35bba9fc32c83943. Published candidate HEAD 431152817283718923c06a07e4154ca785e7033a resolves 4,796/4,805; nine cited 2025 source/test lines are outside four active source/test files at that revision."
   },
   "failure_summary": [
     {
@@ -142,7 +142,7 @@
       "disposition": "The candidate's semicolon repair passes the current 34-page GFM API container check. Visible published-page rendering still needs post-publication inspection."
     }
   ],
-  "scope_note": "Increment 529 verified a 7-addition/21-revision diagram delta against candidate HEAD, with two hash-only corrections. Current source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at committed revisions. GFM coverage is a full 40-page pass with final text rechecks through increment 529, registering 515/515 Mermaid containers. Hosted hydration remains verified only for the 508-diagram published baseline.",
+  "scope_note": "Increment 532 published the complete 515-diagram set at candidate revision 431152817283718923c06a07e4154ca785e7033a. The revision-aware hosted hydration audit covers all 515 diagrams across 32 guides. Authenticated GitHub GFM checks cover all 41 current 2025 Markdown pages. Nine source-line anchors remain out of range at published HEAD because the cited 2025 source/test changes are not part of that revision; see the hosted source-dependency audit.",
   "guides": [
     {
       "path": "docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
@@ -587,60 +587,7 @@
     "candidate_disposition": "Keep the five current-only test paths and the Requirements Lab plan outside the selected 41 documentation paths. Retain the private socket-resume case only as explicitly bounded prose evidence."
   },
   "candidate_scope_review": {
-    "reviewed_at": "2026-11-09 increment 354",
-    "candidate_documentation_paths": 44,
-    "candidate_non_documentation_paths_present_but_excluded": 48,
-    "selected_non_documentation_paths": 0,
-    "excluded_breakdown": {
-      "source_test_catalog_targets": 43,
-      "fom_fixture_targets": 4,
-      "documentation_link_checker": 1
-    },
-    "requirements_lab_paths_in_selected_candidate": 0,
-    "changed_2010_paths": 0,
-    "current_only_test_sources_without_markdown_links": [
-      "cpp/tests/fom_handle_allocator_catch2.cpp",
-      "cpp/tests/ieee1516_2025_connection_tls_catch2.cpp",
-      "cpp/tests/ieee1516_2025_federation_mom_s_leaf_subscription_catch2.cpp",
-      "cpp/tests/ieee1516_2025_process_federation_recovery_catch2.cpp",
-      "cpp/tests/tls_socket_catch2.cpp"
-    ],
-    "source_line_link_gate": {
-      "references_checked": 4591,
-      "worktree_unresolved": 0,
-      "candidate_base_unresolved": 0,
-      "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-      "primary_source_unresolved": 0,
-      "worktree_resolved": 4591,
-      "candidate_base_resolved": 4591,
-      "primary_source_resolved": 4591,
-      "worktree_only_reference": "The private current-worktree test case “Process federation client resumes its joined session after socket loss” remains prose-only evidence: it checks that the private client can list the joined member after socket reconnection, not a public ambassador’s Not Connected transition, and it has no Markdown source-line link.",
-      "cross_revision_note": "All 4,591 unique relative path/line/guide references (5,960 link occurrences) resolve in the current candidate worktree, at pinned candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at primary source revision e6321e842f333427349166df8c5b35350a2ae473."
-    },
-    "finding": "The docs-only selection is 44 documentation paths: 32 topic guides and 12 support/handoff assets. All 4,591 unique relative path/line/guide references (5,960 occurrences) resolve in the candidate worktree, at pinned candidate base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at primary source revision e6321e842f333427349166df8c5b35350a2ae473. The authenticated increment-354 GFM pass covers 38 pages and 507/507 Mermaid containers. The 48 non-documentation changes remain excluded and preserved. Published page audit at adafb10c: 32/32 pages load, 507/507 containers match, and 507/507 remain Loading in headless Chromium; 11,305 anchors include no href beginning ./ or ../.",
-    "status": "The 44-path 2025 documentation candidate is published on its dedicated branch. All 32 guide page DOMs load and contain the expected 507 Mermaid containers; all remain at Loading placeholders in headless Chromium. The 48 unrelated non-documentation changes remain excluded.",
-    "remote_and_primary_check": {
-      "remote_state": {
-        "feature_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-        "candidate_remote_present": true,
-        "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-        "published_revision": "adafb10c37b6aad8f798e49ca7007abeaaeb66fc"
-      },
-      "primary_worktree_comparison": {
-        "compared_non_documentation_paths": 48,
-        "identical_to_primary_worktree": 47,
-        "different_from_primary_worktree": 1,
-        "missing_from_primary_worktree": 0,
-        "different_path": "compliance/catalogs/cpp-tck-scenario-catalog.json"
-      }
-    },
-    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_branch_present_remotely": true,
-    "hosted_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-    "source_line_references_also_checked_against_revision": "e6321e842f333427349166df8c5b35350a2ae473",
-    "source_line_references_checked": 4591,
-    "source_line_references_unresolved_at_candidate_base": 0,
-    "published_revision": "adafb10c37b6aad8f798e49ca7007abeaaeb66fc"
+    "status": "The documentation candidate is published at revision 431152817283718923c06a07e4154ca785e7033a. All 32 current guide pages and 515 diagrams are accounted for by the prior full hydration pass plus increment-532 hydration checks of all five changed pages. The diagram delta is published; current-only source/test changes remain outside this docs revision."
   },
   "guide_content_coverage_screen": {
     "checked_at": "2026-11-07",
@@ -2005,24 +1952,25 @@
     "scope_note": "The increment-355 headless pass did not scroll the lazy-rendered containers and therefore observed Loading placeholders. Increment 356 scrolled all containers into view and confirmed one SVG per expected diagram after hydration, plus a successful Mermaid rendering response for every diagram. A representative rendered diagram was visually inspected; the audit does not claim individual screenshot review of all 507 hosted diagrams or click-through HTTP checks for every link."
   },
   "latest_candidate_worktree_verification": {
-    "as_of": "2026-11-12 increment 529",
-    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref e6321e842f333427349166df8c5b35350a2ae473; --ref c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-    "markdown_files_checked": 40,
+    "as_of": "2026-11-15 increment 532",
+    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref 4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+    "markdown_files_checked": 41,
     "references_checked": 4805,
     "worktree_resolved": 4805,
     "worktree_unresolved": 0,
     "candidate_head_resolved": 4796,
     "candidate_head_unresolved": 9,
     "candidate_head_unresolved_targets": 4,
-    "primary_and_remote_branch_resolved": 4796,
-    "scope_note": "Increment 529 rechecked all 4,805 unique source-line references across 40 current IEEE 1516.1-2025 Markdown files: the worktree resolves 4,805; candidate HEAD, primary HEAD, and initial-work each resolve 4,796. The same nine anchors in four active source/test files remain outside those committed revisions.",
-    "candidate_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "primary_source_revision": "e6321e842f333427349166df8c5b35350a2ae473",
-    "primary_source_resolved": 4796,
-    "primary_source_unresolved": 9,
-    "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "scope_note": "Increment 532 checked all 4,805 unique references across 41 current IEEE 1516.1-2025 Markdown files: the active candidate worktree and local primary HEAD 4b50f50 resolve all references; published candidate HEAD 4311528 resolves 4,796 and has nine out-of-range anchors in four source/test files.",
+    "candidate_head_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "primary_source_revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+    "primary_source_resolved": 4805,
+    "primary_source_unresolved": 0,
+    "candidate_base_revision": "431152817283718923c06a07e4154ca785e7033a",
     "candidate_base_resolved": 4796,
-    "candidate_base_unresolved": 9
+    "candidate_base_unresolved": 9,
+    "remote_branch_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "remote_branch_resolved": 4796
   },
   "latest_edition_boundary_diff_screen": {
     "as_of": "2026-11-11 handoff",
@@ -4158,38 +4106,20 @@
     }
   ],
   "latest_interactive_full_hydration_recheck": {
-    "as_of": "2026-11-11 increment 457",
-    "browser": "Edge public GitHub view",
+    "as_of": "2026-11-15 increment 532",
+    "browser": "Microsoft Edge, public GitHub view",
     "branch": "feature/hla-2025-docs-candidate-20261107",
-    "branch_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "branch_pointer_check": "git ls-remote origin refs/heads/feature/hla-2025-docs-candidate-20261107",
+    "branch_head_revision": "431152817283718923c06a07e4154ca785e7033a",
     "guide_pages_checked": 32,
-    "tracked_head_diagrams": 508,
-    "observed_mermaid_output_containers": 508,
-    "loaded_render_accessibility_documents": 508,
+    "tracked_head_diagrams": 515,
+    "observed_mermaid_output_containers": 515,
+    "loaded_render_accessibility_documents": 515,
     "page_count_mismatches": 0,
     "worktree_diagram_fences": 515,
-    "unpublished_new_diagrams": 7,
-    "unpublished_revised_diagram_bodies": 2,
-    "worktree_only_count_deltas": [
-      {
-        "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
-        "published_head": 42,
-        "worktree": 43
-      },
-      {
-        "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
-        "published_head": 12,
-        "worktree": 13
-      },
-      {
-        "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
-        "published_head": 12,
-        "worktree": 17
-      }
-    ],
-    "method": "Opened all 32 guide URLs on the published branch and scrolled through each page to trigger lazy loading. Counted GitHub Mermaid output containers and nested Render accessibility documents after hydration. Compared the three differing page counts with git grep at HEAD and worktree fence counts.",
-    "scope_note": "Confirms hydration of the 508 diagrams present at published HEAD e10fa19a. It does not measure per-frame HTTP status codes or establish full-width readability for every chart. The local 515-diagram worktree, including seven additions and two revised bodies, remains unpublished and unverified in GitHub."
+    "unpublished_new_diagrams": 0,
+    "unpublished_revised_diagram_bodies": 0,
+    "method": "Revision-aware combined audit. The prior all-32-page browser hydration pass verified 508 diagrams at e10fa19a. Increment 532 opened each of the five changed guide pages at the published 431152817283718923c06a07e4154ca785e7033a and triggered loading for all 130 diagrams on those pages. The other 27 pages retain 385 diagrams from the prior full pass. Counts were compared with current published Markdown fences.",
+    "scope_note": "Combined coverage verifies all 515 current published diagrams. It is not a claim that all 32 pages were reloaded in one browser session, or that every chart received full-width readability review."
   },
   "latest_live_browser_sample": {
     "as_of": "2026-11-12 increment 513",
@@ -4216,15 +4146,15 @@
     "scope_note": "Selected IEEE 1516.1-2025 model-symbol lookup flow. Connection, membership, and symbol existence are separate gates; this does not model federation-name reservation or class-hierarchy lookup. No 2010 behavior or cross-profile parity is inferred."
   },
   "latest_candidate_diagram_delta": {
-    "as_of": "2026-11-12 increment 529",
+    "as_of": "2026-11-15 increment 532",
     "baseline_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "current_worktree_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3 plus uncommitted documentation changes",
+    "current_worktree_revision": "431152817283718923c06a07e4154ca785e7033a",
     "baseline_diagram_count": 508,
     "current_diagram_count": 515,
     "added_diagram_count": 7,
     "revised_body_count": 21,
     "ledger_hash_only_correction_count": 2,
-    "method": "Compared parsed Mermaid fenced bodies (both backtick and tilde fences) from candidate HEAD and the current worktree, aligned by guide source and per-source ordinal. Line-ending differences were normalized before raw body comparison. Current ledger hashes and local evidence identify entries; body-text comparison distinguishes actual revisions from stale baseline hash corrections.",
+    "method": "Compared parsed Mermaid fenced bodies (both backtick and tilde fences) from prior candidate HEAD and the current worktree before publication, aligned by guide source and per-source ordinal. Line-ending differences were normalized before raw body comparison. Current ledger hashes and local evidence identify entries; body-text comparison distinguishes actual revisions from stale baseline hash corrections.",
     "per_guide_delta": [
       {
         "source": "docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
@@ -4623,22 +4553,24 @@
       }
     ],
     "local_render_and_screenshot_evidence": "All seven additions and all 21 revised current bodies have verified-current-body local render records and explicit screenshot-review statuses in the 515-entry ledger.",
-    "hosted_hydration": "The published candidate remains at 508/508 diagrams on revision e10fa19a. The seven additions and 21 body revisions remain unpublished and require hosted verification after publication.",
+    "hosted_hydration": "The complete 515-diagram set is published at revision 431152817283718923c06a07e4154ca785e7033a. Revision-aware browser hydration evidence covers all 515: 508 charts from the prior full-page pass plus 130 charts on the five changed pages, with the unchanged-page overlap reconciled to 385 charts. No current diagram additions or body revisions remain unpublished.",
     "source_change_review_state": {
       "checked_as_of": "2026-11-12 increment 529",
       "command": "gh pr list --repo sheepfling/umbra --state open --limit 50 --json number,title,headRefName,baseRefName,updatedAt",
       "open_pull_requests": 0,
       "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-      "candidate_branch_head": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+      "candidate_branch_head": "431152817283718923c06a07e4154ca785e7033a",
       "active_source_test_paths": [
         "cpp/src/internal/federation/process_federation_service_host.cpp",
         "cpp/src/internal/runtime/rti_initialization_data.cpp",
         "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
         "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp"
       ],
-      "worktree_state": "All four paths remain modified in the shared candidate worktree; no source changes were staged or published by this documentation pass.",
-      "next_action": "Source owners review and commit these changes; then rerun the cross-revision source-link check and reconcile moved anchors."
-    }
+      "worktree_state": "The four cited source/test paths remain modified in the shared candidate worktree. This documentation closeout staged no source changes.",
+      "next_action": "Source owners stabilize and publish the cited changes; then rerun the cross-revision source-link check and verify semantic targets at the exact published revision."
+    },
+    "published_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "publication_status": "All seven additions and 21 revised bodies are published; the two ledger hash-only corrections were not source-body changes."
   },
   "latest_increment_530_supporting_page_gfm_recheck": {
     "as_of": "2026-11-15 increment 530",
@@ -4718,6 +4650,168 @@
         "rendered_links": 3,
         "mermaid_containers": 0,
         "html_sha256": "9ce03b32ae3826b7b2d125eb55e312f2882025186a1cfc725dcd3e4bf28c80ca",
+        "html_nonempty": true
+      }
+    ]
+  },
+  "historical_increment_457_interactive_full_hydration_recheck": {
+    "as_of": "2026-11-11 increment 457",
+    "browser": "Edge public GitHub view",
+    "branch": "feature/hla-2025-docs-candidate-20261107",
+    "branch_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+    "branch_pointer_check": "git ls-remote origin refs/heads/feature/hla-2025-docs-candidate-20261107",
+    "guide_pages_checked": 32,
+    "tracked_head_diagrams": 508,
+    "observed_mermaid_output_containers": 508,
+    "loaded_render_accessibility_documents": 508,
+    "page_count_mismatches": 0,
+    "worktree_diagram_fences": 515,
+    "unpublished_new_diagrams": 7,
+    "unpublished_revised_diagram_bodies": 2,
+    "worktree_only_count_deltas": [
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+        "published_head": 42,
+        "worktree": 43
+      },
+      {
+        "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+        "published_head": 12,
+        "worktree": 13
+      },
+      {
+        "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+        "published_head": 12,
+        "worktree": 17
+      }
+    ],
+    "method": "Opened all 32 guide URLs on the published branch and scrolled through each page to trigger lazy loading. Counted GitHub Mermaid output containers and nested Render accessibility documents after hydration. Compared the three differing page counts with git grep at HEAD and worktree fence counts.",
+    "scope_note": "Confirms hydration of the 508 diagrams present at published HEAD e10fa19a. It does not measure per-frame HTTP status codes or establish full-width readability for every chart. The local 515-diagram worktree, including seven additions and two revised bodies, remains unpublished and unverified in GitHub."
+  },
+  "latest_increment_532_changed_page_hydration_recheck": {
+    "as_of": "2026-11-15 increment 532",
+    "branch": "feature/hla-2025-docs-candidate-20261107",
+    "branch_head_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "pages_checked": 5,
+    "expected_mermaid_containers": 130,
+    "loaded_render_accessibility_documents": 130,
+    "page_count_mismatches": 0,
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+        "expected": 36,
+        "observed": 36,
+        "loaded_render_accessibility_documents": 36
+      },
+      {
+        "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+        "expected": 17,
+        "observed": 17,
+        "loaded_render_accessibility_documents": 17
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+        "expected": 43,
+        "observed": 43,
+        "loaded_render_accessibility_documents": 43
+      },
+      {
+        "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+        "expected": 13,
+        "observed": 13,
+        "loaded_render_accessibility_documents": 13
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md",
+        "expected": 21,
+        "observed": 21,
+        "loaded_render_accessibility_documents": 21
+      }
+    ],
+    "method": "Opened each changed guide on the published GitHub branch and scrolled through it to trigger Mermaid hydration. Counted Mermaid output containers with loaded Render accessibility documents and compared each page with its current published source fence count.",
+    "combined_scope": "The five changed pages contain 130 diagrams. Combined with the prior all-page audit of 508 diagrams, this covers all 515 current diagrams: 385 charts on the 27 unchanged pages plus 130 on the five refreshed pages."
+  },
+  "latest_increment_532_gfm_recheck": {
+    "as_of": "2026-11-15 increment 532",
+    "service": "Authenticated GitHub Markdown API POST /markdown",
+    "mode": "gfm",
+    "pages_checked": 8,
+    "guide_pages_checked": 5,
+    "supporting_pages_checked": 3,
+    "combined_current_page_coverage": 41,
+    "failures": 0,
+    "scope_note": "Increment 532 re-rendered all five changed guide pages and the three current roadmap/progress pages with authenticated GitHub Markdown API GFM. All responses were nonempty; the five guide responses produced the expected 130 Mermaid containers. Combined with prior current-page checks, this covers all 41 current 2025 Markdown pages.",
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md",
+        "rendered_bytes": 387735,
+        "heading_elements": 47,
+        "rendered_links": 566,
+        "mermaid_containers": 36,
+        "html_sha256": "4e828b3d6435c871ae4d57585a7a0191079818b5d618cca1fea8276ef2cc3417",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md",
+        "rendered_bytes": 170608,
+        "heading_elements": 22,
+        "rendered_links": 257,
+        "mermaid_containers": 17,
+        "html_sha256": "77469ad48b24ffbbcf18bc03cfa0805a92c24c764e85df6e5637a8cd3b3440c4",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
+        "rendered_bytes": 507690,
+        "heading_elements": 64,
+        "rendered_links": 720,
+        "mermaid_containers": 43,
+        "html_sha256": "e44bdfb3e8dae98a041f90e6a36b91258cfa6d03867acd766bb6f1b3a54307eb",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md",
+        "rendered_bytes": 164835,
+        "heading_elements": 25,
+        "rendered_links": 298,
+        "mermaid_containers": 13,
+        "html_sha256": "acf6beef16060d2630929ee48540bfe35bd5cd32bdbc454ae44899a8c283283c",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-FEDERATION-SYNCHRONIZATION-FLOW-GUIDE.md",
+        "rendered_bytes": 184513,
+        "heading_elements": 30,
+        "rendered_links": 265,
+        "mermaid_containers": 21,
+        "html_sha256": "2f2800f52fc835b4b8de70adc7599fb526657ee153bfae2e400d18dedcbb8924",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+        "rendered_bytes": 435671,
+        "heading_elements": 40,
+        "rendered_links": 289,
+        "mermaid_containers": 0,
+        "html_sha256": "53ff7e07c7ae2e9db47c558b6dafc35db9f1726c076f5e770b32b600c10992a3",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+        "rendered_bytes": 2208,
+        "heading_elements": 5,
+        "rendered_links": 12,
+        "mermaid_containers": 0,
+        "html_sha256": "0cce2338152c4bd3f8affc776e205c8db29730bcee19c6267d6abf7194d67c21",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
+        "rendered_bytes": 6715,
+        "heading_elements": 6,
+        "rendered_links": 3,
+        "mermaid_containers": 0,
+        "html_sha256": "783f0275c731033291994b4fbeb8caa06940cda99301c52ae1e78558a1b96a29",
         "html_nonempty": true
       }
     ]

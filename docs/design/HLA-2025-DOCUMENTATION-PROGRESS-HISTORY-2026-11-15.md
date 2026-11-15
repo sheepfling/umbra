@@ -27,3 +27,33 @@ The local primary branch advanced to 95a3d133, eight commits ahead of its remote
 The two lifecycle TCK targets were rechecked semantically at primary commit 95a3d133: scenarioFederateLostMomReportPortable starts at line 2607, and the post-loss HLAfederatesInFederation assertion is at line 2983. Their candidate-worktree counterparts remain at lines 2389 and 2765. The aggregate primary link pass does not make that source revision publicly available on the candidate branch.
 
 Next: publish the reviewed 2025 source/test changes on the candidate branch, then verify path/line and semantic references there before publishing the seven new and 21 revised diagrams. The 91% working estimate and 508/508 published hydration baseline remain unchanged. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab separate.
+
+
+## Increment 532 — published diagram and hydration closeout (2026-11-15)
+
+The working completion estimate is **approximately 95%**; this is a qualitative
+estimate, not a fraction of checklist items. Candidate branch
+`feature/hla-2025-docs-candidate-20261107` is published at
+`431152817283718923c06a07e4154ca785e7033a`. Its 32 guides contain all 515
+current diagrams, including the seven additions and 21 revised bodies.
+
+The hosted hydration check is complete for 515/515 diagrams. The earlier
+all-guide pass covered 508 charts. This increment checked the five changed
+pages individually: Data Distribution and Regions 36/36, Service Invocation
+Reporting 17/17, Federation Save and Restore 43/43, FOM Admission and
+Composition 13/13, and Federation Synchronization 21/21. The other 27 pages
+contain 385 unchanged charts covered by the earlier full audit. No page-count
+mismatches were found. This revision-aware combination does not claim a single
+reload of every page or full-width visual review of every chart.
+
+Authenticated GitHub GFM checks were refreshed for the five changed Markdown
+pages; combined with earlier checks, all 41 current 2025 Markdown pages are
+covered. The link checker finds 4,805/4,805 references in the current worktree
+and at primary HEAD `4b50f50`; published candidate HEAD resolves 4,796/4,805.
+Nine out-of-range anchors remain in four 2025 source/test files absent from the
+published candidate revision. The exact targets and affected guides are listed
+in `HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json`; do not move them to unrelated
+source lines. Source owners must stabilize the cited changes, after which the
+path and semantic anchors need one final check.
+
+No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.

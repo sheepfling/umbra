@@ -2997,8 +2997,11 @@ covers save-state transitions, callback completion and failure, restore
 selection/rejoin, and deferred-work restoration. For current diagram totals and
 identity-matched local render and screenshot coverage, see the [2025
 documentation roadmap](HLA-2025-DOCUMENTATION-ROADMAP.md#current-baseline) and
-[visual-review ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json). Those local
-checks do not verify visible Mermaid hydration on published GitHub file pages;
-the candidate remains unpublished. Re-render and review any changed diagrams.
+[visual-review ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json). The
+published candidate at revision 431152817283718923c06a07e4154ca785e7033a has
+hosted Mermaid hydration evidence for all 515 diagrams across the 32 guides;
+the render audit records the full-pass plus changed-page method. Hydration does
+not establish full-width readability for every chart; the selected visual
+samples remain listed in the [documentation roadmap](HLA-2025-DOCUMENTATION-ROADMAP.md).
 
-[^worktree-source]: Source, test, and TCK-catalog evidence marked in this guide refers to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.
+[^worktree-source]: Source, test, and TCK-catalog evidence marked here was checked against a worktree containing active 2025 implementation/test edits; those edits are not bundled with the published documentation revision. Read each line citation against its exact source revision. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records which references resolve at published candidate HEAD and which require source stabilization and semantic recheck.

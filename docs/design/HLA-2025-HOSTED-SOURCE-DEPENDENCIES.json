@@ -80,7 +80,7 @@
   },
   "failure_target_details": [],
   "scope_note": "The root migration values above preserve the 2026-11-08 comparison against origin/feature/initial-work. The current candidate-branch snapshot is latest_candidate_reference_snapshot: 40 IEEE 1516.1-2025 Markdown files and 4,776 unique relative source-line references; all resolve in the worktree, while 4,767 resolve at candidate HEAD and nine current-only anchors in four in-flight source/test files are out of range there. The immutable GitHub permalink audit is separate and retains its own recorded date. These checks establish target path and line existence only, not semantic support for surrounding claims.",
-  "refresh": "2026-11-12 increment 489 refresh: quality_gates/bin/check_hla_2025_documentation_links.py --worktree resolves 4,776/4,776 unique source-line references across 40 IEEE 1516.1-2025 Markdown files. Candidate HEAD and the remote branch pointer remain at e10fa19a7bf48415e00a14ca7301613a84f637a3; the recorded candidate-HEAD comparison resolves 4,767/4,776, with nine current-worktree-only anchors in four in-flight source/test files. The current worktree resolves all nine. The root migration counts dated 2026-11-08 remain historical; see latest_candidate_reference_snapshot for the candidate comparison. Path/line existence does not establish semantic support for surrounding claims.",
+  "refresh": "2026-11-15 increment 532: the candidate branch now publishes the full 515-diagram set at 431152817283718923c06a07e4154ca785e7033a. The source-link checker resolves 4,805/4,805 references in the current worktree and 4,796/4,805 at published HEAD; nine cited lines remain outside four active source/test files in the published revision. See latest_candidate_reference_snapshot. Path/line validity does not establish semantic support.",
   "candidate_assembly": {
     "status": "44-path 2025-only documentation candidate published; page-level audit complete, visible Mermaid hydration unverified.",
     "target_base_ref": "origin/feature/initial-work",
@@ -2637,11 +2637,11 @@
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
   },
   "latest_candidate_reference_snapshot": {
-    "as_of": "2026-11-12 increment 529",
+    "as_of": "2026-11-15 increment 532",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+    "candidate_revision": "431152817283718923c06a07e4154ca785e7033a",
     "remote_branch_matches_candidate": true,
-    "markdown_files": 40,
+    "markdown_files": 41,
     "unique_source_line_references": 4805,
     "worktree": {
       "resolved": 4805,
@@ -2671,50 +2671,18 @@
         "affected_target_files": 4
       }
     },
-    "in_flight_source_sizes": [
-      {
-        "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
-        "head_lines": 236,
-        "worktree_lines": 544,
-        "line_count_delta": 308
-      },
-      {
-        "path": "cpp/src/internal/runtime/rti_initialization_data.cpp",
-        "head_lines": 222,
-        "worktree_lines": 394,
-        "line_count_delta": 172
-      },
-      {
-        "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
-        "head_lines": 115,
-        "worktree_lines": 1368,
-        "line_count_delta": 1253
-      },
-      {
-        "path": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
-        "head_lines": 700,
-        "worktree_lines": 2894,
-        "line_count_delta": 2194
-      }
-    ],
-    "interpretation": "All 4,805 worktree source links resolve. Candidate HEAD has the same nine out-of-range links across four active source/test files; none targets a missing file. Increment 529 also compared Mermaid bodies against candidate HEAD and found seven additions and 21 actual revisions; two corrected ledger hashes are not source-body changes. All 28 content deltas have local render/screenshot evidence but remain unpublished. Do not retarget current source anchors to unrelated committed code. Wait for source owners to land reviewed changes, then rerun checks and adjust anchors only if their lines moved.",
-    "next": "There is no open pull request for the four active source/test changes; source owners should review and commit them. After the files reach reviewed committed revisions, rerun the 2025 Markdown link check against the worktree, candidate HEAD, primary HEAD, and hosted baseline. Confirm or adjust the nine line anchors, update this snapshot, then publish seven added diagrams and 21 revised bodies and verify hosted hydration for all 515 charts. Keep in-flight implementation changes outside the documentation-only publication set until their owners review them.",
-    "remote_branch_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "remote_review_state": {
-      "checked_as_of": "2026-11-12 increment 529",
-      "command": "gh pr list --repo sheepfling/umbra --state open --limit 50 --json number,title,headRefName,baseRefName,updatedAt",
-      "open_pull_requests": 0,
-      "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-      "candidate_branch_head": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-      "active_source_test_paths": [
-        "cpp/src/internal/federation/process_federation_service_host.cpp",
-        "cpp/src/internal/runtime/rti_initialization_data.cpp",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
-        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp"
-      ],
-      "worktree_state": "All four paths remain modified in the shared candidate worktree; no source changes were staged or published by this documentation pass.",
-      "next_action": "Source owners review and commit these changes; then rerun the cross-revision source-link check and reconcile moved anchors."
-    }
+    "primary_head": {
+      "revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+      "resolved": 4805,
+      "unresolved": 0,
+      "published_on_candidate_branch": false
+    },
+    "diagram_publication": {
+      "published_additions": 7,
+      "published_revised_bodies": 21,
+      "current_diagram_count": 515
+    },
+    "interpretation": "All 4,805 worktree source links resolve. The published candidate contains the complete diagram delta, but its four cited 2025 source/test files do not yet include the current worktree changes, leaving nine anchors out of range. Do not retarget citations to unrelated committed code. After the source owners publish the relevant changes, rerun line and semantic checks against that exact revision."
   },
   "documentation_support_asset_count": 12
 }
