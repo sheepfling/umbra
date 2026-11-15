@@ -39,6 +39,17 @@ are in `out/java-tck/federate-mom-updated-object-count-periodic-java-parity-2026
 and `out/mgw/cpp-tck-mom-updated-object-count-periodic-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-object-instances-reflected-mim-attribute`
+case checks the distinct-object count at zero, one, still one after a repeat, two,
+and three after two reflections to a third object. A separate monitor requests the
+subject MOM value; the direct count remains three after periodic reporting is enabled
+and disabled. It maps only the HLAobjectInstancesReflected definition in IEEE
+1516.1-2025 §11.4.1. Java passed under both callback models, and the paired C++
+primary passed focused CTest 2/2 plus both direct callback-model runs. Results are
+in `out/java-tck/federate-mom-object-instances-reflected-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-object-instances-reflected-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the

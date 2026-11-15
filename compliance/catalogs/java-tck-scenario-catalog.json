@@ -64616,6 +64616,7 @@
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.publishObjectClassAttributes",
@@ -64626,6 +64627,9 @@
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
         "RTIambassador.sendInteraction(HLAsetTiming)",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -64634,16 +64638,29 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE",
         "HLAbyte"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The single direct mapping is the requirement-to-section pair recorded in standard-joined-federate-mom-object-instances-reflected-mim-attribute-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. This bounded scenario verifies that HLAobjectInstancesReflected counts distinct application object instances receiving Reflect Attribute Values invocations: zero before reflections, one after the first object, still one after a repeated reflection of that object, two after a second object, and three after two reflections to a third object. A separate monitor requests the subject MOM value, so those MOM reflections do not enter the subject count. The direct value remains three after periodic reporting is enabled and disabled. The case checks one ordinary application reflection callback per update; it does not claim the separate HLAreflectionsReceived statistic.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise the same distinct-object progression, direct requests, periodic reflection, and post-disable value.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -64661,12 +64678,13 @@
         "receive-order-attribute-update-requirements-contract.json",
         "mom-service-reporting-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-object-instances-reflected-mim-attribute-contract.json",
         "standard-joined-federate-mom-object-instances-reflected-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomObjectInstancesReflected",
       "parity": "cpp-tck.joined-federate-mom-object-instances-reflected-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckObject.Value. Results/JUnit: out/java-tck/federate-mom-object-instances-reflected-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; results/JUnit: out/mgw/cpp-tck-mom-object-instances-reflected-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-object-instances-discovered-mim-attribute",
