@@ -8509,7 +8509,7 @@ public final class RtiTckMain {
                "cpp-1516.1-timestamped-directed-interaction-delivery",
                "cpp-1516.1-directed-interaction-retraction",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportTimestampedDirectedInteraction);
+            }, true), RtiTckMain::serviceReportTimestampedDirectedInteraction);
       run(new Scenario("java-tck.service-report-timestamped-object-deletion",
             "verify timestamped object removal and its standard service report",
             "mom-service-reporting",

@@ -51867,19 +51867,32 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedDirectedInteraction",
       "parity": "cpp-tck.service-report-timestamped-directed-interaction",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled; focused execution requires --run-unverified with an adapter-supplied application FOM, standard MIM, logical-time implementation, object class and attribute, and directed interaction class. Focused current-source Umbra JNI verification passed HLA_EVOKED and HLA_IMMEDIATE with p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time (out/java-tck/service-report-timestamped-directed-interaction-20261103/results/{evoked,immediate}.results.json). This evidence covers that provider and configuration; independent-provider and conformance results are not established.",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
       ],
       "adapter_inputs": [
         "official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-        "adapter-supplied application FOM, standard MIM, and logical-time implementation",
-        "object class, target attribute, and directed interaction class present in the application FOM",
+        "adapter-supplied P0 FOM, standard MIM, and logical-time implementation",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject, hla.rti.tck.attribute=Value, and hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction",
         "callback model selected by the adapter"
       ],
-      "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API."
+      "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. This mapping is limited to §11.5 report generation; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance. HLAfederate identity, callback metadata, DDM/region setup, and timestamped delivery remain supplemental.",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, and HLAinteractionRoot.TckInteraction. After enabling the Java registration by default, it passed without --run-unverified. The Java case checks report metadata, all standard report fields, invoking federate, five supplied arguments, retraction result, exception and serial, then the target-directed timestamped callback and callback-before-grant order. Java results/JUnit: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
     },
     {
       "id": "java-tck.service-report-timestamped-object-deletion",

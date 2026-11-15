@@ -36123,7 +36123,22 @@
         "mapping_and_validation": "Preserved requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2 -> IEEE 1516.1-2025 §11.5 only for positive report generation and the asserted service name, type, success, exception, and serial fields. Detailed supplied/returned encodings, HLAfederate, callback metadata, and application delivery remain supplemental; no §11.5.1/Table 5 mapping is added. Java catalog and C++ evidence validators passed. No Requirements Lab resynchronization was performed.",
         "boundary": "The JNI bundle was built from current source on 2026-11-14 and C++ TCK evidence used the installed 2026-11-10 package. Evidence is local Umbra only; independent-provider verification and conformance are not claimed."
       },
-      "next_action": "Next reconcile the excluded Java timestamped directed-interaction service-report case with its C++ primary and contract twin. Check directed interaction report generation, exact public arguments, DDM/region behavior, and timestamped delivery against the existing Java assertions; preserve only the primary's direct §11.5 report-generation mapping and keep DDM/delivery supplemental unless a precise direct requirement mapping exists. Run Java and paired C++ cases under both callback models."
+      "latest_verified_service_report_timestamped_directed_interaction_2026_11_15": {
+        "status": "verified-java-enabled-and-paired-run-2026-11-15",
+        "scope": "Java TCK parity for successful timestamped SendDirectedInteraction service reporting and delivery to the subscribed target object.",
+        "scenario_ids": [
+          "java-tck.service-report-timestamped-directed-interaction",
+          "cpp-tck.service-report-timestamped-directed-interaction",
+          "cpp-tck.service-report-timestamped-directed-interaction-contract"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2 -> hla-1516.1-2025:clause-11.5"
+        ],
+        "evidence": "The Java scenario is enabled in the default runner and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package. Java catalog and scoped C++ evidence validators passed. Results: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}; out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}.",
+        "mapping_and_validation": "The selected candidate directly maps to §11.5 for positive HLAreportServiceInvocation generation. The mapping covers the service identity/type/success and supplied/returned/exception/serial fields checked by the scenario. It does not assert a particular §11.5.1 Table 5 row. DDM setup, HLAfederate identity, and timestamped delivery are supplemental. Java catalog and scoped C++ evidence validation returned valid=true with no findings.",
+        "boundary": "Focused local Umbra Java and installed-package C++ evidence for this primary/contract pair. It does not establish independent-provider behavior, complete MOM/DDM/time coverage, or IEEE 1516.1 conformance."
+      },
+      "next_action": "Next reconcile java-tck.service-report-federate-save-begun with its C++ primary and contract twin. Compare the Java report assertions with the public API behavior and selected direct requirement/Table 5 mapping, supply the adapter inputs already named in the catalog, then run Java and paired C++ cases under HLA_EVOKED and HLA_IMMEDIATE. Keep provider runtime evidence scoped and make no broader service-report or conformance claim."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",
