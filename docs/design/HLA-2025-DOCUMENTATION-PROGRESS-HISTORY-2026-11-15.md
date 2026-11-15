@@ -57,3 +57,26 @@ source lines. Source owners must stabilize the cited changes, after which the
 path and semantic anchors need one final check.
 
 No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+
+## Increment 533 — source revision routing audit (2026-11-15)
+
+The working completion estimate remains **approximately 95%**. Candidate branch
+feature/hla-2025-docs-candidate-20261107 is at
+2eac0907917628e7f50b20654233bb97ec994d3a; this documentation-only closeout
+commit did not change Mermaid bodies. Hosted hydration evidence remains valid
+for all 515 diagrams because their source bodies are unchanged from checked
+diagram revision 431152817283718923c06a07e4154ca785e7033a.
+
+The current source-link check resolves 4,805/4,805 references in the candidate
+worktree and at local primary HEAD b716d951; candidate HEAD resolves
+4,796/4,805, with the same nine out-of-range anchors in four 2025 source/test
+files. Primary feature/initial-work is ten commits ahead of remote
+c9c5a9e4; those commits include unrelated Requirements Lab work. The remote
+has no separate branch containing the current source changes, and the current
+GitHub pull-request query returned no open PRs. Do not import the mixed primary
+history into the documentation branch. Stabilize and publish only the reviewed
+source changes through their owners, then verify all nine line and semantic
+targets against that published revision.
+
+No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.

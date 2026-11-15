@@ -5,22 +5,22 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 532)
+## Current finish gates and next handoff — 2026-11-15 (increment 533)
 
-**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. The complete diagram delta—seven additions and 21 revised bodies—is now published at candidate revision `431152817283718923c06a07e4154ca785e7033a`. Current hosted-render evidence covers 515/515 diagrams: the previous all-guide pass covered 508 charts, and this increment checked all 130 charts on the five changed pages; the other 27 pages retain their prior verified bodies. Authenticated GitHub GFM checks cover all 41 current 2025 Markdown pages.
+**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All seven additions and 21 revised bodies were published in diagram revision 431152817283718923c06a07e4154ca785e7033a; current candidate branch HEAD is 2eac0907917628e7f50b20654233bb97ec994d3a, a documentation-only closeout commit with no Mermaid body changes. Revision-aware hosted-render evidence covers 515/515 diagrams. Authenticated GitHub GFM checks cover all 41 current 2025 Markdown pages.
 
-Source-link checks distinguish the published candidate from the active source worktree:
+Source-link checks distinguish published and local revisions:
 
 - Candidate worktree: 4,805/4,805 references resolve.
-- Published candidate HEAD `4311528`: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range.
-- Current primary HEAD `4b50f50`: 4,805/4,805 resolve, but it is not the documentation publication branch and contains unrelated work.
-- The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) lists every unresolved target and the affected guides. Do not retarget citations to unrelated code merely to make line checks pass.
+- Published candidate HEAD 2eac0907: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range.
+- Current local primary HEAD b716d951: 4,805/4,805 resolve. It is ten commits ahead of remote initial-work and includes unrelated implementation and Requirements Lab changes, so it is not a safe docs-only publication route.
+- No open GitHub pull requests were found. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) lists the unresolved targets and revisions. Do not retarget citations to unrelated code merely to make line checks pass.
 
-1. **Stabilize and verify the nine source citations.** Have the owners review and publish the relevant 2025 source/test changes on the candidate branch. Then rerun the source-link checker and confirm each semantic target against the exact published revision, especially the two lifecycle TCK anchors.
-2. **Keep evidence limits explicit.** The [Service Invocation Reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#implementation-and-test-evidence) records uncovered configured-process and failure-path behavior. The 515/515 hydration result confirms GitHub loaded Mermaid render documents; it is not a full-width readability review of every diagram. Selected visual samples remain tracked separately.
+1. **Stabilize and verify the nine source citations.** Have the owners review and publish the relevant 2025 source/test changes on a suitable branch. Then rerun the source-link checker and confirm each semantic target against the exact published revision, especially the two lifecycle TCK anchors.
+2. **Keep evidence limits explicit.** The [Service Invocation Reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#implementation-and-test-evidence) records uncovered configured-process and failure-path behavior. Hydration confirms GitHub loaded Mermaid render documents; it is not a full-width readability review of every diagram. Selected visual samples remain tracked separately.
 3. **Close out the handoff.** Refresh the dependency and render audits after source stabilization. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
-**Next handoff:** stabilize the cited source/test changes, then recheck all nine line and semantic targets against the resulting candidate revision. The diagrams are already published and hosted hydration is verified for all 515; only the source-citation closeout remains.
+**Next handoff:** stabilize the cited source/test changes without importing the unrelated primary-branch work, then recheck all nine line and semantic targets against the resulting published revision. The diagrams are already published and hosted hydration is verified for all 515; only the source-citation closeout remains.
 
 ## Current baseline
 
@@ -41,8 +41,8 @@ selected GitHub visual reviews across all 32 guides; these samples do not
 constitute a full-width readability review of every hosted chart.
 
 The source-link checker covers 4,805 unique references across 41 Markdown
-pages. All resolve in the current worktree and at primary commit `4b50f50`; the
-published candidate resolves 4,796, with nine out-of-range anchors in four
+pages. All resolve in the current worktree and at primary commit `b716d951`; the
+published candidate HEAD 2eac0907 resolves 4,796, with nine out-of-range anchors in four
 active 2025 source/test files. Those exact targets remain pending publication
 and semantic recheck; see the [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json).
 
@@ -84,13 +84,16 @@ resolves 4,767/4,776, with nine anchors in the same four in-flight files.
 
 The current overall estimate is **approximately 95% complete**, a working
 estimate rather than a fraction derived from gate count. The 515-diagram set
-and its seven additions/21 revised bodies are published, and the hosted audit
-now verifies hydration for all 515. The remaining closeout is source traceability:
-nine references resolve in the current worktree but not at published candidate
-HEAD because their cited source/test changes are still absent from that revision.
-After those changes are stabilized, rerun path and semantic checks and update the
-dependency audit. No C++ builds, tests, or CI ran for this documentation work;
-keep 2010 and the Requirements Lab separate.
+and its seven additions/21 revised bodies are published; no Mermaid bodies
+changed in the later documentation closeout commit. Hosted hydration remains
+verified for all 515. The remaining closeout is source traceability: nine
+references resolve in the current worktree and at local primary HEAD b716d951,
+but not at published candidate HEAD 2eac0907. The primary checkout is ten
+commits ahead of remote initial-work and includes unrelated Requirements Lab
+changes, so do not use it as a docs publication route. After source owners
+stabilize the cited changes, rerun path and semantic checks. No C++ builds,
+tests, or CI ran for this documentation work; keep 2010 and the Requirements
+Lab separate.
 
 Increment 440 reviewed Object and Interaction Information Flow diagram #020,
 “The delivery route carries that captured view to the callback,” in GitHub's

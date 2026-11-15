@@ -16,7 +16,7 @@
     "fully_rendered_pages": 32
   },
   "current_worktree": {
-    "head_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "head_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
     "guide_count": 32,
     "diagram_count": 515,
     "local_rendered_diagrams": 515,
@@ -128,11 +128,11 @@
     "head_unresolved_targets": 4,
     "hosted_unresolved_references": 9,
     "hosted_unresolved_targets": 4,
-    "candidate_base_revision": "431152817283718923c06a07e4154ca785e7033a",
-    "also_checked_against_revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+    "candidate_base_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+    "also_checked_against_revision": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
     "worktree_unresolved_references": 0,
     "worktree_only_reference": "The private current-worktree test case “Process federation client resumes its joined session after socket loss” remains prose-only evidence: it checks that the private client can list the joined member after socket reconnection, not a public ambassador’s Not Connected transition, and it has no Markdown source-line link.",
-    "cross_revision_note": "Increment 532: all 4,805 references resolve in the current candidate worktree and at primary HEAD 4b50f50e0a985bbca7a4094a35bba9fc32c83943. Published candidate HEAD 431152817283718923c06a07e4154ca785e7033a resolves 4,796/4,805; nine cited 2025 source/test lines are outside four active source/test files at that revision."
+    "cross_revision_note": "Increment 533: all 4,805 references resolve in the current candidate worktree and at local primary HEAD b716d951ae0dd42d19aab2a8e5dfad41b17201b7. Published candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a resolves 4,796/4,805; nine cited 2025 source/test lines remain outside four active files at that revision."
   },
   "failure_summary": [
     {
@@ -142,7 +142,7 @@
       "disposition": "The candidate's semicolon repair passes the current 34-page GFM API container check. Visible published-page rendering still needs post-publication inspection."
     }
   ],
-  "scope_note": "Increment 532 published the complete 515-diagram set at candidate revision 431152817283718923c06a07e4154ca785e7033a. The revision-aware hosted hydration audit covers all 515 diagrams across 32 guides. Authenticated GitHub GFM checks cover all 41 current 2025 Markdown pages. Nine source-line anchors remain out of range at published HEAD because the cited 2025 source/test changes are not part of that revision; see the hosted source-dependency audit.",
+  "scope_note": "Increment 533 rechecked source links at candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a and local primary HEAD b716d951. The current 515-diagram set remains hosted; the latest closeout commit changed no Mermaid bodies after hydration was checked at diagram revision 431152817283718923c06a07e4154ca785e7033a. All 41 current 2025 Markdown pages have GFM coverage. Nine source-line anchors remain out of range at candidate HEAD because their cited source/test edits are not in that published revision.",
   "guides": [
     {
       "path": "docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
@@ -587,7 +587,7 @@
     "candidate_disposition": "Keep the five current-only test paths and the Requirements Lab plan outside the selected 41 documentation paths. Retain the private socket-resume case only as explicitly bounded prose evidence."
   },
   "candidate_scope_review": {
-    "status": "The documentation candidate is published at revision 431152817283718923c06a07e4154ca785e7033a. All 32 current guide pages and 515 diagrams are accounted for by the prior full hydration pass plus increment-532 hydration checks of all five changed pages. The diagram delta is published; current-only source/test changes remain outside this docs revision."
+    "status": "The documentation candidate branch is at revision 2eac0907917628e7f50b20654233bb97ec994d3a. All 32 current guide pages and 515 diagrams are accounted for by the prior full hydration pass plus increment-532 hydration checks of all five changed pages. The increment-532 closeout commit changed no Mermaid bodies. Current-only source/test changes remain outside this docs revision."
   },
   "guide_content_coverage_screen": {
     "checked_at": "2026-11-07",
@@ -1952,8 +1952,8 @@
     "scope_note": "The increment-355 headless pass did not scroll the lazy-rendered containers and therefore observed Loading placeholders. Increment 356 scrolled all containers into view and confirmed one SVG per expected diagram after hydration, plus a successful Mermaid rendering response for every diagram. A representative rendered diagram was visually inspected; the audit does not claim individual screenshot review of all 507 hosted diagrams or click-through HTTP checks for every link."
   },
   "latest_candidate_worktree_verification": {
-    "as_of": "2026-11-15 increment 532",
-    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref 4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+    "as_of": "2026-11-15 increment 533",
+    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
     "markdown_files_checked": 41,
     "references_checked": 4805,
     "worktree_resolved": 4805,
@@ -1961,15 +1961,15 @@
     "candidate_head_resolved": 4796,
     "candidate_head_unresolved": 9,
     "candidate_head_unresolved_targets": 4,
-    "scope_note": "Increment 532 checked all 4,805 unique references across 41 current IEEE 1516.1-2025 Markdown files: the active candidate worktree and local primary HEAD 4b50f50 resolve all references; published candidate HEAD 4311528 resolves 4,796 and has nine out-of-range anchors in four source/test files.",
-    "candidate_head_revision": "431152817283718923c06a07e4154ca785e7033a",
-    "primary_source_revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943",
+    "scope_note": "Increment 533 checked all 4,805 unique source-line references across 41 current IEEE 1516.1-2025 Markdown files: the active candidate worktree and local primary HEAD b716d951 resolve all references; published candidate HEAD 2eac0907 resolves 4,796 and has nine out-of-range anchors in four source/test files. The primary checkout is ten commits ahead of remote initial-work and includes unrelated Requirements Lab changes.",
+    "candidate_head_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+    "primary_source_revision": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
     "primary_source_resolved": 4805,
     "primary_source_unresolved": 0,
-    "candidate_base_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "candidate_base_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
     "candidate_base_resolved": 4796,
     "candidate_base_unresolved": 9,
-    "remote_branch_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "remote_branch_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
     "remote_branch_resolved": 4796
   },
   "latest_edition_boundary_diff_screen": {
@@ -4119,7 +4119,9 @@
     "unpublished_new_diagrams": 0,
     "unpublished_revised_diagram_bodies": 0,
     "method": "Revision-aware combined audit. The prior all-32-page browser hydration pass verified 508 diagrams at e10fa19a. Increment 532 opened each of the five changed guide pages at the published 431152817283718923c06a07e4154ca785e7033a and triggered loading for all 130 diagrams on those pages. The other 27 pages retain 385 diagrams from the prior full pass. Counts were compared with current published Markdown fences.",
-    "scope_note": "Combined coverage verifies all 515 current published diagrams. It is not a claim that all 32 pages were reloaded in one browser session, or that every chart received full-width readability review."
+    "scope_note": "Combined coverage verifies all 515 current published diagrams. The current branch head is 2eac0907917628e7f50b20654233bb97ec994d3a; its closeout commit changed prose and audit records but no Mermaid bodies after hydration was checked at 431152817283718923c06a07e4154ca785e7033a. This is not a claim that all 32 pages were reloaded in one browser session, or that every chart received full-width readability review.",
+    "current_branch_head_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+    "diagram_content_unchanged_since_audited_revision": true
   },
   "latest_live_browser_sample": {
     "as_of": "2026-11-12 increment 513",
@@ -4555,22 +4557,26 @@
     "local_render_and_screenshot_evidence": "All seven additions and all 21 revised current bodies have verified-current-body local render records and explicit screenshot-review statuses in the 515-entry ledger.",
     "hosted_hydration": "The complete 515-diagram set is published at revision 431152817283718923c06a07e4154ca785e7033a. Revision-aware browser hydration evidence covers all 515: 508 charts from the prior full-page pass plus 130 charts on the five changed pages, with the unchanged-page overlap reconciled to 385 charts. No current diagram additions or body revisions remain unpublished.",
     "source_change_review_state": {
-      "checked_as_of": "2026-11-12 increment 529",
+      "checked_as_of": "2026-11-15 increment 533",
       "command": "gh pr list --repo sheepfling/umbra --state open --limit 50 --json number,title,headRefName,baseRefName,updatedAt",
       "open_pull_requests": 0,
       "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-      "candidate_branch_head": "431152817283718923c06a07e4154ca785e7033a",
+      "candidate_branch_head": "2eac0907917628e7f50b20654233bb97ec994d3a",
       "active_source_test_paths": [
         "cpp/src/internal/federation/process_federation_service_host.cpp",
         "cpp/src/internal/runtime/rti_initialization_data.cpp",
         "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
         "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp"
       ],
-      "worktree_state": "The four cited source/test paths remain modified in the shared candidate worktree. This documentation closeout staged no source changes.",
-      "next_action": "Source owners stabilize and publish the cited changes; then rerun the cross-revision source-link check and verify semantic targets at the exact published revision."
+      "worktree_state": "The four cited source/test paths remain modified in the shared candidate worktree. This documentation closeout staged no source changes; local primary contains ten unpublished commits and unrelated Requirements Lab edits.",
+      "next_action": "Source owners stabilize and publish the cited changes; then rerun the cross-revision source-link check and verify semantic targets at the exact published revision.",
+      "primary_head_revision": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
+      "primary_commits_ahead_of_remote_initial_work": 10,
+      "remote_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180"
     },
     "published_revision": "431152817283718923c06a07e4154ca785e7033a",
-    "publication_status": "All seven additions and 21 revised bodies are published; the two ledger hash-only corrections were not source-body changes."
+    "publication_status": "All seven additions and 21 revised bodies are published; the two ledger hash-only corrections were not source-body changes.",
+    "current_branch_head_revision": "2eac0907917628e7f50b20654233bb97ec994d3a"
   },
   "latest_increment_530_supporting_page_gfm_recheck": {
     "as_of": "2026-11-15 increment 530",
@@ -4812,6 +4818,45 @@
         "rendered_links": 3,
         "mermaid_containers": 0,
         "html_sha256": "783f0275c731033291994b4fbeb8caa06940cda99301c52ae1e78558a1b96a29",
+        "html_nonempty": true
+      }
+    ]
+  },
+  "current_candidate_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+  "latest_increment_533_gfm_recheck": {
+    "as_of": "2026-11-15 increment 533",
+    "service": "Authenticated GitHub Markdown API POST /markdown",
+    "mode": "gfm",
+    "pages_checked": 3,
+    "combined_current_page_coverage": 41,
+    "failures": 0,
+    "scope_note": "Increment 533 refreshed the current roadmap and progress-history index/archive after the source-routing audit. All three responses were nonempty. Combined with the existing guide and supporting-page checks, all 41 current 2025 Markdown pages have GFM coverage.",
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+        "rendered_bytes": 437127,
+        "heading_elements": 40,
+        "rendered_links": 294,
+        "mermaid_containers": 0,
+        "html_sha256": "981cd9b80a99f95e031c4bd004629699c3881d7ae62b4e38448942dc14f78885",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+        "rendered_bytes": 2208,
+        "heading_elements": 5,
+        "rendered_links": 12,
+        "mermaid_containers": 0,
+        "html_sha256": "2c7d261c5b646bb574b62ec1b4eb49675982f2d7e713877a676824370008a9aa",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
+        "rendered_bytes": 8880,
+        "heading_elements": 7,
+        "rendered_links": 6,
+        "mermaid_containers": 0,
+        "html_sha256": "9a7d77a370b0cf3281297e92477d4b61a56cf5fd5b7ca31e7e85d2460a395bf6",
         "html_nonempty": true
       }
     ]

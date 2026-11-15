@@ -1035,15 +1035,15 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-15 increment 532",
+      "as_of": "2026-11-15 increment 533",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 532 published all 515 diagrams at candidate revision 431152817283718923c06a07e4154ca785e7033a and verified hosted hydration for 515/515 across 32 guides. Authenticated GFM checks cover all 41 current 2025 Markdown pages. Source links resolve 4,805/4,805 in the current worktree and primary HEAD 4b50f50, but 4,796/4,805 at published candidate HEAD; nine anchors in four source/test files await source stabilization and semantic recheck. Working completion estimate: approximately 95%. 2010 and Requirements Lab remain separate.",
-      "next_concrete_review": "Stabilize and publish the cited 2025 source/test changes on the candidate branch; rerun the 4,805-reference checker and verify the exact semantic targets, then refresh the source-dependency audit. The full diagram delta is already published and hosted hydration is verified for all 515 charts. Keep unrelated primary-branch implementation and Requirements Lab changes out of this docs handoff.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set and all seven additions/21 revised bodies are published; combined hosted hydration evidence covers 515/515. GFM checks cover all 41 2025 Markdown pages. The remaining closeout is nine source-line references that resolve in the current worktree but are out of range at published candidate HEAD 4311528 because their cited source/test changes are absent there. After source owners stabilize and publish those changes, rerun path and semantic checks and refresh the audit. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
+      "latest_increment": "Increment 533: candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a contains the 2025 documentation closeout; the 515-diagram set remains published and hydration evidence covers 515/515. Source links resolve 4,805/4,805 in the worktree and at primary HEAD b716d951, but 4,796/4,805 at candidate HEAD. The primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes; no separate remote source branch or open PR was found. Working completion estimate remains approximately 95%. Keep 2010 and Requirements Lab separate.",
+      "next_concrete_review": "The only active closeout is nine source-line anchors in four 2025 source/test files. Have source owners publish a suitable reviewed source revision without importing the mixed primary history, then rerun the 4,805-reference checker and verify semantic targets. The full diagram set is published and hosted hydration is verified for 515/515.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set and all seven additions/21 revised bodies are published; hosted hydration is verified for all 515, and current branch HEAD 2eac0907 changed no Mermaid bodies after the hydration check. The remaining closeout is nine anchors out of range at candidate HEAD. The current worktree and local primary HEAD b716d951 resolve all 4,805 references, but primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes. No separate remote source branch or open PR was found. After source owners publish a suitable source revision, rerun path and semantic checks. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-15 increment 532",
-        "revision": "Candidate worktree based on HEAD 431152817283718923c06a07e4154ca785e7033a plus active, uncommitted source/test changes.",
+        "as_of": "2026-11-15 increment 533",
+        "revision": "Candidate worktree based on HEAD 2eac0907917628e7f50b20654233bb97ec994d3a plus active, uncommitted source/test changes.",
         "scope": "All 2025 Markdown source-line references checked with quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 41,
         "unique_references": 4805,
@@ -1051,9 +1051,9 @@
         "unresolved": 0
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-15 increment 532",
-        "revision": "Published candidate HEAD 431152817283718923c06a07e4154ca785e7033a.",
-        "remote_branch_revision": "431152817283718923c06a07e4154ca785e7033a",
+        "as_of": "2026-11-15 increment 533",
+        "revision": "Published candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a",
+        "remote_branch_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against published candidate HEAD.",
         "markdown_files": 41,
         "unique_references": 4805,
@@ -1073,13 +1073,15 @@
         "note": "Nine anchors are out of range because the cited current 2025 source/test changes are not part of the published candidate revision. The current worktree and primary HEAD 4b50f50e0a985bbca7a4094a35bba9fc32c83943 resolve all references. Recheck semantic targets after the source revision is stabilized; do not retarget to unrelated code."
       },
       "primary_head_reference_validation": {
-        "as_of": "2026-11-15 increment 532",
-        "revision": "4b50f50e0a985bbca7a4094a35bba9fc32c83943 (local feature/initial-work HEAD; not published on the docs candidate).",
+        "as_of": "2026-11-15 increment 533",
+        "revision": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7 (local feature/initial-work HEAD; not published on the docs candidate).",
         "scope": "Current candidate-documentation source-line references checked against local primary HEAD; path/line validity only.",
         "markdown_files": 41,
         "unique_references": 4805,
         "resolved": 4805,
-        "unresolved": 0
+        "unresolved": 0,
+        "commits_ahead_of_remote_initial_work": 10,
+        "scope_note": "This local primary revision includes unrelated implementation and Requirements Lab changes and is not a docs-only publication route."
       },
       "initial_work_reference_validation": {
         "as_of": "2026-11-15 increment 531",
@@ -1102,8 +1104,8 @@
         ]
       },
       "semantic_source_anchor_review": {
-        "as_of": "2026-11-15 increment 532",
-        "candidate_worktree_revision": "431152817283718923c06a07e4154ca785e7033a plus active source/test changes.",
+        "as_of": "2026-11-15 increment 533",
+        "candidate_worktree_revision": "2eac0907917628e7f50b20654233bb97ec994d3a plus active source/test changes.",
         "published_candidate_revision": "431152817283718923c06a07e4154ca785e7033a",
         "findings": [
           {
@@ -1119,7 +1121,8 @@
             "published_status": "out of range at current published candidate HEAD; semantic landing must be rechecked after source stabilization."
           }
         ],
-        "note": "Aggregate path/line validation does not establish that a citation lands on the intended semantic target."
+        "note": "Aggregate path/line validation does not establish that a citation lands on the intended semantic target.",
+        "primary_revision": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7 (local, unpublished; not a publication substitute)."
       },
       "standard_text_access_check": {
         "as_of": "2026-11-09 increment 382",
@@ -1403,17 +1406,20 @@
         "diagram_count": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "combined_method": "All 130 diagrams on five changed pages were checked at current HEAD. The previous full audit covers 385 diagrams on the other 27 unchanged pages."
+        "combined_method": "All 130 diagrams on five changed pages were checked at current HEAD. The previous full audit covers 385 diagrams on the other 27 unchanged pages.",
+        "current_candidate_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+        "diagram_bodies_changed_since_audited_revision": false,
+        "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a"
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
-    "latest_verified_progress": "Increment 532 published all 515 diagrams at candidate revision 431152817283718923c06a07e4154ca785e7033a and verified hosted hydration for 515/515 across 32 guides. Authenticated GFM checks cover all 41 current 2025 Markdown pages. Source links resolve 4,805/4,805 in the current worktree and primary HEAD 4b50f50, but 4,796/4,805 at published candidate HEAD; nine anchors in four source/test files await source stabilization and semantic recheck. Working completion estimate: approximately 95%. 2010 and Requirements Lab remain separate.",
-    "next_documentation_handoff": "Stabilize and publish the cited 2025 source/test changes on the candidate branch; rerun the 4,805-reference checker and verify the exact semantic targets, then refresh the source-dependency audit. The full diagram delta is already published and hosted hydration is verified for all 515 charts. Keep unrelated primary-branch implementation and Requirements Lab changes out of this docs handoff.",
+    "latest_verified_progress": "Increment 533: candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a contains the 2025 documentation closeout; the 515-diagram set remains published and hydration evidence covers 515/515. Source links resolve 4,805/4,805 in the worktree and at primary HEAD b716d951, but 4,796/4,805 at candidate HEAD. The primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes; no separate remote source branch or open PR was found. Working completion estimate remains approximately 95%. Keep 2010 and Requirements Lab separate.",
+    "next_documentation_handoff": "The only active closeout is nine source-line anchors in four 2025 source/test files. Have source owners publish a suitable reviewed source revision without importing the mixed primary history, then rerun the 4,805-reference checker and verify semantic targets. The full diagram set is published and hosted hydration is verified for 515/515.",
     "latest_reader_review": "GitHub visual review, increment 513 (2026-11-12): Name and Handle Resolution diagram #001, “1. Resolve a model symbol only in an execution context,” rendered in the full-width Mermaid dialog. The complete service-call, connection, membership, joined-model lookup, success, and service-specific failure paths were visible; labels and connectors were readable without clipping or overlap. Body SHA-256 30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977 matches the published source and worktree ledger; branch HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, guide commit adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This revisits the selected 2025 model-symbol lookup path and makes no 2010 or cross-profile parity claim.",
-    "latest_increment": "Increment 532 published all 515 diagrams at candidate revision 431152817283718923c06a07e4154ca785e7033a and verified hosted hydration for 515/515 across 32 guides. Authenticated GFM checks cover all 41 current 2025 Markdown pages. Source links resolve 4,805/4,805 in the current worktree and primary HEAD 4b50f50, but 4,796/4,805 at published candidate HEAD; nine anchors in four source/test files await source stabilization and semantic recheck. Working completion estimate: approximately 95%. 2010 and Requirements Lab remain separate.",
+    "latest_increment": "Increment 533: candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a contains the 2025 documentation closeout; the 515-diagram set remains published and hydration evidence covers 515/515. Source links resolve 4,805/4,805 in the worktree and at primary HEAD b716d951, but 4,796/4,805 at candidate HEAD. The primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes; no separate remote source branch or open PR was found. Working completion estimate remains approximately 95%. Keep 2010 and Requirements Lab separate.",
     "current_diagram_inventory": {
-      "as_of": "2026-11-15 increment 532: all 515 diagrams are published at candidate revision 431152817283718923c06a07e4154ca785e7033a. Hosted hydration coverage is 515/515: a prior 508-chart full-page pass plus 130 charts checked on the five changed pages; 385 charts on 27 unchanged pages carry forward.",
-      "scope": "2025-only: 32 topic guides and 515 published diagrams. All 515 have identity-matched local rendering and screenshot evidence. Combined GitHub hydration evidence covers all 515 current charts; 69 selected GitHub visual reviews are samples, not a full readability review. GFM checks cover all 41 current 2025 Markdown pages. Nine source anchors remain out of range at published candidate HEAD until the cited source/test changes are stabilized. The 2010 stream remains separate.",
+      "as_of": "2026-11-15 increment 533: all 515 diagrams remain published. Candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a changed no Mermaid bodies after the revision-aware 515/515 hydration audit at diagram revision 431152817283718923c06a07e4154ca785e7033a.",
+      "scope": "2025-only: 32 topic guides and 515 published diagrams. All 515 have identity-matched local rendering and screenshot evidence. Revision-aware GitHub hydration covers all 515. GFM checks cover all 41 current 2025 Markdown pages. Nine source anchors remain out of range at candidate HEAD; local primary resolves them but is not a safe docs-only route. The 2010 stream remains separate.",
       "files_with_diagrams": 32,
       "diagrams": 515,
       "local_link_check": {
@@ -1534,11 +1540,12 @@
         "diagrams": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "method": "Prior full pass 508 + five changed pages 130; 27 unchanged pages contribute 385."
+        "method": "Prior full pass 508 + five changed pages 130; 27 unchanged pages contribute 385.",
+        "current_candidate_revision": "2eac0907917628e7f50b20654233bb97ec994d3a"
       }
     },
     "goal": "Focus this documentation phase exclusively on IEEE 1516.1-2025. Translate durable HLA logic and infrastructure concepts discovered while implementing Umbra into reader-centered diagrams and guides. Lead with the HLA mental model and explain what federates can do, what state changes, who becomes eligible, and when effects become observable. Use Umbra source and existing focused-test results as bounded case-study evidence, not as the subject; include internals only when they explain an HLA invariant, observable consequence, or important implementation limit. Survey for real reader gaps, synthesize cross-service concepts where useful, tie normative claims to the exact standard, and label profile boundaries and evidence limits. Distinguish embedded and configured-process behavior where evidence differs. There is no diagram-count target. Reuse existing runtime evidence. Documentation work must not compete with the main implementation worker for build capacity: do not compile, rerun tests, or start CI by default. The HLA Requirements Lab is a later, separately authorized goal and remains out of scope.",
-    "verified_progress": "Increment 532 published all 515 diagrams at candidate revision 431152817283718923c06a07e4154ca785e7033a and verified hosted hydration for 515/515 across 32 guides. Authenticated GFM checks cover all 41 current 2025 Markdown pages. Source links resolve 4,805/4,805 in the current worktree and primary HEAD 4b50f50, but 4,796/4,805 at published candidate HEAD; nine anchors in four source/test files await source stabilization and semantic recheck. Working completion estimate: approximately 95%. 2010 and Requirements Lab remain separate.",
+    "verified_progress": "Increment 533: candidate HEAD 2eac0907917628e7f50b20654233bb97ec994d3a contains the 2025 documentation closeout; the 515-diagram set remains published and hydration evidence covers 515/515. Source links resolve 4,805/4,805 in the worktree and at primary HEAD b716d951, but 4,796/4,805 at candidate HEAD. The primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes; no separate remote source branch or open PR was found. Working completion estimate remains approximately 95%. Keep 2010 and Requirements Lab separate.",
     "candidate_final_validation": {
       "as_of": "2026-11-09 increment 356",
       "branch": "feature/hla-2025-docs-candidate-20261107",
@@ -1774,11 +1781,23 @@
           "affected_target_files": 4
         },
         "scope_note": "The 515 diagrams are published and hydration is verified. Source/test changes for the nine anchors remain outside the documentation publication revision."
+      },
+      "latest_increment_533_source_routing": {
+        "as_of": "2026-11-15 increment 533",
+        "candidate_revision": "2eac0907917628e7f50b20654233bb97ec994d3a",
+        "candidate_head_resolved": 4796,
+        "candidate_head_unresolved": 9,
+        "worktree_resolved": 4805,
+        "primary_head": "b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
+        "primary_head_resolved": 4805,
+        "primary_commits_ahead_of_remote": 10,
+        "open_pull_requests": 0,
+        "note": "The local primary branch includes unrelated Requirements Lab changes; keep it outside this documentation candidate."
       }
     },
-    "next_concrete_review": "Stabilize and publish the cited 2025 source/test changes on the candidate branch; rerun the 4,805-reference checker and verify the exact semantic targets, then refresh the source-dependency audit. The full diagram delta is already published and hosted hydration is verified for all 515 charts. Keep unrelated primary-branch implementation and Requirements Lab changes out of this docs handoff.",
-    "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set and all seven additions/21 revised bodies are published; combined hosted hydration evidence covers 515/515. GFM checks cover all 41 2025 Markdown pages. The remaining closeout is nine source-line references that resolve in the current worktree but are out of range at published candidate HEAD 4311528 because their cited source/test changes are absent there. After source owners stabilize and publish those changes, rerun path and semantic checks and refresh the audit. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
-    "as_of": "2026-11-15 increment 532"
+    "next_concrete_review": "The only active closeout is nine source-line anchors in four 2025 source/test files. Have source owners publish a suitable reviewed source revision without importing the mixed primary history, then rerun the 4,805-reference checker and verify semantic targets. The full diagram set is published and hosted hydration is verified for 515/515.",
+    "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set and all seven additions/21 revised bodies are published; hosted hydration is verified for all 515, and current branch HEAD 2eac0907 changed no Mermaid bodies after the hydration check. The remaining closeout is nine anchors out of range at candidate HEAD. The current worktree and local primary HEAD b716d951 resolve all 4,805 references, but primary is ten unpushed commits ahead and includes unrelated Requirements Lab changes. No separate remote source branch or open PR was found. After source owners publish a suitable source revision, rerun path and semantic checks. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
+    "as_of": "2026-11-15 increment 533"
   },
   "queue_action_note": "The query tool derives action_state for each open family: implementation, mapping, source-reconciliation, external-review, new-case-needed, or evidence-complete. Evidence-complete rows remain visible for traceability but are not selected as the next runnable handoff.",
   "deferred_slices": [
