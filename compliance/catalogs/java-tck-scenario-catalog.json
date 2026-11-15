@@ -11189,15 +11189,16 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomBasicDataRepresentationEndianValues",
       "parity": "cpp-tck.fom-basic-data-representation-endian-values",
-      "default_status": "unsupported",
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
       "adapter_inputs": [
         "hla.rti.tck.basicDataRepresentationEndianBigFom: basic-data-representation-endian-big-tck.xml",
         "hla.rti.tck.basicDataRepresentationEndianLittleFom: basic-data-representation-endian-little-tck.xml",
+        "named federate Join with hla.rti.tck.federateType defaulting to tck-type",
         "provider-supported logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Java HLA_EVOKED and HLA_IMMEDIATE runs each passed 1/1 on provider umbra-jni-20261106 with the adapter-supplied Big and Little basicData FOM modules and HLAinteger64Time; results/JUnit are in out/java-tck/fom-basic-data-representation-endian-values-java-port-20261113/. The paired installed-package MinGW C++ consumer passed focused CTest 2/2 and direct callback-model runs 2/2; evidence is in .build/cpp-tck-fom-basic-data-representation-endian-values-java-port-20261113/ and .build/cpp-tck-timestamped-interaction-future-tara-arrival-java-port-20261113/Testing/Temporary/LastTest.log. The C++ run did not rebuild the RTI provider. This is positive acceptance evidence for the two selected FOM values only, not payload byte-order behavior, independent-provider interoperability, or overall conformance.",
-      "exclusion": "Requires the two adapter-supplied schema-valid Big and Little Endian FOM modules. It is a positive FOM-acceptance witness only and does not cover byte-order encoding or decoding."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official IEEE 1516.1-2025 Java API, the adapter-supplied schema-valid Big and Little basicData FOM modules, and HLAinteger64Time. For each FOM, Java used the single-module Create overload, joined with the named federate/type/execution overload, then resigned and destroyed the execution, matching the C++ public path. Results/JUnit: out/java-tck/fom-basic-data-representation-endian-values-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. This is positive acceptance evidence for these two FOM values only; it does not test payload byte order, independent-provider interoperability, or conformance."
     },
     {
       "id": "java-tck.fom-transportation-handle-stability",

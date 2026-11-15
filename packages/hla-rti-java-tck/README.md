@@ -4700,13 +4700,19 @@ This is one same-class duplicate-name witness; inherited-name collisions,
 naming conventions, the table's NA entry rule, independent-provider behavior,
 and conformance remain outside its scope.
 
-The opt-in `java-tck.fom-basic-data-representation-endian-values` creates and
+The default-run `java-tck.fom-basic-data-representation-endian-values` creates and
 joins one federation for each adapter-supplied basicData FOM declaring
 `Endian=Big` and `Endian=Little`, then resigns and destroys both executions.
-It maps IEEE 1516.2-2025 clauses 4 and 6.2.14. Java evoked and immediate runs
-passed, as did the paired installed-package C++ selectors. This confirms
-acceptance of those two FOM values only; it does not test payload byte order,
-other data representations, or conformance.
+It uses the same single-module Create and named Join path as the paired C++
+case, and maps IEEE 1516.2-2025 clauses 4 and 6.2.14. Current-source JNI runs
+passed 1/1 under each callback model with HLAinteger64Time and the pinned Java
+API. Supply the fixtures through
+`hla.rti.tck.basicDataRepresentationEndianBigFom` and
+`hla.rti.tck.basicDataRepresentationEndianLittleFom`. Results/JUnit are in
+`out/java-tck/fom-basic-data-representation-endian-values-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This confirms acceptance of those two FOM values only; it does not test payload
+byte order, other data representations, independent-provider behavior, or
+conformance.
 
 The opt-in `java-tck.federate-selected-update-thresholds` uses two publishers
 that send an attribute at application-selected sample thresholds of two and

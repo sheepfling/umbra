@@ -79,7 +79,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clause-4c-page-070-l86-1",
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l38-7"
-            }, false), FomAndHandleLookupScenarioRegistry::fomBasicDataRepresentationEndianValues);
+            }, true), FomAndHandleLookupScenarioRegistry::fomBasicDataRepresentationEndianValues);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-transportation-handle-stability",
             "Preserve transportation handle identity across an additional-FOM join",
             "fom-composition",

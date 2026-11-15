@@ -22,8 +22,8 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1180 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 625 |
-| Default `unsupported` scenarios | 339 |
+| Default `run` scenarios | 626 |
+| Default `unsupported` scenarios | 338 |
 | Scenarios with explicit `requirement_mappings` | 677 |
 | Explicit mapping records | 2778 |
 
@@ -9272,7 +9272,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-sections-semantic-clause-4c-page-070-l86-1`
 
-- [`java-tck.fom-basic-data-representation-endian-values`](#scenario-java-tck.fom-basic-data-representation-endian-values) — Accept Big and Little Endian values for basic data representations (`fom-lifecycle`; default `unsupported`; C++ pointer `cpp-tck.fom-basic-data-representation-endian-values`).
+- [`java-tck.fom-basic-data-representation-endian-values`](#scenario-java-tck.fom-basic-data-representation-endian-values) — Accept Big and Little Endian values for basic data representations (`fom-lifecycle`; default `run`; C++ pointer `cpp-tck.fom-basic-data-representation-endian-values`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9439,7 +9439,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-sections-semantic-clauses-5-6-page-094-l38-7`
 
-- [`java-tck.fom-basic-data-representation-endian-values`](#scenario-java-tck.fom-basic-data-representation-endian-values) — Accept Big and Little Endian values for basic data representations (`fom-lifecycle`; default `unsupported`; C++ pointer `cpp-tck.fom-basic-data-representation-endian-values`).
+- [`java-tck.fom-basic-data-representation-endian-values`](#scenario-java-tck.fom-basic-data-representation-endian-values) — Accept Big and Little Endian values for basic data representations (`fom-lifecycle`; default `run`; C++ pointer `cpp-tck.fom-basic-data-representation-endian-values`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -13964,7 +13964,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.fom-basic-data-representation-endian-values"></a>`java-tck.fom-basic-data-representation-endian-values` — Accept Big and Little Endian values for basic data representations | `org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomBasicDataRepresentationEndianValues` | 6 | `requirement-candidate-sections-semantic-clause-4c-page-070-l86-1`, `requirement-candidate-sections-semantic-clauses-5-6-page-094-l38-7` | `cpp-tck.fom-basic-data-representation-endian-values` | `unsupported` | hla.rti.tck.basicDataRepresentationEndianBigFom: basic-data-representation-endian-big-tck.xml; hla.rti.tck.basicDataRepresentationEndianLittleFom: basic-data-representation-endian-little-tck.xml; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
+| <a id="scenario-java-tck.fom-basic-data-representation-endian-values"></a>`java-tck.fom-basic-data-representation-endian-values` — Accept Big and Little Endian values for basic data representations | `org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomBasicDataRepresentationEndianValues` | 6 | `requirement-candidate-sections-semantic-clause-4c-page-070-l86-1`, `requirement-candidate-sections-semantic-clauses-5-6-page-094-l38-7` | `cpp-tck.fom-basic-data-representation-endian-values` | `run` | hla.rti.tck.basicDataRepresentationEndianBigFom: basic-data-representation-endian-big-tck.xml; hla.rti.tck.basicDataRepresentationEndianLittleFom: basic-data-representation-endian-little-tck.xml; named federate Join with hla.rti.tck.federateType defaulting to tck-type; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-duplicate-object-class-attribute-name"></a>`java-tck.fom-duplicate-object-class-attribute-name` — Reject a FOM that repeats an object-class attribute name | `org.hla.rti.tck.RtiTckMain#fomDuplicateObjectClassAttributeName` | 3 | `requirement-candidate-sections-semantic-clause-4b-page-048-l101-3` | `cpp-tck.fom-duplicate-object-class-attribute-name` | `run` | adapter-supplied invalid-duplicate-tck.xml in the invalid FOM module list; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-empty-mim-create-atomicity"></a>`java-tck.fom-empty-mim-create-atomicity` — Reject an empty FOM module array without reserving the federation name during MIM-backed creation | `org.hla.rti.tck.RtiTckMain#fomEmptyMimCreateAtomicity` | 9 | `cpp-1516.1-malformed-fom-input`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-04-federation-management-page-053-l55-9` | `cpp-tck.fom-empty-mim-create-atomicity` | `run` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; current-source Umbra JNI provider; base FOM p0-tck.xml through hla.rti.tck.fom; pinned standard MIM HLAstandardMIM-2025.xml through hla.rti.tck.mim; objectClass HLAobjectRoot.TckObject and named owner/member federate joins with hla.rti.tck.federateType defaulting to tck-type; logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-empty-module-validation"></a>`java-tck.fom-empty-module-validation` — Reject an empty FOM module list without reserving a federation execution | `org.hla.rti.tck.RtiTckMain#fomEmptyModuleValidation` | 7 | `cpp-1516.1-malformed-fom-input`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.fom-empty-module-validation` | `unsupported` | not scenario-declared |

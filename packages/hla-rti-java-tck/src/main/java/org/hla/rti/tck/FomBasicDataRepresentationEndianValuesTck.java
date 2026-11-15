@@ -20,14 +20,16 @@ final class FomBasicDataRepresentationEndianValuesTck {
          "adapter did not supply the Big Endian basic-data FOM");
       JavaTckSupport.check(littleEndianFom != null && !littleEndianFom.isEmpty(),
          "adapter did not supply the Little Endian basic-data FOM");
+      String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
 
       RTIambassador rti = factory.getRtiAmbassador();
       boolean connected = false;
       try {
          rti.connect(new NullFederateAmbassador(), callbackModel);
          connected = true;
-         createJoinResignAndDestroy(rti, bigEndianFom, "big", timeImplementation);
-         createJoinResignAndDestroy(rti, littleEndianFom, "little", timeImplementation);
+         createJoinResignAndDestroy(rti, bigEndianFom, "big", timeImplementation, federateType);
+         createJoinResignAndDestroy(rti, littleEndianFom, "little", timeImplementation,
+            federateType);
       } finally {
          if (connected) {
             try { rti.disconnect(); } catch (Exception ignored) { }
@@ -36,15 +38,15 @@ final class FomBasicDataRepresentationEndianValuesTck {
    }
 
    private static void createJoinResignAndDestroy(RTIambassador rti, String fom,
-         String endian, String timeImplementation) throws Exception {
+         String endian, String timeImplementation, String federateType) throws Exception {
       String federation = "java-tck-basic-data-endian-" + endian + "-" + UUID.randomUUID();
       boolean created = false;
       boolean joined = false;
       try {
-         rti.createFederationExecution(federation, new String[] {fom}, timeImplementation);
+         rti.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle handle = rti.joinFederationExecution(
-            "java-tck-basic-data-endian-member", federation);
+            "java-tck-basic-data-endian-member", federateType, federation);
          joined = true;
          JavaTckSupport.check(handle != null,
             endian + " Endian FOM did not establish federation membership");
