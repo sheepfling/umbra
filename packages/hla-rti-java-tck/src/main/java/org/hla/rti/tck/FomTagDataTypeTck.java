@@ -12,7 +12,8 @@ final class FomTagDataTypeTck {
    private FomTagDataTypeTck() { }
 
    static void run(RtiFactory factory, String valid, String userBasic,
-         String synchronizationBasic, String timeImplementation,
+         String synchronizationBasic, String synchronizationCapabilityRegister,
+         String timeImplementation,
          CallbackModel callbackModel) throws Exception {
       RTIambassador creator = factory.getRtiAmbassador();
       String federation = "java-tck-tag-data-type-" + UUID.randomUUID();
@@ -26,11 +27,21 @@ final class FomTagDataTypeTck {
          created = true;
          creator.destroyFederationExecution(federation);
          created = false;
-         for (String module : new String[] {userBasic, synchronizationBasic}) {
+         String[][] invalidModules = {
+            {userBasic, "raw basic user-supplied tag data type"},
+            {synchronizationBasic, "raw basic synchronization tag data type"},
+            {synchronizationCapabilityRegister,
+               "FOM synchronization point with Register capability"}
+         };
+         for (String[] invalid : invalidModules) {
+            String module = invalid[0];
+            // If Create unexpectedly succeeds, retain cleanup ownership before the assertion fails.
+            created = true;
             JavaTckSupport.expectFailure(
                () -> creator.createFederationExecution(federation,
                   new String[] {module}, timeImplementation),
-               "InconsistentFOM", "raw basic user or synchronization tag data type");
+               "InconsistentFOM", invalid[1]);
+            created = false;
             creator.createFederationExecution(federation,
                new String[] {valid}, timeImplementation);
             created = true;

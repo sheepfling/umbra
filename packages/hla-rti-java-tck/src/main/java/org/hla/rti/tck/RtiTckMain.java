@@ -164,6 +164,8 @@ public final class RtiTckMain {
       "hla.rti.tck.tagDataTypeBasicUserFom";
    private static final String TAG_DATA_TYPE_BASIC_SYNCHRONIZATION_FOM_PROPERTY =
       "hla.rti.tck.tagDataTypeBasicSynchronizationFom";
+   private static final String TAG_SYNCHRONIZATION_CAPABILITY_REGISTER_FOM_PROPERTY =
+      "hla.rti.tck.tagSynchronizationCapabilityRegisterFom";
    private static final String INHERITED_MEMBER_NAMES_VALID_FOM_PROPERTY =
       "hla.rti.tck.inheritedMemberNamesValidFom";
    private static final String INHERITED_ATTRIBUTE_DUPLICATE_FOM_PROPERTY =
@@ -14703,6 +14705,7 @@ public final class RtiTckMain {
          requireAdapterFile(TAG_DATA_TYPE_VALID_FOM_PROPERTY),
          requireAdapterFile(TAG_DATA_TYPE_BASIC_USER_FOM_PROPERTY),
          requireAdapterFile(TAG_DATA_TYPE_BASIC_SYNCHRONIZATION_FOM_PROPERTY),
+         requireAdapterFile(TAG_SYNCHRONIZATION_CAPABILITY_REGISTER_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

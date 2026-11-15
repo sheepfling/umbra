@@ -36577,7 +36577,56 @@
         "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clauses-5-6-page-092-l54-10 -> IEEE 1516.2-2025 §6.2.5 and requirement-candidate-sections-semantic-clauses-5-6-page-092-l110-23 -> §6.2.6. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
         "boundary": "Evidence covers one inherited attribute, one inherited parameter, and one duplicate-name FOM for each class family. Independent-provider behavior and conformance are not claimed."
       },
-      "next_action": "Next compare java-tck.fom-tag-data-type-categories with cpp-tck.fom-tag-data-type-categories in packages/hla-rti-cpp-tck/src/tck_fom_tag_data_type.cpp#scenarioFomTagDataTypeCategories. Verify the valid tag declaration, rejection of raw basic user and synchronization tag types, and same-name valid retry against IEEE 1516.2-2025 §§6.2.9 and 6.2.10; use the three adapter FOMs and run both callback models before changing default status."
+      "latest_attempted_fom_tag_data_type_categories_2026_11_15": {
+        "status": "attempted-2026-11-15",
+        "scope": "Extended java-tck.fom-tag-data-type-categories to match the C++ raw-basic user-tag and synchronization-tag rejection plus the XSD-valid Register-capability FOM rejection and same-name valid retries.",
+        "evidence": "Explicit --run-unverified Java executions against current-source Umbra JNI reached the Register fixture after accepting all six categories, rejecting both raw basic tag fixtures, and completing valid same-name retries. HLA_EVOKED and HLA_IMMEDIATE both failed because Create accepted the Register-capability FOM instead of throwing InconsistentFOM. Results/JUnit: out/java-tck/fom-tag-data-type-categories-java-parity-20261115/{evoked-unverified,immediate-unverified}.{results.json,junit.xml}.",
+        "mapping_and_validation": "The five existing direct mappings remain scoped to IEEE 1516.2-2025 §4, §6.2.9 p. 93 l. 58, and §6.2.10 p. 93 l. 74. The unsupported default disposition is retained because the current-source provider does not satisfy the C++ assertion. No Requirements Lab resynchronization.",
+        "boundary": "This is a Java mirror and local-provider failure record only. It does not establish independent-provider behavior or conformance; do not promote until provider behavior is corrected and both callback models pass."
+      },
+      "latest_verified_fom_attribute_value_required_sharing_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-attribute-value-required-sharing after matching the C++ valid sharing=Neither fixture acceptance, explicit Value Required=true rejection, and same-name valid retry.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, and the paired valid/invalid FOM fixtures. Results/JUnit: out/java-tck/fom-attribute-value-required-sharing-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mapping requirement-candidate-sections-semantic-clause-4b-page-049-l58-6 -> IEEE 1516.2-2025 §4. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers the supplied FOM's explicit-false and omitted Value Required rows, one explicit-true sharing=Neither rejection, and one valid federation-name retry. It is local current-source provider evidence only; independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_attribute_table_nonblank_semantics_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-attribute-table-nonblank-semantics after matching the C++ Create rejection for the schema-valid attribute row with empty Semantics.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official Java API using attribute-table-empty-semantics-tck.xml and HLAinteger64Time. Results/JUnit: out/java-tck/fom-attribute-table-nonblank-semantics-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mapping requirement-candidate-sections-semantic-clauses-5-6-page-092-l90-19 -> IEEE 1516.2-2025 §6.2.5. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to rejection of the supplied schema-valid empty-Semantics attribute row on this local provider build. An earlier provider build accepted it; independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_reference_data_type_name_convention_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-reference-data-type-name-convention after matching the C++ valid control acceptance and period-containing Reference Data Type Name rejection.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using reference-data-type-valid-name-tck.xml and reference-data-type-invalid-name-tck.xml. Results/JUnit: out/java-tck/fom-reference-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mapping requirement-candidate-sections-semantic-clauses-5-6-page-094-l86-16 -> IEEE 1516.2-2025 §6.2.17. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers the supplied valid-name control and one DIF-valid Reference Data Type Name containing a period. It is local current-source provider evidence only; independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_simple_data_type_name_convention_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-simple-data-type-name-convention after matching the C++ valid control and three selected invalid Simple Data Type names.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using the valid control, period, mixed-case HLA-prefix, and mixed-case NA FOMs. Results/JUnit: out/java-tck/fom-simple-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clause-4c-page-071-l61-2 -> IEEE 1516.2-2025 §4 and requirement-candidate-sections-semantic-clauses-5-6-page-094-l50-9 -> §6.2.15. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers one valid control and three selected invalid names only, not exhaustive HLA name conformance. It is local current-source provider evidence only; independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_enumerated_data_type_name_convention_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-enumerated-data-type-name-convention after matching the C++ valid control and period-containing Enumerated Data Type name rejection.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using the valid control and period-containing FOM pair. Results/JUnit: out/java-tck/fom-enumerated-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clauses-5-6-page-094-l66-12 -> IEEE 1516.2-2025 §6.2.16 and requirement-candidate-sections-semantic-clause-4c-page-072-l124-2 -> §4.14.5. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers the valid control and one period-containing Enumerated Data Type name. It is local current-source provider evidence only; independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_enumerator_name_convention_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-enumerator-name-convention after matching the C++ valid control and period-containing Enumerator Name rejection.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using the valid control and period-containing enumerator FOM pair. Results/JUnit: out/java-tck/fom-enumerator-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clauses-5-6-page-094-l74-14 -> IEEE 1516.2-2025 §6.2.16 and requirement-candidate-sections-semantic-clause-4c-page-073-l91-1 -> §4. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check pass. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers the valid control and one period-containing Enumerator Name. It is local current-source provider evidence only; independent-provider behavior and conformance are not claimed."
+      },
+      "next_action": "Next compare java-tck.fom-array-data-type-name-convention with cpp-tck.fom-array-data-type-name-convention in packages/hla-rti-cpp-tck/src/tck_fom_array_table_rules.cpp#scenarioFomArrayDataTypeNameConvention. Verify the valid control and period-containing Array Data Type Name rejection against IEEE 1516.2-2025 §6.2.18 using hla.rti.tck.arrayDataTypeValidNameFom, hla.rti.tck.arrayDataTypeInvalidNameFom, and HLAinteger64Time; run both callback models on current-source Umbra JNI before changing default status."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",

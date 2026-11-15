@@ -707,30 +707,36 @@ Focused default runs passed in both callback models on the current-source JNI
 build; results are in
 `out/java-tck/fom-incomplete-class-definition-current-source-20261115/`.
 Independent-provider behavior and conformance remain unverified.
-The opt-in `java-tck.fom-attribute-table-nonblank-semantics` scenario mirrors
+The default-run `java-tck.fom-attribute-table-nonblank-semantics` scenario mirrors
 the public C++ check for an empty attribute-table Semantics element. Supply
 `attribute-table-empty-semantics-tck.xml` through
 `hla.rti.tck.attributeTableEmptySemanticsFom`; Create Federation Execution must
-reject it as `InconsistentFOM`. Focused runs passed under both callback models
-with the 2026-11-06 JNI provider build. An earlier local provider build accepted
-the fixture, so this result is specific to the tested build and fixture.
-The opt-in `java-tck.fom-reference-data-type-name-convention` scenario accepts
+reject it as `InconsistentFOM`. Focused default runs passed under both callback
+models on current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-attribute-table-nonblank-semantics-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+The earlier 2026-11-05 provider accepted the fixture; this result is specific
+to the tested build and fixture.
+The default-run `java-tck.fom-reference-data-type-name-convention` scenario accepts
 the adapter's valid reference-data-type name, then requires `InconsistentFOM`
 for the paired DIF-valid FOM whose name contains a period. Supply the files via
 `hla.rti.tck.referenceDataTypeValidNameFom` and
-`hla.rti.tck.referenceDataTypeInvalidNameFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; the evidence covers
-this name restriction only.
-The opt-in `java-tck.fom-simple-data-type-name-convention` scenario accepts
+`hla.rti.tck.referenceDataTypeInvalidNameFom`. Focused default runs passed
+under both callback models against current-source Umbra JNI; results/JUnit are
+in `out/java-tck/fom-reference-data-type-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+The evidence covers this name restriction only; independent-provider behavior
+and conformance are not claimed.
+The default-run `java-tck.fom-simple-data-type-name-convention` scenario accepts
 the valid control and rejects three selected invalid Simple Data Type names:
 one containing a period, one beginning with a mixed-case `HLA` prefix, and one
 matching mixed-case `NA`. Supply the control and invalid FOMs through
 `hla.rti.tck.simpleDataTypeValidNameFom`,
 `hla.rti.tck.simpleDataTypeInvalidNameFom`,
 `hla.rti.tck.simpleDataTypeReservedPrefixNameFom`, and
-`hla.rti.tck.simpleDataTypeReservedNaNameFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; these examples do not
-establish exhaustive name-convention coverage.
+`hla.rti.tck.simpleDataTypeReservedNaNameFom`. Focused default runs passed
+under both callback models against current-source Umbra JNI; results/JUnit
+are in `out/java-tck/fom-simple-data-type-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+These examples do not establish exhaustive name-convention coverage,
+independent-provider behavior, or conformance.
 The opt-in `java-tck.fom-model-identification-name-valid` scenario supplies a
 schema-valid FOM with a nonempty HLA/XML-compatible Model Identification Name
 to public Create and destroys the resulting federation. Supply
@@ -738,20 +744,24 @@ to public Create and destroys the resulting federation. Supply
 `hla.rti.tck.modelIdentificationNameValidFom`. Focused runs passed under both
 callback models with the 2026-11-06 JNI provider build; this covers the valid
 input path only.
-The opt-in `java-tck.fom-enumerated-data-type-name-convention` scenario
+The default-run `java-tck.fom-enumerated-data-type-name-convention` scenario
 accepts a valid Enumerated Data Type name and rejects its period-containing
 counterpart as `InconsistentFOM`. Supply the paired fixtures through
 `hla.rti.tck.enumeratedDataTypeValidNameFom` and
-`hla.rti.tck.enumeratedDataTypeInvalidNameFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; this covers the period
-restriction only.
-The opt-in `java-tck.fom-enumerator-name-convention` scenario accepts the
+`hla.rti.tck.enumeratedDataTypeInvalidNameFom`. Focused default runs passed
+under both callback models on current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-enumerated-data-type-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+This covers the period restriction only; independent-provider behavior and
+conformance are not claimed.
+The default-run `java-tck.fom-enumerator-name-convention` scenario accepts the
 valid enumerator-name control and rejects its period-containing counterpart
 as `InconsistentFOM`. Supply the fixtures through
 `hla.rti.tck.enumeratorValidNameFom` and
-`hla.rti.tck.enumeratorInvalidNameFom`. Focused runs passed under both callback
-models with the 2026-11-06 JNI provider build; coverage is limited to this
-prohibited character and enumerator row.
+`hla.rti.tck.enumeratorInvalidNameFom`. Focused default runs passed under both
+callback models on current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-enumerator-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+Coverage is limited to this prohibited character and enumerator row;
+independent-provider behavior and conformance are not claimed.
 The opt-in `java-tck.fom-array-data-type-name-convention` scenario accepts a
 valid Array Data Type name and rejects its period-containing counterpart as
 `InconsistentFOM`. Supply the paired fixtures through
@@ -857,6 +867,35 @@ properties. Focused default runs passed in both callback models on
 current-source Umbra JNI; results are in
 `out/java-tck/fom-inherited-member-names-java-parity-20261115/`.
 Independent-provider behavior and conformance remain unverified.
+The default-run `java-tck.fom-attribute-value-required-sharing` case accepts
+the paired valid FOM's explicit-false and omitted Value Required rows, rejects
+`sharing=Neither` with `valueRequired=true` as `InconsistentFOM`, then recreates
+the valid federation under the same name. Its direct mapping covers IEEE
+1516.2-2025 §4 for these Create outcomes. Supply the fixtures through
+`hla.rti.tck.attributeNeitherValueRequiredValidFom` and
+`hla.rti.tck.attributeNeitherValueRequiredTrueFom`. Focused default runs passed
+under both callback models on current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-attribute-value-required-sharing-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+Independent-provider behavior and conformance are not claimed.
+
+The opt-in `java-tck.fom-tag-data-type-categories` case accepts the six
+supported user-tag and synchronization-tag data-type categories, rejects raw
+basic user and synchronization tag types, and rejects an XSD-valid FOM
+synchronization point with `Register` capability. It retries the valid FOM
+under the same federation name after each rejection. Its direct mappings cover
+IEEE 1516.2-2025 §§4, 6.2.9, and 6.2.10 for these fixtures. Supply the valid,
+two raw-basic, and Register-capability modules through
+`hla.rti.tck.tagDataTypeValidFom`, `tagDataTypeBasicUserFom`,
+`tagDataTypeBasicSynchronizationFom`, and
+`tagSynchronizationCapabilityRegisterFom`. Explicit `--run-unverified`
+executions in both callback models reached the third rejection and failed:
+current-source Umbra JNI accepted the `Register` fixture where the C++ case
+expects `InconsistentFOM`. The scenario stays opt-in until that provider
+behavior is corrected; results/JUnit are in
+`out/java-tck/fom-tag-data-type-categories-java-parity-20261115/{evoked,immediate}-unverified.{results.json,junit.xml}`.
+The no-user-tag/no-tag Data type NA recommendations, runtime tag-byte
+delivery, alternate capabilities, independent-provider behavior, and
+conformance are outside this evidence.
 The opt-in `java-tck.fom-interaction-class-hierarchy` case resolves the
 three-level `TckTypedInteraction` hierarchy from `fom-model-tck.xml`, checks
 qualified interaction names round-trip through distinct handles, and verifies

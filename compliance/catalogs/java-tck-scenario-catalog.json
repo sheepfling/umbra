@@ -14251,7 +14251,7 @@
     {
       "id": "java-tck.fom-tag-data-type-categories",
       "category": "fom-composition",
-      "title": "Validate user and synchronization tag data-type categories",
+      "title": "Validate tag data-type categories and FOM synchronization capability",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
@@ -14262,14 +14262,30 @@
         "cpp-1516.2-fom-composition-and-reference-resolution"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-060-l101-2",
+        "requirement-candidate-sections-semantic-clause-4b-page-062-l31-1",
+        "requirement-candidate-sections-semantic-clause-4b-page-062-l35-2",
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11",
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l74-14"
       ],
       "standard_sections": [
+        "hla-1516.2-2025:clause-4",
         "hla-1516.2-2025:clause-6.2.9",
         "hla-1516.2-2025:clause-6.2.10"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-060-l101-2",
+          "standard_section": "hla-1516.2-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-062-l31-1",
+          "standard_section": "hla-1516.2-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-062-l35-2",
+          "standard_section": "hla-1516.2-2025:clause-4"
+        },
         {
           "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l58-11",
           "standard_section": "hla-1516.2-2025:clause-6.2.9"
@@ -14279,14 +14295,15 @@
           "standard_section": "hla-1516.2-2025:clause-6.2.10"
         }
       ],
-      "mapping_note": "Standard Java API parity for valid tag category Create, raw basic user and synchronization tag rejection, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Direct bounded coverage of IEEE 1516.2-2025 §6.2.9 p. 93 l. 58, §6.2.10 p. 93 l. 74, and §4 p. 60 l. 101 and p. 62 ll. 31, 35. A schema-valid FOM accepts all six supported tag data-type categories across user tags and synchronization points, including the HLAinteger64Time MIM case. Create rejects raw HLAinteger32BE user and synchronization tags and rejects an XSD-valid FOM synchronization point with Register capability; the valid FOM is accepted again under the same federation name after each rejection. This does not cover the no-user-tag/no-tag Data type NA recommendations, runtime tag-byte delivery, alternate capability values, or broader FOM composition.",
       "contract_refs": [
         "standard-fom-tag-data-type-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomTagDataTypeCategories",
       "parity": "cpp-tck.fom-tag-data-type-categories",
       "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.tagDataTypeValidFom, tagDataTypeBasicUserFom, and tagDataTypeBasicSynchronizationFom for a 2025 Java provider; runtime unverified."
+      "exclusion": "Requires adapter-supplied valid six-category FOM, raw-basic user-tag FOM, raw-basic synchronization-tag FOM, XSD-valid Register-capability synchronization FOM, and HLAinteger64Time. The current-source Umbra JNI build accepted the Register-capability FOM in both callback models instead of throwing InconsistentFOM, so keep this scenario default-disabled until provider behavior is corrected.",
+      "evidence_note": "Explicit --run-unverified Java executions reached the third C++-parity rejection after accepting all six categories, rejecting both raw basic tag FOMs, and completing the valid same-name retries. HLA_EVOKED and HLA_IMMEDIATE then failed because current-source Umbra JNI accepted the XSD-valid Register-capability synchronization FOM instead of throwing InconsistentFOM. Results/JUnit: out/java-tck/fom-tag-data-type-categories-java-parity-20261115/{evoked-unverified,immediate-unverified}.{results.json,junit.xml}. This is local-provider evidence only, not independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.fom-root-hierarchy",
@@ -14377,7 +14394,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionClassHierarchy",
       "parity": "cpp-tck.fom-interaction-class-hierarchy",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14414,14 +14431,14 @@
           "standard_section": "hla-1516.2-2025:clause-4"
         }
       ],
-      "mapping_note": "Java public-API parity for accepted explicit-false/omitted Value Required rows, explicit-true rejection, and valid federation-name retry. Java provider runtime unverified; RL-052 records broad clause-4 provenance.",
+  "mapping_note": "Focused Java public-API parity accepts the valid FOM containing explicit-false and omitted Value Required rows, rejects the explicit-true sharing=Neither row, and recreates the valid federation under the same name. The direct mapping is limited to IEEE 1516.2-2025 §4 for these Create outcomes; it is not broader FOM validation or conformance evidence.",
       "contract_refs": [
         "standard-fom-attribute-value-required-sharing-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomAttributeValueRequiredSharing",
       "parity": "cpp-tck.fom-attribute-value-required-sharing",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.attributeNeitherValueRequiredValidFom and attributeNeitherValueRequiredTrueFom for a 2025 Java provider; runtime unverified."
+  "default_status": "run",
+  "evidence_note": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 API, HLAinteger64Time, and the paired valid and explicit-true FOM fixtures. Results/JUnit: out/java-tck/fom-attribute-value-required-sharing-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.fom-attribute-table-nonblank-semantics",
@@ -14455,7 +14472,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomAttributeTableNonblankSemantics",
       "parity": "cpp-tck.fom-attribute-table-nonblank-semantics",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14466,8 +14483,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires -Dhla.rti.tck.attributeTableEmptySemanticsFom to point to the adapter-supplied fixture and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed with the umbra-jni-20261106 provider build against the official 2025 Java API and the adapter-supplied empty-Semantics fixture; results are in out/java-tck/fom-attribute-table-nonblank-semantics-java-port-20261113/{evoked-newer-provider,immediate-newer-provider}.results.json. The earlier 2026-11-05 JNI build accepted the fixture and failed this assertion. Evidence covers this fixture and provider build only; no independent-provider or conformance claim."
+      "evidence_note": "Focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official 2025 Java API using the schema-valid empty-Semantics fixture. Results/JUnit: out/java-tck/fom-attribute-table-nonblank-semantics-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. The earlier 2026-11-05 provider accepted this fixture; the current result is local-provider evidence only, not independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.fom-reference-data-type-name-convention",
@@ -14501,7 +14517,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomReferenceDataTypeNameConvention",
       "parity": "cpp-tck.fom-reference-data-type-name-convention",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14513,8 +14529,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires the valid and invalid adapter FOM inputs and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed with provider build umbra-jni-20261106, the official 2025 Java API JAR, and the adapter-supplied valid/invalid fixture pair; results are in out/java-tck/fom-reference-data-type-name-convention-java-port-20261113/{evoked,immediate}.results.json. Evidence covers the period restriction for these reference-data-type names only; no independent-provider or conformance claim."
+      "evidence_note": "Focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official 2025 Java API using the valid and period-containing reference-data-type FOM pair. Results/JUnit: out/java-tck/fom-reference-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Evidence covers the period restriction for these reference-data-type names only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.fom-simple-data-type-name-convention",
@@ -14555,7 +14570,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomSimpleDataTypeNameConvention",
       "parity": "cpp-tck.fom-simple-data-type-name-convention",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14569,8 +14584,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires the four adapter-supplied FOM inputs and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed on provider build umbra-jni-20261106 against the official 2025 Java API JAR, using the valid control and all three invalid-name FOMs; results are in out/java-tck/fom-simple-data-type-name-convention-java-port-20261113/{evoked,immediate}.results.json. Evidence is limited to the period, mixed-case HLA-prefix, and mixed-case NA examples; no independent-provider or conformance claim."
+      "evidence_note": "Focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official 2025 Java API using the valid control and all three invalid-name FOMs. Results/JUnit: out/java-tck/fom-simple-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Evidence is limited to the period, mixed-case HLA-prefix, and mixed-case NA examples; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.fom-model-identification-name-valid",
@@ -14657,7 +14671,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomEnumeratedDataTypeNameConvention",
       "parity": "cpp-tck.fom-enumerated-data-type-name-convention",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14669,8 +14683,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires the valid and invalid adapter FOM inputs and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed on provider build umbra-jni-20261106 against the official 2025 Java API JAR and the adapter-supplied valid/period-containing fixture pair; results are in out/java-tck/fom-enumerated-data-type-name-convention-java-port-20261113/{evoked,immediate}.results.json. Evidence covers this period restriction only; no independent-provider or conformance claim."
+      "evidence_note": "Focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official 2025 Java API using the valid control and period-containing Enumerated Data Type FOM pair. Results/JUnit: out/java-tck/fom-enumerated-data-type-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Evidence covers this period restriction only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.fom-enumerator-name-convention",
@@ -14711,7 +14724,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomEnumeratorNameConvention",
       "parity": "cpp-tck.fom-enumerator-name-convention",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14723,8 +14736,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires the valid and invalid adapter FOM inputs and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed on provider build umbra-jni-20261106 against the official 2025 Java API JAR and the adapter-supplied valid/period-containing enumerator fixture pair; results are in out/java-tck/fom-enumerator-name-convention-java-port-20261113/{evoked,immediate}.results.json. Evidence covers the period restriction for this enumerator only; no independent-provider or conformance claim."
+      "evidence_note": "Focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official 2025 Java API using the valid control and period-containing Enumerator FOM pair. Results/JUnit: out/java-tck/fom-enumerator-name-convention-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Evidence covers the period restriction for this enumerator only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.fom-array-data-type-name-convention",

@@ -341,7 +341,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "Reject value-required attributes when sharing is Neither",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomAttributeValueRequiredSharing);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-attribute-table-nonblank-semantics",
@@ -350,7 +350,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(fomModules);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-092-l90-19"
-            }, false), FomAndHandleLookupScenarioRegistry::fomAttributeTableNonblankSemantics);
+            }, true), FomAndHandleLookupScenarioRegistry::fomAttributeTableNonblankSemantics);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-reference-data-type-name-convention",
             "Reject a reference data type name that violates HLA name conventions",
@@ -358,7 +358,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(valid control FOM);RTIambassador.destroyFederationExecution;RTIambassador.createFederationExecution(invalid FOM);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l86-16"
-            }, false), FomAndHandleLookupScenarioRegistry::fomReferenceDataTypeNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomReferenceDataTypeNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-simple-data-type-name-convention",
             "Reject simple data type names that violate HLA name conventions",
@@ -367,7 +367,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clause-4c-page-071-l61-2",
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l50-9"
-            }, false), FomAndHandleLookupScenarioRegistry::fomSimpleDataTypeNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomSimpleDataTypeNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-model-identification-name-valid",
             "Accept a conforming Model Identification Name through public Create",
@@ -384,7 +384,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l66-12",
                "requirement-candidate-sections-semantic-clause-4c-page-072-l124-2"
-            }, false), FomAndHandleLookupScenarioRegistry::fomEnumeratedDataTypeNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomEnumeratedDataTypeNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-enumerator-name-convention",
             "Reject an enumerator name that violates HLA name conventions",
@@ -393,7 +393,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l74-14",
                "requirement-candidate-sections-semantic-clause-4c-page-073-l91-1"
-            }, false), FomAndHandleLookupScenarioRegistry::fomEnumeratorNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomEnumeratorNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-array-data-type-name-convention",
             "Reject an array data type name that violates HLA name conventions",
@@ -499,7 +499,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "requirement-candidate-sections-semantic-clause-4b-page-052-l54-10"
             }, false), RtiTckMain::fomInteractionClassHierarchy);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-tag-data-type-categories",
-            "Accept permitted tag data types and reject raw basic user and synchronization tags",
+            "Validate tag data-type categories and FOM synchronization capability",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),

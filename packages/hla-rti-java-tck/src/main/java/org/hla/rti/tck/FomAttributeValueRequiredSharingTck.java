@@ -25,10 +25,13 @@ final class FomAttributeValueRequiredSharingTck {
          created = true;
          creator.destroyFederationExecution(federation);
          created = false;
+         // If Create unexpectedly succeeds, retain cleanup ownership before the assertion fails.
+         created = true;
          JavaTckSupport.expectFailure(
             () -> creator.createFederationExecution(federation,
                new String[] {invalid}, timeImplementation),
             "InconsistentFOM", "unshared value-required attribute");
+         created = false;
          creator.createFederationExecution(federation,
             new String[] {valid}, timeImplementation);
          created = true;
