@@ -7993,8 +7993,10 @@ public final class RtiTckMain {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-interaction-lookup",
                "cpp-1516.1-parameter-lookup",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportInteractionParameterLookups);
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-table-5-p298-r014",
+               "requirement-candidate-table-5-p299-r007"
+            }, true), RtiTckMain::serviceReportInteractionParameterLookups);
       run(new Scenario("java-tck.service-report-object-attribute-update-rate-lookups",
             "standard MOM reports for object, attribute, and update-rate lookup results",
             "mom-service-reporting",
@@ -13201,7 +13203,8 @@ public final class RtiTckMain {
       String serviceReportDirectory = System.getProperty(
          "hla.rti.tck.serviceReportDirectory", "");
       String additionalSettings = System.getProperty(ADDITIONAL_SETTINGS_PROPERTY, "");
-      ServiceReportInteractionParameterLookupTck.run(factory(), requireFom(), requireMim(),
+      ServiceReportInteractionParameterLookupTck.run(factory(), requireFom(),
+         requireAdapterFile(SERVICE_REPORT_FOREIGN_INTERACTION_FOM_PROPERTY), requireMim(),
          typedInteractionClassName(), typedIntegerParameterName(), timeImplementation(),
          callbackModel(), adapterRtiConfiguration(), additionalSettings,
          serviceReportDirectory);

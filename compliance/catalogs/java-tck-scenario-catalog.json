@@ -48215,7 +48215,7 @@
     {
       "id": "java-tck.service-report-interaction-parameter-lookups",
       "category": "mom-service-reporting",
-      "title": "Verify standard service reports for interaction-class and parameter lookup results",
+      "title": "Verify successful and failed service reports for interaction-class and parameter lookups",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
@@ -48259,7 +48259,9 @@
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-interaction-lookup",
         "cpp-1516.1-parameter-lookup",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-table-5-p298-r014",
+        "requirement-candidate-table-5-p299-r007"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -48268,9 +48270,36 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportInteractionParameterLookups",
       "parity": "cpp-tck.service-report-interaction-parameter-lookups",
-      "default_status": "unsupported",
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time under HLA_EVOKED and HLA_IMMEDIATE. The Java case verifies four ordered callback reports and the Federate MOM HLAreportServiceFile reflection, then checks a file-backed GetInteractionClassHandle report with its Table 5 type-27 value. Results: out/java-tck/interaction-parameter-lookups-20261103/results/{evoked,immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
-      "exclusion": "Requires adapter-supplied FOM with the configured interaction class and parameter, standard MIM, callback model, and installed IEEE 1516.1-2025 Java provider. The file-backed branch additionally requires an adapter-configured serviceReportDirectory; other providers need their own runtime evidence."
+      "default_status": "run",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed as a default catalog scenario under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider. Java verifies the four success reports followed by six API-exercisable failures, plus the optional file-backed GetInteractionClassHandle type-27 return; the InvalidParameterHandle path remains an explicit Java API portability boundary. The paired C++ primary and contract passed both callback models (4/4 scenario/model results); the focused C++ evidence validator reported no findings. Java evidence: out/java-tck/interaction-parameter-lookups-java-parity-20261115-assertions/{evoked-default,immediate-default}.{json,xml}. C++ evidence: out/cpp-tck/interaction-parameter-lookups-java-parity-20261115/{results.json,junit.xml}. Local Umbra evidence only; no independent-provider or conformance claim is made.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-table-5-p298-r014",
+        "requirement-candidate-table-5-p299-r007"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p298-r014",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r007",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct bounded mappings matching the paired C++ scenario: Table 5 p.298 r014 is covered only by the file-backed successful GetInteractionClassHandle report with its type-27 returned handle; p.299 r007 is covered by the callback GetParameterHandle report with its type-39 returned ParameterHandle value. The supplemental API-exercisable failure reports check their supplied arguments, exception names, null returned argument, order, and serials but add no requirement mapping. Adapter paths and filesystem setup are not normative evidence; the callback report does not replace the separate p.298 r014 file-backed assertion.",
+      "parity_scope_note": "Java records four successful and six API-exercisable failure callbacks, then the optional file-backed success; the paired C++ case records four successful and seven failure callbacks. Java cannot port the C++ InvalidParameterHandle assertion because the standard Java API exposes no portable default-invalid ParameterHandle representation; null is not a valid substitute and its provider-local NullPointerException is not asserted. For three InvalidInteractionClassHandle checks, Java uses a standard API-produced interaction handle from a separate federation execution instead of a default-invalid handle. These substitutions preserve the tested error outcomes without claiming exact input parity or broader service-report completeness.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Primary adapter FOM containing HLAinteractionRoot.TckInteraction and HLAinteractionRoot.TckTransportRegionalInteraction.RegionalPayload",
+        "Secondary adapter FOM containing HLAinteractionRoot.TckExtensionInteraction for foreign-execution handle failures",
+        "HLAstandardMIM-2025.xml and HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model",
+        "Writable serviceReportDirectory configured consistently as an adapter system property and additional setting"
+      ]
     },
     {
       "id": "java-tck.service-report-object-attribute-update-rate-lookups",
