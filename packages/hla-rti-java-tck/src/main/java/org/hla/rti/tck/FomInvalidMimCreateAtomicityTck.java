@@ -46,6 +46,7 @@ final class FomInvalidMimCreateAtomicityTck {
       String federation = "java-tck-fom-invalid-mim-create-" + UUID.randomUUID();
       String creatorName = "java-tck-mim-create-owner";
       String memberName = "java-tck-mim-create-member";
+      String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
       boolean creatorConnected = false;
       boolean memberConnected = false;
       boolean created = false;
@@ -57,6 +58,9 @@ final class FomInvalidMimCreateAtomicityTck {
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
 
+         if (!combineValidAndInvalidFom) {
+            expectEmptyFomModulesRejected(creator, federation, mim, timeImplementation);
+         }
          for (String invalidModule : invalidModules) {
             expectInvalidCreate(creator, federation, fom, mim, invalidModule,
                timeImplementation, combineValidAndInvalidFom);
@@ -66,14 +70,15 @@ final class FomInvalidMimCreateAtomicityTck {
             timeImplementation);
          created = true;
          FederateHandle creatorHandle =
-            creator.joinFederationExecution(creatorName, federation);
+            creator.joinFederationExecution(creatorName, federateType, federation);
          creatorJoined = true;
-         FederateHandle memberHandle = member.joinFederationExecution(memberName, federation);
+         FederateHandle memberHandle =
+            member.joinFederationExecution(memberName, federateType, federation);
          memberJoined = true;
          ObjectClassHandle creatorClass = creator.getObjectClassHandle(objectClassName);
          ObjectClassHandle memberClass = member.getObjectClassHandle(objectClassName);
-         JavaTckSupport.check(creatorClass.equals(memberClass)
-               && creatorHandle.equals(creator.getFederateHandle(creatorName))
+         JavaTckSupport.check(creatorHandle != null && memberHandle != null
+               && creatorClass != null && creatorClass.equals(memberClass)
                && memberHandle.equals(creator.getFederateHandle(memberName)),
             "valid MIM create after invalid-MIM rejection did not compose declarations and members");
       } finally {
@@ -86,6 +91,21 @@ final class FomInvalidMimCreateAtomicityTck {
          if (memberConnected) disconnect(member);
          if (creatorConnected) disconnect(creator);
       }
+   }
+
+   private static void expectEmptyFomModulesRejected(RTIambassador creator, String federation,
+         String mim, String timeImplementation) throws Exception {
+      try {
+         creator.createFederationExecutionWithMIM(federation, new String[0], mim,
+            timeImplementation);
+      } catch (Throwable error) {
+         for (Throwable current = error; current != null; current = current.getCause()) {
+            if ("InvalidFOM".equals(current.getClass().getSimpleName())) return;
+         }
+         throw new AssertionError("empty FOM module set with a valid MIM threw unexpected "
+            + error, error);
+      }
+      throw new AssertionError("Create-with-MIM accepted an empty FOM module set");
    }
 
    private static void expectInvalidCreate(RTIambassador creator, String federation,

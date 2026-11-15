@@ -21,6 +21,7 @@ final class FomEmptyMimCreateAtomicityTck {
       String federation = "java-tck-fom-empty-mim-create-" + UUID.randomUUID();
       String creatorName = "java-tck-empty-mim-owner";
       String memberName = "java-tck-empty-mim-member";
+      String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
       boolean creatorConnected = false;
       boolean memberConnected = false;
       boolean created = false;
@@ -40,14 +41,15 @@ final class FomEmptyMimCreateAtomicityTck {
             timeImplementation);
          created = true;
          FederateHandle creatorHandle =
-            creator.joinFederationExecution(creatorName, federation);
+            creator.joinFederationExecution(creatorName, federateType, federation);
          creatorJoined = true;
-         FederateHandle memberHandle = member.joinFederationExecution(memberName, federation);
+         FederateHandle memberHandle =
+            member.joinFederationExecution(memberName, federateType, federation);
          memberJoined = true;
          ObjectClassHandle creatorClass = creator.getObjectClassHandle(objectClassName);
          ObjectClassHandle memberClass = member.getObjectClassHandle(objectClassName);
-         JavaTckSupport.check(creatorClass.equals(memberClass)
-               && creatorHandle.equals(creator.getFederateHandle(creatorName))
+         JavaTckSupport.check(creatorHandle != null && memberHandle != null
+               && creatorClass != null && creatorClass.equals(memberClass)
                && memberHandle.equals(creator.getFederateHandle(memberName)),
             "valid FOM/MIM create after empty-FOM rejection did not establish shared membership");
       } finally {

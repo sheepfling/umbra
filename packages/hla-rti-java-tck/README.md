@@ -546,19 +546,19 @@ models. Results/JUnit are in
 The direct mappings remain limited to the selected fixture declarations and
 module operations; they do not establish arbitrary FOM table completeness or
 conformance.
-The opt-in `java-tck.fom-file-url-designator` case passes an absolute local
+The default-run `java-tck.fom-file-url-designator` case passes an absolute local
 FOM URL with a percent-escaped first filename character to standard Create,
 checks the exact `HLAFOMmoduleDesignatorList` value before and after an
 additional-module Join, and verifies `HLAMIMdesignator` is
 `HLAstandardMIM` when Create omits an explicit MIM. Its two direct mappings
-cover IEEE 1516.1-2025 §4.1.4.2. Current-source JNI runs under both callback
-models passed against a fresh MinGW JNI library built from this checkout. Both
-runs preserved the exact supplied URL through the initial and post-Join MOM
-checks and verified the automatic standard-MIM designator. The paired C++
-primary and contract CTests passed 4/4 against the installed package. The case
-remains opt-in because its FOM modules and logical-time implementation are
-adapter inputs; this does not establish independent-provider interoperability
-or overall conformance.
+cover IEEE 1516.1-2025 §4.1.4.2. Default runs passed 1/1 under both callback
+models against current-source JNI with p0-tck.xml, HLAstandardMIM-2025.xml,
+fom-extension-tck.xml, and HLAinteger64Time. Supply the extension with
+`--jvm-argument=-Dhla.rti.tck.additionalFomModules=<path>`. Results/JUnit are
+in `out/java-tck/fom-file-url-designator-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+The paired C++ primary and contract CTests passed 4/4 against the installed
+package. Local-provider evidence does not establish independent-provider
+interoperability or conformance.
 The federate MOM publication-query cases check ordinary object and interaction
 publication reports, including partial/full attribute withdrawal and whole-class
 withdrawal. The opt-in partial interaction-class withdrawal case publishes two
@@ -1010,16 +1010,29 @@ The default-run `java-tck.fom-invalid-composite-join-atomicity` case passes each
 invalid module together with the valid extension module, verifies atomic
 rejection, then confirms the valid join works after all failures. Its focused
 both-model evidence and fixture limits are recorded above.
-The opt-in `java-tck.fom-invalid-mim-create-atomicity` scenario exercises the
-standard `createFederationExecutionWithMIM` overload with each adapter-supplied
-invalid MIM path, then reuses the federation name with valid FOM/MIM inputs.
+The default-run `java-tck.fom-invalid-mim-create-atomicity` case first passes an
+empty FOM module array with the valid pinned standard MIM and requires
+`InvalidFOM`, then checks the selected invalid MIM-path inputs. It creates the
+valid p0 FOM with `HLAstandardMIM-2025.xml` under the same federation name,
+joins two named federates, verifies their shared `HLAobjectRoot.TckObject`
+handle, and resolves the member handle. Its direct mapping covers the
+nonempty-FOM rule in IEEE 1516.1-2025 §4.5; invalid-MIM path checks are
+supplemental. Focused default runs passed 1/1 under each callback model against
+current-source JNI; results/JUnit are in
+`out/java-tck/fom-invalid-mim-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Independent-provider behavior and conformance remain unverified.
 The opt-in `java-tck.fom-invalid-composite-mim-create-atomicity` scenario
 combines each adapter-supplied invalid FOM module with the valid FOM/MIM inputs,
 checks standard FOM rejection, and then proves a valid MIM-backed create under
-the same federation name succeeds. The opt-in
+the same federation name succeeds. The default-run
 `java-tck.fom-empty-mim-create-atomicity` case requires an empty FOM module array
-to fail with `InvalidFOM`, then retries with valid FOM/MIM inputs under the same
-federation name and checks both members' handles.
+with the valid standard MIM to fail with `InvalidFOM`, then retries with valid
+p0 FOM/MIM inputs under the same federation name. Two named federates join,
+share the `HLAobjectRoot.TckObject` handle, and the creator resolves the member
+handle. Its direct mapping covers IEEE 1516.1-2025 §4.5. Focused default runs
+passed 1/1 under each callback model against current-source JNI; results/JUnit
+are in
+`out/java-tck/fom-empty-mim-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
 The opt-in `java-tck.fom-empty-module-validation` case performs the same
 name-reuse check using standard Create Federation Execution without MIM.
 The opt-in `java-tck.fom-standard-invalid-input-corpus` case accepts a
@@ -4675,13 +4688,17 @@ selectors. Direct mappings are IEEE 1516.2-2025 §§4.3.2, 5.3, and 6.2.3. This
 is a qualified-identity witness only; it does not cover valid-name conventions,
 malformed-name rejection, exhaustive §3.3 coverage, or conformance.
 
-The opt-in `java-tck.fom-duplicate-object-class-attribute-name` supplies
+The default-run `java-tck.fom-duplicate-object-class-attribute-name` supplies
 `invalid-duplicate-tck.xml` as the sole FOM module and checks that federation
 creation rejects the repeated `DuplicateValue` attribute name with a standard
-FOM error. It maps IEEE 1516.2-2025 §4.5.2. Java evoked and immediate runs
-passed, as did the paired installed-package C++ selectors. This is one
-same-class duplicate-name witness; inherited-name collisions, naming
-conventions, the table's NA entry rule, and conformance are outside its scope.
+FOM error. It maps IEEE 1516.2-2025 §4.5.2. Current-source JNI runs passed
+1/1 under each callback model against the pinned official Java API and
+HLAinteger64Time. Results/JUnit are in
+`out/java-tck/fom-duplicate-object-class-attribute-name-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+The paired C++ case passed both callback-model selectors with the same fixture.
+This is one same-class duplicate-name witness; inherited-name collisions,
+naming conventions, the table's NA entry rule, independent-provider behavior,
+and conformance remain outside its scope.
 
 The opt-in `java-tck.fom-basic-data-representation-endian-values` creates and
 joins one federation for each adapter-supplied basicData FOM declaring

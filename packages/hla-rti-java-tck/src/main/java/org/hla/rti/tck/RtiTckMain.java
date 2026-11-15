@@ -828,7 +828,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-mom",
                "requirement-candidate-content-clauses-04-federation-management-page-049-l112-35",
                "requirement-candidate-content-clauses-04-federation-management-page-049-l118-37"
-            }, false),
+            }, true),
          RtiTckMain::fomFileUrlDesignator);
       run(new Scenario("java-tck.federate-mom-fom-module-content-report",
             "request one joined federate's FOM-module contents through the standard MIM",

@@ -11135,14 +11135,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDuplicateObjectClassAttributeName",
       "parity": "cpp-tck.fom-duplicate-object-class-attribute-name",
-      "default_status": "unsupported",
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
       "adapter_inputs": [
         "adapter-supplied invalid-duplicate-tck.xml in the invalid FOM module list",
         "provider-supported logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Java HLA_EVOKED and HLA_IMMEDIATE runs each passed 1/1 on provider umbra-jni-20261106 with invalid-duplicate-tck.xml and HLAinteger64Time; results/JUnit are in out/java-tck/fom-duplicate-object-class-attribute-name-java-port-20261113/. The paired installed-package MinGW C++ consumer passed focused CTest 2/2 and direct callback-model runs 2/2; evidence is in .build/cpp-tck-fom-duplicate-object-class-attribute-name-java-port-20261113/ and .build/cpp-tck-timestamped-interaction-future-tara-arrival-java-port-20261113/Testing/Temporary/LastTest.log. The scenario result rows pass; the global C++ catalog validator separately reports a missing contract reference for cpp-tck.federate-selected-update-thresholds. The C++ run did not rebuild the RTI provider. These are local-provider results, not independent-provider interoperability or conformance evidence.",
-      "exclusion": "Requires the adapter-supplied duplicate-name invalid FOM fixture. It does not cover inherited-name collisions, naming conventions, or the table's NA entry rule."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official IEEE 1516.1-2025 Java API, invalid-duplicate-tck.xml, and HLAinteger64Time. Each run rejected the repeated DuplicateValue attribute name with one of the accepted standard FOM errors. Results/JUnit: out/java-tck/fom-duplicate-object-class-attribute-name-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ case previously passed both callback-model selectors with the same fixture. This is one same-class duplicate-name witness; inherited-name collisions, naming conventions, the table's NA entry rule, independent-provider interoperability, and conformance remain outside scope."
     },
     {
       "id": "java-tck.fom-basic-data-representation-endian-values",
@@ -11798,7 +11798,8 @@
       "title": "Reject invalid MIM create inputs without reserving the federation name",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecutionWithMIM",
+        "RTIambassador.createFederationExecutionWithMIM(empty FOM module array)",
+        "RTIambassador.createFederationExecutionWithMIM(valid FOM module)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getFederateHandle",
@@ -11809,8 +11810,24 @@
       "requirement_ids": [
         "cpp-1516.1-malformed-fom-input",
         "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9",
+          "standard_section": "hla-1516.1-2025:clause-4.5",
+          "note": "The Create-with-MIM vector overload rejects an empty FOM module array with InvalidFOM while given the valid standard MIM. A subsequent valid FOM/MIM Create reuses the federation name and allows two named members to join. This directly witnesses only the nonempty-FOM-module rule."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct bounded IEEE 1516.1-2025 §4.5 p. 53 l. 55-9 witness for Create Federation Execution with MIM: the valid-MIM call with an empty FOM module array is rejected with InvalidFOM, and a later valid same-name create/join proves the failed request did not reserve the federation name. The selected invalid-MIM path checks are supplemental and are not separately mapped.",
       "contract_refs": [
         "fom-composition-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -11818,8 +11835,18 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInvalidMimCreateAtomicity",
       "parity": "cpp-tck.fom-invalid-mim-create-atomicity",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied valid FOM and MIM modules, one or more invalid MIM path inputs, object-class name, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom, hla.rti.tck.mim, hla.rti.tck.invalidMimModules (platform-path-separator-delimited), and hla.rti.tck.objectClass. Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "current-source Umbra JNI provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom",
+        "pinned standard MIM HLAstandardMIM-2025.xml through hla.rti.tck.mim",
+        "invalidMimModules: selected malformed, namespace, and duplicate XML inputs separated by the platform path separator",
+        "objectClass HLAobjectRoot.TckObject and named owner/member federate joins with hla.rti.tck.federateType defaulting to tck-type",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
+      ],
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official API, p0-tck.xml, and HLAstandardMIM-2025.xml. The valid-MIM empty-FOM-array Create was rejected with InvalidFOM; all three selected invalid module inputs were rejected when supplied as the MIM path; valid same-name FOM/MIM creation then succeeded with two named members, a shared TckObject handle, and the creator resolving the member handle. Results/JUnit: out/java-tck/fom-invalid-mim-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-invalid-composite-mim-create-atomicity",
@@ -11869,8 +11896,24 @@
       "requirement_ids": [
         "cpp-1516.1-malformed-fom-input",
         "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9",
+          "standard_section": "hla-1516.1-2025:clause-4.5",
+          "note": "The Create-with-MIM vector overload rejects an empty FOM module array with InvalidFOM while given the valid standard MIM. A subsequent valid FOM/MIM Create reuses the federation name and allows two named members to join. This directly witnesses only the nonempty-FOM-module rule."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct bounded IEEE 1516.1-2025 §4.5 p. 53 l. 55-9 witness for Create Federation Execution with MIM: the valid-MIM call with an empty FOM module array is rejected with InvalidFOM, and a later valid same-name create/join proves the failed request did not reserve the federation name.",
       "contract_refs": [
         "fom-composition-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -11878,8 +11921,17 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomEmptyMimCreateAtomicity",
       "parity": "cpp-tck.fom-empty-mim-create-atomicity",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied valid FOM and MIM modules, object-class name, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom, hla.rti.tck.mim, and hla.rti.tck.objectClass. Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "current-source Umbra JNI provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom",
+        "pinned standard MIM HLAstandardMIM-2025.xml through hla.rti.tck.mim",
+        "objectClass HLAobjectRoot.TckObject and named owner/member federate joins with hla.rti.tck.federateType defaulting to tck-type",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
+      ],
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official API, p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckObject. Empty FOM module array with the valid MIM was rejected with InvalidFOM; the valid same-name FOM/MIM Create then joined two named members with shared object-class handles and the creator resolved the member handle. Results/JUnit: out/java-tck/fom-empty-mim-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-empty-module-validation",
@@ -14288,14 +14340,21 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Direct bounded Java mapping: requirement-candidate-content-clauses-04-federation-management-page-049-l112-35 and requirement-candidate-content-clauses-04-federation-management-page-049-l118-37 -> IEEE 1516.1-2025 §4.1.4.2. The scenario checks exact retention of a percent-escaped local FOM URL in HLAFOMmoduleDesignatorList and verifies that omitting an explicit MIM yields the standard HLAstandardMIM designator. It does not claim remote URL handling or full clause-4 conformance.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Built a fresh MinGW JNI library from this checkout at out/java-tck/fom-file-url-designator-bridge-fix-20261106/native-mingw and passed the focused Java scenario under HLA_EVOKED and HLA_IMMEDIATE (1/1 each). Both runs checked the exact percent-escaped local file URL before and after an additional-module Join and checked automatic HLAstandardMIM metadata. Results and JUnit are under out/java-tck/fom-file-url-designator-bridge-fix-20261106/results/{evoked,immediate}.{results.json,junit.xml}; the combined traceability export is out/java-tck/fom-file-url-designator-bridge-fix-20261106/traceability.json. The paired C++ primary and contract CTests passed 4/4 in out/mgw/cpp-tck-attribute-relevance-rate-reissue-java-port-20261106. Java catalog validation and export, parity audit, focused family checks, and git diff --check passed. This is local provider evidence only; independent-provider interoperability and overall conformance are not claimed.",
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the pinned official API, using p0-tck.xml, HLAstandardMIM-2025.xml, and fom-extension-tck.xml as the additional module. Both runs preserved the percent-escaped local FOM URL through federation creation and additional-module Join, and observed the automatically supplied HLAstandardMIM designator. Results/JUnit: out/java-tck/fom-file-url-designator-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Direct mappings are limited to the local file URL and standard-MIM designator witnesses in §4.1.4.2. Local-provider evidence only; independent-provider interoperability and conformance remain unverified.",
       "contract_refs": [
         "standard-fom-file-url-designator-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomFileUrlDesignator",
       "parity": "cpp-tck.fom-file-url-designator",
-      "default_status": "unsupported",
-      "exclusion": "Keep opt-in because the scenario requires adapter-supplied local base and extension FOMs, the standard MIM, and a logical-time implementation. Both callback models pass against the current-source JNI provider; this does not establish independent-provider interoperability or overall conformance."
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and current-source Umbra JNI provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom",
+        "standard MIM HLAstandardMIM-2025.xml through hla.rti.tck.mim",
+        "additional FOM module fom-extension-tck.xml through hla.rti.tck.additionalFomModules",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
+      ]
     },
     {
       "id": "java-tck.fom-reference-class-resolution",

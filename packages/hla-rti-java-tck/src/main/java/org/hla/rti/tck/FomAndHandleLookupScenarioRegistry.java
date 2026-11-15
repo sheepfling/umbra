@@ -70,7 +70,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "fom-model",
             "RTIambassador.connect;RTIambassador.createFederationExecution(single invalid FOM module);RTIambassador.disconnect",
             new String[] {"requirement-candidate-sections-semantic-clause-4b-page-048-l101-3"},
-            false), RtiTckMain::fomDuplicateObjectClassAttributeName);
+            true), RtiTckMain::fomDuplicateObjectClassAttributeName);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-basic-data-representation-endian-values",
             "Accept Big and Little Endian values for basic data representations",
@@ -161,7 +161,8 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getFederateHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-malformed-fom-input",
                "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-federation-create-join-resign-destroy"}, false),
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"}, true),
          RtiTckMain::fomInvalidMimCreateAtomicity);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-invalid-composite-mim-create-atomicity",
             "Reject a valid-plus-invalid FOM module set during MIM-backed federation creation",
@@ -178,7 +179,8 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM(empty FOM module array);RTIambassador.createFederationExecutionWithMIM(valid FOM module);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getFederateHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-malformed-fom-input",
                "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-federation-create-join-resign-destroy"}, false),
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-04-federation-management-page-053-l55-9"}, true),
          RtiTckMain::fomEmptyMimCreateAtomicity);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-empty-module-validation",
             "Reject an empty FOM module list without reserving a federation execution",
