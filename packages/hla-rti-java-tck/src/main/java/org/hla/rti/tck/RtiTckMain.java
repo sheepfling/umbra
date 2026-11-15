@@ -8601,7 +8601,7 @@ public final class RtiTckMain {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-timestamped-interaction-delivery"
-            }, false), RtiTckMain::serviceReportTimestampedInteraction);
+            }, true), RtiTckMain::serviceReportTimestampedInteraction);
       run(new Scenario("java-tck.service-report-resign-federation-execution",
             "standard service report for federation resignation", "mom-service-reporting",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.unsubscribeInteractionClass;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RtiFactory.getEncoderFactory;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;FederateHandleFactory.decode;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
