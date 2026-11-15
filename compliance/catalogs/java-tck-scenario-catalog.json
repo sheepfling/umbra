@@ -11650,10 +11650,11 @@
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-042-l100-33",
-          "standard_section": "hla-1516.1-2025:clause-4"
+          "standard_section": "hla-1516.1-2025:clause-4",
+          "note": "The public Create service rejects each selected malformed, namespace, or duplicate FOM input. A valid p0 FOM then creates the same federation name, two named federates join, and the owner resolves the member's FederateHandle. Evidence is limited to these three invalid fixtures."
         }
       ],
-      "mapping_note": "Direct source/API mapping to the Lab's page-42 broad clause-4 row: adapter-supplied invalid FOM create inputs are rejected, then a valid create and two-member join/query lifecycle succeeds with the same federation name. This is traceability only until executed against an IEEE 1516.1-2025 Java provider; no provider runtime or conformance is claimed.",
+      "mapping_note": "Direct, fixture-bounded mapping to IEEE 1516.1-2025 §4 p. 42 l. 100. Each selected invalid Create input is rejected; the valid p0 FOM then reuses the federation name, two named members join, and the owner resolves the joining member's handle. This does not cover every FOM failure mode.",
       "contract_refs": [
         "fom-composition-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -11661,8 +11662,17 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInvalidCreateAtomicity",
       "parity": "cpp-tck.fom-invalid-create-atomicity",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied valid FOM, one or more invalid FOM path inputs, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom and hla.rti.tck.invalidFomModules (platform-path-separator-delimited). Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "current-source Umbra JNI provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom",
+        "invalidFomModules: invalid-malformed-tck.xml, invalid-namespace-tck.xml, invalid-duplicate-tck.xml (platform path separator)",
+        "named owner/member federate joins with hla.rti.tck.federateType defaulting to tck-type",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
+      ],
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official API, p0-tck.xml, and invalid-malformed-tck.xml, invalid-namespace-tck.xml, and invalid-duplicate-tck.xml. Each invalid Create was rejected; the valid p0 Create reused the federation name, both named federates joined, and the creator resolved the member handle. Results/JUnit: out/java-tck/fom-invalid-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-noncompliant-module",

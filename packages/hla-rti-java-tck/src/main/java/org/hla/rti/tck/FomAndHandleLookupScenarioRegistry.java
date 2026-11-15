@@ -146,7 +146,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "fom-lifecycle",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getFederateHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-malformed-fom-input",
-               "cpp-1516.1-federation-create-join-resign-destroy"}, false),
+               "cpp-1516.1-federation-create-join-resign-destroy"}, true),
          RtiTckMain::fomInvalidCreateAtomicity);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-noncompliant-module",
             "Reject a schema-valid FOM module that violates the zero-update-rate constraint",

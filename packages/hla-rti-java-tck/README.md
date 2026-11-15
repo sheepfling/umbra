@@ -977,9 +977,16 @@ each callback model against current-source JNI; results/JUnit are in
 This is evidence for these selected fixture entries; the public API does not
 enumerate arbitrary FDD update-rate tables, and independent-provider behavior
 and conformance remain unverified.
-The opt-in `java-tck.fom-invalid-create-atomicity` scenario retries federation
-creation with each adapter-supplied invalid FOM path, then creates and joins a
-valid federation using the same name to prove failures did not reserve it.
+The default-run `java-tck.fom-invalid-create-atomicity` scenario retries
+federation creation with each of the selected malformed, namespace, and
+duplicate FOM inputs, then creates the valid p0 federation under the same name.
+Two named federates join, and the creator resolves the member handle. Its
+direct mapping covers these selected outcomes in IEEE 1516.1-2025 §4 only.
+Focused default runs passed 1/1 under each callback model against current-source
+JNI; results/JUnit are in
+`out/java-tck/fom-invalid-create-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This does not establish exhaustive FOM validation, independent-provider
+behavior, or conformance.
 The default `java-tck.fom-noncompliant-module` scenario tests a schema-valid
 zero-update-rate FOM module at both Create and additional-module Join. It checks
 that Create rejects the valid-plus-noncompliant module set and permits a valid

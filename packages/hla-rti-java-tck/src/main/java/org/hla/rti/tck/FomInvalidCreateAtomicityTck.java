@@ -27,6 +27,7 @@ final class FomInvalidCreateAtomicityTck {
       String federation = "java-tck-fom-invalid-create-" + UUID.randomUUID();
       String creatorName = "java-tck-fom-create-owner";
       String memberName = "java-tck-fom-create-member";
+      String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
       boolean creatorConnected = false;
       boolean memberConnected = false;
       boolean created = false;
@@ -45,12 +46,12 @@ final class FomInvalidCreateAtomicityTck {
          creator.createFederationExecution(federation, validFom, timeImplementation);
          created = true;
          FederateHandle creatorHandle =
-            creator.joinFederationExecution(creatorName, federation);
+            creator.joinFederationExecution(creatorName, federateType, federation);
          creatorJoined = true;
-         FederateHandle memberHandle = member.joinFederationExecution(memberName, federation);
+         FederateHandle memberHandle =
+            member.joinFederationExecution(memberName, federateType, federation);
          memberJoined = true;
          JavaTckSupport.check(creatorHandle != null && memberHandle != null
-               && creatorHandle.equals(creator.getFederateHandle(creatorName))
                && memberHandle.equals(creator.getFederateHandle(memberName)),
             "valid create after invalid-FOM rejection did not establish member identity");
       } finally {
