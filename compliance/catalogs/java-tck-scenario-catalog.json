@@ -50265,7 +50265,7 @@
     {
       "id": "java-tck.service-report-delete-object-instance",
       "category": "mom-service-reporting",
-      "title": "Verify report and receive-order removal callback for ordinary object deletion",
+      "title": "Verify standard MOM report arguments and receive-order removal callback for ordinary object deletion",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -50301,13 +50301,25 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r004"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -50325,7 +50337,40 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectDeletion",
       "parity": "cpp-tck.service-report-delete-object-instance",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support."
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned argument is checked as Null: Table 5 type 34, empty name, and value null."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied-argument array is decoded and required to contain exactly three records."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The ObjectInstanceHandle designator and the stable User-supplied tag and Optional timestamp labels and values are checked; RL-399 leaves the UserSuppliedTag numeric type unasserted."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The successful void-return HLAargumentRecord is decoded and verified."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The void return record is checked against the Null encoding."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The ObjectInstanceHandle argument checks Table 5 type code 37, exact name, and quoted API handle value."
+        }
+      ],
+      "mapping_note": "The Java success report now checks exactly three supplied records; the ObjectInstanceHandle designator and quoted API handle; the stable User-supplied tag name and Base64 JSON value without asserting its disputed numeric type; the absent timestamp Null record; and the returned Null record. HLAfederate identity remains additional case evidence and is not separately mapped. Direct mappings are limited to the six listed candidates under IEEE 1516.1-2025 §11.5.1; RL-399 remains unresolved, and no complete section or conformance claim is made."
     },
     {
       "id": "java-tck.service-report-delete-object-instance-failure",

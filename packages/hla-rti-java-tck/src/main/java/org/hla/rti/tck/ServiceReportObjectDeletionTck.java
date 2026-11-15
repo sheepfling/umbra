@@ -24,6 +24,7 @@ import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -201,6 +202,49 @@ final class ServiceReportObjectDeletionTck {
                && exception.getValue().isEmpty()
                && serial.getValue() == (failureBoundaries ? 1 : 0),
             "delete-object service report returned an incorrect service result");
+
+         HLAfixedRecord argumentPrototype = fixedRecordPrototype(encoder);
+         HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+            index -> fixedRecordPrototype(encoder), argumentPrototype);
+         suppliedArguments.decode(
+            event.parameters.get(reportParameters.get("HLAsuppliedArguments")));
+         JavaTckSupport.check(suppliedArguments.size() == 3,
+            "DeleteObjectInstance report returned the wrong supplied-argument count");
+         HLAfixedRecord objectArgument = suppliedArguments.get(0);
+         JavaTckSupport.check(objectArgument.size() == 3
+               && ((HLAinteger32BE) objectArgument.get(0)).getValue() == 37
+               && "Object instance designator".equals(
+                  ((HLAunicodeString) objectArgument.get(1)).getValue())
+               && ("\"" + object.toString() + "\"").equals(
+                  ((HLAunicodeString) objectArgument.get(2)).getValue()),
+            "DeleteObjectInstance report returned the wrong ObjectInstanceHandle argument");
+
+         HLAfixedRecord tagArgument = suppliedArguments.get(1);
+         // RL-399 disputes the numeric UserSuppliedTag type; retain its stable name and value.
+         JavaTckSupport.check(tagArgument.size() == 3
+               && "User-supplied tag".equals(
+                  ((HLAunicodeString) tagArgument.get(1)).getValue())
+               && ("\"" + Base64.getEncoder().encodeToString(tag) + "\"").equals(
+                  ((HLAunicodeString) tagArgument.get(2)).getValue()),
+            "DeleteObjectInstance report returned the wrong user-tag argument value");
+
+         HLAfixedRecord optionalTimestamp = suppliedArguments.get(2);
+         JavaTckSupport.check(optionalTimestamp.size() == 3
+               && ((HLAinteger32BE) optionalTimestamp.get(0)).getValue() == 34
+               && "Optional timestamp".equals(
+                  ((HLAunicodeString) optionalTimestamp.get(1)).getValue())
+               && "null".equals(((HLAunicodeString) optionalTimestamp.get(2)).getValue()),
+            "DeleteObjectInstance report returned the wrong absent-timestamp argument");
+
+         HLAfixedRecord returnedArgument = fixedRecordPrototype(encoder);
+         returnedArgument.decode(
+            event.parameters.get(reportParameters.get("HLAreturnedArgument")));
+         JavaTckSupport.check(returnedArgument.size() == 3
+               && ((HLAinteger32BE) returnedArgument.get(0)).getValue() == 34
+               && ((HLAunicodeString) returnedArgument.get(1)).getValue().isEmpty()
+               && "null".equals(((HLAunicodeString) returnedArgument.get(2)).getValue()),
+            "Successful DeleteObjectInstance report returned the wrong void-return Null record");
+
          recorder.interactions.clear();
          recorder.removals.clear();
          if (failureBoundaries) {
