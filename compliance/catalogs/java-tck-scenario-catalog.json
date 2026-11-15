@@ -41116,9 +41116,30 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportRegionalInteractionSubscription",
       "parity": "cpp-tck.service-report-regional-interaction-subscription",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied dimensional FOM, standard MIM, object-class/attribute and interaction/parameter names, two dimension names, and an installed IEEE 1516.1-2025 provider. The Umbra JNI profile opts in after focused current-source verification. Uses the official Java passive-subscription method to match the C++ active/passive indicator behavior.",
-      "evidence_note": "The Java JNI RegionHandle now formats its encoded identity through the same NativeHandleText helper as the other handle types, matching the report's type-43 region designator. Compiled against the pinned official 2025 Java API and rebuilt the Java provider JAR with tools/build_jni_java_provider.py; the current native JNI library was unchanged. Profile-enabled focused runs passed under HLA_EVOKED and HLA_IMMEDIATE with ddm-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Each run verifies passive, active, and unsubscribe reports with exact argument values, serials 0–2, Null return values, and callback metadata. Results: out/java-tck/service-report-regional-interaction-subscription-fixed-handle-20261103/results/{evoked,immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only."
+      "default_status": "run",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14. It used ddm-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. For each of the passive subscribe, active subscribe, and unsubscribe reports, the Java test checks all standard parameters are present, report identity and callback metadata, service name/type, success, exact supplied argument records, Null return, empty exception, and serials 0–2. The passive-indicator argument is true for the official passive method and false for the active method. The paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package; scoped C++ validation returned valid=true with no findings. Java results/JUnit: out/java-tck/service-report-regional-interaction-subscription-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: out/mgw/cpp-tck-service-report-regional-interaction-subscription-parity-20261115/{results.json,results.xml}. Java catalog validation passed. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct §11.5 witness: with Service Reporting enabled and Send Service Reports To File disabled, passive and active SubscribeInteractionClassWithRegions calls and UnsubscribeInteractionClassWithRegions each produce an HLAreportServiceInvocation. The test checks report identity and callback metadata, service name/type, success, exact supplied argument records (including the passive indicator), Null return, empty exception, and serial. The mapping is limited to positive service-report generation and these asserted report fields; it does not claim §11.5.1/Table 5 coverage, DDM subsection coverage, or conformance. Dimensional FOM setup and region designators are supplemental.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "hla.rti.tck.ddmObjectClass=HLAobjectRoot.TckObject and hla.rti.tck.ddmAttribute=Value",
+        "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
+        "hla.rti.tck.dimension=TckDimensionX and hla.rti.tck.ddmSecondDimension=TckDimensionY",
+        "callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-associate-regions-for-updates",

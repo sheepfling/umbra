@@ -6288,7 +6288,7 @@ public final class RtiTckMain {
                 "cpp-1516.1-mom-service-reporting",
                 "cpp-1516.1-explicit-mim-composition",
                 "cpp-1516.1-ddm-regional-interaction-subscription"
-             }, false), RtiTckMain::serviceReportRegionalInteractionSubscription);
+             }, true), RtiTckMain::serviceReportRegionalInteractionSubscription);
        run(new Scenario("java-tck.service-report-associate-regions-for-updates",
              "report two AttributeRegionAssociation pairs through Associate Regions for Updates",
              "mom-service-reporting",
