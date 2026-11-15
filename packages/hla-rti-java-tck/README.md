@@ -532,14 +532,20 @@ both callback models against current-source Umbra JNI. Results/JUnit are in
 `out/java-tck/fom-transportation-handle-stability-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
 The direct mappings cover selected lookup and handle stability only; this does
 not establish runtime reliability guarantees or conformance.
-The opt-in `java-tck.fom-module-composition` scenario composes the adapter's
-base and extension modules as absolute file URLs at federation creation and at
-a later join. It verifies extension object/attribute and interaction/parameter
-declaration identity, ordinary reflection and interaction delivery, and a
-directed extension interaction targeted to a receiver-owned object with its
-target, parameter bytes, tag, and producer. All module paths and extension
-names are adapter-supplied. Focused current-source JNI runs passed under both
-callback models; this is local provider evidence only.
+The default-run `java-tck.fom-module-composition` scenario composes the p0 and
+extension modules from absolute file URLs at Create and at a later Join. It
+checks the expected base and composed object/interaction/attribute/parameter
+tables, name round-trips, and shared handles across members, plus standard MIM
+handle stability and the attribute-scope advisory default. The Create path
+also verifies extension attribute value, tag, and `HLAreliable` reflection,
+ordinary interaction delivery, and a directed interaction; directed delivery
+is checked at Create and after Join. The modules and extension declarations are
+adapter inputs. Focused current-source JNI runs passed under both callback
+models. Results/JUnit are in
+`out/java-tck/fom-module-composition-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+The direct mappings remain limited to the selected fixture declarations and
+module operations; they do not establish arbitrary FOM table completeness or
+conformance.
 The opt-in `java-tck.fom-file-url-designator` case passes an absolute local
 FOM URL with a percent-escaped first filename character to standard Create,
 checks the exact `HLAFOMmoduleDesignatorList` value before and after an

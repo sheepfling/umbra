@@ -11307,6 +11307,8 @@
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getAttributeScopeAdvisorySwitch",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.getInteractionClassHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
@@ -11410,7 +11412,7 @@
           "note": "Java file paths are converted to absolute file URLs before the official Create and additional-module Join calls. The selected module declarations are then checked through public lookups and delivery. This exercises the URL designator form only; it does not establish full-content or ZIP alternatives, protocol bytes, or independent-provider behavior."
         }
       ],
-      "mapping_note": "Direct but bounded evidence for §§4.1.4, 4.1.4.1, and 12.13.3.3: the scenario converts the adapter-supplied base and extension paths to absolute file URLs, composes them both at Create and at additional-module Join, and verifies selected object-class, attribute, interaction-class, and parameter declarations through public lookups, name round-trips, shared handles, and extension interactions. Both ordinary and directed delivery check selected payloads. Coverage is limited to the adapter fixtures and one directed-interaction row; it does not establish arbitrary FOM table completeness, all module consistency rules, full-content/ZIP designators, independent-provider behavior, or overall conformance.",
+      "mapping_note": "Direct, fixture-bounded evidence for IEEE 1516.1-2025 sections 4.1.4, 4.1.4.1, and 12.13.3.3: using the selected p0 and extension modules, the Java case composes absolute file URLs at Create and at additional-module Join. It checks the complete expected object/interaction-class lists and selected attribute/parameter entries by public lookup and name round-trip, including shared ordered handle tables across members; it verifies base-table availability before Join and extension availability after Join. Ordinary attribute reflection checks the declared value, tag, and HLAreliable transportation; ordinary and directed interactions check selected payloads, with both Create and Join paths covering one directed row. The adjacent standard-MIM handle identity and attribute-scope-switch default assertions are internal integration checks with no separate normative mapping claimed. Coverage does not establish arbitrary FOM table completeness, all module consistency rules, full-content/ZIP designators, independent-provider behavior, or conformance.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -11423,15 +11425,10 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomModuleComposition",
       "parity": "cpp-tck.fom-module-composition",
-      "default_status": "unsupported",
-      "adapter_inputs": [
-        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-        "adapter-supplied base FOM, extension FOM, and logical-time implementation",
-        "extension object-class, attribute, interaction-class, and parameter names",
-        "callback model and Java provider"
-      ],
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. The current-source Umbra JNI provider passed this focused case under HLA_EVOKED and HLA_IMMEDIATE with p0-tck.xml plus fom-extension-tck.xml, HLAinteger64Time, and the adapter's extension declaration names (2/2). Results: out/java-tck/fom-module-composition-port-20261106/results/{evoked,immediate}.results.json and .junit.xml. These are local provider results; independent-provider interoperability and overall conformance are not claimed.",
-      "exclusion": "Remains opt-in because it requires adapter-supplied base and extension FOM modules, extension object-class/attribute/interaction/parameter names, and a Java IEEE 1516.1-2025 provider. Configure hla.rti.tck.fom, hla.rti.tck.additionalFom, hla.rti.tck.fomExtensionObjectClass, hla.rti.tck.fomExtensionAttribute, hla.rti.tck.fomExtensionInteraction, and hla.rti.tck.fomExtensionParameter."
+      "default_status": "run",
+      "adapter_inputs": ["pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider", "base FOM packages/hla-rti-cpp-tck/fom/p0-tck.xml through hla.rti.tck.fom", "extension FOM packages/hla-rti-cpp-tck/fom/fom-extension-tck.xml through hla.rti.tck.additionalFom", "extension object class HLAobjectRoot.TckExtensionObject through hla.rti.tck.fomExtensionObjectClass", "extension attribute ExtensionValue through hla.rti.tck.fomExtensionAttribute", "extension interaction HLAinteractionRoot.TckExtensionInteraction through hla.rti.tck.fomExtensionInteraction", "extension parameter ExtensionParameter through hla.rti.tck.fomExtensionParameter", "logical-time implementation HLAinteger64Time", "HLA_EVOKED and HLA_IMMEDIATE callback models"],
+      "evidence_note": "Focused default-run Java TCK executions passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the pinned official Java API using p0-tck.xml, fom-extension-tck.xml, HLAinteger64Time, and the fixture declaration names. The updated assertions cover base and composed fixture tables, shared handles, standard MIM handle stability, the switch default, reflected integer bytes/tag/reliable transportation, ordinary delivery, and directed delivery at Create and Join. Results/JUnit: out/java-tck/fom-module-composition-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local provider evidence only; independent-provider interoperability and conformance are not claimed."
+
     },
     {
       "id": "java-tck.fom-incomplete-class-definition",

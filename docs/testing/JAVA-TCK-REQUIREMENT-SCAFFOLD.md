@@ -22,8 +22,8 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1179 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 617 |
-| Default `unsupported` scenarios | 347 |
+| Default `run` scenarios | 618 |
+| Default `unsupported` scenarios | 346 |
 | Scenarios with explicit `requirement_mappings` | 674 |
 | Explicit mapping records | 2774 |
 
@@ -1501,7 +1501,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.fom-incomplete-class-definition`](#scenario-java-tck.fom-incomplete-class-definition) — Reject unfinished object and interaction class scaffolds at Create and Join (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-incomplete-class-definition`).
 - [`java-tck.fom-invalid-composite-join-atomicity`](#scenario-java-tck.fom-invalid-composite-join-atomicity) — Reject mixed valid and invalid additional FOM modules without partial composition (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-invalid-composite-join-atomicity`).
 - [`java-tck.fom-invalid-composite-mim-create-atomicity`](#scenario-java-tck.fom-invalid-composite-mim-create-atomicity) — Reject a valid-plus-invalid FOM module set during MIM-backed federation creation (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-invalid-composite-mim-create-atomicity`).
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 - [`java-tck.fom-noncompliant-module`](#scenario-java-tck.fom-noncompliant-module) — Reject a schema-valid FOM module that violates the zero-update-rate constraint (`fom-lifecycle`; default `run`; C++ pointer `cpp-tck.fom-noncompliant-module`).
 - [`java-tck.fom-standard-invalid-input-corpus`](#scenario-java-tck.fom-standard-invalid-input-corpus) — Reject adapter-supplied standard-invalid FOM files and prove each federation name remains reusable (`fom-lifecycle`; default `unsupported`; C++ pointer `cpp-tck.fom-standard-invalid-input-corpus`).
 - [`java-tck.fom-transportation-handle-stability`](#scenario-java-tck.fom-transportation-handle-stability) — Preserve transportation handle identity across an additional-FOM join (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-transportation-handle-stability`).
@@ -2964,7 +2964,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.fom-member-data-type-categories`](#scenario-java-tck.fom-member-data-type-categories) — Reject raw basic data types on object attributes and interaction parameters (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-member-data-type-categories`).
 - [`java-tck.fom-model-identification-name-valid`](#scenario-java-tck.fom-model-identification-name-valid) — Accept a conforming Model Identification Name through public Create (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-model-identification-name-valid`).
 - [`java-tck.fom-model-modification-date`](#scenario-java-tck.fom-model-modification-date) — Require YYYY-MM-DD model modification-date presentation (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-model-modification-date`).
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 - [`java-tck.fom-named-variant-alternative-merge`](#scenario-java-tck.fom-named-variant-alternative-merge) — Accept disjoint enumerators on one named extendable-variant alternative (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-named-variant-alternative-merge`).
 - [`java-tck.fom-nonextendable-variant-alternative-conflict`](#scenario-java-tck.fom-nonextendable-variant-alternative-conflict) — Reject different alternative sets on one named HLAvariantRecord (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-nonextendable-variant-alternative-conflict`).
 - [`java-tck.fom-note-collision-remap`](#scenario-java-tck.fom-note-collision-remap) — Preserve distinct referenced notes after FOM label collision (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-note-collision-remap`).
@@ -3559,31 +3559,31 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-attributes`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-directed-interaction`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-interaction-structure`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-parameters`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -3595,7 +3595,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-048-l150-49`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -3607,7 +3607,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-048-l21-6`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -3619,13 +3619,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-048-l33-10`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-04-federation-management-page-048-l48-15`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -8702,7 +8702,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-12-programming-language-mappings-page-396-l117-38`
 
-- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-module-composition`).
+- [`java-tck.fom-module-composition`](#scenario-java-tck.fom-module-composition) — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-module-composition`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -13893,7 +13893,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.fom-member-data-type-categories"></a>`java-tck.fom-member-data-type-categories` — Reject raw basic data types on object attributes and interaction parameters | `org.hla.rti.tck.RtiTckMain#fomMemberDataTypeCategories` | 4 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-member-data-type-categories` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.fom-model-identification-name-valid"></a>`java-tck.fom-model-identification-name-valid` — Accept a conforming Model Identification Name through public Create | `org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomModelIdentificationNameValid` | 4 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-model-identification-name-valid` | `unsupported` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; schema-valid model-identification-name-valid-tck.xml supplied through hla.rti.tck.modelIdentificationNameValidFom; logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-model-modification-date"></a>`java-tck.fom-model-modification-date` — Require YYYY-MM-DD model modification-date presentation | `org.hla.rti.tck.RtiTckMain#fomModelModificationDate` | 8 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-model-modification-date` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.fom-module-composition"></a>`java-tck.fom-module-composition` — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction | `org.hla.rti.tck.RtiTckMain#fomModuleComposition` | 31 | `cpp-1516.1-fom-module-composition`, `cpp-1516.2-fom-composition-and-reference-resolution`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-interaction-structure`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-directed-interaction`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-attributes`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-parameters`, `requirement-candidate-content-clauses-04-federation-management-page-048-l21-6`, `requirement-candidate-content-clauses-04-federation-management-page-048-l33-10`, `requirement-candidate-content-clauses-04-federation-management-page-048-l48-15`, `requirement-candidate-content-clauses-04-federation-management-page-048-l150-49`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-396-l117-38` | `cpp-tck.fom-module-composition` | `unsupported` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; adapter-supplied base FOM, extension FOM, and logical-time implementation; extension object-class, attribute, interaction-class, and parameter names; callback model and Java provider |
+| <a id="scenario-java-tck.fom-module-composition"></a>`java-tck.fom-module-composition` — Compose adapter FOM modules at Create and Join and deliver a directed extension interaction | `org.hla.rti.tck.RtiTckMain#fomModuleComposition` | 33 | `cpp-1516.1-fom-module-composition`, `cpp-1516.2-fom-composition-and-reference-resolution`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-interaction-structure`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-directed-interaction`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-attributes`, `requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-parameters`, `requirement-candidate-content-clauses-04-federation-management-page-048-l21-6`, `requirement-candidate-content-clauses-04-federation-management-page-048-l33-10`, `requirement-candidate-content-clauses-04-federation-management-page-048-l48-15`, `requirement-candidate-content-clauses-04-federation-management-page-048-l150-49`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-396-l117-38` | `cpp-tck.fom-module-composition` | `run` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; base FOM packages/hla-rti-cpp-tck/fom/p0-tck.xml through hla.rti.tck.fom; extension FOM packages/hla-rti-cpp-tck/fom/fom-extension-tck.xml through hla.rti.tck.additionalFom; extension object class HLAobjectRoot.TckExtensionObject through hla.rti.tck.fomExtensionObjectClass; extension attribute ExtensionValue through hla.rti.tck.fomExtensionAttribute; extension interaction HLAinteractionRoot.TckExtensionInteraction through hla.rti.tck.fomExtensionInteraction; extension parameter ExtensionParameter through hla.rti.tck.fomExtensionParameter; logical-time implementation HLAinteger64Time; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-named-variant-alternative-merge"></a>`java-tck.fom-named-variant-alternative-merge` — Accept disjoint enumerators on one named extendable-variant alternative | `org.hla.rti.tck.RtiTckMain#fomNamedVariantAlternativeMerge` | 4 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-named-variant-alternative-merge` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.fom-nonextendable-variant-alternative-conflict"></a>`java-tck.fom-nonextendable-variant-alternative-conflict` — Reject different alternative sets on one named HLAvariantRecord | `org.hla.rti.tck.RtiTckMain#fomNonextendableVariantAlternativeConflict` | 4 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-nonextendable-variant-alternative-conflict` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.fom-note-collision-remap"></a>`java-tck.fom-note-collision-remap` — Preserve distinct referenced notes after FOM label collision | `org.hla.rti.tck.RtiTckMain#fomNoteCollisionRemap` | 5 | `cpp-1516.2-fom-composition-and-reference-resolution` | `cpp-tck.fom-note-collision-remap` | `run` | not scenario-declared |
