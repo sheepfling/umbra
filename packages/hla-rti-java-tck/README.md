@@ -73,6 +73,18 @@ are in `out/java-tck/federate-mom-object-instances-removed-java-parity-20261115/
 and `out/mgw/cpp-tck-mom-object-instances-removed-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-object-instances-deleted-mim-attribute`
+case checks the zero baseline, increments after each of three successful receive-order
+deletions, and correlates each deletion with its receiver callback. It compares direct
+and periodic values after the second and third deletions, verifies object-name
+retirement, and confirms the count stays at three after periodic reporting stops.
+It maps only the standard MIM definition in IEEE 1516.1-2025 §11.4.1. Java passed
+under both callback models; the paired C++ primary passed focused CTest 2/2 and
+direct runs in both models. Results are in
+`out/java-tck/federate-mom-object-instances-deleted-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-object-instances-deleted-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the
