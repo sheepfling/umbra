@@ -134,3 +134,36 @@ reviewed source revision, then repeat both line and semantic checks.
 
 No Mermaid bodies changed. No C++ build, tests, or CI ran. Keep 2010 and the
 Requirements Lab separate.
+
+## Increment 536 — selected visual review and source snapshot refresh (2026-11-15)
+
+The current candidate branch is `feature/hla-2025-docs-candidate-20261107` at
+`9cb816e09aa9e31426d48b0a57282bb2e76a767a`, matching its remote. Its 41 current
+2025 Markdown pages contain 4,805 unique source-line references. Candidate
+HEAD resolves 4,796; nine anchors across four active 2025 source/test files
+remain out of range. The candidate worktree resolves all 4,805 with its active
+uncommitted source/test edits. A bounded review found all nine worktree targets
+match the descriptions in their guides; repeat the line and semantic checks
+against the reviewed source revision after owners publish it.
+
+Local primary HEAD `74bdb65fc120dc306bb842f6080f3cfa42aa6a5b` places all 4,805
+references in range, but this is path/line evidence only. The branch is 16
+commits ahead of `origin/feature/initial-work` and contains unrelated work. In
+particular, candidate citation line 2389 in the lifecycle TCK is an automatic
+delete-then-divest assertion at that primary revision; the Federate-Lost MOM
+scenario begins at primary line 2607 and its post-loss assertion is at 2983.
+The remote `origin/feature/initial-work` revision `c9c5a9e410539b039cd8bba35b53d0ef2b24d180`
+resolves 4,796/4,805. Do not treat primary bounds as semantic validation or use
+that branch as the documentation publication route.
+
+Mermaid CLI 12.0.0 freshly rendered DSE guide diagram #003 at line 350. The
+screenshot shows its three route lanes and outcomes legibly in the full image,
+without clipping. Its body SHA-256
+`31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70` matches the
+visual ledger. All 515 current diagrams retain body-matched local render and
+screenshot evidence; published GitHub hydration covers 515/515, but is not a
+full-width readability review of every page. Nonregional receive-order push
+remains a source-only path without focused DSE test evidence.
+
+No Mermaid body changed. No C++ build, tests, or CI ran. Keep 2010 and the
+Requirements Lab separate.
