@@ -1120,6 +1120,20 @@ void verifyTimestampedDeleteObjectInstanceProcessScenario(
           receiverHandler,
           TransportServiceOperation::resign_federation_execution,
           "The public timestamped process delete server lost receiver Resign.");
+      umbra::detail::TransportResumeRequest senderTerminationRequest;
+      if (sender.receiveInitialFrame(senderTerminationRequest) !=
+              ProcessTransportSession::InitialFrame::terminate_session ||
+          !sender.sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The public timestamped process delete server did not acknowledge sender Terminate Session.");
+      }
+      umbra::detail::TransportResumeRequest receiverTerminationRequest;
+      if (receiver.receiveInitialFrame(receiverTerminationRequest) !=
+              ProcessTransportSession::InitialFrame::terminate_session ||
+          !receiver.sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The public timestamped process delete server did not acknowledge receiver Terminate Session.");
+      }
       service.detach(sender);
       service.detach(receiver);
       senderConnection->close();

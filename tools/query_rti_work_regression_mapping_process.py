@@ -174,7 +174,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
     if not isinstance(subscription_generation, dict):
         raise AssertionError("focused subscription-generation row is absent")
     if query_rti_work.source_location_text(subscription_generation) != (
-        "cpp/tests/federation_registry_composed_fom_catch2.cpp:926"
+        "cpp/tests/federation_registry_composed_fom_catch2.cpp:927"
     ):
         raise AssertionError("focused subscription-generation source pointer drifted")
     if subscription_generation.get("assertions") != 31:
@@ -371,7 +371,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
     if not isinstance(focused_attribute_transportation, dict):
         raise AssertionError("focused attribute transportation row is absent")
     if query_rti_work.source_location_text(focused_attribute_transportation) != (
-        "cpp/tests/custom_transportation_type_control_catch2.cpp:102"
+        "cpp/tests/custom_transportation_type_control_catch2.cpp:149"
     ):
         raise AssertionError("focused attribute transportation source pointer drifted")
     if focused_attribute_transportation.get("assertions") != 57:
@@ -433,7 +433,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         {
             "id": "umbra-cpp-timestamped-directed-interaction-tso-retraction-integration",
             "mapping": "m60.embedded-timestamped-directed-interaction-tso-retraction",
-            "source": "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:150",
+            "source": "cpp/tests/timestamped_directed_interaction_retraction_catch2.cpp:179",
             "assertions": 56,
             "lane": "timestamped-directed-interaction-tso-retraction",
             "requirements": 15,
@@ -545,7 +545,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused handle-normalization row is not mapped")
     if len(handle_normalization.get("lab_requirement_ids", [])) != 6:
         raise AssertionError("focused handle-normalization requirement mapping drifted")
-    if len(handle_normalization.get("standard_sections", [])) != 11:
+    if len(handle_normalization.get("standard_sections", [])) != 6:
         raise AssertionError("focused handle-normalization section mapping drifted")
     if len(handle_normalization.get("selected_cpp_api_surface_ids", [])) != 5:
         raise AssertionError("focused handle-normalization API mapping drifted")
@@ -560,7 +560,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused handle-normalization assertion total drifted")
     if handle_normalization_focus.get("requirement_count") != 6:
         raise AssertionError("focused handle-normalization requirement total drifted")
-    if handle_normalization_focus.get("standard_section_count") != 11:
+    if handle_normalization_focus.get("standard_section_count") != 6:
         raise AssertionError("focused handle-normalization section total drifted")
     if handle_normalization_focus.get("requirement_section_pair_count") != 6:
         raise AssertionError("focused handle-normalization direct pair drifted")
@@ -585,7 +585,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
             "focused joined-federate HLAreportObjectInstancesUpdated row is absent"
         )
     if query_rti_work.source_location_text(object_instances_updated_report) != (
-        "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp:137"
+        "cpp/tests/joined_federate_mom_object_instances_updated_report_catch2.cpp:262"
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated source pointer drifted"
@@ -623,7 +623,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated lane is not complete"
         )
-    if object_instances_updated_report_focus.get("mapped_test_count") != 1:
+    if object_instances_updated_report_focus.get("mapped_test_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesUpdated mapped count drifted"
         )
@@ -670,7 +670,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
     if query_rti_work.source_location_text(
         object_instances_that_can_be_deleted_report
     ) != (
-        "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp:137"
+        "cpp/tests/joined_federate_mom_object_instances_that_can_be_deleted_report_catch2.cpp:257"
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted source pointer drifted"
@@ -726,7 +726,7 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted lane is not complete"
         )
-    if object_instances_that_can_be_deleted_report_focus.get("mapped_test_count") != 1:
+    if object_instances_that_can_be_deleted_report_focus.get("mapped_test_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesThatCanBeDeleted mapped count drifted"
         )
@@ -779,12 +779,12 @@ def run_process_mapping_rows(inputs: MappingLookupInputs) -> None:
             "focused joined-federate HLAreportObjectInstancesReflected row is absent"
         )
     if query_rti_work.source_location_text(object_instances_reflected_report) != (
-        "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp:160"
+        "cpp/tests/joined_federate_mom_object_instances_reflected_report_catch2.cpp:354"
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected source pointer drifted"
         )
-    if object_instances_reflected_report.get("assertions") != 51:
+    if object_instances_reflected_report.get("assertions") != 53:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected assertion count drifted"
         )

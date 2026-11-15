@@ -23432,6 +23432,20 @@ int run(Options const& options) {
         result.status = "skipped";
         result.message =
             "requires an adapter-supplied attribute relevance rate advisory FOM";
+      } else if ((scenario == "cpp-tck.object-attribute-subscription-lifecycle" ||
+                  scenario == "cpp-tck.object-attribute-subscription-lifecycle-contract" ||
+                  scenario == "cpp-tck.selective-attribute-unsubscription") &&
+                 options.scenarioFoms.count(
+                     "object-attribute-subscription-independent-class") == 0U) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied independent sibling object-class FOM module";
+      } else if (scenario == "cpp-tck.whole-class-attribute-unsubscription" &&
+                 options.scenarioFoms.count(
+                     "object-attribute-subscription-independent-class") == 0U) {
+        result.status = "skipped";
+        result.message =
+            "requires an adapter-supplied independent sibling object-class FOM module";
       } else if ((scenario == "cpp-tck.fom-model" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle" ||
                   scenario == "cpp-tck.attribute-lookup-lifecycle-contract" ||

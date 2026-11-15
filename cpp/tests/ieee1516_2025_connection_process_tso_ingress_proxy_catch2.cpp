@@ -839,7 +839,9 @@ TEST_CASE(
          std::optional<std::wstring> const& mimModule,
          std::wstring const& logicalTimeImplementationName)
       -> std::optional<umbra::detail::FederationDefinition> {
-    if (fomModules != std::vector<std::wstring>{L"server-owned-proxy-fom.xml"} ||
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"RestaurantFOMmodule-2025.xml") ==
+            std::wstring::npos ||
         mimModule || (!logicalTimeImplementationName.empty() &&
                       logicalTimeImplementationName != L"HLAinteger64Time")) {
       return std::nullopt;
@@ -1484,11 +1486,26 @@ TEST_CASE(
     "[rti.service.next-message-request-available][federate.callback.receive-interaction]"
     "[federate.callback.time-advance-grant][2025]") {
   EmbeddedFederationRegistry registry;
+  umbra::detail::ProcessFederationServiceOptions serviceOptions;
+  serviceOptions.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"RestaurantFOMmodule-2025.xml") ==
+            std::wstring::npos ||
+        mimModule || logicalTimeImplementationName != L"HLAinteger64Time") {
+      return std::nullopt;
+    }
+    return composedDefinition();
+  };
   ProcessFederationServiceHost authority(
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
-      {"process-tso-subprocess-evoked-authority", 0xB830U});
+      {"process-tso-subprocess-evoked-authority", 0xB830U},
+      std::move(serviceOptions));
   authority.start();
 
   TemporaryDirectory directory;
@@ -1540,7 +1557,9 @@ TEST_CASE(
          std::optional<std::wstring> const& mimModule,
          std::wstring const& logicalTimeImplementationName)
       -> std::optional<umbra::detail::FederationDefinition> {
-    if (fomModules != std::vector<std::wstring>{L"server-owned-fom.xml"} ||
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"server-owned-fom.xml") ==
+            std::wstring::npos ||
         mimModule || (!logicalTimeImplementationName.empty() &&
                       logicalTimeImplementationName != L"HLAinteger64Time")) {
       return std::nullopt;

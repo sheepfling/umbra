@@ -11,6 +11,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -135,6 +136,33 @@ std::unique_ptr<RTIambassador> makeRti() {
   return factory.createRTIambassador();
 }
 
+void configureServerOwnedFomPreparation(
+    ProcessFederationServiceOptions& options) {
+  options.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<FederationDefinition> {
+    if (fomModules.size() != 1U ||
+        !fomModules.front().ends_with(L"/server-owned-fom.xml") ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return composedProcessDefinition();
+  };
+}
+
+void acknowledgeTerminateSession(
+    ProcessTransportSession& session, char const* errorMessage) {
+  umbra::detail::TransportResumeRequest terminationRequest;
+  if (session.receiveInitialFrame(terminationRequest) !=
+          ProcessTransportSession::InitialFrame::terminate_session ||
+      !session.sendCloseAcknowledgement()) {
+    throw std::runtime_error(errorMessage);
+  }
+}
+
 std::filesystem::path temporaryServiceReportDirectory() {
   static std::atomic_uint64_t next{0};
   for (;;) {
@@ -203,6 +231,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto serve = [&](ProcessTransportSession& session,
@@ -251,6 +280,12 @@ TEST_CASE(
       serve(secondSession, secondHandler,
             TransportServiceOperation::resign_federation_execution,
             "The process service-report multifederate server lost second Resign.");
+      acknowledgeTerminateSession(
+          firstSession,
+          "The process service-report multifederate server did not acknowledge first Terminate Session.");
+      acknowledgeTerminateSession(
+          secondSession,
+          "The process service-report multifederate server did not acknowledge second Terminate Session.");
       service.detach(firstSession);
       service.detach(secondSession);
       firstConnection->close();
@@ -419,6 +454,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -494,6 +530,9 @@ TEST_CASE(
             "The process service-report server lost the final lookup.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The process service-report server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The process service-report server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -547,21 +586,21 @@ TEST_CASE(
     }
     auto const expectedDimensionHandleRecord =
         std::string{
-            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":10,"HLAargumentValue":")"} +
         dimensionHandleText +
         R"("}],"HLAservice":"GetDimensionHandle","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}])";
     auto const expectedDimensionNameRecord =
         std::string{
-            R"("HLAserialNumber":2,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Dimension name","HLAargumentValue":"BarQuantity"}],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+            R"("HLAserialNumber":2,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentValue":"BarQuantity"}],"HLAservice":"GetDimensionName","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
         dimensionHandleText + R"("}])";
     auto const expectedDimensionUpperBoundRecord =
         std::string{
-            R"("HLAserialNumber":3,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentName":"Dimension upper bound","HLAargumentValue":25}],"HLAservice":"GetDimensionUpperBound","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
+            R"("HLAserialNumber":3,"HLAreturnedArgument":[{"HLAargumentType":35,"HLAargumentValue":25}],"HLAservice":"GetDimensionUpperBound","HLAsuppliedArguments":[{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")"} +
         dimensionHandleText + R"("}])";
     auto const expectedOrderNameRecord =
-        R"("HLAserialNumber":4,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"Receive"}],"HLAservice":"GetOrderName","HLAsuppliedArguments":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"RECEIVE"}])";
+        R"("HLAserialNumber":4,"HLAreturnedArgument":[{"HLAargumentType":53,"HLAargumentValue":"Receive"}],"HLAservice":"GetOrderName","HLAsuppliedArguments":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"RECEIVE"}])";
     auto const expectedOrderTypeRecord =
-        R"("HLAserialNumber":5,"HLAreturnedArgument":[{"HLAargumentType":38,"HLAargumentName":"Order type","HLAargumentValue":"TIMESTAMP"}],"HLAservice":"GetOrderType","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"TimeStamp"}])";
+        R"("HLAserialNumber":5,"HLAreturnedArgument":[{"HLAargumentType":38,"HLAargumentValue":"TIMESTAMP"}],"HLAservice":"GetOrderType","HLAsuppliedArguments":[{"HLAargumentType":53,"HLAargumentName":"Order name","HLAargumentValue":"TimeStamp"}])";
     auto const enabledText = readReport(reportFile);
     REQUIRE(enabledText.size() > initialText.size());
     REQUIRE(enabledText.find(expectedDimensionHandleRecord) !=
@@ -685,6 +724,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -736,6 +776,9 @@ TEST_CASE(
             "The available-dimensions process server lost the interaction-class report producer.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The available-dimensions process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The available-dimensions process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -804,13 +847,13 @@ TEST_CASE(
     auto const serverIdValue = asAscii(serverId.toString());
     auto const expectedObjectDimensionsRecord =
         std::string{
-            R"("HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+            R"("HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentValue":[")" +
         barQuantityValue +
         R"("]}],"HLAservice":"GetAvailableDimensionsForObjectClass","HLAsuppliedArguments":[{"HLAargumentType":36,"HLAargumentName":"Object class handle","HLAargumentValue":")" +
         drinkValue + R"("}])"};
     auto const expectedInteractionDimensionsRecord =
         std::string{
-            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimension handles","HLAargumentValue":[")" +
+            R"("HLAserialNumber":1,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentValue":[")" +
         serverIdValue +
         R"("]}],"HLAservice":"GetAvailableDimensionsForInteractionClass","HLAsuppliedArguments":[{"HLAargumentType":27,"HLAargumentName":"Interaction class handle","HLAargumentValue":")" +
         mainCourseServedValue + R"("}])"};
@@ -906,6 +949,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -954,6 +998,9 @@ TEST_CASE(
             "The region-dimension-set process server lost GetDimensionHandleSet.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The region-dimension-set process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The region-dimension-set process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -1026,7 +1073,7 @@ TEST_CASE(
     dimensionValues += "]";
     auto const expectedRecord =
         std::string{
-            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentName":"A set of dimensions","HLAargumentValue":)" +
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":11,"HLAargumentValue":)" +
         dimensionValues +
         R"(}],"HLAservice":"GetDimensionHandleSet","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
         regionValue +
@@ -1117,6 +1164,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -1152,6 +1200,9 @@ TEST_CASE(
             "The region-create process server lost CreateRegion.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The region-create process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The region-create process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -1205,7 +1256,7 @@ TEST_CASE(
     auto const barQuantityValue = asAscii(barQuantity.toString());
     auto const expectedRecord =
         std::string{
-            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":42,"HLAargumentName":"Region designator","HLAargumentValue":")" +
+            R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":42,"HLAargumentValue":")" +
         regionValue +
         R"("}],"HLAservice":"CreateRegion","HLAsuppliedArguments":[{"HLAargumentType":11,"HLAargumentName":"Set of dimension designators","HLAargumentValue":[")" +
         barQuantityValue +
@@ -1297,6 +1348,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -1334,6 +1386,9 @@ TEST_CASE(
             "The region-delete process server lost DeleteRegion.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The region-delete process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The region-delete process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -1478,6 +1533,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -1517,6 +1573,9 @@ TEST_CASE(
             "The region-commit process server lost CommitRegionModifications.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The region-commit process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The region-commit process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -1664,6 +1723,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -1705,6 +1765,9 @@ TEST_CASE(
             "The range-bounds process server lost GetRangeBounds.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The range-bounds process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The range-bounds process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -1766,7 +1829,7 @@ TEST_CASE(
     auto const regionValue = asAscii(region.toString());
     auto const barQuantityValue = asAscii(barQuantity.toString());
     auto const expectedRecord = std::string{
-        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":41,"HLAargumentName":"Range bounds","HLAargumentValue":{"lower":0,"upper":1}}],"HLAservice":"GetRangeBounds","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
+        R"({"HLAserialNumber":0,"HLAreturnedArgument":[{"HLAargumentType":41,"HLAargumentValue":{"lower":0,"upper":1}}],"HLAservice":"GetRangeBounds","HLAsuppliedArguments":[{"HLAargumentType":42,"HLAargumentName":"Region handle","HLAargumentValue":")" +
         regionValue +
         R"("},{"HLAargumentType":10,"HLAargumentName":"Dimension handle","HLAargumentValue":")" +
         barQuantityValue +
@@ -1859,6 +1922,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -1900,6 +1964,9 @@ TEST_CASE(
             "The range-set process server lost reported SetRangeBounds.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The range-set process server lost Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The range-set process server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -2051,6 +2118,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -2082,6 +2150,9 @@ TEST_CASE(
             "The process service-report rejoin server lost the second Join.");
       serve(TransportServiceOperation::resign_federation_execution,
             "The process service-report rejoin server lost the second Resign.");
+      acknowledgeTerminateSession(
+          session,
+          "The process service-report rejoin server did not acknowledge Terminate Session.");
       service.detach(session);
       connection->close();
     } catch (...) {
@@ -2262,6 +2333,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(
@@ -2450,6 +2522,7 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions options;
       options.serviceReportDirectory = reportDirectory;
+      configureServerOwnedFomPreparation(options);
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(options));
       auto connection = listener->accept(

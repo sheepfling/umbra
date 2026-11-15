@@ -55,7 +55,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError(
             "focused timestamped regional process requirement total drifted"
         )
-    if timestamped_regional_focus.get("standard_section_count") != 24:
+    if timestamped_regional_focus.get("standard_section_count") != 23:
         raise AssertionError(
             "focused timestamped regional process section total drifted"
         )
@@ -551,7 +551,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused process NMR/NMRA lane assertion total drifted")
     if process_next_message_focus.get("requirement_count") != 5:
         raise AssertionError("focused process NMR/NMRA requirement total drifted")
-    if process_next_message_focus.get("standard_section_count") != 5:
+    if process_next_message_focus.get("standard_section_count") != 4:
         raise AssertionError("focused process NMR/NMRA section total drifted")
     process_next_message_handles = process_next_message_focus.get("lane_handles")
     if (
@@ -612,7 +612,7 @@ def run_time_mapping_rows(inputs: MappingLookupInputs) -> None:
         raise AssertionError("focused process queued-TSO lane assertion total drifted")
     if process_next_message_queued_focus.get("requirement_count") != 54:
         raise AssertionError("focused process queued-TSO requirement total drifted")
-    if process_next_message_queued_focus.get("standard_section_count") != 42:
+    if process_next_message_queued_focus.get("standard_section_count") != 41:
         raise AssertionError("focused process queued-TSO section total drifted")
     process_next_message_queued_handles = process_next_message_queued_focus.get(
         "lane_handles"

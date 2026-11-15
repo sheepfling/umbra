@@ -140,7 +140,7 @@ MAPPED_CORE_CASES = {
     },
     "Embedded Time Advance Request changes logical time only at Time Advance Grant dispatch": {
         "mapping_id": "rti.service.time-advance-request",
-        "requirements": 9,
+        "requirements": 10,
         "sections": {
             "hla-1516.1-2025:clause-8",
             "hla-1516.1-2025:clause-8.1.2",
@@ -511,7 +511,6 @@ MAPPED_CORE_CASES = {
         "requirements": 2,
         "sections": {
             "hla-1516.1-2025:clause-8.10",
-            "hla-1516.1-2025:clause-8.10.2",
         },
         "source_location": "cpp/tests/next_message_request_queued_tso_catch2.cpp:126",
         "assertions": 33,
@@ -586,17 +585,15 @@ MAPPED_CORE_CASES = {
     },
     "Embedded order type lookup exposes the mandatory 2025 Receive and TimeStamp pair": {
         "mapping_id": "rti.service.get-order-type-name",
-        "requirements": 5,
+        "requirements": 6,
         "sections": {
+            "hla-1516.1-2025:clause-1.5",
             "hla-1516.1-2025:clause-10.17",
-            "hla-1516.1-2025:clause-10.17.4",
             "hla-1516.1-2025:clause-10.18",
-            "hla-1516.1-2025:clause-10.19",
             "hla-1516.1-2025:clause-8.1.11",
-            "hla-1516.1-2025:clause-8.2",
         },
         "source_location": "cpp/tests/order_type_lookup_catch2.cpp:49",
-        "assertions": 20,
+        "assertions": 22,
     },
     "Embedded order type control captures per-federate defaults, instance overrides, and publisher interaction order": {
         "mapping_id": "rti.service.order-type-control",
@@ -2624,16 +2621,41 @@ def main() -> int:
         != index["mapping"]["latest_completed_slice"]["plan_id"]
     ):
         raise AssertionError("dashboard latest slice pointer drifted")
-    for latest_handle in (
-        "case_command",
-        "focus_command",
-        "trace_command",
-        "matrix_command",
-        "check_command",
-        "ctest_command",
-    ):
-        if not isinstance(dashboard_latest.get(latest_handle), str):
-            raise AssertionError(f"dashboard latest slice omitted {latest_handle}")
+    if dashboard_latest.get("evidence_kind") == "portable-cpp-tck":
+        for latest_handle in (
+            "ctest_command",
+            "direct_command",
+            "evidence_check_command",
+            "requirement_check_command",
+        ):
+            if not isinstance(dashboard_latest.get(latest_handle), str):
+                raise AssertionError(
+                    f"dashboard latest C++ TCK slice omitted {latest_handle}"
+                )
+        if any(
+            dashboard_latest.get(latest_handle) is not None
+            for latest_handle in (
+                "case_command",
+                "focus_command",
+                "trace_command",
+                "matrix_command",
+                "check_command",
+            )
+        ):
+            raise AssertionError(
+                "dashboard attached Catch2 commands to a portable C++ TCK slice"
+            )
+    else:
+        for latest_handle in (
+            "case_command",
+            "focus_command",
+            "trace_command",
+            "matrix_command",
+            "check_command",
+            "ctest_command",
+        ):
+            if not isinstance(dashboard_latest.get(latest_handle), str):
+                raise AssertionError(f"dashboard latest slice omitted {latest_handle}")
     active_pointer = dashboard.get("active_pointer")
     if (
         not isinstance(active_pointer, dict)
@@ -3108,9 +3130,9 @@ def main() -> int:
     if (
         tck_nmra_gaps.get("coverage_scope") != "cpp-tck-direct-requirement-mappings"
         or tck_nmra_gaps.get("total_requirement_count") != 2
-        or tck_nmra_gaps.get("mapped_requirement_count") != 0
-        or tck_nmra_gaps.get("uncovered_requirement_count") != 2
-        or tck_nmra_gaps.get("promoted_requirement_count") != 0
+        or tck_nmra_gaps.get("mapped_requirement_count") != 2
+        or tck_nmra_gaps.get("uncovered_requirement_count") != 0
+        or tck_nmra_gaps.get("promoted_requirement_count") != 2
         or tck_nmra_gaps.get("candidate_only_requirement_count") != 0
         or tck_nmra_gaps.get("invalid_mapping_count") != 0
         or tck_nmra_gaps.get("section_disagreement_count") != 0
@@ -3312,6 +3334,7 @@ def main() -> int:
         "scenarios": [
             {
                 "id": f"cpp-tck.crosswalk-regression-{index}",
+                "cpp_test": "cpp/tests/cpp_tck_crosswalk_regression_catch2.cpp",
                 "promotion": "promoted",
                 "requirement_mappings": [
                     {
@@ -4732,11 +4755,16 @@ def main() -> int:
         "requirement-candidate-table-5-p295-r003",
         "requirement",
     )
-    if [test.get("id") for test in settings_parse_requirement] != [] or [
-        test.get("id") for test in settings_applied_requirement
-    ] != []:
+    configuration_result_unit_id = (
+        "umbra-cpp-mom-service-report-configuration-result-unit"
+    )
+    if [test.get("id") for test in settings_parse_requirement] != [
+        configuration_result_unit_id
+    ] or [test.get("id") for test in settings_applied_requirement] != [
+        configuration_result_unit_id
+    ]:
         raise AssertionError(
-            "AdditionalSettingsResultCode Table 5 mapping disposition drifted"
+            "AdditionalSettingsResultCode Table 5 direct C++ test mapping drifted"
         )
     attribute_handle_encoding = next(
         (
@@ -4821,6 +4849,7 @@ def main() -> int:
         != [
             "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
             "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+            "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites",
         ]
         or ddm_attribute_region_encoding.get("standard_sections")
         != ["hla-1516.1-2025:clause-11.5.1"]
@@ -4876,7 +4905,7 @@ def main() -> int:
         or [test.get("id") for test in publish_service_record_row]
         != ["umbra-cpp-publish-object-class-attributes-service-report-file-integration"]
         or [test.get("id") for test in region_handle_set_row]
-        != ["umbra-cpp-commit-region-modifications-service-report-integration"]
+        != ["umbra-cpp-mom-service-report-ddm-commit-region-unit"]
         or [test.get("id") for test in attribute_region_association_list_row]
         != [
             "umbra-cpp-associate-regions-for-updates-service-report-file-integration",
@@ -4947,9 +4976,24 @@ def main() -> int:
         != [
             "requirement-candidate-content-clauses-11-management-object-model-page-293-l122-40",
             "requirement-candidate-content-clauses-11-management-object-model-page-294-l20-6",
+            "requirement-candidate-table-5-p297-r008",
+            "requirement-candidate-table-5-p297-r009",
+            "requirement-candidate-table-5-p297-r010",
+            "requirement-candidate-table-5-p297-r011",
+            "requirement-candidate-table-5-p297-r012",
+            "requirement-candidate-table-5-p297-r013",
+            "requirement-candidate-table-5-p298-r007",
+            "requirement-candidate-table-5-p298-r008",
+            "requirement-candidate-table-5-p296-r031",
+            "requirement-candidate-table-5-p296-r032",
+            "requirement-candidate-table-5-p296-r033",
+            "requirement-candidate-table-5-p296-r034",
+            "requirement-candidate-table-5-p299-r015",
+            "requirement-candidate-table-5-p300-r016",
         ]
         or initial_record_encoding.get("standard_sections")
         != [
+            "hla-1516.1-2025:clause-11.5.1",
             "hla-1516.1-2025:clause-11.5.2",
             "hla-1516.1-2025:clause-11.5.2.1",
         ]
@@ -5208,13 +5252,13 @@ def main() -> int:
             "recorded_assertion_count"
         )
         != 39
-        or process_query_time_bounds_multi_federate_focus.get("requirement_count") != 8
+        or process_query_time_bounds_multi_federate_focus.get("requirement_count") != 9
         or process_query_time_bounds_multi_federate_focus.get("standard_section_count")
         != 10
         or process_query_time_bounds_multi_federate_focus.get(
             "requirement_section_pair_count"
         )
-        != 8
+        != 9
     ):
         raise AssertionError(
             "focused process multi-federate GALT/LITS lane totals drifted"

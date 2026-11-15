@@ -1046,6 +1046,24 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
                 )
             ),
+            "restore-pending-flush-queue-request="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
+                )
+            ),
+            "nrg-regulator-release="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/non-regulated-grant-enabled.xml"
+                )
+            ),
+            "federation-supplied-custom-tradt="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/time-representation-custom-tradt-tck.xml"
+                )
+            ),
             "support-switch-getter-lifecycle="
             + str(
                 default_path(
@@ -3232,6 +3250,7 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "java-tck.logical-time-factory",
     "cpp-tck.variable-length-data-contract",
     "cpp-tck.logical-time-contract",
+    "cpp-tck.federation-supplied-custom-tradt",
     "cpp-tck.logical-time-factory-factory-contract",
     "cpp-tck.logical-time-data-elements-contract",
     "cpp-tck.exception-hierarchy-contract",
@@ -4638,6 +4657,24 @@ def callback_model_argument_for_scenario(
     return "both" if models == STANDARD_CALLBACK_MODELS else models[0]
 
 
+def runtime_library_search_variable() -> str:
+    if os.name == "nt":
+        return "PATH"
+    if sys.platform == "darwin":
+        return "DYLD_LIBRARY_PATH"
+    return "LD_LIBRARY_PATH"
+
+
+def prepend_runtime_library_directory(
+    environment: MutableMapping[str, str], directory: Path
+) -> None:
+    variable = runtime_library_search_variable()
+    existing = environment.get(variable)
+    environment[variable] = os.pathsep.join(
+        [str(directory), *([existing] if existing else [])]
+    )
+
+
 def direct_run_environment(
     inputs: ResolvedInputs,
     *,
@@ -4652,19 +4689,10 @@ def direct_run_environment(
     environment: MutableMapping[str, str] = dict(
         os.environ if base_environment is None else base_environment
     )
-    if os.name == "nt":
-        variable = "PATH"
-        runtime_directory = Path(inputs["package_prefix"]) / "bin"
-    elif sys.platform == "darwin":
-        variable = "DYLD_LIBRARY_PATH"
-        runtime_directory = Path(inputs["package_prefix"]) / "lib"
-    else:
-        variable = "LD_LIBRARY_PATH"
-        runtime_directory = Path(inputs["package_prefix"]) / "lib"
-    existing = environment.get(variable)
-    environment[variable] = os.pathsep.join(
-        [str(runtime_directory), *([existing] if existing else [])]
+    runtime_directory = Path(inputs["package_prefix"]) / (
+        "bin" if os.name == "nt" else "lib"
     )
+    prepend_runtime_library_directory(environment, runtime_directory)
     return environment
 
 
@@ -4692,6 +4720,27 @@ def custom_authorizer_provider_library(
     return library
 
 
+def custom_fedtime_provider_library(
+    build_directory: Path,
+    configuration: str,
+) -> Path:
+    """Read the CMake-generated custom-federation-time provider path."""
+    manifest = build_directory / f"portable-tck-fedtime-provider-{configuration}.txt"
+    if not manifest.is_file():
+        raise ValueError(
+            "custom-federation-time TCK provider path manifest is missing; "
+            "configure the shared current-package adapter first: "
+            f"{manifest}"
+        )
+    library = Path(manifest.read_text(encoding="utf-8").strip())
+    if not library.is_file():
+        raise ValueError(
+            "custom-federation-time TCK provider has not been built: "
+            f"{library}"
+        )
+    return library
+
+
 def run_portable_dispatch_direct(
     arguments: argparse.Namespace,
     inputs: ResolvedInputs,
@@ -4712,6 +4761,15 @@ def run_portable_dispatch_direct(
         else (arguments.callback_model,)
     )
     child_environment = direct_run_environment(inputs)
+    if scenario["id"] == "cpp-tck.federation-supplied-custom-tradt":
+        provider_library = custom_fedtime_provider_library(
+            inputs["build_directory"],
+            arguments.configuration,
+        )
+        child_environment["UMBRA_FEDTIME_PROVIDER_LIBRARY"] = str(
+            provider_library
+        )
+        prepend_runtime_library_directory(child_environment, provider_library.parent)
     if scenario["id"] in {
         AUTHORIZER_FEDERATION_DECISION_SCENARIO,
         AUTHORIZER_DESTROY_DECISION_SCENARIO,

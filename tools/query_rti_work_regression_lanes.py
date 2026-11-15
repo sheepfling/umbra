@@ -2,6 +2,8 @@
 # These assertions report broken query-result contracts, not bad caller inputs.
 from __future__ import annotations
 
+import re
+
 import query_rti_work
 from query_rti_work_regression_context import (
     LaneCatalogInputs,
@@ -756,28 +758,84 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
     if not isinstance(latest, dict):
         raise AssertionError("status omitted the latest completed slice handoff")
     latest_rows = [test for test in tests if test.get("id") == latest.get("plan_id")]
-    if len(latest_rows) != 1:
-        raise AssertionError("latest completed slice must resolve one exact plan row")
-    latest_row = latest_rows[0]
-    latest_plan_row = next(
-        row for row in plan["tests"] if row.get("id") == latest["plan_id"]
-    )
-    for field in ("test_case", "focus_lane", "primary_lane", "assertions"):
-        if latest.get(field) != latest_plan_row.get(field):
+    if len(latest_rows) == 1:
+        latest_row = latest_rows[0]
+        latest_plan_row = next(
+            row for row in plan["tests"] if row.get("id") == latest["plan_id"]
+        )
+        for field in ("test_case", "focus_lane", "primary_lane", "assertions"):
+            if latest.get(field) != latest_plan_row.get(field):
+                raise AssertionError(
+                    f"latest completed slice {field} differs from its plan row"
+                )
+        if latest.get("source_location") != query_rti_work.source_location_text(latest_row):
+            raise AssertionError("latest completed slice source pointer drifted")
+        if (
+            latest.get("requirements") != len(latest_row.get("lab_requirement_ids", []))
+            or latest.get("standard_sections")
+            != len(latest_row.get("standard_sections", []))
+            or latest.get("api_surfaces")
+            != len(latest_row.get("selected_cpp_api_surface_ids", []))
+        ):
             raise AssertionError(
-                f"latest completed slice {field} differs from its plan row"
+                "latest completed slice evidence counts differ from its plan row"
             )
-    if latest.get("source_location") != query_rti_work.source_location_text(latest_row):
-        raise AssertionError("latest completed slice source pointer drifted")
-    if (
-        latest.get("requirements") != len(latest_row.get("lab_requirement_ids", []))
-        or latest.get("standard_sections")
-        != len(latest_row.get("standard_sections", []))
-        or latest.get("api_surfaces")
-        != len(latest_row.get("selected_cpp_api_surface_ids", []))
-    ):
+    elif latest.get("evidence_kind") == "portable-cpp-tck":
+        tck_scenarios = query_rti_work.load_cpp_tck_scenarios()
+        scenario_ids = query_rti_work.strings(latest.get("scenario_ids"))
+        scenario_rows = [tck_scenarios.get(scenario_id) for scenario_id in scenario_ids]
+        active_handoff = index.get("active_handoff")
+        direct_command = latest.get("direct_command")
+        scenario_ids_in_command = (
+            re.findall(r"--scenario\s+([^\s]+)", direct_command)
+            if isinstance(direct_command, str)
+            else []
+        )
+        canonical_section = latest.get("canonical_section")
+        requirement_ids = query_rti_work.strings(latest.get("requirement_ids"))
+        direct_mappings = {
+            str(mapping.get("requirement_id"))
+            for scenario in scenario_rows
+            if isinstance(scenario, dict)
+            for mapping in scenario.get("requirement_mappings", [])
+            if isinstance(mapping, dict)
+            and mapping.get("standard_section") == canonical_section
+        }
+        if (
+            latest.get("owner") != "portable-cpp-tck-2025"
+            or not scenario_ids
+            or latest.get("plan_id") not in scenario_ids
+            or scenario_ids_in_command != scenario_ids
+            or len(scenario_rows) != len(scenario_ids)
+            or not all(
+                isinstance(scenario, dict)
+                and scenario.get("promotion") == "promoted"
+                and isinstance(scenario.get("cpp_test"), str)
+                and scenario.get("cpp_test")
+                for scenario in scenario_rows
+            )
+            or not isinstance(active_handoff, dict)
+            or active_handoff.get("plan_id") != latest.get("plan_id")
+            or active_handoff.get("source_location") != latest.get("source_location")
+            or not requirement_ids
+            or not set(requirement_ids).issubset(direct_mappings)
+            or latest.get("requirements") != len(requirement_ids)
+            or latest.get("standard_sections")
+            != len(query_rti_work.strings(latest.get("standard_section_ids")))
+            or latest.get("standard_section_ids") != [canonical_section]
+            or latest.get("ctest_cases")
+            != latest.get("direct_adapter_cases")
+            or len(query_rti_work.strings(latest.get("callback_models"))) != 2
+            or not isinstance(latest.get("ctest_command"), str)
+            or not isinstance(latest.get("evidence_check_command"), str)
+            or not isinstance(latest.get("requirement_check_command"), str)
+        ):
+            raise AssertionError(
+                "latest portable C++ TCK slice does not resolve to its promoted catalog scenarios"
+            )
+    else:
         raise AssertionError(
-            "latest completed slice evidence counts differ from its plan row"
+            "latest completed slice must resolve to one Catch2 plan row or a typed C++ TCK slice"
         )
     pushed_evoked_work_item = next(
         (
@@ -1334,7 +1392,6 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.8",
         "hla-1516.1-2025:clause-8.10",
-        "hla-1516.1-2025:clause-8.10.2",
         "hla-1516.1-2025:clause-9.1.4",
     }:
         raise AssertionError("time-axis-independence section mapping drifted")
@@ -1346,7 +1403,7 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         or time_axis_focus.get("mapped_test_count") != 1
         or time_axis_focus.get("assertion_count") != 94
         or time_axis_focus.get("requirement_count") != 10
-        or time_axis_focus.get("standard_section_count") != 10
+        or time_axis_focus.get("standard_section_count") != 9
         or time_axis_focus.get("requirement_section_pair_count") != 10
     ):
         raise AssertionError("time-axis-independence lane card drifted")
@@ -1682,7 +1739,6 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         != [
             "hla-1516.1-2025:clause-5.8",
             "hla-1516.1-2025:clause-9.8",
-            "hla-1516.1-2025:clause-9.8.3",
             "hla-1516.1-2025:clause-9.8.4",
         ]
         or set(passive_object.get("lab_requirement_ids", []))
@@ -1695,11 +1751,8 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
             "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l14-3",
             "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l26-7",
             "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l38-11",
-            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l44-13",
             "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l56-17",
             "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l59-18",
-            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l62-19",
-            "requirement-candidate-content-clauses-09-data-distribution-management-page-234-l161-49",
         }
     ):
         raise AssertionError("passive regional object-attribute mapping drifted")
@@ -1712,9 +1765,9 @@ def run_lane_catalog(inputs: LaneCatalogInputs) -> query_rti_work.JsonObject:
         passive_object_focus.get("lane_state") != "complete"
         or passive_object_focus.get("mapped_test_count") != 1
         or passive_object_focus.get("assertion_count") != 66
-        or passive_object_focus.get("requirement_count") != 13
-        or passive_object_focus.get("standard_section_count") != 4
-        or passive_object_focus.get("requirement_section_pair_count") != 13
+        or passive_object_focus.get("requirement_count") != 10
+        or passive_object_focus.get("standard_section_count") != 3
+        or passive_object_focus.get("requirement_section_pair_count") != 10
     ):
         raise AssertionError("passive regional object-attribute lane card drifted")
     passive_object_handles = passive_object_focus.get("lane_handles")

@@ -472,6 +472,19 @@ TEST_CASE(
       EmbeddedFederationRegistry registry;
       ProcessFederationServiceOptions serviceOptions{true};
       serviceOptions.serviceReportDirectory = serviceReportDirectory;
+      serviceOptions.createFomPreparation =
+          [](std::vector<std::wstring> const& fomModules,
+             std::optional<std::wstring> const& mimModule,
+             std::wstring const& logicalTimeImplementationName)
+          -> std::optional<FederationDefinition> {
+        if (fomModules.size() != 1U ||
+            !fomModules.front().ends_with(L"/server-owned-fom.xml") ||
+            mimModule || (!logicalTimeImplementationName.empty() &&
+                          logicalTimeImplementationName != L"HLAinteger64Time")) {
+          return std::nullopt;
+        }
+        return composedProcessDefinition();
+      };
       ProcessFederationService service(
           registry, composedProcessDefinition(), std::move(serviceOptions));
       auto connection = listener->accept(
@@ -510,6 +523,13 @@ TEST_CASE(
           !serveExpected(TransportServiceOperation::resign_federation_execution)) {
         throw std::runtime_error(
             "The process modify-lookahead server lost a temporal request.");
+      }
+      umbra::detail::TransportResumeRequest terminationRequest;
+      if (session.receiveInitialFrame(terminationRequest) !=
+              ProcessTransportSession::InitialFrame::terminate_session ||
+          !session.sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            "The process modify-lookahead server did not acknowledge Terminate Session.");
       }
       service.detach(session);
       connection->close();

@@ -5899,7 +5899,7 @@
           "standard_section": "hla-1516.1-2025:clause-12.12.4.2"
         }
       ],
-      "mapping_note": "Direct public C++ TCK witness for IEEE 1516.1-2025 §12.12.4.2 p. 380 l. 39-12: encode()/decode() round-trips two values and asserts selected exact bytes for all 25 pinned Table 26 basic-data-element classes. The exact vectors cover signed and unsigned integer16/32/64, float32/64, HLAoctetPairBE/LE, two HLAunicodeChar UTF-16BE code units, an embedded-NUL HLAASCIIstring, an HLAunicodeString supplementary-character payload with a three-code-unit count prefix, both HLAboolean enum values, HLAbyte, HLAoctet, and HLAASCIIchar. The vectors use the pinned IEEE 1516.2-2025 MIM representation definitions. They do not validate the IEEE 1516.2 FOM/SOM/MIM basic-representation table or claim coverage of §6.2.14 Name/Endian-field rules, all values, composite encodings, other OMT tables, or exhaustive Annex C conformance.",
+      "mapping_note": "Direct public C++ TCK witness for IEEE 1516.1-2025 §12.12.4.2 p. 380 l. 39-12: this case now performs encode/decode through rti::DataElement base references for its two value round trips, then asserts selected exact bytes for all 25 pinned Table 26 basic-data-element classes. The exact vectors cover signed and unsigned integer16/32/64, float32/64, HLAoctetPairBE/LE, two HLAunicodeChar UTF-16BE code units, an embedded-NUL HLAASCIIstring, an HLAunicodeString supplementary-character payload with a three-code-unit count prefix, both HLAboolean enum values, HLAbyte, HLAoctet, and HLAASCIIchar. The vectors use the pinned IEEE 1516.2-2025 MIM representation definitions. They do not validate the IEEE 1516.2 FOM/SOM/MIM basic-representation table or claim coverage of §6.2.14 Name/Endian-field rules, all values, composite encodings, other OMT tables, or exhaustive Annex C conformance.",
       "contract_refs": [
         "basic-data-element-encode-decode-contract.json"
       ],
@@ -6002,7 +6002,7 @@
           "note": "The TCK uses the named HLAfixedArrayT<HLAoctet>, HLAvariableArrayT<HLAoctet>, and HLAvariantRecordT<HLAinteger32BE> wrappers with their declared template element/discriminant types. It verifies typed fixed/variable-array decode replaces seeded values/counts and typed variant decode switches between simple and nested-complex alternatives while preserving the typed discriminant/value."
         }
       ],
-      "mapping_note": "Compile-time std::is_class assertions name HLAfixedArray, HLAvariableArray, HLAfixedRecord, HLAvariantRecord, HLAextendableVariantRecord, HLAfixedArrayT<HLAoctet>, HLAvariableArrayT<HLAoctet>, and HLAvariantRecordT<HLAinteger32BE> in the exact rti1516_2025 namespace, directly covering the package-level utility-class availability requirement. The public C++ TCK retrieves constituents from HLAfixedArray, HLAvariableArray, and HLAfixedRecord, then uses setDiscriminant/getDiscriminant to select simple or nested-complex variants. It encodes and decodes simple fixed/variable arrays and their typed wrappers, fixed and variable arrays containing a nested HLAfixedRecord (checking array cardinality and nested values), and an HLAfixedRecord containing a simple HLAoctet plus a nested HLAfixedRecord (checking constituent count and values). Array decode checks use prepopulated receivers: fixed-array values replace sentinels without changing fixed size; variable-array decode clears old elements for empty input and replaces a three-element receiver with exactly two decoded values. Empty variable-array prototypes are not counted, and size growth is checked after additions. The typed HLAfixedArrayT<HLAoctet> and HLAvariableArrayT<HLAoctet> decodes replace seeded values and preserve the encoded counts; HLAvariantRecordT<HLAinteger32BE> decodes both simple and nested-complex alternatives into a receiver selecting the opposite alternative and verifies the typed discriminant/value. For HLAvariantRecord and HLAextendableVariantRecord, it assigns two alternatives, selects each discriminant independently of the last setVariant call, encodes selected simple and complex alternatives, decodes into a receiver initially selecting the opposite alternative, and verifies discriminant and value. This is focused installed-package API evidence for the package-level and mapped page-381/382 statements; the separate p. 381 l. 16-5 addMapping name discrepancy remains unmapped as recorded in RL-420. It does not claim every possible value, malformed encoding, exhaustive wire vector, Java §12.11.4 behavior, or exhaustive Annex C conformance.",
+      "mapping_note": "Compile-time std::is_class assertions name HLAfixedArray, HLAvariableArray, HLAfixedRecord, HLAvariantRecord, HLAextendableVariantRecord, HLAfixedArrayT<HLAoctet>, HLAvariableArrayT<HLAoctet>, and HLAvariantRecordT<HLAinteger32BE> in the exact rti1516_2025 namespace, directly covering the package-level utility-class availability requirement. This case now invokes encode/decode through rti::DataElement base references for its fixed/variable arrays and typed wrappers, fixed records, and standard/typed/extendable variants; existing value assertions verify decoded constituents and selected alternatives. It also retrieves constituents from HLAfixedArray, HLAvariableArray, and HLAfixedRecord, then uses setDiscriminant/getDiscriminant to select simple or nested-complex variants. Array decode checks use prepopulated receivers: fixed-array values replace sentinels without changing fixed size; variable-array decode clears old elements for empty input and replaces a three-element receiver with exactly two decoded values. Empty variable-array prototypes are not counted, and size growth is checked after additions. The typed HLAfixedArrayT<HLAoctet> and HLAvariableArrayT<HLAoctet> decodes replace seeded values and preserve the encoded counts; HLAvariantRecordT<HLAinteger32BE> decodes both simple and nested-complex alternatives into a receiver selecting the opposite alternative and verifies the typed discriminant/value. For HLAvariantRecord and HLAextendableVariantRecord, it assigns two alternatives, selects each discriminant independently of the last setVariant call, encodes selected simple and complex alternatives, decodes into a receiver initially selecting the opposite alternative, and verifies discriminant and value. This is focused installed-package API evidence for the package-level and mapped page-381/382 statements; the separate p. 381 l. 16-5 addMapping name discrepancy remains unmapped as recorded in RL-420. It does not claim every possible value, malformed encoding, exhaustive wire vector, Java §12.11.4 behavior, or exhaustive Annex C conformance.",
       "contract_refs": [
         "complex-data-element-constituent-access-contract.json"
       ],
@@ -8785,6 +8785,13 @@
       "id": "cpp-tck.service-report-interaction",
       "category": "mom-service-reporting",
       "title": "Deliver a standard HLAreportServiceInvocation for a successful interaction service",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_note": "Direct §11.5.1 mapping to page-292-l114-37: the successful void SendInteraction HLAreportServiceInvocation contains a three-field HLAreturnedArgument whose HLAargumentType is Null (34), with empty argument name and JSON value null. The other report identity, argument, exception, and serial assertions are supplemental to this mapping; no other Table 5 row, full §11.5.1 coverage, or conformance is claimed.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.getFederateHandle",
@@ -8834,6 +8841,13 @@
       "id": "cpp-tck.service-report-interaction-contract",
       "category": "mom-service-reporting",
       "title": "Exercise the standard adapter-backed ordinary interaction service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_note": "This contract twin delegates to the primary SendInteraction report scenario and carries its direct §11.5.1 mapping to page-292-l114-37 for the typed Null HLAreturnedArgument. It is traceability, not independent behavioral evidence; no other Table 5 row, full subsection, or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -9804,6 +9818,19 @@
       "id": "cpp-tck.service-report-timestamped-directed-interaction",
       "category": "mom-service-reporting",
       "title": "Deliver a standard MOM report for a time-regulated timestamped directed interaction",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, a successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. The mapping is to report generation under §11.5 only; although the test inspects payload fields, it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -9869,6 +9896,19 @@
       "id": "cpp-tck.service-report-timestamped-directed-interaction-contract",
       "category": "mom-service-reporting",
       "title": "Exercise the standard adapter-backed timestamped directed-interaction service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "The contract twin delegates to the primary C++ scenario and is traceability for the same direct §11.5 report-generation witness, not independent behavioral evidence. It does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -10121,6 +10161,19 @@
       "id": "cpp-tck.service-report-timestamped-delete-object-instance",
       "category": "mom-service-reporting",
       "title": "Deliver a standard MOM report for a time-regulated timestamped object deletion",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, a successful timestamped DeleteObjectInstance produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name/type/success and exact object, tag, and timestamp arguments, plus the returned retraction argument, exception, and serial. This maps report generation under §11.5 only; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -10188,6 +10241,19 @@
       "id": "cpp-tck.service-report-timestamped-delete-object-instance-contract",
       "category": "mom-service-reporting",
       "title": "Exercise the standard adapter-backed timestamped object-deletion service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "The contract twin delegates to the primary C++ scenario and is traceability for its direct §11.5 report-generation witness, not independent behavioral evidence. It does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -10234,6 +10300,13 @@
       "category": "mom-service-reporting",
       "focus_lane": "service-report-interaction-failure-federate-identity",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid ordinary interaction services",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_note": "Direct mapping to page-292-l114-37 -> §11.5.1: each failed void SendInteraction report carries HLAreturnedArgument as the three-field Null argument record (type 34, empty name, JSON null). The three exception cases, supplied-argument shapes, serial progression, and decoded HLAfederate identity are also asserted but are supplemental to this mapping. No other Table 5 row, full §11.5.1, or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -10289,6 +10362,13 @@
       "category": "mom-service-reporting",
       "focus_lane": "service-report-interaction-failure-federate-identity",
       "title": "Exercise the standard adapter-backed ordinary interaction service-report failure contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_note": "This contract twin delegates to the primary and carries its direct page-292-l114-37 -> §11.5.1 Null HLAreturnedArgument mapping as traceability only, not independent evidence. Exception, supplied-argument, serial, and HLAfederate assertions remain supplemental. No other Table 5 row, complete subsection, or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -10331,7 +10411,21 @@
     {
       "id": "cpp-tck.service-report-regional-interaction",
       "category": "mom-service-reporting",
+      "focus_lane": "service-report-regional-interaction",
       "title": "Deliver a standard HLAreportServiceInvocation for a successful regional interaction service and preserve regional application delivery",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness: with Service Reporting enabled and Send Service Reports To File disabled, a successful SendInteractionWithRegions call produces an HLAreportServiceInvocation received by the subscribed observer. The case checks report identity, service name/type, success, exception, and serial. The separate regional application-delivery assertions are supplemental and are not mapped here; this does not claim full §11.5, DDM subsection coverage, or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.getDimensionHandle",
@@ -10378,7 +10472,7 @@
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json"
       ],
-      "cpp_test": "src/main.cpp#scenarioServiceReportRegionalInteraction",
+      "cpp_test": "src/tck_service_report_regional_interaction_scenarios.cpp#scenarioServiceReportRegionalInteraction",
       "runner_id": "cpp-tck.service-report-regional-interaction",
       "parity": "java-tck.service-report-regional-interaction",
       "default_status": "adapter-required",
@@ -10387,7 +10481,21 @@
     {
       "id": "cpp-tck.service-report-regional-interaction-contract",
       "category": "mom-service-reporting",
+      "focus_lane": "service-report-regional-interaction",
       "title": "Exercise the standard adapter-backed successful regional interaction service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "This contract twin delegates to the regional-interaction primary, so this is traceability for its direct §11.5 report-generation witness, not independent behavioral evidence. Regional application delivery and DDM behavior remain supplemental; no full subsection or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.getDimensionHandle",
@@ -10433,6 +10541,19 @@
       "category": "mom-service-reporting",
       "focus_lane": "service-report-mim-service-type-enum",
       "title": "Report regional interaction subscription declarations through standard HLAreportServiceInvocation",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness: with Service Reporting enabled and Send Service Reports To File disabled, successful SubscribeInteractionClassWithRegions and UnsubscribeInteractionClassWithRegions calls produce HLAreportServiceInvocation callbacks. The case checks report identity, service name/type, success, supplied arguments, typed Null return, exception, and serial progression. The direct mapping is only report generation; the observed HLAserviceType value 5 is MIM behavior, not the detached Table 5 enum continuation p300-r014 under RL-404. No Table 5 row, full-subsection, or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.getDimensionHandle",
@@ -10487,6 +10608,19 @@
       "category": "mom-service-reporting",
       "focus_lane": "service-report-mim-service-type-enum",
       "title": "Exercise the standard adapter-backed regional interaction subscription service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "This contract twin delegates to the primary regional-interaction-subscription scenario and carries the same direct §11.5 report-generation mapping as traceability only, not independent behavioral evidence. The HLAserviceType value 5 remains supplemental MIM behavior; no detached p300-r014, Table 5 row, full-subsection, or conformance claim is made.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.getDimensionHandle",
@@ -10650,9 +10784,46 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-attribute-declarations",
         "cpp-1516.1-declaration-invalid-handle-boundaries",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-table-5-p295-r005",
+        "requirement-candidate-table-5-p295-r008"
       ],
-      "mapping_note": "The contract wrapper delegates to the primary declaration-service scenario, which checks HLAserviceType value 1 (DeclarationManagement in the pinned MIM). This remains MIM enum behavior only; p300-r011 is a detached ServiceGroup enum continuation under RL-404 and is not directly mapped. The wrapper is not independent evidence.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-table-5-p295-r005",
+        "requirement-candidate-table-5-p295-r008"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p295-r005",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p295-r008",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_note": "This contract wrapper delegates to the primary declaration-service scenario, so it carries the same five direct §11.5.1 mappings for traceability, not independent behavioral evidence: the primary checks argument records for ordinary object-attribute declaration reports (page-292-l93-30), Null optional arguments for whole-class unsubscribe (page-292-l99-32), Null returns (page-292-l114-37), AttributeHandleSet array encoding for Subscribe/Unsubscribe (Table 5 p295-r005), and the multi-handle array for Publish (p295-r008). The observed HLAserviceType value 1 is MIM behavior; detached p300-r011 remains unmapped under RL-404. No complete subsection or conformance claim is made.",
       "contract_refs": [
         "standard-service-report-object-attribute-declaration-contract.json"
       ],
@@ -11570,6 +11741,12 @@
       "category": "mom-service-reporting",
       "focus_lane": "service-report-attribute-update-failure-federate-identity",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid ordinary attribute update services",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -11699,6 +11876,12 @@
       "id": "cpp-tck.service-report-timestamped-attribute-update-failure",
       "category": "mom-service-reporting",
       "title": "Deliver standard HLAreportServiceInvocation failure reports for invalid timestamped attribute update services",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -11879,7 +12062,14 @@
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-interaction-management",
-        "cpp-1516.1-time-management"
+        "cpp-1516.1-time-management",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
       ],
       "contract_refs": [
         "timestamped-interaction-failure-service-report-api-contract.json",
@@ -12016,18 +12206,24 @@
         "cpp-1516.1-time-management"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25"
+        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.16.4"
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-11.5"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
           "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
         }
       ],
-      "mapping_note": "Direct mapping to page-130-l89-25 -> §6.16.4 only for the optional timestamp constraint: the test submits a timestamp before the regulating federate's current-time-plus-lookahead bound, expects InvalidLogicalTime, and confirms no application removal callback. HLAfederate identity in both failure reports is supplemental case evidence. Service-report payload fields are not mapped by this row.",
+      "mapping_note": "Two bounded direct mappings: page-130-l89-25 -> §6.16.4 covers the optional timestamp constraint when the test submits a timestamp before current time plus lookahead and expects InvalidLogicalTime with no removal callback; page-292-l9-2 -> §11.5 covers emission of HLAreportServiceInvocation for the failed timestamped DeleteObjectInstance calls while service reporting is enabled and file reporting is disabled. HLAfederate identity is supplemental. No specific §11.5.1/Table 5 row or complete service-report/conformance claim is made.",
       "contract_refs": [
         "timestamped-delete-object-instance-failure-service-report-api-contract.json",
         "timestamped-delete-object-instance-failure-service-report-requirements-contract.json",
@@ -12095,18 +12291,24 @@
         "cpp-1516.1-time-management"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25"
+        "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.16.4"
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-11.5"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l89-25",
           "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
         }
       ],
-      "mapping_note": "Direct mapping to page-130-l89-25 -> §6.16.4 only for the optional timestamp constraint: the test submits a timestamp before the regulating federate's current-time-plus-lookahead bound, expects InvalidLogicalTime, and confirms no application removal callback. HLAfederate identity in both failure reports is supplemental case evidence. Service-report payload fields are not mapped by this row.",
+      "mapping_note": "The contract twin delegates to the primary C++ scenario and is not independent behavioral evidence. Its traceability records two bounded mappings: the primary's invalid timestamp/no-removal evidence to §6.16.4 and its failed-service HLAreportServiceInvocation emission to §11.5. No specific §11.5.1/Table 5 row or complete service-report/conformance claim is made.",
       "contract_refs": [
         "standard-service-report-timestamped-delete-object-instance-failure-contract.json"
       ],
@@ -12976,6 +13178,19 @@
       "id": "cpp-tck.service-report-timestamped-interaction",
       "category": "mom-service-reporting",
       "title": "Deliver a standard HLAreportServiceInvocation for a successful timestamped ordinary interaction",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness for requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2: with Send Service Reports To File disabled and Service Reporting enabled for the publisher, a successful timestamped SendInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case asserts service name SendInteraction, service type 2, success true, empty exception, and serial zero, while separately checking the timestamped application delivery. This maps the positive report-generation behavior in §11.5 only; it does not map detailed supplied/returned-argument encoding to §11.5.1/Table 5 or claim full service-report coverage or conformance.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -13023,6 +13238,19 @@
       "id": "cpp-tck.service-report-timestamped-interaction-contract",
       "category": "mom-service-reporting",
       "title": "Exercise the standard adapter-backed timestamped interaction service-report contract",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "The contract twin delegates to the primary C++ scenario and is traceability for the same direct §11.5 witness, not independent behavioral evidence. It records that a successful timestamped SendInteraction produces a standard HLAreportServiceInvocation when file reporting is disabled and service reporting is enabled. It does not claim §11.5.1/Table 5 row coverage or full subsection/conformance coverage.",
       "api_methods": [
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.setServiceReportingSwitch",
@@ -22807,7 +23035,6 @@
         "RTIambassador.disconnect",
         "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.updateAttributeValues",
-        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.deleteObjectInstance",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues"
@@ -24769,12 +24996,15 @@
     {
       "id": "cpp-tck.selective-attribute-unsubscription",
       "category": "object-attribute-unsubscription",
-      "title": "Remove the requested attribute from a multi-attribute subscription across existing instances",
+      "title": "Remove the requested attribute from active and passive multi-attribute subscriptions across instances",
       "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes(passive)",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.updateAttributeValues",
         "RTIambassador.unsubscribeObjectClassAttributes(attribute set)",
@@ -24821,7 +25051,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct bounded §5.9 p. 98 l. 11 and l. 32 witness: two already-discovered object instances each begin with both class-attribute subscriptions in scope. After the invoking federate unsubscribes Value, updates to each instance deliver only the still-subscribed Name attribute to it; Value-only updates to each instance are withheld from it but delivered to an unaffected second subscriber. Lack of reflection is the public observable that the corresponding instance attributes have gone out of scope; the API exposes no direct scope-state query. The p. 98 l. 17 mapping separately covers the selective service result and preservation of peer subscriptions. Focused installed-package MinGW/Ninja CTest and direct JSON/JUnit passed under HLA_EVOKED and HLA_IMMEDIATE (out/mgw/cpp-tck/selective-attribute-unsubscription-multi-instance-20261103.json). Umbra adapter evidence only, not independent-provider or conformance evidence.",
+      "mapping_note": "Direct bounded §5.9 p. 98 l. 11 and l. 32 witness: two already-discovered object instances each begin with both class-attribute subscriptions in scope. The active invoking federate's existing path unsubscribes Value, after which updates to each instance deliver only Name while Value-only updates are withheld; an unaffected active peer still receives both or the Value-only control. A supplemental passive subscriber also positively receives both attributes while active peers maintain delivery interest; after it unsubscribes Value, updates to both instances still deliver Name but not Value, and Value-only updates produce no passive reflection. Lack of reflection is the public observable that the corresponding instance attributes have gone out of scope; the API exposes no direct scope-state query. The p. 98 l. 17 mapping separately covers the selective service result and preservation of peer subscriptions. A second supplemental state-isolation guard uses the adapter-supplied sibling-class fixture to prove the invoking federate's separate IndependentValue subscription continues to reflect before and after the base-class selective unsubscribe; these supplemental checks add no requirement mapping. Focused installed-package MinGW/Ninja CTest and direct JSON/JUnit pass under HLA_EVOKED and HLA_IMMEDIATE; this is Umbra adapter evidence only, not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -24842,6 +25072,8 @@
       "category": "object-attribute-unsubscription",
       "title": "Remove all attributes from a class subscription with the whole-class service",
       "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
@@ -24880,7 +25112,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct §5.9 p. 97 l. 191 witness: after the joined federate invokes the official C++ whole-class Unsubscribe Object Class Attributes service, the publisher registers another object at that class; the subscriber is pumped and the test asserts that the later object never appears in its discovery recorder. The separate p. 98 l. 20 mapping checks that a subsequent update delivers neither subscribed attribute. The supplied-set branch is covered separately by cpp-tck.selective-attribute-unsubscription. Focused installed-package MinGW/Ninja CTest and direct JSON/JUnit passed under HLA_EVOKED and HLA_IMMEDIATE (out/mgw/cpp-tck/whole-class-attribute-unsubscription-20261103.json). Umbra adapter evidence only, not independent-provider or conformance evidence.",
+      "mapping_note": "Direct §5.9 p. 97 l. 191 witness: after the joined federate invokes the official C++ whole-class Unsubscribe Object Class Attributes service, the publisher registers another object at that class; the subscriber is pumped and the test asserts that the later base-class object never appears in its discovery recorder. The separate p. 98 l. 20 mapping checks that a subsequent base-class update delivers neither subscribed attribute. A supplemental passive branch proves its public delivery boundary: a passive base-class subscription receives both values while a separate active subscriber maintains delivery interest; after the passive federate invokes whole-class unsubscribe, an active peer still discovers/reflects while the passive federate receives neither later base-object discovery nor attribute reflection. The two-module sibling-class fixture also proves that the same federate's IndependentValue discovery/reflection remain active after its base-class unsubscribe. These are bounded active/passive and sibling-state checks under the existing mappings, not additional requirement claims. The supplied-set branch is covered separately by cpp-tck.selective-attribute-unsubscription. Focused installed-package MinGW/Ninja CTest and direct JSON/JUnit pass under HLA_EVOKED and HLA_IMMEDIATE (.build/cpp-tck-object-attribute-unsubscribe-sibling-20261114/whole-class-passive-unsubscribe-direct.json); this is Umbra adapter evidence only, not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -24890,7 +25122,7 @@
         "attribute-value-update-request-api-contract.json",
         "object-instance-registration-api-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioWholeClassAttributeUnsubscriptionPortable",
+      "cpp_test": "src/tck_whole_class_attribute_unsubscription.cpp#scenarioWholeClassAttributeUnsubscription",
       "runner_id": "cpp-tck.whole-class-attribute-unsubscription",
       "parity": "java-tck.whole-class-attribute-unsubscription",
       "default_status": "adapter-required",
@@ -24899,12 +25131,15 @@
     {
       "id": "cpp-tck.empty-attribute-unsubscription-is-no-op",
       "category": "object-attribute-unsubscription",
-      "title": "Preserve all active class-attribute subscriptions after an empty-set unsubscription",
+      "title": "Preserve active and passive class-attribute subscriptions after empty-set unsubscription",
       "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes(active)",
+        "RTIambassador.subscribeObjectClassAttributes(passive)",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.updateAttributeValues",
         "RTIambassador.unsubscribeObjectClassAttributes(empty set)",
@@ -24932,7 +25167,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9.4"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l23-6: after establishing an active two-attribute subscription and confirming both values are delivered, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. Installed-package CTest and direct runs passed under HLA_EVOKED and HLA_IMMEDIATE; evidence is out/mgw/cpp-tck-empty-attribute-unsubscription-20261016/results.json. Adapter evidence only, not a provider conformance claim.",
+      "mapping_note": "Direct mapping is limited to page-098-l23-6: the scenario establishes active and passive two-attribute subscriptions, confirms each receives both values under active delivery interest, then invokes Unsubscribe Object Class Attributes with an empty set on each subscription. The next update must still reach both subscribers with both exact attributes, values, and tag, demonstrating that the empty set removes neither active nor passive subscriptions. This is bounded state-preservation evidence for the stated no-op equivalence, not an exhaustive active/passive subscription matrix. Installed-package MinGW/Ninja CTest and direct JSON/JUnit pass under HLA_EVOKED and HLA_IMMEDIATE (.build/cpp-tck-object-attribute-unsubscribe-sibling-20261114/empty-attribute-unsubscription-noop-20261114.json). Umbra adapter evidence only, not provider conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -24942,7 +25177,7 @@
         "attribute-value-update-request-api-contract.json",
         "object-instance-registration-api-contract.json"
       ],
-      "cpp_test": "src/portable_tck.cpp#scenarioEmptyAttributeUnsubscriptionIsNoOpPortable",
+      "cpp_test": "src/tck_empty_attribute_unsubscription.cpp#scenarioEmptyAttributeUnsubscriptionIsNoOp",
       "runner_id": "cpp-tck.empty-attribute-unsubscription-is-no-op",
       "parity": "java-tck.empty-attribute-unsubscription-is-no-op",
       "default_status": "adapter-required",
@@ -24953,6 +25188,7 @@
       "category": "object-attribute-subscription-lifecycle",
       "title": "Exercise subscribed-recipient-only delivery, attribute-set validity, initial/subsequent filtering, downgrade, and withdrawal",
       "api_methods": [
+        "RTIambassador.createFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.joinFederationExecution",
@@ -25031,7 +25267,7 @@
         "attribute-set",
         "discovery-reflection"
       ],
-      "mapping_note": "Direct mappings: page-082-l59-18 -> §5.1.2 as a bounded joined-federate subscribed-set witness: initial and ordinary reflection include only the subscribed attribute, and individual unsubscribe suppresses subsequent reflection; class-wide unsubscribe is not tested for this requirement. Page-082-l71-22 -> §5.1.2: after unsubscribing the base TckObject class attribute, the distinct derived TckSecondaryObject class's subscription to inherited Value remains active and reflects; this is evidence for derived-class separation, not unrelated sibling-class behavior. Page-082-l173-56 -> §5.1.2: an empty attribute set produces no discovery, a one-attribute active subscription produces discovery and initial reflection, and withdrawing that attribute suppresses later reflection; this is bounded one-attribute/empty evidence for the class subscription boundary. Page-096-l57-16, page-096-l84-25, and page-096-l87-26 -> §5.8 for active-subscription discovery of pre-existing and later registrations; page-096-l63-18 and page-096-l66-19 -> §5.8 for initial and subsequent reflection filtered to the subscribed attribute set; page-096-l72-21 and page-096-l75-22 -> §5.8 for an empty active attribute set leaving discovery/reflection absent; page-096-l105-32 -> §5.8 for the passive subscription indicator, including assertions that passive subscription does not cause discovery or reflection. The scenario preloads both attributes on a pre-existing object and separately registers another object while passive. Annex E.5.1.2 page-426-l220-73 is directly witnessed by a joined federate with no subscription not receiving reflection; page-426-l235-78 is witnessed by the active subscriber receiving an update to its subscribed class attribute; page-426-l265-88 is witnessed by the same update carrying a second same-class attribute that is absent from the subscriber's reflection. These are bounded public-API witnesses, not exhaustive coverage of all update paths or every Annex E example tuple.",
+      "mapping_note": "Direct mappings: page-082-l59-18 -> §5.1.2 as a bounded joined-federate subscribed-set witness: initial and ordinary reflection include only the subscribed attribute, and individual unsubscribe suppresses subsequent reflection; class-wide unsubscribe is not tested for this requirement. Page-082-l71-22 -> §5.1.2: after unsubscribing the base TckObject class's Value attribute, the unrelated sibling TckIndependentObject class's ordinary IndependentValue subscription remains active for both a pre-existing and a later-registered instance, including discovery and initial reflection for the later instance; the derived TckSecondaryObject subscription to inherited Value also remains active. The scenario composes a separate adapter-supplied FOM module and uses the same ordinary subscribe/unsubscribe service for the sibling, directly distinguishing independent class state without claiming every class combination. Page-082-l173-56 -> §5.1.2: an empty attribute set produces no discovery, a one-attribute active subscription produces discovery and initial reflection, and withdrawing that attribute suppresses later reflection; this is bounded one-attribute/empty evidence for the class subscription boundary. Page-096-l57-16, page-096-l84-25, and page-096-l87-26 -> §5.8 for active-subscription discovery of pre-existing and later registrations; page-096-l63-18 and page-096-l66-19 -> §5.8 for initial and subsequent reflection filtered to the subscribed attribute set; page-096-l72-21 and page-096-l75-22 -> §5.8 for an empty active attribute set leaving discovery/reflection absent; page-096-l105-32 -> §5.8 for the passive subscription indicator, including assertions that passive subscription does not cause discovery or reflection. The scenario preloads both attributes on a pre-existing object and separately registers another object while passive. Annex E.5.1.2 page-426-l220-73 is directly witnessed by a joined federate with no subscription not receiving reflection; page-426-l235-78 is witnessed by the active subscriber receiving an update to its subscribed class attribute; page-426-l265-88 is witnessed by the same update carrying a second same-class attribute that is absent from the subscriber's reflection. These are bounded public-API witnesses, not exhaustive coverage of all update paths or every Annex E example tuple.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -25058,6 +25294,7 @@
       "category": "object-attribute-subscription-lifecycle",
       "title": "Portable adapter-backed proof that only subscribed federates receive attribute updates",
       "api_methods": [
+        "RTIambassador.createFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.joinFederationExecution",
@@ -25135,7 +25372,7 @@
         "attribute-set",
         "discovery-reflection"
       ],
-      "mapping_note": "Direct mappings: page-082-l59-18 -> §5.1.2 as a bounded joined-federate subscribed-set witness: initial and ordinary reflection include only the subscribed attribute, and individual unsubscribe suppresses subsequent reflection; class-wide unsubscribe is not tested for this requirement. Page-082-l71-22 -> §5.1.2: after unsubscribing the base TckObject class attribute, the distinct derived TckSecondaryObject class's subscription to inherited Value remains active and reflects; this is evidence for derived-class separation, not unrelated sibling-class behavior. Page-082-l173-56 -> §5.1.2: an empty attribute set produces no discovery, a one-attribute active subscription produces discovery and initial reflection, and withdrawing that attribute suppresses later reflection; this is bounded one-attribute/empty evidence for the class subscription boundary. Page-096-l57-16, page-096-l84-25, and page-096-l87-26 -> §5.8 for active-subscription discovery of pre-existing and later registrations; page-096-l63-18 and page-096-l66-19 -> §5.8 for initial and subsequent reflection filtered to the subscribed attribute set; page-096-l72-21 and page-096-l75-22 -> §5.8 for the empty-active-set no-discovery/no-reflection assertion; page-096-l105-32 -> §5.8 for the passive subscription indicator and the no-discovery/no-reflection behavior while passive. The contract twin executes the complete shared lifecycle scenario. Annex E.5.1.2 page-426-l220-73 is directly witnessed by a joined federate with no subscription not receiving reflection; page-426-l235-78 is witnessed by the active subscriber receiving an update to its subscribed class attribute; page-426-l265-88 is witnessed by the same update carrying a second same-class attribute that is absent from the subscriber's reflection. These are bounded public-API witnesses, not exhaustive coverage of all update paths or every Annex E example tuple.",
+      "mapping_note": "Direct mappings: page-082-l59-18 -> §5.1.2 as a bounded joined-federate subscribed-set witness: initial and ordinary reflection include only the subscribed attribute, and individual unsubscribe suppresses subsequent reflection; class-wide unsubscribe is not tested for this requirement. Page-082-l71-22 -> §5.1.2: after unsubscribing the base TckObject class's Value attribute, the unrelated sibling TckIndependentObject class's ordinary IndependentValue subscription still reflects; the derived TckSecondaryObject subscription to inherited Value also remains active. The scenario composes a separate adapter-supplied FOM module and uses the same ordinary subscribe/unsubscribe service for the sibling, directly distinguishing independent class state without claiming every class combination. Page-082-l173-56 -> §5.1.2: an empty attribute set produces no discovery, a one-attribute active subscription produces discovery and initial reflection, and withdrawing that attribute suppresses later reflection; this is bounded one-attribute/empty evidence for the class subscription boundary. Page-096-l57-16, page-096-l84-25, and page-096-l87-26 -> §5.8 for active-subscription discovery of pre-existing and later registrations; page-096-l63-18 and page-096-l66-19 -> §5.8 for initial and subsequent reflection filtered to the subscribed attribute set; page-096-l72-21 and page-096-l75-22 -> §5.8 for the empty-active-set no-discovery/no-reflection assertion; page-096-l105-32 -> §5.8 for the passive subscription indicator and the no-discovery/no-reflection behavior while passive. The contract twin executes the complete shared lifecycle scenario. Annex E.5.1.2 page-426-l220-73 is directly witnessed by a joined federate with no subscription not receiving reflection; page-426-l235-78 is witnessed by the active subscriber receiving an update to its subscribed class attribute; page-426-l265-88 is witnessed by the same update carrying a second same-class attribute that is absent from the subscriber's reflection. These are bounded public-API witnesses, not exhaustive coverage of all update paths or every Annex E example tuple.",
       "contract_refs": [
         "subscribe-object-class-attributes-api-contract.json",
         "subscribe-object-class-attributes-requirements-contract.json",
@@ -34983,11 +35220,8 @@
         "RTIambassador.queryLookahead",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.disableTimeRegulation",
-        "RTIambassador.queryLookahead",
         "RTIambassador.retract",
-        "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
-        "RTIambassador.disableTimeRegulation",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -88130,15 +88364,15 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-252-l140-35",
           "standard_section": "hla-1516.1-2025:clause-10.13.2",
-          "note": "Selected Get Interaction Class Handle lifecycle/exception witness: calls before connection and before membership require NotConnected and FederateNotExecutionMember; an unknown name and an extension name before its additional-FOM join require NameNotFound. Stable base and post-join extension handles are positive controls, not exhaustive §10.13.2 coverage."
+          "note": "The immutable Lab candidate is recorded at parent service clause §10.13. This scenario directly checks the valid Get Interaction Class Handle return; §10.13.2 specifically names the returned argument as an Interaction class handle, so the direct mapping is intentionally narrowed to that subsection. Pre-connection, nonmember, and unknown-name exceptions are supplemental to this candidate mapping; stable base and post-join extension handles are positive controls."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-253-l89-21",
           "standard_section": "hla-1516.1-2025:clause-10.14.5",
-          "note": "Selected Get Interaction Class Name lifecycle/exception witness: calls before connection and before membership require NotConnected and FederateNotExecutionMember; an invalid interaction-class handle requires InvalidInteractionClassHandle. Valid base/extension names round-trip on both joined federates."
+          "note": "The immutable Lab candidate is recorded at parent service clause §10.14. This scenario intentionally maps the directly asserted Get Interaction Class Name exception behavior to §10.14.5: it checks NotConnected, FederateNotExecutionMember, and InvalidInteractionClassHandle. These are three listed exceptions; the RTI internal error entry is not exercised. Valid base/extension name round-trips on both joined federates are positive controls."
         }
       ],
-      "mapping_note": "Direct bounded public-C++ evidence for selected §10.13.2 and §10.14.5 lifecycle and exception outcomes using the adapter-supplied base and extension FOMs. After the additional-FOM join, both the original owner and joining federate round-trip the extension-class name and preserve the base-class handle. This is not exhaustive support-service, exception, or FOM-composition coverage.",
+      "mapping_note": "The pinned 2025 source places the Get Interaction Class Handle service at §10.13 and names its returned Interaction class handle under §10.13.2; §10.14.5 lists the Get Interaction Class Name exceptions. This bounded public-C++ case maps the valid returned-handle witness to §10.13.2 and three directly asserted exceptions to §10.14.5. The immutable Lab candidates remain at parent clauses §10.13/§10.14, so the section-crosswalk review markers are intentional parent-to-subsection refinements, not Lab defects. Adapter-supplied base/extension FOMs verify stable handles and round-trips; no claim is made for the untested RTI internal error exception or exhaustive service/FOM-composition coverage.",
       "parity_scope_note": "The Java mirror now checks that both members resolve the extension interaction to the same handle and exact name, that this handle differs from the base handle, and that the base handle/name remain stable after the additional-FOM join. Java omits the C++ default-invalid InteractionClassHandle checks because the Java API has no standard invalid-handle representation; null is not used as a portable substitute. Direct requirement mappings and default-invalid handle evidence remain on this C++ row. No cross-provider interoperability or conformance is claimed.",
       "evidence_note": "MinGW/Ninja rebuilt tck_lookup_lifecycle_scenarios.cpp and linked a 68,378,819-byte runner with 0 DWARF. The combined installed-package class-lookup CTest passed 4/4 and direct execution passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE with no skips. Results: .build/cpp-tck-class-lookups-lifecycle-20261112/results.json and results.xml. Focused promoted-result validation is clean. No independent-provider or conformance claim. Fresh paired verification on 2026-11-14: installed-package CTests passed 2/2 and direct C++ runs passed 2/2 under both callback models; current-source Java JNI focused runs passed 1/1 under each callback model with adapter-supplied FOM/name inputs. Java results/JUnit: out/jni-regional-routing-20261114/interaction-class-lookup-lifecycle-extension-{evoked,immediate}-{results.json,junit.xml}; C++ results/JUnit: out/cpp-tck/interaction-class-lookup-lifecycle-parity-current-jni-package-mingw-20261114/{results.json,junit.xml}.",
       "cpp_test": "src/tck_lookup_lifecycle_scenarios.cpp#scenarioInteractionClassLookupLifecycle",
@@ -102885,7 +103119,7 @@
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
-    {
+            {
       "id": "cpp-tck.service-report-dimension-upper-bound",
       "category": "mom-service-reporting",
       "title": "Verify successful and invalid-handle reports for GetDimensionUpperBound",
@@ -102929,7 +103163,7 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
           "standard_section": "hla-1516.1-2025:clause-10.25",
-          "note": "The Lab exports this positive-return requirement to §10.24.6, but the page-261 service bookmark and official RTIambassador.h place Get Dimension Upper Bound at §10.25; RL-442 records the crosswalk defect. The success assertion verifies the adapter FOM's positive upper bound of 64."
+          "note": "The Lab exports this positive-return requirement to \u00a710.24.6, but the page-261 service bookmark and official RTIambassador.h place Get Dimension Upper Bound at \u00a710.25; RL-442 records the crosswalk defect. The success assertion verifies the adapter FOM's positive upper bound of 64."
         },
         {
           "requirement_id": "requirement-candidate-table-5-p296-r009",
@@ -102942,7 +103176,7 @@
           "note": "The failure report asserts the no-return value is the Table 5 Null form: type code 34, empty name, and `null`."
         }
       ],
-      "mapping_note": "Direct mappings are limited to the positive GetDimensionUpperBound return in §10.25 (with the known RL-442 Lab crosswalk defect) and the two Table 5 argument/return forms asserted in HLAreportServiceInvocation records. HLAfederate is checked against the invoking subject on both success and InvalidDimensionHandle reports as additional case evidence, not as a separate mapping. The failure branch does not claim other dimension errors, all service-report forms, or complete §10.25 coverage. The Java parity entry is unchanged and its failure behavior was not exercised. The contract twin delegates to this primary scenario.",
+      "mapping_note": "Direct mappings are limited to the positive GetDimensionUpperBound return in \u00a710.25 (with the known RL-442 Lab crosswalk defect) and the two Table 5 argument/return forms asserted in HLAreportServiceInvocation records. HLAfederate is checked against the invoking subject on both success and InvalidDimensionHandle reports as additional case evidence. The Java mirror now also checks both outcomes; its invalid handle is an API-produced dimension from a separate FOM execution because Java has no default-invalid DimensionHandle value, and provider-specific handle text is not hard-coded. The failure branch does not claim other dimension errors, all service-report forms, or complete \u00a710.25 coverage. The contract twin delegates to this primary scenario.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",

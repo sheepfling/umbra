@@ -71,6 +71,10 @@ PACKAGE_LANE_FIELDS: tuple[tuple[PackageLaneField, PackageLaneField], ...] = (
         "next_process_package_connection_loss_ctest_filter",
     ),
     (
+        "next_process_package_forced_resignation_test",
+        "next_process_package_forced_resignation_ctest_filter",
+    ),
+    (
         "next_process_package_connection_loss_delete_objects_test",
         "next_process_package_connection_loss_delete_objects_ctest_filter",
     ),
@@ -119,6 +123,8 @@ class _RoadmapItemInput(TypedDict, total=False):
     next_process_package_parameterized_ctest_filter: object
     next_process_package_connection_loss_test: object
     next_process_package_connection_loss_ctest_filter: object
+    next_process_package_forced_resignation_test: object
+    next_process_package_forced_resignation_ctest_filter: object
     next_process_package_connection_loss_delete_objects_test: object
     next_process_package_connection_loss_delete_objects_ctest_filter: object
     next_process_package_object_registration_test: object

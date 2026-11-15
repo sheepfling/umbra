@@ -968,8 +968,11 @@ ctest --test-dir .build -C Debug -R "^umbra\.interaction_class_lookup\.catch2\."
 python tools/query_rti_work.py trace "Embedded interaction-class lookup services use stable handles from the joined federation FOM" --summary --compact
 ```
 
-It maps Get Interaction Class Handle and Get Interaction Class Name to the
-exact 2025 Lab candidates in clauses 10.13.2 and 10.14.5.
+The Catch2 lane maps Get Interaction Class Handle and Get Interaction Class
+Name to the exact 2025 Lab candidates at parent clauses 10.13 and 10.14. It
+also records the narrower §10.13.2 returned-argument and §10.14.5 exception
+assertions as tested subsections; those child sections are not the candidates'
+exported clause IDs.
 
 The inherited attribute lookup boundary is also independently runnable:
 

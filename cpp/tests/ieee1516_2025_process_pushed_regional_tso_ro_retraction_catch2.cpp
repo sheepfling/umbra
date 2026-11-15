@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -25,6 +26,24 @@
 namespace {
 
 using namespace rti1516_2025;
+
+void configureServerOwnedFomPreparation(
+    umbra::detail::ProcessFederationServiceOptions& options) {
+  options.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<umbra::detail::FederationDefinition> {
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"server-owned-fom.xml") ==
+            std::wstring::npos ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return umbra::test::process_fom_support_2025::composedProcessDefinition();
+  };
+}
 
 std::vector<std::uint8_t> bytesOf(VariableLengthData const& data) {
   if (data.size() == 0U) {
@@ -197,6 +216,7 @@ void verifyPushedRegionalTsoRoRetraction(
   umbra::detail::EmbeddedFederationRegistry registry;
   umbra::detail::ProcessFederationServiceOptions options;
   options.pushReceiveOrderEvents = true;
+  configureServerOwnedFomPreparation(options);
   umbra::detail::ProcessFederationServiceHost authority(
       registry,
       umbra::test::process_fom_support_2025::composedProcessDefinition(),
@@ -366,6 +386,7 @@ void verifyPushedRegionalTsoRoRetractionMixedFanout(CallbackModel callbackModel)
   umbra::detail::EmbeddedFederationRegistry registry;
   umbra::detail::ProcessFederationServiceOptions options;
   options.pushReceiveOrderEvents = true;
+  configureServerOwnedFomPreparation(options);
   umbra::detail::ProcessFederationServiceHost authority(
       registry,
       umbra::test::process_fom_support_2025::composedProcessDefinition(),

@@ -56,6 +56,9 @@ if(_current_package_rti_location MATCHES "\\.(dll|so|dylib)$")
   set(_custom_tradt_provider_enabled TRUE)
   set(HLA_RTI_TCK_CUSTOM_TRADT_PROVIDER_TARGET
     umbra_cpp_tck_custom_tradt_provider)
+  file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/portable-tck-fedtime-provider-$<CONFIG>.txt"
+    CONTENT "$<TARGET_FILE:${HLA_RTI_TCK_CUSTOM_TRADT_PROVIDER_TARGET}>\n")
 
   add_library(umbra_cpp_tck_custom_authorizer_provider SHARED
     custom_authorizer_provider.cpp)
@@ -153,6 +156,7 @@ set(HLA_RTI_TCK_ADAPTER_OBJECT_ATTRIBUTE_CONFLICT_FOM
   "${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-merge-conflict-tck.xml"
   CACHE FILEPATH "Annex C.3 conflicting object-attribute FOM supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
+  "object-attribute-subscription-independent-class=${_repository_root}/packages/hla-rti-cpp-tck/fom/object-attribute-subscription-independent-class-tck.xml"
   "attribute-table-empty-semantics=${_repository_root}/packages/hla-rti-cpp-tck/fom/attribute-table-empty-semantics-tck.xml"
   "empty-domain-tables=${_repository_root}/packages/hla-rti-cpp-tck/fom/fom-empty-domain-content-tck.xml"
   "delay-subscription-evaluation=${_repository_root}/packages/hla-rti-cpp-tck/fom/delay-subscription-evaluation-tck.xml"
@@ -940,6 +944,8 @@ endif()
 math(EXPR _tck_last_scenario_index "${_tck_scenario_count} - 1")
 set(_tck_test_scenarios)
 set(_tck_candidate_scenarios)
+set(_tck_evoked_only_scenarios)
+set(_tck_immediate_only_scenarios)
 foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   string(JSON _tck_entry GET "${_tck_catalog_json}" scenarios
     ${_tck_scenario_index})
@@ -994,6 +1000,21 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
     (HLA_RTI_TCK_ADAPTER_SCENARIO_SET STREQUAL "all" OR
       _tck_promotion STREQUAL "promoted"))
     list(APPEND _tck_test_scenarios "${_tck_scenario}")
+    string(JSON _tck_callback_model_count
+      ERROR_VARIABLE _tck_callback_model_parse_error
+      LENGTH "${_tck_entry}" callback_models)
+    if(NOT _tck_callback_model_parse_error AND
+       _tck_callback_model_count EQUAL 1)
+      string(JSON _tck_callback_model GET "${_tck_entry}" callback_models 0)
+      if(_tck_callback_model STREQUAL "evoked")
+        list(APPEND _tck_evoked_only_scenarios "${_tck_scenario}")
+      elseif(_tck_callback_model STREQUAL "immediate")
+        list(APPEND _tck_immediate_only_scenarios "${_tck_scenario}")
+      else()
+        message(FATAL_ERROR
+          "Unsupported single callback model '${_tck_callback_model}' for ${_tck_scenario}")
+      endif()
+    endif()
   endif()
 endforeach()
 if(NOT _tck_test_scenarios)
@@ -1176,6 +1197,8 @@ set(HLA_RTI_TCK_TEST_CANDIDATE_SCENARIOS "${_tck_candidate_scenarios}" CACHE STR
   "Portable TCK candidate scenarios registered by this adapter" FORCE)
 set(HLA_RTI_TCK_TEST_CALLBACK_MODELS "${_tck_test_callback_models}" CACHE STRING
   "Portable TCK callback models registered by this adapter" FORCE)
+set(HLA_RTI_TCK_TEST_EVOKED_ONLY_SCENARIOS "${_tck_evoked_only_scenarios}")
+set(HLA_RTI_TCK_TEST_IMMEDIATE_ONLY_SCENARIOS "${_tck_immediate_only_scenarios}")
 set(HLA_RTI_TCK_TEST_COMMON_ARGUMENTS "${_tck_common_arguments}" CACHE STRING
   "Adapter arguments shared by each portable TCK scenario" FORCE)
 set(HLA_RTI_TCK_TEST_SETTINGS_PARSE_FAILURE_INPUT

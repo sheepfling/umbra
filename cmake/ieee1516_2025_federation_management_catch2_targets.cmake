@@ -1227,6 +1227,14 @@ if(UMBRA_ENABLE_EMBEDDED_FEDERATION_MANAGEMENT)
     cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp
   )
 
+  # Keep the §11.4.1 category-C boundary independently buildable: a
+  # switch-shaped parameter on a FOM-added, non-control interaction remains
+  # ordinary federate traffic and does not mutate predefined MOM state.
+  umbra_add_embedded_2025_catch2_target(umbra_mom_category_c_interaction_catch2
+    SOURCES
+    cpp/tests/ieee1516_2025_mom_category_c_interaction_catch2.cpp
+  )
+
   # Keep the joined-federate MOM successful-update projection independently
   # buildable. It isolates the accepted Update Attribute Values ledger,
   # direct MOM request, and HLAsetTiming periodic reflection paths.

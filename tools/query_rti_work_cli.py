@@ -686,6 +686,9 @@ def main() -> int:
                 "matrix_command",
                 "check_command",
                 "ctest_command",
+                "direct_command",
+                "evidence_check_command",
+                "requirement_check_command",
             ):
                 handle = latest.get(handle_name)
                 if isinstance(handle, str) and handle:
@@ -1317,12 +1320,18 @@ def main() -> int:
                 f"{latest.get('standard_sections', '?')} sections; "
                 f"{latest.get('api_surfaces', '?')} APIs)"
             )
-            print(
-                "   latest_source="
-                f"{latest.get('source_location', '<unlocated>')} "
-                "latest_trace=python tools/query_rti_work.py trace "
-                f'"{latest.get("test_case", "")}" --summary --compact'
-            )
+            is_portable_cpp_tck = latest.get("evidence_kind") == "portable-cpp-tck"
+            print(f"   latest_source={latest.get('source_location', '<unlocated>')}")
+            if is_portable_cpp_tck:
+                print(
+                    "   latest_scenarios="
+                    + ", ".join(str(item) for item in latest.get("scenario_ids", []))
+                )
+            else:
+                print(
+                    "   latest_trace=python tools/query_rti_work.py trace "
+                    f'"{latest.get("test_case", "")}" --summary --compact'
+                )
             latest_lane = latest.get("lane")
             latest_focus_lane = (
                 latest.get("focus_lane") or latest.get("primary_lane") or latest_lane
@@ -1347,25 +1356,44 @@ def main() -> int:
                     "python tools/query_rti_work.py case "
                     f"{json.dumps(str(latest.get('plan_id')), ensure_ascii=False)} "
                     "--summary --compact"
-                    if isinstance(latest.get("plan_id"), str) and latest.get("plan_id")
+                    if not is_portable_cpp_tck
+                    and isinstance(latest.get("plan_id"), str)
+                    and latest.get("plan_id")
                     else None
                 ),
                 "focus": (
                     f"python tools/query_rti_work.py focus {latest_focus_lane} --summary --compact"
-                    if isinstance(latest_focus_lane, str) and latest_focus_lane
+                    if not is_portable_cpp_tck
+                    and isinstance(latest_focus_lane, str)
+                    and latest_focus_lane
                     else None
                 ),
                 "matrix": (
                     f"python tools/query_rti_work.py matrix {latest_focus_lane} --summary --compact"
-                    if isinstance(latest_focus_lane, str) and latest_focus_lane
+                    if not is_portable_cpp_tck
+                    and isinstance(latest_focus_lane, str)
+                    and latest_focus_lane
                     else None
                 ),
                 "check": (
                     f"python tools/query_rti_work.py check --lane {latest_focus_lane} --summary --compact"
-                    if isinstance(latest_focus_lane, str) and latest_focus_lane
+                    if not is_portable_cpp_tck
+                    and isinstance(latest_focus_lane, str)
+                    and latest_focus_lane
                     else None
                 ),
-                "ctest": lane_ctest_command(latest_handles),
+                "ctest": latest.get("ctest_command")
+                if is_portable_cpp_tck
+                else lane_ctest_command(latest_handles),
+                "direct": latest.get("direct_command")
+                if is_portable_cpp_tck
+                else None,
+                "evidence_check": latest.get("evidence_check_command")
+                if is_portable_cpp_tck
+                else None,
+                "requirement_check": latest.get("requirement_check_command")
+                if is_portable_cpp_tck
+                else None,
             }
             for command_name, command in latest_commands.items():
                 if isinstance(command, str) and command:

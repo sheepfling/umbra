@@ -12,6 +12,7 @@
 #include <fstream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -60,6 +61,7 @@ using umbra::detail::LibXml2FomModuleComposer;
 using umbra::detail::LibXml2FomValidator;
 using umbra::detail::PrevalidatedFomModule;
 using umbra::detail::ProcessFederationServiceHost;
+using umbra::detail::ProcessFederationServiceOptions;
 using umbra::detail::ProcessTransportAddress;
 
 std::filesystem::path resourcePath(std::filesystem::path const& relative) {
@@ -110,6 +112,25 @@ FederationDefinition composedDefinition() {
       std::move(result.catalog),
       std::move(result.fdd),
   };
+}
+
+ProcessFederationServiceOptions serviceOptionsForServerOwnedFom() {
+  ProcessFederationServiceOptions options;
+  options.createFomPreparation =
+      [](std::vector<std::wstring> const& fomModules,
+         std::optional<std::wstring> const& mimModule,
+         std::wstring const& logicalTimeImplementationName)
+      -> std::optional<FederationDefinition> {
+    if (fomModules.size() != 1U ||
+        fomModules.front().find(L"server-owned-regional-cross-proxy-fom.xml") ==
+            std::wstring::npos ||
+        mimModule || (!logicalTimeImplementationName.empty() &&
+                      logicalTimeImplementationName != L"HLAinteger64Time")) {
+      return std::nullopt;
+    }
+    return composedDefinition();
+  };
+  return options;
 }
 
 class TemporaryDirectory final {
@@ -464,7 +485,8 @@ void verifyRegionalCrossProxyScenario(bool releaseLaterInteraction) {
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
-      {"regional-cross-proxy-authority", 0xB840U});
+      {"regional-cross-proxy-authority", 0xB840U},
+      serviceOptionsForServerOwnedFom());
   authority.start();
 
   TemporaryDirectory directory;
@@ -679,7 +701,8 @@ void verifyRegionalDisjointReceiverScopeScenario() {
       registry,
       composedDefinition(),
       {"127.0.0.1", 0U},
-      {"regional-disjoint-scope-authority", 0xB841U});
+      {"regional-disjoint-scope-authority", 0xB841U},
+      serviceOptionsForServerOwnedFom());
   authority.start();
 
   TemporaryDirectory directory;

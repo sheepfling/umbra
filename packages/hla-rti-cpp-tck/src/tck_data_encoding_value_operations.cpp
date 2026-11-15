@@ -36,9 +36,11 @@ void requireEncodeDecodeRoundTrips(
     std::string_view helperName) {
   auto requireOneRoundTrip = [&](Value const& value, std::string_view sample) {
     Helper source(value);
-    auto const encoded = source.encode();
+    rti::DataElement const& sourceElement = source;
+    auto const encoded = sourceElement.encode();
     Helper decoded;
-    static_cast<void>(decoded.decode(encoded));
+    rti::DataElement& decodedElement = decoded;
+    static_cast<void>(decodedElement.decode(encoded));
     Value const decodedValue = decoded;
     require(
         decodedValue == value,

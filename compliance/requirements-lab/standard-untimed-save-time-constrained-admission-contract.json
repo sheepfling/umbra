@@ -13,7 +13,7 @@
       "source": "third_party/ieee1516.1-2025/include/RTI",
       "source_symbol": "IEEE 1516.1-2025 federation-save and time-management interfaces",
       "tests": [
-        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp",
+        "cpp/tests/ieee1516_2025_untimed_save_time_constrained_admission_catch2.cpp::Embedded untimed federation save admits constrained members at time-advance boundaries",
         "packages/hla-rti-cpp-tck/src/tck_untimed_save_time_constrained_admission.cpp::scenarioUntimedSaveTimeConstrainedAdmission",
         "packages/hla-rti-cpp-tck/src/tck_untimed_save_time_constrained_admission.cpp::scenarioUntimedSaveTimeConstrainedAdmissionContract"
       ]

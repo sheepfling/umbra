@@ -798,10 +798,19 @@
           ${_umbra_test_all_focused_target})
       endif()
     endforeach()
+    # Keep the aggregate health gate aligned with the workstation's available
+    # execution capacity; CTest still honors per-test PROCESSORS properties.
+    include(ProcessorCount)
+    ProcessorCount(_umbra_test_all_processor_count)
+    if(NOT _umbra_test_all_processor_count OR
+       _umbra_test_all_processor_count LESS 1)
+      set(_umbra_test_all_processor_count 1)
+    endif()
     add_custom_target(umbra_test_all
       COMMAND ${CMAKE_CTEST_COMMAND}
         --test-dir "${CMAKE_BINARY_DIR}"
         ${_umbra_ctest_configuration_arguments}
+        --parallel "${_umbra_test_all_processor_count}"
         --timeout 180
         --output-on-failure
         -E "_NOT_BUILT-"

@@ -506,6 +506,14 @@
         DISCOVERY_MODE POST_BUILD
       )
     endif()
+    if(TARGET umbra_mom_category_c_interaction_catch2)
+      catch_discover_tests(umbra_mom_category_c_interaction_catch2
+        TEST_PREFIX "umbra.ieee1516_2025.catch2."
+        ADD_TAGS_AS_LABELS
+        ${_umbra_catch_discovery_properties}
+        DISCOVERY_MODE POST_BUILD
+      )
+    endif()
     if(TARGET umbra_ieee1516_2025_connection_catch2)
       catch_discover_tests(umbra_ieee1516_2025_connection_catch2
         TEST_PREFIX "umbra.ieee1516_2025.connection_catch2."

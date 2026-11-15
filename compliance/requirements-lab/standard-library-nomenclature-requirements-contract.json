@@ -16,7 +16,6 @@
         "cmake/package-smoke/library_nomenclature.cpp::main"
       ],
       "tests": [
-        "CTest: umbra_rti_package_library_nomenclature",
         "cmake/package-smoke/library_nomenclature.cpp::main"
       ]
     }

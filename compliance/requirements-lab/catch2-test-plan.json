@@ -1144,6 +1144,84 @@
       "next_action": "The existing encoder emits exactly the eight predefined parameters and this focused case passes without a runtime fix. For further §11.4.1 coverage, choose another specific RTI-originated MOM interaction emitter only when its direct clause path is identified; do not generalize this one class to all MOM interactions."
     },
     {
+      "id": "umbra-cpp-mom-category-c-interaction-ordinary-routing",
+      "primary_lane": "mom-after-base-services",
+      "focus_lane": "mom-category-c-ordinary-interaction",
+      "selected_cpp_api_surface_ids": [
+        "api.2025.cpp.rtiambassador.connect.027cac2b3705",
+        "api.2025.cpp.rtiambassador.createfederationexecutionwithmim.1de0ecdf0f4b",
+        "api.2025.cpp.rtiambassador.joinfederationexecution.9e7e3b227992",
+        "api.2025.cpp.rtiambassador.getinteractionclasshandle.99bb9271fea0",
+        "api.2025.cpp.rtiambassador.getparameterhandle.396bff598c35",
+        "api.2025.cpp.rtiambassador.getservicereportingswitch.36b611e2c94f",
+        "api.2025.cpp.rtiambassador.publishinteractionclass.b9a848c4482f",
+        "api.2025.cpp.rtiambassador.subscribeinteractionclass.835ab95032dc",
+        "api.2025.cpp.rtiambassador.sendinteraction.18921ac41e4f",
+        "api.2025.cpp.rtiambassador.evokecallback.ec9f8fb61891",
+        "api.2025.cpp.rtiambassador.resignfederationexecution.27297bdf287e",
+        "api.2025.cpp.rtiambassador.destroyfederationexecution.f403cac5930f",
+        "api.2025.cpp.rtiambassador.disconnect.72028b809529",
+        "api.2025.cpp.federateambassador.receiveinteraction.06a1022b8731"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-291-l74-24"
+      ],
+      "test_case": "Embedded RTI routes an uncategorized MOM interaction as ordinary federate traffic",
+      "source_location": "cpp/tests/ieee1516_2025_mom_category_c_interaction_catch2.cpp:14",
+      "assertions": 25,
+      "callback_models": [
+        "HLA_EVOKED"
+      ],
+      "delivery_modes": [
+        "receive-order",
+        "fom-added-direct-child-of-hlafederate",
+        "switch-shaped-parameter-remains-ordinary-payload",
+        "publisher-service-reporting-switch-remains-false",
+        "exact-sender-and-parameter-routing"
+      ],
+      "callback_gate_modes": [],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-291-l74-24",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "tags": [
+        "integration",
+        "development-profile",
+        "federation-management",
+        "mom",
+        "mom-after-base-services",
+        "mom-category-c-ordinary-interaction",
+        "receive-order",
+        "callback-evoked",
+        "rti.service.connect",
+        "rti.service.create-federation-execution-with-mim",
+        "rti.service.join-federation-execution",
+        "rti.service.get-interaction-class-handle",
+        "rti.service.get-parameter-handle",
+        "rti.service.get-service-reporting-switch",
+        "rti.service.publish-interaction-class",
+        "rti.service.subscribe-interaction-class",
+        "rti.service.send-interaction",
+        "rti.service.evoke-callback",
+        "rti.service.resign-federation-execution",
+        "rti.service.destroy-federation-execution",
+        "rti.service.disconnect",
+        "federate.callback.receive-interaction",
+        "2025"
+      ],
+      "status": "implemented-in-noninstallable-development-profile",
+      "ctest_target": "umbra_mom_category_c_interaction_catch2",
+      "ctest_filter": "^umbra\\.ieee1516_2025\\.catch2\\.Embedded RTI routes an uncategorized MOM interaction as ordinary federate traffic$",
+      "ctest_label": "mom-category-c-ordinary-interaction",
+      "requirements_lab_api_surface_status": "This native public C++ case mirrors the promoted portable C++ TCK category-C scenario for one FOM-added direct child of HLAmanager.HLAfederate. It proves that an interaction carrying a parameter named HLAserviceReporting is routed unchanged as ordinary federate traffic and does not mutate the publisher's predefined service-reporting switch. This is one bounded observable example for §11.4.1, not an exhaustive category-C inventory or proof of the universal no-other-MOM-activity rule, and not Requirements Lab validation or conformance.",
+      "next_action": "The focused HLA_EVOKED Catch2 lane passes 25 assertions. The portable C++ TCK scenario separately passes under both HLA_EVOKED and HLA_IMMEDIATE; keep this Catch2 mapping limited to the direct ordinary-routing witness and do not imply exhaustive MOM inactivity."
+    },
+    {
       "id": "umbra-cpp-service-report-failed-support-lookup-mom-interaction",
       "selected_cpp_api_surface_ids": [
         "api.2025.cpp.rtiambassador.getobjectclasshandle.36d1b269a059",
@@ -42515,11 +42593,8 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-1.5",
         "hla-1516.1-2025:clause-10.17",
-        "hla-1516.1-2025:clause-10.17.4",
         "hla-1516.1-2025:clause-10.18",
-        "hla-1516.1-2025:clause-10.19",
-        "hla-1516.1-2025:clause-8.1.11",
-        "hla-1516.1-2025:clause-8.2"
+      "hla-1516.1-2025:clause-8.1.11"
       ],
       "requirements_lab_api_surface_status": "The focused native C++ case exercises the official Get Order Type and Get Order Name surfaces across connection and membership guards, the mandatory Receive and TimeStamp legal pair, stable name/type round-trips, and invalid-name/type paths. The existing aggregate service-report case remains a separate integration check.",
       "status": "implemented-in-noninstallable-development-profile",

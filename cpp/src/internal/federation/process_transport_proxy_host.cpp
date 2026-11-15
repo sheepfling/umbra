@@ -200,12 +200,12 @@ void ProcessTransportProxyHost::relayFrames(
     if (!source->receiveFrame(frame)) {
       break;
     }
-    if (isTransportServiceFrameKind(frame.kind)) {
-      // A proxy bridges two independently handshaken socket sessions. Bind
-      // the frame to the destination hop while preserving the end-to-end
-      // service sequence, acknowledgement, and payload.
-      frame.sessionId = destination->sessionId();
-    }
+    // A proxy bridges two independently handshaken socket sessions. Bind
+    // every post-handshake frame to the destination hop while preserving the
+    // end-to-end sequence, acknowledgement, and payload. This includes
+    // Terminate Session controls; forwarding their source-hop session ID
+    // causes the peer to reject the close acknowledgement.
+    frame.sessionId = destination->sessionId();
     if (!destination->sendFrame(frame)) {
       break;
     }

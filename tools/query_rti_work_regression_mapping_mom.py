@@ -16,11 +16,11 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected lane is not complete"
         )
-    if object_instances_reflected_report_focus.get("mapped_test_count") != 1:
+    if object_instances_reflected_report_focus.get("mapped_test_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected mapped count drifted"
         )
-    if object_instances_reflected_report_focus.get("assertion_count") != 51:
+    if object_instances_reflected_report_focus.get("assertion_count") != 105:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstancesReflected assertion total drifted"
         )
@@ -64,12 +64,12 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
             "focused joined-federate HLAreportObjectInstanceInformation row is absent"
         )
     if query_rti_work.source_location_text(object_instance_information_report) != (
-        "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp:146"
+        "cpp/tests/joined_federate_mom_object_instance_information_report_catch2.cpp:373"
     ):
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation source pointer drifted"
         )
-    if object_instance_information_report.get("assertions") != 71:
+    if object_instance_information_report.get("assertions") != 77:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation assertion count drifted"
         )
@@ -102,11 +102,11 @@ def run_mom_mapping_rows(inputs: MappingLookupInputs) -> query_rti_work.JsonObje
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation lane is not complete"
         )
-    if object_instance_information_focus.get("mapped_test_count") != 1:
+    if object_instance_information_focus.get("mapped_test_count") != 2:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation mapped count drifted"
         )
-    if object_instance_information_focus.get("assertion_count") != 71:
+    if object_instance_information_focus.get("assertion_count") != 155:
         raise AssertionError(
             "focused joined-federate HLAreportObjectInstanceInformation assertion total drifted"
         )

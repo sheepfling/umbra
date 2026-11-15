@@ -28102,7 +28102,9 @@
         "RTIambassador.disableTimeConstrained",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.timeConstrainedEnabled",
-        "FederateAmbassador.timeAdvanceGrant"
+        "FederateAmbassador.timeAdvanceGrant",
+        "LogicalTimeFactory.makeZero",
+        "LogicalTimeInterval.isZero"
       ],
       "requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-204-l38-9",
@@ -28110,7 +28112,8 @@
         "requirement-candidate-content-clauses-08-time-management-page-208-l75-18",
         "requirement-candidate-content-clauses-08-time-management-page-208-l78-19",
         "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
-        "requirement-candidate-content-clauses-08-time-management-page-208-l162-43"
+        "requirement-candidate-content-clauses-08-time-management-page-208-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l72-17"
       ],
       "contract_refs": [
         "standard-time-advance-contract.json",
@@ -28144,13 +28147,34 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l162-43",
           "standard_section": "hla-1516.1-2025:clause-8.20.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-208-l72-17",
+          "standard_section": "hla-1516.1-2025:clause-8.20.4",
+          "note": "The Java test obtains a zero LogicalTimeInterval from the standard LogicalTimeFactory.makeZero method, calls Modify Lookahead successfully with it, confirms Query Lookahead still returns the prior positive value before a grant, and confirms zero is active after the grant."
         }
       ],
-      "mapping_note": "The §8.15.3 assertion checks the pending-lookahead formula across two grants: from six epsilon to three after advancing three, then to the requested one epsilon after advancing three more. The Java surface also covers the direct §8.20.4 Modify Lookahead request, immediate increase, deferred decrease, and requested-value assertions. The earlier zero-lookahead rejection probe was removed because zero is a permitted nonnegative request; this Java case does not yet exercise zero acceptance, so page 208 l72 is not directly mapped here. It checks pre-regulation and duplicate-role errors, pending-advance state, logical-time queries, and a request behind the granted time as supplemental behavior. Query Lookahead preconditions and negative-interval construction remain supplemental; the standard factory API has no negative-interval constructor, and this portable TCK does not assume a particular encoding or that subtraction yields a representable negative value. Callback delivery and cleanup are scenario mechanics. Java provider execution is unsupported pending an adapter/provider and is not conformance evidence.",
+      "mapping_note": "The §8.15.3 assertion checks the pending-lookahead formula across two grants: from six epsilon to three after advancing three, then to the requested one epsilon after advancing three more. The Java surface also covers the direct §8.20.4 Modify Lookahead request, immediate increase, deferred decrease, and requested-value assertions. Zero acceptance is now directly mapped to page 208 l72: the Java test passes a standard zero LogicalTimeInterval to Modify Lookahead, verifies the requested decrease remains pending before a grant, and verifies that Query Lookahead reports zero after the grant. It checks pre-regulation and duplicate-role errors, pending-advance state, logical-time queries, and a request behind the granted time as supplemental behavior. Query Lookahead preconditions and negative-interval construction remain supplemental; the standard factory API has no negative-interval constructor, and this portable TCK does not assume a particular encoding or that subtraction yields a representable negative value. Callback delivery and cleanup are scenario mechanics. Focused Java execution passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider; this is local-provider evidence, not independent-provider interoperability or conformance.",
       "java_test": "org.hla.rti.tck.RtiTckMain#modifyLookaheadContract",
       "parity": "cpp-tck.modify-lookahead",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 provider, FOM, logical-time implementation, and callback configuration; runtime evidence is not yet available."
+      "default_status": "run",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-204-l38-9",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l66-15",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l75-18",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l78-19",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l84-21",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l162-43",
+        "requirement-candidate-content-clauses-08-time-management-page-208-l72-17"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Adapter-supplied federation FOM",
+        "Logical-time implementation shared by both joined federates",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ],
+      "evidence_note": "Verified 2026-11-15: compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the current-source Umbra JNI bundle. Java results: out/java-tck/modify-lookahead-zero-parity-20261115/{evoked-default,immediate-default}.{json,xml}. The paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models against the installed 2026-11-10 MinGW package; scoped C++ validation returned valid=true with no findings. C++ results: out/cpp-tck/modify-lookahead-zero-parity-20261115/{results.json,junit.xml}. Runtime evidence is local-provider only; independent-provider interoperability and conformance are not claimed."
     },
     {
       "id": "java-tck.time-coordinated-interaction",
@@ -41195,8 +41219,8 @@
           "standard_section": "hla-1516.1-2025:clause-11.5.1"
         }
       ],
-      "mapping_note": "Direct IEEE 1516.1-2025 Table 5 p.295 rows r007 and r010 only. The Java test checks the successful AssociateRegionsForUpdates and UnassociateRegionsForUpdates reports: the supplied value is a two-entry Array<AttributeRegionAssociation>, each ordered record contains the exact singleton attributeHandleSet and regionHandleSet designators. This witnesses the r007 pair structure and r010 array form. The RegionNotCreatedByThisFederate report is supplemental and adds no mapping. The case does not claim other Table 5 rows or full §11.5.1 coverage.",
-      "evidence_note": "Verified 2026-11-15: Java Associate Regions for Updates passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the matched current-source Umbra JNI bundle built 2026-11-14. It used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject, Identity/IntegerValue, and TckDimension. The Java case verifies the successful AssociateRegionsForUpdates report (serial 0), a RegionNotCreatedByThisFederate report for an observer-owned region (serial 1), and the successful UnassociateRegionsForUpdates report (serial 2), including report metadata, federate identity, exact supplied arguments, Null return, success/exception, and serial values. Direct mapping is limited to Table 5 p.295 rows r007/r010: the two-entry Array<AttributeRegionAssociation> and ordered singleton attributeHandleSet/regionHandleSet pairs on successful reports; foreign-region rejection is supplemental. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under HLA_EVOKED/HLA_IMMEDIATE against the installed 2026-11-10 MinGW package; scoped C++ validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261115/results/default-{evoked,immediate}.{results.json,junit.xml}; combined export: out/java-tck/service-report-associate-regions-java-parity-20261115/results/provider-neutral-validation.json; C++ results: out/mgw/cpp-tck-service-report-associate-regions-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
+      "mapping_note": "Direct Table 5 rows r007 and r010 only: the successful AssociateRegionsForUpdates report encodes the supplied argument as a two-entry Array<AttributeRegionAssociation>; the Java source checks each ordered record and its singleton attributeHandleSet/regionHandleSet pair. This directly witnesses the r007 pair shape and r010 array form. The source uses only official IEEE 1516.1-2025 Java API types and standard MOM encoding elements. It does not claim other Table 5 value forms or full §11.5.1 coverage.",
+      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed with the Umbra JNI capability profile under HLA_EVOKED and HLA_IMMEDIATE. Both runs used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAobjectRoot.TckTypedObject, Identity, IntegerValue, TckDimension, and HLAinteger64Time. Each run verified one successful report, the two-entry variable array and exact ordered singleton pairs, Null return, serial 0, empty exception, and callback metadata. Results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261114/{evoked,immediate}.{results.json,junit.xml}. Umbra JNI evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -41205,15 +41229,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportAssociateRegionsForUpdates",
       "parity": "cpp-tck.service-report-associate-regions-for-updates",
-      "default_status": "run",
-      "mapping_classification": "direct-requirement-mapped",
-      "adapter_inputs": [
-        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-        "packages/hla-rti-java-tck/fom/p0-tck-without-switches.xml, packages/hla-rti-cpp-tck/fom/fom-model-tck.xml, and HLAstandardMIM-2025.xml",
-        "HLAinteger64Time logical-time implementation",
-        "HLAobjectRoot.TckTypedObject with Identity and IntegerValue attributes",
-        "TckDimension and callback model selected by the adapter"
-      ]
+      "default_status": "unsupported",
+      "exclusion": "Requires adapter-supplied p0-tck-without-switches.xml, fom-model-tck.xml, standard MIM, typed object-class and attribute names, TckDimension, and a compatible logical-time implementation. Plain p0-tck.xml conflicts with fom-model-tck.xml on switch values. The Umbra JNI capability profile opts in after focused current-source verification; other providers need their own evidence."
     },
     {
       "id": "java-tck.service-report-regional-interaction-failure",
@@ -48408,7 +48425,7 @@
       "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, BestEffortValue, and TckSlow under HLA_EVOKED and HLA_IMMEDIATE. Java verifies seven ordered callback reports and, with serviceReportDirectory configured, checks the Federate MOM HLAreportServiceFile and the appended successful GetUpdateRateValue type-35 Number against the API result. Focused direct mappings cover the scalar AttributeHandle, MaximumUpdateRate Number, ObjectClassHandle, and ObjectInstanceHandle records from Table 5 p.295 r004 and p.299 r002-r004 to §11.5.1. Results: out/java-tck/object-attribute-rate-lookups-20261103/results/{evoked,immediate}.results.json and .junit.xml. Evidence is local JNI only.",
       "exclusion": "Requires adapter-supplied update-rate FOM, standard MIM, object class, best-effort attribute, update-rate name, callback model, and installed IEEE 1516.1-2025 Java provider. The file-backed check additionally requires an adapter-configured serviceReportDirectory; other providers need their own runtime evidence."
     },
-    {
+        {
       "id": "java-tck.service-report-dimension-upper-bound",
       "category": "mom-service-reporting",
       "title": "Verify successful and invalid-handle MOM reports for GetDimensionUpperBound",
@@ -48444,7 +48461,10 @@
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
+        "requirement-candidate-table-5-p296-r009",
+        "requirement-candidate-table-5-p299-r001"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -48455,7 +48475,42 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportDimensionUpperBound",
       "parity": "cpp-tck.service-report-dimension-upper-bound",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM with the configured dimension and upper bound 64, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "exclusion": "Requires adapter-supplied FOM with the configured dimension and upper bound 64, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
+        "requirement-candidate-table-5-p296-r009",
+        "requirement-candidate-table-5-p299-r001"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.25",
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
+          "standard_section": "hla-1516.1-2025:clause-10.25",
+          "note": "The success call returns the adapter FOM dimension upper bound of 64. The Requirements Lab candidate currently exports this service to \u00a710.24.6; the official RTIambassador.h places Get Dimension Upper Bound at \u00a710.25, and RL-442 records that known crosswalk defect. No Lab resynchronization or mapping change is made here."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p296-r009",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both successful and InvalidDimensionHandle reports check the supplied Dimension handle argument record uses Table 5 type code 10 and the standard argument name. The Java failure handle is produced by the official API in a separate FOM execution; provider-specific handle text is checked only for quoted shape."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The InvalidDimensionHandle report checks the no-return value as the Table 5 Null form: type code 34, empty name, and null value."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings remain limited to the positive GetDimensionUpperBound return in IEEE 1516.1-2025 \u00a710.25 (with known RL-442 crosswalk defect) and the two Table 5 argument/return forms in \u00a711.5.1. The Java success path checks bound 64. Its failure path uses TckAdditionalDimension from a separately created federation because the Java API has no default-invalid DimensionHandle; it checks the InvalidDimensionHandle service result, quoted handle shape, Null return, and invoking federate. This does not claim other dimension errors, every service-report form, or complete \u00a710.25 coverage.",
+      "parity_scope_note": "Mirrors the C++ primary success and InvalidDimensionHandle outcomes. The Java failure uses a valid standard DimensionHandle obtained from a distinct FOM execution rather than a C++ default-invalid handle; the reported provider handle text is not hard-coded.",
+      "adapter_inputs": [
+        "provider JAR, JNI library, callback model, and logical-time implementation",
+        "model FOM defining TckDimension with upperBound 64",
+        "additional FOM defining TckAdditionalDimension via hla.rti.tck.additionalFom",
+        "pinned standard MIM"
+      ]
     },
     {
       "id": "java-tck.service-report-dimension-name",
@@ -52029,6 +52084,19 @@
         "cpp-1516.1-directed-interaction-retraction",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+    "selected_requirements_lab_requirement_ids": [
+      "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-11.5"
+    ],
+    "requirement_mappings": [
+      {
+        "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "standard_section": "hla-1516.1-2025:clause-11.5"
+      }
+    ],
+    "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. This mapping is limited to §11.5 report generation; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance. HLAfederate identity, callback metadata, DDM/region setup, and timestamped delivery remain supplemental.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -52045,32 +52113,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedDirectedInteraction",
       "parity": "cpp-tck.service-report-timestamped-directed-interaction",
-      "default_status": "run",
+    "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
       ],
       "adapter_inputs": [
         "official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-        "adapter-supplied P0 FOM, standard MIM, and logical-time implementation",
-        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject, hla.rti.tck.attribute=Value, and hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction",
+      "adapter-supplied P0 FOM, standard MIM, and logical-time implementation",
+      "hla.rti.tck.objectClass=HLAobjectRoot.TckObject, hla.rti.tck.attribute=Value, and hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction",
         "callback model selected by the adapter"
       ],
-      "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API.",
-      "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
-      ],
-      "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. This mapping is limited to §11.5 report generation; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance. HLAfederate identity, callback metadata, DDM/region setup, and timestamped delivery remain supplemental.",
-      "standard_sections": [
-        "hla-1516.1-2025:clause-11.5"
-      ],
-      "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-          "standard_section": "hla-1516.1-2025:clause-11.5"
-        }
-      ],
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, and HLAinteractionRoot.TckInteraction. After enabling the Java registration by default, it passed without --run-unverified. The Java case checks report metadata, all standard report fields, invoking federate, five supplied arguments, retraction result, exception and serial, then the target-directed timestamped callback and callback-before-grant order. Java results/JUnit: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
+    "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API.",
+    "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, and HLAinteractionRoot.TckInteraction. After enabling the Java registration by default, it passed without --run-unverified. The Java case checks report metadata, all standard report fields, invoking federate, five supplied arguments, retraction result, exception and serial, then the target-directed timestamped callback and callback-before-grant order. Java results/JUnit: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
     },
     {
       "id": "java-tck.service-report-timestamped-object-deletion",
@@ -52461,21 +52516,21 @@
         }
       ],
       "mapping_note": "The existing Java case requests federation save and checks one Initiate Federate Save callback with the exact requested label on each of three joined members before FederateSaveBegun. It also checks empty HLAsuppliedArguments and the type-34 Null HLAreturnedArgument. The two report mappings are limited to §11.5.1; the three lifecycle mappings are limited to the existing §4.20 candidates. This does not cover time-constrained save initiation, timestamped save time, other federation phases, complete §11.5.1 coverage, or conformance.",
-      "adapter_inputs": [
-        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-        "adapter-supplied P0 FOM, HLAstandardMIM-2025.xml, and HLAinteger64Time",
-        "callback model selected by the adapter"
-      ],
-      "standard_sections": [
-        "hla-1516.1-2025:clause-4.20",
-        "hla-1516.1-2025:clause-11.5.1"
-      ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
         "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
         "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
         "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
         "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied P0 FOM, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "callback model selected by the adapter"
       ],
       "evidence_note": "Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. The case verifies the FederateSaveBegun report fields and Null return encoding, then checks the exact save label in Initiate Federate Save callbacks for all three members. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package. Java results/JUnit: out/java-tck/service-report-federate-save-begun-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: out/mgw/cpp-tck-service-report-federate-save-begun-parity-20261115/{results.json,results.xml}. Java catalog and scoped C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
     },
@@ -52830,19 +52885,19 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-timestamped-interaction-delivery"
       ],
-      "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
-      ],
-      "standard_sections": [
-        "hla-1516.1-2025:clause-11.5"
-      ],
-      "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-          "standard_section": "hla-1516.1-2025:clause-11.5"
-        }
-      ],
-      "mapping_note": "Direct §11.5 witness for positive report generation: with Send Service Reports To File disabled and Service Reporting enabled for the publisher, successful timestamped SendInteraction produces an HLAreportServiceInvocation. The case checks SendInteraction, service type 2, success true, empty exception, and serial zero. Publisher identity, callback metadata, detailed supplied/returned argument encodings, and timestamped delivery/retraction correlation are supplemental. It does not claim §11.5.1/Table 5 argument-encoding coverage, full §11.5 coverage, or conformance.",
+    "selected_requirements_lab_requirement_ids": [
+      "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+    ],
+    "standard_sections": [
+      "hla-1516.1-2025:clause-11.5"
+    ],
+    "requirement_mappings": [
+      {
+        "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+        "standard_section": "hla-1516.1-2025:clause-11.5"
+      }
+    ],
+    "mapping_note": "Direct §11.5 witness for positive report generation: with Send Service Reports To File disabled and Service Reporting enabled for the publisher, successful timestamped SendInteraction produces an HLAreportServiceInvocation. The case checks SendInteraction, service type 2, success true, empty exception, and serial zero. Publisher identity, callback metadata, detailed supplied/returned argument encodings, and timestamped delivery/retraction correlation are supplemental. It does not claim §11.5.1/Table 5 argument-encoding coverage, full §11.5 coverage, or conformance.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -52857,14 +52912,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedInteraction",
       "parity": "cpp-tck.service-report-timestamped-interaction",
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14. The verification run supplied p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload; after enabling the Java registration by default, it passed without --run-unverified. Java verifies the successful SendInteraction report and report metadata, then confirms no early delivery and exactly one timestamped application callback before the matching grant with exact payload, tag, time, producer, order, transportation, and public retraction correlation. Results/JUnit: out/java-tck/service-report-timestamped-interaction-success-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-interaction-success-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Evidence is local Umbra only; no independent-provider or conformance claim is made.",
-      "default_status": "run",
-      "adapter_inputs": [
-        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
-        "adapter-supplied P0 application FOM, standard HLAstandardMIM-2025.xml, and HLAinteger64Time",
-        "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
-        "standard service-report support and callback model selected by the adapter"
-      ]
+    "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14. The verification run supplied p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload; after enabling the Java registration by default, it passed without --run-unverified. Java verifies the successful SendInteraction report and report metadata, then confirms no early delivery and exactly one timestamped application callback before the matching grant with exact payload, tag, time, producer, order, transportation, and public retraction correlation. Results/JUnit: out/java-tck/service-report-timestamped-interaction-success-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-interaction-success-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Evidence is local Umbra only; no independent-provider or conformance claim is made.",
+    "default_status": "run",
+    "adapter_inputs": [
+      "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+      "adapter-supplied P0 application FOM, standard HLAstandardMIM-2025.xml, and HLAinteger64Time",
+      "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
+      "standard service-report support and callback model selected by the adapter"
+    ]
     },
     {
       "id": "java-tck.service-report-resign-federation-execution",

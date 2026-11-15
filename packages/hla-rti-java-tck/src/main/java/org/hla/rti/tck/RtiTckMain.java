@@ -3544,12 +3544,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.modify-lookahead-contract",
             "query and modify lookahead across immediate, deferred, and pending-TAR boundaries",
             "time-management",
-            "RTIambassador.enableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.modifyLookahead;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.enableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.modifyLookahead;RTIambassador.timeAdvanceRequest;RTIambassador.enableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.disableTimeConstrained;LogicalTimeFactory.makeZero;LogicalTimeInterval.isZero;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "cpp-1516.1-time-advance-and-grant",
                "cpp-1516.1-time-role-callbacks",
-               "cpp-1516.1-time-management-negative-boundaries"
-            }, false), RtiTckMain::modifyLookaheadContract);
+               "cpp-1516.1-time-management-negative-boundaries",
+               "requirement-candidate-content-clauses-08-time-management-page-208-l72-17"
+            }, true), RtiTckMain::modifyLookaheadContract);
       run(new Scenario("java-tck.modify-lookahead-service-report",
             "verify the standard HLAreportServiceInvocation payload for an accepted deferred Modify Lookahead request",
             "service-reporting",

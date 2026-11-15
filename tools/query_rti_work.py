@@ -1881,20 +1881,19 @@ def cpp_tck_requirement_gap_inventory(
         document_id = str(requirement.get("document_id") or "")
         clause_id = str(requirement.get("clause_id") or "")
         requirement_id = requirement_identifier(requirement) or ""
-        if document and document.casefold() not in document_id.casefold():
+
+        def section_matches(section_query: str) -> bool:
+            sections = set(mapping_sections_by_id.get(requirement_id, set()))
+            if document_id and clause_id:
+                sections.add(f"{document_id}:{clause_id}")
+            return any(
+                trace_section_match(section, section_query) for section in sections
+            )
+
+        if document and document.casefold() != document_id.casefold():
             return False
-        if clause:
-            folded_clause = clause.casefold()
-            requirement_clause_matches = (
-                folded_clause in clause_id.casefold()
-                or folded_clause in str(requirement.get("clause") or "").casefold()
-            )
-            catalog_clause_matches = any(
-                folded_clause in section.casefold()
-                for section in mapping_sections_by_id.get(requirement_id, set())
-            )
-            if not requirement_clause_matches and not catalog_clause_matches:
-                return False
+        if clause and not section_matches(clause):
+            return False
         if (
             coverage_kind
             and str(requirement.get("coverage_kind") or "").casefold()
@@ -1921,6 +1920,13 @@ def cpp_tck_requirement_gap_inventory(
             source_path,
         )
         folded = query.casefold()
+        if re.fullmatch(
+            r"(?:(?:[a-z][a-z0-9_.-]*):)?(?:clause[-_ ]*)?"
+            r"[0-9]+(?:\.[0-9]+)*",
+            query.strip(),
+            flags=re.IGNORECASE,
+        ):
+            return section_matches(query)
         return any(
             isinstance(value, str) and folded in value.casefold() for value in values
         )
@@ -7003,6 +7009,7 @@ def dashboard_snapshot(
     latest = status.get("latest_completed_slice")
     latest_card = None
     if isinstance(latest, dict):
+        is_portable_cpp_tck = latest.get("evidence_kind") == "portable-cpp-tck"
         latest_lane = latest.get("lane")
         latest_focus_lane = latest.get("focus_lane") or latest_lane
         latest_test_case = latest.get("test_case")
@@ -7041,54 +7048,81 @@ def dashboard_snapshot(
         ):
             latest_ctest_command = None
         latest_card = {
+            "evidence_kind": latest.get("evidence_kind"),
+            "owner": latest.get("owner"),
             "lane": latest_lane,
             "focus_lane": latest_focus_lane,
             "plan_id": latest.get("plan_id"),
+            "scenario_ids": latest.get("scenario_ids"),
             "test_case": latest_test_case,
             "assertions": latest.get("assertions"),
             "requirements": latest.get("requirements"),
             "standard_sections": latest.get("standard_sections"),
             "api_surfaces": latest.get("api_surfaces"),
             "source_location": latest.get("source_location"),
+            "direct_results": latest.get("direct_results"),
             "focus_command": (
                 f"python tools/query_rti_work.py focus {latest_focus_lane} --summary --compact"
-                if isinstance(latest_focus_lane, str) and latest_focus_lane
+                if not is_portable_cpp_tck
+                and isinstance(latest_focus_lane, str)
+                and latest_focus_lane
                 else None
             ),
             "trace_command": (
                 f'python tools/query_rti_work.py trace "{latest_test_case}" --summary --compact'
-                if isinstance(latest_test_case, str) and latest_test_case
+                if not is_portable_cpp_tck
+                and isinstance(latest_test_case, str)
+                and latest_test_case
                 else None
             ),
             "case_command": (
                 "python tools/query_rti_work.py case "
                 f"{json.dumps(str(latest.get('plan_id')), ensure_ascii=False)} "
                 "--summary --compact"
-                if isinstance(latest.get("plan_id"), str) and latest.get("plan_id")
+                if not is_portable_cpp_tck
+                and isinstance(latest.get("plan_id"), str)
+                and latest.get("plan_id")
                 else None
             ),
             "matrix_command": (
                 "python tools/query_rti_work.py matrix "
                 f"{json.dumps(str(latest.get('plan_id')), ensure_ascii=False)} --summary --compact"
-                if isinstance(latest.get("plan_id"), str) and latest.get("plan_id")
+                if not is_portable_cpp_tck
+                and isinstance(latest.get("plan_id"), str)
+                and latest.get("plan_id")
                 else None
             ),
             "check_command": (
                 f"python tools/query_rti_work.py check --lane {latest_focus_lane} --summary --compact"
-                if isinstance(latest_focus_lane, str) and latest_focus_lane
+                if not is_portable_cpp_tck
+                and isinstance(latest_focus_lane, str)
+                and latest_focus_lane
                 else None
             ),
-            "ctest_command": lane_ctest_command(lane_handles)
-            or lane_ctest_command(
-                {
-                    "ctest_filter": (
-                        latest_test.get("ctest_filter")
-                        if isinstance(latest_test, dict)
-                        else latest_test_summary.get("ctest_filter")
-                    )
-                }
-            )
-            or latest_ctest_command,
+            "ctest_command": (
+                latest_ctest_command
+                if is_portable_cpp_tck
+                else lane_ctest_command(lane_handles)
+                or lane_ctest_command(
+                    {
+                        "ctest_filter": (
+                            latest_test.get("ctest_filter")
+                            if isinstance(latest_test, dict)
+                            else latest_test_summary.get("ctest_filter")
+                        )
+                    }
+                )
+                or latest_ctest_command
+            ),
+            "direct_command": latest.get("direct_command")
+            if is_portable_cpp_tck
+            else None,
+            "evidence_check_command": latest.get("evidence_check_command")
+            if is_portable_cpp_tck
+            else None,
+            "requirement_check_command": latest.get("requirement_check_command")
+            if is_portable_cpp_tck
+            else None,
         }
 
     queue = indexed_work_queue(index, tests, limit=max(limit, 0))
@@ -7417,21 +7451,28 @@ def resume_snapshot(
         latest_summary = {
             key: latest.get(key)
             for key in (
+                "evidence_kind",
+                "owner",
                 "lane",
                 "focus_lane",
                 "plan_id",
+                "scenario_ids",
                 "test_case",
                 "assertions",
                 "requirements",
                 "standard_sections",
                 "api_surfaces",
                 "source_location",
+                "direct_results",
                 "case_command",
                 "trace_command",
                 "matrix_command",
                 "focus_command",
                 "check_command",
                 "ctest_command",
+                "direct_command",
+                "evidence_check_command",
+                "requirement_check_command",
             )
             if key in latest
         }

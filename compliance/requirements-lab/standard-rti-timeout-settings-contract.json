@@ -13,7 +13,6 @@
       "source": "content/clauses/12-programming-language-mappings-page-402.tex",
       "source_symbol": "§12.13.4.4 Table 31 RTI protocol timeout parameters",
       "tests": [
-        "cpp/tests/process_federation_service_probe.cpp::runPublicSessionPurgeServer",
         "packages/hla-rti-cpp-tck/adapters/current-process/run_message_history_recovery.py::run_case",
         "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionFaultInactiveSessionPurge"
       ]

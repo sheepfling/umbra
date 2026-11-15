@@ -32,7 +32,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     if (
         service_report_case.get("traceability_state") != "requirements-mapped"
         or query_rti_work.source_location_text(service_report_case)
-        != "cpp/tests/mom_service_report_encoding_catch2.cpp:1490"
+        != "cpp/tests/mom_service_report_encoding_catch2.cpp:1085"
         or "hla-1516.1-2025:clause-11.5.1"
         not in service_report_case.get("standard_sections", [])
     ):
@@ -785,7 +785,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     if not isinstance(register_default_region, dict):
         raise AssertionError("default-region generated-name plan row is absent")
     if query_rti_work.source_location_text(register_default_region) != (
-        "cpp/tests/federation_registry_catch2.cpp:12264"
+        "cpp/tests/federation_registry_catch2.cpp:988"
     ):
         raise AssertionError("default-region generated-name source pointer drifted")
     if register_default_region.get("assertions") != 48:
@@ -858,7 +858,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
             "public process default-region generated-name plan row is absent"
         )
     if query_rti_work.source_location_text(public_register_default_region) != (
-        "cpp/tests/ieee1516_2025_connection_default_region_registration_catch2.cpp:459"
+        "cpp/tests/ieee1516_2025_connection_default_region_registration_catch2.cpp:460"
     ):
         raise AssertionError(
             "public process default-region generated-name source pointer drifted"
@@ -989,7 +989,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     if not isinstance(deferred_state_image, dict):
         raise AssertionError("deferred state-image plan row is absent")
     if query_rti_work.source_location_text(deferred_state_image) != (
-        "cpp/tests/federation_registry_catch2.cpp:11943"
+        "cpp/tests/federation_registry_catch2.cpp:888"
     ):
         raise AssertionError("deferred state-image source pointer drifted")
     if deferred_state_image.get("assertions") != 9:
@@ -1055,7 +1055,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     if not isinstance(deferred_cancel, dict):
         raise AssertionError("cancelled deferred ownership-transfer plan row is absent")
     if query_rti_work.source_location_text(deferred_cancel) != (
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp:620"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp:697"
     ):
         raise AssertionError(
             "cancelled deferred ownership-transfer source pointer drifted"
@@ -1113,7 +1113,7 @@ def run_object_mapping_rows(inputs: MappingRowInputs) -> None:
     if not isinstance(deferred_transfer, dict):
         raise AssertionError("deferred ownership-transfer plan row is absent")
     if query_rti_work.source_location_text(deferred_transfer) != (
-        "cpp/tests/ownership_transfer_update_region_catch2.cpp:478"
+        "cpp/tests/ownership_transfer_update_region_catch2.cpp:481"
     ):
         raise AssertionError("deferred ownership-transfer source pointer drifted")
     if deferred_transfer.get("assertions") != 51:

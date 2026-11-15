@@ -220,7 +220,7 @@ if(BUILD_TESTING)
       COMMAND umbra_rti_package_process_smoke forced-resignation
     )
     set_tests_properties(umbra_rti_package_process_forced_resignation_consumer
-      PROPERTIES LABELS "package-process;federate.callback.federate-resigned"
+      PROPERTIES LABELS "package-process-forced-resignation;federate.callback.federate-resigned"
     )
     add_test(
       NAME umbra_rti_package_process_connection_loss_delete_objects_consumer

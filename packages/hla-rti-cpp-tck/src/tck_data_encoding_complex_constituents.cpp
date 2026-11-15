@@ -45,6 +45,17 @@ void requireVariantDiscriminant(rti::DataElement const& element,
       context + " did not expose the selected discriminant");
 }
 
+rti::VariableLengthData encodeThroughDataElementBase(
+    rti::DataElement const& element) {
+  return element.encode();
+}
+
+void decodeThroughDataElementBase(
+    rti::DataElement& element,
+    rti::VariableLengthData const& encoded) {
+  static_cast<void>(element.decode(encoded));
+}
+
 template <typename VariantRecord>
 void requireSelectedVariantRoundTrip(
     std::string const& variantName,
@@ -86,7 +97,7 @@ void requireSelectedVariantRoundTrip(
                       context + " composition");
   }
 
-  auto const encoded = source.encode();
+  auto const encoded = encodeThroughDataElementBase(source);
   VariantRecord decoded{rti::HLAinteger32BE{}};
   addAlternatives(decoded);
   auto const previousDiscriminant =
@@ -101,7 +112,7 @@ void requireSelectedVariantRoundTrip(
   requireVariantDiscriminant(
       decoded.getDiscriminant(), previousDiscriminant.get(),
       context + " receiver before decode");
-  static_cast<void>(decoded.decode(encoded));
+  decodeThroughDataElementBase(decoded, encoded);
   requireVariantDiscriminant(
       decoded.getDiscriminant(), expectedDiscriminant, context + " after decode");
   if (selectComplex) {
@@ -143,14 +154,14 @@ void scenarioComplexDataElementConstituentAccess(
   requireOctetValue(simpleArray.get(0U), simpleState, "HLAfixedArray::get");
   requireOctetValue(simpleArray[1U], static_cast<rti::Octet>(0x31U),
                     "HLAfixedArray::operator[]");
-  auto const encodedSimpleArray = simpleArray.encode();
+  auto const encodedSimpleArray = encodeThroughDataElementBase(simpleArray);
   rti::HLAfixedArray decodedSimpleArray{rti::HLAoctet{}, 2U};
   decodedSimpleArray
       .set(0U, rti::HLAoctet{static_cast<rti::Octet>(0x40U)})
       .set(1U, rti::HLAoctet{static_cast<rti::Octet>(0x41U)});
   require(decodedSimpleArray.size() == 2U,
           "HLAfixedArray decode replacement setup changed its fixed size");
-  static_cast<void>(decodedSimpleArray.decode(encodedSimpleArray));
+  decodeThroughDataElementBase(decodedSimpleArray, encodedSimpleArray);
   require(
       decodedSimpleArray.size() == 2U,
       "HLAfixedArray encode/decode changed the element count");
@@ -166,11 +177,12 @@ void scenarioComplexDataElementConstituentAccess(
       templatedFixedArray.size() == 1U &&
           templatedFixedArray.get(0U).get() == simpleState,
       "HLAfixedArrayT did not expose its templated element");
-  auto const encodedTemplatedFixedArray = templatedFixedArray.encode();
+  auto const encodedTemplatedFixedArray =
+      encodeThroughDataElementBase(templatedFixedArray);
   rti::HLAfixedArrayT<rti::HLAoctet> decodedTemplatedFixedArray{1U};
   decodedTemplatedFixedArray.set(0U, rti::HLAoctet{0x40U});
-  static_cast<void>(
-      decodedTemplatedFixedArray.decode(encodedTemplatedFixedArray));
+  decodeThroughDataElementBase(
+      decodedTemplatedFixedArray, encodedTemplatedFixedArray);
   require(
       decodedTemplatedFixedArray.size() == 1U &&
           decodedTemplatedFixedArray.get(0U).get() == simpleState,
@@ -180,9 +192,10 @@ void scenarioComplexDataElementConstituentAccess(
   nestedFixedArray.set(0U, nestedRecord);
   requireRecordValues(nestedFixedArray.get(0U), 1516, nestedState,
                       "HLAfixedArray nested complex element");
-  auto const encodedNestedFixedArray = nestedFixedArray.encode();
+  auto const encodedNestedFixedArray =
+      encodeThroughDataElementBase(nestedFixedArray);
   rti::HLAfixedArray decodedNestedFixedArray{makeRecord(0, 0), 1U};
-  static_cast<void>(decodedNestedFixedArray.decode(encodedNestedFixedArray));
+  decodeThroughDataElementBase(decodedNestedFixedArray, encodedNestedFixedArray);
   require(decodedNestedFixedArray.size() == 1U,
           "HLAfixedArray encode/decode changed its nested element count");
   requireRecordValues(decodedNestedFixedArray.get(0U), 1516, nestedState,
@@ -191,9 +204,11 @@ void scenarioComplexDataElementConstituentAccess(
   rti::HLAvariableArray simpleVariableArray{rti::HLAoctet{}};
   require(simpleVariableArray.size() == 0U,
           "HLAvariableArray prototype was counted as an encoded element");
-  auto const encodedEmptyVariableArray = simpleVariableArray.encode();
+  auto const encodedEmptyVariableArray =
+      encodeThroughDataElementBase(simpleVariableArray);
   rti::HLAvariableArray decodedEmptyVariableArray{rti::HLAoctet{}};
-  static_cast<void>(decodedEmptyVariableArray.decode(encodedEmptyVariableArray));
+  decodeThroughDataElementBase(
+      decodedEmptyVariableArray, encodedEmptyVariableArray);
   require(decodedEmptyVariableArray.size() == 0U,
           "HLAvariableArray empty encode/decode counted its prototype");
   rti::HLAvariableArray decodedPreviouslyPopulatedVariableArray{
@@ -204,8 +219,8 @@ void scenarioComplexDataElementConstituentAccess(
       rti::HLAoctet{static_cast<rti::Octet>(0x31U)});
   require(decodedPreviouslyPopulatedVariableArray.size() == 2U,
           "HLAvariableArray decode replacement setup lost its elements");
-  static_cast<void>(decodedPreviouslyPopulatedVariableArray.decode(
-      encodedEmptyVariableArray));
+  decodeThroughDataElementBase(
+      decodedPreviouslyPopulatedVariableArray, encodedEmptyVariableArray);
   require(decodedPreviouslyPopulatedVariableArray.size() == 0U,
           "HLAvariableArray decoding an empty value retained stale elements");
   simpleVariableArray.addElement(rti::HLAoctet{simpleState});
@@ -219,15 +234,16 @@ void scenarioComplexDataElementConstituentAccess(
                     "HLAvariableArray::operator[]");
   requireOctetValue(simpleVariableArray.get(1U), secondVariableArrayState,
                     "HLAvariableArray::get after size growth");
-  auto const encodedSimpleVariableArray = simpleVariableArray.encode();
+  auto const encodedSimpleVariableArray =
+      encodeThroughDataElementBase(simpleVariableArray);
   rti::HLAvariableArray decodedSimpleVariableArray{rti::HLAoctet{}};
   decodedSimpleVariableArray.addElement(rti::HLAoctet{0x40U});
   decodedSimpleVariableArray.addElement(rti::HLAoctet{0x41U});
   decodedSimpleVariableArray.addElement(rti::HLAoctet{0x42U});
   require(decodedSimpleVariableArray.size() == 3U,
           "HLAvariableArray decode replacement setup lost its elements");
-  static_cast<void>(
-      decodedSimpleVariableArray.decode(encodedSimpleVariableArray));
+  decodeThroughDataElementBase(
+      decodedSimpleVariableArray, encodedSimpleVariableArray);
   require(
       decodedSimpleVariableArray.size() == 2U,
       "HLAvariableArray encode/decode changed the element count");
@@ -243,14 +259,15 @@ void scenarioComplexDataElementConstituentAccess(
       templatedVariableArray.size() == 1U &&
           templatedVariableArray.get(0U).get() == simpleState,
       "HLAvariableArrayT did not expose its templated element");
-  auto const encodedTemplatedVariableArray = templatedVariableArray.encode();
+  auto const encodedTemplatedVariableArray =
+      encodeThroughDataElementBase(templatedVariableArray);
   rti::HLAvariableArrayT<rti::HLAoctet> decodedTemplatedVariableArray;
   decodedTemplatedVariableArray.addElement(rti::HLAoctet{0x40U});
   decodedTemplatedVariableArray.addElement(rti::HLAoctet{0x41U});
   require(decodedTemplatedVariableArray.size() == 2U,
           "HLAvariableArrayT decode replacement setup lost its elements");
-  static_cast<void>(
-      decodedTemplatedVariableArray.decode(encodedTemplatedVariableArray));
+  decodeThroughDataElementBase(
+      decodedTemplatedVariableArray, encodedTemplatedVariableArray);
   require(
       decodedTemplatedVariableArray.size() == 1U &&
           decodedTemplatedVariableArray.get(0U).get() == simpleState,
@@ -260,10 +277,11 @@ void scenarioComplexDataElementConstituentAccess(
   nestedVariableArray.addElement(nestedRecord);
   requireRecordValues(nestedVariableArray.get(0U), 1516, nestedState,
                       "HLAvariableArray nested complex element");
-  auto const encodedNestedVariableArray = nestedVariableArray.encode();
+  auto const encodedNestedVariableArray =
+      encodeThroughDataElementBase(nestedVariableArray);
   rti::HLAvariableArray decodedNestedVariableArray{makeRecord(0, 0)};
-  static_cast<void>(
-      decodedNestedVariableArray.decode(encodedNestedVariableArray));
+  decodeThroughDataElementBase(
+      decodedNestedVariableArray, encodedNestedVariableArray);
   require(decodedNestedVariableArray.size() == 1U,
           "HLAvariableArray encode/decode changed its nested element count");
   requireRecordValues(decodedNestedVariableArray.get(0U), 1516, nestedState,
@@ -279,21 +297,22 @@ void scenarioComplexDataElementConstituentAccess(
                     "HLAfixedRecord simple constituent");
   requireRecordValues(compositeRecord[1U], 1516, nestedState,
                       "HLAfixedRecord nested complex constituent");
-  auto const encodedCompositeRecord = compositeRecord.encode();
+  auto const encodedCompositeRecord =
+      encodeThroughDataElementBase(compositeRecord);
   rti::HLAfixedRecord decodedCompositeRecord;
   decodedCompositeRecord
       .appendElement(rti::HLAoctet{})
       .appendElement(makeRecord(0, 0));
-  static_cast<void>(decodedCompositeRecord.decode(encodedCompositeRecord));
+  decodeThroughDataElementBase(decodedCompositeRecord, encodedCompositeRecord);
   require(decodedCompositeRecord.size() == 2U,
           "HLAfixedRecord encode/decode changed its constituent count");
   requireOctetValue(decodedCompositeRecord.get(0U), simpleState,
                     "HLAfixedRecord decoded simple constituent");
   requireRecordValues(decodedCompositeRecord.get(1U), 1516, nestedState,
                       "HLAfixedRecord decoded nested complex constituent");
-  auto const encodedNestedRecord = nestedRecord.encode();
+  auto const encodedNestedRecord = encodeThroughDataElementBase(nestedRecord);
   auto decodedNestedRecord = makeRecord(0, 0);
-  static_cast<void>(decodedNestedRecord.decode(encodedNestedRecord));
+  decodeThroughDataElementBase(decodedNestedRecord, encodedNestedRecord);
   requireRecordValues(
       decodedNestedRecord, 1516, nestedState,
       "HLAfixedRecord encode/decode");
@@ -327,7 +346,8 @@ void scenarioComplexDataElementConstituentAccess(
       "HLAvariantRecordT did not expose its templated discriminant");
   requireOctetValue(templatedVariantRecord.getVariant(), simpleState,
                     "HLAvariantRecordT selected alternative");
-  auto const encodedTemplatedVariantRecord = templatedVariantRecord.encode();
+  auto const encodedTemplatedVariantRecord =
+      encodeThroughDataElementBase(templatedVariantRecord);
   rti::HLAvariantRecordT<rti::HLAinteger32BE> decodedTemplatedVariantRecord;
   decodedTemplatedVariantRecord
       .addVariant(simpleDiscriminant, rti::HLAoctet{})
@@ -337,8 +357,8 @@ void scenarioComplexDataElementConstituentAccess(
   require(
       decodedTemplatedVariantRecord.getDiscriminant().get() == 2,
       "HLAvariantRecordT decode replacement setup selected the wrong variant");
-  static_cast<void>(decodedTemplatedVariantRecord.decode(
-      encodedTemplatedVariantRecord));
+  decodeThroughDataElementBase(
+      decodedTemplatedVariantRecord, encodedTemplatedVariantRecord);
   require(
       decodedTemplatedVariantRecord.getDiscriminant().get() == 1,
       "HLAvariantRecordT encode/decode changed the selected discriminant");
@@ -353,7 +373,7 @@ void scenarioComplexDataElementConstituentAccess(
       .setVariant(complexDiscriminant, nestedRecord)
       .setDiscriminant(complexDiscriminant);
   auto const encodedComplexTemplatedVariantRecord =
-      complexTemplatedVariantRecord.encode();
+      encodeThroughDataElementBase(complexTemplatedVariantRecord);
   rti::HLAvariantRecordT<rti::HLAinteger32BE>
       decodedComplexTemplatedVariantRecord;
   decodedComplexTemplatedVariantRecord
@@ -361,8 +381,9 @@ void scenarioComplexDataElementConstituentAccess(
       .addVariant(complexDiscriminant, nestedRecord)
       .setVariant(simpleDiscriminant, rti::HLAoctet{simpleState})
       .setDiscriminant(simpleDiscriminant);
-  static_cast<void>(decodedComplexTemplatedVariantRecord.decode(
-      encodedComplexTemplatedVariantRecord));
+  decodeThroughDataElementBase(
+      decodedComplexTemplatedVariantRecord,
+      encodedComplexTemplatedVariantRecord);
   require(
       decodedComplexTemplatedVariantRecord.getDiscriminant().get() == 2,
       "HLAvariantRecordT decode did not replace simple with complex alternative");

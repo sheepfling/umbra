@@ -125,6 +125,30 @@ final class ModifyLookaheadTck {
          JavaTckSupport.expectFailure(() -> regulator.timeAdvanceRequest(earlierTarget),
             "LogicalTimeAlreadyPassed", "time advance request behind granted logical time");
 
+         LogicalTimeInterval zeroLookahead = (LogicalTimeInterval) timeFactory.makeZero();
+         JavaTckSupport.check(zeroLookahead.isZero(),
+            "the logical-time factory did not produce a zero lookahead interval");
+         regulator.modifyLookahead(zeroLookahead);
+         JavaTckSupport.check(epsilon.equals(regulator.queryLookahead()),
+            "a zero lookahead request took effect before the next grant");
+         LogicalTime zeroRegulatorTarget = add(
+            initialRegulatorTime, intervalOffset(epsilon, 9));
+         LogicalTime zeroConstrainedTarget = add(
+            initialConstrainedTime, intervalOffset(epsilon, 8));
+         regulator.timeAdvanceRequest(zeroRegulatorTarget);
+         constrained.timeAdvanceRequest(zeroConstrainedTarget);
+         JavaTckSupport.drain(regulator);
+         JavaTckSupport.drain(constrained);
+         JavaTckSupport.check(regulatorRecorder.timeAdvanceGrants == 3
+               && constrainedRecorder.timeAdvanceGrants == 3,
+            "the zero-lookahead boundary TAR did not complete for both federates");
+         JavaTckSupport.check(zeroRegulatorTarget.equals(regulator.queryLogicalTime())
+               && zeroConstrainedTarget.equals(constrained.queryLogicalTime()),
+            "the zero-lookahead boundary grant returned an unexpected logical time");
+         LogicalTimeInterval appliedLookahead = regulator.queryLookahead();
+         JavaTckSupport.check(appliedLookahead.isZero() && zeroLookahead.equals(appliedLookahead),
+            "the accepted zero lookahead did not become active after the grant");
+
          constrained.disableTimeConstrained();
          constrainedRole = false;
          JavaTckSupport.expectFailure(() -> constrained.disableTimeConstrained(),

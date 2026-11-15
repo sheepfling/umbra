@@ -17,10 +17,13 @@ from tools.run_cpp_tck import (
     build_parser,
     ctest_registered_scenarios,
     configure,
+    custom_fedtime_provider_library,
     direct_run_environment,
+    is_portable_dispatch_scenario,
     merge_json_evidence_parts,
     run_command,
     run_ctest,
+    run_portable_dispatch_direct,
     resolve_inputs,
     resolve_scenario_set,
     verify_configured_package,
@@ -109,6 +112,78 @@ class DirectRunEnvironmentTests(unittest.TestCase):
                 environment[variable],
                 os.pathsep.join((str(runtime_directory), "existing-runtime")),
             )
+
+    def test_custom_fedtime_direct_run_loads_adapter_provider(self) -> None:
+        scenario_id = "cpp-tck.federation-supplied-custom-tradt"
+        self.assertTrue(is_portable_dispatch_scenario(scenario_id))
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            build_directory = root / "build"
+            build_directory.mkdir()
+            provider = build_directory / "custom-fedtime-provider.dll"
+            provider.write_bytes(b"test provider")
+            manifest = build_directory / "portable-tck-fedtime-provider-Debug.txt"
+            manifest.write_text(str(provider), encoding="utf-8")
+            inputs = {
+                "build_directory": build_directory,
+                "package_prefix": root / "package",
+            }
+            arguments = SimpleNamespace(
+                callback_model="both", configuration="Debug"
+            )
+            process_results = [
+                SimpleNamespace(
+                    returncode=0,
+                    stdout=f"passed {scenario_id} [{model}]\n",
+                    stderr="",
+                )
+                for model in ("evoked", "immediate")
+            ]
+            with (
+                patch(
+                    "tools.run_cpp_tck.direct_arguments",
+                    return_value=["--scenario", scenario_id],
+                ),
+                patch(
+                    "tools.run_cpp_tck.subprocess.run",
+                    side_effect=process_results,
+                ) as run,
+                patch("builtins.print"),
+            ):
+                run_portable_dispatch_direct(
+                    arguments,
+                    inputs,
+                    build_directory / "hla_rti_cpp_tck.exe",
+                    {"id": scenario_id, "runner_id": scenario_id},
+                    None,
+                    None,
+                )
+
+            environment = run.call_args_list[0].kwargs["env"]
+            self.assertEqual(
+                str(provider), environment["UMBRA_FEDTIME_PROVIDER_LIBRARY"]
+            )
+            runtime_variable = (
+                "PATH"
+                if os.name == "nt"
+                else (
+                    "DYLD_LIBRARY_PATH"
+                    if sys.platform == "darwin"
+                    else "LD_LIBRARY_PATH"
+                )
+            )
+            self.assertEqual(
+                str(build_directory),
+                environment[runtime_variable].split(os.pathsep, maxsplit=1)[0],
+            )
+            self.assertEqual(2, run.call_count)
+
+    def test_custom_fedtime_provider_requires_configured_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with self.assertRaisesRegex(
+                ValueError, "provider path manifest is missing"
+            ):
+                custom_fedtime_provider_library(Path(temporary_directory), "Debug")
 
 
 class CTestParallelismTests(unittest.TestCase):
@@ -244,6 +319,36 @@ class ScenarioFomDefaultsTests(unittest.TestCase):
             "non-regulated-grant-enabled.xml",
             Path(bindings["restore-pending-time-advance"]).name,
         )
+        self.assertEqual(
+            "non-regulated-grant-enabled.xml",
+            Path(bindings["restore-pending-flush-queue-request"]).name,
+        )
+
+    def test_nrg_regulator_release_has_default_enabled_switch_fom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            arguments = build_parser().parse_args(
+                ["--package-prefix", temporary_directory]
+            )
+            inputs = resolve_inputs(arguments)
+
+        bindings = dict(binding.split("=", 1) for binding in inputs["scenario_foms"])
+        self.assertEqual(
+            "non-regulated-grant-enabled.xml",
+            Path(bindings["nrg-regulator-release"]).name,
+        )
+
+    def test_federation_supplied_custom_tradt_has_default_fom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            arguments = build_parser().parse_args(
+                ["--package-prefix", temporary_directory]
+            )
+            inputs = resolve_inputs(arguments)
+
+        bindings = dict(binding.split("=", 1) for binding in inputs["scenario_foms"])
+        self.assertEqual(
+            "time-representation-custom-tradt-tck.xml",
+            Path(bindings["federation-supplied-custom-tradt"]).name,
+        )
 
     def test_additional_join_cases_have_default_duplicate_and_conflict_foms(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -370,8 +475,15 @@ class ScenarioFomDefaultsTests(unittest.TestCase):
             / "packages/hla-rti-cpp-tck/adapters/current-package/CMakeLists.txt"
         )
         adapter_configuration = adapter_cmake.read_text(encoding="utf-8")
+        self.assertIn(
+            'portable-tck-fedtime-provider-$<CONFIG>.txt', adapter_configuration
+        )
 
         for key, fixture in (
+            (
+                "federation-supplied-custom-tradt",
+                "time-representation-custom-tradt-tck.xml",
+            ),
             (
                 "delay-subscription-evaluation",
                 "delay-subscription-evaluation-tck.xml",

@@ -27,42 +27,33 @@ Use `resume` once, then `ready`, `case <handle>`, and `matrix <handle>` for the 
 | Did my lane's mappings drift? | `python tools/query_rti_work.py check --lane <tag> --summary --compact` |
 | Is the saved roadmap/traceability snapshot current? | `python tools/query_rti_work.py dashboard --summary --compact` |
 
-Replace placeholders; quote multi-word titles. Topic lookups are count-only: `roadmap <topic> --summary --compact` finds a family; `item <family-id> --summary --compact` previews five cases. Don't expand a family to trace one test. Case cards show C++ source, direct 2025 subsection pairs, APIs, and focused handles; use their case-specific CTest selector. `focus`/`check --lane` take lane tags. `unplanned` finds tests missing plan rows; `unmapped` finds rows needing mapping or disposition. Keep family tags tied to real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `gaps --family <id>` is family-local: a requirement can be uncovered in that family while already mapped by another family's test; the result reports both scopes. Omit `--family` for global uncovered requirements. `check` validates the live plan; `check --historical` audits history. Mark replaced history `superseded_by`; don't rewrite it. Use exact case/matrix handles for direct mappings and `--verbose` only when needed. `requirement` and `matrix` also show portable C++ TCK catalog mappings separately; these are traceability pointers, not execution or pass/fail evidence.
+Replace placeholders and quote multi-word titles. `roadmap` finds families; `item` previews five cases. Case cards show source, direct 2025 clauses, APIs, and focused CTest selectors. `focus`/`check --lane` take lane tags. `unplanned` and `unmapped` report missing plan rows or mappings. Keep family tags on real Catch2 rows; `ready --include-source-only` includes unmapped source tests. `gaps --family` is family-local; omit it for global gaps. `check` audits the live plan; `check --historical` audits history. Supersede old history instead of rewriting it. Use exact case/matrix handles; reserve `--verbose` for detail. `requirement`/`matrix` also show C++ TCK catalog crosswalks, not execution or conformance evidence.
 
 The parallel-lane query defaults to active work; use `--state ready` to find unclaimed lanes or `--state all` for completed history too.
 
-The full 2025 requirement export reads the pinned `.compliance/corpus-bundle.json`
-and current Catch2 plan/C++ TCK catalog without syncing the Requirements Lab. It
-writes `out/reports/ieee-1516-2025-requirement-coverage.csv` (one row per
-requirement) and `out/reports/ieee-1516-2025-requirement-coverage-by-section.csv`
-(section mapping totals). Mapping and TCK catalog promotion are traceability
-metadata, not current test-run or conformance results.
+The 2025 export reads the pinned corpus, Catch2 plan, and C++ TCK catalog without
+syncing the Lab; it writes requirement and section CSVs under `out/reports/`.
+Mappings and TCK promotion are traceability metadata, not test-run or conformance
+results.
 
-For a source-verified Requirements Lab subsection-attribution defect, preserve
-the stable Lab requirement ID, record exported and source-backed clauses in
-`compliance/requirements-lab/known-issues.json`, and use a
-`requirement_section_mapping_overrides` row that cites that issue. Query output
-keeps the exported section visible while using the corrected canonical pair;
-never silently rewrite the pinned Lab mapping. Internal tests belong to a
-focused lane but use an explicit no-normative-mapping disposition.
+For a source-verified Lab attribution defect, preserve its requirement ID and
+record both clauses in `known-issues.json`; cite that issue in the mapping
+override. Queries retain the exported and corrected clauses; never rewrite the
+pinned mapping silently. Internal tests need a lane and explicit no-normative
+mapping disposition.
 
 ## Work loop
 
-1. Read `resume` once. If it returns a `new-case-needed` slice, treat that as
-   the selected task; `ready --summary --compact` adds acceptance criteria and
-   the seed's direct requirement-to-clause pairs. If it asks you to choose a
-   family, use the one recommended family and its `work` handle; only use a
-   targeted `roadmap <topic/API>` lookup when that pointer is missing or stale.
-   A `gap_inventory_head` is a coverage pointer, not an implementation task.
-2. Read the selected seed `case` or requirement/section `matrix` only when
-   source detail or crosswalk detail is needed.
-3. Open the returned source location. Implement one bounded RTI behavior.
-4. Build its named target and run its focused C++ tests.
-5. Update that case's mapping/evidence and leave one concrete next handoff.
+1. Read `resume` once. Use a returned `new-case-needed` slice; if it asks for a
+   family, take the recommended `work` handle. Query a topic only if the pointer
+   is stale. A gap inventory is a coverage pointer, not an implementation task.
+2. Read the selected `case` or `matrix` only when source or crosswalk detail is
+   needed; open its source, then implement one bounded RTI behavior.
+3. Build the named target, run focused C++ tests, update its mapping/evidence,
+   and leave one concrete next handoff.
 
-If a handoff is missing, repair that pointer; avoid broad context collection or
-Lab re-syncs. Unmapped internal tests need an explicit disposition, not an
-invented requirement. Passing development tests are not conformance evidence.
+If a handoff is missing, repair it; avoid broad searches and Lab re-syncs.
+Unmapped internal tests need a disposition, not an invented requirement.
+Passing development tests are not conformance evidence.
 
-Sources: [roadmap index](ROADMAP-INDEX.json) for the next task; [Catch2 plan](../../compliance/requirements-lab/catch2-test-plan.json) for mappings.
-The [command guide](QUERY-GUIDE.md) and [archived examples](QUERY-CARD-HISTORY.md) are optional; search a specific heading instead of loading them whole.
+Sources: [roadmap index](ROADMAP-INDEX.json) for tasks; [Catch2 plan](../../compliance/requirements-lab/catch2-test-plan.json) for mappings. The [command guide](QUERY-GUIDE.md) and [history](QUERY-CARD-HISTORY.md) are optional; search a heading instead of loading them whole.

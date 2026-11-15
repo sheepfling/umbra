@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -14,6 +15,19 @@ from xml.etree import ElementTree
 
 
 ROOT = Path(__file__).resolve().parents[4]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.cpp_tck import (
+    DEFAULT_CATALOG,
+    callback_models_for_scenario,
+)
+from tools.run_cpp_tck import (
+    annotate_cpp_api_evidence,
+    validate_direct_evidence,
+)
+
+
 DEFAULT_FOM = (
     ROOT
     / "third_party"
@@ -56,6 +70,10 @@ SCENARIO_GROUPS = (
     (
         "cpp-tck.timestamped-object-deletion-future-nmra-arrival",
         "cpp-tck.timestamped-object-deletion-future-nmra-arrival-contract",
+    ),
+    (
+        "cpp-tck.timestamped-object-deletion-future-nmr-arrival",
+        "cpp-tck.timestamped-object-deletion-future-nmr-arrival-contract",
     ),
     (
         "cpp-tck.timestamped-object-deletion-future-tara-arrival",
@@ -103,7 +121,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--timeout-ms", type=int, default=10000)
     parser.add_argument(
         "--callback-model",
-        choices=("evoked", "immediate"),
+        choices=("both", "evoked", "immediate"),
         default="evoked",
     )
     parser.add_argument("--startup-timeout-s", type=float, default=30.0)
@@ -163,16 +181,55 @@ def run() -> int:
     arguments.junit.parent.mkdir(parents=True, exist_ok=True)
     selected_scenarios = arguments.scenario or SCENARIOS
     selected_scenario_set = set(selected_scenarios)
-    scenario_groups = tuple(
-        group
-        for group in (
-            tuple(scenario for scenario in group if scenario in selected_scenario_set)
-            for group in SCENARIO_GROUPS
+    catalog = json.loads(DEFAULT_CATALOG.read_text(encoding="utf-8"))
+    raw_catalog_scenarios = catalog.get("scenarios")
+    if not isinstance(raw_catalog_scenarios, list):
+        raise ValueError("The portable C++ TCK catalog has no scenarios array")
+    catalog_scenarios = {
+        scenario["id"]: scenario
+        for scenario in raw_catalog_scenarios
+        if isinstance(scenario, dict) and isinstance(scenario.get("id"), str)
+    }
+    missing_catalog_scenarios = [
+        scenario for scenario in selected_scenarios if scenario not in catalog_scenarios
+    ]
+    if missing_catalog_scenarios:
+        raise ValueError(
+            "The selected process-separated TCK scenario is absent from the C++ catalog: "
+            + ", ".join(missing_catalog_scenarios)
         )
-        if group
+    selected_catalog_scenarios = [
+        catalog_scenarios[scenario] for scenario in selected_scenarios
+    ]
+    requested_callback_models = (
+        ("evoked", "immediate")
+        if arguments.callback_model == "both"
+        else (arguments.callback_model,)
     )
+    scenario_groups = []
+    for callback_model in requested_callback_models:
+        eligible_scenarios = {
+            scenario_id
+            for scenario_id in selected_scenarios
+            if callback_model
+            in callback_models_for_scenario(catalog_scenarios[scenario_id])
+        }
+        for group in SCENARIO_GROUPS:
+            selected_group = tuple(
+                scenario
+                for scenario in group
+                if scenario in selected_scenario_set
+                and scenario in eligible_scenarios
+            )
+            if selected_group:
+                scenario_groups.append((callback_model, selected_group))
+    if not scenario_groups:
+        raise ValueError("The selected scenarios declare no requested callback model")
     print(
-        "Selected C++ TCK scenarios: " + ", ".join(selected_scenarios),
+        "Selected C++ TCK scenarios: "
+        + ", ".join(selected_scenarios)
+        + "; callback models: "
+        + ", ".join(requested_callback_models),
         flush=True,
     )
 
@@ -211,7 +268,9 @@ def run() -> int:
                 fixture,
                 arguments.startup_timeout_s,
             )
-            for group_index, scenario_group in enumerate(scenario_groups):
+            for group_index, (callback_model, scenario_group) in enumerate(
+                scenario_groups
+            ):
                 group_directory = run_directory / f"scenario-group-{group_index}"
                 coordination_directory = group_directory / "coordination"
                 coordination_directory.mkdir(parents=True)
@@ -228,7 +287,7 @@ def run() -> int:
                     "--provider-id",
                     "current-process",
                     "--callback-model",
-                    arguments.callback_model,
+                    callback_model,
                     "--timeout-ms",
                     str(arguments.timeout_ms),
                     "--owner-rti-address",
@@ -271,6 +330,9 @@ def run() -> int:
                     )
                     or scenario.startswith(
                         "cpp-tck.timestamped-attribute-update-future-tara-arrival"
+                    )
+                    or scenario.startswith(
+                        "cpp-tck.timestamped-object-deletion-future-nmr-arrival"
                     )
                     or scenario.startswith(
                         "cpp-tck.timestamped-object-deletion-future-nmra-arrival"
@@ -372,6 +434,7 @@ def run() -> int:
             )
             raise RuntimeError(f"The NMR coordinator fixture failed: {detail}")
         result_document = dict(result_documents[0])
+        result_document["callback_model"] = arguments.callback_model
         result_document["results"] = [
             result
             for document in result_documents
@@ -379,6 +442,12 @@ def run() -> int:
         ]
         arguments.results.write_text(
             json.dumps(result_document, indent=2) + "\n", encoding="utf-8"
+        )
+        annotate_cpp_api_evidence(arguments.results, selected_catalog_scenarios)
+        validate_direct_evidence(
+            arguments.results,
+            selected_catalog_scenarios,
+            arguments.callback_model,
         )
         junit_cases = [
             testcase

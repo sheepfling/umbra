@@ -3,7 +3,7 @@
   "kind": "requirements-reference",
   "document_id": "hla-1516.2-2025",
   "status": "private-preflight-not-public-evidence",
-  "notes": "This contract pins one bounded IEEE 1516.2-2025 completed-model composition rule: every supplied object-class hierarchy must be rooted at HLAobjectRoot and every supplied interaction-class hierarchy must be rooted at HLAinteractionRoot. The check runs after compatible DIF modules merge, rejects only a nonstandard top-level class, and leaves an omitted objects or interactions table representable for an incomplete DIF module. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
+  "notes": "This contract pins one bounded IEEE 1516.2-2025 completed-model composition rule: every supplied object-class hierarchy must be rooted at HLAobjectRoot and every supplied interaction-class hierarchy must be rooted at HLAinteractionRoot. The current focused case verifies standard roots are supplied when those tables omit them and leaves an omitted objects or interactions table representable for an incomplete DIF module; it does not verify rejection of a nonstandard top-level class. This is private source/test traceability only, not a FOM conformance or public-service evidence claim.",
   "requirements": [
     {
       "id": "umbra-omt-object-class-standard-root",
@@ -12,7 +12,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateStandardRootClassHierarchies",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires standard object and interaction roots"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composer supplies omitted standard object and interaction roots"
       ]
     },
     {
@@ -22,7 +22,7 @@
       "source": "cpp/src/internal/fom/libxml2_fom_composer_validators.cpp",
       "source_symbol": "validateStandardRootClassHierarchies",
       "tests": [
-        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composition preflight requires standard object and interaction roots"
+        "cpp/tests/libxml2_fom_composer_catch2.cpp::The FOM composer supplies omitted standard object and interaction roots"
       ]
     }
   ]
