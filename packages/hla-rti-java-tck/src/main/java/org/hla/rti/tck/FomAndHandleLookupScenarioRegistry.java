@@ -846,7 +846,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "cpp-1516.1-normalize-object-class-handle-membership-boundaries",
                "cpp-1516.1-normalize-interaction-class-handle-membership-boundaries",
                "cpp-1516.1-normalize-object-instance-handle-membership-boundaries"
-            }, false), RtiTckMain::handleNormalizationMembershipBoundaries);
+            }, true), RtiTckMain::handleNormalizationMembershipBoundaries);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.update-rate-lookups-valid-inputs-after-resignation",
             "check update-rate lookups reject valid FOM inputs after resignation",
             "handle-lookup",

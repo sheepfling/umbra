@@ -15020,7 +15020,8 @@ public final class RtiTckMain {
 
    static void handleNormalizationMembershipBoundaries() throws Exception {
       HandleNormalizationMembershipBoundariesTck.run(factory(), requireFom(),
-         timeImplementation(), objectClassName(), attributeName(), interactionClassName(),
+         timeImplementation(), typedObjectClassName(), typedIdentityAttributeName(),
+         typedInteractionClassName(),
          callbackModel());
    }
 

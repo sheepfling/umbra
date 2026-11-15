@@ -53380,8 +53380,16 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#handleNormalizationMembershipBoundaries",
       "parity": "cpp-tck.handle-normalization-membership-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, object/attribute/interaction names, logical-time implementation, provider, endpoint, and callback model; no provider runtime evidence is yet recorded."
+      "mapping_note": "The five cpp-1516.1-normalize-* requirement_ids are repository-internal scenario references. The paired C++ catalog case has no direct requirement-section mapping, so this Java scenario makes no direct normative mapping claim.",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Results: out/java-tck/handle-normalization-membership-boundaries-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Provider-neutral traceability exports are out/java-tck/handle-normalization-membership-boundaries-java-parity-20261115/{provider-neutral-evoked,provider-neutral-immediate}.json; each reports one pass and zero failures. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "parity_scope_note": "The Java mirror checks all five normalization services with the owner federate's valid handles before connect, after connect before membership, and after the probe federate joins and resigns while connected; it uses the same probe state sequence as the C++ scenario. The five requirement IDs are internal references only, with no direct requirement-section mapping claimed.",
+      "default_status": "run",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTypedObject, its Identity attribute, and HLAinteractionRoot.TckTypedInteraction",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.callback-controls-attribute-update",

@@ -15465,6 +15465,7 @@
       "cpp_test": "src/portable_tck.cpp#scenarioHandleNormalizationMembershipBoundariesPortable",
       "runner_id": "cpp-tck.handle-normalization-membership-boundaries",
       "parity": "java-tck.handle-normalization-membership-boundaries",
+      "parity_scope_note": "The Java mirror checks the same five normalization services with valid standard handles before Connect, after Connect before membership, and after the probe joins and resigns while connected. The five cpp-1516.1-normalize-* IDs remain repository-internal references with no direct requirement-section mapping claimed. Java local-provider results pass in both callback models; the C++ scenario remains the source for installed-package evidence.",
       "default_status": "run",
       "promotion": "promoted"
     },

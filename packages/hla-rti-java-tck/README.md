@@ -4377,11 +4377,14 @@ handle. The test creates no regions and calls no DDM region services. This is
 local-provider evidence, not independent-provider interoperability or
 conformance evidence.
 
-The opt-in `java-tck.handle-normalization-membership-boundaries` case checks
-service-group, federate, object-class, interaction-class, and object-instance
-normalization before connection, while connected but unjoined, and after
-resignation. Its fixture uses the adapter's FOM and standard object/interaction
-names and registers one ordinary object; provider runtime remains unverified.
+`java-tck.handle-normalization-membership-boundaries` checks service-group,
+federate, object-class, interaction-class, and object-instance normalization
+before connection, while connected but unjoined, and after the probe joins and
+resigns. It uses the regular typed TCK FOM, registers one object, and passed the
+focused current-source Umbra JNI runner under both callback models. Its five
+requirement IDs are internal scenario references; no direct normative mapping
+is claimed. This is local-provider evidence, not independent-provider
+interoperability or conformance evidence.
 
 The opt-in `java-tck.timestamped-interaction-source-resignation-fanout` case
 queues one timestamped interaction for two constrained recipients, advances one
