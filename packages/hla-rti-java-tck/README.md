@@ -765,13 +765,16 @@ under both callback models against current-source Umbra JNI; results/JUnit
 are in `out/java-tck/fom-simple-data-type-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
 These examples do not establish exhaustive name-convention coverage,
 independent-provider behavior, or conformance.
-The opt-in `java-tck.fom-model-identification-name-valid` scenario supplies a
+The default-run `java-tck.fom-model-identification-name-valid` scenario supplies a
 schema-valid FOM with a nonempty HLA/XML-compatible Model Identification Name
 to public Create and destroys the resulting federation. Supply
 `model-identification-name-valid-tck.xml` through
 `hla.rti.tck.modelIdentificationNameValidFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; this covers the valid
-input path only.
+callback models against current-source JNI and the pinned Java API with
+HLAinteger64Time. Results/JUnit are in
+`out/java-tck/fom-model-identification-name-valid-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This covers the valid input path only; independent-provider behavior and
+conformance are not claimed.
 The default-run `java-tck.fom-enumerated-data-type-name-convention` scenario
 accepts a valid Enumerated Data Type name and rejects its period-containing
 counterpart as `InconsistentFOM`. Supply the paired fixtures through

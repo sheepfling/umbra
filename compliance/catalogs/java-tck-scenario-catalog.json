@@ -14858,7 +14858,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomModelIdentificationNameValid",
       "parity": "cpp-tck.fom-model-identification-name-valid",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -14869,8 +14869,7 @@
         "logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "exclusion": "Focused execution requires the adapter-supplied model-identification-name-valid-tck.xml and --run-unverified; default suites use a valid general-purpose FOM.",
-      "evidence_note": "Focused HLA_EVOKED and HLA_IMMEDIATE runs passed on provider build umbra-jni-20261106 against the official 2025 Java API JAR and the adapter-supplied schema-valid Model Identification FOM; results are in out/java-tck/fom-model-identification-name-valid-java-port-20261113/{evoked,immediate}.results.json. Evidence covers this valid-name input path only; no independent-provider or conformance claim."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official IEEE 1516.1-2025 Java API, schema-valid model-identification-name-valid-tck.xml, and HLAinteger64Time. The public Create call accepts the one-module FOM and destroys the federation without Join, matching the paired C++ case. Results/JUnit: out/java-tck/fom-model-identification-name-valid-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Coverage is limited to this conforming Model Identification Name input path in IEEE 1516.2-2025 §6.2.1; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.fom-enumerated-data-type-name-convention",

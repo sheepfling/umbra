@@ -379,7 +379,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(adapter FOM);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-091-l54-7"
-            }, false), FomAndHandleLookupScenarioRegistry::fomModelIdentificationNameValid);
+            }, true), FomAndHandleLookupScenarioRegistry::fomModelIdentificationNameValid);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-enumerated-data-type-name-convention",
             "Reject an enumerated data type name that violates HLA name conventions",
