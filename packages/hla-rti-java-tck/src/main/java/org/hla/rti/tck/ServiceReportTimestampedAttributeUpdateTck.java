@@ -253,7 +253,7 @@ final class ServiceReportTimestampedAttributeUpdateTck {
          JavaTckSupport.check(observerRecorder.events.size() == 1
                && reportClass.equals(report.interaction)
                && report.parameters.size() == REPORT_PARAMETER_NAMES.length
-               && report.tag.length == 0 && report.regionsEmpty
+               && report.tag.length == 0 && report.producer == null && report.regionsEmpty
                && observerReliable.equals(report.transportation),
             "timestamped service report returned invalid callback metadata: "
                + reportSequenceText);

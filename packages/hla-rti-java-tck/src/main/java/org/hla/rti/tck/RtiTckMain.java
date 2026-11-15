@@ -8464,10 +8464,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.service-report-interlock",
             "enforce the standard service-report switch and subscription interlocks",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getServiceReportingSwitch;RTIambassador.setServiceReportingSwitch;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getServiceReportingSwitch;RTIambassador.setServiceReportingSwitch;RTIambassador.subscribeInteractionClass;RTIambassador.subscribeInteractionClassPassively;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-explicit-mim-composition"
+               "cpp-1516.1-explicit-mim-composition",
+               "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18"
             }, false), RtiTckMain::serviceReportInterlock);
       run(new Scenario("java-tck.service-report-interaction-failure",
             "standard MOM reports for failed ordinary interaction services", "mom-service-reporting",

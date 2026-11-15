@@ -51454,8 +51454,32 @@
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition"
+        "cpp-1516.1-explicit-mim-composition",
+        "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.10",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "focus_lane": "service-reporting-switch-subscription-interlocks",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
+          "standard_section": "hla-1516.1-2025:clause-5.10"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct Java mappings: requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39 -> IEEE 1516.1-2025 §5.10. While reporting is enabled, active subscribeInteractionClass and standard subscribeInteractionClassPassively calls for HLAreportServiceInvocation fail with FederateServiceInvocationsAreBeingReportedViaMOM, and the switch stays enabled. requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18 -> §11.5. Existing active and passive MOM report subscriptions each prevent enabling with ReportServiceInvocationsAreSubscribed, rejected toggles leave the switch disabled, and unsubscribe permits re-enabling. The Java passive method is the official API equivalent of the C++ false overload. Only these two public interlocks are mapped; implementation-specific policy and conformance are not claimed.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed focused execution against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE. The paired C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct callback-model executions. Java results: out/java-tck/service-report-interlock-parity-20261115/{evoked,immediate}.{results.json,junit.xml}; C++ results: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/service-report-interlock-paired.{results.json,junit.xml}. Java catalog validation, focused C++ evidence validation, parity audit, and diff check passed. Runtime evidence is local-provider only, not independent-provider or conformance evidence.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51466,7 +51490,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportInterlock",
       "parity": "cpp-tck.service-report-interlock",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Default-disabled because execution requires an adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed Java provider. Focused current-source Umbra JNI execution passed both callback models; independent-provider evidence remains pending."
     },
     {
       "id": "java-tck.service-report-interaction-failure",
@@ -51582,7 +51606,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.enableTimeRegulation",
-        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactoryFactory.getLogicalTimeFactory",
         "LogicalTimeFactory.getName",
         "LogicalTimeFactory.makeInitial",
         "LogicalTimeFactory.makeEpsilon",
@@ -51673,7 +51697,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedAttributeUpdate",
       "parity": "cpp-tck.service-report-timestamped-attribute-update",
       "default_status": "unsupported",
-      "exclusion": "Default-disabled; focused execution requires --run-unverified with an adapter-supplied service-report directory. Focused HLA_EVOKED and HLA_IMMEDIATE runs against the current JNI provider both received GetTimeFactory#0, GetTimeFactory#1, then UpdateAttributeValues#2 while service reporting was disabled during setup. The callback cardinality assertion fails before the file-backed UpdateAttributeValues and ModifyLookahead assertions, so the scenario remains unsupported pending provider correction or independent provider verification.",
+      "exclusion": "Default-disabled because focused execution requires --run-unverified, an adapter-supplied service-report directory, and the matching additional setting. The current-source JNI provider passed the complete Java scenario under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-15. Keep execution opt-in because the service-report directory is provider-specific; local-provider evidence does not establish independent-provider interoperability or conformance.",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-table-5-p295-r006",
         "requirement-candidate-table-5-p298-r016",
@@ -51712,7 +51736,7 @@
         }
       ],
       "mapping_note": "Direct mapping covers exactly six Table 5 rows. p295-r006 checks the one-entry AttributeHandleValueMap with the input payload encoded as base64. p298-r016 checks a successful timestamped UpdateAttributeValues call through the joined publisher’s advertised HLAreportServiceFile and requires type 31, the Optional timestamp argument, and the exact LogicalTime.toString() value. p298-r017 checks a successful ModifyLookahead file record with type 32, the Requested lookahead argument, and the exact LogicalTimeInterval.toString() value. p298-r018 checks that the successful timestamped UpdateAttributeValues record returns type 33 with the exact MessageRetractionHandle text derived from the public call’s returned handle. p299-r001 checks that void ModifyLookahead uses a Null returned argument. p303-r001 checks only the file-backed SuppliedArgumentList Array<HLAargument> structure: four argument records are present and each has HLAargumentType, HLAargumentName, and HLAargumentValue fields. It does not claim the p304-r001 continuation or disputed example literals. The callback-route report, reflected timestamped update, and retraction behavior remain supporting case evidence; no other timestamped service families, all Table 5 rows, or general MOM service-report conformance are claimed.",
-      "parity_scope_note": "The Java API exposes ObjectInstanceHandle and AttributeHandle values as opaque handles. The callback report checks the object-designator and one-entry map shapes plus the exact payload, but does not compare provider-specific handle text with the registered object or attribute. The file and callback routes compare the returned MessageRetractionHandle through its public toString() representation.",
+      "parity_scope_note": "The Java API exposes ObjectInstanceHandle and AttributeHandle values as opaque handles. The callback report requires absent producing-federate metadata and checks the object-designator and one-entry map shapes plus the exact payload, but does not compare provider-specific handle text with the registered object or attribute. The file and callback routes compare the returned MessageRetractionHandle through its public toString() representation.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -51723,7 +51747,7 @@
         "provider-specific serviceReportDirectory setting through RtiConfiguration.withAdditionalSettings",
         "callback model selected by the adapter"
       ],
-      "evidence_note": "Compiled against the pinned official 2025 Java API JAR and attempted with p0-tck.xml, the standard 2025 MIM, HLAinteger64Time, and both callback models. Both current-source JNI runs reached the public report-file MOM lookup, then failed the first callback report cardinality check with GetTimeFactory#0, GetTimeFactory#1, UpdateAttributeValues#2; the C++ oracle expects only the successful UpdateAttributeValues report at serial 0. The advertised report file and its initial contents were read before this failure, but file-backed timestamp and lookahead assertions were not reached. Results and adapter evidence: out/java-tck/service-report-timestamped-attribute-update-20261103/results/{evoked,immediate}.*. This is a current-provider failure, not parity or conformance evidence."
+      "evidence_note": "Compiled against the pinned official 2025 Java API JAR with p0-tck.xml, the standard 2025 MIM, HLAinteger64Time, and an adapter-supplied serviceReportDirectory. The current-source JNI provider passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-15. Each callback contained exactly one UpdateAttributeValues report at serial 0, with absent producing-federate metadata; callback arguments and retraction correlation passed, as did the file-backed type-31 timestamp, type-33 returned handle, type-32 lookahead, Null result, and four-record HLAargument structure assertions. The additional GetTimeFactory callback records observed in a 2026-11-03 provider attempt did not reproduce. The paired installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions. Java results are under out/java-tck/service-report-timestamped-attribute-update-20261115/results; C++ results are under out/mgw/cpp-tck-service-report-timestamped-attribute-update-java-port-20261115. This is local-provider evidence, not independent-provider or conformance evidence."
     },
     {
       "id": "java-tck.service-report-timestamped-directed-interaction",
