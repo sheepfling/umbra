@@ -16,7 +16,7 @@
     "fully_rendered_pages": 32
   },
   "current_worktree": {
-    "head_revision": "9cb816e09aa9e31426d48b0a57282bb2e76a767a",
+    "head_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
     "guide_count": 32,
     "diagram_count": 515,
     "local_rendered_diagrams": 515,
@@ -4871,7 +4871,7 @@
       }
     ]
   },
-  "current_candidate_revision": "9cb816e09aa9e31426d48b0a57282bb2e76a767a",
+  "current_candidate_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
   "latest_increment_533_gfm_recheck": {
     "as_of": "2026-11-15 increment 533",
     "service": "Authenticated GitHub Markdown API POST /markdown",
@@ -5147,6 +5147,91 @@
         "rendered_links": 10,
         "mermaid_containers": 0,
         "html_sha256": "e5ffc4628b5514332e8fa3d13179dd5a0ab5f3bfc024d50de27c595613f9f8b3"
+      }
+    ]
+  },
+  "latest_increment_537_source_routing": {
+    "as_of": "2026-11-15 increment 537",
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
+    "remote_branch_matches_candidate": true,
+    "candidate_markdown_files": 41,
+    "candidate_references_checked": 4805,
+    "candidate_head_resolved": 4796,
+    "candidate_head_unresolved": 9,
+    "candidate_worktree_resolved": 4805,
+    "candidate_worktree_unresolved": 0,
+    "candidate_worktree_source_edits_uncommitted": true,
+    "unresolved_targets": [
+      "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+      "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+    ],
+    "primary_head": "74bdb65fc120dc306bb842f6080f3cfa42aa6a5b",
+    "primary_candidate_docs_line_bounds_resolved": 4805,
+    "primary_candidate_docs_line_bounds_unresolved": 0,
+    "primary_commits_ahead_of_origin_feature_initial_work": 16,
+    "primary_semantic_spot_check": "At the primary revision, lifecycle TCK line 2389 is an automatic delete-then-divest assertion; the Federate-Lost MOM scenario begins at line 2607 and the post-loss assertion is at line 2983.",
+    "initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "initial_work_resolved": 4796,
+    "initial_work_unresolved": 9,
+    "scope_note": "The documentation commit did not change source references; the same nine candidate HEAD misses remain. Primary line bounds are not semantic validation and the primary branch contains unrelated work."
+  },
+  "latest_increment_537_hosted_visual_review": {
+    "as_of": "2026-11-15 increment 537",
+    "diagram_id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
+    "source_line": 350,
+    "published_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
+    "published_branch": "feature/hla-2025-docs-candidate-20261107",
+    "view": "GitHub expanded Mermaid dialog",
+    "body_sha256": "31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70",
+    "observation": "The receive-order, pre-event, and TSO route lanes, outcomes, and final projection/suppression decision are legible without clipping; the tall chart requires vertical scrolling to inspect its full path.",
+    "scope_note": "One published layout sample only. GitHub hydration covers 515/515 diagrams, but this does not establish full-width readability for all 515."
+  },
+  "latest_increment_537_gfm_recheck": {
+    "as_of": "2026-11-15 increment 537",
+    "service": "Authenticated GitHub Markdown API POST /markdown",
+    "mode": "gfm",
+    "pages_checked": 3,
+    "combined_current_page_coverage": 41,
+    "failures": 0,
+    "scope_note": "Rechecked the current roadmap and both progress-history pages after the increment 537 hosted visual review. All three responses were nonempty. Combined with previous page checks, GFM coverage remains documented for all 41 current 2025 Markdown pages. The behavior-flow backlog exceeds the API 400,000-byte input limit and remains excluded.",
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+        "input_bytes": 351662,
+        "rendered_bytes": 438930,
+        "heading_elements": 40,
+        "rendered_links": 296,
+        "mermaid_containers": 0,
+        "html_sha256": "e4405f25dd2045eb65385de4c85f14fb4457ccb8dc37093edaa4ccad0fb918cd",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+        "input_bytes": 1879,
+        "rendered_bytes": 2208,
+        "heading_elements": 5,
+        "rendered_links": 12,
+        "mermaid_containers": 0,
+        "html_sha256": "74571018ec1cb0ec0a49903f778995798663bcf25eb3ef20dbf1e23922d5c634",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
+        "input_bytes": 13304,
+        "rendered_bytes": 17361,
+        "heading_elements": 11,
+        "rendered_links": 10,
+        "mermaid_containers": 0,
+        "html_sha256": "855ab468f5a9252c629fca2df2552e7603d1e49b35a462ca65b06d522050bb35",
+        "html_nonempty": true
       }
     ]
   }

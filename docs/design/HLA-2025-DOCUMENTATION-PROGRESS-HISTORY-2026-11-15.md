@@ -167,3 +167,25 @@ remains a source-only path without focused DSE test evidence.
 
 No Mermaid body changed. No C++ build, tests, or CI ran. Keep 2010 and the
 Requirements Lab separate.
+
+## Increment 537 — selected GitHub diagram-layout review (2026-11-15)
+
+At the time of the hosted review, the published candidate branch was at
+`25b9055f9424fe73a391f758c2a53c3e35f15d0d`; this increment updates docs only.
+I inspected the published Delay Subscription Evaluation guide in
+350, in GitHub’s expanded Mermaid dialog. The receive-order, pre-event, and TSO
+route lanes, their outcomes, and the final projection/suppression decision are
+legible without clipping. The chart is tall and requires vertical scrolling to
+inspect its full path. Its body SHA-256
+`31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70` matches the
+current visual ledger. This is one published layout sample, not a review of all
+515 hosted diagrams. All 515 retain body-matched local render/screenshot
+evidence, and revision-aware GitHub hydration remains 515/515.
+
+The source-citation state is unchanged: candidate HEAD resolves 4,796/4,805
+references; active worktree edits resolve all 4,805 but remain unpublished. The
+nine candidate-head misses and their semantic review stay open until source
+owners publish the cited changes and the targets are checked against that
+revision. Nonregional receive-order push remains source-only without focused
+DSE test evidence. No Mermaid body changed. No C++ build, tests, or CI ran.
+Keep 2010 and the Requirements Lab separate.

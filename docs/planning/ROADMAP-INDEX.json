@@ -1035,15 +1035,15 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-15 increment 536",
+      "as_of": "2026-11-15 increment 537",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 536: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. A selected DSE process-attribute chart was freshly rendered and screenshot-reviewed locally; the body hash matches the ledger and its three route lanes are legible. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 source-line references; the active worktree resolves 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 in line bounds but is 16 commits ahead of origin/feature/initial-work and its cited TCK line 2389 is a different assertion than the Federate-Lost scenario at line 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Overall completion remains approximately 95%. Keep 2010 and Requirements Lab separate.",
-      "next_concrete_review": "The remaining major closeout is nine source-line anchors in four active 2025 source/test files. Have source owners publish the reviewed source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. The selected DSE local visual review is recorded; keep full-width GitHub layout review as a representative sample, not an all-diagram claim. No C++ build, tests, or CI are needed for this documentation handoff.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set is published; both guide indexes link all 32 topics, every guide contains Mermaid, and revision-aware hosted hydration covers 515/515. A current-body screenshot review of DSE #003 was added at increment 536. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 references; nine anchors in four active source/test files remain out of range. Candidate worktree source edits make all 4,805 resolve and the nine targets match their guide descriptions, but the changes are uncommitted. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b provides bounds only; it is 16 commits ahead of origin/feature/initial-work, contains unrelated work, and has a semantic mismatch at the lifecycle TCK citation. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Next, wait for source-owner publication, then recheck line and semantic targets. GitHub full-width layout review remains sampled; nonregional receive-order push is still a source-only gap without focused DSE test evidence. No C++ builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.",
+      "latest_increment": "Increment 537: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, DSE process-attribute diagram #003 was inspected in GitHub’s expanded Mermaid dialog; the route lanes and outcomes are legible without clipping, though the tall chart requires scrolling. This is one hosted layout sample. The source-link check against that candidate snapshot resolves 4,796/4,805 references; the active worktree resolves all 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 line bounds but is 16 commits ahead of origin/feature/initial-work and its TCK line 2389 is a different assertion than the Federate-Lost scenario at 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. The increment commit changes documentation only. Completion remains approximately 95%; keep 2010 and Requirements Lab separate.",
+      "next_concrete_review": "Have source owners publish the reviewed 2025 source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. Continue selected GitHub expanded-view checks for changed charts; do not claim full-width review of all 515. Keep nonregional receive-order push and other source-only boundaries explicit. No C++ build, tests, or CI are needed for this documentation handoff.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set is published; both guide indexes link all 32 topics, every guide contains Mermaid, and revision-aware hosted hydration covers 515/515. DSE #003 has local body-matched screenshot evidence and one published GitHub expanded-dialog layout review; the chart is legible but requires vertical scrolling. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, candidate source links resolve 4,796/4,805; nine anchors in four active source/test files remain out of range. Candidate worktree edits make all 4,805 resolve and the nine targets match their guide descriptions, but remain unpublished. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b provides bounds only, is 16 commits ahead of origin/feature/initial-work, contains unrelated work, and has a semantic mismatch at the lifecycle TCK citation. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Next, wait for source-owner publication, then recheck line and semantic targets. Full-width GitHub layout review is sampled; nonregional receive-order push remains a source-only path without focused DSE test evidence. No C++ builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-15 increment 536",
-        "revision": "Candidate worktree based on 9cb816e09aa9e31426d48b0a57282bb2e76a767a plus active, uncommitted source/test edits; checked 2026-11-15.",
+        "as_of": "2026-11-15 increment 537",
+        "revision": "Candidate worktree based on 25b9055f9424fe73a391f758c2a53c3e35f15d0d plus active, uncommitted source/test edits; checked 2026-11-15.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 41,
         "unique_references": 4805,
@@ -1052,9 +1052,9 @@
         "note": "All nine targets match their guide descriptions in the current candidate worktree, but cited source/test edits remain uncommitted and do not establish published-source validity."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-15 increment 536",
-        "revision": "Published candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a; checked 2026-11-15.",
-        "remote_branch_revision": "9cb816e09aa9e31426d48b0a57282bb2e76a767a",
+        "as_of": "2026-11-15 increment 537",
+        "revision": "Published source snapshot at candidate HEAD 25b9055f9424fe73a391f758c2a53c3e35f15d0d; checked 2026-11-15 before this docs-only increment.",
+        "remote_branch_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 41,
         "unique_references": 4805,
@@ -1071,10 +1071,10 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
         ],
-        "note": "Nine references are out of range at candidate HEAD because the cited 2025 source/test changes are only in the candidate worktree. Recheck line and semantic targets after source-owner publication."
+        "note": "The increment-537 commit changes documentation only. Nine references remain out of range in the candidate source snapshot because the cited 2025 source/test edits are not published; rerun after source-owner publication."
       },
       "primary_head_reference_validation": {
-        "as_of": "2026-11-15 increment 536",
+        "as_of": "2026-11-15 increment 537",
         "revision": "74bdb65fc120dc306bb842f6080f3cfa42aa6a5b (local feature/initial-work HEAD; not the docs candidate source revision).",
         "scope": "Candidate documentation source-line references checked against local primary; bounds only.",
         "markdown_files": 41,
@@ -1084,10 +1084,10 @@
         "primary_branch_own_markdown_files": 33,
         "primary_branch_own_references_checked": 4324,
         "commits_ahead_of_remote_initial_work": 16,
-        "scope_note": "The primary branch contains unrelated changes and is not a docs publication route. At this revision, lifecycle TCK line 2389 is an automatic delete-then-divest assertion; the Federate-Lost MOM scenario begins at line 2607 and its post-loss assertion is at 2983."
+        "scope_note": "Bounds only; primary contains unrelated changes and is not a docs publication route. At this revision lifecycle TCK line 2389 is an automatic delete-then-divest assertion; the Federate-Lost MOM scenario begins at line 2607 and its post-loss assertion is at 2983."
       },
       "initial_work_reference_validation": {
-        "as_of": "2026-11-15 increment 536",
+        "as_of": "2026-11-15 increment 537",
         "revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180 (origin/feature/initial-work).",
         "scope": "Candidate docs source-line references checked against the remote initial-work revision.",
         "markdown_files": 41,
@@ -1353,9 +1353,9 @@
         "executable_identity": null,
         "interpretation": "Historical scenario-ID results only. The artifact cannot be matched to the current modified source or establish that the delivered-TSO phase ran; do not cite it as evidence for the proposed minimum-time formula."
       },
-      "latest_reader_review": "Local visual review, increment 536 (2026-11-15): Delay Subscription Evaluation diagram #003, “An interaction’s passive gate is recomputed with its active relevance,” rendered with Mermaid CLI 12.0.0 from the current body. The three route lanes and outcome labels are legible in the full image without clipping. Body SHA-256 31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70 matches the current visual ledger. This is a selected local screenshot review; it does not claim full-width readability for every published GitHub page or close the nonregional receive-order push test gap.",
+      "latest_reader_review": "GitHub visual review, increment 537 (2026-11-15): Delay Subscription Evaluation diagram #003, the process-attribute DSE flowchart at line 350, inspected in the expanded Mermaid dialog at published candidate snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The receive-order, pre-event, and TSO route lanes, outcomes, and final projection/suppression decision are readable without clipping. The full path requires vertical scrolling. Body SHA-256 31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70 matches the published source and visual ledger. This is one selected layout sample; it does not establish full-width readability for every chart.",
       "supporting_page_gfm_recheck": {
-        "as_of": "2026-11-15 increment 536",
+        "as_of": "2026-11-15 increment 537",
         "service": "Authenticated GitHub Markdown API POST /markdown",
         "mode": "gfm",
         "pages_checked": 3,
@@ -1364,16 +1364,16 @@
         "prior_full_pass_guide_pages": 32,
         "prior_full_pass_guide_mermaid_containers": 515,
         "failures": 0,
-        "scope_note": "Rechecked the current roadmap and both progress-history pages; all three responses were nonempty. Previous page checks plus these results cover all 41 current 2025 Markdown pages. The 479,375-byte behavior-flow backlog exceeds the API 400,000-byte input limit and remains excluded.",
+        "scope_note": "Rechecked the roadmap and both progress-history pages; all three responses were nonempty. Previous page checks plus these results cover all 41 current 2025 Markdown pages. The behavior-flow backlog exceeds the API 400,000-byte input limit and remains excluded.",
         "pages": [
           {
             "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
-            "input_bytes": 351510,
-            "rendered_bytes": 438446,
+            "input_bytes": 351662,
+            "rendered_bytes": 438930,
             "heading_elements": 40,
-            "rendered_links": 295,
+            "rendered_links": 296,
             "mermaid_containers": 0,
-            "html_sha256": "1ef58f7c8fa56cd8a786cfb42fd1fbb880ebb6d42b6e2d87b378d4a3bf0fff7e",
+            "html_sha256": "e4405f25dd2045eb65385de4c85f14fb4457ccb8dc37093edaa4ccad0fb918cd",
             "html_nonempty": true
           },
           {
@@ -1388,12 +1388,12 @@
           },
           {
             "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
-            "input_bytes": 11913,
-            "rendered_bytes": 15816,
-            "heading_elements": 10,
+            "input_bytes": 13304,
+            "rendered_bytes": 17361,
+            "heading_elements": 11,
             "rendered_links": 10,
             "mermaid_containers": 0,
-            "html_sha256": "e5ffc4628b5514332e8fa3d13179dd5a0ab5f3bfc024d50de27c595613f9f8b3",
+            "html_sha256": "855ab468f5a9252c629fca2df2552e7603d1e49b35a462ca65b06d522050bb35",
             "html_nonempty": true
           }
         ]
@@ -1420,13 +1420,13 @@
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
-    "latest_verified_progress": "Increment 536: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. A selected DSE process-attribute chart was freshly rendered and screenshot-reviewed locally; the body hash matches the ledger and its three route lanes are legible. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 source-line references; the active worktree resolves 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 in line bounds but is 16 commits ahead of origin/feature/initial-work and its cited TCK line 2389 is a different assertion than the Federate-Lost scenario at line 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Overall completion remains approximately 95%. Keep 2010 and Requirements Lab separate.",
-    "next_documentation_handoff": "The remaining major closeout is nine source-line anchors in four active 2025 source/test files. Have source owners publish the reviewed source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. The selected DSE local visual review is recorded; keep full-width GitHub layout review as a representative sample, not an all-diagram claim. No C++ build, tests, or CI are needed for this documentation handoff.",
-    "latest_reader_review": "Local visual review, increment 536 (2026-11-15): Delay Subscription Evaluation diagram #003, “An interaction’s passive gate is recomputed with its active relevance,” rendered with Mermaid CLI 12.0.0 from the current body. The three route lanes and outcome labels are legible in the full image without clipping. Body SHA-256 31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70 matches the current visual ledger. This is a selected local screenshot review; it does not claim full-width readability for every published GitHub page or close the nonregional receive-order push test gap.",
-    "latest_increment": "Increment 536: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. A selected DSE process-attribute chart was freshly rendered and screenshot-reviewed locally; the body hash matches the ledger and its three route lanes are legible. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 source-line references; the active worktree resolves 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 in line bounds but is 16 commits ahead of origin/feature/initial-work and its cited TCK line 2389 is a different assertion than the Federate-Lost scenario at line 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Overall completion remains approximately 95%. Keep 2010 and Requirements Lab separate.",
+    "latest_verified_progress": "Increment 537: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, DSE process-attribute diagram #003 was inspected in GitHub’s expanded Mermaid dialog; the route lanes and outcomes are legible without clipping, though the tall chart requires scrolling. This is one hosted layout sample. The source-link check against that candidate snapshot resolves 4,796/4,805 references; the active worktree resolves all 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 line bounds but is 16 commits ahead of origin/feature/initial-work and its TCK line 2389 is a different assertion than the Federate-Lost scenario at 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. The increment commit changes documentation only. Completion remains approximately 95%; keep 2010 and Requirements Lab separate.",
+    "next_documentation_handoff": "Have source owners publish the reviewed 2025 source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. Continue selected GitHub expanded-view checks for changed charts; do not claim full-width review of all 515. Keep nonregional receive-order push and other source-only boundaries explicit. No C++ build, tests, or CI are needed for this documentation handoff.",
+    "latest_reader_review": "GitHub visual review, increment 537 (2026-11-15): Delay Subscription Evaluation diagram #003, the process-attribute DSE flowchart at line 350, inspected in the expanded Mermaid dialog at published candidate snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The receive-order, pre-event, and TSO route lanes, outcomes, and final projection/suppression decision are readable without clipping. The full path requires vertical scrolling. Body SHA-256 31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70 matches the published source and visual ledger. This is one selected layout sample; it does not establish full-width readability for every chart.",
+    "latest_increment": "Increment 537: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, DSE process-attribute diagram #003 was inspected in GitHub’s expanded Mermaid dialog; the route lanes and outcomes are legible without clipping, though the tall chart requires scrolling. This is one hosted layout sample. The source-link check against that candidate snapshot resolves 4,796/4,805 references; the active worktree resolves all 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 line bounds but is 16 commits ahead of origin/feature/initial-work and its TCK line 2389 is a different assertion than the Federate-Lost scenario at 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. The increment commit changes documentation only. Completion remains approximately 95%; keep 2010 and Requirements Lab separate.",
     "current_diagram_inventory": {
-      "as_of": "2026-11-15 increment 536: 515 current diagrams remain published and revision-aware GitHub hydration covers 515/515. All 32 guide destinations are present in both navigation indexes. No Mermaid body changed; DSE #003 received a fresh local render and screenshot review.",
-      "scope": "2025-only: 32 topic guides and 515 diagrams. All 515 have identity-matched local rendering and screenshot evidence; revision-aware GitHub hydration covers all 515. The current candidate HEAD is 9cb816e09aa9e31426d48b0a57282bb2e76a767a. Candidate committed source-line references resolve 4,796/4,805; active worktree source/test edits resolve all 4,805. Keep 2010 separate.",
+      "as_of": "2026-11-15 increment 537: 515 diagrams remain published and revision-aware GitHub hydration covers 515/515. The selected DSE #003 expanded-dialog review found the full chart legible after vertical scrolling. No Mermaid body changed.",
+      "scope": "2025-only: 32 topic guides and 515 diagrams. All have identity-matched local render and screenshot evidence; revision-aware GitHub hydration covers 515/515. Candidate source snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d resolves 4,796/4,805 line references; active worktree edits resolve all 4,805. Keep 2010 separate.",
       "files_with_diagrams": 32,
       "diagrams": 515,
       "local_link_check": {
@@ -1506,12 +1506,12 @@
         }
       },
       "latest_path_line_check": {
-        "as_of": "2026-11-15 increment 536",
+        "as_of": "2026-11-15 increment 537",
         "markdown_files": 41,
         "unique_relative_path_line_guide_references": 4805,
         "worktree_resolved": 4805,
         "worktree_unresolved": 0,
-        "candidate_base_revision": "9cb816e09aa9e31426d48b0a57282bb2e76a767a",
+        "candidate_base_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
         "candidate_base_resolved": 4796,
         "candidate_base_unresolved": 9,
         "primary_source_revision": "74bdb65fc120dc306bb842f6080f3cfa42aa6a5b",
@@ -1520,7 +1520,7 @@
         "origin_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
         "origin_initial_work_resolved": 4796,
         "origin_initial_work_unresolved": 9,
-        "scope": "Current candidate Markdown references checked at increment 536. Worktree counts rely on uncommitted 2025 source/test edits; primary counts establish bounds only."
+        "scope": "Current candidate docs references checked at increment 537. Worktree counts rely on uncommitted source/test edits; primary counts establish bounds only."
       },
       "latest_selected_review": {
         "date": "2026-11-12 increment 513",
@@ -1532,7 +1532,7 @@
         "branch_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
         "page_last_file_commit": "adafb10c37b6aad8f798e49ca7007abeaaeb66fc"
       },
-      "pending_after_latest_edit": "Nine source-line anchors in four active 2025 source/test files are out of range at candidate HEAD. Worktree edits put all nine on the intended code and cases, but remain unpublished. Source owners must publish a reviewed revision; then rerun line and semantic checks. All 515 diagram deltas are already published and hydrated. Selected local DSE #003 visual review is current; full-width GitHub review remains sampled. No 2010, Requirements Lab, builds, tests, or CI.",
+      "pending_after_latest_edit": "Nine source-line anchors in four active 2025 source/test files are out of range at the candidate source snapshot. Worktree edits put all nine on intended code and cases, but remain unpublished. Source owners must publish a reviewed revision; then rerun line and semantic checks. All 515 diagram bodies are published and hydrated. DSE #003 has one selected published GitHub layout review; continue sampling changed charts. Nonregional receive-order push remains source-only without focused DSE test evidence. No 2010, Requirements Lab, builds, tests, or CI.",
       "latest_local_diagram_review": {
         "date": "2026-11-15 increment 536",
         "diagram": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
@@ -1550,10 +1550,19 @@
         "page_count_mismatches": 0,
         "method": "Prior full pass 508 + five changed pages 130; 27 unchanged pages contribute 385.",
         "current_candidate_revision": "2eac0907917628e7f50b20654233bb97ec994d3a"
+      },
+      "latest_hosted_visual_review": {
+        "date": "2026-11-15 increment 537",
+        "diagram": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
+        "revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
+        "view": "GitHub expanded Mermaid dialog",
+        "body_sha256": "31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70",
+        "visual_review": "Three route lanes, outcomes, and final projection/suppression decision are legible without clipping; tall chart requires vertical scrolling.",
+        "scope": "One hosted layout sample, not a full-width review of all diagrams."
       }
     },
     "goal": "Focus this documentation phase exclusively on IEEE 1516.1-2025. Translate durable HLA logic and infrastructure concepts discovered while implementing Umbra into reader-centered diagrams and guides. Lead with the HLA mental model and explain what federates can do, what state changes, who becomes eligible, and when effects become observable. Use Umbra source and existing focused-test results as bounded case-study evidence, not as the subject; include internals only when they explain an HLA invariant, observable consequence, or important implementation limit. Survey for real reader gaps, synthesize cross-service concepts where useful, tie normative claims to the exact standard, and label profile boundaries and evidence limits. Distinguish embedded and configured-process behavior where evidence differs. There is no diagram-count target. Reuse existing runtime evidence. Documentation work must not compete with the main implementation worker for build capacity: do not compile, rerun tests, or start CI by default. The HLA Requirements Lab is a later, separately authorized goal and remains out of scope.",
-    "verified_progress": "Increment 536: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. A selected DSE process-attribute chart was freshly rendered and screenshot-reviewed locally; the body hash matches the ledger and its three route lanes are legible. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 source-line references; the active worktree resolves 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 in line bounds but is 16 commits ahead of origin/feature/initial-work and its cited TCK line 2389 is a different assertion than the Federate-Lost scenario at line 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Overall completion remains approximately 95%. Keep 2010 and Requirements Lab separate.",
+    "verified_progress": "Increment 537: the 32-guide, 515-diagram 2025 set is published and revision-aware GitHub hydration covers 515/515. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, DSE process-attribute diagram #003 was inspected in GitHub’s expanded Mermaid dialog; the route lanes and outcomes are legible without clipping, though the tall chart requires scrolling. This is one hosted layout sample. The source-link check against that candidate snapshot resolves 4,796/4,805 references; the active worktree resolves all 4,805 only with uncommitted source/test edits. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b has all 4,805 line bounds but is 16 commits ahead of origin/feature/initial-work and its TCK line 2389 is a different assertion than the Federate-Lost scenario at 2607. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. The increment commit changes documentation only. Completion remains approximately 95%; keep 2010 and Requirements Lab separate.",
     "candidate_final_validation": {
       "as_of": "2026-11-09 increment 356",
       "branch": "feature/hla-2025-docs-candidate-20261107",
@@ -1823,9 +1832,9 @@
         "note": "Local primary contains unrelated Requirements Lab changes; keep it outside this documentation candidate."
       }
     },
-    "next_concrete_review": "The remaining major closeout is nine source-line anchors in four active 2025 source/test files. Have source owners publish the reviewed source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. The selected DSE local visual review is recorded; keep full-width GitHub layout review as a representative sample, not an all-diagram claim. No C++ build, tests, or CI are needed for this documentation handoff.",
-    "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set is published; both guide indexes link all 32 topics, every guide contains Mermaid, and revision-aware hosted hydration covers 515/515. A current-body screenshot review of DSE #003 was added at increment 536. Candidate HEAD 9cb816e09aa9e31426d48b0a57282bb2e76a767a resolves 4,796/4,805 references; nine anchors in four active source/test files remain out of range. Candidate worktree source edits make all 4,805 resolve and the nine targets match their guide descriptions, but the changes are uncommitted. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b provides bounds only; it is 16 commits ahead of origin/feature/initial-work, contains unrelated work, and has a semantic mismatch at the lifecycle TCK citation. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Next, wait for source-owner publication, then recheck line and semantic targets. GitHub full-width layout review remains sampled; nonregional receive-order push is still a source-only gap without focused DSE test evidence. No C++ builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.",
-    "as_of": "2026-11-15 increment 536"
+    "next_concrete_review": "Have source owners publish the reviewed 2025 source/test edits on a suitable revision without importing unrelated primary-branch work. Then rerun all 4,805 line checks and verify the nine semantic targets against that exact revision. Continue selected GitHub expanded-view checks for changed charts; do not claim full-width review of all 515. Keep nonregional receive-order push and other source-only boundaries explicit. No C++ build, tests, or CI are needed for this documentation handoff.",
+    "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate-count calculation). The 32-guide, 515-diagram set is published; both guide indexes link all 32 topics, every guide contains Mermaid, and revision-aware hosted hydration covers 515/515. DSE #003 has local body-matched screenshot evidence and one published GitHub expanded-dialog layout review; the chart is legible but requires vertical scrolling. At the hosted-review snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d, candidate source links resolve 4,796/4,805; nine anchors in four active source/test files remain out of range. Candidate worktree edits make all 4,805 resolve and the nine targets match their guide descriptions, but remain unpublished. Local primary 74bdb65fc120dc306bb842f6080f3cfa42aa6a5b provides bounds only, is 16 commits ahead of origin/feature/initial-work, contains unrelated work, and has a semantic mismatch at the lifecycle TCK citation. Initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 resolves 4,796/4,805. Next, wait for source-owner publication, then recheck line and semantic targets. Full-width GitHub layout review is sampled; nonregional receive-order push remains a source-only path without focused DSE test evidence. No C++ builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.",
+    "as_of": "2026-11-15 increment 537"
   },
   "queue_action_note": "The query tool derives action_state for each open family: implementation, mapping, source-reconciliation, external-review, new-case-needed, or evidence-complete. Evidence-complete rows remain visible for traceability but are not selected as the next runnable handoff.",
   "deferred_slices": [
