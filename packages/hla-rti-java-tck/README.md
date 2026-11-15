@@ -838,15 +838,17 @@ reached. Results/JUnit are in
 `out/java-tck/fom-synchronization-table-validation-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
 Earlier runs passed on provider build umbra-jni-20261106. The SOM Capability
 rule is separate from these FOM assertions.
-The opt-in `java-tck.fom-transportation-description-ignored` scenario mirrors
+The default-run `java-tck.fom-transportation-description-ignored` scenario mirrors
 the C++ Create-time union and additional-module Join case for two declarations
 with the same transportation name and reliability but different `Semantics`.
 Supply the fixtures through `hla.rti.tck.transportationDuplicateBaseFom` and
 `hla.rti.tck.transportationDescriptionDifferentFom`. The Java test checks
 public transportation handle/name lookup and does not assert which description
-is retained. Both callback-model runs against provider build
-`umbra-jni-20261106` failed at Create with `InconsistentFOM`, so the Join and
-lookup assertions remain unexecuted on that build.
+is retained. Focused runs passed under both callback models against current-source
+Umbra JNI, including both Create and Join paths. Results/JUnit are in
+`out/java-tck/fom-transportation-description-ignored-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Runs against the older umbra-jni-20261106 build failed at Create; the current-source
+evidence supersedes that result. No independent-provider or conformance claim is made.
 The default `java-tck.fom-automatic-resign-action-setting` scenario rejects an
 unsupported `resignAction` value with `InvalidFOM`, then accepts each of the six
 defined settings and checks the joined federate's public

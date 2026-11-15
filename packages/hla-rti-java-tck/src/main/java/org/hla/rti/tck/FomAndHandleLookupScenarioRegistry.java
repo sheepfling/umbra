@@ -472,7 +472,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(modules with same transportation name/reliability and different Semantics);RTIambassador.joinFederationExecution;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.joinFederationExecution(additionalFomModules);RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName",
             new String[] {
                "requirement-candidate-content-clauses-04-federation-management-page-048-l42-13"
-            }, false), FomAndHandleLookupScenarioRegistry::fomTransportationDescriptionIgnored);
+            }, true), FomAndHandleLookupScenarioRegistry::fomTransportationDescriptionIgnored);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-automatic-resign-action-setting",
             "Accept the six defined Automatic Resign Action FOM settings and reject an unsupported value",
