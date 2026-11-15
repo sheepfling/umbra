@@ -7974,7 +7974,7 @@ public final class RtiTckMain {
                "requirement-candidate-table-5-p299-r006",
                "requirement-candidate-table-5-p304-r009",
                "requirement-candidate-table-5-p301-r001"
-            }, false), RtiTckMain::serviceReportOrderTransportationLookups);
+            }, true), RtiTckMain::serviceReportOrderTransportationLookups);
       run(new Scenario("java-tck.service-report-order-transportation-lookup-failures",
             "ordered MOM failure reports and order lookup recovery",
             "mom-service-reporting",
@@ -8089,12 +8089,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.service-report-create-region",
             "standard MOM report for creating a region",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.getDimensionHandle;RTIambassador.getDimensionHandleSetFactory;DimensionHandleSetFactory.create;RTIambassador.createRegion;RTIambassador.deleteRegion;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionHandleSetFactory;DimensionHandleSetFactory.create;DimensionHandleSet.add;RTIambassador.createRegion;RTIambassador.deleteRegion;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-ddm-region-lifecycle",
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportCreateRegion);
+            }, true), RtiTckMain::serviceReportCreateRegion);
       run(new Scenario("java-tck.service-report-interaction-dimensions",
             "standard MOM report for interaction-class available dimensions",
             "mom-service-reporting",
@@ -8102,7 +8102,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportInteractionDimensions);
+            }, true), RtiTckMain::serviceReportInteractionDimensions);
       run(new Scenario("java-tck.service-report-interaction-dimensions-invalid-handle-contexts",
             "reject foreign interaction-class handles in available-dimensions requests",
             "mom-service-reporting",
@@ -8115,7 +8115,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportObjectDimensions);
+            }, true), RtiTckMain::serviceReportObjectDimensions);
       run(new Scenario("java-tck.service-report-object-dimensions-invalid-handle-contexts",
             "reject object-class handles from another FOM in available-dimensions requests",
             "mom-service-reporting",
@@ -13262,7 +13262,8 @@ public final class RtiTckMain {
 
    private static void serviceReportCreateRegion() throws Exception {
       ServiceReportObjectAttributeUpdateRateLookupTck.runCreateRegion(factory(),
-         requireFom(), requireMim(), timeImplementation(), dimensionName(), callbackModel());
+         requireFom(), requireMim(), System.getProperty(ADDITIONAL_FOM_PROPERTY, ""),
+         timeImplementation(), dimensionName(), callbackModel());
    }
 
    private static void serviceReportInteractionDimensions() throws Exception {

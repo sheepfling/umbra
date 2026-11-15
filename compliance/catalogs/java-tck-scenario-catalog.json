@@ -48131,9 +48131,12 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportOrderTransportationLookups",
       "parity": "cpp-tck.service-report-order-transportation-lookups",
-      "default_status": "unsupported",
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time under HLA_EVOKED and HLA_IMMEDIATE. The Java case checks the four order/transportation lookup results and the successful GetTimeFactory result, then verifies all five ordered service reports including GetTimeFactory's zero supplied-argument count and type-12 return value. The type-12 argument name is left unspecified, matching the C++ witness. Focused Table 5 mappings cover only p.296 r011/r028, p.299 r006, p.304 r009, and complete parent row p.301 r001 to §11.5.1; RL-404, RL-406, and RL-407 caveats remain unmapped. Results: out/java-tck/order-transportation-lookups-20261103/results/order-transportation-lookups-hla_{evoked,immediate}.results.json and .junit.xml. Evidence is local JNI only.",
-      "exclusion": "Requires adapter-supplied standard MIM and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run",
+      "evidence_note": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. It verifies the four order/transportation lookup results, LogicalTimeFactory name, and the five ordered MOM reports, including exact supplied/returned argument records, type-12 GetTimeFactory return, serials 0-4, service type, success/exception, invoking federate, and callback metadata. Direct mappings are limited to Table 5 p.296 r011/r028, p.299 r006, p.304 r009, and the complete p.301 r001 parent row -> IEEE 1516.1-2025 §11.5.1. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under both callback models against the installed 2026-11-10 MinGW package; scoped validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/order-transportation-lookups-parity-20261115/{evoked-default,immediate-default}.{json,xml}; export: provider-neutral-validation.json; C++ results/JUnit: out/cpp-tck/order-transportation-lookups-java-parity-20261115/paired-results.json and paired-junit.xml. RL-404/RL-406/RL-407 caveats and incomplete §11.5.1 coverage remain; local-provider evidence only, no interoperability or conformance claim.",
+      "adapter_inputs": [
+        "Adapter-supplied primary FOM and standard MIM",
+        "Logical-time implementation, provider, endpoint, and callback model"
+      ]
     },
     {
       "id": "java-tck.service-report-order-transportation-lookup-failures",
@@ -48842,8 +48845,10 @@
         "RTIambassador.setSendServiceReportsToFileSwitch",
         "RTIambassador.getSendServiceReportsToFileSwitch",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getDimensionHandleSetFactory",
         "DimensionHandleSetFactory.create",
+        "DimensionHandleSet.add",
         "RTIambassador.createRegion",
         "RTIambassador.deleteRegion",
         "RTIambassador.getInteractionClassHandle",
@@ -48878,11 +48883,25 @@
         "standard-service-report-create-region-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension under HLA_EVOKED and HLA_IMMEDIATE. The Java case checks one type-11 Set of dimension designators supplied argument and the type-42 returned Region designator, with exact service-report metadata, then deletes the region. Results: out/java-tck/region-service-report-parity-20261103/results/create-region-{hla_evoked,hla_immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r010",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct §11.5.1 Table 5 p.299 r010 witness: the successful CreateRegion report returns the public RegionHandle as an HLAreturnedArgument with type 42, the Region designator name, and the exact quoted handle text. When the optional additional FOM is supplied, the supplemental failure check uses its TckAdditionalDimension handle from a separate execution and verifies InvalidDimensionHandle; it does not add a direct mapping. This covers one argument form only, not complete Table 5 or §11.5.1 coverage, or conformance.",
+      "evidence_note": "The Java TCK scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension. The success report verifies the type-42 Region designator return, exact quoted public handle text, report metadata, serial 0, and Null semantics. With optional fom-extension-tck.xml, it also verifies the supplemental InvalidDimensionHandle report for TckAdditionalDimension from a separate execution; the base-only HLA_EVOKED path passed separately. Direct mapping is limited to Table 5 p.299 r010 -> IEEE 1516.1-2025 §11.5.1 for the successful RegionHandle argument. The failure report and supplied dimension-set encoding are supplemental. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under both callback models against the installed 2026-11-10 MinGW package; scoped C++ validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/create-region-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}; base-only Java results/JUnit: evoked-default-base-only.{json,xml}; provider-neutral export: provider-neutral-validation.json; C++ results/JUnit: out/mgw/cpp-tck-service-report-create-region-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportCreateRegion",
       "parity": "cpp-tck.service-report-create-region",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM and dimension name, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run",
+      "adapter_inputs": [
+        "adapter-supplied FOM, standard MIM, logical-time implementation, TckDimension, and callback model",
+        "optional additional FOM defining TckAdditionalDimension through hla.rti.tck.additionalFom to enable the supplemental InvalidDimensionHandle report"
+      ]
     },
     {
       "id": "java-tck.service-report-interaction-dimensions",
@@ -48927,11 +48946,35 @@
         "federation-execution-api-contract.json",
         "standard-service-report-interaction-dimensions-contract.json"
       ],
-      "evidence_note": "The Java primary mirrors the C++ nonempty and empty GetAvailableDimensionsForInteractionClass results: it checks the adapter interaction’s exact configured dimension and empty HLAinteractionRoot result, with successful reports at serials 0 and 1, type-27 interaction-class arguments, type-11 dimension-set results, federate identity, and callback metadata. Java verifies provider handle fields only by quoted shape because the provider text is not portable. Focused local Umbra JNI and paired C++ runs passed under HLA_EVOKED and HLA_IMMEDIATE; results/JUnit: out/java-tck/service-report-interaction-dimensions-invalid-handle-20261114/{positive-{evoked,immediate},context-errors-{evoked,immediate}}.{results.json,junit.xml} and out/cpp-tck/service-report-interaction-dimensions-java-parity-20261114/{results.json,junit.xml}. Existing direct mappings remain on the C++ §10.22 assertions; the companion failure has no normative mapping.",
+      "evidence_note": "The Java primary passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and HLAinteractionRoot.TckTypedInteraction. It checks the configured one-dimension GetAvailableDimensionsForInteractionClass result and the empty HLAinteractionRoot result; the corresponding MOM reports verify exact argument/result types, serials 0 and 1, and callback metadata. Direct mapping is limited to the two §10.22 requirements for the configured nonempty result and required empty root result. The MOM report fields and the foreign-handle failure path are supplemental. The opt-in foreign-class companion passed 1/1 under both callback models with --run-unverified and fom-extension-tck.xml; it verifies InvalidInteractionClassHandle and the failed report using a standard API handle from a separate FOM execution, not the C++ default-invalid handle value. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under both callback models against the installed 2026-11-10 MinGW package; scoped validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java primary results/JUnit: out/java-tck/interaction-dimensions-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}; companion: companion-{evoked,immediate}.{json,xml}; export: provider-neutral-validation.json; C++ results/JUnit: out/mgw/cpp-tck-service-report-interaction-dimensions-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportInteractionDimensions",
       "parity": "cpp-tck.service-report-interaction-dimensions",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, dimension name and interaction-class name, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-259-l30-6",
+        "requirement-candidate-content-clauses-10-support-services-page-259-l36-8"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.22"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-259-l30-6",
+          "standard_section": "hla-1516.1-2025:clause-10.22"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-259-l36-8",
+          "standard_section": "hla-1516.1-2025:clause-10.22"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings are limited to the configured nonempty GetAvailableDimensionsForInteractionClass result and the required empty HLAinteractionRoot result under IEEE 1516.1-2025 §10.22. The MOM report payloads, typed arguments and return values, serials, and callback identity are supplemental; this case does not map service-report requirements under §11.5.1. The InvalidInteractionClassHandle path uses a separate-FOM companion because the standard Java API has no default-invalid InteractionClassHandle representation.",
+      "adapter_inputs": [
+        "Primary FOM defining the selected interaction class with exactly TckDimension, plus the standard MIM and logical-time implementation",
+        "hla.rti.tck.dimension naming the configured FOM dimension",
+        "hla.rti.tck.interactionClass naming the configured interaction class",
+        "Provider, endpoint, and callback model"
+      ]
     },
     {
       "id": "java-tck.service-report-interaction-dimensions-invalid-handle-contexts",
@@ -48989,7 +49032,7 @@
       "parity": "cpp-tck.service-report-interaction-dimensions",
       "default_status": "unsupported",
       "exclusion": "Opt-in because the companion needs a separate additional FOM execution. Configure hla.rti.tck.additionalFom with fom-extension-tck.xml alongside the primary dimensional FOM, standard MIM, logical-time implementation, provider, endpoint, and callback model. Runtime evidence is local Umbra JNI only.",
-      "evidence_note": "The opt-in Java companion passed with --run-unverified under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI using fom-model-tck.xml, fom-extension-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and HLAinteractionRoot.TckTypedInteraction. It checks the configured one-dimension report at serial 0, empty HLAinteractionRoot report at serial 1, and InvalidInteractionClassHandle plus the failed GetAvailableDimensionsForInteractionClass report at serial 2 using HLAinteractionRoot.TckExtensionInteraction from a separate FOM execution. The failed report’s foreign interaction-class handle is checked for quoted shape; it does not represent the C++ default-invalid handle value. Results/JUnit: out/java-tck/service-report-interaction-dimensions-invalid-handle-20261114/context-errors-{evoked,immediate}.{results.json,junit.xml}. No independent-provider claim."
+      "evidence_note": "The opt-in Java companion passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with --run-unverified against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml and fom-extension-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and HLAinteractionRoot.TckTypedInteraction. It repeats the configured one-dimension and empty-root reports, then verifies InvalidInteractionClassHandle and the failed GetAvailableDimensionsForInteractionClass report at serial 2 using HLAinteractionRoot.TckExtensionInteraction from a separate FOM execution. The foreign API handle reproduces a context-invalid outcome but is not the C++ default-invalid handle value. Results/JUnit: out/java-tck/interaction-dimensions-java-parity-20261115/companion-{evoked,immediate}.{json,xml}. No direct normative mapping is claimed for this companion; local-provider evidence only."
     },
     {
       "id": "java-tck.service-report-object-dimensions",
@@ -49035,11 +49078,35 @@
         "federation-execution-api-contract.json",
         "standard-service-report-object-dimensions-contract.json"
       ],
-      "evidence_note": "The Java primary mirrors the C++ positive and empty witnesses: the adapter object class exposes exactly TckDimension, HLAobjectRoot exposes no dimensions, and the two GetAvailableDimensionsForObjectClass reports are checked at serials 0 and 1 with type-36 class and type-11 dimension-set arguments. Java checks the API set contents and quoted handle-field shape; exact provider handle text is not claimed. Focused local Umbra JNI runs passed with --run-unverified under HLA_EVOKED and HLA_IMMEDIATE using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject, and TckDimension. Results/JUnit: out/java-tck/service-report-object-dimensions-invalid-handle-20261114/positive-{evoked,immediate}.{results.json,junit.xml}. Paired C++ direct execution and focused CTest passed 2/2 under both callback models against the installed MinGW package; results/JUnit: out/cpp-tck/service-report-object-dimensions-java-parity-20261114/{results.json,junit.xml}. Local JNI evidence only.",
+      "evidence_note": "The Java primary passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and HLAobjectRoot.TckTypedObject. It checks the configured one-dimension GetAvailableDimensionsForObjectClass result and the empty HLAobjectRoot result; their MOM reports verify exact argument/result types, serials 0 and 1, and callback metadata. Direct mapping is limited to the two §10.21 requirements for the configured nonempty result and required empty root result. MOM report fields and the foreign-handle failure path are supplemental. The opt-in foreign-class companion passed 1/1 under both callback models with --run-unverified and fom-extension-tck.xml; it verifies InvalidObjectClassHandle and the failed report using a standard API handle from a separate FOM execution, not the C++ default-invalid handle value. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under both callback models against the installed 2026-11-10 MinGW package; scoped validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java primary results/JUnit: out/java-tck/object-dimensions-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}; companion: companion-{evoked,immediate}.{json,xml}; export: provider-neutral-validation.json; C++ results/JUnit: out/mgw/cpp-tck-service-report-object-dimensions-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectDimensions",
       "parity": "cpp-tck.service-report-object-dimensions",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, dimension name and object-class name, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-258-l64-18",
+        "requirement-candidate-content-clauses-10-support-services-page-258-l67-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.21"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-258-l64-18",
+          "standard_section": "hla-1516.1-2025:clause-10.21"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-258-l67-19",
+          "standard_section": "hla-1516.1-2025:clause-10.21"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings are limited to the configured nonempty GetAvailableDimensionsForObjectClass result and the required empty HLAobjectRoot result under IEEE 1516.1-2025 §10.21. The MOM report payloads, typed arguments and return values, serials, and callback identity are supplemental; this case does not map service-report requirements under §11.5.1. The InvalidObjectClassHandle path uses a separate-FOM companion because the standard Java API has no default-invalid ObjectClassHandle representation.",
+      "adapter_inputs": [
+        "Primary FOM defining the selected object class with exactly TckDimension, plus the standard MIM and logical-time implementation",
+        "hla.rti.tck.dimension naming the configured FOM dimension",
+        "hla.rti.tck.typedObjectClass naming the configured object class",
+        "Provider, endpoint, and callback model"
+      ]
     },
     {
       "id": "java-tck.service-report-object-dimensions-invalid-handle-contexts",
@@ -49098,7 +49165,7 @@
       "parity": "cpp-tck.service-report-object-dimensions",
       "default_status": "unsupported",
       "exclusion": "Opt-in because the focused companion needs a separate additional FOM execution. Configure hla.rti.tck.additionalFom with fom-extension-tck.xml plus the primary dimensional FOM, standard MIM, logical-time implementation, provider, endpoint, and callback model. Runtime evidence is local Umbra JNI only.",
-      "evidence_note": "The opt-in Java companion passed with --run-unverified under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI using fom-model-tck.xml, fom-extension-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject, and TckDimension. It verifies the configured dimension report at serial 0, the empty HLAobjectRoot report at serial 1, and InvalidObjectClassHandle plus the failed GetAvailableDimensionsForObjectClass report at serial 2 using HLAobjectRoot.TckExtensionObject from a separate FOM execution. The foreign handle reproduces the context-invalid outcome but not the C++ default-invalid value; class-handle report text is checked only for quoted shape. Results/JUnit: out/java-tck/service-report-object-dimensions-invalid-handle-20261114/context-errors-{evoked,immediate}.{results.json,junit.xml}. No independent-provider claim."
+      "evidence_note": "The opt-in Java companion passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with --run-unverified against the current-source Umbra JNI bundle built 2026-11-14. It used fom-model-tck.xml and fom-extension-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and HLAobjectRoot.TckTypedObject. It repeats the configured one-dimension and empty HLAobjectRoot reports, then verifies InvalidObjectClassHandle and the failed GetAvailableDimensionsForObjectClass report at serial 2 using HLAobjectRoot.TckExtensionObject from a separate FOM execution. The foreign API handle reproduces a context-invalid outcome but is not the C++ default-invalid handle value. Results/JUnit: out/java-tck/object-dimensions-java-parity-20261115/companion-{evoked,immediate}.{json,xml}. No direct normative mapping is claimed for this companion; local-provider evidence only."
     },
     {
       "id": "java-tck.service-report-federate-object-class-lookups",

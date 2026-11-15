@@ -28,6 +28,7 @@ import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
+import hla.rti1516_2025.exceptions.InvalidDimensionHandle;
 import hla.rti1516_2025.exceptions.InvalidRegion;
 import hla.rti1516_2025.exceptions.RegionNotCreatedByThisFederate;
 import java.lang.reflect.Proxy;
@@ -1455,16 +1456,20 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
       }
    }
 
-   static void runCreateRegion(RtiFactory factory, String fom, String mim,
+   static void runCreateRegion(RtiFactory factory, String fom, String mim, String additionalFom,
          String timeImplementation, String dimensionName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = additionalFom == null || additionalFom.isEmpty()
+         ? null : factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-create-region-" + UUID.randomUUID();
+      String foreignFederation = federation + "-foreign";
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean foreignConnected = false, foreignCreated = false, foreignJoined = false;
       boolean regionCreated = false;
       RegionHandle region = null;
       InteractionClassHandle reportClass = null;
@@ -1473,15 +1478,29 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         if (foreign != null) {
+            foreign.connect(emptyCallbacks(), callbackModel);
+            foreignConnected = true;
+         }
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         if (foreign != null) {
+            foreign.createFederationExecutionWithMIM(
+               foreignFederation, new String[] {fom, additionalFom}, mim, timeImplementation);
+            foreignCreated = true;
+         }
          FederateHandle subjectFederate = subject.joinFederationExecution(
             "java-tck-create-region-subject", "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-create-region-observer", "java-tck", federation);
          observerJoined = true;
+         if (foreign != null) {
+            foreign.joinFederationExecution(
+               "java-tck-create-region-foreign", "java-tck", foreignFederation);
+            foreignJoined = true;
+         }
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -1531,6 +1550,36 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
                   "[\"" + dimension.toString() + "\"]")
             }, new Argument(42, "Region designator", quoted(region.toString())), 0, 5);
 
+         if (foreign != null) {
+            DimensionHandle foreignDimension = foreign.getDimensionHandle("TckAdditionalDimension");
+            JavaTckSupport.check(foreignDimension != null
+                  && "TckAdditionalDimension".equals(foreign.getDimensionName(foreignDimension)),
+               "additional FOM did not resolve the foreign dimension handle");
+            DimensionHandleSet invalidDimensions =
+               subject.getDimensionHandleSetFactory().create();
+            invalidDimensions.add(foreignDimension);
+            boolean invalidDimensionRejected = false;
+            try {
+               subject.createRegion(invalidDimensions);
+            } catch (InvalidDimensionHandle expected) {
+               invalidDimensionRejected = true;
+            }
+            JavaTckSupport.check(invalidDimensionRejected,
+               "CreateRegion accepted a dimension from another FOM execution");
+            awaitReportCount(observer, recorder, callbackModel, 2,
+               "failed CreateRegion InvalidDimensionHandle service-report callback");
+            if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+            JavaTckSupport.check(recorder.events.size() == 2,
+               "CreateRegion success and failure delivered an unexpected number of service reports");
+            verifyReport(observer, subjectFederate, recorder.events.get(1), encoder, reportClass,
+               reportParameters, reliable, "CreateRegion",
+               new Argument[] {
+                  new Argument(11, "Set of dimension designators",
+                     "[\"" + foreignDimension.toString() + "\"]")
+               }, new Argument(34, "", "null"), 1, 5, true, false,
+               "InvalidDimensionHandle");
+         }
+
          subject.setServiceReportingSwitch(false);
          subject.deleteRegion(region);
          regionCreated = false;
@@ -1542,6 +1591,14 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          observerJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
+         if (foreignJoined) {
+            foreign.resignFederationExecution(ResignAction.NO_ACTION);
+            foreignJoined = false;
+         }
+         if (foreignCreated) {
+            foreign.destroyFederationExecution(foreignFederation);
+            foreignCreated = false;
+         }
       } finally {
          if (reportSubscribed && observerJoined && reportClass != null) {
             try { observer.unsubscribeInteractionClass(reportClass); }
@@ -1558,6 +1615,12 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
             try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) resign(foreign);
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) disconnect(foreign);
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
       }
