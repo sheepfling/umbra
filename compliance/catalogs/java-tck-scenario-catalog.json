@@ -50156,7 +50156,7 @@
     {
       "id": "java-tck.service-report-register-object-instance",
       "category": "mom-service-reporting",
-      "title": "Verify the standard MOM report and discovery callback for object registration",
+      "title": "Verify standard MOM report arguments and discovery callback for object registration",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -50191,13 +50191,58 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r003",
+        "requirement-candidate-table-5-p299-r004"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "HLAsuppliedArguments is decoded and required to contain exactly one record."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied ObjectClassHandle record checks its Table 5 type, exact name, and quoted API handle value."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Object class designator is asserted with Table 5 type code 36 and its standard name."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned HLAargumentRecord is decoded and the API-generated ObjectInstanceHandle result is verified."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r003",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied ObjectClassHandle checks Table 5 type code 36, exact argument name, and quoted handle value."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned ObjectInstanceHandle checks Table 5 type code 37, exact argument name, and quoted handle value."
+        }
+      ],
+      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectClassHandle type 36 with the exact Object class designator and quoted API handle, and returned ObjectInstanceHandle type 37 with the exact Object instance designator and quoted handle. The discovery callback is additional case evidence. Direct mappings remain limited to the six listed candidates under IEEE 1516.1-2025 \u00a711.5.1; the detached RL-404 ServiceGroup continuation is not mapped, and no complete section or conformance claim is made.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",

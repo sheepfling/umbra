@@ -17,9 +17,11 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -151,6 +153,33 @@ final class ServiceReportObjectRegistrationTck {
                && serviceType.getValue() == 2 && success.getValue()
                && exception.getValue().isEmpty() && serial.getValue() == 0,
             "registration service report returned an incorrect service result");
+
+          HLAfixedRecord argumentPrototype = argumentPrototype(encoder);
+          HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+             index -> argumentPrototype(encoder), argumentPrototype);
+          suppliedArguments.decode(
+             event.parameters.get(reportParameters.get("HLAsuppliedArguments")));
+          JavaTckSupport.check(suppliedArguments.size() == 1,
+             "RegisterObjectInstance report returned the wrong supplied-argument count");
+          HLAfixedRecord suppliedClass = suppliedArguments.get(0);
+          JavaTckSupport.check(suppliedClass.size() == 3
+                && ((HLAinteger32BE) suppliedClass.get(0)).getValue() == 36
+                && "Object class designator".equals(
+                   ((HLAunicodeString) suppliedClass.get(1)).getValue())
+                && ("\"" + objectClass.toString() + "\"").equals(
+                   ((HLAunicodeString) suppliedClass.get(2)).getValue()),
+             "RegisterObjectInstance report returned the wrong ObjectClassHandle argument");
+
+          HLAfixedRecord returnedArgument = argumentPrototype(encoder);
+          returnedArgument.decode(
+             event.parameters.get(reportParameters.get("HLAreturnedArgument")));
+          JavaTckSupport.check(returnedArgument.size() == 3
+                && ((HLAinteger32BE) returnedArgument.get(0)).getValue() == 37
+                && "Object instance designator".equals(
+                   ((HLAunicodeString) returnedArgument.get(1)).getValue())
+                && ("\"" + registered.toString() + "\"").equals(
+                   ((HLAunicodeString) returnedArgument.get(2)).getValue()),
+             "RegisterObjectInstance report returned the wrong ObjectInstanceHandle result");
       } finally {
          if (subjectJoined) {
             try { subject.setServiceReportingSwitch(false); } catch (Exception ignored) { }
@@ -185,6 +214,14 @@ final class ServiceReportObjectRegistrationTck {
             try { subject.disconnect(); } catch (Exception ignored) { }
          }
       }
+   }
+
+   private static HLAfixedRecord argumentPrototype(EncoderFactory encoder) {
+      HLAfixedRecord record = encoder.createHLAfixedRecord();
+      record.add(encoder.createHLAinteger32BE());
+      record.add(encoder.createHLAunicodeString());
+      record.add(encoder.createHLAunicodeString());
+      return record;
    }
 
    private static void await(RTIambassador ambassador, CallbackModel callbackModel,
