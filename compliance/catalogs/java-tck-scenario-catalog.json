@@ -41195,8 +41195,8 @@
           "standard_section": "hla-1516.1-2025:clause-11.5.1"
         }
       ],
-      "mapping_note": "Direct Table 5 rows r007 and r010 only: the successful AssociateRegionsForUpdates report encodes the supplied argument as a two-entry Array<AttributeRegionAssociation>; the Java source checks each ordered record and its singleton attributeHandleSet/regionHandleSet pair. This directly witnesses the r007 pair shape and r010 array form. The source uses only official IEEE 1516.1-2025 Java API types and standard MOM encoding elements. It does not claim other Table 5 value forms or full §11.5.1 coverage.",
-      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed with the Umbra JNI capability profile under HLA_EVOKED and HLA_IMMEDIATE. Both runs used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAobjectRoot.TckTypedObject, Identity, IntegerValue, TckDimension, and HLAinteger64Time. Each run verified one successful report, the two-entry variable array and exact ordered singleton pairs, Null return, serial 0, empty exception, and callback metadata. Results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261114/{evoked,immediate}.{results.json,junit.xml}. Umbra JNI evidence only; no independent-provider or conformance claim.",
+      "mapping_note": "Direct IEEE 1516.1-2025 Table 5 p.295 rows r007 and r010 only. The Java test checks the successful AssociateRegionsForUpdates and UnassociateRegionsForUpdates reports: the supplied value is a two-entry Array<AttributeRegionAssociation>, each ordered record contains the exact singleton attributeHandleSet and regionHandleSet designators. This witnesses the r007 pair structure and r010 array form. The RegionNotCreatedByThisFederate report is supplemental and adds no mapping. The case does not claim other Table 5 rows or full §11.5.1 coverage.",
+      "evidence_note": "Verified 2026-11-15: Java Associate Regions for Updates passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override against the matched current-source Umbra JNI bundle built 2026-11-14. It used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject, Identity/IntegerValue, and TckDimension. The Java case verifies the successful AssociateRegionsForUpdates report (serial 0), a RegionNotCreatedByThisFederate report for an observer-owned region (serial 1), and the successful UnassociateRegionsForUpdates report (serial 2), including report metadata, federate identity, exact supplied arguments, Null return, success/exception, and serial values. Direct mapping is limited to Table 5 p.295 rows r007/r010: the two-entry Array<AttributeRegionAssociation> and ordered singleton attributeHandleSet/regionHandleSet pairs on successful reports; foreign-region rejection is supplemental. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions under HLA_EVOKED/HLA_IMMEDIATE against the installed 2026-11-10 MinGW package; scoped C++ validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261115/results/default-{evoked,immediate}.{results.json,junit.xml}; combined export: out/java-tck/service-report-associate-regions-java-parity-20261115/results/provider-neutral-validation.json; C++ results: out/mgw/cpp-tck-service-report-associate-regions-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -41205,8 +41205,15 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportAssociateRegionsForUpdates",
       "parity": "cpp-tck.service-report-associate-regions-for-updates",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied p0-tck-without-switches.xml, fom-model-tck.xml, standard MIM, typed object-class and attribute names, TckDimension, and a compatible logical-time implementation. Plain p0-tck.xml conflicts with fom-model-tck.xml on switch values. The Umbra JNI capability profile opts in after focused current-source verification; other providers need their own evidence."
+      "default_status": "run",
+      "mapping_classification": "direct-requirement-mapped",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "packages/hla-rti-java-tck/fom/p0-tck-without-switches.xml, packages/hla-rti-cpp-tck/fom/fom-model-tck.xml, and HLAstandardMIM-2025.xml",
+        "HLAinteger64Time logical-time implementation",
+        "HLAobjectRoot.TckTypedObject with Identity and IntegerValue attributes",
+        "TckDimension and callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-regional-interaction-failure",

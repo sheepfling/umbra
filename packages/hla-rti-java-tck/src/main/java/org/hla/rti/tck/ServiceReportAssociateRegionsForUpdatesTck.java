@@ -21,6 +21,7 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
+import hla.rti1516_2025.exceptions.RegionNotCreatedByThisFederate;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
@@ -68,6 +69,7 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
       boolean reportSubscribed = false;
       RegionHandle region = null;
       RegionHandle secondRegion = null;
+      RegionHandle foreignRegion = null;
       ObjectInstanceHandle object = null;
       AttributeSetRegionSetPairList associations = null;
       InteractionClassHandle reportClass = null;
@@ -139,11 +141,54 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
             "Associate Regions for Updates emitted an unexpected number of service reports");
          verifyReport(observer, observerCallbacks.interactions.get(0), encoder,
             reportClass, reportParameters, subjectHandle, object,
-            attribute, region, secondAttribute, secondRegion);
+            attribute, region, secondAttribute, secondRegion,
+            "AssociateRegionsForUpdates", 0);
+
+         DimensionHandle observerDimension = observer.getDimensionHandle(dimensionName);
+         JavaTckSupport.check(dimensionName.equals(observer.getDimensionName(observerDimension)),
+            "foreign-region FOM dimension lookup failed");
+         long observerUpperBound = observer.getDimensionUpperBound(observerDimension);
+         DimensionHandleSet foreignDimensionSet = observer.getDimensionHandleSetFactory().create();
+         foreignDimensionSet.add(observerDimension);
+         foreignRegion = observer.createRegion(foreignDimensionSet);
+         observer.setRangeBounds(foreignRegion, observerDimension,
+            new RangeBounds(0, observerUpperBound));
+         RegionHandleSet foreignRegionCommitSet = observer.getRegionHandleSetFactory().create();
+         foreignRegionCommitSet.add(foreignRegion);
+         observer.commitRegionModifications(foreignRegionCommitSet);
+         RegionHandleSet foreignRegionSet = subject.getRegionHandleSetFactory().create();
+         foreignRegionSet.add(foreignRegion);
+         AttributeSetRegionSetPairList foreignAssociations =
+            subject.getAttributeSetRegionSetPairListFactory().create(1);
+         foreignAssociations.add(new AttributeRegionAssociation(attributes, foreignRegionSet));
+
+         boolean foreignRegionRejected = false;
+         try {
+            subject.associateRegionsForUpdates(object, foreignAssociations);
+         } catch (RegionNotCreatedByThisFederate expected) {
+            foreignRegionRejected = true;
+         }
+         JavaTckSupport.check(foreignRegionRejected,
+            "Associate Regions for Updates accepted another federate's region");
+         await(observer, callbackModel, () -> observerCallbacks.interactions.size() >= 2);
+         JavaTckSupport.check(observerCallbacks.interactions.size() == 2,
+            "foreign-region rejection emitted an unexpected number of service reports");
+         verifyFailureReport(observer, observerCallbacks.interactions.get(1), encoder,
+            reportClass, reportParameters, subjectHandle, object, attribute, foreignRegion, 1);
+
+         subject.unassociateRegionsForUpdates(object, associations);
+         await(observer, callbackModel, () -> observerCallbacks.interactions.size() >= 3);
+         JavaTckSupport.check(observerCallbacks.interactions.size() == 3,
+            "Unassociate Regions for Updates emitted an unexpected number of service reports");
+         verifyReport(observer, observerCallbacks.interactions.get(2), encoder,
+            reportClass, reportParameters, subjectHandle, object,
+            attribute, region, secondAttribute, secondRegion,
+            "UnassociateRegionsForUpdates", 2);
+         associations = null;
 
          subject.setServiceReportingSwitch(false);
-         subject.unassociateRegionsForUpdates(object, associations);
-         associations = null;
+         observer.deleteRegion(foreignRegion);
+         foreignRegion = null;
          subject.deleteRegion(region);
          region = null;
          subject.deleteRegion(secondRegion);
@@ -170,6 +215,9 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
          if (subjectJoined && secondRegion != null) {
             try { subject.deleteRegion(secondRegion); } catch (Exception ignored) { }
          }
+         if (observerJoined && foreignRegion != null) {
+            try { observer.deleteRegion(foreignRegion); } catch (Exception ignored) { }
+         }
          if (observerJoined && reportSubscribed) {
             try { observer.unsubscribeInteractionClass(reportClass); }
             catch (Exception ignored) { }
@@ -189,7 +237,8 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
          EncoderFactory encoder, InteractionClassHandle reportClass,
          Map<String, ParameterHandle> parameters, FederateHandle subject,
          ObjectInstanceHandle object, AttributeHandle attribute, RegionHandle region,
-         AttributeHandle secondAttribute, RegionHandle secondRegion) throws Exception {
+         AttributeHandle secondAttribute, RegionHandle secondRegion,
+         String expectedService, int expectedSerial) throws Exception {
       JavaTckSupport.check(reportClass.equals(report.interaction)
             && report.parameters.size() == parameters.size()
             && report.tag.length == 0 && report.producer == null
@@ -211,9 +260,9 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
       serviceType.decode(report.parameters.get(parameters.get("HLAserviceType")));
       HLAboolean success = encoder.createHLAboolean();
       success.decode(report.parameters.get(parameters.get("HLAsuccessIndicator")));
-      JavaTckSupport.check("AssociateRegionsForUpdates".equals(service.getValue())
+      JavaTckSupport.check(expectedService.equals(service.getValue())
             && serviceType.getValue() == 5 && success.getValue(),
-         "Associate Regions for Updates report had the wrong service or success metadata");
+         "region-association service report had the wrong service or success metadata");
 
       HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
          index -> fixedRecordPrototype(encoder), fixedRecordPrototype(encoder));
@@ -236,8 +285,67 @@ final class ServiceReportAssociateRegionsForUpdatesTck {
       exception.decode(report.parameters.get(parameters.get("HLAexception")));
       HLAinteger32BE serial = encoder.createHLAinteger32BE();
       serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
-      JavaTckSupport.check(exception.getValue().isEmpty() && serial.getValue() == 0,
-         "Associate Regions for Updates report had an exception or unexpected serial");
+      JavaTckSupport.check(exception.getValue().isEmpty() && serial.getValue() == expectedSerial,
+         "region-association service report had an exception or unexpected serial");
+   }
+
+   private static void verifyFailureReport(RTIambassador observer, Interaction report,
+         EncoderFactory encoder, InteractionClassHandle reportClass,
+         Map<String, ParameterHandle> parameters, FederateHandle subject,
+         ObjectInstanceHandle object, AttributeHandle attribute, RegionHandle foreignRegion,
+         int expectedSerial) throws Exception {
+      JavaTckSupport.check(reportClass.equals(report.interaction)
+            && report.parameters.size() == parameters.size()
+            && report.tag.length == 0 && report.producer == null && report.regionsEmpty
+            && observer.getTransportationTypeHandle("HLAreliable")
+               .equals(report.transportation),
+         "foreign-region failure report had incorrect callback metadata");
+      for (ParameterHandle handle : parameters.values()) {
+         JavaTckSupport.check(report.parameters.containsKey(handle),
+            "foreign-region failure report omitted a standard parameter");
+      }
+      FederateHandle reportedSubject = observer.getFederateHandleFactory().decode(
+         report.parameters.get(parameters.get("HLAfederate")), 0);
+      JavaTckSupport.check(subject.equals(reportedSubject),
+         "foreign-region failure report identified the wrong invoking federate");
+
+      HLAunicodeString service = encoder.createHLAunicodeString();
+      service.decode(report.parameters.get(parameters.get("HLAservice")));
+      HLAinteger16BE serviceType = encoder.createHLAinteger16BE();
+      serviceType.decode(report.parameters.get(parameters.get("HLAserviceType")));
+      HLAboolean success = encoder.createHLAboolean();
+      success.decode(report.parameters.get(parameters.get("HLAsuccessIndicator")));
+      JavaTckSupport.check("AssociateRegionsForUpdates".equals(service.getValue())
+            && serviceType.getValue() == 5 && !success.getValue(),
+         "foreign-region failure report had the wrong service result");
+
+      HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+         index -> fixedRecordPrototype(encoder), fixedRecordPrototype(encoder));
+      suppliedArguments.decode(report.parameters.get(parameters.get("HLAsuppliedArguments")));
+      JavaTckSupport.check(suppliedArguments.size() == 2,
+         "foreign-region failure report had the wrong supplied-argument count");
+      String foreignAssociationValue = "[{\"attributeHandleSet\":[" + quote(attribute.toString())
+         + "],\"regionHandleSet\":[" + quote(foreignRegion.toString()) + "]}]";
+      checkArgument(suppliedArguments.get(0), 37,
+         "Object instance designator", quote(object.toString()));
+      checkArgument(suppliedArguments.get(1), 4,
+         "Collection of attribute designator set and region designator set pairs",
+         foreignAssociationValue);
+
+      HLAfixedRecord returned = fixedRecordPrototype(encoder);
+      returned.decode(report.parameters.get(parameters.get("HLAreturnedArgument")));
+      JavaTckSupport.check(((HLAinteger32BE) returned.get(0)).getValue() == 34
+            && ((HLAunicodeString) returned.get(1)).getValue().isEmpty()
+            && "null".equals(((HLAunicodeString) returned.get(2)).getValue()),
+         "foreign-region failure report returned the wrong Null value");
+      HLAunicodeString exception = encoder.createHLAunicodeString();
+      exception.decode(report.parameters.get(parameters.get("HLAexception")));
+      JavaTckSupport.check(exception.getValue().contains("RegionNotCreatedByThisFederate"),
+         "foreign-region failure report named the wrong exception");
+      HLAinteger32BE serial = encoder.createHLAinteger32BE();
+      serial.decode(report.parameters.get(parameters.get("HLAserialNumber")));
+      JavaTckSupport.check(serial.getValue() == expectedSerial,
+         "foreign-region failure report returned the wrong serial number");
    }
 
    private static void checkArgument(HLAfixedRecord argument, int type,
