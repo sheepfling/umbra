@@ -130,7 +130,9 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {"cpp-1516.1-malformed-fom-input",
                "cpp-1516.1-fom-module-composition",
                "cpp-1516.1-federation-create-join-resign-destroy",
-               "cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+               "cpp-1516.2-fom-composition-and-reference-resolution",
+               "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
+               "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17"}, true),
          RtiTckMain::fomInvalidCompositeJoinAtomicity);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-update-rate-value-stability",
             "Preserve existing update-rate values and compose additional rates across a module join",

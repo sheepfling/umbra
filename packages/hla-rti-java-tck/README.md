@@ -712,6 +712,15 @@ Umbra JNI. Results/JUnit are in
 `out/java-tck/fom-additional-module-join-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
 The mappings cover these selected fixture outcomes only; they do not establish
 exhaustive FOM validation or conformance.
+The default-run `java-tck.fom-invalid-composite-join-atomicity` case joins
+with the valid extension module combined with each of the three adapter invalid
+FOM inputs. Each rejected attempt leaves the new federate and extension class
+absent; a valid follow-up Join then yields shared class and member handles.
+Direct mappings cover IEEE 1516.1-2025 §§4.1.4 and 4.1.4.1 for these selected
+fixtures. Focused default runs passed under both callback models against
+current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-invalid-composite-join-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Coverage is limited to the three adapter inputs.
 The default `java-tck.fom-incomplete-class-definition` scenario mirrors the
 public C++ TCK case for schema-valid object and interaction class scaffolds.
 It rejects each unfinished module union at Create and additional-module Join,
@@ -990,9 +999,10 @@ and absence of a receive callback, then publishes and checks one callback with
 the original class, parameter, payload, and tag. A focused run passed 1/1 using
 the current-source JNI native build, cached Umbra Java adapter JAR, and
 HLAinteger64Time; independent providers and conformance remain unverified.
-The opt-in `java-tck.fom-invalid-composite-join-atomicity` case passes each
+The default-run `java-tck.fom-invalid-composite-join-atomicity` case passes each
 invalid module together with the valid extension module, verifies atomic
-rejection, then confirms the valid join works after all failures.
+rejection, then confirms the valid join works after all failures. Its focused
+both-model evidence and fixture limits are recorded above.
 The opt-in `java-tck.fom-invalid-mim-create-atomicity` scenario exercises the
 standard `createFederationExecutionWithMIM` overload with each adapter-supplied
 invalid MIM path, then reuses the federation name with valid FOM/MIM inputs.

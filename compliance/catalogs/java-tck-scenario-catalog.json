@@ -11737,8 +11737,40 @@
         "cpp-1516.1-malformed-fom-input",
         "cpp-1516.1-fom-module-composition",
         "cpp-1516.1-federation-create-join-resign-destroy",
-        "cpp-1516.2-fom-composition-and-reference-resolution"
+        "cpp-1516.2-fom-composition-and-reference-resolution",
+        "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
+        "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
+        "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.4",
+        "hla-1516.1-2025:clause-4.1.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
+          "standard_section": "hla-1516.1-2025:clause-4.1.4",
+          "note": "The public additional-module Join call supplies the valid extension alongside each of the three malformed, namespace, or duplicate adapter modules and observes a permitted standard FOM-loading/rejection exception. Evidence is limited to these selected inputs."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17",
+          "standard_section": "hla-1516.1-2025:clause-4.1.4.1",
+          "note": "After each rejected mixed-module Join, the owner cannot resolve the joining federate or extension class. A subsequent valid extension Join yields one shared class handle and the joined federate handle. This checks the selected atomicity outcomes for these three inputs."
+        }
+      ],
+      "mapping_note": "Direct, fixture-bounded evidence for IEEE 1516.1-2025 sections 4.1.4 and 4.1.4.1: the scenario attempts additional-module Join with the valid extension plus each of three adapter invalid FOM files. Each rejection leaves the new member and extension class absent; a later valid Join exposes the shared class and member handle. This is limited to the malformed, namespace, and duplicate fixtures and does not claim exhaustive FOM validation or conformance.",
+      "callback_models": ["evoked", "immediate"],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom and extension FOM fom-extension-tck.xml through hla.rti.tck.additionalFom",
+        "invalidFomModules: invalid-malformed-tck.xml, invalid-namespace-tck.xml, invalid-duplicate-tck.xml (platform path separator)",
+        "fomExtensionObjectClass: HLAobjectRoot.TckExtensionObject",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
+      ],
+      "evidence_note": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official API, p0-tck.xml, fom-extension-tck.xml, and the three invalid adapter inputs. Each mixed valid/invalid Join was rejected without adding the federate or extension class; a valid follow-up Join shared the extension class and federate handles. Results/JUnit: out/java-tck/fom-invalid-composite-join-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Local-provider evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "fom-composition-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -11746,8 +11778,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInvalidCompositeJoinAtomicity",
       "parity": "cpp-tck.fom-invalid-composite-join-atomicity",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied base FOM, valid extension module, one or more invalid FOM path inputs, extension object-class name, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom, hla.rti.tck.additionalFom, hla.rti.tck.invalidFomModules (platform-path-separator-delimited), and hla.rti.tck.fomExtensionObjectClass. Provider runtime verification remains pending."
+      "default_status": "run"
     },
     {
       "id": "java-tck.fom-invalid-mim-create-atomicity",
