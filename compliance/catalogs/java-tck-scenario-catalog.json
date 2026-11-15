@@ -52032,7 +52032,7 @@
     {
       "id": "java-tck.service-report-federate-save-begun",
       "category": "mom-service-reporting",
-      "title": "Verify the standard MOM report for a successful Federate Save Begun call",
+      "title": "Verify FederateSaveBegun report arguments and three-member save initiation",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -52073,7 +52073,12 @@
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-federation-save-lifecycle"
+        "cpp-1516.1-federation-save-lifecycle",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7"
       ],
       "contract_refs": [
         "federate-save-begun-service-report-requirements-contract.json",
@@ -52087,7 +52092,35 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportFederateSaveBegun",
       "parity": "cpp-tck.service-report-federate-save-begun",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, service-report support, and callback model; Java provider-runtime result remains unverified."
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, service-report support, and callback model; Java provider-runtime result remains unverified.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "HLAsuppliedArguments is decoded and required to contain exactly zero records."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "HLAreturnedArgument is decoded and checked against the standard Null record."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
+          "standard_section": "hla-1516.1-2025:clause-4.20",
+          "note": "After Request Federation Save, each of the three joined members must receive exactly one Initiate Federate Save callback."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
+          "standard_section": "hla-1516.1-2025:clause-4.20",
+          "note": "Each of the three save-initiation callbacks carries the exact label passed to Request Federation Save."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7",
+          "standard_section": "hla-1516.1-2025:clause-4.20",
+          "note": "All three joined members are non-time-constrained in this scenario, and each receives the save-initiation callback after the request; this is one bounded route."
+        }
+      ],
+      "mapping_note": "The existing Java case requests federation save and checks one Initiate Federate Save callback with the exact requested label on each of three joined members before FederateSaveBegun. It also checks empty HLAsuppliedArguments and the type-34 Null HLAreturnedArgument. The two report mappings are limited to §11.5.1; the three lifecycle mappings are limited to the existing §4.20 candidates. This does not cover time-constrained save initiation, timestamped save time, other federation phases, complete §11.5.1 coverage, or conformance."
     },
     {
       "id": "java-tck.service-report-attribute-update-failure",

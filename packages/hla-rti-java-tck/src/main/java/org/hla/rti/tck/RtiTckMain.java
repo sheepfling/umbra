@@ -8533,13 +8533,18 @@ public final class RtiTckMain {
                "requirement-candidate-table-5-p304-r011"
             }, true), RtiTckMain::serviceReportAttributeUpdate);
       run(new Scenario("java-tck.service-report-federate-save-begun",
-            "verify the standard MOM report for a successful Federate Save Begun call",
+            "verify FederateSaveBegun report arguments and three-member save initiation",
             "mom-service-reporting",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getFederateHandleFactory;RTIambassador.subscribeInteractionClass;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.federateSaveComplete;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;FederateAmbassador.initiateFederateSave;FederateAmbassador.federationSaved;EncoderFactory.createHLAunicodeString;EncoderFactory.createHLAinteger16BE;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAboolean;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-federation-save-lifecycle"
+               "cpp-1516.1-federation-save-lifecycle",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
+               "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7"
             }, false), RtiTckMain::serviceReportFederateSaveBegun);
       run(new Scenario("java-tck.service-report-attribute-update-failure",
             "verify standard failure reports for invalid ordinary attribute updates",
