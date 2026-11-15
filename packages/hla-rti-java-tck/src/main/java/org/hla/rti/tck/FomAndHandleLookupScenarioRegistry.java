@@ -444,7 +444,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(enumerated HLAboolean control FOM);RTIambassador.destroyFederationExecution;RTIambassador.createFederationExecution(basic HLAinteger32BE alternative FOM);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-095-l74-16"
-            }, false), FomAndHandleLookupScenarioRegistry::fomVariantAlternativeTypeCategory);
+            }, true), FomAndHandleLookupScenarioRegistry::fomVariantAlternativeTypeCategory);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-variant-record-encoding",
             "Accept predefined HLAvariantRecord and HLAextendableVariantRecord Encoding markers",
@@ -453,7 +453,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-095-l78-17",
                "requirement-candidate-sections-semantic-clause-4c-page-078-l56-2"
-            }, false), FomAndHandleLookupScenarioRegistry::fomVariantRecordEncoding);
+            }, true), FomAndHandleLookupScenarioRegistry::fomVariantRecordEncoding);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-synchronization-table-validation",
             "Validate FOM synchronization table label and capability fields",

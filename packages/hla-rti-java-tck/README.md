@@ -807,29 +807,37 @@ both callback models against current-source Umbra JNI. Results/JUnit are in
 `out/java-tck/fom-variant-alternative-name-convention-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
 This covers the tested period restriction only; independent-provider behavior
 and conformance are not claimed.
-The opt-in `java-tck.fom-variant-alternative-type-category` scenario accepts
+The default-run `java-tck.fom-variant-alternative-type-category` scenario accepts
 the enumerated `HLAboolean` Alternative Type control and rejects the otherwise
 schema-valid alternative using basic `HLAinteger32BE` as `InconsistentFOM`.
 Supply the fixtures through `hla.rti.tck.variantAlternativeTypeValidFom` and
-`hla.rti.tck.variantAlternativeTypeInvalidFom`. Focused runs passed under
-both callback models with the 2026-11-06 JNI provider build; coverage is limited
-to this category boundary.
-The opt-in `java-tck.fom-variant-record-encoding` scenario accepts a valid FOM
+`hla.rti.tck.variantAlternativeTypeInvalidFom`. Focused runs passed under both
+callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-variant-alternative-type-category-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Coverage is limited to this category boundary; independent-provider behavior
+and conformance are not claimed.
+The default-run `java-tck.fom-variant-record-encoding` scenario accepts a valid FOM
 using `HLAvariantRecord` and `HLAextendableVariantRecord`, then rejects the
 paired predefined `HLAfixedRecord` mismatch as `InconsistentFOM`. Supply the
 fixtures through `hla.rti.tck.variantRecordEncodingValidFom` and
 `hla.rti.tck.variantRecordEncodingInvalidFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; this covers marker
-validation only, not detailed byte layout.
+callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-variant-record-encoding-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This covers marker validation only, not detailed byte layout; independent-provider
+behavior and conformance are not claimed.
 The opt-in `java-tck.fom-synchronization-table-validation` scenario accepts a
 FOM synchronization row with `Capability=NA`, rejects `Capability=Achieve` and
 a user label beginning with the reserved `HLA` prefix, then retries the valid
 FOM under the same federation name. Supply the fixtures through
 `hla.rti.tck.synchronizationCapabilityNaFom`,
 `hla.rti.tck.synchronizationCapabilityActionFom`, and
-`hla.rti.tck.synchronizationLabelInvalidFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build. The SOM Capability rule
-is separate from these FOM assertions.
+`hla.rti.tck.synchronizationLabelInvalidFom`. The current-source JNI provider
+accepted the `Capability=Achieve` fixture in both callback models, so the
+expected `InconsistentFOM` assertion failed and the label/retry checks were not
+reached. Results/JUnit are in
+`out/java-tck/fom-synchronization-table-validation-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Earlier runs passed on provider build umbra-jni-20261106. The SOM Capability
+rule is separate from these FOM assertions.
 The opt-in `java-tck.fom-transportation-description-ignored` scenario mirrors
 the C++ Create-time union and additional-module Join case for two declarations
 with the same transportation name and reliability but different `Semantics`.
