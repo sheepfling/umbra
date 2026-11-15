@@ -3979,7 +3979,7 @@
       ],
       "mapping_note": "Direct §11.4.1 p. 290 l. 174 witness: request the initial HLAfederatesInFederation value and verify the roster after an entrant joins and resigns. Decode the standard nested federate-handle reference array with the Java encoder API and FederateHandleFactory; compare membership without imposing roster order. The mapping is limited to this conditional roster behavior, not other Federation MOM attributes."
     },
-    {
+        {
       "id": "java-tck.federation-mom-content-reports",
       "category": "federation-mom",
       "title": "Request standard federation MOM FOM-module and MIM content reports",
@@ -3987,6 +3987,15 @@
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -3994,19 +4003,28 @@
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.sendInteraction",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.receiveInteraction",
         "HLAinteger32BE.decode",
         "HLAunicodeString.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-federation-mom-content-reports",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+        "requirement-candidate-sections-semantic-clause-4c-page-074-l48-1",
+        "requirement-candidate-sections-semantic-clause-4c-page-074-l72-7",
+        "requirement-candidate-content-clauses-annexes-page-434-l13-4",
+        "requirement-candidate-content-clauses-annexes-page-434-l34-11",
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4"
       ],
       "contract_refs": [
         "standard-federation-mom-content-reports-contract.json",
@@ -4015,7 +4033,62 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federationMomContentReports",
       "parity": "cpp-tck.federation-mom-content-reports",
       "default_status": "run",
-      "evidence_note": "Passed installed-provider Java JNI HLA_EVOKED and HLA_IMMEDIATE default runs at out/java-tck/federation-mom-content-reports-{evoked,immediate}-default-20261022.json after correcting standard fully qualified interaction-name round trips. Matching promoted C++ primary and contract passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/federation-mom-content-reports-verified-20261016.json. This is API-level evidence, not independent-provider or normative conformance."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed focused current-source Umbra JNI runs under HLA_EVOKED and HLA_IMMEDIATE with the base FOM, additional service-usage FOM, standard MIM, and HLAinteger64Time. Both runs verify two ordered FOM-module reports, HLAcurrentFDD references, ordered MIM leaf content and array declarations/semantics, and Annex G lowercase-name precedence. Results: out/java-tck/federation-mom-content-report-detail-parity-20261114/{evoked,immediate}.{results.json,junit.xml}. This is local provider evidence, not independent-provider interoperability or conformance.",
+      "focus_lane": "federation-mom-fom-reference-and-content-report",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+        "requirement-candidate-sections-semantic-clause-4c-page-074-l48-1",
+        "requirement-candidate-sections-semantic-clause-4c-page-074-l72-7",
+        "requirement-candidate-content-clauses-annexes-page-434-l13-4",
+        "requirement-candidate-content-clauses-annexes-page-434-l34-11",
+        "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.4.2",
+        "hla-1516.2-2025:clause-4.14.6",
+        "hla-1516.1-2025:clause-G",
+        "hla-1516.2-2025:clause-C.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+          "standard_section": "hla-1516.1-2025:clause-4.1.4.2",
+          "note": "Direct Java witness for individual-module-content access: the public federation MOM requests module indices 0 and 1 from a federation created with two supplied FOM modules, checks each returned indicator, and compares all ordered text-only XML leaf values with the corresponding source file. Attributes, byte identity, and full XML structural equality are outside the FOM comparison."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l48-1",
+          "standard_section": "hla-1516.2-2025:clause-4.14.6",
+          "note": "Bounded direct Java evidence for the MIM portion: ordered text-only XML leaf values in the public HLAreportMIMdata callback are compared with the pinned standard MIM resource, and the first four arrayData entries are checked as HLAASCIIstring, HLAunicodeString, HLAopaqueData, and HLAtoken in that order with their standardized semantics. XML attributes and arbitrary FOM/SOM documents are outside this test."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-074-l72-7",
+          "standard_section": "hla-1516.2-2025:clause-4.14.6",
+          "note": "Bounded direct Java evidence: all ordered text-only XML leaf values from the public HLAreportMIMdata callback are compared with the pinned standard MIM resource, including the standardized Semantics text. XML attributes and arbitrary FOM/SOM documents are outside this test."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-annexes-page-434-l13-4",
+          "standard_section": "hla-1516.1-2025:clause-G",
+          "note": "The public HLArequestMIMdata/HLAreportMIMdata path returns standard MIM content whose ordered text-only XML leaf values are compared with the pinned 2025 HLAstandardMIM resource; the first four array declarations and semantics are checked. XML attributes, byte-for-byte/full structural equality, package artifact identity, and other table differences are outside scope."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-annexes-page-434-l34-11",
+          "standard_section": "hla-1516.1-2025:clause-G",
+          "note": "The pinned Clause 11 MOM tables use uppercase Data spellings while Annex G HLAstandardMIM XML uses lowercase data spellings. The Java case resolves and name-round-trips the XML-defined request/report interaction names and HLAMIMdata parameter, and asserts NameNotFound for the conflicting uppercase Clause 11 forms. This tests this concrete case-sensitive naming conflict only."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4",
+          "standard_section": "hla-1516.2-2025:clause-C.1",
+          "note": "Bounded public Java evidence for the FOM-module reference rule: a federation is created from two supplied FOM modules; the public HLAcurrentFDD value is decoded and its modelIdentification references are checked against each source module name exactly once; the same case requests indices 0 and 1 and compares each report ordered text-only XML leaves with its source. This covers the two-module fixture only, not arbitrary SOMs, every FDD field, or every module combination."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct but bounded Java evidence for IEEE 1516.2-2025 \u00a7C.1 and \u00a74.14.6, plus IEEE 1516.1-2025 \u00a74.1.4.2 and Annex G: the federation is created with two FOM modules; public HLAcurrentFDD modelIdentification references are checked against each source name; and public reports for indices 0 and 1 match each module ordered text-only XML leaves. The reported MIM is compared with the pinned standard resource, its first four array declarations and semantics are checked, and the concrete Annex G p. 434 l. 34 lowercase-name precedence is verified. XML attributes, byte identity, full structural equality, arbitrary SOMs, and other possible module combinations remain outside scope.",
+      "adapter_inputs": [
+        "provider JAR, provider factory, and JNI library",
+        "base application FOM and standard MIM",
+        "additional FOM module via hla.rti.tck.additionalFom",
+        "endpoint, callback model, and logical-time implementation"
+      ]
     },
     {
       "id": "java-tck.callback-reentrancy",

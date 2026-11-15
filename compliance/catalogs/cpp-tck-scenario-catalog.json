@@ -8607,7 +8607,7 @@
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
-    {
+        {
       "id": "cpp-tck.federation-mom-content-reports",
       "category": "federation-mom",
       "focus_lane": "federation-mom-fom-reference-and-content-report",
@@ -8626,6 +8626,7 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.sendInteraction",
@@ -8683,7 +8684,7 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-annexes-page-434-l34-11",
           "standard_section": "hla-1516.1-2025:clause-G",
-          "note": "The pinned Clause 11 MOM tables spell these names HLArequestMIMData, HLAreportMIMData, and HLAMIMData; normative Annex G's HLAstandardMIM XML spells them HLArequestMIMdata, HLAreportMIMdata, and HLAMIMdata. Through the official C++ API, the case resolves the XML spellings and asserts NameNotFound for the conflicting Clause 11 spellings. This directly tests XML precedence for this concrete case-sensitive MOM naming conflict, not every possible table difference."
+          "note": "The pinned Clause 11 MOM tables spell these names HLArequestMIMData, HLAreportMIMData, and HLAMIMData; normative Annex G's HLAstandardMIM XML spells them HLArequestMIMdata, HLAreportMIMdata, and HLAMIMdata. Through the official C++ API, the case resolves and name-round-trips both XML-defined request/report interaction names, verifies getParameterName returns the exact lowercase HLAMIMdata spelling and that it resolves back to the same handle, and asserts NameNotFound for the conflicting Clause 11 spellings. This directly tests XML precedence for this concrete case-sensitive MOM naming conflict, not every possible table difference."
         },
         {
           "requirement_id": "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4",
@@ -8691,7 +8692,7 @@
           "note": "Bounded public C++ evidence for the FOM-module reference rule: the federation is created from two supplied FOM modules; the public HLAcurrentFDD value is decoded and its modelIdentification references are checked against each source module's model name, exactly once; the same case requests module indices 0 and 1 and compares each report's ordered text-only XML leaves with its source file. This witnesses contributing FOM references and retrievable metadata for this two-module fixture only; it does not cover arbitrary SOMs, every FDD field, or every module combination."
         }
       ],
-      "mapping_note": "Direct but bounded public C++ evidence for IEEE 1516.2-2025 §C.1 and §4.14.6, plus IEEE 1516.1-2025 §4.1.4.2 and Annex G: the federation is created with two FOM modules; the public HLAcurrentFDD modelIdentification table is checked for a unique reference to the model name in each source module; and public report requests for indices 0 and 1 match each module's ordered text-only XML leaf content. The case also compares the reported standard MIM to the pinned resource, checks the first four predefined array declarations and semantics, and verifies the concrete Annex G p. 434 l. 34 lowercase-name precedence. XML attributes, byte identity, full XML structural equality, arbitrary SOMs, and all possible module combinations remain outside scope. Java parity for these mappings is not claimed.",
+      "mapping_note": "Direct but bounded public C++ evidence for IEEE 1516.2-2025 \u00a7C.1 and \u00a74.14.6, plus IEEE 1516.1-2025 \u00a74.1.4.2 and Annex G: the federation is created with two FOM modules; the public HLAcurrentFDD modelIdentification table is checked for a unique reference to each source module name; and public report requests for indices 0 and 1 match each module ordered text-only XML leaf content. The case also compares the reported standard MIM to the pinned resource, checks the first four predefined array declarations and semantics, and verifies the concrete Annex G p. 434 l. 34 lowercase-name precedence by round-tripping request/report and parameter names while rejecting the conflicting uppercase spellings. The Java mirror is java-tck.federation-mom-content-reports and carries the same bounded public-API assertions. XML attributes, byte identity, full XML structural equality, arbitrary SOMs, and all possible module combinations remain outside scope.",
       "contract_refs": [
         "standard-federation-mom-content-reports-contract.json",
         "federation-execution-api-contract.json"
@@ -8715,6 +8716,7 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
+        "RTIambassador.getParameterName",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.sendInteraction",
@@ -8766,7 +8768,7 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-annexes-page-434-l34-11",
           "standard_section": "hla-1516.1-2025:clause-G",
-          "note": "Clause 11's MOM tables spell these names HLArequestMIMData, HLAreportMIMData, and HLAMIMData; Annex G's pinned HLAstandardMIM XML spells them HLArequestMIMdata, HLAreportMIMdata, and HLAMIMdata. The official C++ API case resolves the XML spellings and verifies NameNotFound for the conflicting Clause 11 forms. This directly tests XML precedence for the concrete case-sensitive naming conflict only."
+          "note": "Clause 11's MOM tables spell these names HLArequestMIMData, HLAreportMIMData, and HLAMIMData; Annex G's pinned HLAstandardMIM XML spells them HLArequestMIMdata, HLAreportMIMdata, and HLAMIMdata. The official C++ API case resolves and name-round-trips both XML-defined request/report interaction names, verifies getParameterName returns HLAMIMdata exactly and resolves back to the same parameter handle, and verifies NameNotFound for the conflicting Clause 11 forms. This directly tests XML precedence for the concrete case-sensitive naming conflict only."
         }
       ],
       "mapping_note": "The contract twin repeats the p. 49 l. 19 individual-module-content and MIM access assertions for module indices 0 and 1, verifying both indicators and comparing all ordered text-only XML leaf values with each supplied source module. It compares ordered text-only XML leaf values in the returned standard MIM against the pinned 2025 HLAstandardMIM resource, explicitly checks the four predefined array declarations/semantics, and verifies the XML-defined lowercase MIM interaction/parameter names resolve while the conflicting Clause 11 uppercase forms raise NameNotFound. This directly covers the concrete case-sensitive naming conflict in §G p. 434 l. 34 and is bounded evidence for the supplied standard MIM content in §G p. 434 l. 13. XML attributes, byte identity, full structural equality, package artifact identity, and other possible MOM table differences are outside scope.",

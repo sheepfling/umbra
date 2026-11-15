@@ -964,6 +964,16 @@ void scenarioFederationMomContentReports(
           observer.rtiAmbassador().getInteractionClassName(mimReportClass) ==
               mimReportName,
       "the RTI did not preserve the exact Annex G MIM interaction names");
+  require(
+      observer.rtiAmbassador().getParameterName(mimReportClass, mimReportData) ==
+          L"HLAMIMdata",
+      "the Annex G MIM report parameter handle did not resolve to its exact lowercase name");
+  auto const resolvedMimReportParameterName =
+      observer.rtiAmbassador().getParameterName(mimReportClass, mimReportData);
+  require(
+      observer.rtiAmbassador().getParameterHandle(
+          mimReportClass, resolvedMimReportParameterName) == mimReportData,
+      "the exact Annex G MIM parameter name did not resolve back to its original handle");
   requireException(
       [&] {
         static_cast<void>(subject.rtiAmbassador().getInteractionClassHandle(

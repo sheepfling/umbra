@@ -1080,11 +1080,16 @@ public final class RtiTckMain {
             }, true), RtiTckMain::federationMomFederatesInFederation);
       run(new Scenario("java-tck.federation-mom-content-reports",
             "federation MOM FOM-module and MIM content reports", "federation-mom",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getFederateName;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAinteger32BE.decode;HLAinteger32BE.toByteArray;HLAunicodeString.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getFederateName;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.requestAttributeValueUpdate;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.receiveInteraction;HLAinteger32BE.decode;HLAinteger32BE.getValue;HLAinteger32BE.toByteArray;HLAunicodeString.decode;HLAunicodeString.getValue",
             new String[] {
                "cpp-1516.1-federation-mom-content-reports",
                "cpp-1516.1-federation-create-join-resign-destroy",
-               "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4"
+               "requirement-candidate-content-clauses-04-federation-management-page-049-l19-4",
+               "requirement-candidate-sections-semantic-clause-4c-page-074-l48-1",
+               "requirement-candidate-sections-semantic-clause-4c-page-074-l72-7",
+               "requirement-candidate-content-clauses-annexes-page-434-l13-4",
+               "requirement-candidate-content-clauses-annexes-page-434-l34-11",
+               "requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l34-4"
             }, true), RtiTckMain::federationMomContentReports);
       run(new Scenario("java-tck.federation-mom-s-leaf-subscription",
             "Table 7 S-leaf parameter reports and parameterless federation requests",
@@ -9560,7 +9565,7 @@ public final class RtiTckMain {
 
    private static void federationMomContentReports() throws Exception {
       FederationMomContentReportsTck.run(factory(), requireFom(), requireMim(),
-         timeImplementation(), callbackModel());
+         requireAdditionalFom(), timeImplementation(), callbackModel());
    }
 
    private static void federationMomSLeafSubscription() throws Exception {
