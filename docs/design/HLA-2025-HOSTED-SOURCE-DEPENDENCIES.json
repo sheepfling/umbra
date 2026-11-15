@@ -79,8 +79,8 @@
     "note": "The 56 source-target migration reviews remain preserved as historical evidence about cross-revision path and line availability; they do not establish claim support for every guide citation. The increment-316 checker resolves 4,332/4,332 unique relative Markdown source-line references in the worktree, candidate base, and primary source revision."
   },
   "failure_target_details": [],
-  "scope_note": "Counts cover relative Markdown source-line links across 35 IEEE 1516.1-2025 Markdown files: 5,660 link occurrences and 4,369 unique path/line/guide references. All unique references resolve at the current worktree, pinned candidate base, and primary source revision. Immutable GitHub permalinks are counted and checked separately. These checks establish target path and line existence only, not semantic support for surrounding claims. Preserve unrelated staged and unstaged work.",
-  "refresh": "2026-11-08 increment 319: the source-line checker resolves 4,370/4,370 unique relative path/line/guide references across 35 IEEE 1516.1-2025 Markdown files in the candidate worktree, at pinned hosted base c9c5a9e410539b039cd8bba35b53d0ef2b24d180, and at source revision e6321e842f333427349166df8c5b35350a2ae473; these represent 5,662 Markdown link occurrences. The immutable permalink audit remains 148 occurrences (102 unique path/line pairs across 40 targets), with zero missing lines. The authenticated GFM pass covers all 35 pages with 498/498 Mermaid containers, 979 headings, 7,663 links, and zero failures. The docs-only selection remains 41 paths (32 guides plus nine support/handoff assets); 48 unrelated non-documentation changes remain excluded. Published GitHub file-page hydration remains unverified; these checks do not establish semantic support.",
+  "scope_note": "The root migration values above preserve the 2026-11-08 comparison against origin/feature/initial-work. The current candidate-branch snapshot is latest_candidate_reference_snapshot: 40 IEEE 1516.1-2025 Markdown files and 4,776 unique relative source-line references; all resolve in the worktree, while 4,767 resolve at candidate HEAD and nine current-only anchors in four in-flight source/test files are out of range there. The immutable GitHub permalink audit is separate and retains its own recorded date. These checks establish target path and line existence only, not semantic support for surrounding claims.",
+  "refresh": "2026-11-12 increment 489 refresh: quality_gates/bin/check_hla_2025_documentation_links.py --worktree resolves 4,776/4,776 unique source-line references across 40 IEEE 1516.1-2025 Markdown files. Candidate HEAD and the remote branch pointer remain at e10fa19a7bf48415e00a14ca7301613a84f637a3; the recorded candidate-HEAD comparison resolves 4,767/4,776, with nine current-worktree-only anchors in four in-flight source/test files. The current worktree resolves all nine. The root migration counts dated 2026-11-08 remain historical; see latest_candidate_reference_snapshot for the candidate comparison. Path/line existence does not establish semantic support for surrounding claims.",
   "candidate_assembly": {
     "status": "44-path 2025-only documentation candidate published; page-level audit complete, visible Mermaid hydration unverified.",
     "target_base_ref": "origin/feature/initial-work",
@@ -2635,6 +2635,86 @@
     "missing_targets_or_out_of_range_lines": 0,
     "result": "passed",
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
+  },
+  "latest_candidate_reference_snapshot": {
+    "as_of": "2026-11-12 increment 529",
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+    "remote_branch_matches_candidate": true,
+    "markdown_files": 40,
+    "unique_source_line_references": 4805,
+    "worktree": {
+      "resolved": 4805,
+      "unresolved": 0
+    },
+    "candidate_head": {
+      "resolved": 4796,
+      "unresolved": 9,
+      "affected_guides": [
+        "docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
+        "docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md"
+      ],
+      "unresolved_targets": [
+        "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+        "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+      ],
+      "failure_breakdown": {
+        "missing_targets": 0,
+        "out_of_range_references": 9,
+        "affected_target_files": 4
+      }
+    },
+    "in_flight_source_sizes": [
+      {
+        "path": "cpp/src/internal/federation/process_federation_service_host.cpp",
+        "head_lines": 236,
+        "worktree_lines": 544,
+        "line_count_delta": 308
+      },
+      {
+        "path": "cpp/src/internal/runtime/rti_initialization_data.cpp",
+        "head_lines": 222,
+        "worktree_lines": 394,
+        "line_count_delta": 172
+      },
+      {
+        "path": "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+        "head_lines": 115,
+        "worktree_lines": 1368,
+        "line_count_delta": 1253
+      },
+      {
+        "path": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+        "head_lines": 700,
+        "worktree_lines": 2894,
+        "line_count_delta": 2194
+      }
+    ],
+    "interpretation": "All 4,805 worktree source links resolve. Candidate HEAD has the same nine out-of-range links across four active source/test files; none targets a missing file. Increment 529 also compared Mermaid bodies against candidate HEAD and found seven additions and 21 actual revisions; two corrected ledger hashes are not source-body changes. All 28 content deltas have local render/screenshot evidence but remain unpublished. Do not retarget current source anchors to unrelated committed code. Wait for source owners to land reviewed changes, then rerun checks and adjust anchors only if their lines moved.",
+    "next": "There is no open pull request for the four active source/test changes; source owners should review and commit them. After the files reach reviewed committed revisions, rerun the 2025 Markdown link check against the worktree, candidate HEAD, primary HEAD, and hosted baseline. Confirm or adjust the nine line anchors, update this snapshot, then publish seven added diagrams and 21 revised bodies and verify hosted hydration for all 515 charts. Keep in-flight implementation changes outside the documentation-only publication set until their owners review them.",
+    "remote_branch_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+    "remote_review_state": {
+      "checked_as_of": "2026-11-12 increment 529",
+      "command": "gh pr list --repo sheepfling/umbra --state open --limit 50 --json number,title,headRefName,baseRefName,updatedAt",
+      "open_pull_requests": 0,
+      "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+      "candidate_branch_head": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+      "active_source_test_paths": [
+        "cpp/src/internal/federation/process_federation_service_host.cpp",
+        "cpp/src/internal/runtime/rti_initialization_data.cpp",
+        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp"
+      ],
+      "worktree_state": "All four paths remain modified in the shared candidate worktree; no source changes were staged or published by this documentation pass.",
+      "next_action": "Source owners review and commit these changes; then rerun the cross-revision source-link check and reconcile moved anchors."
+    }
   },
   "documentation_support_asset_count": 12
 }

@@ -353,7 +353,22 @@ implementation detail, not a cross-execution identity contract.
 
 Select the typed decoder whose return class you intend to construct, but do not
 mistake that C++ type for a category tag carried in the bytes. The current 2025
-handle encoding has no category discriminator. In the embedded service path,
+handle encoding has no category discriminator. The pinned API declares a
+decoder for each handle type:
+
+| Result type | Typed decoder |
+| --- | --- |
+| `FederateHandle` | [`decodeFederateHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2313) |
+| `ObjectClassHandle` | [`decodeObjectClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2322) |
+| `InteractionClassHandle` | [`decodeInteractionClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2331) |
+| `ObjectInstanceHandle` | [`decodeObjectInstanceHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2340) |
+| `AttributeHandle` | [`decodeAttributeHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2349) |
+| `ParameterHandle` | [`decodeParameterHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2358) |
+| `DimensionHandle` | [`decodeDimensionHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2367) |
+| `MessageRetractionHandle` | [`decodeMessageRetractionHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2376) |
+| `RegionHandle` | [`decodeRegionHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2385) |
+
+In the embedded service path,
 connection and membership checks run first; the selected typed decoder then
 checks the array shape and count and constructs the requested handle class. The
 reviewed source does not validate that the numeric value belongs to that handle
@@ -587,10 +602,15 @@ above, and it must not be presented as a portable HLA rule.
 
 ### Normalization support services produce coordinates, not handles
 
-The 2025 API lists `normalizeServiceGroup` and four typed-handle normalization
-services in RTI Support (10.29–10.33). They return `unsigned long`; that result
-is not another handle and is not the handle's private sequential value. The
-Umbra registry describes normalized handle values as execution-scoped
+The 2025 API exposes [`normalizeServiceGroup`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1984)
+and four typed-handle normalization services in RTI Support (10.29–10.33):
+[`normalizeFederateHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1994),
+[`normalizeObjectClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2004),
+[`normalizeInteractionClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2014),
+and [`normalizeObjectInstanceHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2024).
+They return `unsigned long`; that result is not another handle and is not the
+handle's private sequential value. The Umbra registry describes normalized
+handle values as execution-scoped
 coordinates for standard MIM dimensions, stable for the same designator
 throughout an execution, including restore. Its source reserves the maximum
 coordinate so a point range `[value, value + 1)` cannot overflow. This is
@@ -648,14 +668,14 @@ cross-execution equality or prove a portable coordinate algorithm.
 
 | Symbol | Forward lookup | Reverse lookup | Important distinction |
 | --- | --- | --- | --- |
-| Object class | Name → `ObjectClassHandle` | Handle → name | Missing name is `NameNotFound`; an invalid/unknown handle is `InvalidObjectClassHandle`. |
-| Attribute | Class + name → `AttributeHandle` | Class + handle → name | Inherited members resolve through child classes; a valid attribute outside the supplied class hierarchy is `AttributeNotDefined`. |
-| Interaction class | Name → `InteractionClassHandle` | Handle → name | Separate type from object-class handles; lookup is in the joined execution's interaction catalog. |
-| Parameter | Interaction class + name → `ParameterHandle` | Interaction class + handle → name | Inherited parameters resolve through child interaction classes; a valid unrelated handle is `InteractionParameterNotDefined`. |
-| Dimension | Name → `DimensionHandle` | Handle → name / upper bound | Availability for a particular object or interaction class is a separate query; see the [FOM-to-region bridge](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#from-fom-dimensions-to-runtime-region-scope). |
-| Federate | Active name → `FederateHandle` | Known handle → name | The API documents distinct lookup exceptions; the cited process test observes reverse lookup surviving resignation while active-name lookup does not. |
-| Transportation | Name → `TransportationTypeHandle` | Handle → name | Invalid names use `InvalidTransportationName`, not the generic `NameNotFound`. See the [order and transportation guide](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md). |
-| Order | Name → `OrderType` enum | Enum → name | This is an enum lookup, not a handle lookup; invalid values use order-specific exceptions. |
+| Object class | [`getObjectClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1709): name → `ObjectClassHandle` | [`getObjectClassName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1719): handle → name | Missing name is `NameNotFound`; an invalid/unknown handle is `InvalidObjectClassHandle`. |
+| Attribute | [`getAttributeHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1760): class + name → `AttributeHandle` | [`getAttributeName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1773): class + handle → name | Inherited members resolve through child classes; a valid attribute outside the supplied class hierarchy is `AttributeNotDefined`. |
+| Interaction class | [`getInteractionClassHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1806): name → `InteractionClassHandle` | [`getInteractionClassName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1816): handle → name | Separate type from object-class handles; lookup is in the joined execution's interaction catalog. |
+| Parameter | [`getParameterHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1827): interaction class + name → `ParameterHandle` | [`getParameterName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1840): interaction class + handle → name | Inherited parameters resolve through child interaction classes; a valid unrelated handle is `InteractionParameterNotDefined`. |
+| Dimension | [`getDimensionHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1911): name → `DimensionHandle` | [`getDimensionName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1921): handle → name; [`getDimensionUpperBound`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1931): handle → upper bound | Availability for a particular object or interaction class is a separate query; see the [FOM-to-region bridge](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md#from-fom-dimensions-to-runtime-region-scope). |
+| Federate | [`getFederateHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1688): active name → `FederateHandle` | [`getFederateName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1699): known handle → name | The API documents distinct lookup exceptions; the cited process test observes reverse lookup surviving resignation while active-name lookup does not. |
+| Transportation | [`getTransportationTypeHandle`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1871): name → `TransportationTypeHandle` | [`getTransportationTypeName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1881): handle → name | Invalid names use `InvalidTransportationName`, not the generic `NameNotFound`. See the [order and transportation guide](HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md). |
+| Order | [`getOrderType`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1851): name → `OrderType` enum | [`getOrderName`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1861): enum → name | This is an enum lookup, not a handle lookup; invalid values use order-specific exceptions. |
 | Object instance | [`getObjectInstanceHandle(name)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1739): known name → `ObjectInstanceHandle` | [`getObjectInstanceName(handle)`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1749): known handle → name | Both directions are scoped to the federate's known instances; unknown-to-this-federate uses `ObjectInstanceNotKnown`. |
 
 ### Lookup behavior at local-forget and receive-order-delete boundaries

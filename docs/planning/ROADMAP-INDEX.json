@@ -1035,24 +1035,106 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-09",
+      "as_of": "2026-11-15 increment 531",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Full published GitHub Mermaid audit, increment 374 (2026-11-09): refreshed the current candidate branch at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 across 32/32 2025 guides. The published pages exposed all 508 expected Mermaid containers; all 508 render requests returned HTTP 200, with zero request failures or page/count mismatches. Two diagrams in Callback and Service Ordering needed an additional wait; both then exposed rendered flowchart SVGs and labels. Scrolled the process-recovery diagram #007 in the Connection and Configuration guide into view and visually inspected the separated client/host lanes, replay connector, labels, and state boxes. The audit and ledger now record current hosted hydration. The local documentation checker resolved 4,657/4,657 references across 38 Markdown files. No C++ edits, builds, tests, or CI; no 2010 or Requirements Lab changes. Overall progress remains 80%; formal gates 4/4.",
-      "next_concrete_review": "Next: after the current host/client recovery and process-lifecycle changes are committed and have a recorded focused run, review configured-process ConnectionLost against that exact source. Trace the local connectionLost callback, host membership removal, Federate-Lost report, and RTI-owned HLAfederate removal; state ordering only where current assertions establish it. Keep this a 2025 documentation review, make no 2010 or Requirements Lab changes, and do not run builds, tests, or CI as part of the documentation handoff.",
-      "remaining_work": "Overall progress remains 80%; all four formal gates are complete (4/4). The principal 2025 API and service families already have guides; continue semantic and evidence reviews rather than expanding by guide count. Still unresolved are the timed Save normative failure/unreachable-time trigger, RAVU same-object fan-out and the configured-process post-recheck delivery window, and §6.21 requester entitlement and normative callback timing. Configured-process runtime evidence and ordering for the Federate-Lost report, local connectionLost callback, and RTI-owned HLAfederate removal also remain incomplete. The current published branch now has a full 508/508 GitHub Mermaid hydration audit; the linked host/client recovery and process-lifecycle source/test edits remain dirty and unexecuted, so they are not passing-test evidence. Keep implementation evidence distinct from standard requirements, and keep 2010 and Requirements Lab excluded.",
+      "latest_increment": "Increment 531 rechecked all 4,805 documentation references against the new local primary commit 95a3d133055c3afc6a6b2148587a8c530db8de3d; all resolve there. Candidate worktree still resolves 4,805/4,805, while candidate HEAD e10fa19a and initial-work c9c5a9e each resolve 4,796/4,805. The two lifecycle TCK targets remain semantically at primary lines 2607 and 2983 versus candidate-worktree lines 2389 and 2765. The primary branch is eight commits ahead of origin and includes unrelated work. Candidate remote remains e10fa19a with 508/508 previously hydrated diagrams and no open PR. The 91% estimate and 28 unpublished diagram changes remain.",
+      "next_concrete_review": "Review and publish the relevant 2025 source/test changes on feature/hla-2025-docs-candidate-20261107. Then rerun the line-reference checker against candidate worktree, candidate HEAD, current primary HEAD, and initial-work, and verify semantic targets. In particular, the Federate-Lost scenario starts at candidate-worktree L2389 and primary L2607; the post-loss membership assertion is at candidate-worktree L2765 and primary L2983. Once candidate HEAD resolves all links, publish the seven diagram additions and 21 revised bodies and verify hosted hydration for all 515. Do not use the local primary branch as a publication route: its eight unpushed commits contain unrelated implementation and Requirements Lab changes. No C++ build, tests, or CI are needed for this documentation handoff; keep 2010 separate.",
+      "remaining_work": "Overall progress remains 91% (working estimate, about 9% remains). The 32-guide worktree contains 515 diagrams; all 515 ledger identities, source lines, fence types, and normalized body hashes match, with local rendering and screenshot-review evidence recorded for each. GFM evidence covers all 41 current 2025 Markdown pages. Published hydration remains verified for 508 diagrams at candidate branch e10fa19a. Worktree source links resolve 4,805/4,805; candidate HEAD and initial-work each resolve 4,796/4,805; current local primary commit 95a3d133 resolves 4,805/4,805. The nine missing candidate-HEAD anchors are in four active 2025 source/test files. Two lifecycle TCK anchors also require semantic re-alignment when the source revision is stabilized. No open PR targets the candidate branch, and its remote pointer is unchanged. After the source changes are reviewed and published there, rerun link and semantic checks, publish seven new diagrams and 21 revised bodies, and verify hydration of all 515. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
       "finish_condition": "The requested 2025 HLA guides explain standard concepts, Umbra state transitions and callbacks, edge cases, test evidence, and known gaps; all current diagrams have identity-matched local rendering and screenshot evidence; published GitHub Mermaid hydration is verified; source and normative evidence limits are resolved or clearly bounded; and 2010 remains separate.",
       "source_reference_validation": {
-        "as_of": "2026-11-09 increment 374",
-        "revision": "candidate worktree after increment-374 documentation audit metadata",
-        "scope": "worktree (--worktree); all current IEEE 1516.1-2025 Markdown references",
-        "markdown_files": 38,
-        "unique_references": 4657,
-        "resolved": 4657,
+        "as_of": "2026-11-15 increment 531",
+        "revision": "Candidate worktree based on e10fa19a7bf48415e00a14ca7301613a84f637a3, checked 2026-11-15.",
+        "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
+        "markdown_files": 41,
+        "unique_references": 4805,
+        "resolved": 4805,
         "unresolved": 0
       },
+      "candidate_head_reference_validation": {
+        "as_of": "2026-11-15 increment 531",
+        "revision": "Candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3; checked 2026-11-15.",
+        "remote_branch_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+        "primary_source_revision": "2c0194cbb4c43423898e88999f7a7d286f56a342",
+        "origin_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+        "scope": "Current IEEE 1516.1-2025 Markdown source-line references checked against candidate HEAD.",
+        "markdown_files": 41,
+        "unique_references": 4805,
+        "resolved": 4796,
+        "unresolved": 9,
+        "affected_targets": [
+          "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+          "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+        ],
+        "note": "Nine references are out of range at candidate HEAD because the cited 2025 source/test changes are only in the candidate worktree. The same 4,805 references resolve against current primary commit 2c0194c, but that local revision is not on the candidate remote and includes unrelated unpushed work. Candidate-worktree references resolve completely. Check semantic targets after selecting the published source revision."
+      },
+      "primary_head_reference_validation": {
+        "as_of": "2026-11-15 increment 531",
+        "revision": "95a3d133055c3afc6a6b2148587a8c530db8de3d (local feature/initial-work HEAD; not published to the candidate branch).",
+        "scope": "Current candidate documentation source-line references checked against the current local primary commit; path/line validity only, with semantic anchor movement recorded separately.",
+        "markdown_files": 41,
+        "unique_references": 4805,
+        "resolved": 4805,
+        "unresolved": 0
+      },
+      "initial_work_reference_validation": {
+        "as_of": "2026-11-15 increment 531",
+        "revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180.",
+        "scope": "Current IEEE 1516.1-2025 Markdown source-line references checked against the recorded initial-work revision.",
+        "markdown_files": 41,
+        "unique_references": 4805,
+        "resolved": 4796,
+        "unresolved": 9,
+        "affected_targets": [
+          "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+          "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+          "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+        ]
+      },
+      "semantic_source_anchor_review": {
+        "as_of": "2026-11-15 increment 531",
+        "candidate_worktree_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3 plus uncommitted source changes.",
+        "primary_revision": "95a3d133055c3afc6a6b2148587a8c530db8de3d",
+        "findings": [
+          {
+            "target": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+            "meaning": "scenarioFederateLostMomReportPortable function start.",
+            "candidate_worktree_line": 2389,
+            "primary_commit_line": 2607
+          },
+          {
+            "target": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+            "meaning": "post-loss HLAfederatesInFederation conditional update.",
+            "candidate_worktree_line": 2765,
+            "primary_commit_line": 2983
+          }
+        ],
+        "note": "Aggregate path/line validation does not establish that a citation lands on the intended semantic target."
+      },
       "standard_text_access_check": {
-        "as_of": "2026-11-09 increment 357",
+        "as_of": "2026-11-09 increment 382",
         "official_record": "https://standards.ieee.org/ieee/1516.1/6688/",
+        "product_page_options": [
+          "Purchase",
+          "Access via Subscription"
+        ],
+        "downloads_page": "https://standards.ieee.org/downloads/",
+        "access_standards_page": "https://standards.ieee.org/access-standards/",
+        "get_program_page": "https://standards.ieee.org/products-programs/ieee-get-program/",
+        "get_catalog_lists_hla_1516_1_2025": false,
+        "free_full_text_route_found": false,
         "public_archive": "https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip",
         "nested_archive": "1516-2025_API_XML_2025_08_14.zip",
         "nested_file_count": 284,
@@ -1063,19 +1145,270 @@
           ".proto": 3,
           ".xsd": 3
         },
-        "normative_document_present": false
+        "normative_document_present": false,
+        "online_recheck": "2026-11-09: the official IEEE 1516.1-2025 product page still lists Purchase and Access via Subscription and does not expose §6.21 prose. The official downloads page describes downloadable files as materials related to the approved standard, which may not themselves be approved; the previously inventoried local archive contains API/XML/support material and no normative standard document."
+      },
+      "connection_loss_supporting_result": {
+        "scenario": "cpp-tck.connection-fault-rti-closed-resume-fails",
+        "artifact_location": {
+          "checkout": "primary checkout (sibling worktree ../umbra)",
+          "results": "out/mgw/cpp-tck-clause-6_1-service-spine-mingw-20261107/tck-results/rti-closed-resume-installed-package-20261109/results.json",
+          "raw_evidence": [
+            "out/mgw/cpp-tck-clause-6_1-service-spine-mingw-20261107/tck-results/rti-closed-resume-installed-package-20261109/raw/evoked/fault-evidence.json",
+            "out/mgw/cpp-tck-clause-6_1-service-spine-mingw-20261107/tck-results/rti-closed-resume-installed-package-20261109/raw/immediate/fault-evidence.json"
+          ],
+          "provider_id": "installed-package"
+        },
+        "reported_results": {
+          "HLA_EVOKED": "passed",
+          "HLA_IMMEDIATE": "passed"
+        },
+        "public_scenario_assertions": [
+          "ConnectionLost callback observed",
+          "ConnectionLost description is nonempty",
+          "a later listFederationExecutions call raises NotConnected"
+        ],
+        "raw_transport_evidence": {
+          "invalid_frame_kind": 20,
+          "original_sequence": 1,
+          "injected_sequence": 2147483648,
+          "rti_closed_socket": true,
+          "resume_session_ids": [
+            2
+          ],
+          "resume_status_count": 0,
+          "raw_resume_request_counts": {
+            "HLA_EVOKED": 59,
+            "HLA_IMMEDIATE": 73
+          },
+          "aggregate_manifest_resume_counts": {
+            "HLA_EVOKED": 61,
+            "HLA_IMMEDIATE": 57
+          },
+          "count_note": "The aggregate manifest counts disagree with the separate raw evidence files; do not use the counts as a verified behavioral claim."
+        },
+        "source_and_provenance_limits": {
+          "scenario_source": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp is modified and uncommitted in the primary checkout",
+          "dispatch_source": "packages/hla-rti-cpp-tck/src/tck_scenario_dispatch.cpp is modified and uncommitted in the primary checkout",
+          "candidate_head": "The scenario and dispatch are absent from candidate HEAD.",
+          "artifact_identity": "The artifact records provider_id=installed-package but no source revision or executable identity."
+        },
+        "evidence_boundary": "Supporting evidence for the client-local ConnectionLost/NotConnected terminal path only. It does not test configured-process host membership cleanup, Federate-Lost reporting, RTI-owned HLAfederate removal, or callback ordering; it does not close the host-side review."
+      },
+      "federate_lost_supporting_result": {
+        "scenarios": [
+          "cpp-tck.federate-lost-mom-report",
+          "cpp-tck.federate-lost-mom-report-contract"
+        ],
+        "artifacts": [
+          {
+            "run": "federate-lost-mom-update-20261107-sync-primary",
+            "results": "out/mgw/cpp-tck/federate-lost-mom-update-20261107-sync-primary/results.json",
+            "provider_id": "current-process",
+            "artifact_time_utc": "2026-11-07T10:33:00Z",
+            "HLA_EVOKED": "passed",
+            "HLA_IMMEDIATE": "passed"
+          },
+          {
+            "run": "federate-lost-mom-update-20261107-sync-contract",
+            "results": "out/mgw/cpp-tck/federate-lost-mom-update-20261107-sync-contract/results.json",
+            "provider_id": "current-process",
+            "artifact_time_utc": "2026-11-07T10:33:10Z",
+            "HLA_EVOKED": "passed",
+            "HLA_IMMEDIATE": "passed"
+          }
+        ],
+        "provenance_limits": {
+          "source_revision": "not recorded",
+          "executable_identity": "not recorded",
+          "current_scenario_source": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp is modified and uncommitted; its current modification postdates both saved artifacts."
+        },
+        "evidence_boundary": "Historical scenario-ID evidence only. Do not attribute the saved passes to the current TCK assertions or use them to claim configured-process HLAfederate removal or callback ordering."
+      },
+      "edition_boundary_audit": {
+        "as_of": "2026-11-09 increment 410",
+        "topic_guides_checked": 32,
+        "guides_with_2025_scope_marker_in_first_40_lines": 32,
+        "2010_or_1516e_text_occurrences": 228,
+        "explicit_legacy_crosslink_occurrences": 21,
+        "crosslink_breakdown": {
+          "separate_2010_reference_rti_guide": 15,
+          "2010_fom_input_tests_under_2025_api": 5,
+          "separate_2010_handle_adapter": 1
+        },
+        "third_party_1516e_implementation_paths_found": 0,
+        "interpretation": "Legacy references are explicitly bounded to the separate reference-RTI guide, 2010 FOM inputs exercised through the 2025 API, or the separately named adapter sharing only the byte helper. No cross-edition behavior equivalence is inferred.",
+        "latest_worktree_diff_screen": {
+          "as_of": "2026-11-11 increment 425",
+          "modified_2025_topic_guides": 9,
+          "diff_added_lines_with_legacy_edition_markers": 0,
+          "searched_markers": [
+            "2010",
+            "1516e",
+            "IEEE 1516-2000",
+            "HLA 1.3"
+          ],
+          "interpretation": "Bounded working-tree diff regression screen only; it does not replace a semantic review of all current guides."
+        }
+      },
+      "connection_fault_replay_source_result": {
+        "scenario_id": "cpp-tck.connection-fault-federate-request-replay",
+        "primary_worktree": {
+          "source": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+          "public_getFederateHandle_calls_in_scenario": 2,
+          "catalog_title": "Replay HLA service requests and responses while excluding a dropped control response",
+          "requirement_pairs": 10,
+          "standard_sections": 5,
+          "artifact": "out/mgw/cpp-tck-clause-6_1-service-spine-mingw-20261107/tck-results/federate-request-control-and-response-replay-20261109.json",
+          "provider_id": "installed-package",
+          "source_revision_recorded": false,
+          "executable_identity_recorded": false,
+          "results": {
+            "HLA_EVOKED": "passed",
+            "HLA_IMMEDIATE": "passed"
+          },
+          "fault_evidence": {
+            "withheld_request_control_fault": {
+              "withheld_service_request_identity": [
+                1,
+                2,
+                2
+              ],
+              "forwarded_heartbeat_sequence": 2,
+              "dropped_heartbeat_response_identity": [
+                2,
+                2,
+                2
+              ],
+              "same_request_replayed": true,
+              "dropped_control_response_replayed": false
+            },
+            "replayed_hla_service_response": {
+              "followup_request_identity": [
+                4,
+                2,
+                3
+              ],
+              "dropped_response_identity": [
+                5,
+                2,
+                3
+              ],
+              "same_response_identity_replayed": true,
+              "second_resume_exchange_observed": true,
+              "public_call_succeeded": true
+            }
+          }
+        },
+        "candidate_worktree": {
+          "public_getFederateHandle_calls_in_scenario": 1,
+          "catalog_title": "Replay a lost public federate service request after a process connection fault",
+          "requirement_pairs": 2,
+          "standard_sections": 1,
+          "evidence_note_present": false
+        },
+        "evidence_boundary": "The primary artifact contains both fault blocks for both callback models, but cannot be bound to the current source or executable. Candidate code/catalog do not match it; do not describe the second fault as candidate-verified."
+      },
+      "repository_resume_handoff": {
+        "as_of": "2026-11-09 current primary resume/ready",
+        "plan_id": "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting",
+        "source": "packages/hla-rti-cpp-tck/src/tck_flush_queue_nonlimiting_galt_scenarios.cpp",
+        "requirement_pairs": 8,
+        "standard_sections": 2,
+        "api_surfaces": 5,
+        "documentation_note": "The saved request-only and contract scenario artifact reports both callback models passed, but has provider_id=installed-package and no source revision or executable identity. It cannot verify the current delivered-TSO extension. Review the Time Management guide only after a focused result is matched to the source and executable; keep the proposed minimum-time formula unobserved.",
+        "existing_request_only_result": {
+          "checkout": "primary checkout",
+          "path": "out/mgw/cpp-tck-fqr-minimum-20261109/results.json",
+          "standard": "IEEE 1516.1-2025",
+          "provider_id": "installed-package",
+          "scenario_results": {
+            "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting": {
+              "HLA_EVOKED": "passed",
+              "HLA_IMMEDIATE": "passed"
+            },
+            "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting-contract": {
+              "HLA_EVOKED": "passed",
+              "HLA_IMMEDIATE": "passed"
+            }
+          },
+          "source_revision": null,
+          "executable_identity": null,
+          "interpretation": "Historical scenario-ID results only. The artifact cannot be matched to the current modified source or establish that the delivered-TSO phase ran; do not cite it as evidence for the proposed minimum-time formula."
+        }
+      },
+      "fqr_request_only_supporting_result": {
+        "checkout": "primary checkout",
+        "path": "out/mgw/cpp-tck-fqr-minimum-20261109/results.json",
+        "standard": "IEEE 1516.1-2025",
+        "provider_id": "installed-package",
+        "scenario_results": {
+          "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting": {
+            "HLA_EVOKED": "passed",
+            "HLA_IMMEDIATE": "passed"
+          },
+          "cpp-tck.flush-queue-grant-optimistic-time-equal-when-galt-nonlimiting-contract": {
+            "HLA_EVOKED": "passed",
+            "HLA_IMMEDIATE": "passed"
+          }
+        },
+        "source_revision": null,
+        "executable_identity": null,
+        "interpretation": "Historical scenario-ID results only. The artifact cannot be matched to the current modified source or establish that the delivered-TSO phase ran; do not cite it as evidence for the proposed minimum-time formula."
+      },
+      "latest_reader_review": "GitHub visual review, increment 511 (2026-11-12): TSO Retraction diagram #001, “One designator: portable outcomes and 2025 recipient gates,” rendered in the full-width Mermaid dialog across upper and lower views. The service-acceptance decision, separate recipient receipt test, prevent-future-delivery and Request Retraction outcomes, and receiving-federate responsibility were readable without visible overlap. Body SHA-256 f3dbefba16688b32f767bbadcf18886d80c723c2e0475923a05e69a1c3a072c2 matches the published source and worktree ledger; branch HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, guide commit adafb10c37b6aad8f798e49ca7007abeaaeb66fc.",
+      "supporting_page_gfm_recheck": {
+        "as_of": "2026-11-15 increment 531",
+        "service": "Authenticated GitHub Markdown API POST /markdown",
+        "mode": "gfm",
+        "pages_checked": 3,
+        "combined_current_page_coverage": 41,
+        "prior_full_pass_pages": 40,
+        "prior_full_pass_guide_pages": 32,
+        "prior_full_pass_guide_mermaid_containers": 515,
+        "failures": 0,
+        "scope_note": "The full pass covers all 32 guide pages and eight supporting pages. Increments 530–531 re-rendered the updated roadmap, updated progress-history index, and current dated archive; combined GFM evidence covers all 41 current 2025 Markdown pages.",
+        "pages": [
+          {
+            "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+            "rendered_bytes": 438292,
+            "heading_elements": 40,
+            "rendered_links": 291,
+            "mermaid_containers": 0,
+            "html_sha256": "6f3894f937473aa2ab998eba8775dd6bfab32af9334574d7b1c9eb93baeb5896",
+            "html_nonempty": true
+          },
+          {
+            "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+            "rendered_bytes": 2208,
+            "heading_elements": 5,
+            "rendered_links": 12,
+            "mermaid_containers": 0,
+            "html_sha256": "02ea9635ab704d10a4090d0bd2b8d34e8e9c9471c84c959cdab676cc3508818b",
+            "html_nonempty": true
+          },
+          {
+            "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
+            "rendered_bytes": 4651,
+            "heading_elements": 5,
+            "rendered_links": 3,
+            "mermaid_containers": 0,
+            "html_sha256": "9ce03b32ae3826b7b2d125eb55e312f2882025186a1cfc725dcd3e4bf28c80ca",
+            "html_nonempty": true
+          }
+        ]
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
-    "latest_verified_progress": "Full published GitHub Mermaid audit, increment 374 (2026-11-09): refreshed the current candidate branch at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 across 32/32 2025 guides. The published pages exposed all 508 expected Mermaid containers; all 508 render requests returned HTTP 200, with zero request failures or page/count mismatches. Two diagrams in Callback and Service Ordering needed an additional wait; both then exposed rendered flowchart SVGs and labels. Scrolled the process-recovery diagram #007 in the Connection and Configuration guide into view and visually inspected the separated client/host lanes, replay connector, labels, and state boxes. The audit and ledger now record current hosted hydration. The local documentation checker resolved 4,657/4,657 references across 38 Markdown files. No C++ edits, builds, tests, or CI; no 2010 or Requirements Lab changes. Overall progress remains 80%; formal gates 4/4.",
-    "next_documentation_handoff": "Next: after the current host/client recovery and process-lifecycle changes are committed and have a recorded focused run, review configured-process ConnectionLost against that exact source. Trace the local connectionLost callback, host membership removal, Federate-Lost report, and RTI-owned HLAfederate removal; state ordering only where current assertions establish it. Keep this a 2025 documentation review, make no 2010 or Requirements Lab changes, and do not run builds, tests, or CI as part of the documentation handoff.",
-    "latest_reader_review": "GitHub visual review, increment 374 (2026-11-09): visited the published candidate branch at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 and scrolled Connection and Configuration diagram #007 into view. The current branch audit passed 508/508 diagrams across 32/32 guides with 508 HTTP 200 render responses and no failed requests. The process-recovery chart showed the independent client and host lanes and the replay connector; labels and boxes were legible while scrolling. This verifies hosted Mermaid rendering, not standard semantics or runtime behavior. The worktree checker resolved 4,657/4,657 references across 38 scoped Markdown files. No builds, tests, or CI; no 2010 or Requirements Lab changes.",
-    "latest_increment": "Full published GitHub Mermaid audit, increment 374 (2026-11-09): refreshed the current candidate branch at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 across 32/32 2025 guides. The published pages exposed all 508 expected Mermaid containers; all 508 render requests returned HTTP 200, with zero request failures or page/count mismatches. Two diagrams in Callback and Service Ordering needed an additional wait; both then exposed rendered flowchart SVGs and labels. Scrolled the process-recovery diagram #007 in the Connection and Configuration guide into view and visually inspected the separated client/host lanes, replay connector, labels, and state boxes. The audit and ledger now record current hosted hydration. The local documentation checker resolved 4,657/4,657 references across 38 Markdown files. No C++ edits, builds, tests, or CI; no 2010 or Requirements Lab changes. Overall progress remains 80%; formal gates 4/4.",
+    "latest_verified_progress": "Increment 520 revised Service Invocation Reporting #011 so the diagram distinguishes TCK wait checkpoints from report serial order; source and test review bounded its callback/report timing claims. Increment 521 expanded #012 to cover both one receive-order and one timestamped directed send, with per-send report-before-callback queue pairs and four one-at-a-time HLA_EVOKED observations. The focused test is explicitly embedded-only and does not establish HLA_IMMEDIATE, configured-process, or TSO timing. Mermaid CLI 12.0.0 render and screenshot reviews passed; current #012 body SHA-256 9d395ec10440a7062fd9de44b8082d70124cabd8194d564b4fef4613e3ced712. The 515-entry ledger has zero line/hash mismatches across 32 guides. Seven added diagrams and six revised existing bodies remain unpublished relative to candidate HEAD. Worktree documentation links resolve 4,797/4,797; candidate HEAD, primary local HEAD, and origin/initial-work each resolve 4,788/4,797, with the same nine unstable anchors in four active source/test targets. Completion remains 91% (working estimate). No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded. Increment 522 reviewed Service Invocation Reporting #013, “Per-member report-file lifetime.” Embedded Join allocates a path and writer and writes the initial record even with both switches off. Resign removes membership before attempting the successful ResignFederationExecution file report; the writer is retired after either append outcome, and an append failure raises RTIinternalError after cleanup. Rejoin gets a new path while the prior file remains. Configured-process evidence stays separate: its writer is session-owned, and the focused rejoin evidence checks a new file path, not serial continuation. The embedded lifecycle test does not assert the final Resign record or inject its append failure. An initial Mermaid render exposed semicolons parsed as extra statements; after replacing them, Mermaid CLI 12.0.0 render and screenshot review passed. Current #013 body SHA-256 1fe3f180b69e4f541f54f43285c91959f69f93a613d5d5615ee485eea97064af. Increment 523 reviewed Service Invocation Reporting #014, “A failed report append leaves Exception Reporting enabled.” In the embedded 2025 path, the registry commits the Exception Reporting switch before appending the setter’s successful invocation record. Append success queues the prepared MOM update and returns. Append failure enters the catch, calls the best-effort exception hook, skips the later MOM enqueue, and rethrows the original RTIinternalError while the stored switch remains true. An eligible HLAreportException recipient uses its own callback route: HLA_EVOKED queues for later evoke and HLA_IMMEDIATE may invoke inline before the setter rethrows. The focused test asserts the RTI error and enabled switch but a previously recorded run failed at federation creation before those assertions; it uses HLA_EVOKED with no peer and no callback/MOM assertion. The process endpoint follows a separate client path. Mermaid CLI 12.0.0 render and screenshot review passed after reducing the chart to five participants. Current #014 body SHA-256 3e41811ee1a0df392cd1b7c98e792ff934df23d19d599c7c7880bacb0defedf1. The 515-chart inventory compares with 508 at candidate HEAD: seven additions and six revised existing bodies. Increment 524 reviewed Service Invocation Reporting #015. Embedded 2025 source admits a time-regulated timestamped payload and retraction entry before selecting MOM-interaction or file reporting. The time-regulated MOM test and non-time-regulating file test cover separate successful schedules; neither tests TSO plus file-append failure. On file append failure, source shows no TSO dequeue, no later success count/grant reevaluation/callback submission, and no returned handle. Later delivery is untested, and a second failed-report exception can escape before the bare rethrow. Mermaid CLI 12.0.0 rendering and screenshot review passed. The same ledger audit found stale Callback and Service Ordering #019 hash; it was re-rendered and screenshot-reviewed. All 515 chart identities, lines, types, and hashes now match. Candidate HEAD has 508 charts versus 515 local: seven additions and seven revised bodies. Worktree source links resolve 4,799/4,799; candidate HEAD, primary local HEAD, and origin/initial-work each resolve 4,790/4,799 with the same nine anchors in four in-flight source/test files. Overall completion remains 91% (working estimate, about 9% left). No C++ builds/tests/CI; 2010 and Requirements Lab remain excluded.\n\nIncrement 527: the authenticated GitHub Markdown API parsed all 40 current IEEE 1516.1-2025 documentation pages (32 guides and eight supporting pages); all 515 Mermaid source fences produced 515 GFM containers, with zero API failures or count mismatches. The source-link checker resolves 4,805/4,805 references in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors across four active source/test files remain pending source stabilization. Overall progress remains 91% (working estimate).\n\nIncrement 528 corrected the live roadmap summary and refreshed the current source-link snapshot. The increment-527 authenticated GFM pass covers 40 current 2025 documentation pages and registers 515/515 Mermaid containers; the roadmap/history final text was rechecked. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate).\n\nIncrement 529 reconciled the candidate delta against actual Mermaid source bodies: seven additions and 21 revised bodies, with two ledger hash corrections that do not represent body changes. All 28 content deltas have current local render/screenshot evidence. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate).",
+    "next_documentation_handoff": "The four active source/test files remain modified in the candidate worktree, and the current GitHub query found no open PR. After their owners review and commit them, rerun the 2025 documentation-link checker against the worktree, candidate HEAD, primary HEAD, and initial-work; reconcile any moved anchors. Then publish seven added diagrams and 21 revised bodies and verify hosted Mermaid hydration for all 515. Keep active source changes outside this documentation candidate; no C++ build, tests, or CI are needed for this documentation pass. Keep 2010 and Requirements Lab excluded.",
+    "latest_reader_review": "GitHub visual review, increment 513 (2026-11-12): Name and Handle Resolution diagram #001, “1. Resolve a model symbol only in an execution context,” rendered in the full-width Mermaid dialog. The complete service-call, connection, membership, joined-model lookup, success, and service-specific failure paths were visible; labels and connectors were readable without clipping or overlap. Body SHA-256 30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977 matches the published source and worktree ledger; branch HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, guide commit adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This revisits the selected 2025 model-symbol lookup path and makes no 2010 or cross-profile parity claim.",
+    "latest_increment": "Increment 529 reconciled the candidate delta against actual Mermaid source bodies: seven additions and 21 revised bodies, with two ledger hash corrections that do not represent body changes. All 28 content deltas have current local render/screenshot evidence. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate).",
     "current_diagram_inventory": {
-      "as_of": "2026-11-09 increment 374: 508 current 2025 diagram identities; the connection-recovery chart (#007) has local render, screenshot, and hosted GitHub review.",
-      "scope": "2025-only: 32 topic guides and 508 diagrams. All 508 have identity-matched local render and screenshot evidence. Increment 374 full published candidate-branch audit verified 508/508 hosted Mermaid containers across 32/32 guides; all render requests returned HTTP 200 with zero failures. Connection and Configuration diagram #007 was visually inspected on the GitHub page after scrolling.",
+      "as_of": "2026-11-12 increment 524: all 515 chart identities, source lines, types, and body hashes match the ledger. Increment 524 rendered and screenshot-reviewed Service Invocation Reporting #015 and refreshed Callback and Service Ordering #019 evidence. Hosted hydration remains fully checked for 508 published diagrams.",
+      "scope": "2025-only: 32 topic guides and 515 worktree diagrams. All 515 have identity-matched local rendering and screenshot evidence. The published 508-diagram revision has a full hydration audit; the 515-diagram worktree remains unpublished. All 32 guides have at least one live-browser readability sample (69 samples total); this is not an all-diagram review. The 2010 stream remains separate.",
       "files_with_diagrams": 32,
-      "diagrams": 508,
+      "diagrams": 515,
       "local_link_check": {
         "as_of": "2026-10-16: prior full docs/design link audit and individually checked additions; the reconciled aggregate remains 3,600 destinations and 2,713 line anchors based on that audit plus the checked DSE/time-guide changes. The ownership cancellation/Release Denied sections were separately checked: 72 local links and anchors, all valid; not folded into the aggregate without a common recount. The previous process-report subsection was separately checked: 23 local links and 22 source line anchors; these are not folded into the aggregate. Earlier reporting additions were separately checked: 29/28. The process divestiture subsection's 29 local source/test anchors and the new regional-RAVU failure subsection's nine source/test anchors were separately checked and are not folded into the aggregate. Separate focused checks validated 88/69 in the RAVU guide and 149/129 in the Federation MOM guide.",
         "markdown_files": 43,
@@ -1121,17 +1454,17 @@
           "visual_review": "The two state machines remain distinct and readable while scrolling, without clipping.",
           "scope": "2025 Umbra process behavior; no claim of hosted GitHub rendering or normative timeout semantics."
         },
-        "pending_latest_diagram": "The connection-recovery flowchart (#007) has local Mermaid CLI rendering and screenshot review. GitHub hydration for this newly added chart remains unchecked; the hosted audit covers the previous 507 diagrams.",
-        "pending_after_latest_edit": "Increment 373 added and locally reviewed the connection-recovery flowchart (#007). Candidate source/test links are explicitly marked worktree-only and unexecuted. No local visual-review work remains for this chart; hosted GitHub hydration has not been checked.",
+        "pending_latest_diagram": "The published increment-374 audit covers 508 diagrams. All 515 current charts have local render and screenshot evidence; nine current chart deltas await hosted hydration after publication.",
+        "pending_after_latest_edit": "Increment 422 confirmed direct thematic-path links to all 32 2025 guides; no diagram changed. The ledger matches 515 chart identities, lines, and body hashes. Worktree source links pass 4,765/4,765; nine remain unresolved against committed revisions. The latest guide converts through GitHub GFM with 17/17 containers. No local visual-review work remains; hosted hydration for nine chart deltas is pending publication.",
         "syntax_errors_repaired": 7,
         "other_errors_after_repairs": 0,
-        "status": "All 508 diagrams have local render and screenshot evidence. Increment 356 verified GitHub hydration for 507 previously published diagrams. Increment 360 refreshed the changed Save/Restore page; the new connection-recovery chart remains outside the hosted audit.",
+        "status": "All 515 current 2025 diagrams have local render and screenshot evidence. Increment 374 verified the published branch at 508/508; nine current chart deltas await hosted hydration.",
         "focused_accepted_after_sweep": 9,
         "current_syntax_parsed": 487
       },
       "by_kind": {
-        "flowcharts": 296,
-        "sequences": 187,
+        "flowcharts": 304,
+        "sequences": 186,
         "state_diagrams": 25
       },
       "by_stream": {
@@ -1141,7 +1474,7 @@
         },
         "2025": {
           "files": 32,
-          "diagrams": 508
+          "diagrams": 515
         },
         "cross_cutting": {
           "files": 1,
@@ -1153,31 +1486,43 @@
         }
       },
       "latest_path_line_check": {
-        "checked_at": "2026-11-09 increment 374",
-        "markdown_files": 38,
-        "unique_relative_path_line_guide_references": 4657,
-        "worktree_resolved": 4657,
-        "candidate_base_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-        "candidate_base_resolved": 4591,
-        "candidate_base_unresolved": 0,
+        "checked_at": "2026-11-12 increment 529",
+        "markdown_files": 40,
+        "unique_relative_path_line_guide_references": 4805,
+        "worktree_resolved": 4805,
+        "candidate_base_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+        "candidate_base_resolved": 4796,
+        "candidate_base_unresolved": 9,
         "primary_source_revision": "e6321e842f333427349166df8c5b35350a2ae473",
-        "primary_source_resolved": 4591,
-        "primary_source_unresolved": 0,
+        "primary_source_resolved": 4796,
+        "primary_source_unresolved": 9,
+        "origin_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+        "origin_initial_work_resolved": 4796,
+        "origin_initial_work_unresolved": 9,
         "unresolved": 0,
-        "scope": "Increment 374 reran the repository checker with --worktree after the audit update: all 4,657 unique references resolve across 38 scoped IEEE 1516.1-2025 Markdown files. Candidate-base and primary-revision counts remain earlier cross-revision checks and do not include later worktree-only source links. This is a source-line check, not a hosted-page render check."
+        "scope": "Increment 527: worktree 4,805/4,805; candidate HEAD, primary HEAD, and initial-work each 4,796/4,805. The same nine anchors in four active source/test targets await source stabilization."
       },
       "latest_selected_review": {
-        "date": "2026-11-09 increment 374",
-        "diagram": "Connection and Configuration guide process recovery and host retention flowchart (#007).",
-        "syntax": "Published GitHub renderer returned HTTP 200; the iframe hydrated after scrolling.",
-        "renderer": "Headless Chromium controlled with Puppeteer against the published candidate branch.",
-        "visual_review": "Client and host recovery lanes, replay connector, labels, and state boxes were visible and legible while scrolling.",
-        "scope": "Umbra 2025 process behavior only. Hosted rendering does not establish normative timeout or recovery behavior."
+        "date": "2026-11-12 increment 513",
+        "diagram": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#diagram-001",
+        "syntax": "Published body matches the visual-ledger SHA-256 30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977.",
+        "renderer": "GitHub Mermaid full-width dialog, public candidate branch",
+        "visual_review": "The complete lookup flow rendered in one view: connection and membership gates, joined-model resolution, typed-handle/enum success, and service-specific lookup failure. Labels and connectors were readable without clipping or overlap.",
+        "scope": "Selected IEEE 1516.1-2025 HLA-level retraction orientation for §§8.22–8.23. It omits Umbra queue/callback scheduling and is not a complete normative decision table.",
+        "branch_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
+        "page_last_file_commit": "adafb10c37b6aad8f798e49ca7007abeaaeb66fc"
       },
-      "pending_after_latest_edit": "Increment 374 completed the full published-branch Mermaid hydration audit: 508/508 diagrams rendered across 32/32 guides, with the two delayed callback-ordering frames explicitly rechecked. Next: after the current host/client recovery and process-lifecycle source/test changes are committed and have a recorded focused run, review configured-process ConnectionLost against that exact source. Trace the local connectionLost callback, host membership removal, Federate-Lost report, and RTI-owned HLAfederate removal; state ordering only where assertions establish it. Keep the review 2025-only and do not run builds, tests, or CI as part of documentation work."
+      "pending_after_latest_edit": "No open GitHub PR currently contains the four active source/test changes. Increment 529 verified seven additions and 21 revised Mermaid bodies against candidate HEAD; two ledger hash corrections are not body changes. All 28 deltas have current local evidence; hosted hydration remains 508/508. Worktree links resolve 4,805/4,805; committed revisions resolve 4,796/4,805 with nine anchors in four active source/test files pending stabilization. Next reconcile links after source changes land, publish the 28 diagram deltas, and verify hosted hydration for all 515. No 2010, Requirements Lab, builds, tests, or CI.",
+      "latest_local_diagram_review": {
+        "date": "2026-11-12 increment 524",
+        "diagram": "HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#diagram-015",
+        "renderer": "Mermaid CLI 12.0.0",
+        "visual_review": "The flowchart shows TSO admission before report-route selection, the MOM callback boundary, file-append failure with no dequeue or returned handle, and the later grant gate without clipping.",
+        "scope": "Embedded 2025 source-derived TSO/file-failure schedule. Focused tests cover MOM and file success in different time-regulation setups; no TSO-plus-file-failure test or later-delivery result is claimed."
+      }
     },
     "goal": "Focus this documentation phase exclusively on IEEE 1516.1-2025. Translate durable HLA logic and infrastructure concepts discovered while implementing Umbra into reader-centered diagrams and guides. Lead with the HLA mental model and explain what federates can do, what state changes, who becomes eligible, and when effects become observable. Use Umbra source and existing focused-test results as bounded case-study evidence, not as the subject; include internals only when they explain an HLA invariant, observable consequence, or important implementation limit. Survey for real reader gaps, synthesize cross-service concepts where useful, tie normative claims to the exact standard, and label profile boundaries and evidence limits. Distinguish embedded and configured-process behavior where evidence differs. There is no diagram-count target. Reuse existing runtime evidence. Documentation work must not compete with the main implementation worker for build capacity: do not compile, rerun tests, or start CI by default. The HLA Requirements Lab is a later, separately authorized goal and remains out of scope.",
-    "verified_progress": "Full published GitHub Mermaid audit, increment 374 (2026-11-09): refreshed the current candidate branch at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 across 32/32 2025 guides. The published pages exposed all 508 expected Mermaid containers; all 508 render requests returned HTTP 200, with zero request failures or page/count mismatches. Two diagrams in Callback and Service Ordering needed an additional wait; both then exposed rendered flowchart SVGs and labels. Scrolled the process-recovery diagram #007 in the Connection and Configuration guide into view and visually inspected the separated client/host lanes, replay connector, labels, and state boxes. The audit and ledger now record current hosted hydration. The local documentation checker resolved 4,657/4,657 references across 38 Markdown files. No C++ edits, builds, tests, or CI; no 2010 or Requirements Lab changes. Overall progress remains 80%; formal gates 4/4.",
+    "verified_progress": "Increment 520 revised Service Invocation Reporting #011 so the diagram distinguishes TCK wait checkpoints from report serial order; source and test review bounded its callback/report timing claims. Increment 521 expanded #012 to cover both one receive-order and one timestamped directed send, with per-send report-before-callback queue pairs and four one-at-a-time HLA_EVOKED observations. The focused test is explicitly embedded-only and does not establish HLA_IMMEDIATE, configured-process, or TSO timing. Mermaid CLI 12.0.0 render and screenshot reviews passed; current #012 body SHA-256 9d395ec10440a7062fd9de44b8082d70124cabd8194d564b4fef4613e3ced712. The 515-entry ledger has zero line/hash mismatches across 32 guides. Seven added diagrams and six revised existing bodies remain unpublished relative to candidate HEAD. Worktree documentation links resolve 4,797/4,797; candidate HEAD, primary local HEAD, and origin/initial-work each resolve 4,788/4,797, with the same nine unstable anchors in four active source/test targets. Completion remains 91% (working estimate). No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded. Increment 522 reviewed Service Invocation Reporting #013, “Per-member report-file lifetime.” Embedded Join allocates a path and writer and writes the initial record even with both switches off. Resign removes membership before attempting the successful ResignFederationExecution file report; the writer is retired after either append outcome, and an append failure raises RTIinternalError after cleanup. Rejoin gets a new path while the prior file remains. Configured-process evidence stays separate: its writer is session-owned, and the focused rejoin evidence checks a new file path, not serial continuation. The embedded lifecycle test does not assert the final Resign record or inject its append failure. An initial Mermaid render exposed semicolons parsed as extra statements; after replacing them, Mermaid CLI 12.0.0 render and screenshot review passed. Current #013 body SHA-256 1fe3f180b69e4f541f54f43285c91959f69f93a613d5d5615ee485eea97064af. Increment 523 reviewed Service Invocation Reporting #014, “A failed report append leaves Exception Reporting enabled.” In the embedded 2025 path, the registry commits the Exception Reporting switch before appending the setter’s successful invocation record. Append success queues the prepared MOM update and returns. Append failure enters the catch, calls the best-effort exception hook, skips the later MOM enqueue, and rethrows the original RTIinternalError while the stored switch remains true. An eligible HLAreportException recipient uses its own callback route: HLA_EVOKED queues for later evoke and HLA_IMMEDIATE may invoke inline before the setter rethrows. The focused test asserts the RTI error and enabled switch but a previously recorded run failed at federation creation before those assertions; it uses HLA_EVOKED with no peer and no callback/MOM assertion. The process endpoint follows a separate client path. Mermaid CLI 12.0.0 render and screenshot review passed after reducing the chart to five participants. Current #014 body SHA-256 3e41811ee1a0df392cd1b7c98e792ff934df23d19d599c7c7880bacb0defedf1. The 515-chart inventory compares with 508 at candidate HEAD: seven additions and six revised existing bodies. Increment 524 reviewed Service Invocation Reporting #015. Embedded 2025 source admits a time-regulated timestamped payload and retraction entry before selecting MOM-interaction or file reporting. The time-regulated MOM test and non-time-regulating file test cover separate successful schedules; neither tests TSO plus file-append failure. On file append failure, source shows no TSO dequeue, no later success count/grant reevaluation/callback submission, and no returned handle. Later delivery is untested, and a second failed-report exception can escape before the bare rethrow. Mermaid CLI 12.0.0 rendering and screenshot review passed. The same ledger audit found stale Callback and Service Ordering #019 hash; it was re-rendered and screenshot-reviewed. All 515 chart identities, lines, types, and hashes now match. Candidate HEAD has 508 charts versus 515 local: seven additions and seven revised bodies. Worktree source links resolve 4,799/4,799; candidate HEAD, primary local HEAD, and origin/initial-work each resolve 4,790/4,799 with the same nine anchors in four in-flight source/test files. Overall completion remains 91% (working estimate, about 9% left). No C++ builds/tests/CI; 2010 and Requirements Lab remain excluded.\n\nIncrement 527: the authenticated GitHub Markdown API parsed all 40 current IEEE 1516.1-2025 documentation pages (32 guides and eight supporting pages); all 515 Mermaid source fences produced 515 GFM containers, with zero API failures or count mismatches. The source-link checker resolves 4,805/4,805 references in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors across four active source/test files remain pending source stabilization. Overall progress remains 91% (working estimate).\n\nIncrement 528 corrected the live roadmap summary and refreshed the current source-link snapshot. The increment-527 authenticated GFM pass covers 40 current 2025 documentation pages and registers 515/515 Mermaid containers; the roadmap/history final text was rechecked. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate).\n\nIncrement 529 reconciled the candidate delta against actual Mermaid source bodies: seven additions and 21 revised bodies, with two ledger hash corrections that do not represent body changes. All 28 content deltas have current local render/screenshot evidence. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate).",
     "candidate_final_validation": {
       "as_of": "2026-11-09 increment 356",
       "branch": "feature/hla-2025-docs-candidate-20261107",
@@ -1395,9 +1740,9 @@
         "method": "Puppeteer-controlled Chromium scrolled each Mermaid container into view."
       }
     },
-    "next_concrete_review": "Next: after the current host/client recovery and process-lifecycle changes are committed and have a recorded focused run, review configured-process ConnectionLost against that exact source. Trace the local connectionLost callback, host membership removal, Federate-Lost report, and RTI-owned HLAfederate removal; state ordering only where current assertions establish it. Keep this a 2025 documentation review, make no 2010 or Requirements Lab changes, and do not run builds, tests, or CI as part of the documentation handoff.",
-    "remaining_work": "Overall progress remains 80%; all four formal gates are complete (4/4). The principal 2025 API and service families already have guides; continue semantic and evidence reviews rather than expanding by guide count. Still unresolved are the timed Save normative failure/unreachable-time trigger, RAVU same-object fan-out and the configured-process post-recheck delivery window, and §6.21 requester entitlement and normative callback timing. Configured-process runtime evidence and ordering for the Federate-Lost report, local connectionLost callback, and RTI-owned HLAfederate removal also remain incomplete. The current published branch now has a full 508/508 GitHub Mermaid hydration audit; the linked host/client recovery and process-lifecycle source/test edits remain dirty and unexecuted, so they are not passing-test evidence. Keep implementation evidence distinct from standard requirements, and keep 2010 and Requirements Lab excluded.",
-    "as_of": "2026-11-09"
+    "next_concrete_review": "The four active source/test files remain modified in the candidate worktree, and the current GitHub query found no open PR. After their owners review and commit them, rerun the 2025 documentation-link checker against the worktree, candidate HEAD, primary HEAD, and initial-work; reconcile any moved anchors. Then publish seven added diagrams and 21 revised bodies and verify hosted Mermaid hydration for all 515. Keep active source changes outside this documentation candidate; no C++ build, tests, or CI are needed for this documentation pass. Keep 2010 and Requirements Lab excluded.",
+    "remaining_work": "Overall progress remains 91% (working estimate, not derived from gate count; about 9% remains). No open GitHub PR currently contains the four active source/test changes; the files remain modified in the shared worktree. The 2025 worktree has 32 guides and 515 locally rendered and screenshot-reviewed diagrams; all ledger identities, lines, types, and body hashes match. Increment 529 verified the actual delta against candidate HEAD: seven additions and 21 revised bodies; two ledger hash corrections are not source-body changes. All 28 deltas have local evidence. Published hydration remains verified for 508 diagrams. Worktree source links resolve 4,805/4,805; candidate HEAD, primary HEAD, and initial-work each resolve 4,796/4,805, with nine anchors in four active source/test files pending stabilization. Recheck links after source changes land, publish the diagram deltas, and verify hosted hydration for all 515. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.",
+    "as_of": "2026-11-12 increment 529"
   },
   "queue_action_note": "The query tool derives action_state for each open family: implementation, mapping, source-reconciliation, external-review, new-case-needed, or evidence-complete. Evidence-complete rows remain visible for traceability but are not selected as the next runnable handoff.",
   "deferred_slices": [

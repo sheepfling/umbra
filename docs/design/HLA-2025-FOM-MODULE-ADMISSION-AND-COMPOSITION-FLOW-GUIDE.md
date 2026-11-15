@@ -84,6 +84,59 @@ transport framing. To follow a declared member type through application-owned
 encoding, handle-keyed service values, and receiver callback decoding, continue
 to the [encoded-value flow in the Object and Interaction guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#encoded-values-enter-services-as-handle-keyed-octets).
 
+### A `basicData` field can fail at different admission gates
+
+The 2025 `basicData` table shows why a rejected FOM is not a single validation
+event. Its `Name` field has schema-level identifier syntax, then the merged
+model composer applies HLA naming rules to the declared data types. A
+schema-valid user name beginning with the reserved `HLA` prefix can therefore
+pass per-module DIF validation and fail during composition. `Endian` follows
+a different path: the pinned DIF schema restricts it to `Big` or `Little`, so
+`Middle` fails per-module schema validation before composition. The
+[DIF schema's `basicData` declaration](../../third_party/ieee1516.2-2025/resources/schemas/IEEE1516-DIF-2025.xsd#L2512)
+and [Endian enumeration](../../third_party/ieee1516.2-2025/resources/schemas/IEEE1516-DIF-2025.xsd#L2933),
+the [composer's HLA-name checks](../../cpp/src/internal/fom/libxml2_fom_composer_validators.cpp#L55),
+and its [merged-model name pass](../../cpp/src/internal/fom/libxml2_fom_composer_validators.cpp#L141)
+show the separate boundaries.
+
+```mermaid
+flowchart TB
+  A["2025 basicData representation"] --> B{"Which sample field?"}
+  B -->|"Name begins with HLA"| C["Identifier is accepted by the DIF schema"]
+  C --> D["Merged-model HLA-name check"]
+  D --> E["Unknown reserved-prefix name fails composition"]
+  B -->|"Endian is Big or Little"| F["Value is accepted by the DIF schema"]
+  F --> G["Primary-checkout result: selected Create/Join succeeded"]
+  B -->|"Endian is Middle"| H["DIF endianEnumeration permits Big or Little"]
+  H --> I["Middle fails per-module schema validation"]
+```
+
+These are independent field examples, not consecutive checks against one
+declaration, and the chart does not imply an order between their validation
+paths. The primary-checkout portable TCK result
+(`out/mgw/cpp-tck-factory-contract-20261109/portable-tck/tck-results/basic-data-representation-name-endian-20261109.json`)
+records `cpp-tck.fom-standard-invalid-input-corpus` passing under EVOKED and
+IMMEDIATE; its contract twin also passed under both callback models against
+the same installed provider. The [public TCK runner](../../packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp#L480)
+checks valid base-FOM Create/Join recovery after each rejected input. That
+result's `scenario_foms` map is empty and does not demonstrate positive
+acceptance.
+
+A later primary-checkout result
+(`out/mgw/cpp-tck-factory-contract-20261109/portable-tck/tck-results/basic-data-representation-endian-values-20261109.json`)
+records the same public scenario and its contract twin passing under EVOKED
+and IMMEDIATE (4/4 total). Its `scenario_foms` map contains the Big and Little
+fixtures. The primary-checkout runner version at
+`packages/hla-rti-cpp-tck/src/tck_fom_module_scenarios.cpp` (lines 1116–1144)
+iterates over both fixtures, calls public Create, joins, requires a valid
+federate handle, then resigns and destroys the federation. This demonstrates
+acceptance and Join for these two selected values in that worktree. The changed
+runner and both fixture files are absent from this isolated candidate, so the
+result is not yet reproducible from the candidate itself. Neither artifact
+records source or executable identity, and the contract twin uses the same
+installed provider. This is not an independent-provider comparison,
+exhaustive validation, or an IEEE conformance claim.[^worktree-source]
+
 ## Create: prepare the entire definition before reserving its name
 
 In the embedded profile, creation is a prepare-then-commit transition. A

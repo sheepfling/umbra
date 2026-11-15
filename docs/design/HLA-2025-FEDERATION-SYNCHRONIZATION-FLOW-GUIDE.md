@@ -313,14 +313,14 @@ sequenceDiagram
 #### The barrier state after a partial report and expanding join
 
 The sequence above shows who acts and when the newcomer is announced. This
-state view instead tracks the two pieces of barrier state that determine
-completion: the current participant set and the first result recorded for
-each participant. It describes the embedded omitted-set path in Umbra; it is
-not a separate HLA-mandated state machine.
+state view tracks the current participant set and first result per participant.
+It describes the embedded omitted-set path; its opening transition marks
+announcement-plan preparation, then registry insertion, not callback delivery.
+This is not a separate HLA-mandated state machine.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PendingAB: omitted-set point announced
+  [*] --> PendingAB: announcement plan prepared, point inserted
   state "Pending {A,B}, 0/2" as PendingAB
   state "A=false, {A,B}, 1/2" as PartialAB
   state "A=false, {A,B,C}, 1/3" as ExpandedABC1

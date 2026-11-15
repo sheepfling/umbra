@@ -647,6 +647,10 @@ The embedded `HLA_EVOKED` [in-transit TSO case](../../cpp/tests/ieee1516_2025_ti
 
 The focused [embedded replacement case](../../cpp/tests/ieee1516_2025_federation_management_save_restore_catch2.cpp#L65) requests time 5 and then time 7 before any Initiate Federate Save callback, advances to 7, and observes only the final label and time. The configured-process [replacement case](../../cpp/tests/ieee1516_2025_connection_process_federation_save_timed_replacement_catch2.cpp#L703) covers the same replacement boundary in that profile. Neither test leaves the requested time unreachable or asserts a terminal failure notification. The current-source scan found no Save-path or test selection of `SAVE_TIME_CANNOT_BE_HONORED`; its only implementation use is the [MOM reason formatter](../../cpp/src/internal/observability/mom_service_report_encoding.cpp#L549). The [failure-reason table](#save-failure-reason-vocabulary-and-source-selectors) records that formatter-only occurrence and the unresolved normative trigger. The reviewed request/checkpoint paths therefore establish how Umbra currently retains and admits a request, but they do not establish when the standard requires a terminal failure notification.
 
+For a compact state view of the same pending-slot lifecycle, see [Pending
+timed Save: current registry lifecycle](#pending-timed-save-current-registry-lifecycle)
+at the end of this guide.
+
 ### Member exit during an active Save
 
 The active `SaveOperation` keeps a status entry for each member. Depending on
@@ -3650,6 +3654,36 @@ Separate Save/Restore tests check pushed lifecycle callbacks under
 None combines an ordinary pushed interaction already buffered at a Save/Restore
 response with lifecycle frames in that same client FIFO. The cross-case remains
 unverified; no callback order or delivery count is inferred.
+
+## Pending timed Save: current registry lifecycle
+
+The preceding admission chart focuses on each time-advance checkpoint. This
+state view follows the request slot itself. It starts only when a valid timed
+request remains pending after the initial admission check; a request that is
+already admissible can start its `SaveOperation` immediately.
+
+```mermaid
+flowchart TB
+  P["Pending timed request<br/>label and time T"] --> G{"Time-constrained<br/>member's checkpoint:<br/>does coordinated<br/>admission pass?"}
+  G -->|"No; keep pending"| P
+  G -->|"Yes; coordinated gate passes"| S["Create SaveOperation<br/>clear pending timed slot"]
+  N["Later accepted timed Save"] -->|"Replace label and T"| P
+  U["Accepted untimed Save"] -->|"Supersede timed slot"| I["Continue untimed Save admission"]
+```
+
+This is an Umbra source view, not an HLA state machine. The registry stores or
+replaces the pending label/time pair in the [timed request path](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L525).
+A checkpoint that cannot admit the current member returns without an
+initiation label, leaving the slot pending ([checkpoint gate](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L721)).
+An accepted untimed request supersedes that slot through its own admission
+path ([untimed request path](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L196)).
+When the coordinated admission gate passes, the registry creates the
+`SaveOperation` and clears `pendingTimedSave`
+([final admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L778)).
+No current focused case makes T unreachable and then observes a terminal
+callback. The unresolved failure question is therefore left open; the chart
+does not infer an answer from the absence of a local selector. The exact
+normative outcome if T becomes unreachable remains unverified.
 
 ## What this guide does not claim
 

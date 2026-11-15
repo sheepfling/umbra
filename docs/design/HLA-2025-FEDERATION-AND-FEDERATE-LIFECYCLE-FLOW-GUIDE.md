@@ -1774,13 +1774,23 @@ object. These links describe checked-in test assertions; this documentation
 review did not rerun them or claim a fresh execution result. They do not
 establish equivalent configured-process runtime behavior or a public
 callback-order rule.
-The current worktree 2025 process TCK source[^worktree-source] contains
-assertions for exact timestamp equality with the loss cutoff, TSO-before-grant
-ordering, post-loss federation-member reflection, and a public member-list query
-showing only the survivor. It also checks post-loss synchronization with the
-survivor. No execution result for these current-source assertions was reviewed
-in this documentation increment; the pinned hosted run record covers an earlier
-scenario. The current source uses Push and has no Pull case. It does not
+The current worktree's [configured-process Federate-Lost scenario](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389)[^worktree-source]
+contains assertions for exact timestamp equality with the loss cutoff,
+TSO-before-grant ordering, post-loss federation-member reflection, and a public
+member-list query showing only the survivor. The [post-loss reflection and
+survivor-roster assertions](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765)[^worktree-source]
+are in the same scenario; it also checks post-loss synchronization with the
+survivor. A saved artifact pair from 2026-11-07 records
+`cpp-tck.federate-lost-mom-report` in
+`federate-lost-mom-update-20261107-sync-primary` and
+`cpp-tck.federate-lost-mom-report-contract` in
+`federate-lost-mom-update-20261107-sync-contract` as passed under both
+HLA_EVOKED and HLA_IMMEDIATE with provider `current-process`. Neither artifact
+records a source revision or executable identity, and both predate the current
+TCK source modification. Treat them as historical scenario-ID evidence only;
+they do not establish that the current assertions ran successfully. No
+execution result for the current-source assertions was reviewed in this
+documentation increment. The current source uses Push and has no Pull case. It does not
 establish ordering among the report, local loss callback, and membership
 observations, test Pull delivery, or assert removal of the lost member's
 `HLAfederate` MOM object. The Federation MOM guide records that the inspected
@@ -2377,4 +2387,4 @@ presenting the implementation flow as normative guidance. A 2010 lifecycle
 survey remains a separate future topic; do not infer it from this 2025 guide.
 Do not edit the HLA Requirements Lab during this Umbra documentation work.
 
-[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.
+[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) captures an earlier candidate snapshot and does not include every current-worktree citation. Reconcile the current-only references after source changes settle and before publication.

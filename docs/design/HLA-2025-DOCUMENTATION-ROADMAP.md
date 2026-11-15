@@ -5,22 +5,671 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
+## Current finish gates and next handoff — 2026-11-15 (increment 531)
+
+**Overall completion: 91% (working estimate; about 9% remains).** The 2025 set contains 32 guides and 515 diagrams. The 515 ledger entries match their guide source, fence type, source line, and normalized body hash; every entry records local-render and screenshot-review evidence. The latest full authenticated GitHub GFM pass covered the 32 guides and eight supporting pages (40 pages) and registered 515/515 Mermaid containers. Increments 530 and 531 re-rendered the updated roadmap, progress-history index, and November 15 archive; combined evidence covers all 41 current 2025 Markdown pages. The published candidate branch remains at e10fa19a and its latest full browser audit hydrated 508/508 diagrams. The worktree delta contains seven additions and 21 revised diagram bodies.
+
+Source-link checks now distinguish the candidate and primary branches:
+
+- Candidate worktree: 4,805/4,805 references resolve.
+- Candidate HEAD e10fa19a and initial-work c9c5a9e: 4,796/4,805 resolve; nine anchors in four source/test files are absent at those revisions.
+- Current local primary commit 95a3d13: 4,805/4,805 resolve. That revision is not on the remote candidate branch. The primary branch is eight commits ahead of origin and includes unrelated implementation and Requirements Lab changes, so it is not a documentation-only publication route.
+- GitHub has no open PR for the candidate branch, and its remote branch pointer remains e10fa19a.
+
+1. **Stabilize and semantically verify citations.** The four cited source/test files remain modified in the candidate worktree. Review and publish the relevant 2025 source/test changes on the candidate branch, then rerun the link checker against the worktree, candidate HEAD, primary HEAD, and initial-work. Check semantic targets as well as line ranges: the Federate-Lost scenario starts at line 2389 in the candidate worktree and line 2607 in primary commit 95a3d13; the post-loss membership assertion is at line 2765 in the candidate worktree and line 2983 in that primary commit.
+2. **Publish and verify the diagram delta.** After the candidate HEAD citations resolve and semantic anchors match that revision, publish the seven additions and 21 revised bodies. Then verify visible hosted Mermaid hydration for all 515 diagrams; GFM container registration alone does not prove hosted hydration.
+3. **Keep evidence limits explicit.** The [Service Invocation Reporting guide's process-boundary section](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#configured-process-recipient-snapshot-and-callback-boundary) says focused tests do not cover push delivery, HLA_IMMEDIATE timing, or a subscription change after report planning. Its [evidence table and limitations](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#implementation-and-test-evidence) also state that no test injects a ConnectionLost report-file append failure; a separate survivor-order case does not cover that append, and the prior successful file-record case failed before its assertions. These are documented source/test gaps, not inferred 2010 behavior or unstated requirements.
+
+**Next handoff:** review and publish the cited 2025 source/test changes on the candidate branch, then reconcile both path/line and semantic targets. Once candidate HEAD passes, publish the 28 diagram changes and verify hosted hydration for all 515. This documentation pass requires no C++ build, tests, or CI. Keep 2010 and the Requirements Lab separate.
+
 ## Current baseline
 
-As of 2026-11-09, the 2025 topic set contains 32 guides (the timing guide and
-31 other behavior areas) with 508 Mermaid diagrams: 296 flowcharts, 187
-sequences, and 25 state diagrams. The five-needs content audit is complete for
-32/32 guides. All 508 diagram identities have local render and screenshot
-evidence. Increment 374 refreshed the full published candidate branch at
-revision `270f302536ddb2f2bd56a35b565d2251a45f03e2`: all 32/32 guide pages
-loaded, and every one of the 508/508 hosted frames contained a rendered
-`.mermaid-view svg#diagram`. All render responses returned HTTP 200, with zero
-request failures. Two callback-ordering frames needed an additional wait and
-then rendered successfully. The new process-recovery
-diagram (#007) was visually inspected in GitHub after scrolling. The [visual
-ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json) and [GitHub render
-audit](HLA-2025-GITHUB-RENDER-AUDIT.json) hold the identity and hosted evidence;
-older increment-356 and increment-360 results remain as historical records.
+As of 2026-11-12, the 2025 topic set contains 32 guides (the timing guide and
+31 other behavior areas) with 515 Mermaid diagrams: 304 flowcharts, 186
+sequences, and 25 state diagrams. The [archived five-needs review](HLA-BEHAVIOR-FLOW-GUIDES-ROADMAP-HISTORY-2026-11-07.md)
+reached 32/32 guides: standard/API vocabulary, state transitions and callbacks,
+important edge cases, source and focused-test evidence with limits, and open
+questions. That is the result of the November 6 guide-review pass, not an
+overall completion score; later source-coupled findings remain tracked below.
+The thematic reading paths link all 32 guides directly; the bounded audit found
+32/32 explicit local guide targets. This confirms discoverability, not section-
+anchor correctness or content coverage. Increment 526 checked 4,805 unique
+source references: all resolve in the worktree, while candidate HEAD, primary
+local HEAD, and the recorded initial-work commit each resolve 4,796/4,805. The
+same nine anchors in four active source/test files remain pending stable line
+positions.
+There are 69 selected GitHub visual reviews across all 32 guides; these samples
+do not constitute full hosted hydration.
+
+Increment 425 rechecked the 39-file source-link set: the current worktree still
+resolves all 4,765 references, while candidate HEAD resolves 4,756 and misses
+nine anchors in four in-flight implementation/test files. A diff-only boundary
+screen of the nine modified 2025 topic guides found no newly added `2010`,
+`1516e`, `IEEE 1516-2000`, or `HLA 1.3` references. This is a regression screen
+for those edits, not a semantic audit of every guide. The 90% completion figure
+remains a working estimate.
+
+Increment 426 clarified the FOM Admission chart's Big/Little Create/Join node to
+say “Primary-only.” The primary result artifact contains four passing rows for
+the scenario and contract twin under `installed-package`, but has no source
+revision or executable identity; its runner and two fixtures are absent from
+this candidate. Mermaid CLI 12.0.0 rendering and screenshot review passed, and
+the guide converted through GitHub GFM with 13/13 Mermaid containers. A full
+current-source check also reconciled the stale ledger hash for Callback and
+Service Ordering #019: all 515 guide fences now match 515 ledger entries. This
+does not extend hosted hydration beyond the last 508-diagram audit.
+
+Increment 427 corrected the missing-name `getObjectClassHandle` coverage note.
+A tracked, target-listed embedded Catch2 case asserts `NameNotFound` and exact
+failed/successful file-report records. No run result was found, and the
+configured-process missing-name path still lacks a matching test/result. The
+guide now states those boundaries explicitly; no C++ build or test was run.
+
+Increment 428 found a target-listed configured-process matrix case for the
+same unknown-name lookup. It asserts `NameNotFound` and a failed MOM
+interaction report after explicit observer evocation; no run artifact was
+located. The process file-sink path remains untested. The lookup diagram now
+shows both test-source paths and labels the remaining sink gap. Mermaid CLI
+12.0.0 screenshot review and authenticated GitHub GFM conversion passed for
+the updated guide (17/17 containers, 20 headings). A full ledger check
+reconciled ten shifted Service Invocation source lines and the stale TSO
+Retraction #008 hash: all 515 diagrams now match their recorded line and body
+hash. The worktree source-link check resolves 4,776/4,776; candidate HEAD
+resolves 4,767/4,776, with nine anchors in the same four in-flight files.
+
+The current overall estimate remains **91% complete (about 9% remains)**, a
+working estimate rather than a fraction derived from gate count. At increment
+526, the 515-diagram worktree compares with 508 diagrams at candidate HEAD: it
+contains seven additions and nine revised existing bodies. All 515 current
+charts match their ledger identities, source lines, fence types, Mermaid types,
+and body hashes, with local rendering and screenshot evidence. Hosted hydration
+is still verified only for the published 508-diagram baseline. The source-link
+checker resolves 4,805/4,805 references in the worktree and 4,796/4,805 at
+candidate HEAD, with the same nine anchors in four active source/test files
+pending stable line positions. There are 69 selected GitHub visual samples
+across all 32 guides. Increment 526 inspected the four source/test diffs behind
+the nine out-of-range candidate-HEAD anchors. They resolve in the worktree and
+correspond to current-only source or test content; the guide labels them as
+worktree citations. Keep those links pending until the source owners land
+reviewed changes, then rerun the link check and adjust only lines that moved.
+Remaining work: publish the seven additions and 21 revisions once their
+source dependencies are stable, and verify hosted hydration for all 515
+diagrams. Configured-process service-report behavior and focused failure
+artifacts remain bounded evidence gaps. Keep 2010 and Requirements Lab separate;
+no C++ builds, tests, or CI ran in these documentation increments.
+
+Increment 440 reviewed Object and Interaction Information Flow diagram #020,
+“The delivery route carries that captured view to the callback,” in GitHub's
+full-width dialog. The six participant lanes show Pull (`HLA_EVOKED`, push
+disabled) and Push (`HLA_IMMEDIATE`, push enabled) delivery carrying the same
+captured interaction view to callback dispatch; the timing caveat remains
+explicit. Its body hash matches the published source at branch head
+`e10fa19a7bf48415e00a14ca7301613a84f637a3`. This is another targeted sample,
+not full hosted hydration; the 91% working estimate and remaining closure gates
+are unchanged.
+
+Increment 441 reviewed Authorization Flow diagram #001, “Authorization is a
+gate, not the service result,” in GitHub's full-width dialog. Its three
+callback scopes, outside-interface branch, authorization outcomes, and
+service-specific gate after AUTHORIZED were readable. The body hash matches
+the published file at the candidate branch head. This is another targeted
+sample; the 91% estimate and remaining closure gates are unchanged.
+
+Increment 442 reviewed Attribute Ownership diagram #002, “Ownership transfer and update-region association are separate boundaries,” in GitHub's full-width dialog. The selected embedded 2025 flow's owner, prospective-owner, and regional-receiver lanes were readable, including deferred R-B, the cancellation branch, transfer, and R-B-versus-default-region outcomes. The raw Mermaid body hash matches the published source at the candidate branch head. This adds a targeted sample; the 91% estimate and remaining closure gates are unchanged.
+
+Increment 443 reviewed Callback and Service Ordering diagram #025, “Process endpoint: service responses and synchronization events are separate,” in GitHub's full-width dialog. The five process lanes and separate registration/achievement paths were readable while scrolling, including pushed versus polled outcomes, the pending-barrier case, callback-model dispatch, and separate service-report requests. This is implementation-profile evidence, not a normative total-order rule. The 91% estimate and remaining closure gates are unchanged.
+
+Increment 444 rechecked all 515 current Mermaid bodies against the visual-review ledger. It found stale ledger hashes for Callback and Service Ordering #019 and TSO Retraction #008; both were corrected after Mermaid CLI 12.0.0 rendering and screenshot review. The other 513 entries already matched. Fresh source-link checks resolve 4,776/4,776 in the worktree and 4,767/4,776 at candidate HEAD, primary local HEAD, and origin/feature/initial-work; the same nine anchors in four files remain. The 91% estimate and hosted blockers are unchanged.
+
+Increment 445 confirmed that GitHub renders Object-Instance Name Reservation
+#001 inline on the published 2025 branch. The visible screenshot covered its
+request and admissibility decision, with the remaining branches below the
+viewport; no full-chart readability or dialog review is claimed. This targeted
+sample leaves the 91% estimate and remaining closure gates unchanged.
+
+Increment 446 opened the same published chart in GitHub's full-width dialog and
+reviewed it while scrolling. All branches—from synchronous admission through
+reservation outcome, named registration, owner handle, and peer discovery—were
+readable. The candidate HEAD Mermaid-body hash matches the reviewed chart. The
+worktree source-link check passes at 4,776/4,776; HEAD still resolves 4,767/4,776
+because nine anchors point into four in-flight source/test files. This targeted
+readability review leaves the 91% estimate and publication gate unchanged.
+
+Increment 447 refreshed authenticated GitHub GFM conversion for all 39 current
+2025 Markdown pages: the 32 topic guides and seven supporting pages returned
+nonempty responses. All 515 Mermaid fences produced 515
+`section[data-type="mermaid"]` containers, with 1,082 headings, 8,371 rendered
+links, and zero API failures or count mismatches. This confirms GFM parsing and
+container registration, not hosted-page hydration or link click-through. The
+candidate remains unpublished; the nine HEAD-only source anchors and evidence
+gaps remain. The 91% working estimate is unchanged.
+
+Increment 448 reviewed Federation and Federate Lifecycle #022, “A resignation
+during an active save fails the save for survivors,” in GitHub’s full-width
+Mermaid dialog. The four participant lanes and entire sequence remained
+readable, including the in-callback Resign rejection, retry after callback
+return, failure notification to surviving members, suppression of a stale
+callback to the departing member, and a later successful save. The raw Mermaid
+body SHA-256 `f5991e78a4bd7e01ffd86de16f337b7d37bd0e6c0374dfc7411376f8c0969537`
+matches the hosted candidate branch and local review ledger. This is one focused
+embedded 2025 `HLA_EVOKED` schedule, not a global callback-order rule. It adds a
+targeted readability sample only; the hosted full-hydration baseline remains
+508/508, the 515-diagram candidate and nine source anchors remain open, and the
+91% working estimate is unchanged. No C++ build, tests, or CI ran; keep 2010
+and Requirements Lab excluded.
+
+Increment 449 reviewed Callback and Service Ordering #005, “A pushed
+interaction can arrive during a single Evoke wait,” in GitHub’s full-width
+Mermaid dialog. Its six participant lanes and complete sequence remained
+readable while scrolling, including the pre-wait poll, event buffered during
+the wait, receive-order gate, conditional post-wait drain, dispatch-lease
+contention, and one-task follow-up. Raw body SHA-256
+`b2bc3c4e9e936502da89eb13ff39f3f5140acdd1a0071f12eb103ec62afbfe17` matches
+the hosted candidate branch and local review ledger. This is selected 2025
+process-profile behavior, not an HLA-wide callback-order rule. The targeted
+sample does not change the 91% estimate or close publication, source-link, or
+full-hydration gates. No C++ build, tests, or CI ran; keep 2010 and Requirements
+Lab excluded.
+
+Increment 450 reviewed Federation Save/Restore diagram #028, “Worked case: queued timestamped object deletion returns after fresh-registry restore,” in GitHub’s full-width dialog. Its four participant lanes and entire sequence remained readable through the time-7 save, fresh-registry restore, pending deletion rebind, and later time-9 removal callbacks. The hosted body SHA-256 `c7ccde58319883d8c216e3c4e9898399a3c6b1589db6ad962692d0eaf4313ad9` matches the candidate branch and local visual ledger. This is an embedded 2025 development-profile chart, not process-restart evidence or a general callback-order rule. The 508/508 hosted baseline, unpublished 515-diagram candidate, nine source anchors, and evidence gaps remain open; the 91% working estimate is unchanged. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 451 (2026-11-11) reviewed Process Endpoint Request and Callback diagram #020, “FQR publishes FQG without waiting for the TSO completion ACK,” in GitHub’s full-width Mermaid dialog. The five-lane sequence remained readable across the recipient inTransit state, actual and optimistic grant commit, TSO-before-FQG stream order, HLA_EVOKED and HLA_IMMEDIATE callback branches, callback-throw paths, and Resign/ConnectionLost cleanup. The body SHA-256 d9b9247fddff374a3578bd9cb8023a482f075b1d0107d26c90fdcc083f8849cc matches candidate branch e10fa19a7bf48415e00a14ca7301613a84f637a3 and the visual ledger. The callback-throw interleavings are explicitly source-derived, not focused tested behavior. This is a targeted 2025 process-profile readability sample only; the older 508/508 hosted hydration baseline, unpublished 515-chart candidate, nine source anchors, and documented evidence gaps remain. Overall estimate stays 91%. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 452 (2026-11-11) reviewed Object-Instance Name Reservation diagram #002, “1. Single-name reservation: synchronous admission, callback outcome,” in GitHub’s full-width Mermaid dialog. All five participant lanes and the full sequence remained readable while scrolling, with no clipping or overlap observed. The trace separates synchronous rejection from callback outcomes and HLA_IMMEDIATE from HLA_EVOKED delivery; the release-before-callback branch is explicitly an embedded-source observation. The raw Mermaid body SHA-256 2fa7627f93dae3a69c12444e571462397445031300cf931a06854f4646c1a11c matches candidate branch e10fa19a7bf48415e00a14ca7301613a84f637a3 and the visual ledger. This targeted 2025 readability sample does not change the 91% estimate or the remaining source-link, publication, full-hosted-hydration, and evidence-gap gates. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 453 reviewed Callback and Service Ordering #016, “Background dispatch runs without an active request,” in GitHub’s full-width Mermaid dialog. All seven participant lanes and the three exception paths remained readable while scrolling, with no clipping or overlap. The chart distinguishes a dispatchLoop-owned HLA_IMMEDIATE callback exception saved for rethrow before the next request lock/send, an exception exiting another thread’s active immediate-drainer call path, and an HLA_EVOKED exception exiting Evoke Callback. These are source-derived 2025 process behaviors, not normative HLA callback-order rules. Raw Mermaid body SHA-256 98e06f655801be90b2efcc72cbfcf871e74882534718cd868415a2d6a001df52 matches candidate branch e10fa19a7bf48415e00a14ca7301613a84f637a3 and the visual ledger. This targeted sample leaves the 91% estimate and source-link, publication, hosted-hydration, and evidence-gap gates unchanged. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 454 reviewed Federation Save/Restore diagram #006, “Save flow:
+request, participant work, and the commit barrier,” in GitHub’s full-width
+Mermaid dialog. The six participant lanes and both upper and lower branches
+remained readable while panning, without clipping or overlap. The raw body
+SHA-256 e0e496cf9b5b66e9409026b69c25c350788ada4294229aa1a8362f8d138d4a5d
+matches the hosted candidate source and visual ledger. It distinguishes
+accepted request from initiation and participant-local checkpoint completion
+from RTI image commit; this is a targeted implementation-profile sample. The
+91% estimate and source-link, publication, full-hosted-hydration, and
+evidence-gap gates remain unchanged. No C++ build, tests, or CI ran; keep 2010
+and Requirements Lab excluded.
+
+
+Increment 455 reviewed Exception Reporting diagram #005, “When both process
+report routes apply,” in GitHub’s full-width dialog. Its six lanes and upper
+and lower report and failure branches remained readable while panning, with no
+clipping or lane overlap. The raw body SHA-256
+3df0edafa7680ebfa709247091925b557dbcb93df5a05431ea20947a07cf6356 matches the
+hosted candidate source and visual ledger. The combined two-switch scenario
+remains source-derived and untested. This visual sample leaves the 91% estimate
+and source-link, publication, full-hosted-hydration, and evidence-gap gates
+unchanged. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab
+excluded.
+
+Increment 456 reviewed Data Distribution and Regions diagram #006, “Inherited dimensions in a child-class regional path,” in GitHub’s full-width dialog. The vertical hierarchy-to-subscription flow remained readable across upper and lower branches while scrolling, with no clipping or overlap. The query result is observed; the focused test fails at subscription before registration or callbacks, and the overlap and callback branches remain authored expectations. The guide does not claim parent-keyed subscription behavior for a child-registered object. The body hash matches the hosted candidate and local visual ledger. This sample leaves the 91% estimate and source-link, publication, full-hosted-hydration, and evidence-gap gates unchanged. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+All 515 diagram identities have local render and screenshot evidence. Increment
+374 refreshed the published candidate branch at
+revision 270f302536ddb2f2bd56a35b565d2251a45f03e2: all 32/32 guide pages
+loaded, and every one of the 508/508 hosted frames contained a rendered SVG.
+All render responses returned HTTP 200, with zero request failures. Two
+callback-ordering frames needed an additional wait and then rendered
+successfully. The [visual ledger](HLA-2025-DIAGRAM-VISUAL-REVIEW-LEDGER.json)
+and [GitHub render audit](HLA-2025-GITHUB-RENDER-AUDIT.json) hold the identity
+and hosted evidence; older increment-356 and increment-360 results remain as
+historical records.
+
+At increment 389, an exact comparison found 507 of 508 hosted chart bodies
+unchanged; Federation Synchronization #006 was revised and Save/Restore #043
+was added. Later changes added FOM Admission #001 and Service Invocation
+Reporting #006 and #007, revised Data Distribution #002, and added Service
+Invocation Reporting #008, #009, and #011. The current 515-chart set therefore
+has 506 bodies unchanged from the last hosted set, two revised bodies, and
+seven additions. All nine current chart deltas have local render and screenshot
+evidence. Increment 423's fresh authenticated GitHub Markdown API pass covered
+all 32 topic guides: all 515 source Mermaid fences produced 515 Mermaid
+containers, with 814 headings and 7,919 links and no API failures or container
+mismatches. This verifies GFM conversion and container registration, not visible
+hosted hydration or link click-through. The six supporting Markdown pages were
+not part of this refresh. Hosted page hydration still needs refresh after
+publication. Increment 424 inspected the current remote candidate branch head
+(e10fa19a7bf48415e00a14ca7301613a84f637a3) in Microsoft Edge. The Time
+Management guide's Role state machines charts #002 and #003 visibly rendered;
+#002 opened as a full-width diagram, and both body hashes match the committed
+branch source. This is a two-chart sample from one section, not a full 508-page
+audit. The inline viewer controls partly overlap #003's right edge, so wide-chart
+readability should be checked in the dialog during the full pass. The old
+headless Chromium placeholder result remains historical and does not describe
+this current Edge sample. The updated roadmap and both progress-history pages
+also returned nonempty HTTP 200 GFM responses, with zero Mermaid-count
+mismatches (25 headings and 141 links combined). The increment-420
+missing-class lookup chart is #008; later Service Invocation Reporting chart
+ordinals shifted by one. Inserting the FOM Admission chart as #001 also shifts
+its guide's 12 existing chart ordinals. Callback/Ordering #019 and
+TSO-Retraction #008 already match the hosted audit.
+
+Increment 417 (2026-11-11) added an object-attribute declaration report flow to
+the Service Invocation Reporting guide. Its nine-record table distinguishes
+five rejected calls from four successful declaration calls, including the
+empty-set versus omitted optional argument, the public `active` flag versus the
+MOM passive indicator, and typed Null returns. It bounds embedded callback
+ordering separately from configured-process behavior. The source comment and
+README coverage mismatch were identified; the package README now includes the
+two-attribute publication record. Mermaid CLI 12.0.0 rendered the new chart and
+the screenshot review found it readable. GitHub's Markdown API returned HTTP
+200 for the full guide with 15/15 Mermaid containers, 19 headings, and 174
+links. The 2025 link checker resolves 4,741/4,741 worktree references; candidate
+HEAD still has the same nine unrelated source anchors unresolved. No C++ build
+or test was run; 2010 and Requirements Lab remain out of scope.
+
+Increment 418 (2026-11-11) added a synchronization-report flow to the Service
+Invocation Reporting guide. Its seven-record serial stream distinguishes a
+normally returned registration call from the later callback result: the
+duplicate-label registration callback reports failure while the service report
+still records invocation success and an empty exception. The guide bounds
+callback/report ordering claims and keeps embedded and configured-process
+source ordering separate. Mermaid CLI 12.0.0 rendered and screenshot review
+confirmed the two-track chart. GitHub's Markdown API returned HTTP 200 for the
+complete guide with 16/16 Mermaid containers, 20 headings, and 189 links. The
+39-file source-link check resolves 4,752/4,752 worktree references; candidate
+HEAD, primary local HEAD, and origin/feature/initial-work each resolve 4,743,
+with the same nine anchors in four in-flight source/test files unresolved.
+The ledger now contains 514 locally rendered and screenshot-reviewed charts;
+eight chart changes still need hosted hydration after publication. The working
+estimate remains 90% complete. No C++ build or test was run; 2010 and
+Requirements Lab remain out of scope.
+
+Increment 419 (2026-11-11) clarified a nearby lookup-report coverage boundary.
+The 2025 API lists `NameNotFound` for `getObjectClassHandle`, but the cited
+object/attribute/update-rate scenario reports `ObjectInstanceNotKnown` for an
+invalid object-instance handle and later checks only a successful class-name
+lookup at serial 7. The guide now states that the missing-class-name failure
+and its failed service report remain untested. GitHub's Markdown API returned
+HTTP 200 for the updated Service Invocation Reporting guide with 16/16 Mermaid
+containers, 20 headings, and 194 links. The 39-file source-link check resolves
+4,757/4,757 worktree references; candidate HEAD, primary local HEAD, and
+origin/feature/initial-work each resolve 4,748, with the same nine anchors in
+four in-flight source/test files unresolved. No diagram changed; the ledger
+remains 514/514 locally rendered and screenshot-reviewed. The working estimate
+remains 90%. No C++ build or test was run; keep 2010 and Requirements Lab
+excluded.
+
+Increment 420 (2026-11-11) added a source-backed flowchart for the 2025
+getObjectClassHandle missing-name path. It follows the distinct embedded
+registry-miss and configured-process rejection paths to NameNotFound, shows the
+separate Exception-report attempt and failed Service Invocation report route,
+and does not claim report delivery or callback order. Mermaid CLI 12.0.0
+rendered the chart, and screenshot review found both paths readable. GitHub's
+Markdown API returned HTTP 200 for the complete guide with 17/17 Mermaid
+containers, 20 headings, and 202 links. The 39-file source-link check resolves
+4,765/4,765 worktree references; candidate HEAD, primary local HEAD, and
+origin/feature/initial-work each resolve 4,756, leaving nine anchors in four
+in-flight source/test files. The ledger now contains 515 locally rendered and
+screenshot-reviewed diagrams; nine chart deltas need hosted hydration after
+publication. The working estimate remains 90% complete. No C++ build or test
+was run; keep 2010 and Requirements Lab excluded.
+
+Increment 421 (2026-11-11) linked the missing-class-name lookup flow from
+the 2025 thematic reading path for service reports. The direct guide-section
+link now leads readers from the report-family distinction to the tested
+interaction/parameter failure trace and the distinct embedded/configured-process
+class-name lookup paths; the latter's failed-report case remains an explicit
+test gap. GitHub Markdown API conversion returned HTTP 200 for the thematic
+paths with two headings and 168 links. The Service Invocation Reporting guide
+still converts with 17/17 Mermaid containers. The 39-file source-link check
+remains 4,765/4,765 in the worktree. No diagram, C++ source, or test changed.
+The working estimate remains 90%; keep 2010 and Requirements Lab excluded.
+
+Increment 422 (2026-11-11) audited direct guide coverage in the 2025 thematic
+reading paths against the 32 guide sources in the visual ledger. All 32 are
+explicit local Markdown targets; no guide is missing. This verifies guide
+discoverability only, not section-anchor correctness or HLA content coverage.
+The source-link checker still resolves 4,765/4,765 references in the worktree.
+No diagram, C++ source, or test changed. The working estimate remains 90%; keep
+2010 and Requirements Lab excluded.
+
+Increment 423 (2026-11-11) completed a fresh authenticated GitHub GFM pass over
+all 32 current 2025 topic guides. All 32 returned nonempty HTTP 200 HTML, and
+all 515 source Mermaid fences matched 515 actual Mermaid containers; the pages
+contained 814 headings and 7,919 links, with no conversion or count failures.
+The six supporting Markdown pages were not refreshed. The source-link checker
+resolves 4,765/4,765 references in the worktree and 4,756/4,765 at candidate
+HEAD, with the same nine anchors in four in-flight source/test files. The GFM
+check does not verify hosted-page hydration or link click-through. No source,
+test, or diagram changed. The working estimate remains 90%; keep 2010 and
+Requirements Lab excluded.
+
+Increment 424 (2026-11-11) inspected the current published candidate branch
+head (e10fa19a7bf48415e00a14ca7301613a84f637a3) in Microsoft Edge. The Time
+Management guide's Role state machines diagrams #002 and #003 visibly rendered
+in GitHub Preview; #002 opened in a full-width diagram dialog. Both remote
+bodies match the visual-ledger hashes. The inline viewer controls partly
+overlap #003's right edge, so the full audit should inspect wide diagrams in
+the dialog. This one-section/two-diagram sample does not verify all 508 charts
+on the published branch or the 515-diagram worktree. The previous headless
+Chromium placeholder finding remains a historical result from a different
+browser path. The updated roadmap and both progress-history pages also
+returned nonempty HTTP 200 GFM responses, with zero Mermaid-count mismatches
+(25 headings and 141 links combined). Source links still resolve 4,765/4,765
+in the worktree and 4,756/4,765 at candidate HEAD. No source, test, or diagram
+changed. The working estimate remains 90%; keep 2010 and Requirements Lab
+excluded.
+
+Increment 375 (2026-11-09) reconciled the roadmap's next handoff and current
+hosted-render summary with the active roadmap index and increment 374 evidence.
+Increment 373 had already completed the configured-process host-outage review;
+the next review is configured-process `ConnectionLost`, after the current
+host/client recovery and process-lifecycle changes are committed and have a
+recorded focused run. A bounded scan of all 2025 guides found that every 2010
+mention explicitly marks the edition boundary or links to its separate
+reference-RTI guide; no 1516e implementation path was cited. No guide content
+changed.
+
+Increment 376 (2026-11-09) checked the current inventory of 32 2025 guide files
+against the archived final five-needs audit entry (32/32) and confirmed that
+the audit's five criteria are recorded there. This verifies the review-pass
+denominator and scope; it does not close the separate semantic and evidence
+backlog. No guide change was needed.
+
+Increment 377 (2026-11-09) rechecked official no-cost access routes for the
+2025 standard. The [product page](https://standards.ieee.org/ieee/1516.1/6688/)
+offers Purchase and Access via Subscription; the [IEEE GET Program's current
+list](https://standards.ieee.org/products-programs/ieee-get-program/) does not
+list HLA. The public [downloads bundle](https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip)
+contains API/support material, not the normative standard. No no-cost full-text
+route was found. Updated the active handoff index's access-route record;
+§6.21 and other normative questions remain open, with no behavior inferred.
+
+Increment 378 (2026-11-09) linked the current GET Program catalog finding from
+the RAVU guide's §6.21 evidence boundary. It now distinguishes the unknown
+Reading Room eligibility from the GET catalog's omission of HLA; requester
+entitlement and callback timing remain unresolved. The worktree checker
+resolved 4,657/4,657 references across 38 2025 Markdown files. No diagram,
+source, test, build, or CI changes; no 2010 or Requirements Lab edits.
+
+Increment 379 (2026-11-09) rechecked the object-instance name reservation
+guide against the clean 2025 embedded registry implementation and existing
+focused tests. The registry keeps bulk reservation partial per name and
+validates a complete release set before erasing any reservation. The embedded
+tests exercise partial reservation and confirm a mixed-set release failure
+leaves the owned names reserved; the process test covers callback outcomes but
+not mixed-set release atomicity. The guide already states this evidence limit,
+so no guide edit was needed. The worktree checker resolved 4,657/4,657
+references across 38 Markdown files. No builds, test reruns, CI, 2010, or
+Requirements Lab work. Overall progress remains 80%; formal gates remain 4/4.
+
+Increment 380 (2026-11-09) added a compact source-state flowchart to the
+Save/Restore guide. It separates a pending timed request from checkpoint
+admission, timed-request replacement, untimed-request takeover, and opening
+`SaveOperation`. The chart labels the unreachable-time failure outcome as
+unresolved and makes no normative claim. Mermaid CLI rendered the updated
+diagram and its screenshot was visually checked. The 509-entry diagram ledger
+was reconciled against current sources: 25 source-line records were refreshed,
+and two previously changed chart bodies were rendered and screenshot-checked
+again. The published hydration audit remains increment 374 at 508/508 and does
+not include these worktree-only changes. No builds, tests, CI, 2010, or
+Requirements Lab changes. Overall progress remains 80%; formal gates remain
+4/4.
+
+Increment 381 clarified that 80% is a working estimate separate from the four
+completed publication/render gates, and made the current closure items visible
+in the roadmap. Increment 382 reclassified the Save unreachable-time and RAVU
+§6.21 questions as documented gaps: both guides identify missing evidence and
+avoid normative claims. The working estimate is now 85%, with three actionable
+items remaining. IEEE's current product page was rechecked; it still offers
+Purchase and Access via Subscription without exposing §6.21 prose.
+
+Increment 383 corrected the opening state in Federation Synchronization diagram
+#006: the registry prepares announcement work and inserts the point before the
+application callback is delivered. The label and adjacent text now describe
+that source boundary without implying callback execution. Mermaid CLI 12.0.0
+rendered the diagram and its screenshot was inspected; the diagram identity,
+line, hash, and local review status were reconciled in the visual ledger. The
+worktree link checker resolves 4,661/4,661 references across 38 Markdown files.
+This increment changed no C++ source or tests and ran no builds, tests, or CI.
+2010 and Requirements Lab remain out of scope. Overall progress remains 85%;
+formal gates remain 4/4.
+
+Increment 384 (2026-11-09) compared current source-line links against candidate
+HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`. The worktree check still
+resolves 4,661/4,661 references, while HEAD resolves 4,654/4,661. Seven
+anchors in the Connection and Configuration guide point into dirty host,
+initialization, and process-test files that have not reached HEAD. After
+those changes have a focused run and are committed, reconcile the anchors
+against committed source and rerun the HEAD audit before publishing. No C++
+source or tests changed in this documentation increment; no builds, tests,
+or CI were run. Overall progress remains 85%; three action items remain and
+all four formal gates are complete. Keep 2010 and Requirements Lab excluded.
+
+Increment 385 (2026-11-09) rechecked the RAVU class-scope fan-out and delivery
+boundary against the shared 2025 planner, embedded callback adapter, configured-
+process service, and focused test sources. The planner groups each object’s
+requested remotely owned attributes by current provider. Embedded delivery
+rechecks the original provider at callback entry; configured-process delivery
+rechecks before queueing or Push send, with no later ownership check in the
+inspected dequeue/callback path. The guide already explains these paths and clearly marks same-object
+multi-provider fan-out and ownership transfer around the process recheck as
+untested, source-derived behavior; no normative callback count, ordering, or
+outcome is claimed. A similarly named regional Auto Provide multi-provider
+test follows the discovery-triggered path and does not exercise explicit RAVU.
+The guide now links that test as a separate service path. The worktree link
+check resolves 4,662/4,662 references; candidate HEAD resolves 4,655/4,662,
+with the same seven Connection and Configuration anchors pending the separate
+source-link handoff. No source/tests, builds, test runs, or
+CI changed in this increment. Overall progress is 90%, with two actions remaining
+and four formal gates complete. Keep 2010 and Requirements Lab excluded.
+
+Increment 386 (2026-11-09) recorded a saved installed-package TCK result for
+`cpp-tck.connection-fault-rti-closed-resume-fails`. The result manifest marks
+both HLA_EVOKED and HLA_IMMEDIATE passed. Its scenario source asserts the
+public `ConnectionLost` callback with a nonempty description, then
+`NotConnected` from a later `listFederationExecutions`. The raw fault files
+show an invalid transport sequence closed the RTI socket; Resume requests
+continued on session 2 with no Resume Status response. The raw files report
+59 evoked and 73 immediate Resume attempts, while the aggregate result's
+embedded counts report 61 and 57; this mismatch is recorded and the counts
+are not used to establish a behavior claim. The test scenario and dispatch
+remain uncommitted in the primary checkout and are absent from candidate HEAD;
+the installed-package artifact records no source revision or executable
+identity. Treat this only as supporting evidence for the client's local
+ConnectionLost/NotConnected terminal path. It does not cover configured-process
+host membership removal, Federate-Lost reporting, HLAfederate removal, or
+observer ordering. Host recovery source-link and process lifecycle review stay
+open. Overall progress remains 90%, two actions remain, and all four formal
+gates remain complete. No build/test/CI work was performed in this
+documentation increment; 2010 and Requirements Lab remain excluded.
+
+Increment 387 (2026-11-09) tightened the configured-process ConnectionLost
+evidence in the federation/federate lifecycle guide. The source trace
+separates the failed member's local callback from host session termination
+and survivor projection: the host removes its worker record and closes the
+connection, the service captures the Federate-Lost report plan before the
+shared forced membership transition, then dispatches cleanup result families
+before the optional report. That source submission order does not establish
+survivor callback order. A saved 2026-11-07 current-process artifact marks
+`cpp-tck.federate-lost-mom-report` passed under both callback models, but
+records no source revision or executable identity and predates the current
+TCK source modification; it is historical scenario-ID evidence only.
+Current worktree assertions cover cutoff/report/member-list/synchronization
+observations but do not establish report/local-callback/member-list order or
+forced-loss removal of the lost member's `HLAfederate` object. The guide now
+labels these limits explicitly. No diagram count changed. The worktree link
+check remains 4,662/4,662; candidate HEAD remains 4,655/4,662 with seven
+source anchors pending committed implementation changes. Overall progress
+remains 90%, with two actions and four formal gates complete. No build, test,
+CI, 2010, or Requirements Lab work.
+
+Increment 388 refined the configured-process ConnectionLost evidence by
+locating the latest saved current-process runs for the Federate-Lost TCK
+scenario and its contract variant. The 2026-11-07 `sync-primary` artifact
+marks `cpp-tck.federate-lost-mom-report` passed for HLA_EVOKED and
+HLA_IMMEDIATE; `sync-contract` records the same for
+`cpp-tck.federate-lost-mom-report-contract`. Neither artifact contains a
+source revision or executable identity, and both predate the current
+uncommitted TCK source, so they are historical scenario-ID evidence only.
+The lifecycle guide now names both runs and distinguishes them from the
+current source assertions. It continues to document the configured-process
+source sequence and leaves host/member-object callback ordering unproven.
+The two completion actions and 90% working estimate are unchanged. Worktree
+references remain 4,662/4,662; candidate HEAD remains 4,655/4,662 with seven
+anchors pending the focused run and commit. No build, test, CI, 2010, or
+Requirements Lab work.
+
+Increment 389 compared the hosted Mermaid audit at revision
+`270f302536ddb2f2bd56a35b565d2251a45f03e2` with the current remote branch and
+local 2025 guide sources. The remote branch at `e10fa19a7bf48415e00a14ca7301613a84f637a3`
+has the same 508 Mermaid bodies as the audited revision. The current worktree
+has 509 bodies: 507 are unchanged, Federation Synchronization #006 is revised,
+and Save/Restore #043 is added. Callback/Ordering #019 and TSO-Retraction #008
+are already covered by the hosted audit. The two changed bodies have local
+render and screenshot evidence; refresh hosted hydration after publication.
+The 90% estimate and the separate configured-process ConnectionLost handoff
+are unchanged. No build, test, CI, 2010, or Requirements Lab work.
+
+Increment 389 also reconciled 16 stale visual-ledger diagram line references
+after current guide prose edits. An independent scan confirms all 509 entries
+match their source line, type, fence, and body hash. The documentation link
+check resolves 4,662/4,662 worktree references; seven candidate-HEAD anchors
+remain into the three dirty recovery source/test files and will be reconciled
+after their focused run and commit. The Attribute Value Update Request guide
+now links its Auto Provide distinction to the test's region-aware subscription
+trigger at line 459 and states that this automatic path does not verify the
+explicit request service's fan-out. The guide's access note was also checked
+against the current IEEE SA product and GET Program pages.
+
+Increment 390 (2026-11-09) added a field-level 2025 flow to the FOM admission
+guide. It separates a `basicData` Name that passes DIF identifier syntax but
+is rejected by the merged-model reserved-HLA-name check from `Endian=Middle`,
+which fails the pinned DIF schema's `Big`/`Little` enumeration. The two
+examples are independent; the diagram does not imply a shared validation
+order. Mermaid CLI rendered the chart and screenshot inspection found the
+labels legible. The primary-checkout portable TCK result records the standard-
+invalid corpus and its same-provider contract twin passing in EVOKED and
+IMMEDIATE. The result's `scenario_foms` map is empty, so legal `Big`/`Little`
+public-Create acceptance remains unverified. The field-specific fixtures and
+result remain worktree-only, and the artifact records no source or executable
+identity; it does not establish independent-provider behavior or exhaustive
+validation. The visual ledger now reconciles 510/510 source identities and the
+worktree link check resolves 4,667/4,667 references. Candidate HEAD resolves
+4,660/4,667; the same seven recovery-source anchors remain pending. The published audit
+still covers 508 charts; after publication, refresh hosted hydration for
+Federation Synchronization #006 and the added Save/Restore #043 and FOM
+Admission #001 charts. Overall progress remains 90%. No C++ source, tests,
+builds, test reruns, or CI were part of this documentation increment. Keep
+2010 and Requirements Lab excluded.
+
+Increment 391 (2026-11-09) reconciled the basicData Endian evidence with a later
+primary-checkout public-API run. The earlier `basic-data-representation-name-endian`
+artifact still has an empty `scenario_foms` map and proves no positive Endian
+case. The separate `basic-data-representation-endian-values` artifact includes
+the Big and Little fixture keys and records the primary scenario and its
+same-installed-provider contract twin passing under EVOKED and IMMEDIATE (4/4).
+The current primary-checkout runner iterates both fixtures, calls Create and
+Join, checks the federate handle, then resigns and destroys the federation.
+This demonstrates those two selected values in that worktree. The updated runner
+and both fixture files remain absent from the published candidate; the guide
+marks that evidence as worktree-only and candidate reproducibility remains
+open. The flow now shows the accepted Big/Little path alongside the distinct
+reserved-Name and Middle rejection paths. Mermaid CLI 12.0.0 rendering and
+screenshot inspection passed.
+
+The visual ledger now matches all 510/510 current diagram identities. The
+ledger's stale TSO Retraction #008 body hash was reconciled after a local render
+and screenshot review. The worktree link checker resolves 4,667/4,667 references;
+the seven candidate-HEAD Connection and Configuration anchors remain pending.
+The published audit covers 508 charts, so Federation Synchronization #006,
+Save/Restore #043, and FOM Admission #001 still need hosted hydration after the
+current edits are published. Progress remains 90%. No C++ builds, tests,
+reruns, or CI were performed; 2010 and Requirements Lab remain excluded.
+
+Increment 401 (2026-11-09) refreshed the bounded five-category text-presence screen across all 32 2025 topic guides. Each category passes in 32/32 guides: normative basis, state and observation, edge/failure boundary, test evidence, and known limits/gaps. The check explicitly includes the timing and cross-cutting guides. After a narrower keyword screen missed it, manual review confirmed that the Ownership Persistence guide has a “Deliberate limits and next step” section. The screen confirms text presence, not semantic correctness of standard citations, source behavior, or test assertions. Updated the render-audit record and active handoff. No source, test, or diagram changed; no builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 402 (2026-11-09) revalidated the current 2025 documentation worktree against candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3` and the latest fully hydrated hosted audit at `270f302536ddb2f2bd56a35b565d2251a45f03e2`. All 510 diagram bodies match the 510-entry visual ledger. A heading-context comparison finds exactly three chart deltas: Federation Synchronization #006 is revised, and Save/Restore #043 plus FOM Admission #001 are new. Mermaid CLI 12.0.0 rendered those three charts; screenshot inspection found their labels and branches legible without clipping or overlap. The source-link checker resolves 4,710/4,710 worktree references; candidate HEAD and its remote resolve 4,701/4,710, leaving nine anchors across four in-flight source/test files. Hosted hydration remains verified only for the prior 508-chart revision, so the three candidate deltas still need publication and hosted verification. This documentation review did not edit implementation files or run builds, tests, or CI. Keep 2010 and Requirements Lab excluded.
+
+Increment 403 (2026-11-09) checked GitHub's Markdown API GFM conversion for the three candidate pages with Mermaid deltas. The 21 Federation Synchronization, 43 Save/Restore, and 13 FOM Admission source fences produced 77/77 Mermaid render containers across three nonempty HTML responses. Together with increment 402's Mermaid CLI 12.0.0 renders and screenshot review, this verifies local rendering and GitHub GFM container generation; it does not verify browser hydration of the published pages. The active source-link and hosted-hydration gates are unchanged. No implementation files, builds, tests, or CI were part of this increment. Keep the work 2025-only; 2010 and Requirements Lab remain excluded.
+
+Increment 404 (2026-11-09) expanded that GFM check to the complete 38-page 2025 documentation set: all 32 topic guides and six supporting pages returned nonempty HTML, and all 510 source Mermaid fences produced 510 `data-type="mermaid"` containers with no count mismatch or API failure. The largest input was 279,199 bytes, below the audit's recorded 400 KB endpoint limit. This verifies current-worktree GFM parsing and container generation, not visible hydration on the published pages. A fresh resume/ready query retains the connection-fault replay handoff, now mapped to nine requirements across four standard sections; the related source/test work remains in flight. No builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 405 (2026-11-09) compared the active connection-fault federate-request replay evidence in the primary and documentation-candidate worktrees. The primary TCK source uses public `getFederateHandle` calls with an adapter-managed fault fixture; its new current-process adapter withholds request `[sequence=1, session=2, request=2]`, forwards heartbeat sequence 2 on session 2, drops the matching RTI Heartbeat Response `[2,2,2]`, and records that the request is resent while the dropped control response is not replayed. The saved installed-package artifact records HLA_EVOKED and HLA_IMMEDIATE as passed, but has no source revision or executable identity. The candidate TCK function has a different body and does not contain the matching control-response evidence, so the primary artifact cannot support a candidate-source or published-guide claim. No guide or diagram change was made; retain the existing general replay explanation until matching source and provenance-bearing results are available in the candidate. Rechecked source links: 4,710/4,710 resolve in the worktree, while candidate HEAD and remote remain at 4,701/4,710. No builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 406 (2026-11-09) refreshed the active handoff from `ready`: `cpp-tck.connection-fault-federate-request-replay` now maps ten direct requirement pairs across five standard sections and exercises two sequential public-request fault windows. The primary source calls `getFederateHandle` twice, and its current-process adapter requires both `withheld_request_control_fault` and `replayed_hla_service_response` evidence. The saved installed-package artifact reports both callback models passed but contains only the first evidence block; it therefore does not verify the second response-loss window or identify the current source/executable. The candidate TCK source still has only one `getFederateHandle` call, and the matching control-response adapter evidence is absent. Keep successful recovery separate from terminal ConnectionLost, and do not add either new replay detail to the guide until the candidate has matching source and a provenance-bearing focused result. The worktree link audit remains 4,710/4,710; candidate HEAD/remote remains 4,701/4,710. No guide or diagram changed; no builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 407 (2026-11-09) reran authenticated GitHub Markdown API GFM conversion after the roadmap updates. All 38 scoped 2025 documentation pages (32 guides and six supporting pages) returned nonempty HTML; all 510 Mermaid fences produced 510 Mermaid containers, with 1,042 headings and 8,217 rendered links and no API failures or page-count mismatches. The largest input was 279,199 bytes. This verifies current-worktree Markdown parsing and Mermaid container generation, not visible hydration on published pages. No guide diagram, implementation source, test, build, or CI changed. Keep 2010 and Requirements Lab excluded.
+
+Increment 408 (2026-11-09) checked the nine candidate-HEAD source-link failures against the primary local HEAD `e6321e842f333427349166df8c5b35350a2ae473` and the committed remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180`. Both revisions also resolve 4,701/4,710 links; the same nine cited lines are absent, and all four target files are modified in the primary worktree. The candidate worktree resolves 4,710/4,710. Thus the current citations are useful against the in-flight source but cannot yet be published as committed-source anchors. Keep them tied to the reviewed code and wait for the source changes to be committed or for a semantic re-review to identify accurate stable anchors. No guide or diagram changed; no build, test, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 409 (2026-11-09) reran authenticated GitHub Markdown API GFM conversion for all 38 current 2025 documentation pages: 32 guides and six supporting pages returned nonempty HTML, all 510 Mermaid diagrams—including the nine tilde-fenced charts—produced one GitHub Viewscreen container each, and the pass counted 1,042 headings and 8,217 rendered links with no API failures or mismatches. The largest input was 279,199 bytes. Fresh source-link checks resolve 4,710/4,710 references in the worktree; candidate HEAD, primary local HEAD, and `origin/feature/initial-work` each resolve 4,701/4,710, with the same nine anchors absent from four in-flight source/test files. GFM conversion is not hosted-page hydration, and current-worktree anchors are not yet committed-source anchors. No guide, diagram, source, or test changed; no build, test, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 410 (2026-11-09) audited edition boundaries across the current 32 2025 topic guides. All 32 identify 2025 scope in their opening 40 lines. The bounded text/link scan found 228 `2010`/`1516e` mention occurrences and 21 explicit links to separate-edition artifacts: the bounded 2010 reference-RTI guide, narrowly scoped 2010-FOM-input tests used by the 2025 API, and one explicitly separate 2010 handle adapter that shares only a byte helper. No `third_party/ieee1516e` implementation path is linked. The FOM Admission and DataElement Encoding guides already state that FOM model admission does not serialize application payload bytes and link the separate encoding path; no chart change was warranted. The latest primary `resume/ready` now selects the FQG/non-limiting-GALT TCK case; its proposed delivered-TSO minimum-time check remains pending source/test evidence and is not added as an observed result. No guide, diagram, source, or test changed; no build, test, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 411 (2026-11-09) rechecked the previously pending connection-fault replay case after the primary `resume/ready` moved to FQG. The primary TCK source now makes two public `getFederateHandle` calls, and its catalog and saved installed-package artifact report both fault windows under HLA_EVOKED and HLA_IMMEDIATE: the first withholds request `[1,2,2]` and drops its matching heartbeat response `[2,2,2]`; the second drops response `[5,2,3]` to request `[4,2,3]`, then records that same response identity replayed after a second Resume exchange. The result artifact contains both evidence blocks for both callback models, but records only `provider_id=installed-package`, not a source revision or executable identity. The candidate worktree still has one call in the TCK scenario and its catalog retains the older single-request description, so this is primary-only evidence and does not yet support a candidate-guide claim for the second fault. Keep the two recovery windows out of the candidate guides until matching source and provenance-bearing evidence are available there. The current primary handoff is the separate FQG/non-limiting-GALT case (8 requirement pairs across two standard sections); do not document its proposed delivered-TSO minimum-time result before its source and focused evidence exist. No guide, diagram, source, or test changed; no build, test, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 412 (2026-11-09) inspected the existing primary-checkout artifact `out/mgw/cpp-tck-fqr-minimum-20261109/results.json` for the active 2025 FQG case. It reports both the request-only scenario and its contract variant passed under HLA_EVOKED and HLA_IMMEDIATE, with `provider_id=installed-package`. The artifact records no source revision or executable identity, so it cannot establish whether it matches the current modified TCK source or verifies its delivered-TSO phase. The Time Management guide remains unchanged; do not present the proposed delivered-TSO minimum-time formula as observed. No build, test, or CI was run. Keep 2010 and Requirements Lab excluded.
+
+Increment 413 (2026-11-11) added a 2025 `GetAttributeName` failure-report trace to the Service Invocation Reporting guide. It documents the valid object-class/invalid attribute-handle call, caller-visible `InvalidAttributeHandle`, report serial 4, checked supplied arguments, false indicator, Null return, and exception field. It also distinguishes the inherited `HLAfederate` parameter from the same-named `HLAfederate` scope dimension and records that the test does not check their values. The new Mermaid chart was rendered and screenshot-reviewed locally with Mermaid CLI 12.0.0. During the identity audit, Callback/Ordering #019 was also re-rendered because its ledger hash was stale; its body matches the previously hydrated hosted revision and is now recorded accurately. Authenticated GitHub Markdown API conversion of the full Service Invocation Reporting page returned 13/13 Mermaid containers (17 headings, 148 links), bringing current GFM coverage to 511/511 when combined with Increment 411's 510/510 full-scope pass. Hosted hydration remains unverified for the four current chart deltas. The worktree source-link check resolves 4,717/4,717; candidate HEAD, primary local HEAD, and origin/feature/initial-work each resolve 4,708/4,717 with the same nine unrelated in-flight anchors. No C++ build or test was run. Keep 2010 and Requirements Lab excluded.
+
+
+Increment 400 (2026-11-09) refreshed the documentation handoff from the exact RTI resume/ready result. The related active 2025 source plan is `cpp-tck.connection-fault-federate-request-replay`, titled “Exercise control-message handling during public C++ connection-fault recovery,” with the installed-package process-adapter CTest selector for `HLA_EVOKED` and `HLA_IMMEDIATE` and command `python tools/cpp_tck.py --scenario cpp-tck.connection-fault-federate-request-replay`. The candidate branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`; the four linked source/test files remain modified in the candidate worktree. The documentation link counts and 510 diagram hashes remain as recorded in increment 399. This increment changed documentation handoff metadata only; no source build, test, or CI ran. Keep the work 2025-only and exclude Requirements Lab.
+
+Increment 399 (2026-11-09) reconciled the active Roadmap index source-link
+snapshots with fresh audits: the worktree resolves 4,710/4,710 references and
+candidate HEAD resolves 4,701/4,710. The remote candidate branch remains at
+`e10fa19a7bf48415e00a14ca7301613a84f637a3`; the nine unresolved anchors cross
+four modified 2025 host, initialization, process-test, and lifecycle-TCK files.
+The candidate worktree contains those in-flight source changes, which still need
+their focused run and commit before publication. The primary checkout has the
+Big/Little public Create/Join runner case and fixtures; neither the case nor
+fixtures is present in the candidate. The guide identifies that evidence as
+primary-only. All 510
+Mermaid bodies match the visual-ledger hashes. Updated the active index snapshots
+without rewriting the historical increment records. No source, test, or diagram
+changed; no builds, tests, or CI ran. Keep 2010 and Requirements Lab excluded.
+
+Increment 398 (2026-11-09) added direct names and pinned-header links for the
+handle lookup, decode, and normalization operations, advisory controls, service
+report switches, and time controls discussed in their existing guides. A
+bounded symbol-name scan across the 32 topic guides finds all 164 unique
+RTIambassador operation names and 56 FederateAmbassador callback names. This checks
+navigation only; it is not a method-by-method behavior or conformance audit.
+Reconciled the visual ledger after the prose additions: all 510 diagram bodies
+still match their hashes, and 33 source-line entries were updated. No Mermaid
+body changed in this increment.
+The source-link checker now resolves 4,710/4,710 worktree references and
+4,701/4,710 against candidate HEAD. The nine current-only anchors remain seven
+Connection/Configuration links and two Lifecycle links into in-flight sources.
+Progress remains 90%. No C++ builds, tests, reruns, or CI; 2010 and Requirements
+Lab remain excluded.
+
+Increment 397 (2026-11-09) reran the 2025 documentation source-link audit
+against the live worktree and candidate HEAD. The worktree resolves 4,669/4,669
+references; HEAD resolves 4,660/4,669. The nine current-only anchors are seven
+Connection/Configuration links into host, initialization, and process-test
+sources, plus two Lifecycle links into the TCK source. Updated the active
+backlog to these counts and locations; historical increments retain their
+original snapshots. The source changes remain in progress, so no C++ build,
+test, rerun, or CI was started. Progress remains 90%; 2010 and Requirements Lab
+remain excluded.
+
+Increment 396 (2026-11-09) re-rendered and screenshot-reviewed the three chart
+bodies that differ from the published 508-diagram snapshot. The first local
+render showed that Save/Restore #043's horizontal layout made its labels too
+small, so the chart now follows the pending timed Save vertically; its later
+timed Save replacement and untimed Save supersession paths remain visible.
+Mermaid CLI 12.0.0 rendered all three charts, and the diagram ledger now matches
+all 510 source fences, line numbers, and body hashes. The worktree link check
+resolves 4,669/4,669 references; candidate HEAD remains at 4,660/4,669, with
+nine links in current-only sources. Progress remains 90%. No C++ builds, tests,
+reruns, or CI; 2010 and Requirements Lab remain excluded.
+
+Increment 395 (2026-11-09) added direct, worktree-only links from the
+Federation and Federate Lifecycle guide to the configured-process
+`scenarioFederateLostMomReportPortable` and its post-loss membership and
+survivor-roster assertions. The hosted source-dependency audit snapshot still
+needs a refresh for these current guide lines after the source changes settle.
+The TCK source is 2,894 lines in the worktree
+and 700 at candidate HEAD; these assertions remain unrun, and the November 7
+saved scenario results do not identify their source revision or executable.
+The current link checker resolves 4,669/4,669 worktree references. Candidate
+HEAD resolves 4,660/4,669: seven links into dirty Connection/Configuration
+sources and two into the current-only TCK source. Progress remains 90%. No
+C++ builds, tests, reruns, or CI; 2010 and Requirements Lab remain excluded.
 
 Increment 365 (2026-11-09) linked the timed Save guide's embedded test for all
 five advance modes and the TARA equality/strict-boundary case. The worktree
@@ -625,34 +1274,40 @@ changed. Overall progress remains 80%; all four formal gates remain complete
 (4/4). See the [ownership guide](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md)
 for the state flow and source/test links.
 
-**Next handoff:** Audit the configured-process host outage lifecycle in the
-2025 connection/configuration guide. Trace recoverable heartbeat interruption
-and session resumption separately from purge-driven terminal `ConnectionLost`
-through the current host source and focused test assertions. The host and new
-test changes are currently dirty worktree content; label them candidate-only,
-and do not turn Umbra timeout values into HLA requirements. Update the guide
-only where the distinction improves the reader's state model. Documentation-
-only: no builds, test reruns, or CI. Keep 2010 and Requirements Lab excluded.
+**Next handoff:** The four linked host, initialization, process-test, and
+lifecycle-TCK files remain modified in the candidate worktree. Once their
+focused results and source changes are committed, reconcile the nine
+current-only source anchors and rerun the candidate-HEAD check. The worktree
+resolves 4,765/4,765 references; candidate HEAD, primary HEAD, and
+`origin/feature/initial-work` each resolve 4,756/4,765. Then publish the
+documentation candidate and refresh hosted hydration across all 32 pages and
+515 diagrams, including the nine current chart deltas. The Big/Little public
+Create/Join runner and fixtures remain primary-only and must stay labeled that
+way until reproducible from the candidate. Keep this a 2025 documentation
+review. Do not run builds, tests, or CI as part of this handoff; keep 2010 and
+Requirements Lab excluded.
 
 
 The older hosted-page audit records 31 available pages and one missing guide;
 339 of the 340 hosted diagrams rendered, while one timing-guide diagram failed
 the GitHub Mermaid parser. Those results belong to the old `feature/initial-work`
-snapshot. For the current published branch, increment 356 confirms that all 32
-pages and all 507 diagrams hydrate after viewport scrolling. The candidate
-contains no Requirements Lab or 2010 changes.
+snapshot. Increment 356 historically confirmed that all 32 pages and 507
+diagrams hydrated after viewport scrolling on its then-current candidate.
+Increment 374's full published audit at guide-content revision
+`270f302536ddb2f2bd56a35b565d2251a45f03e2` verified all 32 pages and 508/508
+diagrams with rendered SVGs, HTTP 200 responses, and no failed requests. The
+candidate contains no Requirements Lab or 2010 changes.
 
-The four-gate score is **4/4 (100%)**: survey and backlog, guide content,
-local/GFM/source-link verification, and visible published-page rendering are
-complete. Overall progress remains **80%** because the broader semantic and
-source-citation review is still underway, especially the licensed 2025
-Save-failure mapping. The configured-process Join/MOM, process Evoke Multiple,
-and single-Evoke reviews are complete. The goal remains active while the
-remaining 2025 semantic gaps are reviewed and either resolved from authoritative
-text or explicitly bounded.
-Continue recording cross-guide gaps as concrete backlog items; keep diagram
-count a quality check rather than a growth target. The 2025 and 2010
-implementation streams remain separate.
+The four-gate score is **4/4 (100%)** at its recorded checkpoints: survey and
+backlog, guide content, local/GFM/source-link verification, and visible
+published-page rendering. Overall progress remains **91%** as a working
+estimate. The RAVU fan-out/process-delivery and configured-process
+ConnectionLost reviews are documented with their current evidence limits.
+Current source-link reconciliation and hosted hydration are still pending: nine
+links await matching committed source, and nine chart deltas need a fresh hosted
+audit. The timed-Save and section 6.21 normative questions remain clearly
+bounded in their guides. Keep diagram count a quality check rather than a
+growth target, and keep the 2025 and 2010 implementation streams separate.
 
 Completed progress details for increments 1–80 are preserved in the
 [topic-audit history archive](HLA-BEHAVIOR-FLOW-GUIDES-ROADMAP-HISTORY-2026-11-07.md).
@@ -662,11 +1317,45 @@ Keep this file focused on the current baseline, actionable backlog, coverage
 map, and recent handoffs; archive older dated detail before the 6,000-line
 documentation hard limit is reached.
 
-## Open documentation backlog, prioritized
+## Progress and remaining documentation work
 
-These items are the remaining work. All four formal gates are complete (4/4,
-100%); the broader overall estimate remains 80% because semantic review is
-still underway.
+**Overall completion: 91% (about 9% remains; working estimate).** The 32-guide 2025 behavior set and four formal review gates are complete at their recorded checkpoints. All 515 current diagrams match the ledger by identity, source line, type, and normalized body hash; each has local render and screenshot evidence. The increment-527 full authenticated GitHub GFM pass and increment-528/529 final-text rechecks cover all 40 current 2025 documentation pages: 515/515 Mermaid containers, 1,199 headings, 8,699 rendered links, and zero failures or count mismatches; the latest roadmap and progress-history text was rechecked in increment 529. GFM container registration is not published-page hydration. The published candidate at e10fa19a has 508/508 hydrated diagrams; the worktree has 515, with seven additions and 21 revised bodies awaiting publication and hosted verification. Source links resolve 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; the same nine anchors in four active source/test files await stabilization. Next, reconcile those anchors after the source owners land reviewed changes, publish the seven additions and 21 revisions, and verify hosted hydration for all 515 diagrams. Configured-process service-report behavior and focused ConnectionLost append-failure evidence remain bounded gaps. There are 69 selected GitHub visual reviews across all 32 guides; these samples do not constitute full hosted hydration or review of every chart. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 458 reconciled the 515-entry diagram ledger against all 32 current guide sources: every identity, opening line, and normalized body hash now matches. Ten shifted line pointers in Service Invocation Reporting #008–#017 were corrected. Callback and Service Ordering #019 and DDM/Regions #006 were freshly rendered with Mermaid CLI and screenshot-reviewed before updating their stale hashes. This closes ledger integrity only; the 515-chart worktree remains unpublished, nine candidate-HEAD source anchors remain tied to in-flight files, and the completion estimate stays at 91%.
+
+Increment 459 reviewed Ownership Persistence and Resignation #003 on published HEAD e10fa19a. All four diagrams on the page hydrated; the five-lane surviving-recipient save/restore flow remained readable in GitHub's full-width viewer while scrolling at default and increased zoom. Its raw body hash matches the published source. This is one embedded fresh-registry scenario, not a complete resignation-action matrix or normative callback rule; publication, source-anchor reconciliation, and full hosted verification remain open.
+
+Increment 434 opened the hosted Time Management guide's Time Constrained role state machine (#003) in GitHub's full-width dialog. Its state names and transition labels were readable, and its body hash matches the published branch source. This resolves the inline-controls issue for this chart; other wide diagrams still need review.
+
+Increment 435 checked a non-timing topic: Auto Provide diagram #001, the federation-wide switch state machine. GitHub rendered its `~~~mermaid` fence inline and in the full-width dialog; the Enabled/Disabled states and switch transitions were readable, and the body hash matches the published file. This is another targeted sample, not a full hosted-diagram audit.
+
+Increment 436 checked DDM/regions diagram #002, ‘From FOM dimensions to runtime region scope.’ Its backtick-fenced chart rendered inline and in the full-width dialog; scrolling the tall flow showed the optional region read-back, object and interaction delivery paths, match/no-match outcomes, and separate logical-time and callback gates. Its body hash matches the published source. This remains a targeted sample, not a full hosted-diagram audit.
+
+Increment 437 checked Federation Synchronization diagram #001, ‘HLA-level path: registration, reports, and federation outcome.’ GitHub rendered its backtick-fenced chart inline and in the full-width dialog. The registration branches, participant achievement-report loop, federation-level result, and HLA_IMMEDIATE/HLA_EVOKED delivery paths were readable; its body hash matches the published source. This is another sample, not a full hosted-diagram audit.
+
+Increment 438 checked Save/Restore diagram #002, ‘Callback delivery crosses two independent gates.’ Its backtick-fenced chart rendered inline and in the full-width dialog. The configured-process transport decision and the separate HLA_IMMEDIATE/HLA_EVOKED callback-dispatch choice were both readable, as were the paths joining at the common dispatcher. Its body hash matches the published source. This remains a targeted sample, not a complete hosted review.
+
+Increment 439 checked Callback and Service Ordering diagram #016, “Background dispatch runs without an active request.” Its seven-participant sequence rendered inline and opened in the full-width dialog. Scrolling the dialog kept the immediate-drainer exception paths, first-exception retention, existing-drainer FIFO path, and HLA_EVOKED path readable. The body hash matches the published file commit and branch head. This is another targeted sample, not a full hosted review.
+
+Increment 440 checked Object and Interaction Information Flow diagram #020,
+“The delivery route carries that captured view to the callback.” Its six
+participant sequence rendered inline and opened in the full-width dialog. The
+Pull (`HLA_EVOKED`, push disabled) and Push (`HLA_IMMEDIATE`, push enabled)
+delivery branches were readable, including the explicit fixture-fence timing
+limitation. The body hash matches the published file commit and branch head.
+This adds a targeted sample, not full hosted hydration.
+
+Increment 441 checked Authorization Flow diagram #001, “Authorization is a
+gate, not the service result.” The chart rendered inline and opened in GitHub's
+full-width dialog. The covered callback scopes, three result outcomes, and
+service-specific precondition gate remained readable. The body hash matches
+the published file. This adds a targeted sample, not full hosted hydration.
+
+Increment 442 checked Attribute Ownership diagram #002, “Ownership transfer and update-region association are separate boundaries.” Its owner, prospective-owner, and regional-receiver lanes rendered inline and in GitHub's full-width dialog; deferred R-B, the cancellation branch, transfer, and R-B-versus-default-region outcomes were readable. Its raw Mermaid body hash matches the published source. This adds a targeted sample, not full hosted hydration.
+
+Increment 443 checked Callback and Service Ordering diagram #025, “Process endpoint: service responses and synchronization events are separate.” Its five-participant sequence rendered inline and opened in the full-width dialog. The registration and final-achievement paths, pushed/polled outcomes, pending-barrier branch, HLA_IMMEDIATE/HLA_EVOKED dispatch, and separate report requests were readable while scrolling. This is a targeted implementation-profile sample, not full hosted hydration or an HLA-wide ordering claim.
+
+Increment 444 freshly rendered and screenshot-reviewed Callback and Service Ordering #019 and TSO Retraction #008, then corrected their stale visual-ledger hashes. The full 515-body comparison now has zero mismatches. These are local checks; hosted hydration remains at 508/508 until publication. Fresh source-link checks resolve 4,776/4,776 in the worktree and 4,767/4,776 at candidate HEAD, primary local HEAD, and origin/feature/initial-work; the same nine anchors in four files and the recorded evidence gaps remain open.
 
 1. **Publish the docs-only candidate and inspect its pages — complete:** The
    44-path candidate (32 guides and twelve supporting assets) is published on
@@ -1090,6 +1779,132 @@ and the new source/test anchors resolve. This is an embedded implementation
 trace, not a normative interpretation or configured-process parity claim. The
 inventory is now 427 diagrams across 31 guides (244 flowcharts, 158
 sequences, 25 state diagrams), and the selected screenshot queue is 167/0.
+
+### Remaining documentation work
+
+The working completion estimate is **91%**. The 32-guide set covers the major
+2025 behavior areas, and all 515 current diagrams have identity-matched local
+render and screenshot evidence. Increment 433 converted all 39 current 2025
+Markdown pages through authenticated GitHub GFM: 515/515 Mermaid containers,
+1,068 headings, 8,329 rendered links, and zero mismatches. Source links resolve
+4,776/4,776 in the worktree and 4,767/4,776 at candidate HEAD; the nine
+candidate-only anchors target four in-flight source/test files. The last fully
+hydrated hosted candidate remains 508/508 diagrams across 32 guides; the current
+515-chart set has seven additions and two revisions awaiting publication and
+hosted verification.
+
+Increment 434 opened the hosted Time Management guide's Time Constrained role
+state machine (#003) in GitHub's full-width dialog; its labels were readable
+and its body hash matches the published source. Continue sampling other wide
+charts after the 515-chart candidate is published.
+
+Increment 435 sampled Auto Provide diagram #001 on the hosted branch. The
+tilde-fenced Mermaid chart rendered inline and opened in GitHub's full-width
+dialog, where both states and their switch transitions were readable. The
+chart body hash matches the published file. Continue with other behavior areas
+and complete hosted verification after the 515-chart candidate is published.
+
+Increment 436 sampled DDM/regions diagram #002. The backtick-fenced chart
+rendered inline and opened in the dialog; the entire tall flow was readable by
+scrolling through the region setup, optional read-back, regional matching, and
+separate service gates. Its body hash matches both the published file commit
+and branch head. Continue with remaining areas and hosted verification after
+the 515-chart candidate is published.
+
+Increment 437 sampled Federation Synchronization diagram #001. GitHub rendered
+the backtick-fenced report loop inline and in the full-width dialog. Registration,
+participant achievement, barrier completion, and HLA_IMMEDIATE/HLA_EVOKED
+delivery labels were readable. The body hash matches the published file commit
+and branch head. Continue with remaining behavior areas and full hosted
+verification after the 515-chart candidate is published.
+
+Increment 438 sampled Save/Restore diagram #002 on the hosted branch. The
+backtick-fenced chart shows that configured-process event transport and
+callback-dispatch policy are separate gates. Both the push/queue branches and
+the HLA_IMMEDIATE/HLA_EVOKED outcomes were readable in the full-width dialog.
+The body hash matches the published file commit and branch head. Continue with
+remaining behavior areas and full hosted verification after publication of the
+515-chart candidate.
+
+Increment 439 sampled Callback and Service Ordering diagram #016 on the hosted
+branch. The sequence chart rendered inline and opened in the full-width dialog.
+While scrolling, the separate callback paths remained readable: an exception
+reaching the active process dispatch loop, one escaping through an existing
+immediate drainer, and one escaping from HLA_EVOKED. The body hash matches the
+published file commit and branch head. Continue with the source-link closure
+and full hosted verification after publication of the 515-chart candidate.
+
+Increment 440 sampled Object and Interaction Information Flow diagram #020 on
+the hosted branch. Its six participant lanes show the captured interaction view
+traveling by Pull queue poll or Push event stream to callback dispatch. The
+fixture-fence note preserves the limit on callback-before-sender-send-return
+timing. Labels and branches were readable in GitHub's full-width dialog, and
+the body hash matches the published file commit and branch head. Continue with
+the source-link closure and full hosted verification after candidate publication.
+
+Increment 441 sampled Authorization Flow diagram #001 on the hosted branch. It
+rendered inline and opened in the full-width dialog; its callback-scope split,
+authorization outcomes, and post-authorization service gate were readable.
+The body hash matches the published file commit and branch head. Continue with
+source-link closure and full hosted verification after candidate publication.
+
+Increment 442 (2026-11-11) reviewed Attribute Ownership diagram #002, “Ownership transfer and update-region association are separate boundaries,” in GitHub's full-width dialog. The selected embedded 2025 flow's current-owner, prospective-owner, and regional-receiver lanes were readable, including the deferred R-B association, its optional removal, ownership transfer, and whether R-B remains active or updates use the default source region. Raw Mermaid body SHA-256 df654c67e1f978a40e8dc01a17000d35ae2e07107908f836cfcf6ee3f35845ec matches the hosted file commit 381af28c46040ee55a902f06417a2268a58bec61 and branch head e10fa19a7bf48415e00a14ca7301613a84f637a3. This is targeted readability evidence only. The 515-diagram worktree remains unpublished against the hosted 508-diagram baseline, source-anchor reconciliation and evidence gaps remain open, and overall progress stays 91%. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 443 (2026-11-11) reviewed Callback and Service Ordering diagram #025, “Process endpoint: service responses and synchronization events are separate,” in GitHub's full-width dialog. The five App, Adapter, Client, Service, and Dispatcher lanes remained readable while scrolling through registration and final achievement. The chart separates pushed requestId-0 notifications from polling queues, shows the pending-barrier path, distinguishes HLA_IMMEDIATE inline invocation from HLA_EVOKED queuing, and keeps service-report requests separate from the synchronization callbacks. Raw Mermaid body SHA-256 813d40a360de2e729d834f7a9ab5f7bd562e5d22ce817931f327dbe376fb657c matches the hosted file commit adafb10c37b6aad8f798e49ca7007abeaaeb66fc and branch head e10fa19a7bf48415e00a14ca7301613a84f637a3. This is implementation-profile evidence, not an HLA-wide ordering rule. The 515-diagram worktree remains unpublished against the hosted 508-diagram baseline; source-anchor reconciliation, hosted hydration, and evidence gaps remain open. Overall progress stays 91%. No C++ build, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+1. **Connection-recovery source and link closure — next.** The current
+   connection-fault replay source and result remain primary-only: the source
+   exercises two sequential fault windows, but the saved artifact lacks source
+   revision and executable identity, and the candidate TCK scenario still has
+   one request call. Keep the additional replay detail out of the guide until
+   matching source and provenance-bearing evidence are available in the
+    candidate. Four host, initialization, process-test, and lifecycle-TCK files
+    remain modified. The worktree link check resolves 4,776/4,776 references;
+    candidate HEAD, primary local HEAD, and origin/feature/initial-work each
+    resolve 4,767/4,776, with the same nine anchors in those in-flight files.
+    After they are committed, reconcile the anchors and compare each guide
+    claim with its focused result. The Big/Little Endian Create/Join result is
+    also primary-only; its runner and two fixtures are absent from candidate
+    HEAD. The [missing-name GetObjectClassHandle report section](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#a-failed-lookup-has-a-caller-result-and-a-separate-report-trace)
+    now records both the embedded file-report case and configured-process MOM
+    interaction case. Neither has a located run artifact; configured-process
+    file-sink coverage remains untested.
+
+2. **Publish and perform a fresh hosted audit.** The last fully hydrated
+   candidate at revision 270f302536ddb2f2bd56a35b565d2251a45f03e2 was audited
+   at 508/508 rendered diagrams across 32/32 pages. The current worktree has
+   515 diagrams: 506 bodies match that hosted set, two are revised, and seven
+   are additions. All 515 have local render and screenshot evidence, and GFM
+   container evidence covers all 515. The nine hosted deltas are Federation
+   Synchronization #006 (revised), Save/Restore #043 (added), FOM Admission
+   #001 (added), Service Invocation Reporting #006, #007, #008, #009, and #011
+   (added), and Data Distribution #002 (revised).
+
+   The audit JSON's top-level guide rows describe a historical
+   feature/initial-work snapshot, not the current candidate. After the source
+   links pass against committed source and the documentation candidate is
+   published, refresh the audit summary and per-page results, then verify all
+   32 pages, source links, and Mermaid hydration. Keep the revision-specific
+   historical results distinct. The 91% estimate remains until source
+   reconciliation and this hosted audit are complete.
+
+### Documented normative questions
+
+These two HLA questions remain unresolved, but their evidence limits and lack
+of normative claims are explicit in the guides. They are documented gaps, not
+unfinished guide tasks.
+
+- **Timed Save at an unreachable requested time:** the Save guide traces the
+  current request/checkpoint source paths and focused cases. No Save-path
+  selector for `SAVE_TIME_CANNOT_BE_HONORED` or focused unreachable-time
+  terminal-callback case was found; the normative trigger remains unverified.
+  See the [Save/Restore guide](HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md).
+- **RAVU §6.21 entitlement and callback timing:** the
+  [attribute-value-update guide](HLA-2025-ATTRIBUTE-VALUE-UPDATE-REQUEST-FLOW-GUIDE.md)
+  distinguishes API signatures and exception lists from the missing clause
+  prose, and does not infer requester entitlement or normative callback timing.
+  The current [IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/)
+  still offers Purchase and Access via Subscription without exposing §6.21 text.
 
 For a first read, begin with the [cross-cutting HLA model of state, events, and
 observation](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md). It
@@ -2048,6 +2863,348 @@ checkpoint left 23 charts reviewed and three pending; the final three reviews
 above brought the selected queue to 26 reviewed and none pending. Local
 screenshots do not establish GitHub rendering.
 
+## Latest checkpoints — increments 460–467
+
+The Federation MOM guide’s “Federation synchronization queries: active point
+list and roster status” diagram rendered on the published candidate branch and
+remained readable in GitHub’s full-width Mermaid viewer while scrolling through
+the separate query branches and callback path. The configured-process path is
+labeled as generic request handling without a paired report. Its raw Mermaid
+body SHA-256 matches the hosted source and local visual ledger. This targeted
+2025 visual sample does not establish normative completeness or embedded/process
+parity. The working completion estimate remains **91%**.
+
+As of increment 489, the hosted source-dependency map is refreshed. The
+worktree resolves 4,776/4,776 references; candidate HEAD and its remote branch
+resolve 4,767/4,776, with nine anchors in four in-flight source/test files
+outside the committed file lengths. The remaining closure work is to reconcile
+those anchors after the source owners' reviewed changes land, publish the
+515-diagram candidate, verify all 515 diagrams on GitHub, and keep documented
+evidence gaps bounded. The hosted branch still has the verified 508/508
+baseline; seven chart additions and two revised bodies remain local-only. Keep
+2010 and Requirements Lab out of scope.
+
+Increment 461 reviewed Object Attribute Subscription State #009, “Embedded
+discovery reentrancy precedes initial-value planning,” in GitHub’s full-width
+viewer. The receiver-known split, discovery and initial-value path, scope
+advisory and unresolved current-value branches, and separate provider outcomes
+remained readable while scrolling and panning. Its body hash matches the
+published source and visual ledger. The sequence is an embedded-source
+checkpoint: the cited tests do not re-enter RTI services from discovery
+callbacks, so this is not tested callback-order evidence. The exact licensed
+§5.8 rule and process equivalence remain open. This targeted sample leaves the
+91% estimate unchanged.
+
+Increment 462 reviewed MOM Object and Interaction Reports #008, “MOM interaction-send reports separate total sends from the directed subset,” in GitHub’s full-width viewer. The separate total and directed request paths, accepted-send accounting, report ledgers, and report delivery remained readable while scrolling. Its raw body hash matches the published source and visual ledger. This targeted visual sample leaves the working estimate at 91%; it does not close publication, full 515-chart hosted verification, source-anchor reconciliation, or the documented evidence gaps. Keep the 2010 stream and Requirements Lab excluded.
+
+Increment 463 reviewed Relevance Advisory #001, “One object subscription, separate calculations,” in GitHub’s full-width viewer. The overview branches one committed subscription change into separate class-level relevance, known-instance owner relevance and receiver scope, discovery, and later value delivery. The full chart extends beyond one viewport; zoom and pan made the reviewed regions readable, with no visible branch overlap. The source hash matches the published chart and visual ledger. The guide keeps embedded 2025 class-level callback evidence separate from the process-profile gap and makes no callback-order or parity claim. This sample leaves the working estimate at 91% and does not close source-anchor reconciliation, publication, full hosted verification, or documented evidence gaps. Keep 2010 and Requirements Lab excluded.
+
+Increment 464 reviewed Attribute Value Update Request diagram #001, “1. HLA-facing model: solicitation and value delivery are distinct,” in GitHub’s full-width Mermaid viewer. The role lanes and separate request, optional provider callback, optional later Update, and receive-order versus timestamped reflection paths remained readable in the upper and lower portions while scrolling; no cropped message labels or ambiguous connector paths were visible. Raw Mermaid-body SHA-256 742e55f1bbbbfabd4e03b398b35859812192452ce003f1dca6dcaa39bf36e2de matches published candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3 and the visual ledger. The surrounding guide frames the chart as a causal model, not a required RTI call sequence or provider-callback-before-return guarantee; the normative §6.21 requester-entitlement question remains open. This targeted visual sample leaves the working estimate at 91% and does not close source-anchor reconciliation, publication, full hosted hydration, or documented evidence gaps. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 465 reviewed Federation Synchronization diagram #001, “HLA-level path: registration, reports, and federation outcome,” in GitHub’s full-width Mermaid viewer. The tall flowchart remained readable while scrolling through the registration decision and failure outcome, separate registration-result and participant-announcement paths, achievement reports, the pending-versus-complete branch, and callback-model endpoints. Raw Mermaid-body SHA-256 8bbc9d3647df0cd3a3d7e14a5e3f28b77fcaef5b2406f874b7c2aa8ae3e165d5 matches published candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3 and the visual ledger. The guide says the success-notification paths are intentionally unordered and does not claim a total HLA callback order. This targeted review leaves the working estimate at 91% and does not close source-anchor reconciliation, publication, full hosted hydration, or documented evidence gaps. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 466 reviewed Cross-Cutting State, Event, and Observation diagram #001, “One behavior, four different questions,” in GitHub’s full-width Mermaid viewer. The chart rendered inline; the dialog’s floating controls crowded the far-right prompt at the initial scale, but one zoom-out fit the complete chart with all four question categories and eight prompt leaves legible. Connectors remained traceable, with no cropped labels or ambiguous branches. Raw Mermaid-body SHA-256 2b44fa0e3e2bf24dd9893d6b3fec25519f5372beabf14544d27384d40629785d matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. This is a conceptual reading checklist, not a prescribed service sequence or new normative rule. The targeted review leaves the working estimate at 91%; source-anchor reconciliation, publication, full 515-chart hosted hydration, and documented evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 467 reviewed Cross-Cutting State, Event, and Observation diagram #002, “Keep state, pending work, and observation distinct,” in GitHub’s full-width Mermaid viewer. The wide chart rendered inline; the dialog’s floating controls covered part of the final callback/result box at the initial scale, but one zoom-out brought every box, label, and connector into view. The application-to-service path, possible changes to federation facts and participant-local view, effects in flight, eligibility gates, callback/result, query paths, and application feedback were readable without ambiguous connectors. Raw Mermaid-body SHA-256 1e0dd4f8ab9b19779c206c8863d6980460bd570fe910744752c1c5770b5737ce matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. The guide explicitly says these boxes are a reading aid, not mandatory RTI architecture or one universal timeline. The targeted review leaves the working estimate at 91%; source-anchor reconciliation, publication, full 515-chart hosted hydration, and documented evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
 ## Progress history
 
 Detailed later review increments are indexed in the [2025 documentation progress history](HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md). Earlier topic-audit notes for increments 1–80 remain in the [early history archive](HLA-BEHAVIOR-FLOW-GUIDES-ROADMAP-HISTORY-2026-11-07.md). The active roadmap keeps the current baseline, actionable backlog, and API-to-guide coverage map.
+
+Increment 468 reviewed Cross-Cutting State, Event, and Observation diagram #003, “A federation model defines vocabulary; services create live state,” in GitHub’s full-width Mermaid viewer. The tall chart required vertical scrolling to inspect the FOM-to-model path and the lower object and interaction branches; reduced zoom kept the reviewed labels and connectors readable. The map separates composed FOM vocabulary from live federation state, then shows distinct object-service discovery/reflection and interaction-delivery outcomes. Raw Mermaid-body SHA-256 d72e66e28fd9717e031694fc7e42be75ec34af1110ec0f9d1776313392fe076f matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. It is a relationship map, not a normative call sequence. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 469 reviewed Cross-Cutting State, Event, and Observation diagram #004, “A class hierarchy does not imply one inheritance rule,” on the published candidate branch. The inline chart’s floating controls cover part of the final interaction subscription/parameter-projection box; the full-width dialog fits the whole map and keeps both class-tree branches, all boxes, and connectors readable. The chart separates object-class inherited attribute lookup, class-scoped publication withdrawal, and receiver-known-class projection from interaction-class inherited parameter lookup and subscription matching/parameter projection. Raw Mermaid-body SHA-256 39b58cd8514a90237804deb1a5b1f9316b73b710c57a147a23db2b6b40821a15 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. The guide frames this as a selected 2025 embedded comparison, not a universal inheritance algorithm. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 470 reviewed Cross-Cutting State, Event, and Observation diagram #005, “A support switch has an owner, a lifetime, and a control surface,” on the published candidate branch. The inline chart is taller than one viewport; the full-width Mermaid dialog and vertical panning expose its read-only federation-policy branch, FDD-seeded member directive with per-member override and resignation cleanup, and member-local setter with operation-specific consumers. At the original scale, labels and connectors were readable in the inspected upper and lower portions; reduced zoom fits more of the chart but makes labels small. No overlapping branches, cropped labels in the inspected portions, or ambiguous connectors were observed. Raw Mermaid-body SHA-256 3a7eccc70b7616ddc0261be1cdb033a6f29f54f55b7afb0f781206ae284fe522 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. This is a 2025 interface-classification map, not one universal support-switch state machine. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 471 reviewed Cross-Cutting State, Event, and Observation diagram #006, “An object-attribute value touches several independent boundaries,” on the published candidate branch. The tall relationship map extends beyond one viewport; the full-width Mermaid dialog and vertical scrolling exposed its optional provideAttributeValueUpdate solicitation, independent provider update, producer publication and ownership, receiver eligibility and DDM, order and transportation controls, logical-time gate, embedded best-effort update-rate example, reflection, and callback endpoint. Labels and connectors were readable across the inspected upper, middle, and lower portions at the original scale; reduced zoom exposed more at once but made text smaller. This is a cross-cutting relationship map, not a universal service pipeline. Raw Mermaid-body SHA-256 54f8f6edb63c9926c7e3f3e31607db1684125d00cc58f757ff39155c90eabce5 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 472 reviewed Cross-Cutting State, Event, and Observation diagram #007, “Different protocols have different completion boundaries,” on the published candidate branch. The inline chart’s outcome boxes extend below one viewport; in GitHub’s full-width Mermaid dialog, one vertical pan brought every branch endpoint into view. The map clearly separates a federate’s time-advance grant, a synchronization point’s federation-level outcome, save/restore outcomes, and the per-federate callback-delivery model and callback-entry boundary. All four branches, clause labels, and connectors were readable, with no overlap or ambiguous paths. The guide keeps callback dispatch separate from the three coordination protocols and does not claim a total callback order. Raw Mermaid-body SHA-256 ef08eb7748f8fc48dd91d9b05a2323dc8bb2e9fab2b74b180e1bf2276e1b1b6d matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 473 reviewed Cross-Cutting State, Event, and Observation diagram #008, “Temporal admission does not imply callback entry,” on the published candidate branch. The tall chart was readable in sections in GitHub’s full-width Mermaid dialog: the temporal gate either holds a receive-order route in the deferred queue or submits eligible work to the callback dispatcher; the independent callbacks-enabled gate either leaves work pending there or proceeds to the selected callback model; HLA_IMMEDIATE and HLA_EVOKED then have separate callback-entry paths. Gate names, queue states, and transitions were legible, with no crossed or ambiguous connectors. This is a selected embedded 2025 implementation trace, not one HLA protocol or a claim that one gate cancels work at the other. The guide explicitly says the unit tests cover separate layers, not the combined gate history. Raw Mermaid-body SHA-256 025f52b550c2b8d4377e7bb219debef1ef68897f6b5466c9a9bd5cfb061486b1 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+Increment 474 reviewed Cross-Cutting State, Event, and Observation diagram #010, “Save/restore cohort,” on the published candidate branch. In GitHub’s full-width Mermaid dialog, the upper view showed the restore-roster mismatch/reject and match/admit branches plus connection-loss entry to forced-resignation cleanup; vertical panning exposed the separate save/restore resignation outcomes and the Join-during-operation branch ending in an explicitly unresolved result. Labels and connectors were readable in the inspected portions at the original scale; reduced zoom exposed more canvas but made labels smaller. No ambiguous connectors were observed in the inspected portions. The guide bounds these as selected embedded 2025 traces, leaves the Join outcome unverified, and makes no process or 2010 parity claim. Raw Mermaid-body SHA-256 d14f3d6f18415bc454b57f3e0866e5483bf138561f365c81d340a24ed8a23134 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+Increment 475 reviewed Cross-Cutting State, Event, and Observation diagram #011, “A service result, committed state, and a report are separate traces,” in GitHub’s full-width Mermaid dialog. At the initial scale, floating controls covered part of the final application-observation box; two zoom-outs fitted the complete chart, including the caller-visible result, optional HLA-required effect, no-report branch, and separate report-policy/file-or-MOM/application-sink path. Labels were smaller but readable at the fitted scale, and connectors remained traceable without overlap. The diagram is a relationship checklist, not a universal transaction timeline. Raw Mermaid-body SHA-256 e77eab28d22ac1b48ca7fb6b68e8c60529999fb6eaa8f41378c09fbe64a60162 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 476 reviewed Cross-Cutting State, Event, and Observation diagram #012, “Service contracts—not argument shape—define outcomes,” in GitHub’s full-width Mermaid dialog. The tall chart needed scrolling: the upper view showed the portable HLA outcome contract beside the selected 2025 Umbra implementation lens; the middle exposed all four state-unit examples; and the lower view showed partial per-name reservation results, whole-set release-none/release-all, and Join replacement-model/membership outcomes. Labels and connectors remained readable in the reviewed sections, with no visible overlaps. The guide frames these as separate examples, not one runtime sequence or a universal atomicity rule. Raw Mermaid-body SHA-256 900d8aec735f7aa8bb5d326d9ffae7d154c7086bc8a08a8ddd30ef31cd5f4281 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 477 reviewed Cross-Cutting State, Event, and Observation diagram #013, “Object information: instance existence versus local knowledge,” in GitHub’s full-width Mermaid dialog. Vertical scrolling exposed the registration/existence/receiver-discovery path, the local-versus-federation-wide delete choice, and the distinct removeObjectInstance observation after global deletion. The inspected labels and connectors were readable, with no visible overlap. The rendered text includes a later-eligibility return to discovery, but that connector was not isolated in the screenshots. The guide frames this as a relationship map, not a universal service timeline or normative state machine. Raw Mermaid-body SHA-256 46f1ecbfeece4551897e6c468d910bcca88ea4eafb0719f6521c556b511668c6 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 478 reviewed Cross-Cutting State, Event, and Observation diagram #014, “When work becomes stale: withdraw, invalidate, preserve, or account,” in GitHub’s full-width Mermaid dialog. Vertical scrolling exposed the candidate-only, queued-but-unobserved, and already-observed phases, their operation-specific decisions, and the independent-work outcomes. Labels and connectors were readable in the inspected sections, with no visible overlap. The chart is a reading aid, not a prescribed RTI algorithm or universal cancellation rule. Raw Mermaid-body SHA-256 f721b19e0e2714907946abfa8a320703719e0a0520d330f4fd54e5fe309d2de8 matches the worktree, candidate HEAD e10fa19a7bf48415e00a14ca7301613a84f637a3, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+Increment 479 reviewed Attribute Ownership diagram #001, “Four ownership paths: who initiates, and what reports the outcome?”, on the published 2025 candidate branch. The inline Mermaid rendered and scrolling exposed the requester-started Acquisition If Available path and the three current-owner paths: Unconditional Divestiture, Divestiture If Wanted, and negotiated divestiture with owner confirmation. The outcome notes keep service results, per-attribute notifications, and the separate If-Wanted notification channel distinct. The chart is tall and narrow inline, with heavily wrapped labels; its main paths and connectors were traceable, but a floating viewer control partly covered the lower-right negotiated-outcome box in one viewport. This sample did not open the full-width dialog. The guide frames the chart as an orientation map, not an exhaustive ownership catalog or callback-order diagram. Raw Mermaid-body SHA-256 `c0dbf640faab2cb3bd8fada760c5bf6048a3e0d83ac9c2fbc7a466478929e768` matches the worktree, candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 480 reviewed Attribute Ownership diagram #003, “Catalog inheritance and instance authority are different layers,” in GitHub’s full-width Mermaid dialog. Both complete lanes fit at once: composed FOM class-schema declaration, parent-chain lookup, and tested catalog availability; then one registered instance, its current delete-privilege owner, and the instance-specific delete gate. Labels and connectors were readable without overlap. The raw Mermaid body SHA-256 24f2c06d01ddee77a6815930cff25a0dd97e5a9dcc6d4a67d8b84697f9144328 matches the published candidate and visual ledger. This is a selected 2025 schema/runtime distinction, not process parity. The overall working estimate remains 91%; citation reconciliation, hosted dependency refresh, publication, full hosted hydration, and documented evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 481 reviewed Attribute Ownership diagram #004, “A new owner can gain delete authority without becoming the registrant,” in GitHub’s full-width Mermaid dialog. The tall sequence required vertical scrolling. The upper view shows the publication-eligibility branch and the selected ownership transfer; the lower view shows A’s DeletePrivilegeNotHeld result, B’s tagged successful deletion, and later receiver-removal work. Reduced zoom made more vertical context visible while the inspected actor lanes and messages remained readable. The chart explicitly limits its selected embedded HLA_EVOKED test assertion to C’s removal callback, while A’s removal is source-planned. Raw Mermaid body SHA-256 5df2838c0d2985be21455c704afe1c180373b4797d33afee5bbe1cdaf3d2ffab matches the published candidate and visual ledger. No process transfer parity or complete callback coverage is claimed. The overall working estimate remains 91%; citation reconciliation, hosted dependency refresh, publication, full hosted hydration, and documented evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 482 reviewed Attribute Ownership diagram #006, “Requester-side state: request is not ownership,” in GitHub’s full-width Mermaid dialog. The chart separates accepted regular acquisition and pending state from notification, unavailable, and cancellation outcomes; one vertical scroll exposed cancellation confirmation with ownership unchanged and object deletion suppressing the queued callback. Labels and connectors were readable at the original scale without overlap. The chart describes a selected embedded model, not a complete normative state machine. Raw Mermaid-body SHA-256 b9d52b2399cdf517d89832d627cad3ba78f2b2a278a3f0b43e0d77d90817f4ab matches the published candidate and visual ledger. Overall progress remains 91%; source-reference reconciliation, hosted dependency refresh, publication, full hosted hydration, and evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+Increment 483 reviewed Attribute Ownership diagram #008, “Cancellation vs a divest-triggered acquisition notification,” in the published 2025 candidate branch. The inline flowchart rendered, and the full-width Mermaid dialog exposed the upper, middle, and lower paths across several vertical scroll positions. It distinguishes a pre-existing cancellation reservation that prevents notification scheduling from a queued notification whose begin gate races with cancellation planning. Notification-begin first assigns ownership and makes later cancellation too late; cancellation-plan first reserves the attribute and leaves the request pending while the queued notification is suppressed. The configured-process branch separately shows push beginning cancellation in the service handler before confirmation send and pull beginning it at the recipient poll. Labels and connectors were readable at the dialog’s default scale without overlap. The guide identifies the combined process race and callback ordering as source-derived, not tested or normative. Raw Mermaid-body SHA-256 `138b915b2788b31ccc94e02dc5619c808c953d5c351a2fe66a29ac6c6ad02ff6` matches the worktree, candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 484 reviewed Attribute Ownership diagram #007, “Process endpoint: cancellation result and confirmation are separate,” in the published 2025 candidate branch. The inline sequence rendered and its full-width dialog showed the configured HLA_EVOKED pull path: cancellation returns a private status/count while the public void call has returned, callback work is dispatched, receive polling consumes the reservation, and the confirmation callback follows. The chart notes that the focused test observed no acquisition callback and limits the sequence to this process case. The tall sequence required a vertical scroll; its longer self-message labels are dense around the numbered endpoint markers at the initial dialog scale, and one zoom-in made them easier to read. No cross-profile timing rule is claimed. Raw Mermaid-body SHA-256 `2d133b24944adad529c0108f90753a7385293d764f5949c5245c7539812b316f` matches the worktree, candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+Increment 485 reviewed Attribute Ownership diagram #009, the lifecycle-invalidation flow following “Cancellation vs a divest-triggered acquisition notification,” on the published 2025 candidate branch. The inline flowchart rendered and the full-width dialog exposed the upper decision and both lower outcome groups across two vertical scroll positions. It distinguishes requester resignation removing queued events from a receive-time gate that revalidates cancellation identity and current state: a stale ID or absent object returns no delivery; accepted deletion or loss of requester eligibility consumes cancellation with no confirmed attributes; still-eligible attributes may proceed to the callback bridge. Labels and connectors were readable at the dialog’s default scale without overlap. The guide marks both branches as source-derived, not an HLA rule, and says neither has focused process-boundary test coverage. Raw Mermaid-body SHA-256 `07ff591851a0ee8a840246061c521d78ff01b7a7042e1a6636bffbd943306c3e` matches the worktree, candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and visual ledger. Overall progress remains 91%. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Increment 486 reviewed Attribute Ownership diagram #010, “Push delivery commits before the client can dispatch,” in the published candidate branch. GitHub rendered it inline and in the full-width dialog; three vertical views exposed the commit-before-send boundary, send-failure branch, buffered event and callback-bridge handoff, immediate/evoked split, and the later-evoke result after deletion or requester Resign. Labels and connectors were readable in the inspected portions without visible overlap. The guide explicitly bounds this to source-derived 2025 process behavior and records the missing process tests for send failure and post-deletion/Resign delivery. Raw Mermaid-body SHA-256 `cbf938fe7ed2d8057ded71a51289fa100d61fbbb5c4711c952a784b6800a5408` matches the local file, candidate HEAD, published raw source, and visual ledger. Overall progress remains 91%; citation reconciliation, hosted dependency refresh, publication, full hosted hydration, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 487 — reviewed Resign directive 3 pending-transfer cleanup
+
+Opened Attribute Ownership diagram #011, “Resign directive 3 removes only the departing acquirer’s pending transfer,” on the published 2025 candidate branch. GitHub’s full-width Mermaid dialog showed the sequence across its upper and lower scroll positions: regular acquisition and negotiated divestiture, the requester’s Resign directive 3, member-scoped cleanup of acquisition/candidate and assumption-search state, then the owner’s callback drain with no release request or confirmation and ownership retained. The cleanup self-message labels are dense around the RTI lifeline but remain readable; no endpoint was clipped. The guide bounds its two focused cases to one departing requester and leaves other-requester outcomes, configured-process parity, and the normative scope of directive 3 open.
+
+Raw Mermaid-body SHA-256 `5a62017dfe3923f049779ad8343cf687a4bab73c5fdfe052b94898e9fef50d71` matches the guide, candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`, published page, and visual ledger. The completion estimate remains **91%**; source-anchor reconciliation, hosted dependency refresh, publication, full 515-chart hosted hydration, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 488 — reviewed regular acquisition with owner responses
+
+Opened Attribute Ownership diagram #012, “Regular acquisition with an owner response,” on the published 2025 candidate branch. GitHub’s full-width Mermaid dialog showed the sequence across upper and lower views. The upper portion separates the accepted pending request, owner release request carrying the acquisition tag, and independent resolution of unowned attributes; the lower portion shows denial followed by an unavailable result and retained ownership, or an applicable divestiture path with acquisition notification. The callback-time notes and outcome branches remained readable, with no clipped endpoints. The guide limits the chart to cited embedded tests and does not claim multi-requester arbitration, every owner response, or process parity.
+
+The visual-ledger Mermaid-body SHA-256 `d5b769320a0ea0891c1254234df6fc8129867432cf08131c6970b160a8bc5479` matches the unchanged guide at candidate HEAD `e10fa19a7bf48415e00a14ca7301613a84f637a3`; the published branch pointer is at the same revision. The completion estimate remains **91%**; source-anchor reconciliation, hosted dependency refresh, publication, full 515-chart hosted hydration, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+## Increment 489 — refreshed hosted source-dependency snapshot
+
+Refreshed the candidate source-reference snapshot after checking the 2025
+documentation worktree. The focused link checker resolves all 4,776 unique
+path/line references across 40 IEEE 1516.1-2025 Markdown files. Candidate HEAD
+and its remote branch pointer remain at `e10fa19a7bf48415e00a14ca7301613a84f637a3`;
+the recorded candidate-HEAD comparison resolves 4,767/4,776 references. The
+nine current-worktree-only anchors are in four in-flight source/test files
+whose committed versions are shorter; all nine resolve in the worktree. The
+map records both revisions and their line counts, while keeping the separate
+2026-11-08 root migration snapshot historical.
+
+Overall completion remains **91%**, a working estimate rather than a fraction
+derived from gate counts. Remaining closure work is to reconcile those nine
+anchors after the source owners' reviewed changes land (or retarget/remove
+them if they do not), publish the seven added diagrams and two revised bodies,
+verify hosted rendering of all 515 charts, continue broad readability review,
+and close or clearly bound the remaining evidence gaps. No C++ builds, tests,
+or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 490 — reviewed If Available callback-time outcomes
+
+Reviewed Attribute Ownership diagram #013, “If Available: evaluate at the result callback,” in the published 2025 GitHub page. The complete sequence rendered inline at 80% browser zoom. Its accepted-pending step and all three outcomes—unowned at the result-time recheck, still owned by A, and A divesting before the callback-time recheck—were visible together. Callback labels, branches, and connectors were readable with no clipping or overlap. The chart describes selected embedded-profile callback-time behavior, not a universal ordering rule.
+
+The fetched published branch is `e10fa19a7bf48415e00a14ca7301613a84f637a3`; the page's last file commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `df4c46deb13c151ac4dcfd4c4653c84936acf9d0480aebb2bdc3c4f7f9bc2a2e`. The surrounding guide bounds the cited test to a mixed attribute set producing Notification and Unavailable callbacks. This review does not establish configured-process parity or a universal callback order.
+
+The post-review documentation link check resolves 4,776/4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 47 targeted chart samples. Overall completion remains **91%**, a working estimate; this readability review does not close source-anchor reconciliation, publication, full 515-chart hosted hydration, broad readability review, or the documented evidence gaps. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 491 — reviewed If Available remaining-set resolution
+
+Reviewed Attribute Ownership diagram #032, “If Available resolves its remaining set at the already-queued callback,” in the published 2025 GitHub branch. The full-width Mermaid dialog showed the tall flowchart across upper and lower scroll positions. The upper view separates the accepted `{A, B}` request and queued one-shot result from the If-Wanted transfer of `A`, its removal from the desired set, and the separate `A` acquisition notification with the If-Wanted tag. The lower view follows the original result callback through its registry gate and remaining-set check: report `B` unavailable with the original If-Available tag if it remains owned, otherwise resolve the current remaining state; then consume the one-shot request. Labels and connectors were readable, with no visible overlap or clipped endpoints.
+
+The fetched branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and the guide file’s last commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `8b02af3d0b000e522fd70acf3757fde0e4310f6e49f7dd01249ae54407d6acaf`. The guide explicitly bounds the combined multi-attribute result as source-derived: its focused If-Wanted pending test covers one attribute, and no focused test covers partial transfer followed by an unavailable remainder. No callback order outside that selected single-attribute HLA_EVOKED test is claimed.
+
+The post-review documentation link check resolves 4,776/4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 48 targeted chart samples. Overall completion remains **91%**, a working estimate; this review does not close source-anchor reconciliation, publication, full 515-chart hosted hydration, broad readability review, or the documented evidence gaps. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 492 — reviewed If-Wanted transfer during pending cancellation
+
+Reviewed Attribute Ownership diagram #033, “Divestiture If Wanted wins cancellation only for the transferred attributes,” on the published 2025 candidate branch. GitHub’s full-width Mermaid dialog showed the tall flowchart across upper and lower scroll positions. The upper view shows an accepted regular-acquisition cancellation for {A, B}, the owner release callback already in user code, the If-Wanted transfer of A, removal of A from the live cancellation reservation, and a separate acquisition notification for A. The lower view shows the queued cancellation gate: confirmation for A is suppressed, while B can still be resolved if it remains reserved and no other terminal response wins. Labels and connectors were readable with no visible overlap or clipped endpoints.
+
+The published branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and the guide file’s last commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `3c41788934bd3d79875a652853de88f67e6c56247de774a84b689882ef626fc5`. Evidence remains bounded: the focused transfer/cancellation test covers one attribute; the registered three-way TCK scenario is source evidence only here, with no runtime result reviewed; and the simple A-transfer/B-cancellation outcome is source-derived. No callback order or configured-process parity is claimed.
+
+The increment 492 documentation link check resolves all 4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 49 targeted chart samples. Overall completion remains **91%**, a working estimate; source-anchor reconciliation, publication, hosted hydration of all 515 diagrams, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 493 — reviewed ownership-query result classification
+
+Reviewed Attribute Ownership diagram #034, “Query Attribute Ownership reports a snapshot; it does not transfer,” on the published 2025 candidate branch. GitHub’s full-width Mermaid dialog showed the tall flowchart across upper, middle, and lower scroll positions. The upper view showed service preconditions, validation of the requested object and attributes, and the separate RTI-owned MOM branch. The middle showed ordinary-object validation, synchronous exception paths, grouping by federate owner, separate unowned grouping, RTI-owned grouping, and routing each group to the requester. The lower view showed the three distinct outcomes—`informAttributeOwnership`, `attributeIsNotOwned`, and `attributeIsOwnedByRTI`—all ending in a report-only result with ownership unchanged. Labels and connectors were readable with no visible overlap or clipped endpoints.
+
+The published branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and the guide file’s last commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `c797c7d4c111acdcd54716203f8aa09a2c5e17a04a062d33af09d00080510cfd`. The guide explicitly describes the selected embedded 2025 path and keeps the configured-process endpoint separate; this visual review does not establish process parity, an exhaustive exception matrix, or callback ordering.
+
+The increment 493 documentation link check resolves all 4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 50 targeted chart samples. Overall completion remains **91%**, a working estimate; source-anchor reconciliation, publication, hosted hydration of all 515 diagrams, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 494 — reviewed query callback-entry revalidation
+
+Reviewed Attribute Ownership diagram #035, “Query Attribute Ownership reports a snapshot; it does not transfer,” on the published 2025 candidate branch. The complete state flow fit in GitHub’s full-width Mermaid dialog in one view. It shows a query plan classifying attributes, persisting a pending identity, submitting the callback route after releasing the registry lock, and rechecking the identity and projection when callback execution begins. A stale query identity or projection suppresses the ownership callback; still-current results take distinct federate-owned, unowned, or RTI-owned MOM callback paths. All states, callback labels, and connectors were readable with no visible overlap or clipping.
+
+The published branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and the guide file’s last commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `f1040272b9735f090a945f1dd4867749d76e6e65b9187f50b7c6a3f42199cc56`. The guide’s focused deletion example demonstrates suppression of an already queued ownership report after object removal while the removal callback is delivered. This is selected embedded 2025 behavior; process parity and callback ordering are not claimed.
+
+The increment 494 documentation link check resolves all 4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 51 targeted chart samples. Overall completion remains **91%**, a working estimate; source-anchor reconciliation, publication, hosted hydration of all 515 diagrams, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 495 — reviewed accepted-deletion ownership cleanup
+
+Reviewed Attribute Ownership diagram #036, “Accepted object deletion invalidates pending ownership work,” on the published 2025 candidate branch. GitHub’s full-width Mermaid dialog showed the entire flowchart in one view. Receive-order deletion is accepted before queued callbacks start, then the map branches: the embedded registry clears pending ownership-query and ownership-operation ledgers, while a separate receiver-removal reservation reaches its own member/known-object check. Query results revalidate identity and projection; queued ownership operations check their pending state at callback entry; both stale paths suppress delivery. Receiver removal either retires a stale reservation or commits the receiver to unknown and dispatches `removeObjectInstance`. Labels and connectors were readable with no visible overlap or clipped endpoints.
+
+The published branch remains at `e10fa19a7bf48415e00a14ca7301613a84f637a3`, and the guide file’s last commit is `381af28c46040ee55a902f06417a2268a58bec61`. The local and fetched Mermaid bodies both hash to `fb9473f765f35691fc319f9149950ff31f322336e8fe11fa979b1526d8872a13`. The surrounding guide distinguishes receive-order per-instance deletion from timestamped Delete/Retract, local deletion, whole-member Resign, and DDM region-reference lifetime. Some cleared ledgers are source-observed rather than individually tested, and the separate callback gates do not establish a global order or configured-process parity.
+
+The increment 495 documentation link check resolves all 4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776 with nine anchors awaiting reviewed source/test revisions. The live-browser history now has 52 targeted chart samples. Overall completion remains **91%**, a working estimate; source-anchor reconciliation, publication, hosted hydration of all 515 diagrams, broad readability review, and bounded evidence gaps remain. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 496 — reviewed four-path ownership overview
+
+Increment 496 rechecked Attribute Ownership diagram #001, “Four ownership paths: who initiates, and what reports the outcome?”, in GitHub’s full-width Mermaid dialog on the published 2025 branch. The full-height orientation flow required vertical scrolling: the upper view showed the requester/owner choice and four transfer paths, and the lower view showed the outcome boxes. The negotiated path remained readable through owner proposal (§7.3), RTI confirmation request (§7.5), owner confirmation (§7.6), and the pending requester’s separate acquisition notification. The chart also distinguishes If-Available callback outcomes, unconditional relinquishment and candidate offers, and Divestiture If Wanted’s divestedAttributes output from later notifications. Labels and connectors were readable with no visible overlap or clipped outcome boxes. Local and fetched Mermaid bodies match SHA-256 c0dbf640faab2cb3bd8fada760c5bf6048a3e0d83ac9c2fbc7a466478929e768. Published branch HEAD is e10fa19a7bf48415e00a14ca7301613a84f637a3; the guide file commit is 381af28c46040ee55a902f06417a2268a58bec61. The guide frames this as an orientation map, not an exhaustive catalog or callback-order diagram; its examples remain profile-bounded, with no process-parity or conformance claim. Completion remains 91% (working estimate). No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+The increment 496 documentation link check resolves 4,776/4,776 unique path/line references across 40 IEEE 1516.1-2025 Markdown files in the worktree; candidate HEAD remains at 4,767/4,776, with nine anchors awaiting reviewed source/test revisions. The live-browser history now contains 53 targeted chart samples. Overall completion remains 91%, a working estimate; source-anchor reconciliation, publication, hosted hydration of all 515 diagrams, broad readability review, and bounded evidence gaps remain. The next targeted review is Time Management diagram #020, the recipient-scoped timestamped-message lifecycle. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+## Increment 497 — reviewed recipient-scoped TSO message lifecycle
+
+Rechecked Time Management diagram #020, “Timestamped message lifecycle and callback order,” in GitHub’s full-width Mermaid dialog. The complete recipient-copy state flow fit in one view: Queued branches to Retracted or InTransit; InTransit proceeds to Delivered or Suppressed; Delivered may trigger the service-specific Request Retraction rule or clear at the recipient’s next logical-time grant; terminalized suppression also clears. The retained completion-history note remains separate from GALT/LITS. Labels and connectors were readable without visible overlap or clipped states. Local and candidate-HEAD bodies match SHA-256 0b868ddcbcfa8093cd355cc21bf636e819aa70015a65f945e4bfc27d2e0e4c2d; the published guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This is one recipient-copy coordinator path, not a universal TSO-service flow or callback-order guarantee.
+
+## Increment 498 — reviewed directed-interaction publication
+
+Reviewed Directed Interaction diagram #001, “Embedded publication validates, then adds, the producer's pairs,” in GitHub’s full-width Mermaid dialog across upper and lower scroll positions. The chart shows the admitted §5.6 call, object-class and interaction-handle validation, directed-pair rejection with unchanged state, empty-set success without a change, and non-empty merge followed by commit. Labels and connectors were readable without visible overlap or clipped outcomes. Local, candidate-HEAD, and fetched bodies match SHA-256 70654dec24f0d71e12d903a38fcbb980ee8a6c4dd5e05cb7d09093d6ab64139a; the published guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This remains a selected embedded 2025 implementation path, not a normative transaction guarantee or process-parity claim.
+
+The 55 targeted GitHub reviews now span 19 of 32 guides. The increment 496 source-link result remains 4,776/4,776 references in the worktree and 4,767/4,776 at candidate HEAD; nine references in four in-flight source/test files remain pending their reviewed revisions. Overall progress remains **91%**, a working estimate. Next review Order and Transportation diagram #001, then reconcile the nine source anchors, publish the seven added charts and two revised bodies, and verify hosted hydration for all 515 diagrams. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+## Increment 499 — reviewed order and transportation map
+
+Increment 499 reviewed Order and Transportation diagram #001, “A delivery map: keep the questions separate,” in GitHub’s full-width Mermaid dialog. Upper, middle, and lower views showed separate inputs for service form, sender order, receiver eligibility, and transportation; then RECEIVE/TIMESTAMP delivery paths, time-management gating, and the callback-model branch. The diagram’s caveat keeps dashed links conceptual rather than a complete schedule or normative order table. Labels and connectors were readable without visible overlap or clipped endpoints. Local, candidate-HEAD, and fetched Mermaid bodies match SHA-256 e7d038cfd7eb0f114e1e901d5899b60937408765b07190e66d836b9aed42068f. This is 2025 guide evidence only; it claims neither exact normative sender-to-receiver order mapping nor 2010 behavior or process-profile parity. Increments 497–498 reviewed Time Management #020 and Directed Interaction #001; completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 56 targeted chart reviews across 20 guides, including Order and Transportation #001 (increment 499), Time Management #020 (increment 497), and Directed Interaction #001 (increment 498). The increment 496 documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across unsampled 2025 guides; reconcile those nine references after source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+Next targeted visual review: docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#one-value-from-api-call-to-octets, “One value, from API call to octets” (diagram #001, Mermaid fence line 78; visual-ledger body SHA-256 73c60d992c6d37487e5d4db80bd10f19effecfa1d3c55c583586ceff9ccba3b5). This 2025 guide has no live-browser sample in the current audit. Inspect the GitHub full-width dialog across the chart’s full height, checking the caller-cursor `decodeFrom` route, whole-value trailing-octet rejection, and the distinction between HLA DataElement payloads, public handle encodings, and private process frames. Then reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, verify hosted hydration for all 515 diagrams, and keep evidence gaps bounded.
+
+
+## Increment 500 — reviewed DataElement API-to-octets flow
+
+Increment 500 reviewed Data Element Encoding diagram #001, “One value, from API call to octets,” in GitHub’s full-width Mermaid dialog. Upper and lower views showed construction/value assembly, distinct encode and decode paths, caller-cursor `decodeFrom`, validation and next-cursor return, and whole-value outcomes: accept fully consumed input, reject trailing octets, or let a parent decode its next nested field. Labels and connectors were readable without visible overlap or clipped endpoints. Local, candidate-HEAD, and fetched bodies match SHA-256 73c60d992c6d37487e5d4db80bd10f19effecfa1d3c55c583586ceff9ccba3b5. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is 36955e0499bb6304321a67d3ebf7954b5ffa25fd. The guide scopes this to the IEEE 1516.1-2025 C++ DataElement API and separates public value encoding from handle encoding and private process framing; no 2010 parity or complete byte-order matrix is inferred. Increments 497–499 reviewed Time Management #020, Directed Interaction #001, and Order and Transportation #001. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 57 targeted chart reviews across 21 guides, including Data Element Encoding #001 (increment 500), Order and Transportation #001 (increment 499), Time Management #020 (increment 497), and Directed Interaction #001 (increment 498). The increment 496 documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across unsampled 2025 guides; reconcile those nine references after source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+Next targeted visual review: docs/design/HLA-2025-ATTRIBUTE-SCOPE-ADVISORY-FLOW-GUIDE.md#state-transitions-commit-first-then-consider-an-advisory, “State transitions: commit first, then consider an advisory” (diagram #001, Mermaid fence line 111; visual-ledger body SHA-256 57f0abe4704a052aaa89e6855c16e29e172298fa6da4b0093bfd4ff930c65829). This 2025 guide has no live-browser sample in the current audit. Inspect its GitHub full-width dialog across the full chart height, checking the per-receiver/object/attribute in-scope transition, unchanged-scope self-loop, and the distinct final-unsubscribe edge. Then reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, verify hosted hydration for all 515 diagrams, and continue coverage across unsampled guides.
+
+## Increment 501 — reviewed receiver-local scope state transitions
+
+Increment 501 reviewed Attribute Scope Advisory diagram #001, “State transitions: commit first, then consider an advisory,” in GitHub’s full-width Mermaid dialog. The complete state chart fit in one default view and remained legible when zoomed. It shows scope entering when an applicable declaration and region path matches, leaving when no applicable path remains, and self-loops when a mutation preserves the current state; the final self-unsubscribe edge is explicitly marked as producing no Out advisory. No overlap or clipped endpoints were visible in the full-chart view. Local, candidate-HEAD, and fetched Mermaid bodies match SHA-256 57f0abe4704a052aaa89e6855c16e29e172298fa6da4b0093bfd4ff930c65829. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. The guide scopes the final-unsubscribe exception to the reviewed embedded subscription planner and distinguishes it from owner-side or region-side loss; no process-parity or 2010 behavior is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 58 targeted chart reviews across 22 guides, including Attribute Scope Advisory #001 (increment 501), Data Element Encoding #001 (increment 500), Order and Transportation #001 (increment 499), Time Management #020 (increment 497), and Directed Interaction #001 (increment 498). Increment 496's documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted review: Next targeted visual review: docs/design/HLA-2025-ATTRIBUTE-UPDATE-RATE-ADMISSION-FLOW-GUIDE.md#1-resolve-a-rate-for-each-receiver-and-attribute, “Resolve a rate for each receiver and attribute” (diagram #001, Mermaid fence line 79; visual-ledger body SHA-256 13b8ef53119b9fcc8656296103e6ae8b98698d1155c8112d8d411ac12918ca96). This 2025 guide has no live-browser sample. Inspect the full chart for the omitted/default-rate path, explicit-rate resolution through the federation FDD, greatest-rate selection, and per-attribute projection. Then continue readability samples across the remaining unsampled 2025 guides. Reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, and verify hosted hydration for all 515 diagrams. Keep the 2010 stream separate; no C++ builds, tests, or CI are part of this documentation pass.
+
+## Increment 502 — reviewed per-attribute rate resolution
+
+Increment 502 reviewed Attribute Update-Rate Admission diagram #001, “Resolve a rate for each receiver and attribute,” in GitHub’s full-width Mermaid dialog. Upper and lower views showed the per-attribute path from a sender passel through eligible receiver attributes, applicable active ordinary and overlapping regional rates, and the decision for an omitted rate. An applicable default designator takes the no-reduction path; otherwise named rates resolve in the federation FDD, the greatest resolved numeric rate is selected when present, and the result returns with per-attribute rates. Labels and connectors were readable without visible overlap or clipped endpoints. Local, candidate-HEAD, and fetched Mermaid bodies match SHA-256 13b8ef53119b9fcc8656296103e6ae8b98698d1155c8112d8d411ac12918ca96. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. The guide scopes the rate-combination rule to the selected embedded 2025 implementation; it does not establish a universal HLA algorithm, process callback throttling, or 2010 behavior. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 59 targeted chart reviews across 23 guides, including Attribute Update-Rate Admission #001 (increment 502), Attribute Scope Advisory #001 (increment 501), Data Element Encoding #001 (increment 500), and Order and Transportation #001 (increment 499). Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted review: Next targeted visual review: docs/design/HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md#switch-state-is-federation-wide, “Switch state is federation-wide” (diagram #001, Mermaid fence line 96; visual-ledger body SHA-256 8fde8fa6e860c81c061969ae9634416c01014f619b1626e141cf273f77f35291). This 2025 guide has no live-browser sample. Inspect the two federation-wide Enabled/Disabled states, the FDD-seeded creation paths, and the HLAsetSwitches transitions; keep the later-discovery effect distinct from changing switch state. Continue readability reviews across unsampled 2025 guides, reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, and verify hosted hydration for all 515 diagrams. Keep 2010 separate; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 503 — reviewed federation-wide Auto Provide switch state
+
+Increment 503 reviewed Auto Provide diagram #001, “Switch state is federation-wide,” in GitHub’s full-width Mermaid dialog. The complete state chart fit in one view; a zoomed view clarified transition labels. It shows the composed FDD seeding the federation-wide HLAautoProvide state as Enabled or Disabled at creation, and HLAsetSwitches changing it between those states. The labels and connectors were readable without visible overlap or clipped endpoints. Local, candidate-HEAD, and fetched Mermaid bodies match SHA-256 8fde8fa6e860c81c061969ae9634416c01014f619b1626e141cf273f77f35291. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3, and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. The neighboring table and prose keep discovery consequences separate: changing the switch does not rediscover existing objects, and later object discovery reads the current value. This is a selected 2025 embedded implementation path, not the per-receiver Attribute Scope Advisory Switch; no process parity or 2010 behavior is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 60 targeted chart reviews across 24 guides, including Auto Provide #001 (increment 503), Attribute Update-Rate Admission #001 (increment 502), Attribute Scope Advisory #001 (increment 501), and Data Element Encoding #001 (increment 500). Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted review: Next targeted visual review: docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md#1-connect-validates-first-prepares-then-commits, “Connect validates first, prepares, then commits” (diagram #001, Mermaid fence line 56; visual-ledger body SHA-256 adf2b0435ca29ca31a2b398b2b723e1be2fc010dd49375c86dea8247a8b37488). This 2025 guide has no live-browser sample. Inspect the precondition and failure branches, authorization and preparation gates, and the final locked connection-state commit. Continue readability reviews across unsampled 2025 guides, reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, and verify hosted hydration for all 515 diagrams. Keep 2010 separate; no C++ builds, tests, or CI are part of this documentation pass.
+
+## Increment 504 — reviewed Connect validation and commit flow
+
+Increment 504 reviewed Connect and Configuration diagram #001, “Connect validates first, prepares, then commits,” in GitHub’s full-width Mermaid dialog. The upper and lower scroll views showed callback-reentry and callback-model gates, the AlreadyConnected check, authorization and preparation branches, setup failure, and final locked connection-state commit through ConfigurationResult. Labels and connectors were readable without visible overlap or clipped chart content. The visual-ledger, candidate source, and published body SHA-256 is adf2b0435ca29ca31a2b398b2b723e1be2fc010dd49375c86dea8247a8b37488; branch HEAD is e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is 270f302536ddb2f2bd56a35b565d2251a45f03e2. This selected IEEE 1516.1-2025 Umbra path does not claim normative exception priority or test simultaneous-invalid precedence.
+
+The live-browser history now contains 61 targeted chart reviews across 25 of 32 guides. Overall completion remains 91% (working estimate). Remaining work includes readability samples in the seven unsampled guides, reconciliation of nine source anchors after four in-flight source/test files reach reviewed revisions, publication of seven added charts and two revised bodies, hosted hydration verification for all 515 diagrams, and bounded evidence gaps. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+Next targeted visual review: docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#switch-lifetime-federation-policy-not-a-per-send-option, “Switch lifetime: federation policy, not a per-send option” (diagram #001, Mermaid fence line 171; visual-ledger body SHA-256 392f27f4f2dd42258a2cfa820814f389b3401443af1ef862987071f504720ca5). This 2025 guide has no live-browser sample. Inspect the federation-creation default and FOM-supplied switch, then trace the shared switch through query, save, and restore; keep it distinct from a per-send option. Seven guides remain unsampled after this increment. Reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, verify hosted hydration for all 515 diagrams, and keep evidence gaps bounded. Keep 2010 separate; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 505 — reviewed Delay Subscription Evaluation switch lifetime
+
+Increment 505 reviewed Delay Subscription Evaluation diagram #001, “Switch lifetime: federation policy, not a per-send option,” in GitHub’s full-width Mermaid dialog. The full-width dialog showed all seven nodes in one view: the composed FOM switch path, the omitted-switch catalog default of false, federation registry creation and query, and persistence of the switch bit through save and restore. Labels and connectors were readable without visible overlap or clipped chart content. The visual-ledger, candidate source, and published page identify body SHA-256 392f27f4f2dd42258a2cfa820814f389b3401443af1ef862987071f504720ca5. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3, and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. Selected IEEE 1516.1-2025 Umbra federation-level policy path. This chart does not model a per-send option and does not establish 2010 behavior or cross-profile parity. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 62 targeted chart reviews across 26 guides, including Delay Subscription Evaluation #001 (increment 505), Connect and Configuration #001 (increment 504), Auto Provide #001 (increment 503), Attribute Update-Rate Admission #001 (increment 502), and Attribute Scope Advisory #001 (increment 501). Six of the 32 guides remain unsampled. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across the six unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted visual review: docs/design/HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#a-quick-decision-map, “A quick decision map” (diagram #001, Mermaid fence line 87; visual-ledger body SHA-256 05dd52f1fe0d64d052415640b761c31d875fe2825fdddeea5fc43c78cc7c0694). Inspect the branches for public-service exception reports, rejected MOM requests, and service-invocation records, including their separate eligibility gates; preserve the guide’s cautions that these routes are not universally applicable or mutually exclusive. Six of the 32 guides remain unsampled. Reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, verify hosted hydration for all 515 diagrams, and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 506 — reviewed Exception Reporting decision map
+
+Increment 506 reviewed Exception Reporting diagram #001, “A quick decision map,” in GitHub’s full-width Mermaid dialog. GitHub’s full-width dialog required upper and lower scroll views. The upper view showed the root decision and three report categories; the lower view showed the separate switch/subscription/recipient gates and the receive-order outcomes. Labels and connectors were readable across the scroll, with no visible overlap or clipped chart content. The visual-ledger, candidate source, and published page identify body SHA-256 05dd52f1fe0d64d052415640b761c31d875fe2825fdddeea5fc43c78cc7c0694. The published branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3, and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. Selected IEEE 1516.1-2025 Umbra reporting paths. The chart is an orientation aid, not universal service coverage; its categories can overlap, and public-service catch behavior is implementation-specific. No 2010 behavior or cross-profile parity is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verifies the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 63 targeted chart reviews across 27 guides, including Exception Reporting #001 (increment 506), Delay Subscription Evaluation #001 (increment 505), Connect and Configuration #001 (increment 504), Auto Provide #001 (increment 503), and Attribute Update-Rate Admission #001 (increment 502). Five of the 32 guides remain unsampled. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: broaden readability coverage across the five unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted visual review: docs/design/HLA-2025-FOM-MODULE-ADMISSION-AND-COMPOSITION-FLOW-GUIDE.md#three-different-meanings-of-valid, “A `basicData` field can fail at different admission gates” (diagram #001, Mermaid fence line 102; visual-ledger body SHA-256 d984a01bb4fe1b6e24cc4668a4cb901e9118709d59b865ba00d78e3433cd61a9). This 2025 guide has no hosted sample. Inspect the independent HLA-prefixed-name composition check, Big/Little Create/Join path, and Middle-endian schema rejection; preserve the chart’s note that these are separate field examples, not sequential checks on one declaration. Five guides remain unsampled. Reconcile the nine source anchors after the four in-flight source/test files reach reviewed revisions, publish the seven added charts and two revised bodies, verify hosted hydration for all 515 diagrams, and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 507 — reviewed the published FOM creation flow
+
+Increment 507 reviewed the published FOM Module Admission and Composition diagram #002, “Create: prepare the entire definition before reserving its name,” in GitHub’s full-width Mermaid dialog. The upper and lower scroll views showed module admission, 2025 MIM/schema validation, logical-time compatibility, rejection without registry mutation, and successful immutable-definition/name reservation. Labels and connectors were readable while scrolling, with no visible overlap. The diagram body SHA-256 is eff250b2e75ade6c62f547137caafd2765ec04cf8f850d0b51672629bac9e7a0 in the visual ledger, candidate source, and published page; the candidate branch is at e10fa19a7bf48415e00a14ca7301613a84f637a3, and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. The worktree-only diagram #001 is not published, so this review is explicitly of the hosted #002. The chart describes the selected IEEE 1516.1-2025 path; no 2010 behavior or cross-profile parity is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verified the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 64 targeted chart reviews across 28 guides; four of the 32 guides remain unsampled: Joined-Federate MOM, Name and Handle Resolution, Service Invocation Reporting, and TSO Retraction. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: review the four unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted visual review: docs/design/HLA-2025-JOINED-FEDERATE-MOM-OBJECT-LIFECYCLE-FLOW-GUIDE.md#join-builds-the-object-before-making-the-member-visible, “Join builds the object before making the member visible” (diagram #001, Mermaid fence line 90; visual-ledger body SHA-256 363ff71ab9e251cea119f79b20f097c5d2d85b960da96c46a3f5e15944659d45). This 2025 guide remains among the four unsampled guides. Inspect provisional membership commit, federation-scoped and per-member MOM state setup, pending report-file cleanup on setup failure, Join transition, subscriber discovery ordering, and callback visibility. Preserve the distinction between federation-scoped HLAfederation state and per-member HLAfederate state. Reconcile the nine source anchors after the four in-flight source/test files are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 508 — reviewed the Joined-Federate MOM Join flow
+
+Increment 508 reviewed Joined-Federate MOM diagram #001, “Join builds the object before making the member visible,” in GitHub’s full-width Mermaid dialog. The upper and lower scroll views showed the 2025 Join admission, distinct federation-scoped HLAfederation and per-member HLAfederate setup, report-file allocation, and captured Join inputs; the setup-failure branch rolls back provisional membership and cleans the pending file, while success completes the ambassador Join before planning eligible-subscriber discovery and queueing discovery/reflection/state update. Labels and connectors were readable across both views, with no visible overlap. The visual-ledger and hosted body SHA-256 is 363ff71ab9e251cea119f79b20f097c5d2d85b960da96c46a3f5e15944659d45; the branch is e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This is the selected 2025 embedded lifecycle path; it establishes neither process-profile parity nor a normative callback order. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verified the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 65 targeted chart reviews across 29 guides; three of the 32 guides remain unsampled: Name and Handle Resolution, Service Invocation Reporting, and TSO Retraction. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: review the three unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted hosted visual review: docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#1-resolve-a-model-symbol-only-in-an-execution-context, “1. Resolve a model symbol only in an execution context” (diagram #001, Mermaid fence line 41; visual-ledger body SHA-256 30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977). The published branch’s first-chart body matches the current ledger even though the worktree guide has other edits. Inspect connected/joined service gates and the resulting NotConnected, NameNotFound, or resolved-handle outcomes; keep lookup of a model symbol separate from federate-name reservation and class-hierarchy resolution. Three guides remain unsampled. Reconcile the nine source anchors after the four in-flight source/test files are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+
+## Increment 509 — reviewed the model-symbol lookup flow
+
+Increment 509 reviewed Name and Handle Resolution diagram #001, “1. Resolve a model symbol only in an execution context,” in GitHub’s full-width Mermaid dialog. The upper and lower views showed distinct connection and federation-membership gates, followed by lookup in the joined model; the outcomes were NotConnected, FederateNotExecutionMember, a typed handle or enum, and a service-specific lookup exception. Text and connectors were readable without visible overlap. The worktree ledger and published body SHA-256 is 30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977; the branch is e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This is a model-symbol lookup path, separate from federation-name reservation and class-hierarchy lookup. No 2010 behavior or cross-profile parity is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verified the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 66 targeted chart reviews across 30 guides; two of the 32 guides remain unsampled: Service Invocation Reporting and TSO Retraction. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: review the two unsampled guides; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted hosted visual review: docs/design/HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#the-exact-report-interaction-has-a-switchsubscription-interlock, “The exact report interaction has a switch/subscription interlock” (diagram #001, Mermaid fence line 125; visual-ledger body SHA-256 0c99d6981bf876d7f99c8dc64c3f5547418ae6e3ae195d9a6039325a5493c9bc). The published body matches the current ledger despite other local guide edits. Inspect the Service Reporting switch transitions against an exact HLAreportServiceInvocation subscription; retain the separate active, passive, and regional subscription forms and the two rejection outcomes. Two guides remain unsampled. Reconcile the nine source anchors after the four in-flight source/test files are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+## Increment 510 — reviewed the Service Reporting interlock
+
+Increment 510 reviewed Service Invocation Reporting diagram #001, “The exact report interaction has a switch/subscription interlock,” in GitHub’s full-width Mermaid view. ReportingOff and ReportingOn and the six labeled transitions were visible. The two rejection loops—enabling while subscribed and subscribing while reporting is enabled—remain distinct, and the safe unsubscribe-then-enable path is clear. Labels and connectors were readable without visible clipping or overlap. The visual-ledger and published body SHA-256 is 0c99d6981bf876d7f99c8dc64c3f5547418ae6e3ae195d9a6039325a5493c9bc; the branch is e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This reviews the switch/subscription guard only; it does not claim later report-routing behavior or 2010/cross-profile parity. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verified the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 67 targeted chart reviews across 31 guides; one of the 32 guides remains unsampled: TSO Retraction. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: review the last unsampled guide; reconcile those nine source anchors after the source revisions are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next targeted hosted visual review: docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#one-designator-portable-outcomes-and-2025-recipient-gates, “One designator: portable outcomes and 2025 recipient gates” (diagram #001, Mermaid fence line 62; visual-ledger body SHA-256 f3dbefba16688b32f767bbadcf18886d80c723c2e0475923a05e69a1c3a072c2). This is the final unsampled guide. Review the recipient-by-recipient distinction between preventing still-pending delivery and notifying a recipient that already received the original, including the receiving federate’s responsibility for effects already observed. Keep this as an HLA-level orientation, not Umbra queue/callback behavior; detailed normative outcomes remain subject to §§8.22–8.23. One guide remains unsampled. Reconcile the nine source anchors after the four in-flight source/test files are reviewed; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI are part of this documentation pass.
+
+## Increment 511 — reviewed the TSO retraction outcome map
+
+Increment 511 reviewed TSO Retraction diagram #001, “One designator: portable outcomes and 2025 recipient gates,” in GitHub’s full-width Mermaid dialog across upper and lower views. Rejected Retract has no successful effect; accepted Retract considers each intended recipient separately. A still-pending copy is prevented from future delivery, while an already-received copy follows the Request Retraction notification path when required. The final nodes preserve differing per-recipient outcomes and the receiving federate’s responsibility for effects already observed. Labels and connectors were readable without visible overlap. The visual-ledger and published body SHA-256 is f3dbefba16688b32f767bbadcf18886d80c723c2e0475923a05e69a1c3a072c2; the branch is e10fa19a7bf48415e00a14ca7301613a84f637a3 and the guide file commit is adafb10c37b6aad8f798e49ca7007abeaaeb66fc. This is an HLA-level orientation for §§8.22–8.23, not an Umbra queue/callback trace or complete normative decision table. No 2010 behavior or cross-profile parity is inferred. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). The 32-guide behavior set and all 515 local diagrams have identity-matched render and screenshot evidence; increment 447 GFM conversion produced 515/515 containers, increment 458 reconciled identities/source lines/hashes, and increment 457 verified the published 508/508 baseline. Seven chart additions and two revised bodies remain local-only. The live-browser history now contains 68 targeted chart reviews across all 32 guides; every guide has at least one sample, but the samples do not cover all 515 diagrams. Increment 496’s documentation link check resolves 4,776/4,776 worktree references across 40 files; candidate HEAD resolves 4,767/4,776, with nine anchors in four in-flight source/test files awaiting reviewed revisions. Remaining work: rerun the source-link check against the current worktree and candidate HEAD; reconcile the nine anchors after inspecting the shared source changes; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next concrete documentation action: rerun quality_gates/bin/check_hla_2025_documentation_links.py --worktree and compare its results with candidate HEAD. The latest full worktree check (increment 496) resolved 4,776/4,776 references across 40 Markdown files; candidate HEAD resolved 4,767/4,776, with nine references into four in-flight source/test files awaiting reviewed revisions. Reconcile only after inspecting those current source diffs, and avoid pinning anchors to code that is still changing. All 32 topic guides now have at least one hosted chart sample (68 samples total), but that is not an all-diagram review. After source references are stable, publish the seven added charts and two revised bodies and verify hosted hydration for all 515 diagrams. Keep the documentation pass 2025-only; no Requirements Lab edits or C++ builds/tests/CI.
+
+## Increment 512 — reran current 2025 source-link checks
+
+Increment 512 reran the 2025 documentation-link checker. All 4,776 unique references across 40 current Markdown files resolve against the worktree (4,776/4,776). Against candidate HEAD, 4,767/4,776 resolve; the same nine line anchors remain unresolved across four in-flight source files: process_federation_service_host.cpp, rti_initialization_data.cpp, ieee1516_2025_connection_process_federation_service_host_catch2.cpp, and tck_connection_lifecycle.cpp. The worktree source links need no correction; the nine HEAD gaps should be reconciled after those shared source/test changes settle. No builds, tests, or CI ran. All 32 2025 guides now have at least one hosted visual sample; 68 samples do not cover all 515 diagrams. Completion remains 91% (working estimate).
+
+Overall progress remains 91% (working estimate, not a fraction derived from gate count). All 32 topic guides have at least one hosted chart sample (68 targeted samples); these do not cover all 515 charts. All 515 local diagrams have identity-matched render and screenshot evidence; the published 508-diagram baseline has a full hydration audit. Seven chart additions and two revised bodies remain local-only. The current documentation-link check resolves 4,776/4,776 unique worktree references across 40 Markdown files; against candidate HEAD it resolves 4,767/4,776, with nine anchors in four in-flight source/test files. Remaining work: reconcile those anchors after the source revisions settle; publish the seven added charts and two revised bodies; verify hosted hydration for all 515 diagrams; and keep evidence gaps bounded. No C++ builds, tests, or CI ran; 2010 and Requirements Lab remain excluded.
+
+Next concrete action: inspect the current diffs for the four in-flight source/test targets listed in candidate_head_reference_validation and record which of the nine stale-at-HEAD anchors will become stable after those changes land. Do not move anchors to provisional lines. The latest worktree check resolves 4,776/4,776 current references; candidate HEAD resolves 4,767/4,776. After the source targets are stable, reconcile the nine anchors, publish the seven added charts and two revised bodies, and verify hosted hydration for all 515 diagrams. Keep this pass focused on IEEE 1516.1-2025; no Requirements Lab edits or C++ builds/tests/CI.
+
+## Increment 525 — mapped embedded ConnectionLost reporting and deferred errors
+
+Reviewed Service Invocation Reporting diagrams #016 and #017 against the embedded registry, membership-loss adapter, file writer, callback dispatcher, deterministic embedded transport, and focused tests. For forced loss, the registry plans the resignation, reserves a final serial only for the file route, suppresses a final service-report interaction reservation, then erases the member and commits the registry transition. The adapter appends while the writer is still live, releases it during cleanup, queues the separate HLAreportFederateLost interaction before automatic-resign consequences, submits the lost member's local callback, and raises a deferred file-append error only after cleanup and submission.
+
+The sequence distinguishes HLA_IMMEDIATE callback execution when the current thread starts or re-enters the drainer from work left queued while another thread owns it. The queued callback can run before or after the deferred error; HLA_EVOKED waits for a later EvokeCallback. The successful file-record test asserts durability before its HLA_EVOKED callback, but a previously recorded local run failed at federation creation line 521 before those assertions; this review did not rerun it. A separate survivor test checks HLAreportFederateLost before automatic object-removal callbacks. No test injects a ConnectionLost append failure, and no process or 2010 parity is claimed.
+
+Mermaid CLI 12.0.0 renders and screenshot reviews confirmed both current diagrams are legible. The full ledger audit also detected stale hashes for Callback and Service Ordering #019 and TSO Retraction #008; both were rendered, reviewed, and reconciled. All 515 current identities now match 515 source fences across 32 guides, with zero line, fence, type, or body-hash mismatches. Type counts are 304 flowcharts, 186 sequence diagrams, and 25 state diagrams.
+
+The source-link checker resolves 4,805/4,805 references against the worktree and 4,796/4,805 against candidate HEAD, primary local HEAD, and the recorded initial-work commit. The same nine anchors in four active source/test files await stable line positions. The 515-chart worktree contains seven additions and nine revised bodies relative to the 508-chart candidate HEAD; hosted hydration remains verified only for those 508 charts. Overall progress remains 91% (working estimate). Next, inspect the four in-flight source/test diffs and reconcile their nine anchors once positions stabilize, then publish the seven additions and 21 revisions and verify hosted hydration for all 515 charts. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+## Increment 526 — traced worktree-only source anchors to active code changes
+
+The 2025 documentation-link checker resolves 4,805/4,805 references in the current worktree. Candidate HEAD, primary local HEAD, and the recorded initial-work commit each resolve 4,796/4,805; the same nine references are out of range in four active source/test files, with no missing targets. I inspected those diffs and the cited lines. The host citation at line 357 points to the shifted `serveConnection` definition; the RID line 241 is in current timeout-key parsing; five Catch2 anchors identify current host-resume, purge, heartbeat-recovery, recovery-expiry, and history-gap cases; and the two portable-TCK anchors identify the current Federate-Lost report scenario. The connection guide already marks these as worktree citations absent from the hosted base.
+
+The current worktree contains 354 additional/changed lines in the process host, 252 in RID initialization, 1,255 in the focused test file, and 2,376 in the TCK lifecycle source. These are active shared source changes and are not part of the documentation-only publication set. The links resolve against their current sources, so I kept them rather than redirecting readers to unrelated committed code. Updated `HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json` with the current line counts, exact nine anchors, and their pending status. After source owners land reviewed changes, rerun the checker and reconcile any moved lines.
+
+The local diagram inventory remains 515/515 with zero identity, line, fence, type, or hash mismatches. Relative to the 508-chart candidate baseline, seven diagrams are additions and nine existing bodies are revised. Overall progress remains 91% (working estimate). Next handoff: rerun source-link checks after those four source/test changes are committed; then publish the diagrams and verify hosted hydration for all 515. No builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+## Increment 527 — full candidate GFM audit — 2026-11-12
+
+The authenticated GitHub Markdown API parsed all 40 current IEEE 1516.1-2025 documentation pages: 32 topic guides and eight supporting pages. All 515 Mermaid source fences produced 515 GFM Mermaid containers. The 40 responses were nonempty and contained 1,195 headings and 8,700 rendered links, with zero API failures or count mismatches. This verifies GFM parsing and container registration; it does not establish visible hydration on published pages or link click-through. Full hosted hydration remains verified for the 508-diagram published baseline.
+
+The source-link checker resolves 4,805/4,805 references across 40 Markdown files in the worktree. Candidate HEAD, primary HEAD, and initial-work each resolve 4,796/4,805; nine anchors in four active source/test files await stabilization. The local 515-entry diagram ledger remains matched to all 515 source diagrams. Overall progress remains **91% (working estimate; about 9% remains)**. Next, rerun source-link checks after those four active files are reviewed and committed, then publish seven added diagrams and nine revised bodies and verify hosted hydration for all 515. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.
+
+
+## Increment 528 — reconciled current roadmap status — 2026-11-12
+
+Updated the live progress summary so it reflects the latest verified state instead of the older 39-page GFM pass and two-revision diagram count. The increment-527 GFM audit covers all 40 current 2025 documentation pages and registers 515/515 Mermaid containers; the roadmap and dated progress-history page were rechecked after that increment was recorded. The source-link check remains 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work, with the same nine anchors in four active source/test files. The source-dependency snapshot now records the same line counts as those current files and preserves the pending stabilization note. Overall progress remains 91% (working estimate). Next: rerun the link checks after those source files are reviewed and committed, then publish seven additions and nine revised bodies and verify hosted hydration for all 515. Keep 2010 and Requirements Lab excluded; no C++ builds, tests, or CI ran.
+
+
+## Increment 529 — reconciled candidate diagram delta — 2026-11-12
+
+A fresh candidate-HEAD comparison found that the live worktree delta had been undercounted. I parsed both backtick- and tilde-fenced Mermaid bodies from candidate HEAD and the worktree, aligned them by guide source and ordinal, and compared the body text after normalizing line endings. The baseline has 508 bodies and the worktree has 515: seven diagrams are additions and 21 existing diagram bodies are actually revised. The 21 revisions are in Data Distribution and Regions (+1), Federation Synchronization (+1), FOM Module Admission and Composition (+12), and Service Invocation Reporting (+7). Additions are Save/Restore (+1), FOM Module Admission and Composition (+1), and Service Invocation Reporting (+5).
+
+Two other ledger SHA differences are not diagram revisions: Callback and Service Ordering #019 and TSO Retraction #008 have identical source bodies at HEAD and in the worktree; the worktree ledger contains their corrected hashes. All seven additions and 21 revised bodies have current local render and screenshot-review records. The public branch remains at e10fa19a with 508/508 hosted diagrams, so all 28 content deltas still need publication and hosted hydration.
+
+The source-link check remains 4,805/4,805 in the worktree and 4,796/4,805 at candidate HEAD, primary HEAD, and initial-work; the same nine anchors in four active source/test files await stabilization. Overall progress remains 91% (working estimate). Next: after those source files are reviewed and committed, rerun source-link checks, then publish seven additions and 21 revised bodies and verify hosted hydration for all 515 diagrams. No C++ builds, tests, or CI ran; keep 2010 and Requirements Lab excluded.

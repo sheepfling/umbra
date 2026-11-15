@@ -66,8 +66,8 @@ neither, either one, or both. They are not two mutually exclusive clock modes.
 | Time constrained | A role that makes the federate's forward grants subject to federation-wide temporal bounds. |
 | Receive order (RO) | Delivery without a logical-time timestamp ordering guarantee. |
 | Timestamp order (TSO) | Delivery ordered by the message's logical timestamp and subject to time-management rules. |
-| GALT | Global Available Logical Time, the federation's current safe advancement boundary as exposed by Query GALT when defined. |
-| LITS | Lowest (earliest) Incoming Timestamp, the next relevant incoming timestamp boundary exposed by Query LITS when defined. |
+| GALT | Global Available Logical Time, the federation's current safe advancement boundary as exposed by [`queryGALT`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1323) when defined. |
+| LITS | Lowest (earliest) Incoming Timestamp, the next relevant incoming timestamp boundary exposed by [`queryLITS`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1343) when defined. |
 | NRG | The FDD's Non-Regulated-Grant setting, queried through [`RTIambassador::getNonRegulatedGrantSwitch()`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L2258). The cross-cutting [support-switch map](HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md#a-support-switch-has-an-owner-a-lifetime-and-a-control-surface) shows why this is a getter-only static federation policy. In the current grant policy it matters when GALT is undefined; it does not make GALT itself defined. |
 | Callback-gated | The accepted operation remains pending until its matching callback is dispatched; the corresponding private time state changes at that callback boundary. |
 
@@ -172,10 +172,10 @@ stateDiagram-v2
   TimeConstrained --> ConstrainedOff: Disable Time Constrained
 ```
 
-The pinned 2025 API declares [Enable Time Regulation](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1175),
-[Disable Time Regulation](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1187),
-[Enable Time Constrained](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1200),
-and [Disable Time Constrained](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1211).
+The pinned 2025 API declares [Enable Time Regulation (`enableTimeRegulation`)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1175),
+[Disable Time Regulation (`disableTimeRegulation`)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1187),
+[Enable Time Constrained (`enableTimeConstrained`)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1200),
+and [Disable Time Constrained (`disableTimeConstrained`)](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1211).
 The corresponding enable notifications are [Time Regulation Enabled](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L489)
 and [Time Constrained Enabled](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L495).
 These links identify the public API surface; the pending-state transitions below
@@ -185,8 +185,9 @@ normative interpretation of those clauses.
 In the current profile:
 
 - The regulator's requested lookahead becomes the active lookahead when
-  Time Regulation Enabled is dispatched. Query Lookahead reports the active
-  value.
+  Time Regulation Enabled is dispatched. The public
+  [`queryLookahead`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1368)
+  operation reports the active value.
 - A pending role enable blocks a time-advance request that depends on that
   role transition. Do not treat the service return as if the callback already
   ran.
@@ -2345,7 +2346,8 @@ restored grants, and TSO delivery; follow each domain's selected trace.
 
 ## Lookahead changes and pending operations
 
-Modify Lookahead has a transition of its own:
+The public [`modifyLookahead`](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L1356)
+operation has a transition of its own:
 
 - An equal or larger request immediately replaces the active value and clears
   any deferred decrease. Query Lookahead then reports the new active value.

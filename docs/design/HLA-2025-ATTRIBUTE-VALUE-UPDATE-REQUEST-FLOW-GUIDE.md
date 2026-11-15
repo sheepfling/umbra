@@ -84,12 +84,13 @@ annotation; it supplies no callback trigger or ordering rule. The
 [official IEEE listing](https://standards.ieee.org/ieee/1516.1/6688/) offers
 purchase or subscription access; IEEE also advertises free account-based read
 access to selected standards through its [Standards Reading Room](https://standards.ieee.org/access-standards/),
-but public pages do not confirm whether 1516.1-2025 is included, and the
-accessible product page does not expose §6.21 wording. The local checkout has
-the API headers, not the normative standard text. Direct requester entitlement
-and normative callback timing therefore remain unresolved here; signatures,
-exception lists, and source behavior are not substitutes for the clause. For
-receiver selection, see the
+but its public page does not identify whether 1516.1-2025 is included. The
+current [GET Program list](https://standards.ieee.org/products-programs/ieee-get-program/)
+does not list HLA. The accessible product page does not expose §6.21 wording.
+The local checkout has the API headers, not the normative standard text. Direct
+requester entitlement and normative callback timing therefore remain unresolved
+here; signatures, exception lists, and source behavior are not substitutes for
+the clause. For receiver selection, see the
 [object and interaction information guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
 and [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md).
 For timestamped update ordering, grants, and retraction, see the
@@ -437,9 +438,12 @@ the process recheck
 The diagrams omit API exception details and per-overload validation matrices.
 They also omit automatic `provideAttributeValueUpdate` behavior: an explicit
 request is not discovery-triggered Auto Provide, and the Auto Provide switch
-must not be applied to explicit requests by assumption. See the
-[Auto Provide guide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md) for the separate
-discovery-triggered path.
+must not be applied to explicit requests by assumption. The [regional
+multi-provider test's discovery-triggered subscription](../../cpp/tests/regional_auto_provide_multi_provider_catch2.cpp#L459)
+then asserts one Auto Provide callback per owner; it does not call explicit
+Request Attribute Value Update and is not evidence for that service's fan-out. See the
+[Auto Provide guide](HLA-2025-AUTO-PROVIDE-FLOW-GUIDE.md) for that separate
+path.
 
 ### A request does not replace receiver eligibility
 

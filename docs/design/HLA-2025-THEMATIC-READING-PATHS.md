@@ -181,6 +181,22 @@ reading routes, not required service sequences or callback-order claims.
   That source-derived path does not establish that a recipient callback failure
   becomes the sending federate's service result; no focused test combines an
   accepted process send with a throwing `receiveInteraction` callback.
+- **From a service result to a report an observer may see:** start with
+  Exception Reporting's [decision map](HLA-2025-EXCEPTION-REPORTING-FLOW-GUIDE.md#a-quick-decision-map)
+  to distinguish public-service exception reports, rejected-MOM reports, and
+  service-invocation records. Service Invocation Reporting's
+  [three-trace comparison](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#three-distinct-traces-call-outcome-invocation-report-requested-mom-report)
+  follows call outcome, invocation report, and requested MOM report through
+  switch and sink selection. Its [lookup-failure traces](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#interaction-and-parameter-lookup-failures-leave-a-separate-report-trace)
+  compare tested name/handle failures with the separate embedded and
+  configured-process missing-class-name paths; the latter remains an explicit
+  test gap. For query-driven reports, use MOM Object and
+  Interaction Reports' [sender/target/observer map](HLA-2025-MOM-OBJECT-AND-INTERACTION-REPORTS-FLOW-GUIDE.md#query-sender-reported-target-and-report-observer-are-separate-roles)
+  and the Federation MOM guide's [request/report path](HLA-2025-FEDERATION-MOM-FLOW-GUIDE.md#federation-reports-are-receive-order-interactions).
+  These paths have distinct triggers and visibility rules: a thrown service,
+  a report interaction, and a report-file append are separate outcomes, and
+  none establishes a universal callback order. Process-profile evidence
+  remains path-specific.
 - **From accepted FQR to callback observation across Disable Time Constrained:**
   follow the Time Management guide's [FQR/Disable sequence](HLA-2025-TIME-MANAGEMENT-GUIDE.md#disable-time-constrained-between-fqr-acceptance-and-evoke),
   then its [configured-process Evoke boundary](HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#process-evoke-multiple-separates-event-admission-from-callback-draining).
@@ -195,12 +211,18 @@ reading routes, not required service sequences or callback-order claims.
   This is a configured-process source trace; polling versus push transport,
   `HLA_IMMEDIATE` versus `HLA_EVOKED`, and the temporal gate remain separate
   decisions.
-- **From a reserved name to each federate's object view:** follow the
-  [object-lifetime reader route](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#follow-a-reserved-name-into-each-federates-object-view)
-  from reservation outcome through named registration and per-receiver
-  discovery, then separate federation Delete/Remove from caller-local forget.
-  Timestamped deletion branches to its own retraction path. Existing diagrams
-  provide the detail; this is not one end-to-end tested trace.
+- **From reservation outcome to handle and receiver knowledge:** start with
+  the Object-Instance Name Reservation guide's
+  [HLA-level lifecycle](HLA-2025-OBJECT-INSTANCE-NAME-RESERVATION-FLOW-GUIDE.md#hla-level-lifecycle-in-one-view).
+  Compare Names and Handle Resolution's
+  [member-local object lookup](HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#4-object-instance-lookup-is-federate-local-knowledge)
+  with the Object/Interaction guide's
+  [object-lifetime reader route](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#follow-a-reserved-name-into-each-federates-object-view).
+  Reservation grants a name to its requester; named registration later returns
+  a handle to the owner, and discovery adds per-receiver knowledge. Then
+  separate federation Delete/Remove from caller-local forget; timestamped
+  deletion branches to its own retraction path. This route joins distinct
+  evidence and is not one end-to-end tested trace.
 - **From “the object disappeared” to the state that changed:** start with the
   Object/Interaction guide's [disappearance comparison](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#diagnose-disappearance-by-asking-which-state-changed),
   then follow Ownership's [delete-privilege transfer](HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md#a-new-owner-can-gain-delete-authority-without-becoming-the-registrant)

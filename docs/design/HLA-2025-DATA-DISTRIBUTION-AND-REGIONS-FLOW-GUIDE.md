@@ -119,9 +119,9 @@ flowchart TD
   MODEL["FOM dimension declarations<br/>names and any declared bounds"]
   ASSOC["Object / interaction class<br/>dimension associations"]
   MODEL --> ASSOC
-  ASSOC --> QUERY["Query dimensions available<br/>to the selected class"]
-  QUERY --> CHOOSE["Application chooses a dimension set<br/>for its region"]
-  CHOOSE --> CREATE["Create region from dimension handles"]
+  ASSOC --> QUERY{"Available dimensions for<br/>the selected class?"}
+  QUERY -->|"Non-empty set"| CHOOSE["Application chooses region dimensions<br/>as a separate decision"] --> CREATE["Create region from handles"]
+  QUERY -->|"Empty; valid for a dimensionless class"| EMPTY["Empty is not a wildcard"] --> CHOOSE
   CREATE --> SHAPE["Region's fixed dimension set"]
   SHAPE --> RANGES["Set a range for each region dimension"]
   SHAPE -. "optional read-back" .-> READBACK["getDimensionHandleSet(region)<br/>queries this region, not the class"]
@@ -225,7 +225,7 @@ The embedded query test also makes the object-class hierarchy result concrete:
 | `Food.Drink` | `{BarQuantity}` |
 | `Food.Drink.Soda` | `{BarQuantity, SodaFlavor}` |
 | `Food.Drink.Soda.Light` | `{BarQuantity, SodaFlavor, Sweetener}` |
-| `FoodServed` interaction | empty set |
+| `FoodServed` interaction | empty set ([assertion](../../cpp/tests/dimension_lookup_catch2.cpp#L141)) |
 | `MainCourseServed` interaction | `{ServerId}` |
 
 These are scenario results, not a substitute for the standard's definition.
