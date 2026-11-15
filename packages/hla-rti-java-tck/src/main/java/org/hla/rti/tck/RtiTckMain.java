@@ -1527,7 +1527,9 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.base-publication-rejects-derived-only-attribute",
             "reject a derived-only attribute in a base-class publication", "declarations",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {}, false),
+            new String[] {
+               "requirement-source-refinement-available-attribute-declaration"
+            }, true),
          RtiTckMain::basePublicationRejectsDerivedOnlyAttribute);
       run(new Scenario("java-tck.object-management", "object registration and reflection", "object-management",
             "reserveObjectInstanceName;releaseObjectInstanceName;reserveMultipleObjectInstanceNames;releaseMultipleObjectInstanceNames;objectInstanceNameReservationSucceeded;multipleObjectInstanceNameReservationSucceeded;registerObjectInstance(named and unnamed);getKnownObjectClassHandle;getObjectInstanceHandle;getObjectInstanceName;requestAttributeValueUpdate(instance and class);discoverObjectInstance;updateAttributeValues;reflectAttributeValues;localDeleteObjectInstance;deleteObjectInstance;removeObjectInstance;provideAttributeValueUpdate",

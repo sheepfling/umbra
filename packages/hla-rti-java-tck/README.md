@@ -4291,6 +4291,13 @@ Its direct mapping is limited to the attribute-set subset rule in IEEE
 1516.1-2025 §5.8; `AttributeNotDefined` is supplemental. Focused runs passed
 under both callback models on the current-source Umbra JNI provider.
 
+The default-run `java-tck.base-publication-rejects-derived-only-attribute` case
+uses the same adapter FOM to accept valid base and derived publications, then
+reject a derived-only attribute when publishing the base class. Its direct
+mapping is limited to the available-attribute rule in IEEE 1516.1-2025
+§5.1.2(a); `AttributeNotDefined` is supplemental. Focused runs passed under both
+callback models on the current-source Umbra JNI provider.
+
 The default-run `java-tck.inherited-interaction-class-delivery` case sends a derived
 interaction to both a base-class and a derived-class subscription. It verifies
 base-subscription projection to the inherited parameter, full inherited and

@@ -4701,20 +4701,36 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
       ],
-      "requirement_ids": [],
-      "selected_requirements_lab_requirement_ids": [],
-      "standard_sections": [],
-      "requirement_mappings": [],
-      "mapping_classification": "api-contract-only-not-normative-conformance",
-      "mapping_note": "Classification: internal API-boundary scenario, intentionally unmapped. The pinned Java API declares AttributeNotDefined for Publish Object Class Attributes, but the Requirements Lab export has no granular normative candidate for an attribute that is not defined on the specified class. Positive base/derived publication controls and the derived-only rejection are checked; no normative coverage or provider-conformance claim is made. Java provider execution remains unavailable and unvalidated.",
+      "requirement_ids": [
+        "requirement-source-refinement-available-attribute-declaration"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-source-refinement-available-attribute-declaration"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.1.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-source-refinement-available-attribute-declaration",
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mapping is limited to IEEE 1516.1-2025 §5.1.2(a)'s available-attribute rule for Publish Object Class Attributes. The derived-only input checks that the published attribute set is available on the specified base class; the exact AttributeNotDefined result, positive base/derived controls, and cleanup are supplemental. This does not claim §5.1.2(a) prescribes that exception type.",
       "contract_refs": [
         "standard-declaration-management-contract.json",
         "publish-object-class-attributes-api-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#basePublicationRejectsDerivedOnlyAttribute",
       "parity": "cpp-tck.base-publication-rejects-derived-only-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied known-class FOM with base and derived object classes, base and derived attributes, provider, endpoint, and callback configuration; Java provider runtime evidence is not yet available."
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml and HLAinteger64Time. Results: out/java-tck/base-publication-derived-only-attribute-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/DerivedObject and Name/Efficiency",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.object-management",

@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 146 |
-| Distinct stable requirement IDs | 1146 |
+| Distinct stable requirement IDs | 1147 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 587 |
-| Default `unsupported` scenarios | 377 |
-| Scenarios with explicit `requirement_mappings` | 669 |
-| Explicit mapping records | 2718 |
+| Default `run` scenarios | 588 |
+| Default `unsupported` scenarios | 376 |
+| Scenarios with explicit `requirement_mappings` | 670 |
+| Explicit mapping records | 2719 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -9618,6 +9618,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-source-refinement-available-attribute-declaration`
+
+- [`java-tck.base-publication-rejects-derived-only-attribute`](#scenario-java-tck.base-publication-rejects-derived-only-attribute) — Reject a derived-only attribute when publishing the base object class (`declarations`; default `run`; C++ pointer `cpp-tck.base-publication-rejects-derived-only-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-source-refinement-guard-and-cross-machine-state-constraints`
 
 - [`java-tck.federation-save-restore-interlocks`](#scenario-java-tck.federation-save-restore-interlocks) — Reject declaration, object, interaction, ownership, time, order, transportation, DDM, advisory, and synchronization services during active save and restore (`federation-save-restore-interlocks`; default `unsupported`; C++ pointer `cpp-tck.federation-save-restore-interlocks`).
@@ -9761,6 +9767,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.attribute-unsubscribe-stops-reflection`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46` → `hla-1516.1-2025:clause-5.9.4`
   - `requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13` → `hla-1516.1-2025:clause-9.1.5`
+- `java-tck.base-publication-rejects-derived-only-attribute`:
+  - `requirement-source-refinement-available-attribute-declaration` → `hla-1516.1-2025:clause-5.1.2`
 - `java-tck.attribute-value-update-request-baseline`:
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
@@ -13041,7 +13049,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ## Explicit non-normative/API-only dispositions
 
 - `java-tck.callback-reentrancy` — No rationale recorded.
-- `java-tck.base-publication-rejects-derived-only-attribute` — Requires an adapter-supplied known-class FOM with base and derived object classes, base and derived attributes, provider, endpoint, and callback configuration; Java provider runtime evidence is not yet available.
 - `java-tck.receive-order-multi-attribute-update-callback-cancellation` — Provider, compatible multi-attribute FOM, endpoint, object/attribute names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider.
 - `java-tck.regional-three-dimensional-overlap` — Requires the adapter-supplied three-dimensional FOM via hla.rti.tck.threeDimensionalFom, configured object and attribute names, and three dimension names. Uses only the official Java API.
 - `java-tck.service-report-interaction-dimensions-invalid-handle-contexts` — Opt-in because the companion needs a separate additional FOM execution. Configure hla.rti.tck.additionalFom with fom-extension-tck.xml alongside the primary dimensional FOM, standard MIM, logical-time implementation, provider, endpoint, and callback model. Runtime evidence is local Umbra JNI only.
@@ -13308,7 +13315,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
 | <a id="scenario-java-tck.attribute-unsubscribe-stops-reflection"></a>`java-tck.attribute-unsubscribe-stops-reflection` — Suppress later ordinary attribute reflections after unsubscribing the attribute | `org.hla.rti.tck.RtiTckMain#attributeUnsubscribeStopsReflection` | 17 | `requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46`, `requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13` | `cpp-tck.attribute-unsubscribe-stops-reflection` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.base-publication-rejects-derived-only-attribute"></a>`java-tck.base-publication-rejects-derived-only-attribute` — Reject a derived-only attribute when publishing the base object class | `org.hla.rti.tck.RtiTckMain#basePublicationRejectsDerivedOnlyAttribute` | 10 | explicit API-only disposition | `cpp-tck.base-publication-rejects-derived-only-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.base-publication-rejects-derived-only-attribute"></a>`java-tck.base-publication-rejects-derived-only-attribute` — Reject a derived-only attribute when publishing the base object class | `org.hla.rti.tck.RtiTckMain#basePublicationRejectsDerivedOnlyAttribute` | 10 | `requirement-source-refinement-available-attribute-declaration` | `cpp-tck.base-publication-rejects-derived-only-attribute` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/DerivedObject and Name/Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.base-subscription-rejects-derived-only-attribute"></a>`java-tck.base-subscription-rejects-derived-only-attribute` — Reject a derived-only attribute when subscribing the base object class | `org.hla.rti.tck.RtiTckMain#baseSubscriptionRejectsDerivedOnlyAttribute` | 10 | `requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21`, `java-1516.1-object-class-attribute-declaration` | `cpp-tck.base-subscription-rejects-derived-only-attribute` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/DerivedObject and Name/Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.declaration-management"></a>`java-tck.declaration-management` — Resolve standard handles and exercise ordinary object publication/subscription | `org.hla.rti.tck.RtiTckMain#declarationManagement` | 12 | `requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27` | not declared | `run` | not scenario-declared |
 | <a id="scenario-java-tck.object-attribute-declarations-valid-inputs-after-resignation"></a>`java-tck.object-attribute-declarations-valid-inputs-after-resignation` — Check object and attribute publication/subscription membership boundaries after resignation with valid FOM inputs | `org.hla.rti.tck.RtiTckMain#objectAttributeDeclarationsAfterResignation` | 13 | `cpp-1516.1-publish-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-unpublish-object-class-membership-boundary-after-resignation`, `cpp-1516.1-unpublish-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-subscribe-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation`, `cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation` | not declared | `run` | not scenario-declared |

@@ -18681,6 +18681,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Directly mapped claim: §5.1.2(a) permits Publish Object Class Attributes only with class attributes available on the specified object class; the derived-only attribute is not available on the base class. The exact AttributeNotDefined exception is asserted as the official C++ API contract and is not claimed to be prescribed by §5.1.2(a). Positive base/derived publication controls are supplemental. This is bounded installed-package API evidence, not provider conformance.",
+      "parity_scope_note": "The Java mirror uses the same known-class FOM and service order: accept valid base and derived publications, reject the derived-only attribute on the base class, then unpublish both. The direct §5.1.2(a) mapping covers only the available-attribute boundary; the exact exception and setup/cleanup remain supplemental.",
       "contract_refs": [
         "standard-declaration-management-contract.json",
         "publish-object-class-attributes-api-contract.json"
