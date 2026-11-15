@@ -101,3 +101,36 @@ The nine unresolved source anchors remain pending owner publication and
 semantic recheck.
 
 No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+
+## Increment 535 — source-routing snapshot refresh (2026-11-15)
+
+The candidate documentation branch is published at 141b6629. Its 41 current
+2025 Markdown pages contain 4,805 unique source-line references. The published
+candidate revision resolves 4,796; nine anchors across four active 2025
+source/test files remain out of range. The candidate worktree resolves all
+4,805 only with active, uncommitted source/test edits, so that result is not a
+published-source verification.
+
+Checked against the candidate's full 41-page documentation set, local primary
+HEAD 4bfa5928 has all 4,805 cited lines in range. This is path/line evidence
+only. A bounded semantic check found that primary line 2389 in the lifecycle
+TCK is an automatic delete-then-divest assertion, while candidate-worktree line
+2389 begins the Federate-Lost MOM scenario described by the guide. The 4,324
+link result from a check run against the primary branch's own 33 Markdown
+pages is not a candidate-wide result. Primary is twelve commits ahead of remote
+initial-work and contains unrelated implementation and Requirements Lab
+changes. Remote initial-work c9c5a9e resolves 4,796/4,805 against candidate
+docs. No open source pull request was found.
+
+A bounded review of all nine cited targets in the candidate worktree matched
+the guide labels: the host connection routine handles resume/replay and
+inactive sessions; the RID parser recognizes heartbeat and purge timeouts;
+five Catch2 anchors name the expected resume, purge, heartbeat, reconnect, and
+history-gap cases; and the TCK anchors identify the Federate-Lost scenario and
+its post-loss membership update. These semantic observations still depend on
+uncommitted source/test edits. Keep closeout pending until owners publish a
+reviewed source revision, then repeat both line and semantic checks.
+
+No Mermaid bodies changed. No C++ build, tests, or CI ran. Keep 2010 and the
+Requirements Lab separate.

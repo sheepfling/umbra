@@ -16,7 +16,7 @@
     "fully_rendered_pages": 32
   },
   "current_worktree": {
-    "head_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
+    "head_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
     "guide_count": 32,
     "diagram_count": 515,
     "local_rendered_diagrams": 515,
@@ -129,10 +129,24 @@
     "hosted_unresolved_references": 9,
     "hosted_unresolved_targets": 4,
     "candidate_base_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
-    "also_checked_against_revision": "063e5eae9b6650a460395fd06ef559fd4dc4c34a",
+    "also_checked_against_revision": "4bfa5928cb45d345c7fddcb239954103f838fa8d",
     "worktree_unresolved_references": 0,
     "worktree_only_reference": "The private current-worktree test case “Process federation client resumes its joined session after socket loss” remains prose-only evidence: it checks that the private client can list the joined member after socket reconnection, not a public ambassador’s Not Connected transition, and it has no Markdown source-line link.",
-    "cross_revision_note": "Increment 534: all 4,805 references resolve in the current candidate worktree and local primary HEAD 063e5eae9b6650a460395fd06ef559fd4dc4c34a. Candidate source revision 9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e resolves 4,796/4,805; nine cited 2025 source/test lines remain outside four active files at that revision."
+    "cross_revision_note": "Increment 535: candidate branch HEAD 141b662918a90eb9e8e9e4204ced6ebefc897250 resolves 4,796/4,805; active uncommitted candidate worktree source/test edits make all 4,805 resolve. Checking the candidate 41-page documentation set against primary HEAD 4bfa5928cb45d345c7fddcb239954103f838fa8d also puts all 4,805 lines in range, but this is not semantic proof: primary #L2389 in the lifecycle TCK is an automatic delete-then-divest assertion, unlike the candidate-worktree Federate-Lost scenario at that line. Primary is twelve commits ahead and includes unrelated Requirements Lab changes. The primary branch’s own 33-page docs tree checks only 4,324 references.",
+    "candidate_head_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
+    "candidate_head_resolved": 4796,
+    "primary_head_revision": "4bfa5928cb45d345c7fddcb239954103f838fa8d",
+    "primary_head_markdown_files": 41,
+    "primary_head_references_checked": 4805,
+    "primary_head_resolved": 4805,
+    "primary_head_unresolved": 0,
+    "primary_head_commits_ahead_of_remote_initial_work": 12,
+    "initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "initial_work_resolved": 4796,
+    "initial_work_unresolved": 9,
+    "primary_own_tree_markdown_files": 33,
+    "primary_own_tree_references_checked": 4324,
+    "primary_own_tree_resolved": 4324
   },
   "failure_summary": [
     {
@@ -1952,8 +1966,8 @@
     "scope_note": "The increment-355 headless pass did not scroll the lazy-rendered containers and therefore observed Loading placeholders. Increment 356 scrolled all containers into view and confirmed one SVG per expected diagram after hydration, plus a successful Mermaid rendering response for every diagram. A representative rendered diagram was visually inspected; the audit does not claim individual screenshot review of all 507 hosted diagrams or click-through HTTP checks for every link."
   },
   "latest_candidate_worktree_verification": {
-    "as_of": "2026-11-15 increment 534",
-    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref b716d951ae0dd42d19aab2a8e5dfad41b17201b7",
+    "as_of": "2026-11-15 increment 535",
+    "command": "python quality_gates/bin/check_hla_2025_documentation_links.py --worktree; --ref HEAD; --ref 4bfa5928cb45d345c7fddcb239954103f838fa8d; --ref c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "markdown_files_checked": 41,
     "references_checked": 4805,
     "worktree_resolved": 4805,
@@ -1961,16 +1975,51 @@
     "candidate_head_resolved": 4796,
     "candidate_head_unresolved": 9,
     "candidate_head_unresolved_targets": 4,
-    "scope_note": "Increment 534 source-link results remain: 4,805/4,805 in the worktree, 4,796/4,805 at candidate source revision 9e1bc4fe, and 4,805/4,805 at local primary HEAD 063e5eae. The primary is eleven commits ahead of remote initial-work and includes unrelated Requirements Lab changes.",
-    "candidate_head_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
-    "primary_source_revision": "063e5eae9b6650a460395fd06ef559fd4dc4c34a",
-    "primary_source_resolved": 4805,
-    "primary_source_unresolved": 0,
-    "candidate_base_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
+    "scope_note": "Candidate worktree source/test edits remain uncommitted. Against the candidate’s full 41 Markdown files, local primary HEAD 4bfa5928 has 4,805/4,805 lines in range, but this is only path/line validity; a semantic spot check finds TCK line 2389 refers to automatic delete-then-divest in primary and Federate-Lost MOM reporting in the candidate worktree. Primary is unpublished and includes unrelated Requirements Lab changes. Initial-work resolves 4,796/4,805.",
+    "candidate_head_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
+    "primary_source_revision": "4bfa5928cb45d345c7fddcb239954103f838fa8d",
+    "primary_candidate_markdown_files_checked": 41,
+    "primary_candidate_references_checked": 4805,
+    "primary_candidate_resolved": 4805,
+    "primary_candidate_unresolved": 0,
+    "primary_branch_own_markdown_files": 33,
+    "primary_branch_own_references_checked": 4324,
+    "primary_branch_own_resolved": 4324,
+    "primary_commits_ahead_of_remote_initial_work": 12,
+    "candidate_base_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
     "candidate_base_resolved": 4796,
     "candidate_base_unresolved": 9,
-    "remote_branch_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
-    "remote_branch_resolved": 4796
+    "remote_branch_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
+    "remote_branch_resolved": 4796,
+    "initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "initial_work_resolved": 4796,
+    "initial_work_unresolved": 9,
+    "unresolved_targets": [
+      "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+      "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+    ],
+    "open_pull_requests": 0,
+    "semantic_target_review": {
+      "as_of": "2026-11-15 increment 535",
+      "revision": "Candidate worktree based on 141b662918a90eb9e8e9e4204ced6ebefc897250 plus active, uncommitted source/test edits.",
+      "anchors_reviewed": 9,
+      "result": "All nine current worktree targets matched the nearby guide descriptions; repeat against the published source revision before closing.",
+      "checks": [
+        "process_federation_service_host.cpp#L357 begins serveConnection, whose inspected body handles initial frames, resume assessment/replay, and inactive-session paths.",
+        "rti_initialization_data.cpp#L241 is the RTI_TIMEOUT_HEART branch; the same parser handles RTI_TIMEOUT_PURGE nearby.",
+        "The five Catch2 lines name the resume-history, inactive-session purge, reconnect timeout, heartbeat recovery, and resume-history-gap cases referenced by the guide.",
+        "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2765 is the post-loss HLAfederatesInFederation update in that scenario."
+      ],
+      "primary_revision_semantic_mismatch": "At primary HEAD 4bfa5928cb45d345c7fddcb239954103f838fa8d, tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion, not the Federate-Lost MOM scenario. Its 4,805/4,805 result against candidate docs is bounds-only.",
+      "status": "provisional until the cited source/test edits are published and rechecked."
+    }
   },
   "latest_edition_boundary_diff_screen": {
     "as_of": "2026-11-11 handoff",
@@ -4822,7 +4871,7 @@
       }
     ]
   },
-  "current_candidate_revision": "9e1bc4fec0ae77c776b578c5b85ea89bccfdda9e",
+  "current_candidate_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
   "latest_increment_533_gfm_recheck": {
     "as_of": "2026-11-15 increment 533",
     "service": "Authenticated GitHub Markdown API POST /markdown",
@@ -4913,6 +4962,101 @@
         "rendered_links": 7,
         "mermaid_containers": 0,
         "html_sha256": "5668e3a9902ad78f5169d2f85254277b33ccd1108fe5d89d1e77eabc009e5fbe",
+        "html_nonempty": true
+      }
+    ]
+  },
+  "latest_increment_535_source_routing": {
+    "as_of": "2026-11-15 increment 535",
+    "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
+    "candidate_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
+    "remote_branch_matches_candidate": true,
+    "candidate_markdown_files": 41,
+    "candidate_references_checked": 4805,
+    "candidate_head_resolved": 4796,
+    "candidate_head_unresolved": 9,
+    "candidate_worktree_resolved": 4805,
+    "candidate_worktree_unresolved": 0,
+    "candidate_worktree_source_edits_uncommitted": true,
+    "unresolved_targets": [
+      "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
+      "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
+      "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
+      "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+    ],
+    "primary_head": "4bfa5928cb45d345c7fddcb239954103f838fa8d",
+    "primary_candidate_docs_line_bounds_resolved": 4805,
+    "primary_candidate_docs_line_bounds_unresolved": 0,
+    "primary_candidate_docs_checked": 41,
+    "primary_branch_own_docs": {
+      "markdown_files": 33,
+      "references_checked": 4324,
+      "resolved": 4324
+    },
+    "primary_commits_ahead_of_remote_initial_work": 12,
+    "primary_semantic_spot_check": "tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion in primary, not the candidate-worktree Federate-Lost MOM scenario.",
+    "semantic_target_review": {
+      "as_of": "2026-11-15 increment 535",
+      "revision": "Candidate worktree based on 141b662918a90eb9e8e9e4204ced6ebefc897250 plus active, uncommitted source/test edits.",
+      "anchors_reviewed": 9,
+      "result": "All nine current worktree targets matched the nearby guide descriptions; repeat against the published source revision before closing.",
+      "checks": [
+        "process_federation_service_host.cpp#L357 begins serveConnection, whose inspected body handles initial frames, resume assessment/replay, and inactive-session paths.",
+        "rti_initialization_data.cpp#L241 is the RTI_TIMEOUT_HEART branch; the same parser handles RTI_TIMEOUT_PURGE nearby.",
+        "The five Catch2 lines name the resume-history, inactive-session purge, reconnect timeout, heartbeat recovery, and resume-history-gap cases referenced by the guide.",
+        "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2765 is the post-loss HLAfederatesInFederation update in that scenario."
+      ],
+      "primary_revision_semantic_mismatch": "At primary HEAD 4bfa5928cb45d345c7fddcb239954103f838fa8d, tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion, not the Federate-Lost MOM scenario. Its 4,805/4,805 result against candidate docs is bounds-only.",
+      "status": "provisional until the cited source/test edits are published and rechecked."
+    },
+    "initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "initial_work_resolved": 4796,
+    "initial_work_unresolved": 9,
+    "open_pull_requests": 0,
+    "note": "Path/line bounds in the unpushed primary branch do not close the nine candidate citations; the candidate worktree source edits remain uncommitted and semantic targets must be rechecked after owner publication."
+  },
+  "latest_increment_535_gfm_recheck": {
+    "as_of": "2026-11-15 increment 535",
+    "service": "Authenticated GitHub Markdown API POST /markdown",
+    "mode": "gfm",
+    "pages_checked": 3,
+    "combined_current_page_coverage": 41,
+    "failures": 0,
+    "scope_note": "Rechecked the final increment 535 roadmap and both progress-history pages after the semantic source-anchor review. All three responses were nonempty. Combined with prior page checks, GFM coverage remains documented for all 41 current 2025 Markdown pages. The 473,249-byte behavior backlog index exceeds the API 400,000-byte input limit and remains excluded.",
+    "pages": [
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-ROADMAP.md",
+        "input_bytes": 351443,
+        "rendered_bytes": 438317,
+        "heading_elements": 40,
+        "rendered_links": 295,
+        "mermaid_containers": 0,
+        "html_sha256": "baf6c84c0ea7b2bad5e03a790142e23ec3a39d57776fd35b427f75e0b7d91143",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY.md",
+        "input_bytes": 1879,
+        "rendered_bytes": 2208,
+        "heading_elements": 5,
+        "rendered_links": 12,
+        "mermaid_containers": 0,
+        "html_sha256": "74571018ec1cb0ec0a49903f778995798663bcf25eb3ef20dbf1e23922d5c634",
+        "html_nonempty": true
+      },
+      {
+        "path": "docs/design/HLA-2025-DOCUMENTATION-PROGRESS-HISTORY-2026-11-15.md",
+        "input_bytes": 9831,
+        "rendered_bytes": 13042,
+        "heading_elements": 9,
+        "rendered_links": 9,
+        "mermaid_containers": 0,
+        "html_sha256": "575398e5fea5df6944f963272fcb68a4ef76cf13170f2ffc604cc00c8ad6fd4e",
         "html_nonempty": true
       }
     ]

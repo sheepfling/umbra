@@ -5,7 +5,7 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 534)
+## Current finish gates and next handoff — 2026-11-15 (increment 535)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All seven additions and 21 revised bodies were published in diagram revision 431152817283718923c06a07e4154ca785e7033a; subsequent documentation-only commits changed no Mermaid bodies. Revision-aware hosted-render evidence covers 515/515 diagrams. This increment rechecked the roadmap and both progress-history pages with the authenticated GitHub GFM API; all three responses were nonempty, maintaining coverage of all 41 current 2025 Markdown pages.
 
@@ -13,16 +13,16 @@ The guide navigation audit found all 32 guide targets in both the [living behavi
 
 Source-link checks distinguish published and local revisions:
 
-- Candidate worktree: 4,805/4,805 references resolve.
-- Candidate source revision checked in this increment, 9e1bc4fe: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range.
-- Current local primary HEAD 063e5eae: 4,805/4,805 resolve. It is eleven commits ahead of remote initial-work and includes unrelated implementation and Requirements Lab changes, so it is not a safe docs-only publication route.
+- Candidate worktree, including active uncommitted source/test edits: 4,805/4,805 references resolve.
+- Published candidate HEAD 141b6629: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range. This documentation-only commit does not include the pending source edits.
+- Checked against the candidate's full 41-page documentation set, local primary HEAD 4bfa5928 has all 4,805 lines in range. This is only a path/line check: primary line 2389 in the lifecycle TCK is an automatic delete-then-divest assertion, while candidate-worktree line 2389 begins the Federate-Lost MOM scenario. The primary is twelve commits ahead of remote initial-work and includes unrelated implementation and Requirements Lab changes, so it is not a safe docs-only publication route. A check using only the primary branch's own 33 Markdown pages covers just 4,324 links and is not the candidate result.
 - No open GitHub pull requests were found. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) lists the unresolved targets and revisions. Do not retarget citations to unrelated code merely to make line checks pass.
 
-1. **Stabilize and verify the nine source citations.** Have the owners review and publish the relevant 2025 source/test changes on a suitable branch. Then rerun the source-link checker and confirm each semantic target against the exact published revision, especially the two lifecycle TCK anchors.
+1. **Stabilize and verify the nine source citations.** The candidate worktree's active, uncommitted source/test edits put all nine anchors on the intended code and test cases, but candidate HEAD still has nine out-of-range anchors. Have the owners publish a reviewed source revision, then rerun the checker and verify semantic targets there. A full candidate-doc bounds check against primary HEAD passes, but a spot check found a semantic mismatch at lifecycle TCK line 2389, and the primary branch includes unrelated work.
 2. **Keep evidence limits explicit.** The [Service Invocation Reporting guide](HLA-2025-SERVICE-INVOCATION-REPORTING-FLOW-GUIDE.md#implementation-and-test-evidence) records uncovered configured-process and failure-path behavior. Hydration confirms GitHub loaded Mermaid render documents; it is not a full-width readability review of every diagram. Selected visual samples remain tracked separately.
 3. **Close out the handoff.** Refresh the dependency and render audits after source stabilization. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
-**Next handoff:** stabilize the cited source/test changes without importing the unrelated primary-branch work, then recheck all nine line and semantic targets against the resulting published revision. The diagrams are already published and hosted hydration is verified for all 515; only the source-citation closeout remains.
+**Next handoff:** have source owners publish the active 2025 source/test edits on a suitable reviewed revision without importing unrelated primary-branch work. Then recheck all nine line and semantic targets against that revision. The diagrams are already published and hosted hydration is verified for all 515; source-citation closeout remains.
 
 ## Current baseline
 
