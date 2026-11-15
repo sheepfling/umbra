@@ -8460,7 +8460,7 @@ public final class RtiTckMain {
                "cpp-1516.1-synchronization-point-achievement",
                "requirement-candidate-table-5-p297-r002",
                "requirement-candidate-table-5-p304-r002"
-            }, false), RtiTckMain::serviceReportSynchronization);
+            }, true), RtiTckMain::serviceReportSynchronization);
       run(new Scenario("java-tck.service-report-interlock",
             "enforce the standard service-report switch and subscription interlocks",
             "mom-service-reporting",
@@ -8470,7 +8470,7 @@ public final class RtiTckMain {
                "cpp-1516.1-explicit-mim-composition",
                "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39",
                "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18"
-            }, false), RtiTckMain::serviceReportInterlock);
+            }, true), RtiTckMain::serviceReportInterlock);
       run(new Scenario("java-tck.service-report-interaction-failure",
             "standard MOM reports for failed ordinary interaction services", "mom-service-reporting",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.publishInteractionClass;RTIambassador.sendInteraction;RTIambassador.unpublishInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;EncoderFactory.createHLAunicodeString;EncoderFactory.createHLAinteger16BE;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAboolean;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
@@ -8559,7 +8559,7 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
                "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
                "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7"
-            }, false), RtiTckMain::serviceReportFederateSaveBegun);
+            }, true), RtiTckMain::serviceReportFederateSaveBegun);
       run(new Scenario("java-tck.service-report-attribute-update-failure",
             "verify standard failure reports for invalid ordinary attribute updates",
             "mom-service-reporting",

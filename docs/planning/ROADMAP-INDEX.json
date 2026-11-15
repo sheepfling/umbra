@@ -36138,7 +36138,36 @@
         "mapping_and_validation": "The selected candidate directly maps to §11.5 for positive HLAreportServiceInvocation generation. The mapping covers the service identity/type/success and supplied/returned/exception/serial fields checked by the scenario. It does not assert a particular §11.5.1 Table 5 row. DDM setup, HLAfederate identity, and timestamped delivery are supplemental. Java catalog and scoped C++ evidence validation returned valid=true with no findings.",
         "boundary": "Focused local Umbra Java and installed-package C++ evidence for this primary/contract pair. It does not establish independent-provider behavior, complete MOM/DDM/time coverage, or IEEE 1516.1 conformance."
       },
-      "next_action": "Next reconcile java-tck.service-report-federate-save-begun with its C++ primary and contract twin. Compare the Java report assertions with the public API behavior and selected direct requirement/Table 5 mapping, supply the adapter inputs already named in the catalog, then run Java and paired C++ cases under HLA_EVOKED and HLA_IMMEDIATE. Keep provider runtime evidence scoped and make no broader service-report or conformance claim."
+      "latest_verified_service_report_java_default_enablement_batch_2026_11_15": {
+        "status": "verified-java-default-enabled-service-report-batch-2026-11-15",
+        "scope": "Default-enabled Java TCK cases for FederateSaveBegun reporting, synchronization reports, and service-report switch interlocks, paired with their C++ primary/contract scenarios.",
+        "scenario_ids": [
+          "java-tck.service-report-federate-save-begun",
+          "cpp-tck.service-report-federate-save-begun",
+          "cpp-tck.service-report-federate-save-begun-contract",
+          "java-tck.service-report-synchronization",
+          "cpp-tck.service-report-synchronization",
+          "cpp-tck.service-report-synchronization-contract",
+          "java-tck.service-report-interlock",
+          "cpp-tck.service-report-interlock",
+          "cpp-tck.service-report-interlock-contract"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32 -> hla-1516.1-2025:clause-11.5.1",
+          "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37 -> hla-1516.1-2025:clause-11.5.1",
+          "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1 -> hla-1516.1-2025:clause-4.20",
+          "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3 -> hla-1516.1-2025:clause-4.20",
+          "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7 -> hla-1516.1-2025:clause-4.20",
+          "requirement-candidate-table-5-p297-r002 -> hla-1516.1-2025:clause-11.5.1",
+          "requirement-candidate-table-5-p304-r002 -> hla-1516.1-2025:clause-11.5.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39 -> hla-1516.1-2025:clause-5.10",
+          "requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18 -> hla-1516.1-2025:clause-11.5"
+        ],
+        "evidence": "All three Java scenarios passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14. The three paired C++ primary/contract groups passed 12/12 focused CTests and 12/12 direct callback-model executions against the installed 2026-11-10 package. All six Java result bundles and all three scoped C++ validator runs returned valid=true with no findings. Java results: out/java-tck/service-report-federate-save-begun-parity-20261115/results/{evoked,immediate}.results.json; out/java-tck/service-report-synchronization-parity-20261115/{evoked,immediate}.results.json; out/java-tck/service-report-interlock-parity-20261115/{evoked,immediate}.results.json. C++ results: out/mgw/cpp-tck-service-report-federate-save-begun-parity-20261115/results.json; out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/{synchronization-paired,service-report-interlock-paired}.results.json.",
+        "mapping_and_validation": "FederateSaveBegun maps only the checked empty supplied-argument array and Null return record to §11.5.1, plus the three-member save initiation and label behavior to the selected §4.20 candidates. Synchronization maps only the two checked Table 5 records to §11.5.1. Interlock maps the public subscription failures to §5.10 and the report-switch enable/disable interlock to §11.5. Java catalog and scoped C++ evidence validators passed; no unrelated Table 5 rows are inferred.",
+        "boundary": "Focused local Umbra Java and installed-package C++ evidence for these three scenario groups. It does not establish independent-provider behavior, full MOM/report coverage, or IEEE 1516.1 conformance."
+      },
+      "next_action": "Next reconcile java-tck.service-report-regional-interaction with its C++ primary and contract twin. Compare Java assertions with the exact selected C++ requirement mappings before changing Java mappings; keep dimensional FOM setup, DDM/region behavior, and application delivery supplemental unless directly mapped. Supply the cataloged dimensional FOM, interaction/parameter, and two dimensions, then run the Java and paired C++ cases under HLA_EVOKED and HLA_IMMEDIATE."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",

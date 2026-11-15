@@ -51418,7 +51418,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Direct Java mappings: requirement-candidate-table-5-p297-r002 -> IEEE 1516.1-2025 §11.5.1 Table 5; the successful and duplicate RegisterFederationSynchronizationPoint reports check the bracketed quoted FederateHandle array and exact toString values for both supplied set members. Java FederateHandleSet is a Set with no portable iteration order, so this case does not claim a cross-language element ordering rule. requirement-candidate-table-5-p304-r002 -> §11.5.1 Table 5; both standard SynchronizationPointFailureReason values, duplicate label and previously joined but departed set member, are checked in public failure callbacks and ConfirmSynchronizationPointRegistration reports. RL-409 detached p.304 r003/r004 fragments remain unmapped. No other Table 5 row or conformance is claimed.",
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed focused execution against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE. The paired C++ primary and contract scenarios passed focused CTest and direct execution under both callback models. Java results: out/java-tck/service-report-synchronization-parity-20261115/evoked.results.json and immediate.results.json; C++ results: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/synchronization-paired.results.json. This is local-provider evidence, not independent-provider or conformance evidence.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. The Java case verifies successful and duplicate registration reports, exact handle-set members without claiming iteration order, both standard failure reasons, and achievement. Its paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package; the scoped C++ validator returned valid=true. Java: out/java-tck/service-report-synchronization-parity-20261115/{evoked,immediate}.results.json; C++: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/synchronization-paired.results.json. Evidence is local Umbra only; independent-provider verification and conformance are not claimed.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51430,8 +51430,12 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportSynchronization",
       "parity": "cpp-tck.service-report-synchronization",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled because execution requires an adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed Java provider. Focused current-source Umbra JNI execution passed both callback models; independent-provider evidence remains pending."
+      "default_status": "run",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-interlock",
@@ -51479,7 +51483,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Direct Java mappings: requirement-candidate-content-clauses-05-declaration-management-page-099-l132-39 -> IEEE 1516.1-2025 §5.10. While reporting is enabled, active subscribeInteractionClass and standard subscribeInteractionClassPassively calls for HLAreportServiceInvocation fail with FederateServiceInvocationsAreBeingReportedViaMOM, and the switch stays enabled. requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18 -> §11.5. Existing active and passive MOM report subscriptions each prevent enabling with ReportServiceInvocationsAreSubscribed, rejected toggles leave the switch disabled, and unsubscribe permits re-enabling. The Java passive method is the official API equivalent of the C++ false overload. Only these two public interlocks are mapped; implementation-specific policy and conformance are not claimed.",
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed focused execution against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE. The paired C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct callback-model executions. Java results: out/java-tck/service-report-interlock-parity-20261115/{evoked,immediate}.{results.json,junit.xml}; C++ results: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/service-report-interlock-paired.{results.json,junit.xml}. Java catalog validation, focused C++ evidence validation, parity audit, and diff check passed. Runtime evidence is local-provider only, not independent-provider or conformance evidence.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. The Java case checks both active and passive HLAreportServiceInvocation subscription interlocks while reporting is enabled, both subscription-presence interlocks when enabling, and that rejected toggles preserve switch state until unsubscribe. Its paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions; the scoped C++ validator returned valid=true. Java: out/java-tck/service-report-interlock-parity-20261115/{evoked,immediate}.{results.json,junit.xml}; C++: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/service-report-interlock-paired.{results.json,junit.xml}. Evidence is local Umbra only; independent-provider verification and conformance are not claimed.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51489,8 +51493,12 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportInterlock",
       "parity": "cpp-tck.service-report-interlock",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled because execution requires an adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed Java provider. Focused current-source Umbra JNI execution passed both callback models; independent-provider evidence remains pending."
+      "default_status": "run",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-interaction-failure",
@@ -52254,8 +52262,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportFederateSaveBegun",
       "parity": "cpp-tck.service-report-federate-save-begun",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, service-report support, and callback model; Java provider-runtime result remains unverified.",
+      "default_status": "run",
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
@@ -52283,7 +52290,24 @@
           "note": "All three joined members are non-time-constrained in this scenario, and each receives the save-initiation callback after the request; this is one bounded route."
         }
       ],
-      "mapping_note": "The existing Java case requests federation save and checks one Initiate Federate Save callback with the exact requested label on each of three joined members before FederateSaveBegun. It also checks empty HLAsuppliedArguments and the type-34 Null HLAreturnedArgument. The two report mappings are limited to §11.5.1; the three lifecycle mappings are limited to the existing §4.20 candidates. This does not cover time-constrained save initiation, timestamped save time, other federation phases, complete §11.5.1 coverage, or conformance."
+      "mapping_note": "The existing Java case requests federation save and checks one Initiate Federate Save callback with the exact requested label on each of three joined members before FederateSaveBegun. It also checks empty HLAsuppliedArguments and the type-34 Null HLAreturnedArgument. The two report mappings are limited to §11.5.1; the three lifecycle mappings are limited to the existing §4.20 candidates. This does not cover time-constrained save initiation, timestamped save time, other federation phases, complete §11.5.1 coverage, or conformance.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied P0 FOM, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "callback model selected by the adapter"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.20",
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l99-32",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l16-1",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l22-3",
+        "requirement-candidate-content-clauses-04-federation-management-page-067-l34-7"
+      ],
+      "evidence_note": "Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. The case verifies the FederateSaveBegun report fields and Null return encoding, then checks the exact save label in Initiate Federate Save callbacks for all three members. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package. Java results/JUnit: out/java-tck/service-report-federate-save-begun-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: out/mgw/cpp-tck-service-report-federate-save-begun-parity-20261115/{results.json,results.xml}. Java catalog and scoped C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
     },
     {
       "id": "java-tck.service-report-attribute-update-failure",
