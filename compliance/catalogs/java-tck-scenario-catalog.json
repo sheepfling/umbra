@@ -51934,16 +51934,7 @@
         "HLAinteger32BE.decode",
         "HLAboolean.decode"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-timestamped-object-deletion",
-        "cpp-1516.1-timestamped-object-removal",
-        "cpp-1516.1-object-deletion-retraction",
-        "cpp-1516.1-time-management",
-        "cpp-1516.1-object-registration-discovery"
-      ],
+      "requirement_ids": [],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51968,7 +51959,23 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedObjectDeletion",
       "parity": "cpp-tck.service-report-timestamped-delete-object-instance",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and logical-time implementation."
+      "exclusion": "Default-disabled because execution requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed Java provider. Current-source Umbra JNI execution passed both callback models on 2026-11-15; local-provider evidence does not establish independent-provider interoperability or conformance.",
+      "mapping_classification": "api-contract-only-not-normative-conformance",
+      "selected_requirements_lab_requirement_ids": [],
+      "standard_sections": [],
+      "requirement_mappings": [],
+      "mapping_note": "No direct Java requirement-to-subsection mapping is selected. The paired C++ primary and contract list broad legacy identifiers but no selected Requirements Lab IDs, canonical 2025 sections, or direct mappings. This Java row has no normative requirement IDs; its contract_refs preserve source evidence. The standard service-report contract is experimental public-API evidence, not conformance evidence. Preserve this case as unmapped API-contract parity evidence; do not map report payload or retraction fields by inference.",
+      "parity_scope_note": "The Java case checks the callback MOM report and timestamped removal; it does not enable or inspect a report file. Handle text is checked within each provider run, without requiring Java/C++ providers to expose equal handle text. Java additionally checks HLAfederate publisher identity.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "pinned official IEEE 1516.1-2025 Java API JAR and installed provider",
+        "callback model selected by the adapter"
+      ],
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API with p0-tck.xml, the standard 2025 MIM, HLAinteger64Time, and the current-source Umbra JNI provider. The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-15. The paired installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions. Java catalog validation and focused C++ evidence validation passed. Java results: out/java-tck/service-report-timestamped-object-deletion-parity-20261115/results; C++ results: out/mgw/cpp-tck-service-report-timestamped-delete-object-java-parity-20261115. Runtime evidence is local-provider only, not independent-provider or conformance evidence."
     },
     {
       "id": "java-tck.service-report-timestamped-object-deletion-failure",
