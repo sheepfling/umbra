@@ -5,15 +5,17 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 533)
+## Current finish gates and next handoff — 2026-11-15 (increment 534)
 
-**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All seven additions and 21 revised bodies were published in diagram revision 431152817283718923c06a07e4154ca785e7033a; current candidate branch HEAD is 2eac0907917628e7f50b20654233bb97ec994d3a, a documentation-only closeout commit with no Mermaid body changes. Revision-aware hosted-render evidence covers 515/515 diagrams. Authenticated GitHub GFM checks cover all 41 current 2025 Markdown pages.
+**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All seven additions and 21 revised bodies were published in diagram revision 431152817283718923c06a07e4154ca785e7033a; subsequent documentation-only commits changed no Mermaid bodies. Revision-aware hosted-render evidence covers 515/515 diagrams. This increment rechecked the roadmap and both progress-history pages with the authenticated GitHub GFM API; all three responses were nonempty, maintaining coverage of all 41 current 2025 Markdown pages.
+
+The guide navigation audit found all 32 guide targets in both the [living behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) and [thematic reading paths](HLA-2025-THEMATIC-READING-PATHS.md). It also confirmed that every current guide contains at least one Mermaid diagram. The backlog index exceeds GitHub's Markdown API input limit, so that page remains excluded from API GFM checks; its new relative target exists and both indexes' target sets now match the 32 guide files.
 
 Source-link checks distinguish published and local revisions:
 
 - Candidate worktree: 4,805/4,805 references resolve.
-- Published candidate HEAD 2eac0907: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range.
-- Current local primary HEAD b716d951: 4,805/4,805 resolve. It is ten commits ahead of remote initial-work and includes unrelated implementation and Requirements Lab changes, so it is not a safe docs-only publication route.
+- Candidate source revision checked in this increment, 9e1bc4fe: 4,796/4,805 resolve; nine anchors in four active 2025 source/test files are out of range.
+- Current local primary HEAD 063e5eae: 4,805/4,805 resolve. It is eleven commits ahead of remote initial-work and includes unrelated implementation and Requirements Lab changes, so it is not a safe docs-only publication route.
 - No open GitHub pull requests were found. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) lists the unresolved targets and revisions. Do not retarget citations to unrelated code merely to make line checks pass.
 
 1. **Stabilize and verify the nine source citations.** Have the owners review and publish the relevant 2025 source/test changes on a suitable branch. Then rerun the source-link checker and confirm each semantic target against the exact published revision, especially the two lifecycle TCK anchors.
@@ -41,8 +43,8 @@ selected GitHub visual reviews across all 32 guides; these samples do not
 constitute a full-width readability review of every hosted chart.
 
 The source-link checker covers 4,805 unique references across 41 Markdown
-pages. All resolve in the current worktree and at primary commit `b716d951`; the
-published candidate HEAD 2eac0907 resolves 4,796, with nine out-of-range anchors in four
+pages. All resolve in the current worktree and at primary commit `063e5eae`; the
+published candidate HEAD 9e1bc4fe resolves 4,796, with nine out-of-range anchors in four
 active 2025 source/test files. Those exact targets remain pending publication
 and semantic recheck; see the [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json).
 
@@ -84,16 +86,17 @@ resolves 4,767/4,776, with nine anchors in the same four in-flight files.
 
 The current overall estimate is **approximately 95% complete**, a working
 estimate rather than a fraction derived from gate count. The 515-diagram set
-and its seven additions/21 revised bodies are published; no Mermaid bodies
-changed in the later documentation closeout commit. Hosted hydration remains
-verified for all 515. The remaining closeout is source traceability: nine
-references resolve in the current worktree and at local primary HEAD b716d951,
-but not at published candidate HEAD 2eac0907. The primary checkout is ten
-commits ahead of remote initial-work and includes unrelated Requirements Lab
-changes, so do not use it as a docs publication route. After source owners
-stabilize the cited changes, rerun path and semantic checks. No C++ builds,
-tests, or CI ran for this documentation work; keep 2010 and the Requirements
-Lab separate.
+and its seven additions/21 revised bodies are published; later documentation
+commits changed no Mermaid bodies. Hosted hydration remains verified for all
+515. Both guide indexes now link all 32 current guides, and every guide has at
+least one Mermaid diagram. The remaining closeout is source traceability: nine
+references resolve in the current worktree and at local primary HEAD 063e5eae,
+but not at the candidate source revision checked at 9e1bc4fe. The primary
+checkout is eleven commits ahead of remote initial-work and includes unrelated
+Requirements Lab changes, so do not use it as a docs publication route. After
+source owners stabilize the cited changes, rerun path and semantic checks. No
+C++ builds, tests, or CI ran for this documentation work; keep 2010 and the
+Requirements Lab separate.
 
 Increment 440 reviewed Object and Interaction Information Flow diagram #020,
 “The delivery route carries that captured view to the callback,” in GitHub's

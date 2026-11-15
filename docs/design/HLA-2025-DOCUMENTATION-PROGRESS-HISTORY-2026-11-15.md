@@ -80,3 +80,24 @@ source changes through their owners, then verify all nine line and semantic
 targets against that published revision.
 
 No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+
+## Increment 534 — guide navigation coverage audit (2026-11-15)
+
+The bounded inventory found 32 current IEEE 1516.1-2025 guide files, and all
+32 contain at least one Mermaid diagram. The thematic reading paths already
+linked all 32. The living behavior backlog linked 31 and omitted the MOM object
+and interaction reports guide; its Covered summary now links that guide. Both
+indexes now resolve all 32 guide destinations.
+
+The backlog index is 473,249 bytes, above GitHub's Markdown API 400,000-byte
+input limit, so this increment did not claim an API GFM result for that page.
+The new relative destination exists. This increment also rechecked the roadmap
+and both progress-history pages with the authenticated GitHub GFM API; all
+three responses were nonempty, maintaining coverage of all 41 current 2025
+Markdown pages. Source-link status remains 4,805/4,805 in the worktree and at
+local primary HEAD 063e5eae, versus 4,796/4,805 at candidate revision 9e1bc4fe.
+The nine unresolved source anchors remain pending owner publication and
+semantic recheck.
+
+No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
