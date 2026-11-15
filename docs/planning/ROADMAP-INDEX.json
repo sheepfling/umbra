@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-15 increment 540",
+      "as_of": "2026-11-15 increment 541",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 540 rechecked 4,805 unique IEEE 1516.1-2025 source-line references across 41 Markdown files. Candidate HEAD 52bb2086 resolves 4,796; the worktree resolves all 4,805. The source tree remains unchanged since source-bearing revision 25b9055f. Local primary 6265bca8 passes line bounds only; its TCK targets still identify different behaviors. The 32-guide, 515-diagram set remains published and hydrated. Completion estimate: about 95%.",
-      "next_concrete_review": "Have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch work. Rerun all 4,805 source-line checks and semantically verify the nine targets against that exact published revision; then refresh the dependency and render audits. Keep 2010 separate; do not edit the Requirements Lab.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set is published, hydration is 515/515, and the living backlog/history archive are separately GFM-renderable. Nine source-line anchors remain out of range at candidate HEAD; all resolve only in the uncommitted source/test worktree. The local primary branch passes bounds but is semantically mismatched at two cited TCK lines. Close the goal after source-owner publication and fresh semantic validation. Nonregional receive-order push still lacks focused DSE test evidence; hosted full-width visual review remains sampling-only.",
+      "latest_increment": "Increment 541 verified candidate HEAD and the active source worktree. The pushed candidate is 5f35d503; 4,796/4,805 source-line references resolve there, while all 4,805 resolve in the worktree. Targeted reads reconfirmed the nine worktree meanings, but their source/test edits remain uncommitted. The 32-guide, 515-diagram set and recorded 515/515 hydration audit remain current; completion is approximately 95%.",
+      "next_concrete_review": "After the reviewed 2025 source/test edits are published, rerun all 4,805 source-line checks and semantically verify the nine cited targets at that exact revision. Refresh the dependency snapshot and render audit if source or diagram bodies changed. Keep 2010 separate; do not edit the Requirements Lab.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set is published, and revision-aware hosted hydration covers all 515. Nine source-line anchors remain out of range at candidate HEAD but match the current uncommitted source/test worktree; all nine meanings were rechecked there. The local primary branch passes bounds but is semantically mismatched at two TCK lines. Close out after source-owner publication and fresh line plus semantic validation. Nonregional receive-order push still lacks focused DSE test evidence; hosted full-width review remains sampling-only.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-15 increment 540",
-        "revision": "Candidate worktree based on published HEAD 52bb208631fb6629e49406ff3f25fe24ca13756b plus active, uncommitted source/test edits.",
+        "as_of": "2026-11-15 increment 541",
+        "revision": "Candidate worktree based on published HEAD 5f35d503d225def9dab2f97d46910551bf4439e8 plus active, uncommitted source/test edits.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 41,
         "unique_references": 4805,
         "resolved": 4805,
         "unresolved": 0,
-        "note": "Bounded worktree inspection confirms all nine cited function, parser, Catch2, and Federate-Lost MOM targets. Source/test edits remain uncommitted."
+        "note": "All nine worktree targets were reread at their exact cited line windows and match the described service-host function, timeout parser branch, five Catch2 cases, Federate-Lost MOM scenario, and post-loss update. Source/test edits remain uncommitted."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-15 increment 540",
-        "revision": "Published candidate HEAD 52bb208631fb6629e49406ff3f25fe24ca13756b; source files remain identical to source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d.",
-        "remote_branch_revision": "52bb208631fb6629e49406ff3f25fe24ca13756b",
+        "as_of": "2026-11-15 increment 541",
+        "revision": "Published candidate HEAD 5f35d503d225def9dab2f97d46910551bf4439e8; source files remain identical to source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d.",
+        "remote_branch_revision": "5f35d503d225def9dab2f97d46910551bf4439e8",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 41,
         "unique_references": 4805,
@@ -1071,7 +1071,7 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
         ],
-        "note": "The increment-540 checker rerun confirms nine out-of-range anchors in four target files; later candidate commits changed documentation only."
+        "note": "The increment-541 checker rerun confirms nine out-of-range anchors in four target files. The candidate source tree is unchanged since its source-bearing revision; the remote branch matches HEAD."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-15 increment 540",
@@ -1095,10 +1095,10 @@
         "note": "The remote initial-work branch still lacks the same nine active 2025 source/test line ranges."
       },
       "semantic_source_anchor_review": {
-        "as_of": "2026-11-15 increment 540",
-        "revision": "Current candidate worktree based on 52bb208631fb6629e49406ff3f25fe24ca13756b plus active, uncommitted source/test edits.",
+        "as_of": "2026-11-15 increment 541",
+        "revision": "Candidate worktree based on published HEAD 5f35d503d225def9dab2f97d46910551bf4439e8 plus active, uncommitted source/test edits.",
         "anchors_reviewed": 9,
-        "result": "All nine worktree targets resolve and bounded inspection matches the guide descriptions; published-source verification remains open.",
+        "result": "All nine worktree targets resolve and exact-line inspection matches the guide descriptions; published-source verification remains open.",
         "checks": [
           "process_federation_service_host.cpp#L357 begins ProcessFederationServiceHost::serveConnection.",
           "rti_initialization_data.cpp#L241 selects the RTI_TIMEOUT_HEART configuration branch.",
@@ -1361,8 +1361,8 @@
         "diagram_count": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "combined_method": "All 130 diagrams on five changed pages were checked at current HEAD. The previous full audit covers 385 diagrams on the other 27 unchanged pages.",
-        "current_candidate_revision": "141b662918a90eb9e8e9e4204ced6ebefc897250",
+        "combined_method": "All 130 diagrams on five changed pages were checked at the audited diagram revision. The previous full audit covers 385 diagrams on the other 27 unchanged pages. Documentation-only candidate commits through 5f35d503 changed no Mermaid bodies.",
+        "current_candidate_revision": "5f35d503d225def9dab2f97d46910551bf4439e8",
         "diagram_bodies_changed_since_audited_revision": false,
         "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a"
       },

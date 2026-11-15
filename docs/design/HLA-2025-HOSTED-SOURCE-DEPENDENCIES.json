@@ -2637,9 +2637,9 @@
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
   },
   "latest_candidate_reference_snapshot": {
-    "as_of": "2026-11-15 increment 540",
+    "as_of": "2026-11-15 increment 541",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_revision": "52bb208631fb6629e49406ff3f25fe24ca13756b",
+    "candidate_revision": "5f35d503d225def9dab2f97d46910551bf4439e8",
     "remote_branch_matches_candidate": true,
     "markdown_files": 41,
     "unique_source_line_references": 4805,
@@ -2648,7 +2648,7 @@
       "unresolved": 0,
       "source_edits_uncommitted": true,
       "source_tree_matches_last_committed_source": true,
-      "note": "Current worktree source/test edits resolve all 4,805 references. The nine cited targets were previously checked in bounded ranges and remain present at the same lines; the edits are uncommitted."
+      "note": "Increment 541 rechecked the exact cited line windows in the worktree: the service-host serveConnection definition, RTI timeout parser branch, five named Catch2 cases, the Federate-Lost MOM scenario, and its post-loss conditional update. All 4,805 references resolve there; the supporting source/test edits remain uncommitted."
     },
     "candidate_head": {
       "resolved": 4796,
@@ -2673,7 +2673,8 @@
         "out_of_range_references": 9,
         "affected_target_files": 4
       },
-      "revision": "52bb208631fb6629e49406ff3f25fe24ca13756b"
+      "revision": "5f35d503d225def9dab2f97d46910551bf4439e8",
+      "note": "The increment-541 checker rerun confirms nine out-of-range anchors in four target files. The candidate source tree remains unchanged from the source-bearing revision; increment 540 advanced only documentation paths, and the remote candidate branch matches HEAD."
     },
     "primary_head": {
       "revision": "6265bca881f23b995f7eef76f89f9d3af3e90d6f",
@@ -2691,7 +2692,7 @@
       "published_revised_bodies": 21,
       "current_diagram_count": 515
     },
-    "interpretation": "At current candidate HEAD 52bb208631fb6629e49406ff3f25fe24ca13756b, the checker resolves 4,796/4,805 source-line references; the source tree is unchanged from source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The worktree resolves all 4,805 with uncommitted source/test edits. Remote initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 still resolves 4,796/4,805. Local primary 6265bca881f23b995f7eef76f89f9d3af3e90d6f passes line bounds only and remains semantically mismatched at TCK lines 2389 and 2765; it is 19 commits ahead of the remote. No open GitHub PRs were found. Repeat line and semantic checks after source-owner publication.",
+    "interpretation": "At current candidate HEAD 5f35d503d225def9dab2f97d46910551bf4439e8, the checker resolves 4,796/4,805 source-line references; the source tree is unchanged from source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The remote candidate branch matches this docs-only revision. The worktree resolves all 4,805 with uncommitted source/test edits. Remote initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 still resolves 4,796/4,805. Local primary 6265bca881f23b995f7eef76f89f9d3af3e90d6f passes line bounds only and remains semantically mismatched at TCK lines 2389 and 2765; it is 19 commits ahead of the remote. No open GitHub PRs were found. Repeat line and semantic checks after source-owner publication.",
     "remote_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "open_pull_requests": 0,
     "initial_work": {

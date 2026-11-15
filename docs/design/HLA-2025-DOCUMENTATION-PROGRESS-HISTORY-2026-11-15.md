@@ -241,3 +241,13 @@ Local `feature/initial-work` advanced to `6265bca881f23b995f7eef76f89f9d3af3e90d
 Updated the active roadmap and hosted-source dependency snapshot to these revisions. The overall working completion estimate remains **approximately 95%**. The closeout still requires source-owner publication and fresh line plus semantic validation of all nine citations at that revision. No C++ source was changed; no build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
 
 **Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch work; then rerun the 4,805-reference checker and semantically verify all nine anchors at the exact published revision.
+
+## Increment 541 — refresh the published candidate checkpoint (2026-11-15)
+
+The documentation candidate is now published at `5f35d503d225def9dab2f97d46910551bf4439e8`; the remote branch matches. The increment-540 commit changed documentation only, so the candidate source tree remains at source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`. The remote `feature/initial-work` branch remains at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180`; local primary HEAD remains 19 commits ahead and is not a safe citation base.
+
+The fresh source-link check resolves 4,796/4,805 references at published candidate HEAD and all 4,805 in the current worktree. The same nine references remain out of range at HEAD across four 2025 source/test files. A targeted read of all nine current worktree windows reconfirmed the service-host entry point, timeout parser branch, five named Catch2 cases, Federate-Lost MOM scenario, and post-loss update. They resolve only against uncommitted worktree edits. The local primary's bounds-only result still has semantic mismatches in two TCK targets. GitHub currently shows no open pull requests.
+
+The documentation scope remains 32 IEEE 1516.1-2025 guides and 515 diagrams, with the latest recorded revision-aware hydration audit covering all 515. This checkpoint changed no diagram bodies, so that audit remains applicable. Overall progress remains approximately 95%, a qualitative estimate; final closeout depends on publishing the reviewed source/test revisions and verifying all nine citations at that exact revision. No C++ files were changed, and no build, tests, or CI ran. Keep 2010 and Requirements Lab separate.
+
+**Next handoff:** after source owners publish the reviewed 2025 source/test edits, rerun the 4,805-reference checker and verify the nine citations semantically at the published source revision. Refresh the dependency snapshot and render audit if the source or diagrams changed.

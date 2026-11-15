@@ -5,16 +5,16 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 540)
+## Current finish gates and next handoff — 2026-11-15 (increment 541)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 added a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 
-**Citation status rechecked at increment 540:**
+**Citation status rechecked at increment 541:**
 
-- Current published candidate HEAD `52bb208631fb6629e49406ff3f25fe24ca13756b` resolves 4,796/4,805 source-line references. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the intervening commits are documentation-only.
-- The candidate worktree resolves all 4,805 references. Bounded inspection confirms the cited `serveConnection`, timeout parser, five Catch2 cases, and Federate-Lost MOM scenario, but the source/test edits remain uncommitted.
+- Current published candidate HEAD `5f35d503d225def9dab2f97d46910551bf4439e8` resolves 4,796/4,805 source-line references. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the intervening commits are documentation-only, and the remote candidate branch matches this revision.
+- The candidate worktree resolves all 4,805 references. Increment 541 rechecked the exact cited windows: `serveConnection`, the timeout parser, five Catch2 cases, the Federate-Lost MOM scenario, and its post-loss update. Their source/test edits remain uncommitted.
 - Remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` also resolves 4,796/4,805.
 - Local `feature/initial-work` at `6265bca881f23b995f7eef76f89f9d3af3e90d6f` passes line bounds only. `tck_connection_lifecycle.cpp#L2389` is an automatic delete-then-divest assertion and `#L2765` is a fault-parameter lookup; the Federate-Lost scenario’s post-loss assertion is at `#L2983`. The local branch is 19 commits ahead of its remote and is not a safe citation target.
 - The current GitHub query found no open pull requests. The [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the refreshed revisions and all nine pending targets. Do not retarget citations to unrelated code to make line checks pass.
