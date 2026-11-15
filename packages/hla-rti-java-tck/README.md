@@ -29,6 +29,16 @@ periodic reporting is disabled. It maps only the exact MIM definition in
 IEEE 1516.1-2025 §11.4.1. Focused Java runs passed under both callback models;
 the paired C++ primary/contract tests passed 4/4. This is local-provider
 evidence, not independent-provider behavior or conformance.
+The default-run `java-tck.federate-mom-updated-object-count-periodic` case
+checks the registered-object, distinct-updated-object, and update-call counters
+directly at each service boundary, then verifies the periodic `(2, 2, 3)` report.
+It maps only the shared exact definition for these three HLAcount attributes to
+IEEE 1516.1-2025 §11.4.1. Java passed under both callback models; the paired C++
+primary passed focused CTest 2/2 and both direct callback-model runs. Results
+are in `out/java-tck/federate-mom-updated-object-count-periodic-java-parity-20261115/`
+and `out/mgw/cpp-tck-mom-updated-object-count-periodic-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the

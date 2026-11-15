@@ -64533,6 +64533,7 @@
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.publishObjectClassAttributes",
@@ -64543,6 +64544,9 @@
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
         "RTIambassador.sendInteraction(HLAsetTiming)",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -64551,16 +64555,29 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE",
         "HLAbyte"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the three standard MIM HLAcount attributes covered by this joined-federate case. The registered-object, distinct-updated-object, and update-call counters share one exact requirement-to-section pair: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. Java and paired C++ assertions check direct values (0,0,0) initially; (1,0,0) after first registration; (1,1,1) after the first update; (1,1,2) after a repeat update to the same object; (2,1,2) after second registration; and (2,2,3) after updating a distinct second object. The periodic MOM reflection reports (2,2,3). Repeated updates increase HLAupdatesSent but do not increase HLAobjectInstancesUpdated.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise direct count requests at each service boundary and the combined periodic report.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -64577,12 +64594,13 @@
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
         "mom-service-reporting-requirements-contract.json",
+        "standard-joined-federate-mom-updated-object-count-periodic-contract.json",
         "joined-federate-mom-public-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectCountPeriodic",
       "parity": "cpp-tck.joined-federate-mom-updated-object-count-periodic",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckObject.Value. Results/JUnit: out/java-tck/federate-mom-updated-object-count-periodic-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; results/JUnit: out/mgw/cpp-tck-mom-updated-object-count-periodic-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-object-instances-reflected-mim-attribute",
