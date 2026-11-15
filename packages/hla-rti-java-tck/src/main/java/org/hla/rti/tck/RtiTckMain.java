@@ -8449,15 +8449,17 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management"
             }, false), RtiTckMain::serviceReportConfirmDivestiture);
       run(new Scenario("java-tck.service-report-synchronization",
-            "synchronization registration, duplicate failure, achievement, and MOM reports",
+            "synchronization registration, both standard failures, achievement, and MOM reports",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandleSetFactory;RTIambassador.registerFederationSynchronizationPoint;RTIambassador.synchronizationPointAchieved;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.synchronizationPointRegistrationSucceeded;FederateAmbassador.synchronizationPointRegistrationFailed;FederateAmbassador.announceSynchronizationPoint;FederateAmbassador.federationSynchronized;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandleSetFactory;RTIambassador.registerFederationSynchronizationPoint;RTIambassador.synchronizationPointAchieved;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;FederateHandle.toString;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.synchronizationPointRegistrationSucceeded;FederateAmbassador.synchronizationPointRegistrationFailed;FederateAmbassador.announceSynchronizationPoint;FederateAmbassador.federationSynchronized;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-synchronization-point-registration",
                "cpp-1516.1-synchronization-point-announcement",
-               "cpp-1516.1-synchronization-point-achievement"
+               "cpp-1516.1-synchronization-point-achievement",
+               "requirement-candidate-table-5-p297-r002",
+               "requirement-candidate-table-5-p304-r002"
             }, false), RtiTckMain::serviceReportSynchronization);
       run(new Scenario("java-tck.service-report-interlock",
             "enforce the standard service-report switch and subscription interlocks",

@@ -51355,7 +51355,7 @@
     {
       "id": "java-tck.service-report-synchronization",
       "category": "mom-service-reporting",
-      "title": "Verify synchronization registration, duplicate-label failure, achievement, and standard MOM reports",
+      "title": "Verify synchronization registration, both standard registration failures, achievement, and MOM reports",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -51371,8 +51371,7 @@
         "RTIambassador.getParameterName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
-        "RTIambassador.getFederateHandleFactory",
-        "FederateHandleFactory.decode",
+        "FederateHandle.toString",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.resignFederationExecution",
@@ -51395,8 +51394,31 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-synchronization-point-registration",
         "cpp-1516.1-synchronization-point-announcement",
-        "cpp-1516.1-synchronization-point-achievement"
+        "cpp-1516.1-synchronization-point-achievement",
+        "requirement-candidate-table-5-p297-r002",
+        "requirement-candidate-table-5-p304-r002"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-table-5-p297-r002",
+        "requirement-candidate-table-5-p304-r002"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "focus_lane": "service-report-synchronization-service-and-failure-reports",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p297-r002",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p304-r002",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct Java mappings: requirement-candidate-table-5-p297-r002 -> IEEE 1516.1-2025 §11.5.1 Table 5; the successful and duplicate RegisterFederationSynchronizationPoint reports check the bracketed quoted FederateHandle array and exact toString values for both supplied set members. Java FederateHandleSet is a Set with no portable iteration order, so this case does not claim a cross-language element ordering rule. requirement-candidate-table-5-p304-r002 -> §11.5.1 Table 5; both standard SynchronizationPointFailureReason values, duplicate label and previously joined but departed set member, are checked in public failure callbacks and ConfirmSynchronizationPointRegistration reports. RL-409 detached p.304 r003/r004 fragments remain unmapped. No other Table 5 row or conformance is claimed.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed focused execution against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE. The paired C++ primary and contract scenarios passed focused CTest and direct execution under both callback models. Java results: out/java-tck/service-report-synchronization-parity-20261115/evoked.results.json and immediate.results.json; C++ results: out/mgw/cpp-tck-service-report-register-object-java-parity-20261115-mingw/synchronization-paired.results.json. This is local-provider evidence, not independent-provider or conformance evidence.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51409,7 +51431,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportSynchronization",
       "parity": "cpp-tck.service-report-synchronization",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "exclusion": "Default-disabled because execution requires an adapter-supplied FOM, standard MIM, logical-time implementation, callback model, and installed Java provider. Focused current-source Umbra JNI execution passed both callback models; independent-provider evidence remains pending."
     },
     {
       "id": "java-tck.service-report-interlock",

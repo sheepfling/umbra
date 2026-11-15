@@ -149,7 +149,7 @@ final class ServiceReportSynchronizationTck {
             new Arg[] {
                new Arg(53, "Synchronization point label", quoted(label)),
                new Arg(60, "User-supplied tag", quoted(Base64.getEncoder().encodeToString(tag))),
-               Arg.handleSet(18, "Optional set of joined federate designators", 2)
+               Arg.handleSet(18, "Optional set of joined federate designators", synchronizationSet)
             }, null);
          verifyReport(reportSink, reportRecorder.interactions, encoder, reportClass,
             reportParameters, reliable, "ConfirmSynchronizationPointRegistration", 1,
@@ -185,7 +185,7 @@ final class ServiceReportSynchronizationTck {
             new Arg[] {
                new Arg(53, "Synchronization point label", quoted(label)),
                new Arg(60, "User-supplied tag", null),
-               Arg.handleSet(18, "Optional set of joined federate designators", 2)
+               Arg.handleSet(18, "Optional set of joined federate designators", synchronizationSet)
             }, null);
          verifyReport(reportSink, reportRecorder.interactions, encoder, reportClass,
             reportParameters, reliable, "ConfirmSynchronizationPointRegistration", 4,
@@ -350,8 +350,8 @@ final class ServiceReportSynchronizationTck {
             JavaTckSupport.check(expected.value.equals(value.getValue()),
                service + " report returned the wrong argument value at index " + index);
          }
-         if (expected.expectedHandleSetSize >= 0) {
-            verifyQuotedHandleSet(value.getValue(), expected.expectedHandleSetSize, service);
+         if (expected.expectedHandleValues != null) {
+            verifyQuotedHandleSet(value.getValue(), expected.expectedHandleValues, service);
          }
          if (expectedLastArgumentValue != null && index == 2) {
             JavaTckSupport.check(expectedLastArgumentValue.equals(value.getValue()),
@@ -366,24 +366,86 @@ final class ServiceReportSynchronizationTck {
          service + " successful invocation report carried an exception");
    }
 
-   private static void verifyQuotedHandleSet(String encoded, int expectedSize, String service) {
+   private static void verifyQuotedHandleSet(String encoded, List<String> expectedValues,
+         String service) {
       JavaTckSupport.check(encoded.length() >= 2 && encoded.charAt(0) == '['
             && encoded.charAt(encoded.length() - 1) == ']',
          service + " report did not use the bracketed handle-set form");
-      Set<String> values = new HashSet<>();
-      String contents = encoded.substring(1, encoded.length() - 1);
-      if (!contents.isEmpty()) {
-         for (String item : contents.split(",", -1)) {
-            JavaTckSupport.check(item.length() >= 2 && item.charAt(0) == '"'
-                  && item.charAt(item.length() - 1) == '"',
-               service + " report contained an unquoted handle-set member");
-            String value = item.substring(1, item.length() - 1);
-            JavaTckSupport.check(!value.isEmpty() && values.add(value),
-               service + " report contained an empty or repeated handle-set member");
+      List<String> values = new ArrayList<>();
+      int end = encoded.length() - 1;
+      int index = 1;
+      while (index < end) {
+         JavaTckSupport.check(encoded.charAt(index) == '"',
+            service + " report contained an unquoted handle-set member");
+         ++index;
+         StringBuilder value = new StringBuilder();
+         boolean closed = false;
+         while (index < end) {
+            char next = encoded.charAt(index++);
+            if (next == '"') {
+               closed = true;
+               break;
+            }
+            if (next != '\\') {
+               JavaTckSupport.check(next >= 0x20,
+                  service + " report contained an unescaped control character");
+               value.append(next);
+               continue;
+            }
+            JavaTckSupport.check(index < end,
+               service + " report contained an incomplete handle escape");
+            char escape = encoded.charAt(index++);
+            switch (escape) {
+               case '"': value.append('"'); break;
+               case '\\': value.append('\\'); break;
+               case '/': value.append('/'); break;
+               case 'b': value.append('\b'); break;
+               case 'f': value.append('\f'); break;
+               case 'n': value.append('\n'); break;
+               case 'r': value.append('\r'); break;
+               case 't': value.append('\t'); break;
+               case 'u':
+                  JavaTckSupport.check(index + 4 <= end,
+                     service + " report contained an incomplete Unicode handle escape");
+                  int codeUnit = 0;
+                  for (int digit = 0; digit < 4; ++digit) {
+                     int hex = hexDigit(encoded.charAt(index + digit));
+                     JavaTckSupport.check(hex >= 0,
+                        service + " report contained an invalid Unicode handle escape");
+                     codeUnit = (codeUnit << 4) | hex;
+                  }
+                  value.append((char) codeUnit);
+                  index += 4;
+                  break;
+               default:
+                  JavaTckSupport.check(false,
+                     service + " report contained an unsupported handle escape");
+            }
+         }
+         JavaTckSupport.check(closed,
+            service + " report contained an unterminated handle-set member");
+         String decoded = value.toString();
+         values.add(decoded);
+         if (index < end) {
+            JavaTckSupport.check(encoded.charAt(index) == ',',
+               service + " report did not separate handle-set members with commas");
+            ++index;
+            JavaTckSupport.check(index < end,
+               service + " report contained an empty handle-set member");
          }
       }
-      JavaTckSupport.check(values.size() == expectedSize,
-         service + " report returned the wrong number of handle-set members");
+      values.sort(String::compareTo);
+      List<String> sortedExpectedValues = new ArrayList<>(expectedValues);
+      sortedExpectedValues.sort(String::compareTo);
+      JavaTckSupport.check(values.equals(sortedExpectedValues),
+         service + " report returned the wrong quoted federate handles");
+   }
+
+   private static int hexDigit(char value) {
+      if (value >= '0' && value <= '9') return value - '0';
+      if (value >= 'A' && value <= 'F') return value - 'A' + 10;
+      if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+      return -1;
    }
 
    private static String decodeString(EncoderFactory encoder, Interaction event,
@@ -476,18 +538,22 @@ final class ServiceReportSynchronizationTck {
       private final int type;
       private final String name;
       private final String value;
-      private final int expectedHandleSetSize;
+      private final List<String> expectedHandleValues;
       private Arg(int type, String name, String value) {
-         this(type, name, value, -1);
+         this(type, name, value, null);
       }
-      private Arg(int type, String name, String value, int expectedHandleSetSize) {
+      private Arg(int type, String name, String value, List<String> expectedHandleValues) {
          this.type = type;
          this.name = name;
          this.value = value;
-         this.expectedHandleSetSize = expectedHandleSetSize;
+         this.expectedHandleValues = expectedHandleValues;
       }
-      private static Arg handleSet(int type, String name, int expectedSize) {
-         return new Arg(type, name, null, expectedSize);
+      private static Arg handleSet(int type, String name, FederateHandleSet expectedHandles) {
+         List<String> expectedValues = new ArrayList<>();
+         for (FederateHandle handle : expectedHandles) {
+            expectedValues.add(handle.toString());
+         }
+         return new Arg(type, name, null, expectedValues);
       }
    }
 
