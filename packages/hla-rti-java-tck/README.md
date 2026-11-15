@@ -829,6 +829,34 @@ seven FOM modules through the `hla.rti.tck.resignAction*Fom` properties and the
 pinned MIM through `--mim-path`. Default focused runs passed in both callback
 models on the current-source Umbra JNI build; results are in
 `out/java-tck/fom-automatic-resign-action-setting-java-parity-20261115/`.
+The default `java-tck.fom-root-hierarchy` case accepts standard object and
+interaction roots, round-trips their child-class names through public handle
+lookups, rejects nonstandard top-level object and interaction classes, and
+creates a valid federation under the same name after each rejection. Its
+bounded direct mappings are IEEE 1516.2-2025 §§4.5.1 and 4.6.1. The Java API
+does not expose C++ `isValid()` on handles, so successful name/handle round
+trips are the public validity witness. Focused default runs passed in both
+callback models on current-source Umbra JNI; results are in
+`out/java-tck/fom-root-hierarchy-java-parity-20261115/`. Independent-provider
+behavior and conformance remain unverified.
+The default `java-tck.fom-equivalent-class-conflict` case accepts an equivalent
+duplicate object-class module through public handle/name lookup, rejects a
+same-identity class with conflicting sharing, and confirms valid Create works
+again under the same federation name. It directly covers IEEE 1516.2-2025
+§C.2 for this class and conflict only. Focused default runs passed in both
+callback models on current-source Umbra JNI; results are in
+`out/java-tck/fom-equivalent-class-conflict-java-parity-20261115/`.
+Independent-provider behavior and conformance remain unverified.
+The default `java-tck.fom-inherited-member-names` case verifies stable
+inherited attribute and parameter handles/names, rejects separate FOMs that
+overload each inherited name, and retries valid federation creation under the
+same federation name. It maps to IEEE 1516.2-2025 §§6.2.5 and 6.2.6 for one
+attribute and one parameter witness. Supply the valid, duplicate-attribute,
+and duplicate-parameter modules through the `hla.rti.tck.inheritedMemberNames*`
+properties. Focused default runs passed in both callback models on
+current-source Umbra JNI; results are in
+`out/java-tck/fom-inherited-member-names-java-parity-20261115/`.
+Independent-provider behavior and conformance remain unverified.
 The opt-in `java-tck.fom-interaction-class-hierarchy` case resolves the
 three-level `TckTypedInteraction` hierarchy from `fom-model-tck.xml`, checks
 qualified interaction names round-trip through distinct handles, and verifies
@@ -865,17 +893,19 @@ unverified.
 The opt-in `java-tck.fom-invalid-create-atomicity` scenario retries federation
 creation with each adapter-supplied invalid FOM path, then creates and joins a
 valid federation using the same name to prove failures did not reserve it.
-The opt-in `java-tck.fom-noncompliant-module` scenario tests a schema-valid
+The default `java-tck.fom-noncompliant-module` scenario tests a schema-valid
 zero-update-rate FOM module at both Create and additional-module Join. It checks
 that Create rejects the valid-plus-noncompliant module set and permits a valid
 same-name retry; Join must reject the mixed class/rate module without adding a
 member or class, then allow a valid join while the rejected class remains
 absent. Supply the adapter's base FOM, zero-rate module, and mixed atomicity
 module via `hla.rti.tck.fom`, `hla.rti.tck.noncompliantUpdateRateFom`, and
-`hla.rti.tck.noncompliantModuleAtomicityFom`.
-A focused run passed 1/1 using the current-source JNI native build, cached Umbra
-Java adapter JAR, and HLAinteger64Time; independent providers and conformance
-remain unverified.
+`hla.rti.tck.noncompliantModuleAtomicityFom`. Its direct mapping covers these
+zero-update-rate rejection and atomicity outcomes in IEEE 1516.1-2025
+§4.1.4.1 only. Focused default runs passed in both callback models on the
+current-source JNI build; results are in
+`out/java-tck/fom-noncompliant-module-java-parity-20261115/`.
+Independent-provider behavior and conformance remain unverified.
 The opt-in `java-tck.declaration-publish-before-send` scenario subscribes a
 receiver before attempting an unpublished send, checks the standard rejection
 and absence of a receive callback, then publishes and checks one callback with

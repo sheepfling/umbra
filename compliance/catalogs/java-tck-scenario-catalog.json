@@ -11656,8 +11656,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomNoncompliantModule",
       "parity": "cpp-tck.fom-noncompliant-module",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied base FOM, schema-valid zero-update-rate FOM, mixed class-and-noncompliant-rate FOM, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom, hla.rti.tck.noncompliantUpdateRateFom, and hla.rti.tck.noncompliantModuleAtomicityFom. A focused run passed 1/1 using HLAinteger64Time, the current-source JNI native build, and the cached Umbra Java adapter JAR; independent-provider behavior and conformance remain unverified."
+      "default_status": "run",
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, a base FOM, the schema-valid zero-update-rate FOM, and the mixed class/rate FOM. Results/JUnit: out/java-tck/fom-noncompliant-module-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-invalid-composite-join-atomicity",
@@ -14191,14 +14191,14 @@
           "standard_section": "hla-1516.2-2025:clause-C.2"
         }
       ],
-      "mapping_note": "Standard Java API parity for equivalent-duplicate acceptance, conflicting class sharing rejection, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Direct bounded coverage of IEEE 1516.2-2025 §C.2: creating with an equivalent duplicate of one object-class module accepts the same class identity through public handle/name lookup; a same-name class definition with conflicting sharing is rejected, and a valid duplicate-module Create succeeds under the same federation name. This case covers one class identity and one conflict kind only.",
       "contract_refs": [
         "standard-fom-equivalent-class-conflict-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomEquivalentClassConflict",
       "parity": "cpp-tck.fom-equivalent-class-conflict",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.equivalentClassBaseFom and equivalentClassConflictFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, and the equivalent-class base and conflicting-sharing FOM modules. Results/JUnit: out/java-tck/fom-equivalent-class-conflict-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-inherited-member-names",
@@ -14239,14 +14239,14 @@
           "standard_section": "hla-1516.2-2025:clause-6.2.6"
         }
       ],
-      "mapping_note": "Standard Java API parity for accepted inherited handle/name lookup, duplicate inherited attribute and parameter rejection, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Direct bounded coverage of IEEE 1516.2-2025 §§6.2.5 and 6.2.6: one valid object hierarchy preserves a single inherited attribute handle/name, one valid interaction hierarchy preserves a single inherited parameter handle/name, and separate modules that overload those inherited names are rejected. The valid module is then accepted under the same federation name. This covers one inherited member and one conflicting member for each class family only.",
       "contract_refs": [
         "standard-fom-inherited-member-names-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInheritedMemberNames",
       "parity": "cpp-tck.fom-inherited-member-names",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.inheritedMemberNamesValidFom, inheritedAttributeDuplicateFom, and inheritedParameterDuplicateFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, and the valid, duplicate-inherited-attribute, and duplicate-inherited-parameter FOM modules. Results/JUnit: out/java-tck/fom-inherited-member-names-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-tag-data-type-categories",
@@ -14325,14 +14325,14 @@
           "standard_section": "hla-1516.2-2025:clause-4.6.1"
         }
       ],
-      "mapping_note": "Standard Java API parity for accepted queryable child classes, nonstandard object/interaction root rejections, and valid federation-name retry. Java provider runtime unverified.",
+      "mapping_note": "Direct bounded coverage of IEEE 1516.2-2025 §§4.5.1 and 4.6.1: accepted standard root declarations expose their child classes through public handle/name lookups; object and interaction classes with nonstandard top-level roots are rejected, and a valid FOM creates under the same federation name after each rejection. Java's standard handle API does not define C++ isValid(), so successful handle/name round trips are the public validity witness. This case covers one child class and one invalid FOM per root type only.",
       "contract_refs": [
         "standard-fom-root-hierarchy-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomRootHierarchy",
       "parity": "cpp-tck.fom-root-hierarchy",
-      "default_status": "unsupported",
-      "exclusion": "Configure hla.rti.tck.rootHierarchyValidFom, rootHierarchyInvalidObjectFom, and rootHierarchyInvalidInteractionFom for a 2025 Java provider; runtime unverified."
+      "default_status": "run",
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, and the valid, invalid-object-root, and invalid-interaction-root FOM fixtures. Results/JUnit: out/java-tck/fom-root-hierarchy-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}. Independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-interaction-class-hierarchy",

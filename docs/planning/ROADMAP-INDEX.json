@@ -36549,7 +36549,35 @@
         "mapping_and_validation": "Existing direct mappings cover the selected FOM module composition outcomes in IEEE 1516.1-2025 §§4.1.4.1 and IEEE 1516.2-2025 §C.3. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
         "boundary": "Evidence covers one incomplete scaffold per class family, Create and Join rejection, failed-Join atomicity, and successful companion-module retries. It does not cover every incomplete FOM condition, independent-provider behavior, or conformance."
       },
-      "next_action": "Next audit the unsupported Java catalog scenarios whose notes identify missing or incomplete assertions against their paired C++ cases. Select one with a direct canonical 2025 mapping, compare the exact public-API witnesses, then run both callback models with the required fixtures before changing its default status."
+      "latest_verified_fom_noncompliant_module_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-noncompliant-module after matching the C++ zero-update-rate Create and Join rejection, atomicity checks, and valid retries.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned Java API, p0-tck.xml, invalid-zero-update-rate-tck.xml, and noncompliant-module-atomicity-tck.xml. Results/JUnit: out/java-tck/fom-noncompliant-module-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings for req-fom-module-reject-noncompliant-module and the three selected page 48 requirements remain at IEEE 1516.1-2025 §4.1.4.1. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers one zero update rate, one rejected class/rate module, and the specified Create/Join retries. It is not exhaustive FOM validation, independent-provider evidence, or conformance."
+      },
+      "latest_verified_fom_root_hierarchy_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-root-hierarchy after matching accepted child-class lookups, nonstandard object/interaction root rejection, and same-name valid retries.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned API and the valid, invalid-object-root, and invalid-interaction-root FOM modules. Results/JUnit: out/java-tck/fom-root-hierarchy-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clause-4a-page-047-l59-4 -> IEEE 1516.2-2025 §4.5.1 and requirement-candidate-sections-semantic-clause-4b-page-052-l34-6 -> §4.6.1. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
+        "boundary": "The Java standard handle interfaces do not expose C++ isValid(); evidence uses successful public handle/name round trips for one child class per root and one invalid module per root type. Independent-provider behavior and conformance are not claimed."
+      },
+      "latest_verified_fom_equivalent_class_conflict_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-equivalent-class-conflict after matching equivalent duplicate acceptance, conflicting sharing rejection, and same-name valid Create retry.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned API and the equivalent-class base and conflicting-sharing FOM modules. Results/JUnit: out/java-tck/fom-equivalent-class-conflict-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mapping requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-109-l46-6 -> IEEE 1516.2-2025 §C.2. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers one object-class identity and one sharing conflict. It does not claim all class conflict kinds, independent-provider behavior, or conformance."
+      },
+      "latest_verified_fom_inherited_member_names_2026_11_15": {
+        "status": "verified-2026-11-15",
+        "scope": "Promoted java-tck.fom-inherited-member-names after matching inherited attribute/parameter identity and duplicate-name rejection in the paired C++ scenario.",
+        "evidence": "Focused default Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned API and valid, duplicate-attribute, and duplicate-parameter FOM modules. Results/JUnit: out/java-tck/fom-inherited-member-names-java-parity-20261115/{evoked-default,immediate-default}.{results.json,junit.xml}.",
+        "mapping_and_validation": "Direct mappings requirement-candidate-sections-semantic-clauses-5-6-page-092-l54-10 -> IEEE 1516.2-2025 §6.2.5 and requirement-candidate-sections-semantic-clauses-5-6-page-092-l110-23 -> §6.2.6. Java catalog validation, generated scaffold, C++/Java parity audit, roadmap/mapping check, and git diff --check passed. No Requirements Lab resynchronization.",
+        "boundary": "Evidence covers one inherited attribute, one inherited parameter, and one duplicate-name FOM for each class family. Independent-provider behavior and conformance are not claimed."
+      },
+      "next_action": "Next compare java-tck.fom-tag-data-type-categories with cpp-tck.fom-tag-data-type-categories in packages/hla-rti-cpp-tck/src/tck_fom_tag_data_type.cpp#scenarioFomTagDataTypeCategories. Verify the valid tag declaration, rejection of raw basic user and synchronization tag types, and same-name valid retry against IEEE 1516.2-2025 §§6.2.9 and 6.2.10; use the three adapter FOMs and run both callback models before changing default status."
     }
   ],
   "portable_tck_attribute_scope_advisories_parity_handoff": "2026-10-16: Verified cpp-tck.attribute-scope-advisories and its contract against the installed package under HLA_EVOKED/HLA_IMMEDIATE (4/4 CTests and 4/4 direct runs; no provider rebuild). Both assert no Attributes Out Of Scope callback when a federate removes its own final regional subscription; direct mapping page-098-l41-12 -> §5.9.4, with §10.1.3 explaining the implicit-out-of-scope exception. Java parity now matches and compiles against the pinned API. C++ catalog validates 1082 promoted scenarios; Java 534 IDs resolve in parity audit. Java provider runtime remains unverified; no conformance claim. Next: choose the next promoted C++ behavior with an API-only Java parity opportunity and verify its direct standard mapping before translating assertions.",

@@ -151,7 +151,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "fom-lifecycle",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution;RTIambassador.joinFederationExecution(additionalFomModules);RTIambassador.getObjectClassHandle;RTIambassador.getFederateHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-fom-module-composition",
-               "cpp-1516.1-federation-create-join-resign-destroy"}, false),
+               "cpp-1516.1-federation-create-join-resign-destroy"}, true),
          RtiTckMain::fomNoncompliantModule);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-invalid-mim-create-atomicity",
             "Reject invalid MIM create inputs without reserving the federation name",
@@ -487,7 +487,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "Require standard object and interaction roots",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-root-hierarchy"}, false),
+            new String[] {"cpp-1516.2-fom-root-hierarchy"}, true),
          RtiTckMain::fomRootHierarchy);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-interaction-class-hierarchy",
@@ -508,13 +508,13 @@ final class FomAndHandleLookupScenarioRegistry {
             "Preserve inherited member identity and reject inherited attribute or parameter name reuse",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomInheritedMemberNames);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-equivalent-class-conflict",
             "Accept equivalent duplicate modules and reject conflicting class sharing",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomEquivalentClassConflict);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-reference-class-resolution",
             "Resolve reference-data classes from a later module and reject unresolved classes",
