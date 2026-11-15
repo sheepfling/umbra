@@ -357,30 +357,42 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
    }
 
    static void runDimensionUpperBound(RtiFactory factory, String fom, String mim,
-         String timeImplementation, String dimensionName, CallbackModel callbackModel)
+         String additionalFom, String timeImplementation, String dimensionName,
+         CallbackModel callbackModel)
          throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String federation = "java-tck-service-report-dimension-upper-bound-" + UUID.randomUUID();
+      String foreignFederation = federation + "-foreign";
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean foreignConnected = false, foreignCreated = false, foreignJoined = false;
       InteractionClassHandle reportClass = null;
       try {
          subject.connect(emptyCallbacks(), callbackModel);
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(emptyCallbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecutionWithMIM(
+            foreignFederation, new String[] {fom, additionalFom}, mim, timeImplementation);
+         foreignCreated = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
             "java-tck-dimension-upper-bound-subject", "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution(
             "java-tck-dimension-upper-bound-observer", "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-dimension-upper-bound-foreign", "java-tck", foreignFederation);
+         foreignJoined = true;
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -410,6 +422,10 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          JavaTckSupport.check(dimension != null
                && dimensionName.equals(subject.getDimensionName(dimension)),
             "adapter-supplied dimension lookup/name round-trip failed");
+         DimensionHandle foreignDimension = foreign.getDimensionHandle("TckAdditionalDimension");
+         JavaTckSupport.check(foreignDimension != null
+               && "TckAdditionalDimension".equals(foreign.getDimensionName(foreignDimension)),
+            "additional FOM did not resolve the foreign dimension handle");
          JavaTckSupport.check(!subject.getSendServiceReportsToFileSwitch(),
             "dimension upper-bound test could not select MOM delivery");
          subject.setServiceReportingSwitch(true);
@@ -425,6 +441,21 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
             reportParameters, reliable, "GetDimensionUpperBound",
             new Argument[] {new Argument(10, "Dimension handle", quoted(dimension.toString()))},
             new Argument(35, "Dimension upper bound", Long.toString(upperBound)), 0);
+
+         JavaTckSupport.expectFailure(
+            () -> subject.getDimensionUpperBound(foreignDimension),
+            "InvalidDimensionHandle",
+            "GetDimensionUpperBound with a dimension from another FOM execution");
+         awaitReportCount(observer, recorder, callbackModel, 2,
+            "failed GetDimensionUpperBound service report");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+         JavaTckSupport.check(recorder.events.size() == 2,
+            "GetDimensionUpperBound delivered an unexpected failure-report count");
+         verifyReport(observer, subjectFederate, recorder.events.get(1), encoder, reportClass,
+            reportParameters, reliable, "GetDimensionUpperBound",
+            new Argument[] {new Argument(10, "Dimension handle", null)},
+            new Argument(34, "", "null"), 1, 6, true, false,
+            "InvalidDimensionHandle");
 
          observer.unsubscribeInteractionClass(reportClass);
          reportSubscribed = false;
@@ -447,8 +478,14 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
             try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) resign(foreign);
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
+         if (foreignConnected) disconnect(foreign);
       }
    }
 

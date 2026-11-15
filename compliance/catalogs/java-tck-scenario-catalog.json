@@ -48255,7 +48255,7 @@
     {
       "id": "java-tck.service-report-dimension-upper-bound",
       "category": "mom-service-reporting",
-      "title": "Deliver the standard MOM report for a successful dimension upper-bound lookup",
+      "title": "Verify successful and invalid-handle MOM reports for GetDimensionUpperBound",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -48295,7 +48295,7 @@
         "federation-execution-api-contract.json",
         "standard-service-report-dimension-upper-bound-contract.json"
       ],
-      "evidence_note": "The Java case matches the C++ GetDimensionUpperBound witness: it checks the adapter's TckDimension upper bound is 64 and verifies the type-10 dimension argument, type-35 returned upper bound, and successful report metadata. Profile-enabled focused current-source runs passed without --run-unverified using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension under HLA_EVOKED and HLA_IMMEDIATE. Results: out/java-tck/region-service-report-parity-20261103/results/dimension-upper-bound-{hla_evoked,hla_immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused current-source Umbra JNI runs passed under HLA_EVOKED and HLA_IMMEDIATE with fom-model-tck.xml, fom-extension-tck.xml as the separate-execution FOM, the standard MIM, and HLAinteger64Time. Both runs verified the success report and the API-thrown InvalidDimensionHandle plus failure report. Results: out/java-tck/service-report-dimension-upper-bound-invalid-handle-20261115/{evoked,immediate}.{results.json,junit.xml}. Local provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportDimensionUpperBound",
       "parity": "cpp-tck.service-report-dimension-upper-bound",
       "default_status": "unsupported",

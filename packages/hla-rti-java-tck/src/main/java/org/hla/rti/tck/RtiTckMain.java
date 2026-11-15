@@ -8003,12 +8003,15 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::serviceReportObjectAttributeUpdateRateLookups);
       run(new Scenario("java-tck.service-report-dimension-upper-bound",
-            "standard MOM report for a successful dimension upper-bound lookup",
+            "standard MOM success and failure reports for dimension upper-bound lookups",
             "mom-service-reporting",
             "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
+               "requirement-candidate-table-5-p296-r009",
+               "requirement-candidate-table-5-p299-r001"
             }, false), RtiTckMain::serviceReportDimensionUpperBound);
       run(new Scenario("java-tck.service-report-dimension-name",
             "standard MOM report for a successful dimension-name lookup",
@@ -13151,7 +13154,8 @@ public final class RtiTckMain {
 
    private static void serviceReportDimensionUpperBound() throws Exception {
       ServiceReportObjectAttributeUpdateRateLookupTck.runDimensionUpperBound(factory(),
-         requireFom(), requireMim(), timeImplementation(), dimensionName(), callbackModel());
+         requireFom(), requireMim(), requireAdditionalFom(), timeImplementation(),
+         dimensionName(), callbackModel());
    }
 
    private static void serviceReportDimensionName() throws Exception {
