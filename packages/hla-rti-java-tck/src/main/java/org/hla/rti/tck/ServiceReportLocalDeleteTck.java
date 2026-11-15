@@ -191,6 +191,29 @@ final class ServiceReportLocalDeleteTck {
                && exception.getValue().isEmpty()
                && serial.getValue() == (failureBoundaries ? 1 : 0),
             "local-delete service report contained an incorrect result or serial number");
+
+         HLAfixedRecord prototype = fixedRecordPrototype(encoder);
+         HLAvariableArray<HLAfixedRecord> suppliedArguments = encoder.createHLAvariableArray(
+            index -> fixedRecordPrototype(encoder), prototype);
+         suppliedArguments.decode(report.parameters.get(reportParameters.get("HLAsuppliedArguments")));
+         JavaTckSupport.check(suppliedArguments.size() == 1,
+            "local-delete service report returned the wrong supplied-argument count");
+         HLAfixedRecord suppliedObject = suppliedArguments.get(0);
+         JavaTckSupport.check(suppliedObject.size() == 3
+               && ((HLAinteger32BE) suppliedObject.get(0)).getValue() == 37
+               && "Object instance designator".equals(
+                  ((HLAunicodeString) suppliedObject.get(1)).getValue())
+               && ("\"" + object.toString() + "\"").equals(
+                  ((HLAunicodeString) suppliedObject.get(2)).getValue()),
+            "local-delete service report returned the wrong ObjectInstanceHandle argument");
+         HLAfixedRecord returnedArgument = fixedRecordPrototype(encoder);
+         returnedArgument.decode(report.parameters.get(reportParameters.get("HLAreturnedArgument")));
+         JavaTckSupport.check(returnedArgument.size() == 3
+               && ((HLAinteger32BE) returnedArgument.get(0)).getValue() == 34
+               && ((HLAunicodeString) returnedArgument.get(1)).getValue().isEmpty()
+               && "null".equals(((HLAunicodeString) returnedArgument.get(2)).getValue()),
+            "successful local-delete service report returned the wrong Null value");
+
          ownerRecorder.interactions.clear();
          if (failureBoundaries) {
             JavaTckSupport.expectFailure(

@@ -171,32 +171,42 @@ final class ServiceReportObjectNameReservationTck {
                && serviceType.getValue() == 2 && success.getValue()
                && exception.getValue().isEmpty() && serial.getValue() == 0,
             "object-name reservation report returned an incorrect service result");
-         if (release && multiple) {
+         if (release) {
             HLAfixedRecord prototype = argumentPrototype(encoder);
             HLAvariableArray<HLAfixedRecord> supplied = encoder.createHLAvariableArray(
                index -> argumentPrototype(encoder), prototype);
             supplied.decode(event.parameters.get(reportParameters.get("HLAsuppliedArguments")));
-            StringBuilder expectedNameSet = new StringBuilder("[");
-            for (String name : objectNames) {
-               if (expectedNameSet.length() > 1) expectedNameSet.append(',');
-               expectedNameSet.append('"').append(name).append('"');
-            }
-            expectedNameSet.append(']');
             JavaTckSupport.check(supplied.size() == 1,
-               "multiple-name release report returned the wrong supplied-argument count");
-            HLAfixedRecord nameSetArgument = supplied.get(0);
-            JavaTckSupport.check(((HLAinteger32BE) nameSetArgument.get(0)).getValue() == 54
-                  && "Name set".equals(((HLAunicodeString) nameSetArgument.get(1)).getValue())
-                  && expectedNameSet.toString().equals(
-                     ((HLAunicodeString) nameSetArgument.get(2)).getValue()),
-               "multiple-name release report returned the wrong Name set argument");
+               "object-name release report returned the wrong supplied-argument count");
+            HLAfixedRecord nameArgument = supplied.get(0);
+            JavaTckSupport.check(nameArgument.size() == 3,
+               "object-name release report argument did not have three fields");
+            if (multiple) {
+               StringBuilder expectedNameSet = new StringBuilder("[");
+               for (String name : objectNames) {
+                  if (expectedNameSet.length() > 1) expectedNameSet.append(',');
+                  expectedNameSet.append('"').append(name).append('"');
+               }
+               expectedNameSet.append(']');
+               JavaTckSupport.check(((HLAinteger32BE) nameArgument.get(0)).getValue() == 54
+                     && "Name set".equals(((HLAunicodeString) nameArgument.get(1)).getValue())
+                     && expectedNameSet.toString().equals(
+                        ((HLAunicodeString) nameArgument.get(2)).getValue()),
+                  "multiple-name release report returned the wrong Name set argument");
+            } else {
+               JavaTckSupport.check(((HLAinteger32BE) nameArgument.get(0)).getValue() == 53
+                     && "Name".equals(((HLAunicodeString) nameArgument.get(1)).getValue())
+                     && ("\"" + objectName + "\"").equals(
+                        ((HLAunicodeString) nameArgument.get(2)).getValue()),
+                  "single-name release report returned the wrong String argument");
+            }
             HLAfixedRecord returned = argumentPrototype(encoder);
             returned.decode(event.parameters.get(reportParameters.get("HLAreturnedArgument")));
             JavaTckSupport.check(returned.size() == 3
                   && ((HLAinteger32BE) returned.get(0)).getValue() == 34
                   && ((HLAunicodeString) returned.get(1)).getValue().isEmpty()
                   && "null".equals(((HLAunicodeString) returned.get(2)).getValue()),
-               "multiple-name release report returned the wrong Null argument");
+               "object-name release report returned the wrong Null argument");
          }
       } finally {
          if (ownerJoined) {

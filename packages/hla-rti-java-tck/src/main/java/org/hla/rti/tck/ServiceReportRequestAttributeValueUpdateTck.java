@@ -17,10 +17,13 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAboolean;
+import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
+import hla.rti1516_2025.encoding.HLAvariableArray;
 import java.lang.reflect.Proxy;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,7 +136,14 @@ final class ServiceReportRequestAttributeValueUpdateTck {
          await(owner, callbackModel, () -> !ownerRecorder.providedUpdates.isEmpty(),
             "known-object provideAttributeValueUpdate callback");
          verifyReport(observer, observerRecorder, reportClass, reportParameters, reliable,
-            requesterHandle, encoder, 0);
+            requesterHandle, encoder, 0, new ExpectedArgument[] {
+               new ExpectedArgument(37, true, "Object instance designator",
+                  quoted(discovery.object.toString())),
+               new ExpectedArgument(1, true, "Set of attribute designators",
+                  attributeSetValue(requesterAttribute)),
+               new ExpectedArgument(0, false, "User-supplied tag",
+                  quoted(Base64.getEncoder().encodeToString(instanceTag)))
+            });
          verifyProvider(ownerRecorder, object, ownerAttributes, instanceTag,
             "known-object RequestAttributeValueUpdate");
 
@@ -146,7 +156,14 @@ final class ServiceReportRequestAttributeValueUpdateTck {
          await(owner, callbackModel, () -> !ownerRecorder.providedUpdates.isEmpty(),
             "object-class provideAttributeValueUpdate callback");
          verifyReport(observer, observerRecorder, reportClass, reportParameters, reliable,
-            requesterHandle, encoder, 1);
+            requesterHandle, encoder, 1, new ExpectedArgument[] {
+               new ExpectedArgument(36, true, "Object class designator",
+                  quoted(requesterClass.toString())),
+               new ExpectedArgument(1, true, "Set of attribute designators",
+                  attributeSetValue(requesterAttribute)),
+               new ExpectedArgument(0, false, "User-supplied tag",
+                  quoted(Base64.getEncoder().encodeToString(classTag)))
+            });
          verifyProvider(ownerRecorder, object, ownerAttributes, classTag,
             "object-class RequestAttributeValueUpdate");
       } finally {
@@ -194,7 +211,8 @@ final class ServiceReportRequestAttributeValueUpdateTck {
    private static void verifyReport(RTIambassador observer, Recorder recorder,
          InteractionClassHandle reportClass, Map<String, ParameterHandle> reportParameters,
          TransportationTypeHandle reliable, FederateHandle requesterHandle,
-         EncoderFactory encoder, int serialNumber) throws Exception {
+         EncoderFactory encoder, int serialNumber, ExpectedArgument[] expectedSupplied)
+         throws Exception {
       JavaTckSupport.check(recorder.interactions.size() == 1,
          "RequestAttributeValueUpdate did not produce exactly one service report");
       Interaction event = recorder.interactions.get(0);
@@ -225,8 +243,51 @@ final class ServiceReportRequestAttributeValueUpdateTck {
             && serviceType.getValue() == 2 && success.getValue()
             && exception.getValue().isEmpty() && serial.getValue() == serialNumber,
          "RequestAttributeValueUpdate report contained an incorrect result or serial number");
+
+      HLAfixedRecord prototype = argumentPrototype(encoder);
+      HLAvariableArray<HLAfixedRecord> supplied = encoder.createHLAvariableArray(
+         index -> argumentPrototype(encoder), prototype);
+      supplied.decode(event.parameters.get(reportParameters.get("HLAsuppliedArguments")));
+      JavaTckSupport.check(supplied.size() == expectedSupplied.length,
+         "RequestAttributeValueUpdate report returned the wrong supplied-argument count");
+      for (int index = 0; index < expectedSupplied.length; index++) {
+         verifyArgument(supplied.get(index), expectedSupplied[index],
+            "RequestAttributeValueUpdate supplied argument " + index);
+      }
+      HLAfixedRecord returned = argumentPrototype(encoder);
+      returned.decode(event.parameters.get(reportParameters.get("HLAreturnedArgument")));
+      verifyArgument(returned, new ExpectedArgument(34, true, "", "null"),
+         "RequestAttributeValueUpdate returned argument");
       recorder.interactions.clear();
    }
+
+   private static void verifyArgument(HLAfixedRecord record, ExpectedArgument expected,
+         String description) throws Exception {
+      JavaTckSupport.check(record.size() == 3,
+         description + " expected three fields but received " + record.size());
+      int actualType = ((HLAinteger32BE) record.get(0)).getValue();
+      String actualName = ((HLAunicodeString) record.get(1)).getValue();
+      String actualValue = ((HLAunicodeString) record.get(2)).getValue();
+      JavaTckSupport.check((!expected.verifyType || actualType == expected.type)
+            && expected.name.equals(actualName) && expected.value.equals(actualValue),
+         description + " expected=(" + expected.type + ", " + expected.name + ", "
+            + expected.value + ") actual=(" + actualType + ", " + actualName + ", "
+            + actualValue + ")");
+   }
+
+   private static HLAfixedRecord argumentPrototype(EncoderFactory encoder) {
+      HLAfixedRecord result = encoder.createHLAfixedRecord();
+      result.add(encoder.createHLAinteger32BE());
+      result.add(encoder.createHLAunicodeString());
+      result.add(encoder.createHLAunicodeString());
+      return result;
+   }
+
+   private static String attributeSetValue(AttributeHandle attribute) {
+      return "[" + quoted(attribute.toString()) + "]";
+   }
+
+   private static String quoted(String value) { return "\"" + value + "\""; }
 
    private static void verifyProvider(Recorder recorder, ObjectInstanceHandle object,
          AttributeHandleSet attributes, byte[] tag, String description) {
@@ -255,6 +316,20 @@ final class ServiceReportRequestAttributeValueUpdateTck {
    private static final class Discovery {
       private ObjectInstanceHandle object;
       private ObjectClassHandle objectClass;
+   }
+
+   private static final class ExpectedArgument {
+      private final int type;
+      private final boolean verifyType;
+      private final String name;
+      private final String value;
+
+      private ExpectedArgument(int type, boolean verifyType, String name, String value) {
+         this.type = type;
+         this.verifyType = verifyType;
+         this.name = name;
+         this.value = value;
+      }
    }
 
    private static final class ProvidedUpdate {

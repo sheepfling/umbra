@@ -8235,17 +8235,32 @@ public final class RtiTckMain {
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-attribute-value-update-response",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+               "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+               "requirement-candidate-table-5-p299-r001",
+               "requirement-candidate-table-5-p299-r003",
+               "requirement-candidate-table-5-p299-r004"
             }, false), RtiTckMain::serviceReportRequestAttributeValueUpdate);
       run(new Scenario("java-tck.service-report-local-delete-object-instance",
-            "standard MOM report for a successful local object deletion",
+            "standard MOM report arguments and Null return for successful local deletion",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution(DELETE_OBJECTS);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.getFederateHandleFactory;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.localDeleteObjectInstance;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution(DELETE_OBJECTS);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.getFederateHandleFactory;FederateAmbassador.discoverObjectInstance;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;HLAfixedRecord.decode;HLAvariableArray.decode;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-local-object-instance-deletion",
-               "cpp-1516.1-object-registration-discovery"
+               "cpp-1516.1-object-registration-discovery",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+               "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+               "requirement-candidate-table-5-p299-r001",
+               "requirement-candidate-table-5-p299-r004"
             }, false), RtiTckMain::serviceReportLocalDelete);
       run(new Scenario("java-tck.service-report-local-delete-object-instance-failure",
             "standard MOM reports for unknown and stale local object deletion",
@@ -8341,14 +8356,20 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::serviceReportObjectNameReservation);
       run(new Scenario("java-tck.service-report-release-object-instance-name",
-            "standard MOM report for successful object-name release",
+            "standard MOM report argument and Null return for successful object-name release",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;HLAfixedRecord.decode;HLAvariableArray.decode;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-object-instance-name-lifecycle",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+               "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+               "requirement-candidate-table-5-p299-r001"
             }, false), RtiTckMain::serviceReportObjectNameRelease);
       run(new Scenario("java-tck.service-report-release-multiple-object-instance-names",
             "standard MOM report for successful multiple object-name release",

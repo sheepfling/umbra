@@ -49846,14 +49846,24 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-table-5-p299-r003",
+        "requirement-candidate-table-5-p299-r004"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -49879,12 +49889,70 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportRequestAttributeValueUpdate",
       "parity": "cpp-tck.service-report-request-attribute-value-update",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support."
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-table-5-p299-r003",
+        "requirement-candidate-table-5-p299-r004"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both overload reports decode the ordered HLAargumentList and check its three supplied arguments."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both overload reports verify each supplied argument record has the standard type, name, and value fields; the User-supplied tag type remains unchecked per RL-399."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The object and class overload reports check the respective standard handle argument names and Table 5 type codes."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both void service reports decode and verify the returned HLAargumentRecord."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "Both overload reports check exact serialized handle, one-element attribute set, and known-input tag values."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned argument is checked as Null: Table 5 type code 34, empty name, and value null."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r003",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The class overload checks Object class designator type code 36, name, and quoted handle value."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The known-object overload checks Object instance designator type code 37, name, and quoted handle value."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The Java case now mirrors both successful RequestAttributeValueUpdate overloads. Each report checks three ordered supplied-argument records, their exact standard names and values, Table 5 type codes for the object/class handle and attribute set arguments, and the Null returned argument (type 34, empty name, null value). The User-supplied tag's name and Base64 value are checked from known input bytes; its type code is intentionally not asserted because open Requirements Lab issue RL-399 records conflicting Table 5/example/MIM values. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; this is not a full clause or conformance claim.",
+      "parity_scope_note": "Mirrors the C++ primary's ordered report-argument and Null-return assertions for the object-instance and object-class overloads, plus provider callbacks. The User-supplied tag type remains unchecked per RL-399."
     },
     {
       "id": "java-tck.service-report-local-delete-object-instance",
       "category": "mom-service-reporting",
-      "title": "Verify the standard MOM report for a successful local object deletion",
+      "title": "Verify report arguments and Null return for successful local deletion",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -49917,6 +49985,12 @@
         "RTIambassador.getFederateHandleFactory",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.receiveInteraction",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode",
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
@@ -49926,7 +50000,14 @@
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-local-object-instance-deletion",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-table-5-p299-r004"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -49944,7 +50025,59 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportLocalDelete",
       "parity": "cpp-tck.service-report-local-delete-object-instance",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support."
+      "exclusion": "Requires adapter-supplied FOM, standard MIM, and service-report support.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001",
+        "requirement-candidate-table-5-p299-r004"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied-argument variable array is decoded and required to contain exactly one record."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied handle record checks its type code, standard argument name, and quoted API handle value."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The Object instance designator is asserted with Table 5 type code 37 and its standard name."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The success report decodes and verifies the returned HLAargumentRecord."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The void-return record is decoded and checked against the Null encoding."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The return record is checked as Null: Table 5 type code 34, empty name, and value null."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The ObjectInstanceHandle argument checks Table 5 type code 37, exact name, and quoted handle value."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectInstanceHandle type code 37, exact Object instance designator name and quoted API handle, and the void-return type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; the invoking-federate identity is additional case evidence, and this does not claim full clause coverage or conformance.",
+      "parity_scope_note": "Mirrors the C++ primary local-delete success report, including the ObjectInstanceHandle argument and Null return. Unknown/stale-handle failure behavior remains in the separate failure scenario."
     },
     {
       "id": "java-tck.service-report-local-delete-object-instance-failure",
@@ -50578,6 +50711,12 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.objectInstanceNameReservationSucceeded",
         "FederateAmbassador.receiveInteraction",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode",
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
@@ -50587,7 +50726,13 @@
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-instance-name-lifecycle",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001"
       ],
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
@@ -50604,7 +50749,53 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectNameRelease",
       "parity": "cpp-tck.service-report-release-object-instance-name",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied standard MIM and service-report support."
+      "exclusion": "Requires adapter-supplied standard MIM and service-report support.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied-argument array is decoded and required to contain exactly one record."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The String argument checks Table 5 type code 53 and the exact Name label."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The single-name release report checks the Table 5 String argument type."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The success report decodes and verifies HLAreturnedArgument."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The exact released name is checked in the JSON-quoted HLAargumentValue."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The void return is checked as Null: type code 34, empty name, and value null."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The Java single-name release report now checks exactly one supplied String argument, Table 5 type code 53, the standard Name label, the JSON-quoted reserved name, and the void-return type-34 Null record. Direct mappings remain limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; other Table 5 forms and full clause coverage are not claimed.",
+      "parity_scope_note": "Mirrors the C++ successful ReleaseObjectInstanceName report argument and Null return. Multiple-name release remains checked by its separate Java scenario."
     },
     {
       "id": "java-tck.service-report-release-multiple-object-instance-names",
