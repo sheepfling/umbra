@@ -1901,7 +1901,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-object-registration-discovery"
-            }, false), RtiTckMain::resignUnconditionalDivestiture);
+            }, true), RtiTckMain::resignUnconditionalDivestiture);
       run(new Scenario("java-tck.resign-assumption-later-publication",
             "continue resign-time ownership assumption when a known candidate publishes later",
             "ownership-management",
@@ -1990,7 +1990,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::resignPendingAcquisitionRejection);
+            }, true), RtiTckMain::resignPendingAcquisitionRejection);
       run(new Scenario("java-tck.resign-cancel-if-available-pending",
             "cancel a pending If Available ownership acquisition during resignation without delivering a stale result",
             "ownership-management",
@@ -1999,7 +1999,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::resignCancelIfAvailablePending);
+            }, true), RtiTckMain::resignCancelIfAvailablePending);
       run(new Scenario("java-tck.resign-cancel-negotiated-pending",
             "cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks",
             "ownership-management",
@@ -2008,7 +2008,7 @@ public final class RtiTckMain {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::resignCancelNegotiatedPending);
+            }, true), RtiTckMain::resignCancelNegotiatedPending);
       run(new Scenario("java-tck.resign-cancel-then-delete-then-divest-cross-object-effects",
             "verify all effects of CANCEL_THEN_DELETE_THEN_DIVEST across distinct objects",
             "federation-management",
@@ -2052,7 +2052,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.support-switch-getter-lifecycle-boundaries",
             "check all standard support-switch getters while joined and after resignation and disconnect",
             "support-switches",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassRelevanceAdvisorySwitch;RTIambassador.getAttributeRelevanceAdvisorySwitch;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.getInteractionRelevanceAdvisorySwitch;RTIambassador.getConveyRegionDesignatorSetsSwitch;RTIambassador.getServiceReportingSwitch;RTIambassador.getExceptionReportingSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.getAutoProvideSwitch;RTIambassador.getDelaySubscriptionEvaluationSwitch;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.getAllowRelaxedDDMSwitch;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassRelevanceAdvisorySwitch;RTIambassador.getAttributeRelevanceAdvisorySwitch;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.getInteractionRelevanceAdvisorySwitch;RTIambassador.getConveyRegionDesignatorSetsSwitch;RTIambassador.getServiceReportingSwitch;RTIambassador.setServiceReportingSwitch;RTIambassador.getExceptionReportingSwitch;RTIambassador.setExceptionReportingSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getAutoProvideSwitch;RTIambassador.getDelaySubscriptionEvaluationSwitch;RTIambassador.getAdvisoriesUseKnownClassSwitch;RTIambassador.getAllowRelaxedDDMSwitch;RTIambassador.getNonRegulatedGrantSwitch;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-object-class-relevance-advisory-switch-membership-boundary",
@@ -2067,12 +2067,24 @@ public final class RtiTckMain {
                "cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary",
                "cpp-1516.1-advisories-use-known-class-switch-membership-boundary",
                "cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary",
-               "cpp-1516.1-non-regulated-grant-switch-membership-boundary"
-            }, false), RtiTckMain::supportSwitchGetterLifecycle);
+               "cpp-1516.1-non-regulated-grant-switch-membership-boundary",
+               "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+               "requirement-candidate-content-clauses-10-support-services-page-276-l89-26",
+               "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+               "requirement-candidate-content-clauses-10-support-services-page-277-l187-59",
+               "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+               "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+               "requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect",
+               "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+               "requirement-candidate-content-clauses-10-support-services-page-279-l73-21",
+               "requirement-candidate-content-clauses-10-support-services-page-282-l152-47",
+               "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
+               "requirement-candidate-content-clauses-10-support-services-page-283-l113-34"
+            }, true), RtiTckMain::supportSwitchGetterLifecycle);
       run(new Scenario("java-tck.support-switch-setter-lifecycle-boundaries",
             "check all writable standard support-switch setters while joined and after resignation and disconnect",
             "support-switches",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassRelevanceAdvisorySwitch;RTIambassador.setObjectClassRelevanceAdvisorySwitch;RTIambassador.getAttributeRelevanceAdvisorySwitch;RTIambassador.setAttributeRelevanceAdvisorySwitch;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.setAttributeScopeAdvisorySwitch;RTIambassador.getInteractionRelevanceAdvisorySwitch;RTIambassador.setInteractionRelevanceAdvisorySwitch;RTIambassador.getConveyRegionDesignatorSetsSwitch;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.getServiceReportingSwitch;RTIambassador.setServiceReportingSwitch;RTIambassador.getExceptionReportingSwitch;RTIambassador.setExceptionReportingSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassRelevanceAdvisorySwitch;RTIambassador.setObjectClassRelevanceAdvisorySwitch;RTIambassador.getAttributeRelevanceAdvisorySwitch;RTIambassador.setAttributeRelevanceAdvisorySwitch;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.setAttributeScopeAdvisorySwitch;RTIambassador.getInteractionRelevanceAdvisorySwitch;RTIambassador.setInteractionRelevanceAdvisorySwitch;RTIambassador.getConveyRegionDesignatorSetsSwitch;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.getServiceReportingSwitch;RTIambassador.setServiceReportingSwitch;RTIambassador.getExceptionReportingSwitch;RTIambassador.setExceptionReportingSwitch;RTIambassador.getSendServiceReportsToFileSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-object-class-relevance-advisory-switch-setter-lifecycle-boundary",
@@ -2082,8 +2094,31 @@ public final class RtiTckMain {
                "cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary",
                "cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary",
                "cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary",
-               "cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary"
-            }, false), RtiTckMain::supportSwitchSetterLifecycle);
+               "cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary",
+               "requirement-candidate-content-clauses-10-support-services-page-267-l144-44",
+               "requirement-candidate-content-clauses-10-support-services-page-268-l101-30",
+               "requirement-candidate-content-clauses-10-support-services-page-269-l50-13",
+               "requirement-candidate-content-clauses-10-support-services-page-269-l164-51",
+               "requirement-candidate-content-clauses-10-support-services-page-269-l167-52",
+               "requirement-candidate-content-clauses-10-support-services-page-270-l122-37",
+               "requirement-candidate-content-clauses-10-support-services-page-271-l64-18",
+               "requirement-candidate-content-clauses-10-support-services-page-271-l67-19",
+               "requirement-candidate-content-clauses-10-support-services-page-272-l29-6",
+               "requirement-candidate-content-clauses-10-support-services-page-272-l143-44",
+               "requirement-candidate-content-clauses-10-support-services-page-272-l146-45",
+               "requirement-candidate-content-clauses-10-support-services-page-273-l113-34",
+               "requirement-candidate-content-clauses-10-support-services-page-274-l55-15",
+               "requirement-candidate-content-clauses-10-support-services-page-274-l58-16",
+               "requirement-candidate-content-clauses-10-support-services-page-277-l28-6",
+               "requirement-candidate-content-clauses-10-support-services-page-277-l31-7",
+               "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+               "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+               "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+               "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+               "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+               "requirement-candidate-content-clauses-10-support-services-page-280-l29-6",
+               "requirement-candidate-content-clauses-10-support-services-page-280-l32-7"
+            }, true), RtiTckMain::supportSwitchSetterLifecycle);
       run(new Scenario("java-tck.resign-delete-objects",
             "enforce NO_ACTION ownership failure and removal delivery with DELETE_OBJECTS",
             "object-management",
@@ -6172,7 +6207,7 @@ public final class RtiTckMain {
             "ownership",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.getKnownObjectClassHandle;RTIambassador.queryAttributeOwnership;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeIsNotOwned;FederateAmbassador.removeObjectInstance",
             new String[] {"requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32"},
-            false), RtiTckMain::resignDivestsAllInstanceAttributes);
+            true), RtiTckMain::resignDivestsAllInstanceAttributes);
       run(new Scenario("java-tck.synchronization", "synchronization points", "synchronization",
             "registerFederationSynchronizationPoint;announceSynchronizationPoint;federationSynchronized",
             new String[] {"requirement-candidate-content-clauses-04-federation-management-page-061-l77-17",
@@ -15831,12 +15866,16 @@ public final class RtiTckMain {
 
    private static void supportSwitchGetterLifecycle() throws Exception {
       SupportSwitchGetterLifecycleTck.run(factory(), requireFom(), timeImplementation(),
-         callbackModel());
+         callbackModel(), adapterRtiConfiguration(),
+         System.getProperty(ADDITIONAL_SETTINGS_PROPERTY, ""),
+         System.getProperty("hla.rti.tck.serviceReportDirectory", ""));
    }
 
    private static void supportSwitchSetterLifecycle() throws Exception {
       SupportSwitchSetterLifecycleTck.run(factory(), requireFom(), timeImplementation(),
-         callbackModel());
+         callbackModel(), adapterRtiConfiguration(),
+         System.getProperty(ADDITIONAL_SETTINGS_PROPERTY, ""),
+         System.getProperty("hla.rti.tck.serviceReportDirectory", ""));
    }
 
     private static void attributeMultiRecipientFifo() throws Exception {

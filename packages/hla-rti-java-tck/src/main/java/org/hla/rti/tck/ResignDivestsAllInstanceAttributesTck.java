@@ -157,13 +157,10 @@ final class ResignDivestsAllInstanceAttributesTck {
       }
 
       private boolean onlyUnowned(ObjectInstanceHandle object, AttributeHandleSet expected) {
-         Set<AttributeHandle> reported = new HashSet<>();
-         for (OwnershipEvent event : ownership) {
-            if (!object.equals(event.object) || !"attributeIsNotOwned".equals(event.kind)
-                  || !new HashSet<>(expected).containsAll(event.attributes)) return false;
-            reported.addAll(event.attributes);
-         }
-         return reported.equals(new HashSet<>(expected));
+         if (ownership.size() != 1) return false;
+         OwnershipEvent event = ownership.get(0);
+         return "attributeIsNotOwned".equals(event.kind) && object.equals(event.object)
+               && new HashSet<>(expected).equals(event.attributes);
       }
 
       private FederateAmbassador proxy() {

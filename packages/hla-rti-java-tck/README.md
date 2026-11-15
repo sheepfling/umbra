@@ -365,18 +365,30 @@ adapter FOM and logical-time implementation. It checks that a canceled first
 candidate does not block the second willing candidate from receiving the
 negotiated transfer; immediate delivery uses the equivalent regular pending
 request path because If Available completes as unavailable immediately.
-The `java-tck.resign-pending-acquisition-rejection` case verifies the standard
-`OwnershipAcquisitionPending` failure for unconditional resign, confirms the
-federate remains joined, then cancels the request through the specified resign
-action and checks that evoked cleanup produces no stale owner-release callback.
-The `java-tck.resign-cancel-if-available-pending` case resigns with
+The default-run `java-tck.resign-pending-acquisition-rejection` case verifies the
+standard `OwnershipAcquisitionPending` failure for unconditional resign,
+confirms the named requester remains joined, then cancels the request through
+the specified resign action and checks that evoked cleanup produces no stale
+owner-release callback. It uses the explicit-name Join overload, an
+adapter-supplied ownership FOM, and the standard Java API. The three paired
+`cpp-1516.1-*` references remain internal, with no direct normative section
+mapping claimed. Focused runs passed both callback models on current-source
+Umbra JNI; independent-provider behavior is unverified.
+The default-run `java-tck.resign-cancel-if-available-pending` case resigns with
 `CANCEL_PENDING_OWNERSHIP_ACQUISITIONS` while an If Available request is pending,
 then confirms the current owner is unchanged and no unavailable/acquisition
-callback remains queued after cancellation.
-The `java-tck.resign-cancel-negotiated-pending` case queues a negotiated
-divestiture, resigns the requester with the same cancellation action, and checks
-after bounded owner callback servicing that neither divestiture-confirmation nor
-release-request callbacks remain and ownership stays with the original owner.
+callback remains queued after cancellation. Its three paired `cpp-1516.1-*`
+references remain internal, with no direct normative section mapping claimed.
+Focused runs passed both callback models on current-source Umbra JNI;
+independent-provider behavior is unverified.
+The default-run `java-tck.resign-cancel-negotiated-pending` case queues a
+negotiated divestiture, resigns the requester with the cancellation action, and
+checks after bounded owner callback servicing that neither
+divestiture-confirmation nor release-request callbacks remain and ownership
+stays with the original owner. Its three paired `cpp-1516.1-*` references remain
+internal, with no direct normative section mapping claimed. Focused runs passed
+both callback models on current-source Umbra JNI; independent-provider behavior
+is unverified.
 The `java-tck.divestiture-if-wanted-mixed-acquirers` scenario uses that same
 adapter-supplied FOM. It verifies that If Wanted is a no-op without pending
 acquirers, then transfers two attributes to independent requesters with the
@@ -1223,13 +1235,26 @@ checks the mandatory `Receive`/`TimeStamp` orders and `HLAreliable`/
 `HLAbestEffort` transportation types, including their membership errors after
 resignation.
 
-The opt-in `java-tck.support-switch-getter-lifecycle-boundaries` case exercises
-all thirteen standard support-switch getters while joined, after resignation,
-and after disconnect, checking the corresponding lifecycle exceptions.
+The default-run `java-tck.support-switch-getter-lifecycle-boundaries` case checks
+all thirteen standard getters after resignation and disconnect. While joined,
+it also matches the C++ value checks by toggling and restoring Service
+Reporting, Exception Reporting, and Send Service Reports to File, then checking
+Allow Relaxed DDM and Non Regulated Grant against the enabled adapter FOM. Its
+direct mappings cover only the observed switch values/effects in §§10.46,
+10.48–10.50, 10.55, and 10.56; the service-report directory configures the file
+switch, with no report path/content assertions. Focused runs passed both
+callback models on current-source Umbra JNI; independent-provider behavior is
+unverified.
 
-The opt-in `java-tck.support-switch-setter-lifecycle-boundaries` case reads and
-reapplies each writable switch's current value while joined, then verifies all
-eight setters report the expected membership and connection errors.
+The default-run `java-tck.support-switch-setter-lifecycle-boundaries` case
+matches the C++ false/true/restore round trips for all eight writable support
+switches and checks each corresponding getter after every set. It also verifies
+all eight setters reject use after resignation and disconnect. Direct mappings
+cover the getter-return, setter-value, and Boolean argument/effect requirements
+in §§10.34–10.43 and §§10.46–10.51. The adapter-configured service-report
+directory enables the file switch; the case does not inspect report paths or
+contents. Focused runs passed both callback models on current-source Umbra JNI;
+independent-provider behavior is unverified.
 
 The opt-in `java-tck.resign-unconditional-divestiture` case verifies that
 `NO_ACTION` is rejected while attributes remain owned, then checks the standard
@@ -3635,6 +3660,30 @@ GNU 15.2/Ninja installed-package builds. The test uses only the official
 1516.1-2025 Java API; provider, FOM, time implementation, and callback model are
 adapter-supplied. Its callback wait helper services callbacks only for the
 evoked model, avoiding an illegal evoke call under immediate delivery.
+
+The default `java-tck.resign-unconditional-divestiture` case verifies that
+`resign(NO_ACTION)` is rejected while the departing federate still owns its
+attribute, and that `UNCONDITIONALLY_DIVEST_ATTRIBUTES` produces an assumption
+without transferring ownership until the surviving federate invokes
+`attributeOwnershipAcquisition`. It checks the acquisition callback tag and
+resulting ownership query. Its one direct mapping is limited to the resignation
+exception/consent path in IEEE 1516.1-2025 §7.1. Focused current-source Umbra JNI
+runs passed both callback modes using `known-class-advisory-tck.xml`,
+`HLAinteger64Time`, and `HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject`;
+results are under
+`out/java-tck/resign-unconditional-divestiture-java-parity-20261115/`. No other
+§7.1 exception path, independent-provider behavior, or conformance is claimed.
+
+The default `java-tck.resign-divests-all-instance-attributes` case publishes two
+attributes on each of two objects, then verifies unconditional resignation
+retains both objects and releases both attributes. Each survivor ownership query
+must produce exactly one `attributeIsNotOwned` callback containing the requested
+pair, with no ownership-information or RTI-owned callback. The direct mapping is
+limited to the two-object/two-attribute witness in §7.1.2.1, not the complete
+resignation-action matrix. Focused current-source Umbra JNI runs passed both
+callback modes with the adapter's known-class FOM and `HLAinteger64Time`;
+results are under
+`out/java-tck/resign-divests-all-instance-attributes-java-parity-20261115/`.
 
 The default `java-tck.automatic-resign-directive-lifecycle-boundaries` scenario
 checks that the standard automatic-resign directive getter/setter work while

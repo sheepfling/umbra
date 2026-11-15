@@ -68,6 +68,8 @@ final class ResignUnconditionalDivestitureTck {
             "peer object discovery");
          JavaTckSupport.expectFailure(() -> owner.resignFederationExecution(ResignAction.NO_ACTION),
             "FederateOwnsAttributes", "resigning while still owning published attributes");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute),
+            "rejected NO_ACTION resignation changed attribute ownership");
 
          peerCallbacks.assumptions.clear();
          owner.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
@@ -81,6 +83,8 @@ final class ResignUnconditionalDivestitureTck {
                && assumption.attributes.contains(privilegeToDelete)
                && assumption.tag.length == 0,
             "resignation ownership assumption contained the wrong attributes, object, or tag");
+         JavaTckSupport.check(!peer.isAttributeOwnedByFederate(object, peerAttribute),
+            "resign-time assumption transferred ownership before peer acquisition");
 
          byte[] acquisitionTag = new byte[] {(byte) 0xd1, 0x25};
          peerCallbacks.acquisitions.clear();

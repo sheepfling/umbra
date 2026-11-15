@@ -4,8 +4,12 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.UUID;
 
 /** Checks every standard support-switch getter while joined, resigned, and disconnected. */
@@ -13,12 +17,23 @@ final class SupportSwitchGetterLifecycleTck {
    private SupportSwitchGetterLifecycleTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+         CallbackModel callbackModel, RtiConfiguration configuration, String additionalSettings,
+         String serviceReportDirectory) throws Exception {
+      JavaTckSupport.check(configuration != null,
+         "support-switch getter lifecycle configuration is required");
+      JavaTckSupport.check(serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+            && Files.isDirectory(Path.of(serviceReportDirectory)),
+         "adapter-supplied service-report directory must exist");
+      String expectedDirectorySetting = "serviceReportDirectory=" + Path.of(serviceReportDirectory);
+      JavaTckSupport.check(additionalSettings != null
+            && Arrays.asList(additionalSettings.split(";")).contains(expectedDirectorySetting),
+         "adapter did not configure the expected service-report directory");
+
       RTIambassador ambassador = factory.getRtiAmbassador();
       String federation = "java-tck-support-switch-getters-" + UUID.randomUUID();
       boolean connected = false, created = false, joined = false;
       try {
-         ambassador.connect(callbacks(), callbackModel);
+         ambassador.connect(callbacks(), callbackModel, configuration);
          connected = true;
          ambassador.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -26,7 +41,7 @@ final class SupportSwitchGetterLifecycleTck {
          joined = true;
 
          Getter[] getters = getters(ambassador);
-         for (Getter getter : getters) getter.operation.run();
+         readJoinedValues(ambassador);
 
          ambassador.resignFederationExecution(ResignAction.NO_ACTION);
          joined = false;
@@ -53,6 +68,40 @@ final class SupportSwitchGetterLifecycleTck {
          }
          if (connected) { try { ambassador.disconnect(); } catch (Exception ignored) { } }
       }
+   }
+
+   private static void readJoinedValues(RTIambassador ambassador) throws Exception {
+      ambassador.getObjectClassRelevanceAdvisorySwitch();
+      ambassador.getAttributeRelevanceAdvisorySwitch();
+      ambassador.getAttributeScopeAdvisorySwitch();
+      ambassador.getInteractionRelevanceAdvisorySwitch();
+      ambassador.getConveyRegionDesignatorSetsSwitch();
+      verifyBooleanSwitch("Service Reporting", ambassador::getServiceReportingSwitch,
+         ambassador::setServiceReportingSwitch);
+      verifyBooleanSwitch("Exception Reporting", ambassador::getExceptionReportingSwitch,
+         ambassador::setExceptionReportingSwitch);
+      verifyBooleanSwitch("Send Service Reports to File",
+         ambassador::getSendServiceReportsToFileSwitch,
+         ambassador::setSendServiceReportsToFileSwitch);
+      ambassador.getAutoProvideSwitch();
+      ambassador.getDelaySubscriptionEvaluationSwitch();
+      ambassador.getAdvisoriesUseKnownClassSwitch();
+      JavaTckSupport.check(ambassador.getAllowRelaxedDDMSwitch(),
+         "Get Allow Relaxed DDM Switch did not match the enabled adapter FOM value");
+      JavaTckSupport.check(ambassador.getNonRegulatedGrantSwitch(),
+         "Get Non Regulated Grant Switch did not match the enabled adapter FOM value");
+   }
+
+   private static void verifyBooleanSwitch(String name, BooleanGetter getter, BooleanSetter setter)
+         throws Exception {
+      boolean initial = getter.get();
+      setter.set(false);
+      JavaTckSupport.check(!getter.get(), name + " getter did not return FALSE when disabled");
+      setter.set(true);
+      JavaTckSupport.check(getter.get(), name + " getter did not return TRUE when enabled");
+      setter.set(initial);
+      JavaTckSupport.check(getter.get() == initial,
+         name + " getter did not return the restored value");
    }
 
    private static Getter[] getters(RTIambassador ambassador) {
@@ -103,5 +152,15 @@ final class SupportSwitchGetterLifecycleTck {
          this.name = name;
          this.operation = operation;
       }
+   }
+
+   @FunctionalInterface
+   private interface BooleanGetter {
+      boolean get() throws Exception;
+   }
+
+   @FunctionalInterface
+   private interface BooleanSetter {
+      void set(boolean value) throws Exception;
    }
 }

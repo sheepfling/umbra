@@ -29,6 +29,7 @@ final class ResignPendingAcquisitionRejectionTck {
       String suffix = UUID.randomUUID().toString();
       String federation = "java-tck-resign-pending-acquisition-" + suffix;
       String requesterName = "java-tck-pending-requester-" + suffix;
+      String ownerName = "java-tck-pending-owner-" + suffix;
       boolean requesterConnected = false;
       boolean ownerConnected = false;
       boolean created = false;
@@ -41,9 +42,10 @@ final class ResignPendingAcquisitionRejectionTck {
          ownerConnected = true;
          requester.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         requester.joinFederationExecution(requesterName, federation);
+         requester.joinFederationExecution(requesterName, "java-tck-pending-acquisition",
+            federation);
          requesterJoined = true;
-         owner.joinFederationExecution("java-tck-pending-owner-" + suffix, federation);
+         owner.joinFederationExecution(ownerName, "java-tck-pending-acquisition", federation);
          ownerJoined = true;
 
          ObjectClassHandle requesterClass = requester.getObjectClassHandle(objectClassName);

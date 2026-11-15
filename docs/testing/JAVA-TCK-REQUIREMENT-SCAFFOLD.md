@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 146 |
-| Distinct stable requirement IDs | 1147 |
+| Distinct stable requirement IDs | 1179 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 588 |
-| Default `unsupported` scenarios | 376 |
-| Scenarios with explicit `requirement_mappings` | 670 |
-| Explicit mapping records | 2719 |
+| Default `run` scenarios | 595 |
+| Default `unsupported` scenarios | 369 |
+| Scenarios with explicit `requirement_mappings` | 673 |
+| Explicit mapping records | 2755 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -66,13 +66,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-advisories-use-known-class-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -132,13 +132,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-attribute-relevance-advisory-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-attribute-relevance-advisory-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -150,13 +150,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-attribute-scope-advisory-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-attribute-scope-advisory-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -307,7 +307,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-auto-provide-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -501,13 +501,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-convey-region-designator-sets-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -858,7 +858,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -938,13 +938,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `cpp-1516.1-exception-reporting-switch-membership-boundary`
 
 - [`java-tck.federate-exception-report-delivery`](#scenario-java-tck.federate-exception-report-delivery) — Deliver standard HLAreportException only while the joined federate's Exception Reporting switch is enabled (`mom-exception-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-exception-report-delivery`).
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -1264,8 +1264,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.remote-delete-known-object-class-lookup-boundary`](#scenario-java-tck.remote-delete-known-object-class-lookup-boundary) — Check known-class lookup rejects deletion locally and after remote removal (`object-management`; default `run`; C++ pointer `cpp-tck.remote-delete-known-object-class-lookup-boundary`).
 - [`java-tck.remote-delete-object-instance-name-lookup-boundary`](#scenario-java-tck.remote-delete-object-instance-name-lookup-boundary) — Check object-name and handle lookups reject a remotely deleted object (`object-management`; default `run`; C++ pointer `cpp-tck.remote-delete-object-instance-name-lookup-boundary`).
 - [`java-tck.repeated-join-by-member-boundary`](#scenario-java-tck.repeated-join-by-member-boundary) — Check repeated named join through an existing member ambassador (`federation-management`; default `run`; C++ pointer `cpp-tck.repeated-join-by-member-boundary`).
-- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
-- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
+- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
+- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
 - [`java-tck.resign-cancel-pending-ownership-acquisitions-action`](#scenario-java-tck.resign-cancel-pending-ownership-acquisitions-action) — Cancel pending ownership acquisition during resignation (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-pending-ownership-acquisitions-action`).
 - [`java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`](#scenario-java-tck.resign-cancel-then-delete-then-divest-cross-object-effects) — Verify cancellation, deletion, and divestiture effects across object instances (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects`).
 - [`java-tck.resign-delete-object-lookup-boundary`](#scenario-java-tck.resign-delete-object-lookup-boundary) — Check object identity lookups after DELETE_OBJECTS resignation (`object-management`; default `run`; C++ pointer `cpp-tck.resign-delete-object-lookup-boundary`).
@@ -1274,8 +1274,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.resign-delete-objects-then-divest-cross-object-effects`](#scenario-java-tck.resign-delete-objects-then-divest-cross-object-effects) — Delete a departing federate's object and divest an attribute on a retained object (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-delete-objects-then-divest-cross-object-effects`).
 - [`java-tck.resign-multi-survivor-assumption-fanout`](#scenario-java-tck.resign-multi-survivor-assumption-fanout) — Queue independent ownership-assumption offers for two survivors on resignation (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-multi-survivor-assumption-fanout`).
 - [`java-tck.resign-no-action-owned-attributes-rejection-boundary`](#scenario-java-tck.resign-no-action-owned-attributes-rejection-boundary) — Reject NO_ACTION resignation while an object attribute remains owned (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-no-action-owned-attributes-rejection-boundary`).
-- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
-- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `unsupported`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
+- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `run`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
+- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
 - [`java-tck.resign-unconditionally-divest-preserves-objects`](#scenario-java-tck.resign-unconditionally-divest-preserves-objects) — Divest owned attributes on resignation without deleting registered objects (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects-contract`).
 - [`java-tck.service-report-commit-region-modifications`](#scenario-java-tck.service-report-commit-region-modifications) — Deliver the standard MOM report for committing bounds on two adapter-valid regions (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-commit-region-modifications`).
 - [`java-tck.service-report-create-region`](#scenario-java-tck.service-report-create-region) — Deliver the standard MOM report for creating a region (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-create-region`).
@@ -1310,8 +1310,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.service-report-set-range-bounds`](#scenario-java-tck.service-report-set-range-bounds) — Deliver the standard MOM report for a successful region range-bounds update (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-set-range-bounds`).
 - [`java-tck.service-report-timestamped-attribute-update`](#scenario-java-tck.service-report-timestamped-attribute-update) — Verify timestamped attribute reflection and its standard service report (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-timestamped-attribute-update`).
 - [`java-tck.service-report-timestamped-directed-interaction`](#scenario-java-tck.service-report-timestamped-directed-interaction) — Verify the standard service report and delivery for a timestamped directed interaction (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-timestamped-directed-interaction`).
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 - [`java-tck.timed-default-region-attribute-save-restore`](#scenario-java-tck.timed-default-region-attribute-save-restore) — Restore a queued timestamped default-region attribute update and its retraction state (`timed-default-region-attribute-save-restore`; default `unsupported`; C++ pointer `cpp-tck.timed-default-region-attribute-save-restore`).
 - [`java-tck.timed-default-region-interaction-save-restore`](#scenario-java-tck.timed-default-region-interaction-save-restore) — Restore a queued timestamped default-region interaction and its retraction state (`timed-default-region-interaction-save-restore`; default `unsupported`; C++ pointer `cpp-tck.timed-default-region-interaction-save-restore`).
 - [`java-tck.timed-regional-interaction-save-restore`](#scenario-java-tck.timed-regional-interaction-save-restore) — Restore a queued timestamped regional interaction and its retraction state (`timed-regional-interaction-save-restore`; default `unsupported`; C++ pointer `cpp-tck.timed-regional-interaction-save-restore`).
@@ -1592,13 +1592,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-interaction-relevance-advisory-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-interaction-relevance-advisory-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -1830,7 +1830,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-non-regulated-grant-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -1902,13 +1902,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-object-class-relevance-advisory-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-object-class-relevance-advisory-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -2015,13 +2015,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.partial-attribute-ownership-transfer`](#scenario-java-tck.partial-attribute-ownership-transfer) — Cancel one attribute from a multi-attribute acquisition and transfer only the other (`ownership`; default `unsupported`; C++ pointer `cpp-tck.partial-attribute-ownership-transfer`).
 - [`java-tck.receive-order-object-removal-subscription-withdrawal`](#scenario-java-tck.receive-order-object-removal-subscription-withdrawal) — Deliver a queued terminal object removal after withdrawing one active subscription (`object-removal-subscription-withdrawal`; default `unsupported`; C++ pointer `cpp-tck.receive-order-object-removal-subscription-withdrawal`).
 - [`java-tck.regional-auto-provide-multi-provider`](#scenario-java-tck.regional-auto-provide-multi-provider) — Fan out regional Auto Provide requests across owners after attribute ownership transfer (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-multi-provider`).
-- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
-- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
+- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
+- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
 - [`java-tck.resign-cancel-pending-ownership-acquisitions-action`](#scenario-java-tck.resign-cancel-pending-ownership-acquisitions-action) — Cancel pending ownership acquisition during resignation (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-pending-ownership-acquisitions-action`).
 - [`java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`](#scenario-java-tck.resign-cancel-then-delete-then-divest-cross-object-effects) — Verify cancellation, deletion, and divestiture effects across object instances (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects`).
 - [`java-tck.resign-delete-objects-multi-recipient-fifo`](#scenario-java-tck.resign-delete-objects-multi-recipient-fifo) — Deliver resign-time object removals to two active subscribers in producer order (`ordinary-resign-delete-objects-multi-recipient-fifo`; default `run`; C++ pointer `cpp-tck.resign-delete-objects-multi-recipient-fifo`).
 - [`java-tck.resign-delete-objects-then-divest-cross-object-effects`](#scenario-java-tck.resign-delete-objects-then-divest-cross-object-effects) — Delete a departing federate's object and divest an attribute on a retained object (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-delete-objects-then-divest-cross-object-effects`).
-- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
+- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `run`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
 - [`java-tck.resign-unconditionally-divest-preserves-objects`](#scenario-java-tck.resign-unconditionally-divest-preserves-objects) — Divest owned attributes on resignation without deleting registered objects (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects-contract`).
 - [`java-tck.service-report-cancel-attribute-ownership-acquisition`](#scenario-java-tck.service-report-cancel-attribute-ownership-acquisition) — Verify successful ownership-acquisition cancellation, service report, and confirmation callback (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-cancel-attribute-ownership-acquisition`).
 - [`java-tck.service-report-confirm-divestiture`](#scenario-java-tck.service-report-confirm-divestiture) — Verify negotiated divestiture confirmation, ownership transfer, and successful MOM report (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-confirm-divestiture`).
@@ -2106,7 +2106,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.resign-delete-object-lookup-boundary`](#scenario-java-tck.resign-delete-object-lookup-boundary) — Check object identity lookups after DELETE_OBJECTS resignation (`object-management`; default `run`; C++ pointer `cpp-tck.resign-delete-object-lookup-boundary`).
 - [`java-tck.resign-delete-objects-multi-recipient-fifo`](#scenario-java-tck.resign-delete-objects-multi-recipient-fifo) — Deliver resign-time object removals to two active subscribers in producer order (`ordinary-resign-delete-objects-multi-recipient-fifo`; default `run`; C++ pointer `cpp-tck.resign-delete-objects-multi-recipient-fifo`).
 - [`java-tck.resign-no-action-owned-attributes-rejection-boundary`](#scenario-java-tck.resign-no-action-owned-attributes-rejection-boundary) — Reject NO_ACTION resignation while an object attribute remains owned (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-no-action-owned-attributes-rejection-boundary`).
-- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `unsupported`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
+- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
 - [`java-tck.service-report-delete-object-instance`](#scenario-java-tck.service-report-delete-object-instance) — Verify standard MOM report arguments and receive-order removal callback for ordinary object deletion (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-delete-object-instance`).
 - [`java-tck.service-report-delete-object-instance-failure`](#scenario-java-tck.service-report-delete-object-instance-failure) — Verify standard MOM report argument payloads for unknown and stale object deletion (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-delete-object-instance-failure`).
 - [`java-tck.service-report-local-delete-object-instance`](#scenario-java-tck.service-report-local-delete-object-instance) — Verify report arguments and Null return for successful local deletion (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-local-delete-object-instance`).
@@ -2209,15 +2209,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.partial-attribute-ownership-transfer`](#scenario-java-tck.partial-attribute-ownership-transfer) — Cancel one attribute from a multi-attribute acquisition and transfer only the other (`ownership`; default `unsupported`; C++ pointer `cpp-tck.partial-attribute-ownership-transfer`).
 - [`java-tck.pending-negotiated-ownership-save-restore`](#scenario-java-tck.pending-negotiated-ownership-save-restore) — Preserve a pending ownership acquisition and negotiated divestiture through federation save and restore (`ownership`; default `unsupported`; C++ pointer `cpp-tck.pending-negotiated-ownership-save-restore`).
 - [`java-tck.regional-auto-provide-multi-provider`](#scenario-java-tck.regional-auto-provide-multi-provider) — Fan out regional Auto Provide requests across owners after attribute ownership transfer (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-multi-provider`).
-- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
-- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
+- [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
+- [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
 - [`java-tck.resign-cancel-pending-ownership-acquisitions-action`](#scenario-java-tck.resign-cancel-pending-ownership-acquisitions-action) — Cancel pending ownership acquisition during resignation (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-pending-ownership-acquisitions-action`).
 - [`java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`](#scenario-java-tck.resign-cancel-then-delete-then-divest-cross-object-effects) — Verify cancellation, deletion, and divestiture effects across object instances (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-cancel-then-delete-then-divest-cross-object-effects`).
 - [`java-tck.resign-delete-objects-then-divest-cross-object-effects`](#scenario-java-tck.resign-delete-objects-then-divest-cross-object-effects) — Delete a departing federate's object and divest an attribute on a retained object (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-delete-objects-then-divest-cross-object-effects`).
-- [`java-tck.resign-divests-all-instance-attributes`](#scenario-java-tck.resign-divests-all-instance-attributes) — Unconditionally divesting resignation releases two attributes on each of two objects (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-divests-all-instance-attributes`).
+- [`java-tck.resign-divests-all-instance-attributes`](#scenario-java-tck.resign-divests-all-instance-attributes) — Unconditionally divesting resignation releases two attributes on each of two objects (`ownership`; default `run`; C++ pointer `cpp-tck.resign-divests-all-instance-attributes`).
 - [`java-tck.resign-multi-survivor-assumption-fanout`](#scenario-java-tck.resign-multi-survivor-assumption-fanout) — Queue independent ownership-assumption offers for two survivors on resignation (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-multi-survivor-assumption-fanout`).
-- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `unsupported`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
-- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `unsupported`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
+- [`java-tck.resign-pending-acquisition-rejection`](#scenario-java-tck.resign-pending-acquisition-rejection) — Reject unconditional resignation with pending acquisition, then cancel it during resignation (`ownership`; default `run`; C++ pointer `cpp-tck.resign-pending-acquisition-rejection`).
+- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
 - [`java-tck.resign-unconditionally-divest-preserves-objects`](#scenario-java-tck.resign-unconditionally-divest-preserves-objects) — Divest owned attributes on resignation without deleting registered objects (`federation-management`; default `run`; C++ pointer `cpp-tck.resign-unconditionally-divest-attributes-preserves-objects-contract`).
 - [`java-tck.selective-unpublication-pending-acquisition`](#scenario-java-tck.selective-unpublication-pending-acquisition) — Unpublish only an attribute unrelated to a pending ownership acquisition (`ownership`; default `unsupported`; C++ pointer `cpp-tck.selective-unpublication-pending-acquisition`).
 - [`java-tck.service-report-cancel-attribute-ownership-acquisition`](#scenario-java-tck.service-report-cancel-attribute-ownership-acquisition) — Verify successful ownership-acquisition cancellation, service report, and confirmation callback (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-cancel-attribute-ownership-acquisition`).
@@ -2288,25 +2288,25 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-send-service-reports-to-file-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-service-reporting-switch-membership-boundary`
 
-- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary`
 
-- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `unsupported`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -5523,6 +5523,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39`
+
+- [`java-tck.resign-unconditional-divestiture`](#scenario-java-tck.resign-unconditional-divestiture) — Enforce unconditional resign-time divestiture and surviving-peer acquisition (`ownership-management`; default `run`; C++ pointer `cpp-tck.resign-unconditional-divestiture`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3`
 
 - [`java-tck.timestamped-attribute-ownership-transfer`](#scenario-java-tck.timestamped-attribute-ownership-transfer) — Deliver an accepted timestamped attribute update after ownership transfers before the constrained grant (`time`; default `run`; C++ pointer `cpp-tck.timestamped-attribute-update-ownership-transfer`).
@@ -5574,6 +5580,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-07-ownership-management-page-151-l144-47`
 
 - [`java-tck.ownership-transfer-regional-update`](#scenario-java-tck.ownership-transfer-regional-update) — Clear former-owner regional update state at ownership transfer and require explicit reassociation (`ownership-transfer-regional-update`; default `run`; C++ pointer `cpp-tck.ownership-transfer-regional-update`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32`
+
+- [`java-tck.ownership-assumption-transfer-epoch`](#scenario-java-tck.ownership-assumption-transfer-epoch) — Offer a previously offered candidate a fresh tagged assumption after transfer (`ownership-management`; default `run`; C++ pointer `cpp-tck.ownership-assumption-transfer-epoch`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -7740,9 +7752,176 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-10-support-services-page-267-l144-44`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-10-support-services-page-267-l39-9`
 
 - [`java-tck.normalize-object-instance-handle-region-coordinate`](#scenario-java-tck.normalize-object-instance-handle-region-coordinate) — Use the normalized object-instance handle as an HLAobjectInstance point range (`handle-lookup`; default `run`; C++ pointer `cpp-tck.normalize-object-instance-handle-region-coordinate`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-268-l101-30`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-269-l164-51`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-269-l167-52`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-269-l50-13`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-270-l122-37`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-271-l64-18`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-271-l67-19`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-272-l143-44`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-272-l146-45`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-272-l29-6`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-273-l113-34`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-274-l55-15`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-274-l58-16`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-276-l86-25`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-276-l89-26`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-277-l184-58`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-277-l187-59`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-277-l28-6`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-277-l31-7`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-278-l110-33`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-278-l113-34`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-279-l70-20`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-279-l73-21`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-280-l29-6`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-280-l32-7`
+
+- [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -7755,6 +7934,24 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-10-support-services-page-281-l104-31`
 
 - [`java-tck.delay-subscription-evaluation-interaction`](#scenario-java-tck.delay-subscription-evaluation-interaction) — Re-evaluate ordinary interaction subscriptions at the callback boundary using the standard switch (`delay-subscription-evaluation`; default `run`; C++ pointer `cpp-tck.delay-subscription-evaluation-interaction`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-282-l152-47`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-283-l110-33`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-283-l113-34`
+
+- [`java-tck.support-switch-getter-lifecycle-boundaries`](#scenario-java-tck.support-switch-getter-lifecycle-boundaries) — Check all standard support-switch getter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-getter-lifecycle-boundaries`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9928,6 +10125,43 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33` → `hla-1516.1-2025:clause-4.12`
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l125-35` → `hla-1516.1-2025:clause-4.12`
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l147-40` → `hla-1516.1-2025:clause-4.12`
+- `java-tck.support-switch-getter-lifecycle-boundaries`:
+  - `requirement-candidate-content-clauses-10-support-services-page-276-l86-25` → `hla-1516.1-2025:clause-10.46`
+  - `requirement-candidate-content-clauses-10-support-services-page-276-l89-26` → `hla-1516.1-2025:clause-10.46`
+  - `requirement-candidate-content-clauses-10-support-services-page-277-l184-58` → `hla-1516.1-2025:clause-10.48`
+  - `requirement-candidate-content-clauses-10-support-services-page-277-l187-59` → `hla-1516.1-2025:clause-10.48`
+  - `requirement-candidate-content-clauses-10-support-services-page-278-l110-33` → `hla-1516.1-2025:clause-10.49`
+  - `requirement-candidate-content-clauses-10-support-services-page-278-l113-34` → `hla-1516.1-2025:clause-10.49`
+  - `requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect` → `hla-1516.1-2025:clause-10.49`
+  - `requirement-candidate-content-clauses-10-support-services-page-279-l70-20` → `hla-1516.1-2025:clause-10.50`
+  - `requirement-candidate-content-clauses-10-support-services-page-279-l73-21` → `hla-1516.1-2025:clause-10.50`
+  - `requirement-candidate-content-clauses-10-support-services-page-282-l152-47` → `hla-1516.1-2025:clause-10.55`
+  - `requirement-candidate-content-clauses-10-support-services-page-283-l110-33` → `hla-1516.1-2025:clause-10.56`
+  - `requirement-candidate-content-clauses-10-support-services-page-283-l113-34` → `hla-1516.1-2025:clause-10.56`
+- `java-tck.support-switch-setter-lifecycle-boundaries`:
+  - `requirement-candidate-content-clauses-10-support-services-page-267-l144-44` → `hla-1516.1-2025:clause-10.34`
+  - `requirement-candidate-content-clauses-10-support-services-page-268-l101-30` → `hla-1516.1-2025:clause-10.35`
+  - `requirement-candidate-content-clauses-10-support-services-page-269-l50-13` → `hla-1516.1-2025:clause-10.36`
+  - `requirement-candidate-content-clauses-10-support-services-page-269-l164-51` → `hla-1516.1-2025:clause-10.37`
+  - `requirement-candidate-content-clauses-10-support-services-page-269-l167-52` → `hla-1516.1-2025:clause-10.37`
+  - `requirement-candidate-content-clauses-10-support-services-page-270-l122-37` → `hla-1516.1-2025:clause-10.38`
+  - `requirement-candidate-content-clauses-10-support-services-page-271-l64-18` → `hla-1516.1-2025:clause-10.39`
+  - `requirement-candidate-content-clauses-10-support-services-page-271-l67-19` → `hla-1516.1-2025:clause-10.39`
+  - `requirement-candidate-content-clauses-10-support-services-page-272-l29-6` → `hla-1516.1-2025:clause-10.40`
+  - `requirement-candidate-content-clauses-10-support-services-page-272-l143-44` → `hla-1516.1-2025:clause-10.41`
+  - `requirement-candidate-content-clauses-10-support-services-page-272-l146-45` → `hla-1516.1-2025:clause-10.41`
+  - `requirement-candidate-content-clauses-10-support-services-page-273-l113-34` → `hla-1516.1-2025:clause-10.42`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l55-15` → `hla-1516.1-2025:clause-10.43`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l58-16` → `hla-1516.1-2025:clause-10.43`
+  - `requirement-candidate-content-clauses-10-support-services-page-277-l28-6` → `hla-1516.1-2025:clause-10.47`
+  - `requirement-candidate-content-clauses-10-support-services-page-277-l31-7` → `hla-1516.1-2025:clause-10.47`
+  - `requirement-candidate-content-clauses-10-support-services-page-278-l110-33` → `hla-1516.1-2025:clause-10.49`
+  - `requirement-candidate-content-clauses-10-support-services-page-278-l113-34` → `hla-1516.1-2025:clause-10.49`
+  - `requirement-candidate-content-clauses-10-support-services-page-276-l86-25` → `hla-1516.1-2025:clause-10.46`
+  - `requirement-candidate-content-clauses-10-support-services-page-277-l184-58` → `hla-1516.1-2025:clause-10.48`
+  - `requirement-candidate-content-clauses-10-support-services-page-279-l70-20` → `hla-1516.1-2025:clause-10.50`
+  - `requirement-candidate-content-clauses-10-support-services-page-280-l29-6` → `hla-1516.1-2025:clause-10.51`
+  - `requirement-candidate-content-clauses-10-support-services-page-280-l32-7` → `hla-1516.1-2025:clause-10.51`
 - `java-tck.connection-loss-automatic-delete-then-divest`:
   - `req-federate-connection-lost` → `hla-1516.1-2025:clause-4.1.1`
   - `req-connection-lost-service-behavior` → `hla-1516.1-2025:clause-4.4`
@@ -9967,6 +10201,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `cpp-1516.1-ownership-management` → `hla-1516.1-2025:clause-7.9`
   - `cpp-1516.1-object-instance-name-lifecycle` → `hla-1516.1-2025:clause-10.7`
   - `cpp-1516.1-object-instance-name-lifecycle` → `hla-1516.1-2025:clause-10.8`
+- `java-tck.resign-unconditional-divestiture`:
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39` → `hla-1516.1-2025:clause-7.1`
 - `java-tck.resign-assumption-later-publication`:
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33` → `hla-1516.1-2025:clause-4.12`
   - `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1` → `hla-1516.1-2025:clause-4.12.4`
@@ -14161,10 +14397,10 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.pending-negotiated-ownership-save-restore"></a>`java-tck.pending-negotiated-ownership-save-restore` — Preserve a pending ownership acquisition and negotiated divestiture through federation save and restore | `org.hla.rti.tck.RtiTckMain#pendingNegotiatedOwnershipSaveRestore` | 35 | `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-save-lifecycle`, `cpp-1516.1-federation-restore-lifecycle` | `cpp-tck.pending-negotiated-ownership-save-restore` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.privilege-to-delete-publication-eligibility"></a>`java-tck.privilege-to-delete-publication-eligibility` — Require publication of HLAprivilegeToDeleteObject before ownership acquisition | `org.hla.rti.tck.PrivilegeToDeletePublicationEligibilityTck` | 18 | `java-1516.1-ownership-management` | `cpp-tck.privilege-to-delete-publication-eligibility` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.privilege-to-delete-transfer"></a>`java-tck.privilege-to-delete-transfer` — Transfer HLAprivilegeToDeleteObject and delete through the new owner | `org.hla.rti.tck.PrivilegeToDeleteTransferTck` | 19 | `java-1516.1-ownership-management` | `cpp-tck.privilege-to-delete-transfer` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.resign-cancel-if-available-pending"></a>`java-tck.resign-cancel-if-available-pending` — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result | `org.hla.rti.tck.RtiTckMain#resignCancelIfAvailablePending` | 18 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-cancel-if-available-pending` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.resign-cancel-negotiated-pending"></a>`java-tck.resign-cancel-negotiated-pending` — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks | `org.hla.rti.tck.RtiTckMain#resignCancelNegotiatedPending` | 19 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-cancel-negotiated-pending` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.resign-divests-all-instance-attributes"></a>`java-tck.resign-divests-all-instance-attributes` — Unconditionally divesting resignation releases two attributes on each of two objects | `org.hla.rti.tck.RtiTckMain#resignDivestsAllInstanceAttributes` | 17 | `cpp-1516.1-ownership-management` | `cpp-tck.resign-divests-all-instance-attributes` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.resign-pending-acquisition-rejection"></a>`java-tck.resign-pending-acquisition-rejection` — Reject unconditional resignation with pending acquisition, then cancel it during resignation | `org.hla.rti.tck.RtiTckMain#resignPendingAcquisitionRejection` | 19 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-pending-acquisition-rejection` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.resign-cancel-if-available-pending"></a>`java-tck.resign-cancel-if-available-pending` — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result | `org.hla.rti.tck.RtiTckMain#resignCancelIfAvailablePending` | 18 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-cancel-if-available-pending` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
+| <a id="scenario-java-tck.resign-cancel-negotiated-pending"></a>`java-tck.resign-cancel-negotiated-pending` — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks | `org.hla.rti.tck.RtiTckMain#resignCancelNegotiatedPending` | 19 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-cancel-negotiated-pending` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
+| <a id="scenario-java-tck.resign-divests-all-instance-attributes"></a>`java-tck.resign-divests-all-instance-attributes` — Unconditionally divesting resignation releases two attributes on each of two objects | `org.hla.rti.tck.RtiTckMain#resignDivestsAllInstanceAttributes` | 17 | `cpp-1516.1-ownership-management` | `cpp-tck.resign-divests-all-instance-attributes` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.resign-pending-acquisition-rejection"></a>`java-tck.resign-pending-acquisition-rejection` — Reject unconditional resignation with pending acquisition, then cancel it during resignation | `org.hla.rti.tck.RtiTckMain#resignPendingAcquisitionRejection` | 19 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.resign-pending-acquisition-rejection` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.selective-unpublication-pending-acquisition"></a>`java-tck.selective-unpublication-pending-acquisition` — Unpublish only an attribute unrelated to a pending ownership acquisition | `org.hla.rti.tck.RtiTckMain#selectiveUnpublicationPendingAcquisition` | 16 | `cpp-1516.1-declaration-management`, `cpp-1516.1-ownership-management` | `cpp-tck.selective-unpublication-pending-acquisition` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.unconditional-attribute-ownership-divestiture"></a>`java-tck.unconditional-attribute-ownership-divestiture` — Resolve regular and If Available requests plus a published assumption candidate through unconditional divestiture | `org.hla.rti.tck.RtiTckMain#unconditionalAttributeOwnershipDivestiture` | 22 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.unconditional-attribute-ownership-divestiture` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.unconditional-divestiture-assumption-coalescing"></a>`java-tck.unconditional-divestiture-assumption-coalescing` — Deliver one full-set assumption callback only to the eligible publisher | `org.hla.rti.tck.RtiTckMain#unconditionalDivestitureAssumptionCoalescing` | 17 | `cpp-1516.1-ownership-management`, `requirement-candidate-content-clauses-07-ownership-management-page-157-l79-21`, `requirement-candidate-content-clauses-07-ownership-management-page-157-l82-22`, `requirement-candidate-content-clauses-07-ownership-management-page-157-l97-27`, `requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29` | `cpp-tck.unconditional-divestiture-assumption-coalescing` | `unsupported` | not scenario-declared |
@@ -14177,11 +14413,11 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.confirm-divestiture-mixed-set-atomicity"></a>`java-tck.confirm-divestiture-mixed-set-atomicity` — Reject mixed requested and unrequested Confirm Divestiture sets atomically | `org.hla.rti.tck.RtiTckMain#confirmDivestitureMixedSetAtomicity` | 22 | `cpp-1516.1-ownership-management` | `cpp-tck.confirm-divestiture-mixed-set-atomicity` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.negotiated-divestiture-concurrent-assumption"></a>`java-tck.negotiated-divestiture-concurrent-assumption` — Observe a third candidate's tagged assumption during negotiated confirmation | `org.hla.rti.tck.RtiTckMain#negotiatedDivestitureConcurrentAssumption` | 23 | `cpp-1516.1-ownership-management` | `cpp-tck.negotiated-divestiture-concurrent-assumption` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.ownership-assumption-search-after-decline"></a>`java-tck.ownership-assumption-search-after-decline` — Continue an unowned search after a declined assumption callback and cancellation confirmation | `org.hla.rti.tck.RtiTckMain#ownershipAssumptionSearchAfterDecline` | 25 | `requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18`, `requirement-candidate-content-clauses-07-ownership-management-page-148-l70-21`, `requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49` | `cpp-tck.ownership-assumption-search-after-decline` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.ownership-assumption-transfer-epoch"></a>`java-tck.ownership-assumption-transfer-epoch` — Offer a previously offered candidate a fresh tagged assumption after transfer | `org.hla.rti.tck.RtiTckMain#ownershipAssumptionTransferEpoch` | 22 | `cpp-1516.1-ownership-management` | `cpp-tck.ownership-assumption-transfer-epoch` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.ownership-assumption-transfer-epoch"></a>`java-tck.ownership-assumption-transfer-epoch` — Offer a previously offered candidate a fresh tagged assumption after transfer | `org.hla.rti.tck.RtiTckMain#ownershipAssumptionTransferEpoch` | 22 | `cpp-1516.1-ownership-management`, `requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32` | `cpp-tck.ownership-assumption-transfer-epoch` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.resign-assumption-later-discovery"></a>`java-tck.resign-assumption-later-discovery` — Continue resignation-time ownership search after later joining and discovering the retained object | `org.hla.rti.tck.RtiTckMain#resignAssumptionLaterDiscovery` | 17 | `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`, `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1` | `cpp-tck.resign-assumption-later-discovery` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.resign-assumption-later-publication"></a>`java-tck.resign-assumption-later-publication` — Continue resign-time ownership assumption when a known candidate publishes later | `org.hla.rti.tck.RtiTckMain#resignAssumptionLaterPublication` | 17 | `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`, `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1` | `cpp-tck.resign-assumption-later-publication` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.resign-multi-survivor-assumption-fanout"></a>`java-tck.resign-multi-survivor-assumption-fanout` — Queue independent ownership-assumption offers for two survivors on resignation | `org.hla.rti.tck.RtiTckMain#resignMultiSurvivorAssumptionFanout` | 18 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-ownership-management` | `cpp-tck.resign-multi-survivor-assumption-fanout` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.resign-unconditional-divestiture"></a>`java-tck.resign-unconditional-divestiture` — Enforce unconditional resign-time divestiture and surviving-peer acquisition | `org.hla.rti.tck.RtiTckMain#resignUnconditionalDivestiture` | 18 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-ownership-management`, `cpp-1516.1-object-registration-discovery` | `cpp-tck.resign-unconditional-divestiture` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.resign-unconditional-divestiture"></a>`java-tck.resign-unconditional-divestiture` — Enforce unconditional resign-time divestiture and surviving-peer acquisition | `org.hla.rti.tck.RtiTckMain#resignUnconditionalDivestiture` | 18 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-ownership-management`, `cpp-1516.1-object-registration-discovery`, `requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39` | `cpp-tck.resign-unconditional-divestiture` | `run` | not scenario-declared |
 
 ### `ownership-transfer-regional-update`
 
@@ -14347,8 +14583,8 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
 | <a id="scenario-java-tck.advisory-switch-value-round-trips"></a>`java-tck.advisory-switch-value-round-trips` — Round-trip all four standard Boolean advisory switch values | `org.hla.rti.tck.RtiTckMain#advisorySwitchValueRoundTrips` | 14 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-class-relevance-advisory-switch-standard-value-round-trip`, `cpp-1516.1-attribute-relevance-advisory-switch-standard-value-round-trip`, `cpp-1516.1-attribute-scope-advisory-switch-standard-value-round-trip`, `cpp-1516.1-interaction-relevance-advisory-switch-standard-value-round-trip` | `cpp-tck.advisory-switch-value-round-trips` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.support-switch-getter-lifecycle-boundaries"></a>`java-tck.support-switch-getter-lifecycle-boundaries` — Check all standard support-switch getter lifecycle boundaries | `org.hla.rti.tck.RtiTckMain#supportSwitchGetterLifecycle` | 19 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-class-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-attribute-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-attribute-scope-advisory-switch-membership-boundary`, `cpp-1516.1-interaction-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-convey-region-designator-sets-switch-membership-boundary`, `cpp-1516.1-service-reporting-switch-membership-boundary`, `cpp-1516.1-exception-reporting-switch-membership-boundary`, `cpp-1516.1-send-service-reports-to-file-switch-membership-boundary`, `cpp-1516.1-auto-provide-switch-membership-boundary`, `cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary`, `cpp-1516.1-advisories-use-known-class-switch-membership-boundary`, `cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary`, `cpp-1516.1-non-regulated-grant-switch-membership-boundary` | `cpp-tck.support-switch-getter-lifecycle-boundaries` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.support-switch-setter-lifecycle-boundaries"></a>`java-tck.support-switch-setter-lifecycle-boundaries` — Check all writable standard support-switch setter lifecycle boundaries | `org.hla.rti.tck.RtiTckMain#supportSwitchSetterLifecycle` | 22 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-class-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-attribute-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-attribute-scope-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-interaction-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary`, `cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary`, `cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary`, `cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary` | `cpp-tck.support-switch-setter-lifecycle-boundaries` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.support-switch-getter-lifecycle-boundaries"></a>`java-tck.support-switch-getter-lifecycle-boundaries` — Check all standard support-switch getter lifecycle boundaries | `org.hla.rti.tck.RtiTckMain#supportSwitchGetterLifecycle` | 24 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-class-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-attribute-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-attribute-scope-advisory-switch-membership-boundary`, `cpp-1516.1-interaction-relevance-advisory-switch-membership-boundary`, `cpp-1516.1-convey-region-designator-sets-switch-membership-boundary`, `cpp-1516.1-service-reporting-switch-membership-boundary`, `cpp-1516.1-exception-reporting-switch-membership-boundary`, `cpp-1516.1-send-service-reports-to-file-switch-membership-boundary`, `cpp-1516.1-auto-provide-switch-membership-boundary`, `cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary`, `cpp-1516.1-advisories-use-known-class-switch-membership-boundary`, `cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary`, `cpp-1516.1-non-regulated-grant-switch-membership-boundary`, `requirement-candidate-content-clauses-10-support-services-page-276-l86-25`, `requirement-candidate-content-clauses-10-support-services-page-276-l89-26`, `requirement-candidate-content-clauses-10-support-services-page-277-l184-58`, `requirement-candidate-content-clauses-10-support-services-page-277-l187-59`, `requirement-candidate-content-clauses-10-support-services-page-278-l110-33`, `requirement-candidate-content-clauses-10-support-services-page-278-l113-34`, `requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect`, `requirement-candidate-content-clauses-10-support-services-page-279-l70-20`, `requirement-candidate-content-clauses-10-support-services-page-279-l73-21`, `requirement-candidate-content-clauses-10-support-services-page-282-l152-47`, `requirement-candidate-content-clauses-10-support-services-page-283-l110-33`, `requirement-candidate-content-clauses-10-support-services-page-283-l113-34` | `cpp-tck.support-switch-getter-lifecycle-boundaries` | `run` | Adapter-supplied support-switch-getter-lifecycle-tck.xml with Allow Relaxed DDM and Non Regulated Grant enabled; HLAinteger64Time logical-time implementation; RtiConfiguration serviceReportDirectory additional setting and existing service-report directory; HLA_EVOKED or HLA_IMMEDIATE callback model |
+| <a id="scenario-java-tck.support-switch-setter-lifecycle-boundaries"></a>`java-tck.support-switch-setter-lifecycle-boundaries` — Check all writable standard support-switch setter lifecycle boundaries | `org.hla.rti.tck.RtiTckMain#supportSwitchSetterLifecycle` | 24 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-class-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-attribute-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-attribute-scope-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-interaction-relevance-advisory-switch-setter-lifecycle-boundary`, `cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary`, `cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary`, `cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary`, `cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary`, `requirement-candidate-content-clauses-10-support-services-page-267-l144-44`, `requirement-candidate-content-clauses-10-support-services-page-268-l101-30`, `requirement-candidate-content-clauses-10-support-services-page-269-l50-13`, `requirement-candidate-content-clauses-10-support-services-page-269-l164-51`, `requirement-candidate-content-clauses-10-support-services-page-269-l167-52`, `requirement-candidate-content-clauses-10-support-services-page-270-l122-37`, `requirement-candidate-content-clauses-10-support-services-page-271-l64-18`, `requirement-candidate-content-clauses-10-support-services-page-271-l67-19`, `requirement-candidate-content-clauses-10-support-services-page-272-l29-6`, `requirement-candidate-content-clauses-10-support-services-page-272-l143-44`, `requirement-candidate-content-clauses-10-support-services-page-272-l146-45`, `requirement-candidate-content-clauses-10-support-services-page-273-l113-34`, `requirement-candidate-content-clauses-10-support-services-page-274-l55-15`, `requirement-candidate-content-clauses-10-support-services-page-274-l58-16`, `requirement-candidate-content-clauses-10-support-services-page-277-l28-6`, `requirement-candidate-content-clauses-10-support-services-page-277-l31-7`, `requirement-candidate-content-clauses-10-support-services-page-278-l110-33`, `requirement-candidate-content-clauses-10-support-services-page-278-l113-34`, `requirement-candidate-content-clauses-10-support-services-page-276-l86-25`, `requirement-candidate-content-clauses-10-support-services-page-277-l184-58`, `requirement-candidate-content-clauses-10-support-services-page-279-l70-20`, `requirement-candidate-content-clauses-10-support-services-page-280-l29-6`, `requirement-candidate-content-clauses-10-support-services-page-280-l32-7` | `cpp-tck.support-switch-setter-lifecycle-boundaries` | `run` | Adapter-supplied support-switch-getter-lifecycle-tck.xml; HLAinteger64Time logical-time implementation; RtiConfiguration serviceReportDirectory additional setting and existing service-report directory; HLA_EVOKED or HLA_IMMEDIATE callback model |
 
 ### `synchronization`
 

@@ -3979,7 +3979,7 @@
       ],
       "mapping_note": "Direct §11.4.1 p. 290 l. 174 witness: request the initial HLAfederatesInFederation value and verify the roster after an entrant joins and resigns. Decode the standard nested federate-handle reference array with the Java encoder API and FederateHandleFactory; compare membership without imposing roster order. The mapping is limited to this conditional roster behavior, not other Federation MOM attributes."
     },
-        {
+    {
       "id": "java-tck.federation-mom-content-reports",
       "category": "federation-mom",
       "title": "Request standard federation MOM FOM-module and MIM content reports",
@@ -4082,7 +4082,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "Direct but bounded Java evidence for IEEE 1516.2-2025 \u00a7C.1 and \u00a74.14.6, plus IEEE 1516.1-2025 \u00a74.1.4.2 and Annex G: the federation is created with two FOM modules; public HLAcurrentFDD modelIdentification references are checked against each source name; and public reports for indices 0 and 1 match each module ordered text-only XML leaves. The reported MIM is compared with the pinned standard resource, its first four array declarations and semantics are checked, and the concrete Annex G p. 434 l. 34 lowercase-name precedence is verified. XML attributes, byte identity, full structural equality, arbitrary SOMs, and other possible module combinations remain outside scope.",
+      "mapping_note": "Direct but bounded Java evidence for IEEE 1516.2-2025 §C.1 and §4.14.6, plus IEEE 1516.1-2025 §4.1.4.2 and Annex G: the federation is created with two FOM modules; public HLAcurrentFDD modelIdentification references are checked against each source name; and public reports for indices 0 and 1 match each module ordered text-only XML leaves. The reported MIM is compared with the pinned standard resource, its first four array declarations and semantics are checked, and the concrete Annex G p. 434 l. 34 lowercase-name precedence is verified. XML attributes, byte identity, full structural equality, arbitrary SOMs, and other possible module combinations remain outside scope.",
       "adapter_inputs": [
         "provider JAR, provider factory, and JNI library",
         "base application FOM and standard MIM",
@@ -7205,7 +7205,9 @@
       "category": "support-switches",
       "title": "Check all standard support-switch getter lifecycle boundaries",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withAdditionalSettings",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassRelevanceAdvisorySwitch",
@@ -7214,8 +7216,11 @@
         "RTIambassador.getInteractionRelevanceAdvisorySwitch",
         "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.getServiceReportingSwitch",
+        "RTIambassador.setServiceReportingSwitch",
         "RTIambassador.getExceptionReportingSwitch",
+        "RTIambassador.setExceptionReportingSwitch",
         "RTIambassador.getSendServiceReportsToFileSwitch",
+        "RTIambassador.setSendServiceReportsToFileSwitch",
         "RTIambassador.getAutoProvideSwitch",
         "RTIambassador.getDelaySubscriptionEvaluationSwitch",
         "RTIambassador.getAdvisoriesUseKnownClassSwitch",
@@ -7239,23 +7244,116 @@
         "cpp-1516.1-delay-subscription-evaluation-switch-membership-boundary",
         "cpp-1516.1-advisories-use-known-class-switch-membership-boundary",
         "cpp-1516.1-allow-relaxed-ddm-switch-membership-boundary",
-        "cpp-1516.1-non-regulated-grant-switch-membership-boundary"
+        "cpp-1516.1-non-regulated-grant-switch-membership-boundary",
+        "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+        "requirement-candidate-content-clauses-10-support-services-page-276-l89-26",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l187-59",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l73-21",
+        "requirement-candidate-content-clauses-10-support-services-page-282-l152-47",
+        "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-283-l113-34"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+        "requirement-candidate-content-clauses-10-support-services-page-276-l89-26",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l187-59",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l73-21",
+        "requirement-candidate-content-clauses-10-support-services-page-282-l152-47",
+        "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-283-l113-34"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.46",
+        "hla-1516.1-2025:clause-10.48",
+        "hla-1516.1-2025:clause-10.49",
+        "hla-1516.1-2025:clause-10.50",
+        "hla-1516.1-2025:clause-10.55",
+        "hla-1516.1-2025:clause-10.56"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+          "standard_section": "hla-1516.1-2025:clause-10.46"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-276-l89-26",
+          "standard_section": "hla-1516.1-2025:clause-10.46"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+          "standard_section": "hla-1516.1-2025:clause-10.48"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l187-59",
+          "standard_section": "hla-1516.1-2025:clause-10.48"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-278-l113-34-effect",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+          "standard_section": "hla-1516.1-2025:clause-10.50"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-279-l73-21",
+          "standard_section": "hla-1516.1-2025:clause-10.50"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-282-l152-47",
+          "standard_section": "hla-1516.1-2025:clause-10.55"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-283-l110-33",
+          "standard_section": "hla-1516.1-2025:clause-10.56"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-283-l113-34",
+          "standard_section": "hla-1516.1-2025:clause-10.56"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mapping is limited to the observed getter/setter contracts: Service Reporting values map p.276 l.86/l.89 to §10.46; Exception Reporting values map p.277 l.184/l.187 to §10.48 and setter Boolean/effect controls map p.278 l.110/l.113 to §10.49; Send Service Reports to File values map p.279 l.70/l.73 to §10.50. The exact enabled FOM values for Allow Relaxed DDM and Non Regulated Grant map p.282 l.152 to §10.55 and p.283 l.110/l.113 to §10.56. The other getter lifecycle boundaries remain supplemental internal scenarios. The adapter supplies a service-report directory only to configure the file switch; this case does not inspect report-file paths or contents and does not assert DDM routing or time advancement.",
       "contract_refs": [
         "support-switch-getter-lifecycle-boundaries-api-contract.json",
         "support-switch-getter-lifecycle-boundaries-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#supportSwitchGetterLifecycle",
       "parity": "cpp-tck.support-switch-getter-lifecycle-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and logical-time implementation; remains opt-in until exercised against a Java IEEE 1516.1-2025 provider."
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/support-switch-getter-lifecycle-tck.xml, HLAinteger64Time, and an adapter-configured serviceReportDirectory. Results/JUnit: out/java-tck/support-switch-getter-lifecycle-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied support-switch-getter-lifecycle-tck.xml with Allow Relaxed DDM and Non Regulated Grant enabled",
+        "HLAinteger64Time logical-time implementation",
+        "RtiConfiguration serviceReportDirectory additional setting and existing service-report directory",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.support-switch-setter-lifecycle-boundaries",
       "category": "support-switches",
       "title": "Check all writable standard support-switch setter lifecycle boundaries",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withAdditionalSettings",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassRelevanceAdvisorySwitch",
@@ -7287,16 +7385,185 @@
         "cpp-1516.1-convey-region-designator-sets-switch-setter-lifecycle-boundary",
         "cpp-1516.1-service-reporting-switch-setter-lifecycle-boundary",
         "cpp-1516.1-exception-reporting-switch-setter-lifecycle-boundary",
-        "cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary"
+        "cpp-1516.1-send-service-reports-to-file-switch-setter-lifecycle-boundary",
+        "requirement-candidate-content-clauses-10-support-services-page-267-l144-44",
+        "requirement-candidate-content-clauses-10-support-services-page-268-l101-30",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l50-13",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l164-51",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l167-52",
+        "requirement-candidate-content-clauses-10-support-services-page-270-l122-37",
+        "requirement-candidate-content-clauses-10-support-services-page-271-l64-18",
+        "requirement-candidate-content-clauses-10-support-services-page-271-l67-19",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l29-6",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l143-44",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l146-45",
+        "requirement-candidate-content-clauses-10-support-services-page-273-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l55-15",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l58-16",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l28-6",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l31-7",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+        "requirement-candidate-content-clauses-10-support-services-page-280-l29-6",
+        "requirement-candidate-content-clauses-10-support-services-page-280-l32-7"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-267-l144-44",
+        "requirement-candidate-content-clauses-10-support-services-page-268-l101-30",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l50-13",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l164-51",
+        "requirement-candidate-content-clauses-10-support-services-page-269-l167-52",
+        "requirement-candidate-content-clauses-10-support-services-page-270-l122-37",
+        "requirement-candidate-content-clauses-10-support-services-page-271-l64-18",
+        "requirement-candidate-content-clauses-10-support-services-page-271-l67-19",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l29-6",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l143-44",
+        "requirement-candidate-content-clauses-10-support-services-page-272-l146-45",
+        "requirement-candidate-content-clauses-10-support-services-page-273-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l55-15",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l58-16",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l28-6",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l31-7",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+        "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+        "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+        "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+        "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+        "requirement-candidate-content-clauses-10-support-services-page-280-l29-6",
+        "requirement-candidate-content-clauses-10-support-services-page-280-l32-7"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.34",
+        "hla-1516.1-2025:clause-10.35",
+        "hla-1516.1-2025:clause-10.36",
+        "hla-1516.1-2025:clause-10.37",
+        "hla-1516.1-2025:clause-10.38",
+        "hla-1516.1-2025:clause-10.39",
+        "hla-1516.1-2025:clause-10.40",
+        "hla-1516.1-2025:clause-10.41",
+        "hla-1516.1-2025:clause-10.42",
+        "hla-1516.1-2025:clause-10.43",
+        "hla-1516.1-2025:clause-10.46",
+        "hla-1516.1-2025:clause-10.47",
+        "hla-1516.1-2025:clause-10.48",
+        "hla-1516.1-2025:clause-10.49",
+        "hla-1516.1-2025:clause-10.50",
+        "hla-1516.1-2025:clause-10.51"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-267-l144-44",
+          "standard_section": "hla-1516.1-2025:clause-10.34"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-268-l101-30",
+          "standard_section": "hla-1516.1-2025:clause-10.35"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-269-l50-13",
+          "standard_section": "hla-1516.1-2025:clause-10.36"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-269-l164-51",
+          "standard_section": "hla-1516.1-2025:clause-10.37"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-269-l167-52",
+          "standard_section": "hla-1516.1-2025:clause-10.37"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-270-l122-37",
+          "standard_section": "hla-1516.1-2025:clause-10.38"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-271-l64-18",
+          "standard_section": "hla-1516.1-2025:clause-10.39"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-271-l67-19",
+          "standard_section": "hla-1516.1-2025:clause-10.39"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-272-l29-6",
+          "standard_section": "hla-1516.1-2025:clause-10.40"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-272-l143-44",
+          "standard_section": "hla-1516.1-2025:clause-10.41"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-272-l146-45",
+          "standard_section": "hla-1516.1-2025:clause-10.41"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-273-l113-34",
+          "standard_section": "hla-1516.1-2025:clause-10.42"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l55-15",
+          "standard_section": "hla-1516.1-2025:clause-10.43"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l58-16",
+          "standard_section": "hla-1516.1-2025:clause-10.43"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l28-6",
+          "standard_section": "hla-1516.1-2025:clause-10.47"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l31-7",
+          "standard_section": "hla-1516.1-2025:clause-10.47"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-278-l110-33",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-278-l113-34",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-276-l86-25",
+          "standard_section": "hla-1516.1-2025:clause-10.46"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-277-l184-58",
+          "standard_section": "hla-1516.1-2025:clause-10.48"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-279-l70-20",
+          "standard_section": "hla-1516.1-2025:clause-10.50"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-280-l29-6",
+          "standard_section": "hla-1516.1-2025:clause-10.51"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-280-l32-7",
+          "standard_section": "hla-1516.1-2025:clause-10.51"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct Java mappings mirror the C++ switch value/setter table: the eight getter-return candidates, eight setter shall-set-value candidates, and seven Boolean argument/effect candidates across §§10.34–10.43 and §§10.46–10.51. Each getter/setter pair is checked at FALSE and TRUE, with the initial value restored and observed. The Requirements Lab exports these records under preceding reference-state-chart subsections; page 267–274 records are tracked as RL-447 (Set Service Reporting rows as RL-448), and later page 276–281 occurrences remain tracked as RL-434. Canonical service headings were checked in the pinned 2025 RTIambassador.h. Membership-boundary exceptions remain supplemental. The adapter configures a service-report directory to enable the file switch; no report-file path or content is asserted.",
       "contract_refs": [
         "support-switch-setter-lifecycle-boundaries-api-contract.json",
         "support-switch-setter-lifecycle-boundaries-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#supportSwitchSetterLifecycle",
       "parity": "cpp-tck.support-switch-setter-lifecycle-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and logical-time implementation; remains opt-in until exercised against a Java IEEE 1516.1-2025 provider."
+      "parity_scope_note": "The Java mirror uses the adapter-configured service-report directory for Connect, then sets all eight writable standard support switches to FALSE and TRUE, verifies the corresponding getter after each set, and restores the initial value. It also checks each setter's FederateNotExecutionMember boundary after resignation and NotConnected boundary after disconnect. It does not assert report-file paths or contents.",
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/support-switch-getter-lifecycle-tck.xml, HLAinteger64Time, and an adapter-configured serviceReportDirectory. Results/JUnit: out/java-tck/support-switch-setter-lifecycle-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied support-switch-getter-lifecycle-tck.xml",
+        "HLAinteger64Time logical-time implementation",
+        "RtiConfiguration serviceReportDirectory additional setting and existing service-report directory",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.automatic-resign-directive-standard-enumerator-values",
@@ -7767,7 +8034,7 @@
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.joinFederationExecution(federateName, federateType, federationExecutionName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getFederateHandle",
@@ -7790,6 +8057,7 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "mapping_note": "The three cpp-1516.1-* requirement IDs are repository-internal scenario references. The paired C++ catalog case has no direct requirement-to-section mapping, so this Java scenario makes no canonical IEEE 1516.1-2025 section claim.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -7798,8 +8066,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignPendingAcquisitionRejection",
       "parity": "cpp-tck.resign-pending-acquisition-rejection",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callback models."
+      "parity_scope_note": "The Java mirror joins requester and owner using explicit federate names, queues an ownership acquisition, verifies ownership has not transferred, rejects UNCONDITIONALLY_DIVEST_ATTRIBUTES with OwnershipAcquisitionPending while preserving requester membership, then cancels the request with CANCEL_THEN_DELETE_THEN_DIVEST and verifies the owner remains unchanged. In HLA_EVOKED it drains callbacks and asserts no stale owner-release request.",
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject, and Efficiency. Results/JUnit: out/java-tck/resign-pending-acquisition-rejection-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.resign-cancel-if-available-pending",
@@ -7830,6 +8104,7 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "mapping_note": "The three cpp-1516.1-* requirement IDs are repository-internal scenario references. The paired C++ catalog case has no direct requirement-to-section mapping, so this Java scenario makes no canonical IEEE 1516.1-2025 section claim.",
       "contract_refs": [
         "attribute-ownership-acquisition-if-available-api-contract.json",
         "attribute-ownership-acquisition-if-available-requirements-contract.json",
@@ -7838,8 +8113,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignCancelIfAvailablePending",
       "parity": "cpp-tck.resign-cancel-if-available-pending",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callback models."
+      "parity_scope_note": "The Java mirror publishes the owner and subscribes the requester, issues an If Available acquisition, verifies ownership is unchanged, clears any already-delivered result, resigns with CANCEL_PENDING_OWNERSHIP_ACQUISITIONS, then checks for no stale unavailable/acquisition callback and unchanged ownership. Evoked mode drains callbacks after resignation; immediate mode follows the paired C++ no-op pump behavior.",
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject, and Efficiency. Results/JUnit: out/java-tck/resign-cancel-if-available-pending-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.resign-cancel-negotiated-pending",
@@ -7871,6 +8152,7 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "mapping_note": "The three cpp-1516.1-* requirement IDs are repository-internal scenario references. The paired C++ catalog case has no direct requirement-to-section mapping, so this Java scenario makes no canonical IEEE 1516.1-2025 section claim.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -7881,8 +8163,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignCancelNegotiatedPending",
       "parity": "cpp-tck.resign-cancel-negotiated-pending",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callback models."
+      "parity_scope_note": "The Java mirror queues regular acquisition and negotiated divestiture for the same object attribute, confirms ownership has not transferred (and in HLA_EVOKED no callback crossed the service boundary), clears any already-delivered owner events, then cancels the pending acquisition by resignation. It services the owner callbacks and checks that neither divestiture confirmation nor release-request callbacks are stale and the original owner retains the attribute.",
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject, and Efficiency. Results/JUnit: out/java-tck/resign-cancel-negotiated-pending-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/TckKnownClassDerivedObject and Efficiency",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.resign-unconditionally-divest-preserves-objects",
@@ -8009,8 +8297,23 @@
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-ownership-management",
-        "cpp-1516.1-object-registration-discovery"
+        "cpp-1516.1-object-registration-discovery",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39",
+          "standard_section": "hla-1516.1-2025:clause-7.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mapping: requirement-candidate-content-clauses-07-ownership-management-page-148-l124-39 -> IEEE 1516.1-2025 §7.1. The Java case verifies that resign(NO_ACTION) is rejected with FederateOwnsAttributes while the owner retains the attribute, unconditional resignation emits an ownership assumption without transferring ownership, and the surviving federate's explicit Attribute Ownership Acquisition transfers ownership. This is one concrete consent/exception path; it does not cover HLAmodifyAttributeState, unpublish, every listed exception, or complete conformance.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -8020,8 +8323,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignUnconditionalDivestiture",
       "parity": "cpp-tck.resign-unconditional-divestiture",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied object class and attribute in the FOM plus a Java IEEE 1516.1-2025 provider; remains opt-in pending provider runtime execution."
+      "default_status": "run"
     },
     {
       "id": "java-tck.resign-assumption-later-publication",
@@ -8231,7 +8533,11 @@
         "FederateAmbassador.attributeOwnershipAcquisitionNotification"
       ],
       "requirement_ids": [
-        "cpp-1516.1-ownership-management"
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-148-l61-18",
@@ -37544,14 +37850,14 @@
           "standard_section": "hla-1516.1-2025:clause-7.1.2.1"
         }
       ],
-      "mapping_note": "Standard-only Java parity for the verified native two-object x two-attribute divesting-resignation case. The official API-only JAR compiles it; Java provider-runtime execution remains unverified. The C++ installed-package gate passed primary/contract across both callback models twice.",
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mapping: requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32 -> IEEE 1516.1-2025 §7.1.2.1. The Java case verifies unconditional resignation releases two published attributes on each of two objects, preserves both objects, and reports the exact two-attribute unowned callback for each ownership query. This covers one resignation action and a two-object/two-attribute witness only; it is not the complete resignation-action matrix or conformance evidence.",
       "contract_refs": [
         "standard-resign-divests-all-instance-attributes-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignDivestsAllInstanceAttributes",
       "parity": "cpp-tck.resign-divests-all-instance-attributes",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied 2025 Java provider, FOM class, two distinct attributes, and callback model; provider-runtime execution is unverified."
+      "default_status": "run"
     },
     {
       "id": "java-tck.unconditional-attribute-ownership-divestiture",
@@ -48466,7 +48772,7 @@
       "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, BestEffortValue, and TckSlow under HLA_EVOKED and HLA_IMMEDIATE. Java verifies seven ordered callback reports and, with serviceReportDirectory configured, checks the Federate MOM HLAreportServiceFile and the appended successful GetUpdateRateValue type-35 Number against the API result. Focused direct mappings cover the scalar AttributeHandle, MaximumUpdateRate Number, ObjectClassHandle, and ObjectInstanceHandle records from Table 5 p.295 r004 and p.299 r002-r004 to §11.5.1. Results: out/java-tck/object-attribute-rate-lookups-20261103/results/{evoked,immediate}.results.json and .junit.xml. Evidence is local JNI only.",
       "exclusion": "Requires adapter-supplied update-rate FOM, standard MIM, object class, best-effort attribute, update-rate name, callback model, and installed IEEE 1516.1-2025 Java provider. The file-backed check additionally requires an adapter-configured serviceReportDirectory; other providers need their own runtime evidence."
     },
-        {
+    {
       "id": "java-tck.service-report-dimension-upper-bound",
       "category": "mom-service-reporting",
       "title": "Verify successful and invalid-handle MOM reports for GetDimensionUpperBound",
@@ -48530,7 +48836,7 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
           "standard_section": "hla-1516.1-2025:clause-10.25",
-          "note": "The success call returns the adapter FOM dimension upper bound of 64. The Requirements Lab candidate currently exports this service to \u00a710.24.6; the official RTIambassador.h places Get Dimension Upper Bound at \u00a710.25, and RL-442 records that known crosswalk defect. No Lab resynchronization or mapping change is made here."
+          "note": "The success call returns the adapter FOM dimension upper bound of 64. The Requirements Lab candidate currently exports this service to §10.24.6; the official RTIambassador.h places Get Dimension Upper Bound at §10.25, and RL-442 records that known crosswalk defect. No Lab resynchronization or mapping change is made here."
         },
         {
           "requirement_id": "requirement-candidate-table-5-p296-r009",
@@ -48544,7 +48850,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "Direct mappings remain limited to the positive GetDimensionUpperBound return in IEEE 1516.1-2025 \u00a710.25 (with known RL-442 crosswalk defect) and the two Table 5 argument/return forms in \u00a711.5.1. The Java success path checks bound 64. Its failure path uses TckAdditionalDimension from a separately created federation because the Java API has no default-invalid DimensionHandle; it checks the InvalidDimensionHandle service result, quoted handle shape, Null return, and invoking federate. This does not claim other dimension errors, every service-report form, or complete \u00a710.25 coverage.",
+      "mapping_note": "Direct mappings remain limited to the positive GetDimensionUpperBound return in IEEE 1516.1-2025 §10.25 (with known RL-442 crosswalk defect) and the two Table 5 argument/return forms in §11.5.1. The Java success path checks bound 64. Its failure path uses TckAdditionalDimension from a separately created federation because the Java API has no default-invalid DimensionHandle; it checks the InvalidDimensionHandle service result, quoted handle shape, Null return, and invoking federate. This does not claim other dimension errors, every service-report form, or complete §10.25 coverage.",
       "parity_scope_note": "Mirrors the C++ primary success and InvalidDimensionHandle outcomes. The Java failure uses a valid standard DimensionHandle obtained from a distinct FOM execution rather than a C++ default-invalid handle; the reported provider handle text is not hard-coded.",
       "adapter_inputs": [
         "provider JAR, JNI library, callback model, and logical-time implementation",
@@ -50282,7 +50588,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The Java case now mirrors both successful RequestAttributeValueUpdate overloads. Each report checks three ordered supplied-argument records, their exact standard names and values, Table 5 type codes for the object/class handle and attribute set arguments, and the Null returned argument (type 34, empty name, null value). The User-supplied tag's name and Base64 value are checked from known input bytes; its type code is intentionally not asserted because open Requirements Lab issue RL-399 records conflicting Table 5/example/MIM values. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; this is not a full clause or conformance claim.",
+      "mapping_note": "The Java case now mirrors both successful RequestAttributeValueUpdate overloads. Each report checks three ordered supplied-argument records, their exact standard names and values, Table 5 type codes for the object/class handle and attribute set arguments, and the Null returned argument (type 34, empty name, null value). The User-supplied tag's name and Base64 value are checked from known input bytes; its type code is intentionally not asserted because open Requirements Lab issue RL-399 records conflicting Table 5/example/MIM values. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 §11.5.1; this is not a full clause or conformance claim.",
       "parity_scope_note": "Mirrors the C++ primary's ordered report-argument and Null-return assertions for the object-instance and object-class overloads, plus provider callbacks. The User-supplied tag type remains unchecked per RL-399."
     },
     {
@@ -50412,7 +50718,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectInstanceHandle type code 37, exact Object instance designator name and quoted API handle, and the void-return type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; the invoking-federate identity is additional case evidence, and this does not claim full clause coverage or conformance.",
+      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectInstanceHandle type code 37, exact Object instance designator name and quoted API handle, and the void-return type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 §11.5.1; the invoking-federate identity is additional case evidence, and this does not claim full clause coverage or conformance.",
       "parity_scope_note": "Mirrors the C++ primary local-delete success report, including the ObjectInstanceHandle argument and Null return. Unknown/stale-handle failure behavior remains in the separate failure scenario."
     },
     {
@@ -50593,7 +50899,7 @@
           "note": "The returned ObjectInstanceHandle checks Table 5 type code 37, exact argument name, and quoted handle value."
         }
       ],
-      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectClassHandle type 36 with the exact Object class designator and quoted API handle, and returned ObjectInstanceHandle type 37 with the exact Object instance designator and quoted handle. The discovery callback is additional case evidence. Direct mappings remain limited to the six listed candidates under IEEE 1516.1-2025 \u00a711.5.1; the detached RL-404 ServiceGroup continuation is not mapped, and no complete section or conformance claim is made.",
+      "mapping_note": "The Java success report now checks the one-element supplied-argument list, ObjectClassHandle type 36 with the exact Object class designator and quoted API handle, and returned ObjectInstanceHandle type 37 with the exact Object instance designator and quoted handle. The discovery callback is additional case evidence. Direct mappings remain limited to the six listed candidates under IEEE 1516.1-2025 §11.5.1; the detached RL-404 ServiceGroup continuation is not mapped, and no complete section or conformance claim is made.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51194,7 +51500,7 @@
           "note": "The Null return is checked as Table 5 type code 34, empty name, and value null."
         }
       ],
-      "mapping_note": "The Java success report now decodes the one-element HLAsuppliedArguments list, checks Table 5 String type 53, the exact Name label and JSON-quoted input, and verifies HLAreturnedArgument as the type-34 Null record. The reservation-success callback and invoking-federate assertion remain supplemental. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; no complete section or conformance claim.",
+      "mapping_note": "The Java success report now decodes the one-element HLAsuppliedArguments list, checks Table 5 String type 53, the exact Name label and JSON-quoted input, and verifies HLAreturnedArgument as the type-34 Null record. The reservation-success callback and invoking-federate assertion remain supplemental. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 §11.5.1; no complete section or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -51321,7 +51627,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The Java single-name release report now checks exactly one supplied String argument, Table 5 type code 53, the standard Name label, the JSON-quoted reserved name, and the void-return type-34 Null record. Direct mappings remain limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; other Table 5 forms and full clause coverage are not claimed.",
+      "mapping_note": "The Java single-name release report now checks exactly one supplied String argument, Table 5 type code 53, the standard Name label, the JSON-quoted reserved name, and the void-return type-34 Null record. Direct mappings remain limited to the listed candidates under IEEE 1516.1-2025 §11.5.1; other Table 5 forms and full clause coverage are not claimed.",
       "parity_scope_note": "Mirrors the C++ successful ReleaseObjectInstanceName report argument and Null return. Multiple-name release remains checked by its separate Java scenario."
     },
     {
@@ -51387,7 +51693,7 @@
           "note": "The Java report checks Table 5 type code 54 and the exact two-name StringSet array value."
         }
       ],
-      "mapping_note": "The Java success report decodes exactly one supplied-argument record and verifies Table 5 type 54 StringSet, the standard Name set label, and the exact two-name JSON-quoted array; it also checks HLAreturnedArgument as the type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; no complete section or conformance claim.",
+      "mapping_note": "The Java success report decodes exactly one supplied-argument record and verifies Table 5 type 54 StringSet, the standard Name set label, and the exact two-name JSON-quoted array; it also checks HLAreturnedArgument as the type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 §11.5.1; no complete section or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -52125,19 +52431,19 @@
         "cpp-1516.1-directed-interaction-retraction",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
-    "selected_requirements_lab_requirement_ids": [
-      "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
-    ],
-    "standard_sections": [
-      "hla-1516.1-2025:clause-11.5"
-    ],
-    "requirement_mappings": [
-      {
-        "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-        "standard_section": "hla-1516.1-2025:clause-11.5"
-      }
-    ],
-    "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. This mapping is limited to §11.5 report generation; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance. HLAfederate identity, callback metadata, DDM/region setup, and timestamped delivery remain supplemental.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness: with Send Service Reports To File disabled and Service Reporting enabled, successful timestamped SendDirectedInteraction produces an HLAreportServiceInvocation received by the subscribed observer. The case checks the service name, type, success flag, supplied arguments, returned retraction argument, and exception/serial fields. This mapping is limited to §11.5 report generation; it does not claim a specific Table 5 row under §11.5.1, complete service-report coverage, or conformance. HLAfederate identity, callback metadata, DDM/region setup, and timestamped delivery remain supplemental.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -52154,19 +52460,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedDirectedInteraction",
       "parity": "cpp-tck.service-report-timestamped-directed-interaction",
-    "default_status": "run",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
       ],
       "adapter_inputs": [
         "official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
-      "adapter-supplied P0 FOM, standard MIM, and logical-time implementation",
-      "hla.rti.tck.objectClass=HLAobjectRoot.TckObject, hla.rti.tck.attribute=Value, and hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction",
+        "adapter-supplied P0 FOM, standard MIM, and logical-time implementation",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject, hla.rti.tck.attribute=Value, and hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction",
         "callback model selected by the adapter"
       ],
-    "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API.",
-    "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, and HLAinteractionRoot.TckInteraction. After enabling the Java registration by default, it passed without --run-unverified. The Java case checks report metadata, all standard report fields, invoking federate, five supplied arguments, retraction result, exception and serial, then the target-directed timestamped callback and callback-before-grant order. Java results/JUnit: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
+      "parity_scope_note": "The Java scenario compares each Table 5 handle designator with the same opaque Java handle returned by the public API in that run; it does not claim that Java and C++ providers produce equal handle text. It otherwise checks the typed supplied arguments, returned retraction designator, delivery target, timestamp/order/retraction metadata, and callback-before-grant boundary through the official API.",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14 using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, and HLAinteractionRoot.TckInteraction. After enabling the Java registration by default, it passed without --run-unverified. The Java case checks report metadata, all standard report fields, invoking federate, five supplied arguments, retraction result, exception and serial, then the target-directed timestamped callback and callback-before-grant order. Java results/JUnit: out/java-tck/service-report-timestamped-directed-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-directed-interaction-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed."
     },
     {
       "id": "java-tck.service-report-timestamped-object-deletion",
@@ -52926,19 +53232,19 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-timestamped-interaction-delivery"
       ],
-    "selected_requirements_lab_requirement_ids": [
-      "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
-    ],
-    "standard_sections": [
-      "hla-1516.1-2025:clause-11.5"
-    ],
-    "requirement_mappings": [
-      {
-        "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
-        "standard_section": "hla-1516.1-2025:clause-11.5"
-      }
-    ],
-    "mapping_note": "Direct §11.5 witness for positive report generation: with Send Service Reports To File disabled and Service Reporting enabled for the publisher, successful timestamped SendInteraction produces an HLAreportServiceInvocation. The case checks SendInteraction, service type 2, success true, empty exception, and serial zero. Publisher identity, callback metadata, detailed supplied/returned argument encodings, and timestamped delivery/retraction correlation are supplemental. It does not claim §11.5.1/Table 5 argument-encoding coverage, full §11.5 coverage, or conformance.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_note": "Direct §11.5 witness for positive report generation: with Send Service Reports To File disabled and Service Reporting enabled for the publisher, successful timestamped SendInteraction produces an HLAreportServiceInvocation. The case checks SendInteraction, service type 2, success true, empty exception, and serial zero. Publisher identity, callback metadata, detailed supplied/returned argument encodings, and timestamped delivery/retraction correlation are supplemental. It does not claim §11.5.1/Table 5 argument-encoding coverage, full §11.5 coverage, or conformance.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -52953,14 +53259,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportTimestampedInteraction",
       "parity": "cpp-tck.service-report-timestamped-interaction",
-    "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14. The verification run supplied p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload; after enabling the Java registration by default, it passed without --run-unverified. Java verifies the successful SendInteraction report and report metadata, then confirms no early delivery and exactly one timestamped application callback before the matching grant with exact payload, tag, time, producer, order, transportation, and public retraction correlation. Results/JUnit: out/java-tck/service-report-timestamped-interaction-success-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-interaction-success-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Evidence is local Umbra only; no independent-provider or conformance claim is made.",
-    "default_status": "run",
-    "adapter_inputs": [
-      "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
-      "adapter-supplied P0 application FOM, standard HLAstandardMIM-2025.xml, and HLAinteger64Time",
-      "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
-      "standard service-report support and callback model selected by the adapter"
-    ]
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the matched current-source Umbra JNI bundle built 2026-11-14. The verification run supplied p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload; after enabling the Java registration by default, it passed without --run-unverified. Java verifies the successful SendInteraction report and report metadata, then confirms no early delivery and exactly one timestamped application callback before the matching grant with exact payload, tag, time, producer, order, transportation, and public retraction correlation. Results/JUnit: out/java-tck/service-report-timestamped-interaction-success-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package: out/mgw/cpp-tck-service-report-timestamped-interaction-success-parity-20261115/{results.json,results.xml}. Java catalog and C++ evidence validators passed. Evidence is local Umbra only; no independent-provider or conformance claim is made.",
+      "default_status": "run",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied P0 application FOM, standard HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
+        "standard service-report support and callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-resign-federation-execution",

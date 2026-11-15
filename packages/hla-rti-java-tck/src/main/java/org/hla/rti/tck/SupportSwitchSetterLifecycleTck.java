@@ -4,8 +4,12 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
+import hla.rti1516_2025.RtiConfiguration;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.UUID;
 
 /** Checks writable standard support-switch setters across membership lifecycles. */
@@ -13,12 +17,23 @@ final class SupportSwitchSetterLifecycleTck {
    private SupportSwitchSetterLifecycleTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         CallbackModel callbackModel) throws Exception {
+         CallbackModel callbackModel, RtiConfiguration configuration, String additionalSettings,
+         String serviceReportDirectory) throws Exception {
+      JavaTckSupport.check(configuration != null,
+         "support-switch setter lifecycle configuration is required");
+      JavaTckSupport.check(serviceReportDirectory != null && !serviceReportDirectory.isEmpty()
+            && Files.isDirectory(Path.of(serviceReportDirectory)),
+         "adapter-supplied service-report directory must exist");
+      String expectedDirectorySetting = "serviceReportDirectory=" + Path.of(serviceReportDirectory);
+      JavaTckSupport.check(additionalSettings != null
+            && Arrays.asList(additionalSettings.split(";")).contains(expectedDirectorySetting),
+         "adapter did not configure the expected service-report directory");
+
       RTIambassador ambassador = factory.getRtiAmbassador();
       String federation = "java-tck-support-switch-setters-" + UUID.randomUUID();
       boolean connected = false, created = false, joined = false;
       try {
-         ambassador.connect(callbacks(), callbackModel);
+         ambassador.connect(callbacks(), callbackModel, configuration);
          connected = true;
          ambassador.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -28,9 +43,15 @@ final class SupportSwitchSetterLifecycleTck {
          SwitchSetter[] setters = setters(ambassador);
          for (SwitchSetter setter : setters) {
             boolean original = setter.getter.get();
+            setter.setter.set(false);
+            JavaTckSupport.check(!setter.getter.get(),
+               setter.name + " setter did not apply FALSE");
+            setter.setter.set(true);
+            JavaTckSupport.check(setter.getter.get(),
+               setter.name + " setter did not apply TRUE");
             setter.setter.set(original);
             JavaTckSupport.check(setter.getter.get() == original,
-               setter.name + " did not preserve its observed value");
+               setter.name + " setter did not restore its original value");
          }
 
          ambassador.resignFederationExecution(ResignAction.NO_ACTION);
