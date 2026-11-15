@@ -326,6 +326,13 @@ behavior for both attributes and interactions. It also checks the unowned
 `packages/hla-rti-java-tck/fom/transport-default-best-effort-tck.xml`. Java
 omits C++ default-invalid-handle boundaries because the official Java API
 provides no portable invalid handle values.
+The default-run `java-tck.mom-transportation-type-change-request` scenario
+ports the paired C++ standard-MIM requests for attribute and interaction
+transportation changes. It checks the confirmation callbacks, subsequent
+best-effort delivery, reliable-type isolation for an independent publisher, and
+the standard service-invocation report. Focused runs passed under both callback
+models against the current-source JNI provider; evidence is in
+`out/java-tck/mom-transportation-type-change-request-java-parity-20261115/`.
 The federation restore ownership-assumption scenario also preserves pending
 object-discovery and ownership-assumption callbacks across a complete save and
 restore under both callback models, and checks that ownership is not transferred

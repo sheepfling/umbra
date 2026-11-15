@@ -96,17 +96,24 @@ final class MomTransportationTypeChangeRequestTck {
             subjectInteraction, parameterName);
          ParameterHandle observerParameter = observer.getParameterHandle(
             observerInteraction, parameterName);
-         JavaTckSupport.check(objectClassName.equals(observer.getObjectClassName(observerClass))
+         requireHandle(subjectClass, observerClass, subjectAttribute, observerAttribute,
+            subjectInteraction, observerInteraction, subjectParameter, observerParameter);
+         JavaTckSupport.check(subjectClass.equals(observerClass)
+               && subjectAttribute.equals(observerAttribute)
+               && subjectInteraction.equals(observerInteraction)
+               && subjectParameter.equals(observerParameter)
+               && objectClassName.equals(observer.getObjectClassName(observerClass))
                && attributeName.equals(observer.getAttributeName(observerClass, observerAttribute))
                && interactionClassName.equals(
                   observer.getInteractionClassName(observerInteraction))
                && parameterName.equals(observer.getParameterName(
                   observerInteraction, observerParameter)),
-            "adapter FOM declarations did not round-trip through standard lookups");
+            "adapter FOM declarations did not resolve to federation-stable handles and names");
 
          TransportationTypeHandle reliable = subject.getTransportationTypeHandle("HLAreliable");
          TransportationTypeHandle bestEffort =
             subject.getTransportationTypeHandle("HLAbestEffort");
+         requireHandle(reliable, bestEffort);
          JavaTckSupport.check("HLAreliable".equals(subject.getTransportationTypeName(reliable))
                && "HLAbestEffort".equals(subject.getTransportationTypeName(bestEffort)),
             "standard reliable/best-effort transportation handles did not round-trip");
@@ -250,9 +257,9 @@ final class MomTransportationTypeChangeRequestTck {
             "MOM interaction transportation request changed an independent publisher");
 
          InteractionClassHandle reportClass = observer.getInteractionClassHandle(SERVICE_REPORT);
+         requireHandle(reportClass);
          ParameterHandle reportService = observer.getParameterHandle(reportClass, "HLAservice");
-         JavaTckSupport.check(reportClass != null && reportService != null,
-            "standard service-invocation report handles could not be resolved");
+         requireHandle(reportService);
          observer.subscribeInteractionClass(reportClass);
          observerReportSubscribed = true;
          subject.setServiceReportingSwitch(true);

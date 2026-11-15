@@ -17750,8 +17750,9 @@
     {
       "id": "java-tck.mom-transportation-type-change-request",
       "category": "mom-transportation-type-change",
-      "title": "Apply standard MIM transportation-type change requests to attributes and interactions",
+      "title": "Apply standard MOM transportation-type change requests to object attributes and interaction classes",
       "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -17767,6 +17768,7 @@
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "RTIambassador.evokeCallback",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishInteractionClass",
@@ -17789,15 +17791,22 @@
         "FederateAmbassador.confirmAttributeTransportationTypeChange",
         "FederateAmbassador.confirmInteractionTransportationTypeChange",
         "Handle.encode",
+        "Handle.encodedLength",
         "HLAunicodeString.decode"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-transportation-type-control",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
+        "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -17824,8 +17833,45 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#momTransportationTypeChangeRequest",
       "parity": "cpp-tck.mom-transportation-type-change-request",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM/MIM files, matching object class/attribute and interaction/parameter names, and an IEEE 1516.1-2025 Java provider. Provider runtime behavior remains unverified."
+      "default_status": "run",
+      "focus_lane": "portable-tck-mom-transportation-type-change-request",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
+        "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
+        "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
+        "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.25",
+        "hla-1516.1-2025:clause-6.26",
+        "hla-1516.1-2025:clause-6.30",
+        "hla-1516.1-2025:clause-6.31",
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l123-31", "standard_section": "hla-1516.1-2025:clause-6.25" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34", "standard_section": "hla-1516.1-2025:clause-6.25" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l178-51", "standard_section": "hla-1516.1-2025:clause-6.26" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l181-52", "standard_section": "hla-1516.1-2025:clause-6.26" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1", "standard_section": "hla-1516.1-2025:clause-6.26" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l88-20", "standard_section": "hla-1516.1-2025:clause-6.30" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22", "standard_section": "hla-1516.1-2025:clause-6.30" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l100-24", "standard_section": "hla-1516.1-2025:clause-6.30" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l103-25", "standard_section": "hla-1516.1-2025:clause-6.30" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l119-33", "standard_section": "hla-1516.1-2025:clause-6.31" },
+        { "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l122-34", "standard_section": "hla-1516.1-2025:clause-6.31" },
+        { "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5", "standard_section": "hla-1516.1-2025:clause-11.5" }
+      ],
+      "mapping_note": "The direct Java witnesses mirror cpp-tck.mom-transportation-type-change-request and use the 12 direct requirement-to-section pairs from umbra-cpp-mom-transportation-type-change-request-integration. They cover adapter FOM/MIM create and join, handle/name lookup, both standard MOM transportation-change requests and their confirmation callbacks, best-effort attribute and interaction delivery, preservation of an independent publisher's reliable type, and the HLAreportServiceInvocation witness. Scope is one FOM object class/attribute and interaction class/parameter with the standard HLAreliable and HLAbestEffort pair. The C++-only native malformed/unknown-handle matrix is not claimed here.",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider and pinned official IEEE 1516.1-2025 Java API, using packages/hla-rti-cpp-tck/fom/p0-tck.xml, the standard MIM, HLAinteger64Time, HLAobjectRoot.TckObject.Value, and HLAinteractionRoot.TckInteraction.Payload. Java results/JUnit: out/java-tck/mom-transportation-type-change-request-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed both callback models against the installed package: out/mgw/tck-mom-transportation-type-change-request-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.standard-order-transport-lookups-after-resignation",

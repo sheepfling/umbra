@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 146 |
-| Distinct stable requirement IDs | 1194 |
+| Distinct stable requirement IDs | 1195 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 628 |
-| Default `unsupported` scenarios | 336 |
-| Scenarios with explicit `requirement_mappings` | 677 |
-| Explicit mapping records | 2792 |
+| Default `run` scenarios | 629 |
+| Default `unsupported` scenarios | 335 |
+| Scenarios with explicit `requirement_mappings` | 678 |
+| Explicit mapping records | 2804 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -1041,7 +1041,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.fom-empty-mim-create-atomicity`](#scenario-java-tck.fom-empty-mim-create-atomicity) — Reject an empty FOM module array without reserving the federation name during MIM-backed creation (`fom-lifecycle`; default `run`; C++ pointer `cpp-tck.fom-empty-mim-create-atomicity`).
 - [`java-tck.fom-invalid-composite-mim-create-atomicity`](#scenario-java-tck.fom-invalid-composite-mim-create-atomicity) — Reject a valid-plus-invalid FOM module set during MIM-backed federation creation (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-invalid-composite-mim-create-atomicity`).
 - [`java-tck.fom-invalid-mim-create-atomicity`](#scenario-java-tck.fom-invalid-mim-create-atomicity) — Reject invalid MIM create inputs without reserving the federation name (`fom-lifecycle`; default `run`; C++ pointer `cpp-tck.fom-invalid-mim-create-atomicity`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.service-report-attribute-update`](#scenario-java-tck.service-report-attribute-update) — Verify the standard MOM report for a successful ordinary attribute update (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-attribute-update`).
 - [`java-tck.service-report-attribute-update-failure`](#scenario-java-tck.service-report-attribute-update-failure) — Verify standard failure reports for invalid ordinary attribute updates (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-attribute-update-failure`).
 - [`java-tck.service-report-cancel-attribute-ownership-acquisition`](#scenario-java-tck.service-report-cancel-attribute-ownership-acquisition) — Verify successful ownership-acquisition cancellation, service report, and confirmation callback (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-cancel-attribute-ownership-acquisition`).
@@ -1242,7 +1241,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.local-delete-object-instance`](#scenario-java-tck.local-delete-object-instance) — Exercise local object deletion boundaries, ownership protection, rediscovery, and continued updates (`local-object-instance-deletion`; default `run`; C++ pointer `cpp-tck.local-delete-object-instance`).
 - [`java-tck.local-delete-object-instance-name-lookup-boundary`](#scenario-java-tck.local-delete-object-instance-name-lookup-boundary) — Check handle-to-name lookup after a federate locally forgets a discovered object (`object-management`; default `run`; C++ pointer `cpp-tck.local-delete-object-instance-name-lookup-boundary`).
 - [`java-tck.mixed-update-rate-subscriptions`](#scenario-java-tck.mixed-update-rate-subscriptions) — Apply named and default update rates independently to ordinary and regional subscriptions (`update-rate-reduction`; default `unsupported`; C++ pointer `cpp-tck.mixed-update-rate-subscriptions`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.named-registration`](#scenario-java-tck.named-registration) — Reserve, consume, contend for, and reuse standard named object instances (`object-instance-named-registration`; default `run`; C++ pointer `cpp-tck.named-registration`).
 - [`java-tck.named-registration-multi-recipient`](#scenario-java-tck.named-registration-multi-recipient) — Deliver two named ordinary objects to two active subscribers and preserve identity (`object-instance-named-registration-multi-recipient`; default `run`; C++ pointer `cpp-tck.named-registration-multi-recipient`).
 - [`java-tck.object-attribute-subscription-lifecycle`](#scenario-java-tck.object-attribute-subscription-lifecycle) — Exercise cross-class attribute rejection, empty/passive/active discovery, filtered reflection, downgrade, reactivation, and withdrawal (`object-attribute-subscription-lifecycle`; default `run`; C++ pointer `cpp-tck.object-attribute-subscription-lifecycle`).
@@ -1585,7 +1583,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.inherited-interaction-class-delivery`](#scenario-java-tck.inherited-interaction-class-delivery) — Route derived interactions through base subscriptions with directional class boundaries (`interaction-class-inheritance`; default `run`; C++ pointer `cpp-tck.inherited-interaction-class-delivery`).
 - [`java-tck.interaction-order-classification`](#scenario-java-tck.interaction-order-classification) — Classify receive-order and timestamp-order interactions at the same receiver (`interaction-order-classification`; default `run`; C++ pointer `cpp-tck.interaction-order-classification`).
 - [`java-tck.interaction-service-boundaries`](#scenario-java-tck.interaction-service-boundaries) — Exercise ordinary interaction send/receive across active and passive subscriptions (`ordinary-delivery`; default `unsupported`; C++ pointer `cpp-tck.interaction-service-boundaries`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.timestamped-inherited-interaction-class-delivery`](#scenario-java-tck.timestamped-inherited-interaction-class-delivery) — Project timestamped derived interactions through base and derived subscriptions (`timestamped-interaction-class-inheritance`; default `unsupported`; C++ pointer `cpp-tck.timestamped-inherited-interaction-class-delivery`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -1711,7 +1708,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-service-reporting-mom-switch`](#scenario-java-tck.federate-service-reporting-mom-switch) — Set the joined federate's Service Reporting switch through standard HLAsetSwitches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mom-switch`).
 - [`java-tck.modify-lookahead-service-report`](#scenario-java-tck.modify-lookahead-service-report) — Verify the standard service-invocation report for accepted deferred Modify Lookahead (`service-reporting`; default `unsupported`; C++ pointer `cpp-tck.modify-lookahead-service-report-contract`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.service-report-attribute-update`](#scenario-java-tck.service-report-attribute-update) — Verify the standard MOM report for a successful ordinary attribute update (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-attribute-update`).
 - [`java-tck.service-report-attribute-update-failure`](#scenario-java-tck.service-report-attribute-update-failure) — Verify standard failure reports for invalid ordinary attribute updates (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-attribute-update-failure`).
 - [`java-tck.service-report-cancel-attribute-ownership-acquisition`](#scenario-java-tck.service-report-cancel-attribute-ownership-acquisition) — Verify successful ownership-acquisition cancellation, service report, and confirmation callback (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.service-report-cancel-attribute-ownership-acquisition`).
@@ -2001,7 +1997,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-directed-interactions-sent-mim-attribute`](#scenario-java-tck.federate-mom-directed-interactions-sent-mim-attribute) — Verify direct and periodic MOM counts separate ordinary and directed interaction sends (`directed-interactions`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-directed-interactions-sent-mim-attribute`).
 - [`java-tck.federation-auto-provide-mom-switch`](#scenario-java-tck.federation-auto-provide-mom-switch) — Set federation-wide Auto Provide through the standard federation MOM interaction (`auto-provide`; default `run`; C++ pointer `cpp-tck.federation-auto-provide-mom-switch`).
 - [`java-tck.if-available-deleted-object`](#scenario-java-tck.if-available-deleted-object) — Remove a deleted object without delivering its queued If Available result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.if-available-deleted-object`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.negotiated-divestiture-cancellation`](#scenario-java-tck.negotiated-divestiture-cancellation) — Cancel negotiated divestiture and restore the ordinary pending-acquisition release path (`ownership`; default `run`; C++ pointer `cpp-tck.negotiated-divestiture-cancellation`).
 - [`java-tck.negotiated-divestiture-no-accepter`](#scenario-java-tck.negotiated-divestiture-no-accepter) — Keep negotiated ownership until an acquirer appears and the owner confirms (`ownership`; default `unsupported`; C++ pointer `cpp-tck.negotiated-divestiture-no-accepter`).
 - [`java-tck.negotiated-divestiture-partial-acquisition-cancellation`](#scenario-java-tck.negotiated-divestiture-partial-acquisition-cancellation) — Cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute (`ownership`; default `unsupported`; C++ pointer `cpp-tck.negotiated-divestiture-partial-acquisition-cancellation`).
@@ -2821,7 +2816,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-reflections-received-counts`](#scenario-java-tck.federate-mom-reflections-received-counts) — Report received attribute reflections by standard transportation and application object class (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflections-received-counts`).
 - [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.fom-transportation-handle-stability`](#scenario-java-tck.fom-transportation-handle-stability) — Preserve transportation handle identity across an additional-FOM join (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-transportation-handle-stability`).
-- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MIM transportation-type change requests to attributes and interactions (`mom-transportation-type-change`; default `unsupported`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -5452,30 +5446,35 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-06-object-management-page-139-l123-31`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-139-l132-34`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-140-l178-51`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-140-l181-52`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-141-l11-1`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -5530,36 +5529,42 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-06-object-management-page-144-l100-24`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-144-l103-25`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-144-l88-20`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-144-l94-22`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-145-l119-33`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-145-l122-34`
 
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
 - [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -8427,6 +8432,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5`
+
+- [`java-tck.mom-transportation-type-change-request`](#scenario-java-tck.mom-transportation-type-change-request) — Apply standard MOM transportation-type change requests to object attributes and interaction classes (`mom-transportation-type-change`; default `run`; C++ pointer `cpp-tck.mom-transportation-type-change-request`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-11-management-object-model-page-292-l57-18`
 
 - [`java-tck.service-report-interlock`](#scenario-java-tck.service-report-interlock) — Enforce standard HLAreportServiceInvocation and service-reporting-switch interlocks (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-interlock`).
@@ -10853,6 +10864,19 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33.6`
   - `requirement-candidate-content-clauses-06-object-management-page-112-l12-3` → `hla-1516.1-2025:clause-6.1.11`
   - `requirement-candidate-content-clauses-06-object-management-page-111-l58-17` → `hla-1516.1-2025:clause-6.1.11`
+- `java-tck.mom-transportation-type-change-request`:
+  - `requirement-candidate-content-clauses-06-object-management-page-139-l123-31` → `hla-1516.1-2025:clause-6.25`
+  - `requirement-candidate-content-clauses-06-object-management-page-139-l132-34` → `hla-1516.1-2025:clause-6.25`
+  - `requirement-candidate-content-clauses-06-object-management-page-140-l178-51` → `hla-1516.1-2025:clause-6.26`
+  - `requirement-candidate-content-clauses-06-object-management-page-140-l181-52` → `hla-1516.1-2025:clause-6.26`
+  - `requirement-candidate-content-clauses-06-object-management-page-141-l11-1` → `hla-1516.1-2025:clause-6.26`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l88-20` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l94-22` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l100-24` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l103-25` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-145-l119-33` → `hla-1516.1-2025:clause-6.31`
+  - `requirement-candidate-content-clauses-06-object-management-page-145-l122-34` → `hla-1516.1-2025:clause-6.31`
+  - `requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5` → `hla-1516.1-2025:clause-11.5`
 - `java-tck.standard-order-transport-lookups-after-resignation`:
   - `cpp-1516.1-order-type-membership-boundary-after-resignation` → `hla-1516.1-2025:clause-10.17`
   - `cpp-1516.1-order-name-membership-boundary-after-resignation` → `hla-1516.1-2025:clause-10.18`
@@ -14318,7 +14342,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.mom-transportation-type-change-request"></a>`java-tck.mom-transportation-type-change-request` — Apply standard MIM transportation-type change requests to attributes and interactions | `org.hla.rti.tck.RtiTckMain#momTransportationTypeChangeRequest` | 38 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-management`, `cpp-1516.1-interaction-parameter-delivery`, `cpp-1516.1-transportation-type-control`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.mom-transportation-type-change-request` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.mom-transportation-type-change-request"></a>`java-tck.mom-transportation-type-change-request` — Apply standard MOM transportation-type change requests to object attributes and interaction classes | `org.hla.rti.tck.RtiTckMain#momTransportationTypeChangeRequest` | 41 | `requirement-candidate-content-clauses-06-object-management-page-139-l123-31`, `requirement-candidate-content-clauses-06-object-management-page-139-l132-34`, `requirement-candidate-content-clauses-06-object-management-page-140-l178-51`, `requirement-candidate-content-clauses-06-object-management-page-140-l181-52`, `requirement-candidate-content-clauses-06-object-management-page-141-l11-1`, `requirement-candidate-content-clauses-06-object-management-page-144-l88-20`, `requirement-candidate-content-clauses-06-object-management-page-144-l94-22`, `requirement-candidate-content-clauses-06-object-management-page-144-l100-24`, `requirement-candidate-content-clauses-06-object-management-page-144-l103-25`, `requirement-candidate-content-clauses-06-object-management-page-145-l119-33`, `requirement-candidate-content-clauses-06-object-management-page-145-l122-34`, `requirement-candidate-content-clauses-11-management-object-model-page-292-l18-5` | `cpp-tck.mom-transportation-type-change-request` | `run` | not scenario-declared |
 
 ### `next-message-request`
 
