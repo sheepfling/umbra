@@ -87,7 +87,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {"cpp-1516.1-fom-module-composition",
                "cpp-1516.1-transportation-type-control",
                "cpp-1516.1-federation-create-join-resign-destroy",
-               "cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+               "cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomTransportationHandleStability);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-module-composition",
             "Compose adapter FOM modules at Create and Join and deliver a directed extension interaction",

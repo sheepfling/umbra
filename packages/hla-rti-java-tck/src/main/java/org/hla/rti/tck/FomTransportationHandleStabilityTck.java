@@ -36,12 +36,17 @@ final class FomTransportationHandleStabilityTck {
 
          TransportationTypeHandle reliableBefore =
             owner.getTransportationTypeHandle("HLAreliable");
+         TransportationTypeHandle bestEffortBefore =
+            owner.getTransportationTypeHandle("HLAbestEffort");
          TransportationTypeHandle customBefore =
             owner.getTransportationTypeHandle(customTransportationName);
-         JavaTckSupport.check(!reliableBefore.equals(customBefore),
-            "adapter FOM did not expose distinct reliable and custom transportation handles");
+         JavaTckSupport.check(!reliableBefore.equals(bestEffortBefore)
+               && !reliableBefore.equals(customBefore)
+               && !bestEffortBefore.equals(customBefore),
+            "adapter FOM did not expose distinct standard and custom transportation handles");
          JavaTckSupport.check("HLAreliable".equals(
                owner.getTransportationTypeName(reliableBefore))
+               && "HLAbestEffort".equals(owner.getTransportationTypeName(bestEffortBefore))
                && customTransportationName.equals(owner.getTransportationTypeName(customBefore)),
             "base-FOM transportation handles did not round-trip to their names");
          JavaTckSupport.expectFailure(
@@ -55,26 +60,47 @@ final class FomTransportationHandleStabilityTck {
 
          TransportationTypeHandle ownerReliableAfter =
             owner.getTransportationTypeHandle("HLAreliable");
+         TransportationTypeHandle ownerBestEffortAfter =
+            owner.getTransportationTypeHandle("HLAbestEffort");
          TransportationTypeHandle ownerCustomAfter =
             owner.getTransportationTypeHandle(customTransportationName);
          TransportationTypeHandle ownerAdditional =
             owner.getTransportationTypeHandle(additionalTransportationName);
          TransportationTypeHandle extensionReliable =
             extension.getTransportationTypeHandle("HLAreliable");
+         TransportationTypeHandle extensionBestEffort =
+            extension.getTransportationTypeHandle("HLAbestEffort");
          TransportationTypeHandle extensionCustom =
             extension.getTransportationTypeHandle(customTransportationName);
          TransportationTypeHandle extensionAdditional =
             extension.getTransportationTypeHandle(additionalTransportationName);
 
          JavaTckSupport.check(reliableBefore.equals(ownerReliableAfter)
+               && bestEffortBefore.equals(ownerBestEffortAfter)
                && customBefore.equals(ownerCustomAfter)
                && reliableBefore.equals(extensionReliable)
+               && bestEffortBefore.equals(extensionBestEffort)
                && customBefore.equals(extensionCustom),
             "additional-module join changed or disagreed on pre-existing transportation handles");
+         JavaTckSupport.check("HLAreliable".equals(owner.getTransportationTypeName(ownerReliableAfter))
+               && "HLAbestEffort".equals(
+                  owner.getTransportationTypeName(ownerBestEffortAfter))
+               && customTransportationName.equals(owner.getTransportationTypeName(ownerCustomAfter))
+               && "HLAreliable".equals(extension.getTransportationTypeName(extensionReliable))
+               && "HLAbestEffort".equals(
+                  extension.getTransportationTypeName(extensionBestEffort))
+               && customTransportationName.equals(
+                  extension.getTransportationTypeName(extensionCustom)),
+            "additional-module join changed a base transportation name entry");
          JavaTckSupport.check(ownerAdditional.equals(extensionAdditional)
                && !ownerAdditional.equals(reliableBefore)
+               && !ownerAdditional.equals(bestEffortBefore)
                && !ownerAdditional.equals(customBefore),
             "additional transportation did not receive one shared, distinct handle");
+         JavaTckSupport.check(!extensionAdditional.equals(extensionReliable)
+               && !extensionAdditional.equals(extensionBestEffort)
+               && !extensionAdditional.equals(extensionCustom),
+            "additional transportation handle was not unique among extension handles");
          JavaTckSupport.check(additionalTransportationName.equals(
                owner.getTransportationTypeName(ownerAdditional))
                && additionalTransportationName.equals(

@@ -520,12 +520,18 @@ models. Results are under
 `out/java-tck/update-rate-queries-java-port-20261106/current-source/`;
 other-provider behavior is unverified.
 The `java-tck.fom-handle-uniqueness` case checks pairwise-distinct encoded values for representative object-class, attribute, interaction-class, parameter, dimension, and transportation-type handles, plus matching values across two federates. It then destroys the first execution, creates a second with the same FOM on the same connected RTI instance, and compares the same 11 FDD-derived encodings. Direct mappings cover IEEE 1516.1-2025 §10.1.1 for the bounded uniqueness witness and §12.2 for the named cross-execution values. `OrderType` stays a separate fixed-enum check, outside handle uniqueness. Focused current-source JNI runs passed under both callback models; results are under `out/java-tck/fom-handle-uniqueness-java-port-20261106/results/`.
-The opt-in `java-tck.fom-transportation-handle-stability` scenario verifies
-that built-in and custom transportation handles survive an additional-module
-join, while the newly introduced transportation type becomes available with
-one shared handle and round-trips by name. The rich base FOM, extension module,
-transportation names, provider, and callback model are adapter-supplied; Java
-provider runtime verification remains pending.
+The default-run `java-tck.fom-transportation-handle-stability` scenario checks
+that `HLAreliable`, `HLAbestEffort`, and the base custom transportation have
+distinct handles and stable names before and after an additional-module join.
+It also verifies the extension transportation is unavailable before the join,
+then has one shared, distinct handle and round-trips by name on both federates.
+Supply the rich base and extension modules through `hla.rti.tck.fom` and
+`hla.rti.tck.additionalFom`, with names in `hla.rti.tck.customTransportationType`
+and `hla.rti.tck.fomAdditionalTransportationType`. Focused runs passed under
+both callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-transportation-handle-stability-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+The direct mappings cover selected lookup and handle stability only; this does
+not establish runtime reliability guarantees or conformance.
 The opt-in `java-tck.fom-module-composition` scenario composes the adapter's
 base and extension modules as absolute file URLs at federation creation and at
 a later join. It verifies extension object/attribute and interaction/parameter

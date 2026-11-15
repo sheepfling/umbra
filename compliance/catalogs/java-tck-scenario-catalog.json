@@ -11220,6 +11220,52 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.2-fom-composition-and-reference-resolution"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-transportation",
+        "requirement-candidate-content-clauses-11-management-object-model-page-392-l259-84",
+        "requirement-candidate-content-clauses-11-management-object-model-page-392-l268-87",
+        "requirement-candidate-content-clauses-11-management-object-model-page-392-l277-90",
+        "requirement-candidate-sections-semantic-clauses-5-6-page-093-l94-18",
+        "requirement-candidate-sections-semantic-clauses-5-6-page-093-l98-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.4",
+        "hla-1516.1-2025:clause-12.12.6.19",
+        "hla-1516.2-2025:clause-6.2.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-047-l17-4-transportation",
+          "standard_section": "hla-1516.1-2025:clause-4.1.4",
+          "note": "The scenario resolves and name-round-trips HLAreliable, HLAbestEffort, the selected model FOM's custom transport, and the extension FOM's custom transport; it verifies shared handles and stable base names after additional-module Join. This is direct but partial evidence for selected name entries only. The official Java API exposes no query for a transportation type's reliability value, so reliability cells and complete arbitrary-FDD table coverage remain unverified."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-392-l259-84",
+          "standard_section": "hla-1516.1-2025:clause-12.12.6.19",
+          "note": "The scenario proves that the newly joined extension FOM transportation receives one shared handle distinct from HLAreliable, HLAbestEffort, and the base FOM custom type, and that each selected name round-trips. This is direct fixture-bounded evidence for two custom FOM types, not exhaustive proof for every possible transportation declaration."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-392-l268-87",
+          "standard_section": "hla-1516.1-2025:clause-12.12.6.19",
+          "note": "The scenario retrieves the newly composed transportation from both joined federates using the official Java RTIambassador.getTransportationTypeHandle(name) service and verifies getTransportationTypeName(handle) returns the declared name. This directly exercises the corresponding 2025 Java API service for the selected extension-FOM entry."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-392-l277-90",
+          "standard_section": "hla-1516.1-2025:clause-12.12.6.19",
+          "note": "The scenario retrieves HLAreliable and HLAbestEffort before and after the additional-FOM join, on both joined federates, and verifies their handles and names remain stable. This is selected runtime preservation evidence, not literal header-file immutability or proof for every possible existing value."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l94-18",
+          "standard_section": "hla-1516.2-2025:clause-6.2.11",
+          "note": "The supplied base and extension FOMs declare the representative custom names TckBestEffort and TckAdditionalTransport. Successful Create/additional-module Join plus public handle/name round-trips provide selected valid-name evidence. The case does not test rejection boundaries or exhaustively test every HLA naming rule in §3.3."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l98-19",
+          "standard_section": "hla-1516.2-2025:clause-6.2.11",
+          "note": "The base and extension FOM fixtures use both legal IEEE 1516.2-2025 DIF reliable-field encodings (No and Yes), and successful federation creation/additional-module Join demonstrates acceptance of these selected table values. The Java API has no reliability-value accessor; this is not exhaustive validation of invalid values or proof of runtime transport guarantees."
+        }
+      ],
+      "mapping_note": "Direct, fixture-bounded Java public-API evidence: selected standard, base-custom, and extension-custom transportation names/handles are checked for uniqueness, lookup, and stable existing values across additional-module Join (§4.1.4 and §12.12.6.19). Under IEEE 1516.2-2025 §6.2.11, the same successful FOM processing accepts the conforming custom names TckBestEffort/TckAdditionalTransport and both legal DIF reliable-field encodings, Yes and No. Name-rule rejection boundaries, invalid reliable values, arbitrary FDDs, and runtime reliability guarantees remain untested.",
       "contract_refs": [
         "standard-fom-transportation-handle-stability-contract.json",
         "standard-fom-module-composition-contract.json",
@@ -11228,8 +11274,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomTransportationHandleStability",
       "parity": "cpp-tck.fom-transportation-handle-stability",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rich base FOM, additional FOM module, custom and additional transportation names, and Java IEEE 1516.1-2025 provider; configure hla.rti.tck.fom, hla.rti.tck.additionalFom, hla.rti.tck.customTransportationType, and hla.rti.tck.fomAdditionalTransportationType. Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "rich base FOM packages/hla-rti-cpp-tck/fom/fom-model-tck.xml through hla.rti.tck.fom",
+        "extension FOM packages/hla-rti-cpp-tck/fom/fom-extension-tck.xml through hla.rti.tck.additionalFom",
+        "custom transportation name TckBestEffort through hla.rti.tck.customTransportationType",
+        "extension transportation name TckAdditionalTransport through hla.rti.tck.fomAdditionalTransportationType",
+        "logical-time implementation",
+        "HLA_EVOKED and HLA_IMMEDIATE callback models"
+      ],
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the official Java API using fom-model-tck.xml and fom-extension-tck.xml. The scenario checks distinct HLAreliable, HLAbestEffort, and base-custom handles; the pre-join absence, shared post-join handle, distinctness, name round-trips, and stability of the extension transportation and all three pre-existing values. Results/JUnit: out/java-tck/fom-transportation-handle-stability-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. FOM table evidence covers selected names and the legal No/Yes reliable field values only; no runtime reliability guarantee or conformance claim."
     },
     {
       "id": "java-tck.fom-module-composition",
