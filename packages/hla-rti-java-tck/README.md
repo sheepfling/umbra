@@ -50,6 +50,17 @@ in `out/java-tck/federate-mom-object-instances-reflected-java-parity-20261115/` 
 `out/mgw/cpp-tck-mom-object-instances-reflected-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-object-instances-discovered-mim-attribute`
+case checks the settled `HLAobjectInstancesDiscovered` baseline, its increase after
+two application discoveries, and the same object's rediscovery after local deletion.
+It then confirms the periodic value agrees with a direct request and remains stable
+after periodic reports are disabled. It maps only the standard MIM definition in
+IEEE 1516.1-2025 §11.4.1. Java passed under both callback models; the paired C++
+primary passed focused CTest 2/2 and direct runs in both models. Results are in
+`out/java-tck/federate-mom-object-instances-discovered-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-object-instances-discovered-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the

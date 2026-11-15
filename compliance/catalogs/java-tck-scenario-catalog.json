@@ -64708,26 +64708,25 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
         "RTIambassador.sendInteraction(HLAsetTiming)",
+        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -64751,8 +64750,23 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomObjectInstancesDiscovered",
       "parity": "cpp-tck.joined-federate-mom-object-instances-discovered-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The single direct mapping is the requirement-to-section pair recorded in standard-joined-federate-mom-object-instances-discovered-mim-attribute-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. This bounded scenario checks the baseline HLAobjectInstancesDiscovered count, its increase for two newly discovered application objects, the increase when the same object is rediscovered after local deletion, and agreement between the direct value and periodic value. Other service and callback checks are supporting scenario behavior; they are not separately mapped here.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise the same two-object discovery progression, local-delete rediscovery, direct requests, periodic reflection, and post-disable value.",
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckObject.Value. Results/JUnit: out/java-tck/federate-mom-object-instances-discovered-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; results/JUnit: out/mgw/cpp-tck-mom-object-instances-discovered-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-object-instances-removed-mim-attribute",
