@@ -15349,8 +15349,10 @@ public final class RtiTckMain {
    }
 
    private static void transportOrder() throws Exception {
-      TransportOrderTck.run(factory(), requireFom(), timeImplementation(), objectClassName(),
-         attributeName(), objectClassThirdAttributeName(), interactionClassName(), callbackModel());
+      TransportOrderTck.run(factory(), requireFom(),
+         requireAdapterFile("hla.rti.tck.transportOrderDefaultFom"), timeImplementation(),
+         objectClassName(), attributeName(), objectClassSecondAttributeName(),
+         objectClassThirdAttributeName(), interactionClassName(), callbackModel());
    }
 
    private static void momTransportationTypeChangeRequest() throws Exception {

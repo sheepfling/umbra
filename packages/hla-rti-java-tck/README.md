@@ -242,8 +242,12 @@ each federate's standard transportation-handle factory defaults match the
 handles returned by the standard `HLAreliable` and `HLAbestEffort` name lookups.
 Java has no portable equivalent of C++'s default-invalid transportation handle
 or invalid `OrderType` cast, so this case does not fabricate either input.
-Focused installed-provider evoked and immediate runs passed; independent-
-provider conformance is not claimed.
+It now links directly to the C++ primary case and maps the order names and values,
+case-sensitive aliases, and mandatory transportation types to their exact 2025
+sections. Focused current-source JNI runs passed under both callback models;
+results/JUnit are in
+`out/java-tck/standard-order-transportation-lookups-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Independent-provider behavior and conformance are not claimed.
 The `java-tck.logical-time-factory` case now mirrors the C++ lifecycle gates
 for `getTimeFactory` before connection and after connection but before join,
 and uses the adapter-selected callback model. It round-trips initial/final time
@@ -313,12 +317,15 @@ four-octet `HLAinteger32BE` encode/decode check through the discovered standard
 encoder factory, the stable non-empty runtime name/version contract, and
 repeated standard ambassador construction; the expanded scenario passes on
 the local JNI provider.
-The `java-tck.transport-order` scenario also checks standard invalid-class,
-invalid-attribute, unknown-object, and invalid-transportation boundaries for
-default/per-instance order and transportation services, plus unpublished
-interaction-order and invalid published-transport requests. It now uses the
-adapter-selected callback model and checks the distinct immediate-versus-evoked
-transport-change commit behavior for both attributes and interactions.
+The `java-tck.transport-order` scenario uses the adapter-selected callback
+model and checks the distinct immediate-versus-evoked transport-change commit
+behavior for both attributes and interactions. It also checks the unowned
+`Name` attribute's FOM-declared transport and queries the
+`HLAreliable`/`HLAbestEffort` defaults in a second two-federate execution using
+`-Dhla.rti.tck.transportOrderDefaultFom=...`; the Java TCK fixture is
+`packages/hla-rti-java-tck/fom/transport-default-best-effort-tck.xml`. Java
+omits C++ default-invalid-handle boundaries because the official Java API
+provides no portable invalid handle values.
 The federation restore ownership-assumption scenario also preserves pending
 object-discovery and ownership-assumption callbacks across a complete save and
 restore under both callback models, and checks that ownership is not transferred

@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 146 |
-| Distinct stable requirement IDs | 1180 |
+| Distinct stable requirement IDs | 1194 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
 | Default `run` scenarios | 628 |
 | Default `unsupported` scenarios | 336 |
 | Scenarios with explicit `requirement_mappings` | 677 |
-| Explicit mapping records | 2778 |
+| Explicit mapping records | 2792 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -3515,6 +3515,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-01-overview-page-018-l58-7-order`
+
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-04-federation-management-page-039-l4-1`
 
 - [`java-tck.federate-application-multiple-executions`](#scenario-java-tck.federate-application-multiple-executions) — Preserve case-distinct names and isolate data across executions (`lifecycle`; default `run`; C++ pointer `cpp-tck.application-multiple-federates-across-executions`).
@@ -4787,13 +4793,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-06-object-management-page-111-l25-6`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-111-l58-17`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -4817,7 +4823,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-06-object-management-page-112-l12-3`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -5444,91 +5450,145 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-06-object-management-page-139-l123-31`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-06-object-management-page-139-l132-34`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-140-l178-51`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-140-l181-52`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-141-l11-1`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-141-l125-32`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-141-l131-34`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-141-l137-36`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-141-l143-38`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-142-l173-48`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-143-l156-42`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-143-l162-44`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-144-l100-24`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-144-l103-25`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-06-object-management-page-144-l88-20`
+
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-144-l94-22`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-145-l119-33`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-145-l122-34`
 
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-146-l58-12`
 
 - [`java-tck.interaction-transportation-query-valid-inputs-after-resignation`](#scenario-java-tck.interaction-transportation-query-valid-inputs-after-resignation) — Check interaction transportation query membership boundary after resignation with a valid active peer and FOM class (`transportation-type-query`; default `run`; C++ pointer `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation`).
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-147-l24-3`
 
 - [`java-tck.interaction-transportation-query-valid-inputs-after-resignation`](#scenario-java-tck.interaction-transportation-query-valid-inputs-after-resignation) — Check interaction transportation query membership boundary after resignation with a valid active peer and FOM class (`transportation-type-query`; default `run`; C++ pointer `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation`).
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-147-l30-5`
 
 - [`java-tck.interaction-transportation-query-valid-inputs-after-resignation`](#scenario-java-tck.interaction-transportation-query-valid-inputs-after-resignation) — Check interaction transportation query membership boundary after resignation with a valid active peer and FOM class (`transportation-type-query`; default `run`; C++ pointer `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation`).
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-147-l33-6`
 
 - [`java-tck.interaction-transportation-query-valid-inputs-after-resignation`](#scenario-java-tck.interaction-transportation-query-valid-inputs-after-resignation) — Check interaction transportation query membership boundary after resignation with a valid active peer and FOM class (`transportation-type-query`; default `run`; C++ pointer `cpp-tck.interaction-transportation-query-valid-inputs-after-resignation`).
-- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order-contract`).
+- [`java-tck.transport-order`](#scenario-java-tck.transport-order) — Exercise ordinary transportation and order controls (`transportation-and-order`; default `run`; C++ pointer `cpp-tck.transport-order`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6317,19 +6377,31 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-08-time-management-page-188-l69-21`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name`
+
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name`
+
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-08-time-management-page-188-l75-23`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-08-time-management-page-188-l81-25`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -7648,25 +7720,25 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-content-clauses-10-support-services-page-255-l122-31`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-10-support-services-page-256-l152-37`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-10-support-services-page-256-l53-11`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-10-support-services-page-257-l108-25`
 
-- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups-contract`).
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9257,6 +9329,18 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-sections-semantic-clause-4b-page-063-l39-1`
+
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-sections-semantic-clause-4b-page-063-l67-6`
+
+- [`java-tck.standard-order-transportation-lookups`](#scenario-java-tck.standard-order-transportation-lookups) — Check mandatory order and transportation lookups across connection and membership (`handle-lookup`; default `run`; C++ pointer `cpp-tck.standard-order-and-transportation-lookups`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-sections-semantic-clause-4b-page-067-l30-2`
 
 - [`java-tck.fom-automatic-resign-action-setting`](#scenario-java-tck.fom-automatic-resign-action-setting) — Accept six defined Automatic Resign Action FOM settings and reject an unsupported value (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-automatic-resign-action-setting`).
@@ -10280,10 +10364,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11.1`
 - `java-tck.standard-order-transportation-lookups`:
+  - `requirement-candidate-content-clauses-01-overview-page-018-l58-7-order` → `hla-1516.1-2025:clause-1.5`
+  - `requirement-candidate-sections-semantic-clause-4b-page-063-l39-1` → `hla-1516.2-2025:clause-4`
+  - `requirement-candidate-sections-semantic-clause-4b-page-063-l67-6` → `hla-1516.2-2025:clause-4.11.3`
+  - `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name` → `hla-1516.1-2025:clause-8.1.11`
+  - `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name` → `hla-1516.1-2025:clause-8.1.11`
   - `requirement-candidate-content-clauses-06-object-management-page-111-l25-6` → `hla-1516.1-2025:clause-6.1.11`
-  - `requirement-candidate-content-clauses-08-time-management-page-188-l69-21` → `hla-1516.1-2025:clause-8.2`
-  - `requirement-candidate-content-clauses-08-time-management-page-188-l75-23` → `hla-1516.1-2025:clause-8.2`
-  - `requirement-candidate-content-clauses-08-time-management-page-188-l81-25` → `hla-1516.1-2025:clause-8.2`
+  - `requirement-candidate-content-clauses-08-time-management-page-188-l69-21` → `hla-1516.1-2025:clause-8.1.11`
+  - `requirement-candidate-content-clauses-08-time-management-page-188-l75-23` → `hla-1516.1-2025:clause-8.1.11`
+  - `requirement-candidate-content-clauses-08-time-management-page-188-l81-25` → `hla-1516.1-2025:clause-8.1.11`
   - `requirement-candidate-content-clauses-10-support-services-page-255-l122-31` → `hla-1516.1-2025:clause-10.17.4`
   - `requirement-candidate-content-clauses-10-support-services-page-256-l53-11` → `hla-1516.1-2025:clause-10.19`
   - `requirement-candidate-content-clauses-10-support-services-page-256-l152-37` → `hla-1516.1-2025:clause-10.19`
@@ -10739,13 +10828,22 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.directed-interaction-derived-object-target`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2` → `hla-1516.1-2025:clause-5.1.5`
 - `java-tck.transport-order`:
+  - `requirement-candidate-content-clauses-06-object-management-page-139-l123-31` → `hla-1516.1-2025:clause-6.25`
   - `requirement-candidate-content-clauses-06-object-management-page-139-l132-34` → `hla-1516.1-2025:clause-6.25.1`
   - `requirement-candidate-content-clauses-06-object-management-page-140-l178-51` → `hla-1516.1-2025:clause-6.26`
   - `requirement-candidate-content-clauses-06-object-management-page-140-l181-52` → `hla-1516.1-2025:clause-6.26`
+  - `requirement-candidate-content-clauses-06-object-management-page-141-l11-1` → `hla-1516.1-2025:clause-6.26`
+  - `requirement-candidate-content-clauses-06-object-management-page-141-l125-32` → `hla-1516.1-2025:clause-6.27`
+  - `requirement-candidate-content-clauses-06-object-management-page-141-l131-34` → `hla-1516.1-2025:clause-6.27`
   - `requirement-candidate-content-clauses-06-object-management-page-141-l137-36` → `hla-1516.1-2025:clause-6.27`
   - `requirement-candidate-content-clauses-06-object-management-page-141-l143-38` → `hla-1516.1-2025:clause-6.27`
   - `requirement-candidate-content-clauses-06-object-management-page-142-l173-48` → `hla-1516.1-2025:clause-6.28`
   - `requirement-candidate-content-clauses-06-object-management-page-143-l156-42` → `hla-1516.1-2025:clause-6.29`
+  - `requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response` → `hla-1516.1-2025:clause-6.29`
+  - `requirement-candidate-content-clauses-06-object-management-page-143-l162-44` → `hla-1516.1-2025:clause-6.29`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l88-20` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l100-24` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l103-25` → `hla-1516.1-2025:clause-6.30`
   - `requirement-candidate-content-clauses-06-object-management-page-144-l94-22` → `hla-1516.1-2025:clause-6.30.3`
   - `requirement-candidate-content-clauses-06-object-management-page-145-l119-33` → `hla-1516.1-2025:clause-6.31.3`
   - `requirement-candidate-content-clauses-06-object-management-page-145-l122-34` → `hla-1516.1-2025:clause-6.31.3`
@@ -10753,7 +10851,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-147-l24-3` → `hla-1516.1-2025:clause-6.33.6`
   - `requirement-candidate-content-clauses-06-object-management-page-147-l30-5` → `hla-1516.1-2025:clause-6.33.6`
   - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33.6`
-  - `requirement-candidate-content-clauses-06-object-management-page-112-l12-3` → `hla-1516.1-2025:clause-6.1.13`
+  - `requirement-candidate-content-clauses-06-object-management-page-112-l12-3` → `hla-1516.1-2025:clause-6.1.11`
   - `requirement-candidate-content-clauses-06-object-management-page-111-l58-17` → `hla-1516.1-2025:clause-6.1.11`
 - `java-tck.standard-order-transport-lookups-after-resignation`:
   - `cpp-1516.1-order-type-membership-boundary-after-resignation` → `hla-1516.1-2025:clause-10.17`
@@ -14017,7 +14115,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.parameter-handle-name-lookup"></a>`java-tck.parameter-handle-name-lookup` — Parameter handle and name lookups round-trip the configured FOM name | `org.hla.rti.tck.SupportServicesScenarioRegistry#parameterHandleNameLookup` | 10 | `requirement-candidate-content-clauses-10-support-services-page-254-l26-3`, `requirement-candidate-content-clauses-10-support-services-page-254-l143-35` | `cpp-tck.parameter-handle-name-lookup` | `run` | provider JAR and factory; callback model; P0 FOM and logical-time implementation; configured interaction-class and parameter names |
 | <a id="scenario-java-tck.parameter-lookup-lifecycle"></a>`java-tck.parameter-lookup-lifecycle` — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries | `org.hla.rti.tck.RtiTckMain#parameterLookupLifecycle` | 11 | `cpp-1516.1-parameter-lookup`, `cpp-1516.1-interaction-lookup`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.2-fom-root-hierarchy`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-10-support-services-page-254-l26-3`, `requirement-candidate-content-clauses-10-support-services-page-254-l143-35` | `cpp-tck.parameter-lookup-lifecycle` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with HLAinteractionRoot.TckTypedInteraction, HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction, IntegerParameter, and DerivedParameter; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.privilege-attribute-availability"></a>`java-tck.privilege-attribute-availability` — Resolve HLAprivilegeToDeleteObject on every object class in the P0 TCK FOM | `org.hla.rti.tck.PrivilegeAttributeAvailabilityTck#run` | 12 | `requirement-candidate-content-clauses-07-ownership-management-page-153-l84-26`, `requirement-candidate-sections-semantic-clauses-5-6-page-092-l94-20`, `requirement-candidate-sections-semantic-clause-4b-page-051-l146-1` | `cpp-tck.privilege-attribute-availability` | `run` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; p0-tck.xml with the composed standard MIM; HLA_EVOKED and HLA_IMMEDIATE callback models; logical-time implementation |
-| <a id="scenario-java-tck.standard-order-transportation-lookups"></a>`java-tck.standard-order-transportation-lookups` — Check mandatory order and transportation lookups across connection and membership | `org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups` | 12 | `requirement-candidate-content-clauses-06-object-management-page-111-l25-6`, `requirement-candidate-content-clauses-08-time-management-page-188-l69-21`, `requirement-candidate-content-clauses-08-time-management-page-188-l75-23`, `requirement-candidate-content-clauses-08-time-management-page-188-l81-25`, `requirement-candidate-content-clauses-10-support-services-page-255-l122-31`, `requirement-candidate-content-clauses-10-support-services-page-256-l53-11`, `requirement-candidate-content-clauses-10-support-services-page-256-l152-37`, `requirement-candidate-content-clauses-10-support-services-page-257-l108-25` | `cpp-tck.standard-order-and-transportation-lookups-contract` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.standard-order-transportation-lookups"></a>`java-tck.standard-order-transportation-lookups` — Check mandatory order and transportation lookups across connection and membership | `org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups` | 12 | `requirement-candidate-content-clauses-01-overview-page-018-l58-7-order`, `requirement-candidate-sections-semantic-clause-4b-page-063-l39-1`, `requirement-candidate-sections-semantic-clause-4b-page-063-l67-6`, `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name`, `requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name`, `requirement-candidate-content-clauses-06-object-management-page-111-l25-6`, `requirement-candidate-content-clauses-08-time-management-page-188-l69-21`, `requirement-candidate-content-clauses-08-time-management-page-188-l75-23`, `requirement-candidate-content-clauses-08-time-management-page-188-l81-25`, `requirement-candidate-content-clauses-10-support-services-page-255-l122-31`, `requirement-candidate-content-clauses-10-support-services-page-256-l53-11`, `requirement-candidate-content-clauses-10-support-services-page-256-l152-37`, `requirement-candidate-content-clauses-10-support-services-page-257-l108-25` | `cpp-tck.standard-order-and-transportation-lookups` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.support-lookups-valid-inputs-after-resignation"></a>`java-tck.support-lookups-valid-inputs-after-resignation` — Check class, attribute, and parameter lookups after resignation with valid adapter FOM inputs | `org.hla.rti.tck.RtiTckMain#supportLookupsAfterResignation` | 14 | `cpp-1516.1-object-class-handle-membership-boundary-after-resignation`, `cpp-1516.1-object-class-name-membership-boundary-after-resignation`, `cpp-1516.1-attribute-handle-membership-boundary-after-resignation`, `cpp-1516.1-attribute-name-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-handle-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-name-membership-boundary-after-resignation`, `cpp-1516.1-parameter-handle-membership-boundary-after-resignation`, `cpp-1516.1-parameter-name-membership-boundary-after-resignation` | `cpp-tck.support-lookup-valid-inputs-after-resignation-contract` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.update-rate-lookups-valid-inputs-after-resignation"></a>`java-tck.update-rate-lookups-valid-inputs-after-resignation` — Check update-rate lookup membership boundaries after resignation with valid FOM inputs | `org.hla.rti.tck.RtiTckMain#updateRateLookupsAfterResignation` | 16 | `cpp-1516.1-update-rate-value-membership-boundary-after-resignation`, `cpp-1516.1-update-rate-value-for-attribute-membership-boundary-after-resignation` | `cpp-tck.update-rate-lookup-valid-inputs-after-resignation-contract` | `run` | not scenario-declared |
 
@@ -14999,7 +15097,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.order-type-fdd-default-initialization"></a>`java-tck.order-type-fdd-default-initialization` — Initialize each federate's class-attribute order default from the current FDD | `org.hla.rti.tck.RtiTckMain#fddAttributeOrderDefaultInitialization` | 24 | `requirement-candidate-content-clauses-08-time-management-page-213-l79-21` | `cpp-tck.order-type-fdd-default-initialization` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.order-type-inherited-attribute-default-scope"></a>`java-tck.order-type-inherited-attribute-default-scope` — Apply inherited attribute order defaults across base and derived invocation classes | `org.hla.rti.tck.RtiTckMain#inheritedAttributeDefaultOrderScope` | 23 | `requirement-candidate-content-clauses-08-time-management-page-213-l94-26` | `cpp-tck.order-type-inherited-attribute-default-scope` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.standard-order-transport-lookups-after-resignation"></a>`java-tck.standard-order-transport-lookups-after-resignation` — Check mandatory order and transportation lookup membership boundaries after resignation | `org.hla.rti.tck.RtiTckMain#standardOrderTransportLookupsAfterResignation` | 10 | `cpp-1516.1-order-type-membership-boundary-after-resignation`, `cpp-1516.1-order-name-membership-boundary-after-resignation`, `cpp-1516.1-transportation-type-handle-membership-boundary-after-resignation`, `cpp-1516.1-transportation-type-name-membership-boundary-after-resignation` | `cpp-tck.standard-order-transport-lookups-after-resignation` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.transport-order"></a>`java-tck.transport-order` — Exercise ordinary transportation and order controls | `org.hla.rti.tck.RtiTckMain#transportOrder` | 17 | `requirement-candidate-content-clauses-06-object-management-page-139-l132-34`, `requirement-candidate-content-clauses-06-object-management-page-140-l178-51`, `requirement-candidate-content-clauses-06-object-management-page-140-l181-52`, `requirement-candidate-content-clauses-06-object-management-page-141-l137-36`, `requirement-candidate-content-clauses-06-object-management-page-141-l143-38`, `requirement-candidate-content-clauses-06-object-management-page-142-l173-48`, `requirement-candidate-content-clauses-06-object-management-page-143-l156-42`, `requirement-candidate-content-clauses-06-object-management-page-144-l94-22`, `requirement-candidate-content-clauses-06-object-management-page-145-l119-33`, `requirement-candidate-content-clauses-06-object-management-page-145-l122-34`, `requirement-candidate-content-clauses-06-object-management-page-146-l58-12`, `requirement-candidate-content-clauses-06-object-management-page-147-l24-3`, `requirement-candidate-content-clauses-06-object-management-page-147-l30-5`, `requirement-candidate-content-clauses-06-object-management-page-147-l33-6`, `requirement-candidate-content-clauses-06-object-management-page-112-l12-3`, `requirement-candidate-content-clauses-06-object-management-page-111-l58-17` | `cpp-tck.transport-order-contract` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.transport-order"></a>`java-tck.transport-order` — Exercise ordinary transportation and order controls | `org.hla.rti.tck.RtiTckMain#transportOrder` | 17 | `requirement-candidate-content-clauses-06-object-management-page-139-l123-31`, `requirement-candidate-content-clauses-06-object-management-page-139-l132-34`, `requirement-candidate-content-clauses-06-object-management-page-140-l178-51`, `requirement-candidate-content-clauses-06-object-management-page-140-l181-52`, `requirement-candidate-content-clauses-06-object-management-page-141-l11-1`, `requirement-candidate-content-clauses-06-object-management-page-141-l125-32`, `requirement-candidate-content-clauses-06-object-management-page-141-l131-34`, `requirement-candidate-content-clauses-06-object-management-page-141-l137-36`, `requirement-candidate-content-clauses-06-object-management-page-141-l143-38`, `requirement-candidate-content-clauses-06-object-management-page-142-l173-48`, `requirement-candidate-content-clauses-06-object-management-page-143-l156-42`, `requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response`, `requirement-candidate-content-clauses-06-object-management-page-143-l162-44`, `requirement-candidate-content-clauses-06-object-management-page-144-l94-22`, `requirement-candidate-content-clauses-06-object-management-page-144-l88-20`, `requirement-candidate-content-clauses-06-object-management-page-144-l100-24`, `requirement-candidate-content-clauses-06-object-management-page-144-l103-25`, `requirement-candidate-content-clauses-06-object-management-page-145-l119-33`, `requirement-candidate-content-clauses-06-object-management-page-145-l122-34`, `requirement-candidate-content-clauses-06-object-management-page-146-l58-12`, `requirement-candidate-content-clauses-06-object-management-page-147-l24-3`, `requirement-candidate-content-clauses-06-object-management-page-147-l30-5`, `requirement-candidate-content-clauses-06-object-management-page-147-l33-6`, `requirement-candidate-content-clauses-06-object-management-page-112-l12-3`, `requirement-candidate-content-clauses-06-object-management-page-111-l58-17` | `cpp-tck.transport-order` | `run` | not scenario-declared |
 
 ### `transportation-delivery`
 

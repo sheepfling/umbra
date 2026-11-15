@@ -29,10 +29,12 @@ final class TransportOrderTck {
    private TransportOrderTck() {
    }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String secondAttributeName,
-         String interactionClassName,
+   static void run(RtiFactory factory, String fom, String defaultTransportationFom,
+         String timeImplementation, String objectClassName, String attributeName,
+         String unownedAttributeName, String secondAttributeName, String interactionClassName,
          CallbackModel callbackModel) throws Exception {
+      verifyFomDeclaredBestEffortDefaults(factory, defaultTransportationFom,
+         timeImplementation, objectClassName, attributeName, callbackModel);
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -65,6 +67,8 @@ final class TransportOrderTck {
             secondAttributeName);
          AttributeHandle observerSecondAttribute = observer.getAttributeHandle(observerClass,
             secondAttributeName);
+         AttributeHandle ownerUnownedAttribute = owner.getAttributeHandle(ownerClass,
+            unownedAttributeName);
          // The adapter supplies both FOM attributes for the standard set-valued
          // transportation API.
          AttributeHandleSet ownerAttributes = JavaTckSupport.attributeSet(owner,
@@ -73,62 +77,15 @@ final class TransportOrderTck {
             observerAttribute, observerSecondAttribute);
          JavaTckSupport.check(ownerAttributes.size() == 2 && observerAttributes.size() == 2,
             "transport/order fixture must provide two distinct attributes");
+         JavaTckSupport.check(ownerUnownedAttribute != null
+               && !ownerAttributes.contains(ownerUnownedAttribute),
+            "transport/order query fixture requires a valid class attribute outside the published set");
          InteractionClassHandle ownerInteraction =
             owner.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle observerInteraction =
             observer.getInteractionClassHandle(interactionClassName);
          TransportationTypeHandle reliable = owner.getTransportationTypeHandle("HLAreliable");
          TransportationTypeHandle bestEffort = owner.getTransportationTypeHandle("HLAbestEffort");
-          ObjectClassHandle invalidObjectClass =
-             JavaTckSupport.invalidHandle(ObjectClassHandle.class);
-          AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(owner,
-             JavaTckSupport.invalidHandle(AttributeHandle.class));
-          ObjectInstanceHandle invalidObject =
-             JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
-          InteractionClassHandle invalidInteraction =
-             JavaTckSupport.invalidHandle(InteractionClassHandle.class);
-          TransportationTypeHandle invalidTransportation =
-             JavaTckSupport.invalidHandle(TransportationTypeHandle.class);
-
-          JavaTckSupport.expectFailure(
-             () -> owner.changeDefaultAttributeOrderType(invalidObjectClass,
-                ownerAttributes, OrderType.RECEIVE),
-             "ObjectClassNotDefined", "default attribute order accepted an invalid class");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeDefaultAttributeOrderType(ownerClass,
-                invalidAttributes, OrderType.RECEIVE),
-             "AttributeNotDefined", "default attribute order accepted an invalid attribute");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeDefaultAttributeTransportationType(invalidObjectClass,
-                ownerAttributes, bestEffort),
-             "ObjectClassNotDefined", "default attribute transport accepted an invalid class");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeDefaultAttributeTransportationType(ownerClass,
-                invalidAttributes, bestEffort),
-             "AttributeNotDefined", "default attribute transport accepted an invalid attribute");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeDefaultAttributeTransportationType(ownerClass,
-                ownerAttributes, invalidTransportation),
-             "InvalidTransportationTypeHandle",
-             "default attribute transport accepted an invalid transportation handle");
-          JavaTckSupport.expectFailure(
-             () -> owner.requestAttributeTransportationTypeChange(invalidObject,
-                ownerAttributes, bestEffort),
-             "ObjectInstanceNotKnown", "attribute transport accepted an unknown object");
-          JavaTckSupport.expectFailure(
-             () -> owner.queryAttributeTransportationType(invalidObject, ownerAttribute),
-             "ObjectInstanceNotKnown", "attribute transport query accepted an unknown object");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeInteractionOrderType(invalidInteraction, OrderType.RECEIVE),
-             "InteractionClassNotDefined", "interaction order accepted an invalid class");
-          JavaTckSupport.expectFailure(
-             () -> owner.requestInteractionTransportationTypeChange(
-                invalidInteraction, bestEffort),
-             "InteractionClassNotDefined", "interaction transport accepted an invalid class");
-          JavaTckSupport.expectFailure(
-             () -> owner.queryInteractionTransportationType(ownerFederate, invalidInteraction),
-             "InteractionClassNotDefined", "interaction transport query accepted an invalid class");
-
          owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
          observer.subscribeObjectClassAttributes(observerClass, observerAttributes);
          JavaTckSupport.expectFailure(
@@ -136,37 +93,12 @@ final class TransportOrderTck {
             "InteractionClassNotPublished", "unpublished interaction order change was accepted");
          owner.publishInteractionClass(ownerInteraction);
          observer.subscribeInteractionClass(observerInteraction);
-          JavaTckSupport.expectFailure(
-             () -> owner.requestInteractionTransportationTypeChange(
-                ownerInteraction, invalidTransportation),
-             "InvalidTransportationTypeHandle",
-             "published interaction transport accepted an invalid transportation handle");
 
          // The FOM's ordinary defaults start reliable for transport and
          // timestamped for order.  Exercise both default and per-instance
          // order controls before using the receive-order data path.
          owner.changeDefaultAttributeOrderType(ownerClass, ownerAttributes, OrderType.RECEIVE);
          ObjectInstanceHandle first = owner.registerObjectInstance(ownerClass);
-          JavaTckSupport.expectFailure(
-             () -> owner.changeAttributeOrderType(invalidObject, ownerAttributes,
-                OrderType.RECEIVE),
-             "ObjectInstanceNotKnown", "per-instance attribute order accepted an unknown object");
-          JavaTckSupport.expectFailure(
-             () -> owner.changeAttributeOrderType(first, invalidAttributes, OrderType.TIMESTAMP),
-             "AttributeNotDefined", "per-instance attribute order accepted an invalid attribute");
-          JavaTckSupport.expectFailure(
-             () -> owner.requestAttributeTransportationTypeChange(first,
-                invalidAttributes, bestEffort),
-             "AttributeNotDefined", "attribute transport accepted an invalid attribute");
-          JavaTckSupport.expectFailure(
-             () -> owner.requestAttributeTransportationTypeChange(first,
-                ownerAttributes, invalidTransportation),
-             "InvalidTransportationTypeHandle",
-             "attribute transport accepted an invalid transportation handle");
-          JavaTckSupport.expectFailure(
-             () -> owner.queryAttributeTransportationType(first,
-                JavaTckSupport.invalidHandle(AttributeHandle.class)),
-             "AttributeNotDefined", "attribute transport query accepted an invalid attribute");
          owner.changeAttributeOrderType(first, ownerAttributes, OrderType.TIMESTAMP);
          owner.changeAttributeOrderType(first, ownerAttributes, OrderType.RECEIVE);
          owner.changeInteractionOrderType(ownerInteraction, OrderType.TIMESTAMP);
@@ -184,19 +116,26 @@ final class TransportOrderTck {
 
          owner.queryAttributeTransportationType(first, ownerAttribute);
          owner.queryAttributeTransportationType(second, ownerAttribute);
+         owner.queryAttributeTransportationType(first, ownerUnownedAttribute);
          JavaTckSupport.drain(owner);
-         JavaTckSupport.check(ownerRecorder.attributeReports.size() >= 2,
-            "attribute transportation queries did not produce report callbacks");
+         JavaTckSupport.check(ownerRecorder.attributeReports.size() == 3,
+            "attribute transportation queries did not produce exactly three report callbacks");
          AttributeTransportReport firstReport = findAttributeReport(
             ownerRecorder.attributeReports, first, ownerAttribute);
          AttributeTransportReport secondReport = findAttributeReport(
             ownerRecorder.attributeReports, second, ownerAttribute);
+         AttributeTransportReport unownedReport = findAttributeReport(
+            ownerRecorder.attributeReports, first, ownerUnownedAttribute);
          JavaTckSupport.check(first.equals(firstReport.object)
                && sameTransport(owner, firstReport.transportation, reliable),
             "first object did not retain the reliable FOM/default transport");
          JavaTckSupport.check(second.equals(secondReport.object)
                && sameTransport(owner, secondReport.transportation, bestEffort),
             "second object did not capture the best-effort class default");
+         JavaTckSupport.check(first.equals(unownedReport.object)
+               && ownerUnownedAttribute.equals(unownedReport.attribute)
+               && sameTransport(owner, unownedReport.transportation, reliable),
+            "unowned attribute query did not report its FOM-declared reliable transportation");
 
          // Evoked callbacks leave the request pending until serviced; immediate
          // callbacks commit it before the request service returns.
@@ -369,6 +308,69 @@ final class TransportOrderTck {
          if (observerConnected) disconnect(observer);
          if (ownerConnected) disconnect(owner);
       }
+   }
+
+   private static void verifyFomDeclaredBestEffortDefaults(RtiFactory factory, String fom,
+         String timeImplementation, String objectClassName, String attributeName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador first = factory.getRtiAmbassador();
+      RTIambassador second = factory.getRtiAmbassador();
+      Recorder firstRecorder = new Recorder();
+      Recorder secondRecorder = new Recorder();
+      String federation = "java-tck-transport-order-fdd-default-" + UUID.randomUUID();
+      boolean firstConnected = false;
+      boolean secondConnected = false;
+      boolean created = false;
+      boolean firstJoined = false;
+      boolean secondJoined = false;
+      try {
+         first.connect(firstRecorder.proxy(), callbackModel);
+         firstConnected = true;
+         second.connect(secondRecorder.proxy(), callbackModel);
+         secondConnected = true;
+         first.createFederationExecution(federation, fom, timeImplementation);
+         created = true;
+         first.joinFederationExecution("java-tck-transport-default-first", federation);
+         firstJoined = true;
+         second.joinFederationExecution("java-tck-transport-default-second", federation);
+         secondJoined = true;
+
+         verifyFomDeclaredBestEffortDefault(first, firstRecorder, objectClassName,
+            attributeName);
+         verifyFomDeclaredBestEffortDefault(second, secondRecorder, objectClassName,
+            attributeName);
+      } finally {
+         if (secondJoined) resign(second);
+         if (firstJoined) resign(first);
+         if (created) {
+            try {
+               first.destroyFederationExecution(federation);
+            } catch (Exception ignored) {
+            }
+         }
+         if (secondConnected) disconnect(second);
+         if (firstConnected) disconnect(first);
+      }
+   }
+
+   private static void verifyFomDeclaredBestEffortDefault(RTIambassador ambassador,
+         Recorder recorder, String objectClassName, String attributeName) throws Exception {
+      ObjectClassHandle objectClass = ambassador.getObjectClassHandle(objectClassName);
+      AttributeHandle attribute = ambassador.getAttributeHandle(objectClass, attributeName);
+      AttributeHandleSet attributes = JavaTckSupport.attributeSet(ambassador, attribute);
+      ambassador.publishObjectClassAttributes(objectClass, attributes);
+      ObjectInstanceHandle object = ambassador.registerObjectInstance(objectClass);
+      ambassador.queryAttributeTransportationType(object, attribute);
+      JavaTckSupport.drain(ambassador);
+
+      JavaTckSupport.check(recorder.attributeReports.size() == 1,
+         "FOM-default query did not produce exactly one attribute transportation report");
+      AttributeTransportReport report = recorder.attributeReports.get(0);
+      TransportationTypeHandle bestEffort =
+         ambassador.getTransportationTypeHandle("HLAbestEffort");
+      JavaTckSupport.check(object.equals(report.object) && attribute.equals(report.attribute)
+            && sameTransport(ambassador, report.transportation, bestEffort),
+         "joined federate did not initialize its attribute transportation from the FOM default");
    }
 
    private static AttributeHandleValueMap oneValue(RTIambassador ambassador,

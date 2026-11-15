@@ -9461,6 +9461,11 @@
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-01-overview-page-018-l58-7-order",
+        "requirement-candidate-sections-semantic-clause-4b-page-063-l39-1",
+        "requirement-candidate-sections-semantic-clause-4b-page-063-l67-6",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name",
         "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
         "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
         "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
@@ -9471,6 +9476,11 @@
         "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-01-overview-page-018-l58-7-order",
+        "requirement-candidate-sections-semantic-clause-4b-page-063-l39-1",
+        "requirement-candidate-sections-semantic-clause-4b-page-063-l67-6",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name",
         "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
         "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
         "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
@@ -9481,28 +9491,51 @@
         "requirement-candidate-content-clauses-10-support-services-page-257-l108-25"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-1.5",
         "hla-1516.1-2025:clause-6.1.11",
-        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.1.11",
         "hla-1516.1-2025:clause-10.17.4",
         "hla-1516.1-2025:clause-10.19",
-        "hla-1516.1-2025:clause-10.20.4"
+        "hla-1516.1-2025:clause-10.20.4",
+        "hla-1516.2-2025:clause-4",
+        "hla-1516.2-2025:clause-4.11.3"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l58-7-order",
+          "standard_section": "hla-1516.1-2025:clause-1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-063-l39-1",
+          "standard_section": "hla-1516.2-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-063-l67-6",
+          "standard_section": "hla-1516.2-2025:clause-4.11.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-tso-name",
+          "standard_section": "hla-1516.1-2025:clause-8.1.11"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l69-21-ro-name",
+          "standard_section": "hla-1516.1-2025:clause-8.1.11"
+        },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l25-6",
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l69-21",
-          "standard_section": "hla-1516.1-2025:clause-8.2"
+          "standard_section": "hla-1516.1-2025:clause-8.1.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l75-23",
-          "standard_section": "hla-1516.1-2025:clause-8.2"
+          "standard_section": "hla-1516.1-2025:clause-8.1.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l81-25",
-          "standard_section": "hla-1516.1-2025:clause-8.2"
+          "standard_section": "hla-1516.1-2025:clause-8.1.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-255-l122-31",
@@ -9521,7 +9554,7 @@
           "standard_section": "hla-1516.1-2025:clause-10.20.4"
         }
       ],
-      "mapping_note": "The joined-federate HLAreliable/HLAbestEffort handle/name checks directly verify that both mandatory transportation types are supported (§6.1.11); they do not test delivery behavior implied by the reliable/best-effort classifications. The standard Receive/TimeStamp order names and values map to §8.2, and Get Order Type/Get Order Name mappings to §§10.17.4 and 10.19; transportation lookup/name mappings also map to §§10.19 and 10.20.4. Java-only transportation-handle-factory default identity checks, lifecycle checks, and unknown-name checks are supplemental. Java's OrderType enum has no direct equivalent to C++'s deliberately invalid cast, and Java exposes no portable default-invalid transportation handle value corresponding to C++; neither negative assertion is claimed as Java parity.",
+      "mapping_note": "The Java scenario directly mirrors cpp-tck.standard-order-and-transportation-lookups for the official Java API. The exact-case Receive and TimeStamp names and values map to IEEE 1516.1-2025 §8.1.11; lower-case aliases rejected as InvalidOrderName map to §1.5. HLAreliable and HLAbestEffort handle/name lookups directly witness that both required transportation types are provided and included in the standard table, mapping to IEEE 1516.2-2025 §§4 and 4.11.3 and IEEE 1516.1-2025 §6.1.11. Get Order Type/Get Order Name and transportation lookup/name mappings also cover §§10.17.4, 10.19, and 10.20.4. These assertions do not test reliable/best-effort delivery semantics. Java-only transportation-handle-factory default identity, lifecycle, and unknown-name checks are supplemental. Java OrderType has no invalid enum-cast equivalent and the Java API exposes no portable default-invalid transportation handle value, so those C++ negative assertions are not claimed as Java parity.",
       "contract_refs": [
         "standard-order-and-transportation-lookups-contract.json",
         "order-type-api-contract.json",
@@ -9529,9 +9562,9 @@
         "transportation-type-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups",
-      "parity": "cpp-tck.standard-order-and-transportation-lookups-contract",
+      "parity": "cpp-tck.standard-order-and-transportation-lookups",
       "default_status": "run",
-      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE focused default runs passed at out/java-tck/standard-order-transportation-lookups-{evoked,immediate}-default-20261022.json after corrected opt-in runs. Matching C++ primary and contract passed 4/4 at out/mgw/tck-standard-order-transportation-lookups-20261016.json. Adapter supplies FOM, logical time, factory, endpoint, and callback model. Java omits the C++ invalid enum cast and default-invalid handle checks because the official Java API has no matching portable values. No independent-provider conformance claim."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider artifact and pinned official IEEE 1516.1-2025 Java API, using p0-tck.xml and HLAinteger64Time. Results/JUnit: out/java-tck/standard-order-transportation-lookups-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary and contract passed 4/4 in the focused 2026-10-16 artifact out/mgw/tck-standard-order-transportation-lookups-20261016.json. Java omits the C++ invalid enum cast and default-invalid transportation handle checks because the official Java API has no corresponding portable values. No independent-provider behavior or conformance claim."
     },
     {
       "id": "java-tck.handle-wire-formats",
@@ -17522,14 +17555,23 @@
         "FederateAmbassador.receiveInteraction"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
         "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
         "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l125-32",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l131-34",
         "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
         "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
         "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
         "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l162-44",
         "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
         "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
         "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
@@ -17540,14 +17582,23 @@
         "requirement-candidate-content-clauses-06-object-management-page-111-l58-17"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
         "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
         "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
         "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l125-32",
+        "requirement-candidate-content-clauses-06-object-management-page-141-l131-34",
         "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
         "requirement-candidate-content-clauses-06-object-management-page-141-l143-38",
         "requirement-candidate-content-clauses-06-object-management-page-142-l173-48",
         "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response",
+        "requirement-candidate-content-clauses-06-object-management-page-143-l162-44",
         "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
+        "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
         "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
         "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
         "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
@@ -17558,19 +17609,24 @@
         "requirement-candidate-content-clauses-06-object-management-page-111-l58-17"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.25",
         "hla-1516.1-2025:clause-6.25.1",
         "hla-1516.1-2025:clause-6.26",
         "hla-1516.1-2025:clause-6.27",
         "hla-1516.1-2025:clause-6.28",
         "hla-1516.1-2025:clause-6.29",
+        "hla-1516.1-2025:clause-6.30",
         "hla-1516.1-2025:clause-6.30.3",
         "hla-1516.1-2025:clause-6.31.3",
         "hla-1516.1-2025:clause-6.32.5",
         "hla-1516.1-2025:clause-6.33.6",
-        "hla-1516.1-2025:clause-6.1.13",
         "hla-1516.1-2025:clause-6.1.11"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l123-31",
+          "standard_section": "hla-1516.1-2025:clause-6.25"
+        },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
           "standard_section": "hla-1516.1-2025:clause-6.25.1"
@@ -17582,6 +17638,18 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l181-52",
           "standard_section": "hla-1516.1-2025:clause-6.26"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l11-1",
+          "standard_section": "hla-1516.1-2025:clause-6.26"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l125-32",
+          "standard_section": "hla-1516.1-2025:clause-6.27"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l131-34",
+          "standard_section": "hla-1516.1-2025:clause-6.27"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-141-l137-36",
@@ -17598,6 +17666,29 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l156-42",
           "standard_section": "hla-1516.1-2025:clause-6.29"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l162-44-response",
+          "standard_section": "hla-1516.1-2025:clause-6.29"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-143-l162-44",
+          "standard_section": "hla-1516.1-2025:clause-6.29"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l88-20",
+          "standard_section": "hla-1516.1-2025:clause-6.30",
+          "note": "The P0 FOM declares TckInteraction with HLAreliable transportation; the portable scenario queries its initial class transportation and asserts HLAreliable. This is one fixture/class witness."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l100-24",
+          "standard_section": "hla-1516.1-2025:clause-6.30",
+          "note": "The portable scenario requests HLAbestEffort and asserts the single Confirm Interaction Transportation Type Change callback identifies that achieved type."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l103-25",
+          "standard_section": "hla-1516.1-2025:clause-6.30",
+          "note": "In HLA_EVOKED, an interaction sent before confirmation uses HLAreliable; after the confirmation callback is invoked, a later send uses HLAbestEffort. HLA_IMMEDIATE confirms before the subsequent send. This is bounded to one interaction class and transition."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
@@ -17629,14 +17720,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
-          "standard_section": "hla-1516.1-2025:clause-6.1.13"
+          "standard_section": "hla-1516.1-2025:clause-6.1.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l58-17",
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "Catalog mapping is limited to the directly asserted transportation-type controls, confirmation boundaries, query/report results, prospective class default, and resulting update/send transport (§§6.25.1–6.33.6). The attribute path requests its already-achieved reliable type for the full two-attribute set and verifies one confirmation reports reliable for that set; both attributes are then queried for the committed best-effort type (§6.1.11). The interaction path separately checks unchanged achieved-type confirmation (§6.1.13). Order-control effects and invalid-input cases are supplemental/unmapped. Java row status remains run-ready in the catalog but does not constitute provider execution or conformance evidence; its OrderType enum has no equivalent to the C++ invalid enum cast.",
+      "mapping_note": "Direct Java public-API witnesses mirror cpp-tck.transport-order. The adapter-supplied hla.rti.tck.transportOrderDefaultFom fixture declares TckObject.Value as HLAbestEffort; two joined federates each register an object and query that FOM default (\u00a76.25 and \u00a76.27). The base FOM path checks default and per-instance transport requests, full two-attribute confirmation payloads, class-default changes affecting a later instance, query callbacks, and the unowned Name attribute report matching its FOM-declared HLAreliable type (\u00a7\u00a76.25.1\u20136.29). Interaction checks cover the initial reliable query result, the HLAbestEffort confirmation, a send before confirmation and a send after confirmation in both callback models, and the queried resulting type (\u00a7\u00a76.30, 6.30.3, 6.31.3, 6.32.5, 6.33.6). The mapped \u00a76.1.11 assertions check transportation values in the attribute request/confirmation path; unchanged-type interaction confirmation remains supplemental. Order-control calls and the valid-but-unpublished interaction-order rejection are supplemental and unmapped. C++ invalid-handle boundaries are omitted because the official Java API provides no portable invalid handle values; Java OrderType also has no equivalent to the C++ invalid enum cast. Focused runs use the official IEEE 1516.1-2025 Java API and local Umbra JNI provider; independent-provider behavior and conformance are not claimed.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -17652,8 +17743,9 @@
         "receive-order-interaction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#transportOrder",
-      "parity": "cpp-tck.transport-order-contract",
-      "default_status": "run"
+      "parity": "cpp-tck.transport-order",
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed 1/1 in both HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider and pinned official IEEE 1516.1-2025 Java API. Inputs: packages/hla-rti-cpp-tck/fom/p0-tck.xml, packages/hla-rti-java-tck/fom/transport-default-best-effort-tck.xml via hla.rti.tck.transportOrderDefaultFom, HLAinteger64Time, HLAobjectRoot.TckObject, Value, HLAinteractionRoot.TckInteraction, and PayRate. Java results/JUnit: out/java-tck/transport-order-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary was built with Ninja/GCC against the current installed package and passed both callback models (2/2) in out/mgw/tck-transport-order-java-parity-20261115.{json,xml}; its focused CTest directory had no registrations, so the direct scenario runner was used. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.mom-transportation-type-change-request",
