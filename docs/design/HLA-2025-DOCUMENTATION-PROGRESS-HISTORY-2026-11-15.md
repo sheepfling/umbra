@@ -217,3 +217,15 @@ and test changes, verify the nine pending candidate-HEAD source citations at
 an exact published revision, then refresh the hosted dependency and render
 audits. No C++ build, tests, or CI ran. Keep 2010 and Requirements Lab
 separate.
+
+## Increment 539 — revalidate the published citation snapshot (2026-11-15)
+
+The current published documentation branch is `feature/hla-2025-docs-candidate-20261107` at `49b5d9eb8b486890695c2b76a974e2c603de8978`. Comparing it to the last source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d` shows only documentation-path changes; the C++ source tree has not advanced.
+
+**Source-line checks:** `quality_gates/bin/check_hla_2025_documentation_links.py` checked 4,805 unique references across 41 IEEE 1516.1-2025 Markdown files. Candidate HEAD resolves 4,796/4,805, with nine out-of-range anchors in four target files. The current worktree resolves all 4,805. Bounded inspection confirms the worktree lines identify `serveConnection`, the `RTI_TIMEOUT_HEART` parser branch, the five cited process-host Catch2 cases, and the Federate-Lost MOM scenario and post-loss update. Those implementation/test edits remain uncommitted.
+
+The remote `origin/feature/initial-work` revision `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` has the same nine misses. Local `feature/initial-work` at `9679bffb74da8b044682a2ee9d3855a4840bf681` resolves all candidate lines by bounds, but is 18 commits ahead of its remote and does not preserve the cited meanings: line 2389 is an automatic delete-then-divest assertion, line 2765 is a fault-parameter lookup, while the Federate-Lost scenario begins at line 2607 and its post-loss assertion is at line 2983. Do not use those nearby line numbers to retarget the citations. The current GitHub query found no open pull requests.
+
+Updated the source-dependency snapshot and the current roadmap handoff to these exact revisions. The overall working completion estimate remains **approximately 95%**; the source citation gate is still open until the source owners publish the reviewed 2025 edits and all nine targets pass line and semantic checks there. No C++ files were changed, and no build, tests, or CI ran. Keep 2010 and Requirements Lab work separate.
+
+**Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch changes. Then rerun the 4,805-reference checker and verify the nine semantic targets against the exact published revision.
