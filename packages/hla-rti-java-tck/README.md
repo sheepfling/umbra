@@ -4072,12 +4072,15 @@ official Java API and adapter-provided FOM/configuration. Java's null handle is
 used for the invalid-handle input because the API exposes no public invalid-
 handle constructor; provider runtime remains unverified.
 
-The opt-in `java-tck.attribute-lookup-lifecycle` case checks ordinary
-attribute-name and handle lookup at connection and membership boundaries,
-inherited attribute identity across base/derived classes and federates, and
-invalid, unknown, and class-mismatch failures. It requires an adapter-supplied
-rich FOM and typed class/attribute names, and uses only the official Java API;
-provider runtime remains unverified.
+`java-tck.attribute-lookup-lifecycle` directly checks Get Attribute Handle
+and Get Attribute Name results for inherited and derived attributes across two
+joined federates. Unknown-name and wrong-class errors remain supplemental.
+The adapter supplies `fom-model-tck.xml` and `HLAinteger64Time`; focused runs
+passed under both callback models on the current-source Umbra JNI provider.
+Java exposes no standard default-invalid object-class or attribute handle, so
+the C++ invalid-handle and handle-based pre-connect/pre-membership checks are
+not mirrored. This is local-provider evidence, not independent-provider
+interoperability or conformance evidence.
 
 The opt-in `java-tck.parameter-lookup-lifecycle` case checks parameter lookup
 boundaries, inherited parameter identity across base/derived interaction classes

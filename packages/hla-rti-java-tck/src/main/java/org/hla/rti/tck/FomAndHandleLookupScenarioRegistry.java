@@ -802,14 +802,16 @@ final class FomAndHandleLookupScenarioRegistry {
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.attribute-lookup-lifecycle",
             "attribute lookup boundaries and inherited object-class identity",
             "handle-lookup",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;ObjectClassHandle.equals;AttributeHandle.equals;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-attribute-lookup",
                "cpp-1516.1-object-class-lookup",
                "cpp-1516.1-support-lookup-negative-boundaries",
                "cpp-1516.2-fom-root-hierarchy",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::attributeLookupLifecycle);
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-10-support-services-page-249-l146-36",
+               "requirement-candidate-content-clauses-10-support-services-page-250-l109-27"
+            }, true), RtiTckMain::attributeLookupLifecycle);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.parameter-lookup-lifecycle",
             "parameter lookup boundaries and inherited interaction-class identity",
             "handle-lookup",

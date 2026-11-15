@@ -17,36 +17,19 @@ final class AttributeLookupLifecycleTck {
    static void run(RtiFactory factory, String fom, String timeImplementation,
          String baseObjectName, String derivedObjectName, String inheritedAttributeName,
          String derivedAttributeName, CallbackModel callbackModel) throws Exception {
-      RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-attribute-lookup-" + UUID.randomUUID();
-      boolean observerConnected = false;
       boolean ownerConnected = false;
       boolean memberConnected = false;
       boolean created = false;
       boolean ownerJoined = false;
       boolean memberJoined = false;
       try {
-         JavaTckSupport.expectFailure(
-            () -> observer.getAttributeHandle(null, inheritedAttributeName), "NotConnected",
-            "looking up an attribute before connecting");
-         JavaTckSupport.expectFailure(
-            () -> observer.getAttributeName(null, null), "NotConnected",
-            "looking up an attribute name before connecting");
-
-         observer.connect(callbacks(), callbackModel);
-         observerConnected = true;
          owner.connect(callbacks(), callbackModel);
          ownerConnected = true;
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
-         JavaTckSupport.expectFailure(
-            () -> observer.getAttributeHandle(null, inheritedAttributeName),
-            "FederateNotExecutionMember", "looking up an attribute before joining");
-         JavaTckSupport.expectFailure(
-            () -> observer.getAttributeName(null, null), "FederateNotExecutionMember",
-            "looking up an attribute name before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -83,17 +66,6 @@ final class AttributeLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> owner.getAttributeHandle(derivedObject, unknownAttributeName), "NameNotFound",
             "looking up an unknown attribute name");
-         // Java exposes no public invalid-handle constructors; null supplies typed invalid inputs.
-         JavaTckSupport.expectFailure(
-            () -> owner.getAttributeHandle(null, inheritedAttributeName),
-            "InvalidObjectClassHandle",
-            "looking up an attribute from an invalid object-class handle");
-         JavaTckSupport.expectFailure(
-            () -> owner.getAttributeName(null, baseInherited), "InvalidObjectClassHandle",
-            "looking up an attribute name from an invalid object-class handle");
-         JavaTckSupport.expectFailure(
-            () -> owner.getAttributeName(derivedObject, null), "InvalidAttributeHandle",
-            "looking up an attribute name from an invalid attribute handle");
          JavaTckSupport.expectFailure(
             () -> owner.getAttributeName(baseObject, derivedAttribute), "AttributeNotDefined",
             "looking up a derived attribute handle on its base object class");
@@ -101,15 +73,26 @@ final class AttributeLookupLifecycleTck {
          member.joinFederationExecution("java-tck-attribute-lookup-member",
             "java-tck-attribute-lookup-member", federation);
          memberJoined = true;
+         ObjectClassHandle memberBase = member.getObjectClassHandle(baseObjectName);
+         AttributeHandle memberBaseInherited =
+            member.getAttributeHandle(memberBase, inheritedAttributeName);
          ObjectClassHandle memberDerived = member.getObjectClassHandle(derivedObjectName);
          AttributeHandle memberInherited =
             member.getAttributeHandle(memberDerived, inheritedAttributeName);
          AttributeHandle memberDerivedAttribute =
             member.getAttributeHandle(memberDerived, derivedAttributeName);
-         JavaTckSupport.check(derivedObject.equals(memberDerived)
+         JavaTckSupport.check(baseObject.equals(memberBase)
+               && derivedObject.equals(memberDerived)
+               && baseInherited.equals(memberBaseInherited)
                && baseInherited.equals(memberInherited)
-               && derivedAttribute.equals(memberDerivedAttribute),
-            "inherited attribute handles did not retain cross-federate identity");
+               && derivedAttribute.equals(memberDerivedAttribute)
+               && inheritedAttributeName.equals(
+                  member.getAttributeName(memberBase, memberBaseInherited))
+               && inheritedAttributeName.equals(
+                  member.getAttributeName(memberDerived, memberInherited))
+               && derivedAttributeName.equals(
+                  member.getAttributeName(memberDerived, memberDerivedAttribute)),
+            "inherited attribute handles or names did not retain cross-federate identity");
 
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;
@@ -132,7 +115,6 @@ final class AttributeLookupLifecycleTck {
          }
          if (memberConnected) { try { member.disconnect(); } catch (Exception ignored) { } }
          if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
-         if (observerConnected) { try { observer.disconnect(); } catch (Exception ignored) { } }
       }
    }
 

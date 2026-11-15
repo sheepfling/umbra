@@ -53164,6 +53164,8 @@
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
@@ -53173,8 +53175,33 @@
         "cpp-1516.1-object-class-lookup",
         "cpp-1516.1-support-lookup-negative-boundaries",
         "cpp-1516.2-fom-root-hierarchy",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-249-l146-36",
+        "requirement-candidate-content-clauses-10-support-services-page-250-l109-27"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-249-l146-36",
+        "requirement-candidate-content-clauses-10-support-services-page-250-l109-27"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.9",
+        "hla-1516.1-2025:clause-10.10"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-249-l146-36",
+          "standard_section": "hla-1516.1-2025:clause-10.9",
+          "note": "Direct Java witness: the owner and joining member resolve the configured inherited attribute on the base and derived object classes and resolve the derived-only attribute on the derived class. Lookup failures and lifecycle checks are supplemental."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-250-l109-27",
+          "standard_section": "hla-1516.1-2025:clause-10.10",
+          "note": "Direct Java witness: Get Attribute Name returns the exact configured inherited name for base and derived handles and the derived-only name for its handle in both joined members. Exception checks are supplemental."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct Java mappings are limited to requirement-candidate-content-clauses-10-support-services-page-249-l146-36 -> IEEE 1516.1-2025 §10.9 for Get Attribute Handle returns and page-250-l109-27 -> §10.10 for Get Attribute Name returns. The owner and joining member resolve the base identity attribute plus the derived class’s inherited identity and derived-only attribute; both verify exact name round-trips and stable handle identity. Unknown names and a valid derived handle queried against the base class remain supplemental exception witnesses. Java exposes no standard default-invalid ObjectClassHandle or AttributeHandle constructor, so the C++ default-invalid handle cases and their pre-Connect/pre-membership exception-precedence checks are not mirrored; null is not used as a substitute.",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Results: out/java-tck/attribute-lookup-lifecycle-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance. Provider-neutral traceability exports are out/java-tck/attribute-lookup-lifecycle-java-parity-20261115/{provider-neutral-evoked,provider-neutral-immediate}.json; each reports one pass and zero failures.",
       "contract_refs": [
         "attribute-lookup-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -53183,8 +53210,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeLookupLifecycle",
       "parity": "cpp-tck.attribute-lookup-lifecycle",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied rich FOM with base/derived object classes and inherited/derived attributes, typed FOM names, logical-time implementation, provider, endpoint, and callback model; no provider runtime evidence is yet recorded."
+      "parity_scope_note": "The Java mirror covers the same bounded base/derived attribute lookup and exact name round-trips in both joined members. It omits C++ default-invalid class/attribute handle inputs and the corresponding pre-Connect/pre-membership error checks because the Java API has no portable default-invalid handle representation.",
+      "default_status": "run",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Adapter-supplied fom-model-tck.xml with TckTypedObject, TckTypedDerivedObject, Identity, and DerivedValue",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.parameter-lookup-lifecycle",
