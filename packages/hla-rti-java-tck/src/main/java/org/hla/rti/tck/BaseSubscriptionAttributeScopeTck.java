@@ -49,14 +49,14 @@ final class BaseSubscriptionAttributeScopeTck {
          AttributeHandleSet derivedAttributes =
             JavaTckSupport.attributeSet(member, derivedAttribute);
          member.subscribeObjectClassAttributes(baseClass, baseAttributes);
-         member.unsubscribeObjectClassAttributes(baseClass, baseAttributes);
          member.subscribeObjectClassAttributes(derivedClass, derivedAttributes);
-         member.unsubscribeObjectClassAttributes(derivedClass, derivedAttributes);
          JavaTckSupport.expectFailure(
             () -> member.subscribeObjectClassAttributes(
                baseClass, JavaTckSupport.attributeSet(member, derivedAttribute)),
             "AttributeNotDefined",
             "subscribing to a base class with an attribute defined only by its derived class");
+         member.unsubscribeObjectClassAttributes(baseClass, baseAttributes);
+         member.unsubscribeObjectClassAttributes(derivedClass, derivedAttributes);
       } finally {
          if (joined) {
             member.resignFederationExecution(ResignAction.NO_ACTION);

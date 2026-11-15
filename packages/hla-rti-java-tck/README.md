@@ -4284,6 +4284,13 @@ source-region set in each callback. The adapter supplies the dimensional FOM,
 interaction, parameter, dimensions, and callback model; provider runtime remains
 unverified.
 
+The default-run `java-tck.base-subscription-rejects-derived-only-attribute` case
+uses the adapter known-class FOM to accept valid base and derived attribute
+subscriptions, then reject a derived-only attribute in a base-class subscription.
+Its direct mapping is limited to the attribute-set subset rule in IEEE
+1516.1-2025 §5.8; `AttributeNotDefined` is supplemental. Focused runs passed
+under both callback models on the current-source Umbra JNI provider.
+
 The default-run `java-tck.inherited-interaction-class-delivery` case sends a derived
 interaction to both a base-class and a derived-class subscription. It verifies
 base-subscription projection to the inherited parameter, full inherited and

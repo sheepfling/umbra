@@ -18570,6 +18570,7 @@
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
@@ -18591,6 +18592,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Directly mapped claim: §5.8 page 96 l72 requires the subscribed attribute set to be a subset of the available attributes of the specified object class. This case verifies that a derived-only attribute is rejected when subscribing to its base class. AttributeNotDefined is asserted as the official C++ API exception; this mapping does not claim §5.8 prescribes that exact exception type. Setup and cleanup are supplemental.",
+      "parity_scope_note": "The Java mirror uses the same known-class FOM, accepts subscriptions with the valid base and derived attribute sets, then checks that a derived-only attribute is rejected in a base-class subscription before unsubscribing both. The direct §5.8 mapping covers only the attribute-set subset boundary; the exact exception and setup/cleanup remain supplemental.",
       "contract_refs": [
         "standard-declaration-management-contract.json",
         "subscribe-object-class-attributes-requirements-contract.json",

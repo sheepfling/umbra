@@ -4549,12 +4549,24 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
       ],
-      "requirement_ids": [],
-      "selected_requirements_lab_requirement_ids": [],
-      "standard_sections": [],
-      "requirement_mappings": [],
-      "mapping_classification": "api-contract-only-not-normative-conformance",
-      "mapping_note": "No direct 2025 requirement mapping is claimed: this case checks an AttributeNotDefined subscription rejection, while candidate page-096-l90-27 covers closest-subscribed-superclass discovery. Setup, cleanup, and exception-fixture details are supplemental. Java provider execution remains unsupported/unvalidated; this catalog row is not evidence of Java runtime or conformance coverage.",
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21",
+        "java-1516.1-object-class-attribute-declaration"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mapping is limited to IEEE 1516.1-2025 §5.8's requirement that the subscribed attribute set be a subset of the attributes available for the specified object class. The derived-only input checks that subset boundary; the exact AttributeNotDefined result, valid base/derived setup, and cleanup are supplemental. This does not claim closest-subscribed-superclass discovery.",
       "contract_refs": [
         "standard-declaration-management-contract.json",
         "subscribe-object-class-attributes-requirements-contract.json",
@@ -4562,8 +4574,13 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#baseSubscriptionRejectsDerivedOnlyAttribute",
       "parity": "cpp-tck.base-subscription-rejects-derived-only-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied known-class FOM with base and derived object classes, a derived-only attribute, provider, endpoint, and callback configuration; provider runtime evidence is not yet available."
+      "default_status": "run",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/known-class-advisory-tck.xml and HLAinteger64Time. Results: out/java-tck/base-subscription-derived-only-attribute-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "adapter_inputs": [
+        "Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/DerivedObject and Name/Efficiency",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.unsubscribe-last-attribute-stops-discovery",

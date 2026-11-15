@@ -1505,9 +1505,9 @@ public final class RtiTckMain {
             "reject a derived-only attribute in a base-class subscription", "declarations",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
-               "requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27",
+               "requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21",
                "java-1516.1-object-class-attribute-declaration"
-            }, false),
+            }, true),
          RtiTckMain::baseSubscriptionRejectsDerivedOnlyAttribute);
       run(new Scenario("java-tck.unsubscribe-last-attribute-stops-discovery",
             "suppress later object discovery after unsubscribing the class's final attribute",

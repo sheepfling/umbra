@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 146 |
-| Distinct stable requirement IDs | 1144 |
+| Distinct stable requirement IDs | 1146 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 586 |
-| Default `unsupported` scenarios | 378 |
-| Scenarios with explicit `requirement_mappings` | 668 |
-| Explicit mapping records | 2717 |
+| Default `run` scenarios | 587 |
+| Default `unsupported` scenarios | 377 |
+| Scenarios with explicit `requirement_mappings` | 669 |
+| Explicit mapping records | 2718 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -3257,6 +3257,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `java-1516.1-object-class-attribute-declaration`
+
+- [`java-tck.base-subscription-rejects-derived-only-attribute`](#scenario-java-tck.base-subscription-rejects-derived-only-attribute) — Reject a derived-only attribute when subscribing the base object class (`declarations`; default `run`; C++ pointer `cpp-tck.base-subscription-rejects-derived-only-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `java-1516.1-object-management`
 
 - [`java-tck.discovered-class-stability-after-specific-subscription`](#scenario-java-tck.discovered-class-stability-after-specific-subscription) — Keep a base-class discovery unchanged after adding a more-specific subscription (`object-management`; default `unsupported`; C++ pointer `cpp-tck.discovered-class-stability-after-specific-subscription`).
@@ -4482,6 +4488,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-05-declaration-management-page-096-l66-19`
 
 - [`java-tck.object-attribute-subscription-lifecycle`](#scenario-java-tck.object-attribute-subscription-lifecycle) — Exercise cross-class attribute rejection, empty/passive/active discovery, filtered reflection, downgrade, reactivation, and withdrawal (`object-attribute-subscription-lifecycle`; default `run`; C++ pointer `cpp-tck.object-attribute-subscription-lifecycle`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21`
+
+- [`java-tck.base-subscription-rejects-derived-only-attribute`](#scenario-java-tck.base-subscription-rejects-derived-only-attribute) — Reject a derived-only attribute when subscribing the base object class (`declarations`; default `run`; C++ pointer `cpp-tck.base-subscription-rejects-derived-only-attribute`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9742,6 +9754,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42` → `hla-1516.1-2025:clause-7`
 - `java-tck.logical-time-final-boundary`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-176-l127-42` → `hla-1516.1-2025:clause-7`
+- `java-tck.base-subscription-rejects-derived-only-attribute`:
+  - `requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21` → `hla-1516.1-2025:clause-5.8`
 - `java-tck.unsubscribe-last-attribute-stops-discovery`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-098-l146-43` → `hla-1516.1-2025:clause-5.9.4`
 - `java-tck.attribute-unsubscribe-stops-reflection`:
@@ -13027,7 +13041,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ## Explicit non-normative/API-only dispositions
 
 - `java-tck.callback-reentrancy` — No rationale recorded.
-- `java-tck.base-subscription-rejects-derived-only-attribute` — Requires an adapter-supplied known-class FOM with base and derived object classes, a derived-only attribute, provider, endpoint, and callback configuration; provider runtime evidence is not yet available.
 - `java-tck.base-publication-rejects-derived-only-attribute` — Requires an adapter-supplied known-class FOM with base and derived object classes, base and derived attributes, provider, endpoint, and callback configuration; Java provider runtime evidence is not yet available.
 - `java-tck.receive-order-multi-attribute-update-callback-cancellation` — Provider, compatible multi-attribute FOM, endpoint, object/attribute names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider.
 - `java-tck.regional-three-dimensional-overlap` — Requires the adapter-supplied three-dimensional FOM via hla.rti.tck.threeDimensionalFom, configured object and attribute names, and three dimension names. Uses only the official Java API.
@@ -13296,7 +13309,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | --- | --- | ---: | --- | --- | --- | --- |
 | <a id="scenario-java-tck.attribute-unsubscribe-stops-reflection"></a>`java-tck.attribute-unsubscribe-stops-reflection` — Suppress later ordinary attribute reflections after unsubscribing the attribute | `org.hla.rti.tck.RtiTckMain#attributeUnsubscribeStopsReflection` | 17 | `requirement-candidate-content-clauses-05-declaration-management-page-098-l155-46`, `requirement-candidate-content-clauses-09-data-distribution-management-page-223-l40-13` | `cpp-tck.attribute-unsubscribe-stops-reflection` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.base-publication-rejects-derived-only-attribute"></a>`java-tck.base-publication-rejects-derived-only-attribute` — Reject a derived-only attribute when publishing the base object class | `org.hla.rti.tck.RtiTckMain#basePublicationRejectsDerivedOnlyAttribute` | 10 | explicit API-only disposition | `cpp-tck.base-publication-rejects-derived-only-attribute` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.base-subscription-rejects-derived-only-attribute"></a>`java-tck.base-subscription-rejects-derived-only-attribute` — Reject a derived-only attribute when subscribing the base object class | `org.hla.rti.tck.RtiTckMain#baseSubscriptionRejectsDerivedOnlyAttribute` | 10 | explicit API-only disposition | `cpp-tck.base-subscription-rejects-derived-only-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.base-subscription-rejects-derived-only-attribute"></a>`java-tck.base-subscription-rejects-derived-only-attribute` — Reject a derived-only attribute when subscribing the base object class | `org.hla.rti.tck.RtiTckMain#baseSubscriptionRejectsDerivedOnlyAttribute` | 10 | `requirement-candidate-content-clauses-05-declaration-management-page-096-l72-21`, `java-1516.1-object-class-attribute-declaration` | `cpp-tck.base-subscription-rejects-derived-only-attribute` | `run` | Adapter-supplied known-class-advisory-tck.xml with TckKnownClassObject/DerivedObject and Name/Efficiency; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.declaration-management"></a>`java-tck.declaration-management` — Resolve standard handles and exercise ordinary object publication/subscription | `org.hla.rti.tck.RtiTckMain#declarationManagement` | 12 | `requirement-candidate-content-clauses-05-declaration-management-page-096-l90-27` | not declared | `run` | not scenario-declared |
 | <a id="scenario-java-tck.object-attribute-declarations-valid-inputs-after-resignation"></a>`java-tck.object-attribute-declarations-valid-inputs-after-resignation` — Check object and attribute publication/subscription membership boundaries after resignation with valid FOM inputs | `org.hla.rti.tck.RtiTckMain#objectAttributeDeclarationsAfterResignation` | 13 | `cpp-1516.1-publish-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-unpublish-object-class-membership-boundary-after-resignation`, `cpp-1516.1-unpublish-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-subscribe-object-class-attributes-membership-boundary-after-resignation`, `cpp-1516.1-unsubscribe-object-class-membership-boundary-after-resignation`, `cpp-1516.1-unsubscribe-object-class-attributes-membership-boundary-after-resignation` | not declared | `run` | not scenario-declared |
 | <a id="scenario-java-tck.unsubscribe-last-attribute-stops-discovery"></a>`java-tck.unsubscribe-last-attribute-stops-discovery` — Suppress later object discovery after unsubscribing the class's final attribute | `org.hla.rti.tck.RtiTckMain#unsubscribeLastAttributeStopsDiscovery` | 13 | `java-1516.1-object-registration-discovery` | `cpp-tck.unsubscribe-last-attribute-stops-discovery` | `run` | not scenario-declared |
