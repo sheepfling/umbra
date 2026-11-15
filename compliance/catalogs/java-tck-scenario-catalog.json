@@ -11091,14 +11091,15 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomInteractionQualifiedClassNameIdentity",
       "parity": "cpp-tck.fom-interaction-qualified-class-name-identity",
-      "default_status": "unsupported",
+      "default_status": "run",
+      "callback_models": ["evoked", "immediate"],
       "adapter_inputs": [
         "adapter-supplied FOM containing both TckClassNameProbe interaction classes",
+        "named federate Join with hla.rti.tck.federateType defaulting to tck-type",
         "provider-supported logical-time implementation",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Java HLA_EVOKED and HLA_IMMEDIATE runs each passed 1/1 on provider umbra-jni-20261106 with fom-model-tck.xml and HLAinteger64Time; results/JUnit are in out/java-tck/fom-interaction-qualified-class-name-identity-java-port-20261113/. The paired installed-package MinGW C++ consumer passed focused CTest 2/2 and direct callback-model runs 2/2 against the same model FOM; evidence is in .build/cpp-tck-fom-interaction-qualified-class-name-identity-java-port-20261113/ and .build/cpp-tck-timestamped-interaction-future-tara-arrival-java-port-20261113/Testing/Temporary/LastTest.log. The C++ run did not rebuild the RTI provider. These are local-provider results, not independent-provider interoperability or conformance evidence.",
-      "exclusion": "Requires the adapter FOM to contain both fully qualified interaction-class paths. This is a selected qualified-identity witness; valid-name conventions, malformed-name rejection, and exhaustive §3.3 coverage are outside the case."
+      "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI with the pinned official IEEE 1516.1-2025 Java API, fom-model-tck.xml, and HLAinteger64Time. The Java path uses the named federate/type/execution Join overload and verifies that the two repeated local class names resolve to distinct handles and round-trip to their complete qualified paths. Results/JUnit: out/java-tck/fom-interaction-qualified-class-name-identity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. Coverage remains limited to qualified identity in IEEE 1516.2-2025 §§4.3.2, 5.3, and 6.2.3; no valid-name convention, malformed-name rejection, independent-provider interoperability, exhaustive §3.3 coverage, or conformance claim."
     },
     {
       "id": "java-tck.fom-duplicate-object-class-attribute-name",

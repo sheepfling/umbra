@@ -4679,14 +4679,18 @@ selectors. This is a bounded same-type witness, not exhaustive restore-state or
 membership-permutation verification, independent-provider behavior, or
 conformance.
 
-The opt-in `java-tck.fom-interaction-qualified-class-name-identity` loads the
+The default-run `java-tck.fom-interaction-qualified-class-name-identity` loads the
 adapter's `fom-model-tck.xml` and resolves the two
 `TckClassNameProbe` interactions beneath different parents. It verifies that
 their handles differ and that each handle returns its complete qualified name.
-Java evoked and immediate runs passed, as did the paired installed-package C++
-selectors. Direct mappings are IEEE 1516.2-2025 §§4.3.2, 5.3, and 6.2.3. This
-is a qualified-identity witness only; it does not cover valid-name conventions,
-malformed-name rejection, exhaustive §3.3 coverage, or conformance.
+The Java case uses the same named Join overload as the paired C++ scenario.
+Current-source JNI runs passed 1/1 under each callback model against the pinned
+Java API and HLAinteger64Time. Results/JUnit are in
+`out/java-tck/fom-interaction-qualified-class-name-identity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+Direct mappings are IEEE 1516.2-2025 §§4.3.2, 5.3, and 6.2.3. This is a
+qualified-identity witness only; it does not cover valid-name conventions,
+malformed-name rejection, exhaustive §3.3 coverage, independent-provider
+behavior, or conformance.
 
 The default-run `java-tck.fom-duplicate-object-class-attribute-name` supplies
 `invalid-duplicate-tck.xml` as the sole FOM module and checks that federation

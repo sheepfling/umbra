@@ -84,12 +84,14 @@ final class RichFomModelTck {
       boolean connected = false;
       boolean created = false;
       boolean joined = false;
+      String federateType = System.getProperty("hla.rti.tck.federateType", "tck-type");
       try {
          rti.connect(recorder.proxy(), callbackModel);
          connected = true;
          rti.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         rti.joinFederationExecution("qualified-interaction-name-tck", federation);
+         rti.joinFederationExecution(
+            "qualified-interaction-name-tck", federateType, federation);
          joined = true;
 
          String firstName =

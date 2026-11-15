@@ -63,7 +63,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "requirement-candidate-sections-semantic-clause-4a-page-044-l74-5",
                "requirement-candidate-sections-semantic-clauses-5-6-page-088-l70-8",
                "requirement-candidate-sections-semantic-clauses-5-6-page-092-l14-2"
-            }, false), RtiTckMain::fomInteractionQualifiedClassNameIdentity);
+            }, true), RtiTckMain::fomInteractionQualifiedClassNameIdentity);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-duplicate-object-class-attribute-name",
             "Reject a FOM that repeats an object-class attribute name",

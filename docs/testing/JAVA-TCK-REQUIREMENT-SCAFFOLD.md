@@ -22,8 +22,8 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1180 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 626 |
-| Default `unsupported` scenarios | 338 |
+| Default `run` scenarios | 627 |
+| Default `unsupported` scenarios | 337 |
 | Scenarios with explicit `requirement_mappings` | 677 |
 | Explicit mapping records | 2778 |
 
@@ -9241,7 +9241,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-sections-semantic-clause-4a-page-044-l74-5`
 
-- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `unsupported`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
+- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `run`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9408,13 +9408,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `requirement-candidate-sections-semantic-clauses-5-6-page-088-l70-8`
 
-- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `unsupported`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
+- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `run`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-sections-semantic-clauses-5-6-page-092-l14-2`
 
-- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `unsupported`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
+- [`java-tck.fom-interaction-qualified-class-name-identity`](#scenario-java-tck.fom-interaction-qualified-class-name-identity) — Resolve repeated local interaction-class names by fully qualified superclass paths (`fom-model`; default `run`; C++ pointer `cpp-tck.fom-interaction-qualified-class-name-identity`).
 - [`java-tck.fom-name-case-sensitivity`](#scenario-java-tck.fom-name-case-sensitivity) — preserve case-sensitive FOM names across public handle lookups (`support-services`; default `run`; C++ pointer `cpp-tck.fom-name-case-sensitivity`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -13977,7 +13977,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.fom-interaction-qualified-class-name-identity"></a>`java-tck.fom-interaction-qualified-class-name-identity` — Resolve repeated local interaction-class names by fully qualified superclass paths | `org.hla.rti.tck.RtiTckMain#fomInteractionQualifiedClassNameIdentity` | 8 | `requirement-candidate-sections-semantic-clause-4a-page-044-l74-5`, `requirement-candidate-sections-semantic-clauses-5-6-page-088-l70-8`, `requirement-candidate-sections-semantic-clauses-5-6-page-092-l14-2` | `cpp-tck.fom-interaction-qualified-class-name-identity` | `unsupported` | adapter-supplied FOM containing both TckClassNameProbe interaction classes; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
+| <a id="scenario-java-tck.fom-interaction-qualified-class-name-identity"></a>`java-tck.fom-interaction-qualified-class-name-identity` — Resolve repeated local interaction-class names by fully qualified superclass paths | `org.hla.rti.tck.RtiTckMain#fomInteractionQualifiedClassNameIdentity` | 8 | `requirement-candidate-sections-semantic-clause-4a-page-044-l74-5`, `requirement-candidate-sections-semantic-clauses-5-6-page-088-l70-8`, `requirement-candidate-sections-semantic-clauses-5-6-page-092-l14-2` | `cpp-tck.fom-interaction-qualified-class-name-identity` | `run` | adapter-supplied FOM containing both TckClassNameProbe interaction classes; named federate Join with hla.rti.tck.federateType defaulting to tck-type; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.fom-model"></a>`java-tck.fom-model` — Load a rich adapter FOM and verify qualified identity for repeated object-class names, hierarchy, metadata, and typed delivery | `org.hla.rti.tck.RtiTckMain#fomModel` | 50 | `cpp-1516.2-fom-root-hierarchy`, `cpp-1516.2-fom-data-representations`, `cpp-1516.2-fom-dimension-and-metadata-lookups` | `cpp-tck.fom-model` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.fom-qualified-class-name-identity"></a>`java-tck.fom-qualified-class-name-identity` — Resolve repeated local object-class names by fully qualified superclass paths | `org.hla.rti.tck.RtiTckMain#fomQualifiedClassNameIdentity` | 8 | `requirement-candidate-sections-semantic-clause-4a-page-040-l22-4` | `cpp-tck.fom-qualified-class-name-identity` | `unsupported` | not scenario-declared |
 
