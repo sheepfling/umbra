@@ -8346,14 +8346,20 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
             }, true), RtiTckMain::objectNameReservationLifecycle);
       run(new Scenario("java-tck.service-report-reserve-object-instance-name",
-            "standard MOM report and success callback for object-name reservation",
+            "standard MOM report arguments, Null return, and success callback for name reservation",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveObjectInstanceName;RTIambassador.releaseObjectInstanceName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;HLAfixedRecord.decode;HLAvariableArray.decode;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-object-instance-name-lifecycle",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+               "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+               "requirement-candidate-table-5-p299-r001"
             }, false), RtiTckMain::serviceReportObjectNameReservation);
       run(new Scenario("java-tck.service-report-release-object-instance-name",
             "standard MOM report argument and Null return for successful object-name release",
@@ -8372,14 +8378,17 @@ public final class RtiTckMain {
                "requirement-candidate-table-5-p299-r001"
             }, false), RtiTckMain::serviceReportObjectNameRelease);
       run(new Scenario("java-tck.service-report-release-multiple-object-instance-names",
-            "standard MOM report for successful multiple object-name release",
+            "standard MOM report arguments and Null return for successful multiple object-name release",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveMultipleObjectInstanceNames;RTIambassador.releaseMultipleObjectInstanceNames;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.multipleObjectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.reserveMultipleObjectInstanceNames;RTIambassador.releaseMultipleObjectInstanceNames;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getFederateHandleFactory;RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.multipleObjectInstanceNameReservationSucceeded;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAunicodeString;HLAfixedRecord.decode;HLAvariableArray.decode;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
                "cpp-1516.1-object-instance-name-lifecycle",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites",
+               "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+               "requirement-candidate-table-5-p302-r003"
             }, false), RtiTckMain::serviceReportMultipleObjectNameRelease);
       run(new Scenario("java-tck.service-report-cancel-attribute-ownership-acquisition",
             "successful ownership-acquisition cancellation and confirmation through MOM",

@@ -50634,7 +50634,7 @@
     {
       "id": "java-tck.service-report-reserve-object-instance-name",
       "category": "mom-service-reporting",
-      "title": "Verify standard report and success callback for object-name reservation",
+      "title": "Verify standard report arguments, Null return, and success callback for object-name reservation",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -50660,14 +50660,59 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-instance-name-lifecycle",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+        "requirement-candidate-table-5-p299-r001"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l93-30",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied-argument array is decoded and required to contain exactly one record."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The record checks Table 5 String type code 53 and the standard Name argument label."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The argument value is checked as the JSON-quoted input object name."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l114-37",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The success report decodes and verifies HLAreturnedArgument."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The void-return record is decoded and checked against the Null encoding."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The Null return is checked as Table 5 type code 34, empty name, and value null."
+        }
+      ],
+      "mapping_note": "The Java success report now decodes the one-element HLAsuppliedArguments list, checks Table 5 String type 53, the exact Name label and JSON-quoted input, and verifies HLAreturnedArgument as the type-34 Null record. The reservation-success callback and invoking-federate assertion remain supplemental. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; no complete section or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -50800,7 +50845,7 @@
     {
       "id": "java-tck.service-report-release-multiple-object-instance-names",
       "category": "mom-service-reporting",
-      "title": "Verify the standard MOM report for successful multiple object-name release",
+      "title": "Verify standard report arguments and Null return for successful multiple object-name release",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -50826,14 +50871,41 @@
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
         "HLAinteger32BE.decode",
-        "HLAboolean.decode"
+        "HLAboolean.decode",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAunicodeString",
+        "HLAfixedRecord.decode",
+        "HLAvariableArray.decode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-object-instance-name-lifecycle",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites",
+        "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+        "requirement-candidate-table-5-p302-r003"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l117-38-composites",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The returned HLAargumentRecord is decoded and verified as the Null value after successful name release."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The supplied StringSet record checks the exact standard Name set argument label and encoded value."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p302-r003",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1",
+          "note": "The Java report checks Table 5 type code 54 and the exact two-name StringSet array value."
+        }
+      ],
+      "mapping_note": "The Java success report decodes exactly one supplied-argument record and verifies Table 5 type 54 StringSet, the standard Name set label, and the exact two-name JSON-quoted array; it also checks HLAreturnedArgument as the type-34 Null record. Direct mappings are limited to the listed candidates under IEEE 1516.1-2025 \u00a711.5.1; no complete section or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
