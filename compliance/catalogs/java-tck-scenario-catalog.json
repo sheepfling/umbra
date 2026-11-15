@@ -48749,11 +48749,21 @@
         "standard-service-report-commit-region-modifications-contract.json",
         "federation-execution-api-contract.json"
       ],
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension under HLA_EVOKED and HLA_IMMEDIATE. The Java case now matches the C++ witness by committing two distinct adapter-valid regions in one call and checking the type-43 designator set contains both region handles, alongside the successful report metadata and committed bounds for both regions. Results: out/java-tck/region-service-report-parity-20261103/results/commit-region-modifications-{hla_evoked,hla_immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r011",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct §11.5.1 Table 5 p.299 r011 witness: the successful CommitRegionModifications service report encodes the submitted RegionHandleSet as an array of exact designators for both distinct region handles, and the Java source checks both values with the successful report status and metadata. The foreign-owned-region rejection report and committed bounds are supplemental. This does not claim other Table 5 rows, complete §11.5.1 coverage, or conformance.",
+      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified or a capability-profile override, using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension. The successful report checks the type-43 array of exact designators for both distinct regions, Null return, serial 0, and report metadata. The supplemental failure path checks the RegionNotCreatedByThisFederate report for an observer-owned region (serial 1) and committed bounds for both subject regions. Paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package; scoped C++ validation returned valid=true with no findings. Java catalog validation passed and provider-neutral export reports 1/1 pass per callback model. Java results/JUnit: out/java-tck/commit-region-modifications-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}; combined export: out/java-tck/commit-region-modifications-java-parity-20261115/provider-neutral-validation.json; C++ results/JUnit: out/mgw/cpp-tck-service-report-commit-region-modifications-java-parity-20261115/{results.json,results.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportCommitRegionModifications",
       "parity": "cpp-tck.service-report-commit-region-modifications",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM and dimension name, standard MIM, logical-time implementation, and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
+      "default_status": "run"
     },
     {
       "id": "java-tck.service-report-delete-region",

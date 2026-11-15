@@ -28,6 +28,7 @@ import hla.rti1516_2025.encoding.HLAinteger16BE;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAunicodeString;
 import hla.rti1516_2025.encoding.HLAvariableArray;
+import hla.rti1516_2025.exceptions.RegionNotCreatedByThisFederate;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -1104,8 +1105,10 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
       boolean regionCreated = false;
       boolean secondRegionCreated = false;
+      boolean foreignRegionCreated = false;
       RegionHandle region = null;
       RegionHandle secondRegion = null;
+      RegionHandle foreignRegion = null;
       InteractionClassHandle reportClass = null;
       try {
          subject.connect(emptyCallbacks(), callbackModel);
@@ -1189,6 +1192,48 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
                   regionSetText)
             }, new Argument(34, "", "null"), 0, 5);
 
+         DimensionHandle observerDimension = observer.getDimensionHandle(dimensionName);
+         JavaTckSupport.check(observerDimension != null,
+            "CommitRegionModifications foreign-region dimension lookup returned null");
+         long observerUpperBound = observer.getDimensionUpperBound(observerDimension);
+         JavaTckSupport.check(observerUpperBound > 0,
+            "CommitRegionModifications foreign-region dimension has no positive upper bound");
+         DimensionHandleSet foreignDimensions = observer.getDimensionHandleSetFactory().create();
+         foreignDimensions.add(observerDimension);
+         foreignRegion = observer.createRegion(foreignDimensions);
+         foreignRegionCreated = true;
+         JavaTckSupport.check(foreignRegion != null,
+            "CommitRegionModifications foreign-region setup returned a null handle");
+         observer.setRangeBounds(foreignRegion, observerDimension,
+            new hla.rti1516_2025.RangeBounds(0, observerUpperBound));
+         RegionHandleSet foreignRegionCommitSet =
+            observer.getRegionHandleSetFactory().create();
+         foreignRegionCommitSet.add(foreignRegion);
+         observer.commitRegionModifications(foreignRegionCommitSet);
+         RegionHandleSet foreignRegions = subject.getRegionHandleSetFactory().create();
+         foreignRegions.add(foreignRegion);
+         boolean foreignRegionRejected = false;
+         try {
+            subject.commitRegionModifications(foreignRegions);
+         } catch (RegionNotCreatedByThisFederate expected) {
+            foreignRegionRejected = true;
+         }
+         JavaTckSupport.check(foreignRegionRejected,
+            "CommitRegionModifications accepted a region created by another joined federate");
+         awaitReportCount(observer, recorder, callbackModel, 2,
+            "failed CommitRegionModifications service-report callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(observer);
+         JavaTckSupport.check(recorder.events.size() == 2,
+            "CommitRegionModifications success and failure delivered an unexpected number "
+               + "of service reports");
+         verifyReport(observer, subjectFederate, recorder.events.get(1), encoder, reportClass,
+            reportParameters, reliable, "CommitRegionModifications",
+            new Argument[] {
+               new Argument(43, "Set of region designators",
+                  "[\"" + foreignRegion.toString() + "\"]")
+            }, new Argument(34, "", "null"), 1, 5, true, false,
+            "RegionNotCreatedByThisFederate");
+
          subject.setServiceReportingSwitch(false);
          hla.rti1516_2025.RangeBounds committedBounds = subject.getRangeBounds(region, dimension);
          hla.rti1516_2025.RangeBounds secondCommittedBounds =
@@ -1204,6 +1249,8 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          regionCreated = false;
          subject.deleteRegion(secondRegion);
          secondRegionCreated = false;
+         observer.deleteRegion(foreignRegion);
+         foreignRegionCreated = false;
          observer.resignFederationExecution(ResignAction.NO_ACTION);
          observerJoined = false;
          subject.resignFederationExecution(ResignAction.NO_ACTION);
@@ -1222,6 +1269,10 @@ final class ServiceReportObjectAttributeUpdateRateLookupTck {
          }
          if (secondRegionCreated && secondRegion != null) {
             try { subject.deleteRegion(secondRegion); }
+            catch (Exception ignored) { }
+         }
+         if (foreignRegionCreated && foreignRegion != null) {
+            try { observer.deleteRegion(foreignRegion); }
             catch (Exception ignored) { }
          }
          if (observerJoined) resign(observer);

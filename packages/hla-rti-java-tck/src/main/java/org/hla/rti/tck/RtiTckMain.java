@@ -8076,7 +8076,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ddm-range-validation",
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::serviceReportCommitRegionModifications);
+            }, true), RtiTckMain::serviceReportCommitRegionModifications);
       run(new Scenario("java-tck.service-report-delete-region",
             "standard MOM report for deleting a region",
             "mom-service-reporting",
