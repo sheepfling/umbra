@@ -48273,8 +48273,40 @@
         "cpp-1516.1-attribute-lookup",
         "cpp-1516.1-update-rate-value",
         "cpp-1516.1-update-rate-value-for-attribute",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-table-5-p295-r004",
+        "requirement-candidate-table-5-p299-r002",
+        "requirement-candidate-table-5-p299-r003",
+        "requirement-candidate-table-5-p299-r004"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-table-5-p295-r004",
+        "requirement-candidate-table-5-p299-r002",
+        "requirement-candidate-table-5-p299-r003",
+        "requirement-candidate-table-5-p299-r004"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p295-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r002",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r003",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r004",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_note": "Direct mappings are limited to Table 5 p.295 r004 and p.299 r002-r004, all to IEEE 1516.1-2025 §11.5.1. The successful GetAttributeName report checks its scalar AttributeHandle supplied record as type 0 with the quoted public API handle text (p.295 r004). GetUpdateRateValue's returned record is type 35, named Maximum update rate value, and contains the exact unquoted Number representation of the API result (p.299 r002). GetKnownObjectClassHandle returns its type-36 ObjectClassHandle record and GetObjectInstanceHandle returns its type-37 ObjectInstanceHandle record, each with quoted public API handle text (p.299 r003-r004). The case checks all seven ordered success reports and the API lookup values. Failure-path checks in the paired C++ case remain supplemental and do not add mappings here. This does not claim other Table 5 values, broad §11.5.1 coverage, report-file policy, provider interoperability, or conformance.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -48287,7 +48319,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectAttributeUpdateRateLookups",
       "parity": "cpp-tck.service-report-object-attribute-update-rate-lookups",
       "default_status": "unsupported",
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, BestEffortValue, and TckSlow under HLA_EVOKED and HLA_IMMEDIATE. Java verifies seven ordered callback reports and, with serviceReportDirectory configured, checks the Federate MOM HLAreportServiceFile and the appended successful GetUpdateRateValue type-35 Number against the API result. Results: out/java-tck/object-attribute-rate-lookups-20261103/results/{evoked,immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, BestEffortValue, and TckSlow under HLA_EVOKED and HLA_IMMEDIATE. Java verifies seven ordered callback reports and, with serviceReportDirectory configured, checks the Federate MOM HLAreportServiceFile and the appended successful GetUpdateRateValue type-35 Number against the API result. Focused direct mappings cover the scalar AttributeHandle, MaximumUpdateRate Number, ObjectClassHandle, and ObjectInstanceHandle records from Table 5 p.295 r004 and p.299 r002-r004 to §11.5.1. Results: out/java-tck/object-attribute-rate-lookups-20261103/results/{evoked,immediate}.results.json and .junit.xml. Evidence is local JNI only.",
       "exclusion": "Requires adapter-supplied update-rate FOM, standard MIM, object class, best-effort attribute, update-rate name, callback model, and installed IEEE 1516.1-2025 Java provider. The file-backed check additionally requires an adapter-configured serviceReportDirectory; other providers need their own runtime evidence."
     },
     {

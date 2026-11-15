@@ -8005,7 +8005,11 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-lookup",
                "cpp-1516.1-update-rate-value",
                "cpp-1516.1-update-rate-value-for-attribute",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-table-5-p295-r004",
+               "requirement-candidate-table-5-p299-r002",
+               "requirement-candidate-table-5-p299-r003",
+               "requirement-candidate-table-5-p299-r004"
             }, false), RtiTckMain::serviceReportObjectAttributeUpdateRateLookups);
       run(new Scenario("java-tck.service-report-dimension-upper-bound",
             "standard MOM success and failure reports for dimension upper-bound lookups",
