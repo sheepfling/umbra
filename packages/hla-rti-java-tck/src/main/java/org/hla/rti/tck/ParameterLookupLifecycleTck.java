@@ -18,36 +18,19 @@ final class ParameterLookupLifecycleTck {
          String baseInteractionName, String derivedInteractionName,
          String inheritedParameterName, String derivedParameterName,
          CallbackModel callbackModel) throws Exception {
-      RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-parameter-lookup-" + UUID.randomUUID();
-      boolean observerConnected = false;
       boolean ownerConnected = false;
       boolean memberConnected = false;
       boolean created = false;
       boolean ownerJoined = false;
       boolean memberJoined = false;
       try {
-         JavaTckSupport.expectFailure(
-            () -> observer.getParameterHandle(null, inheritedParameterName), "NotConnected",
-            "looking up a parameter before connecting");
-         JavaTckSupport.expectFailure(
-            () -> observer.getParameterName(null, null), "NotConnected",
-            "looking up a parameter name before connecting");
-
-         observer.connect(callbacks(), callbackModel);
-         observerConnected = true;
          owner.connect(callbacks(), callbackModel);
          ownerConnected = true;
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
-         JavaTckSupport.expectFailure(
-            () -> observer.getParameterHandle(null, inheritedParameterName),
-            "FederateNotExecutionMember", "looking up a parameter before joining");
-         JavaTckSupport.expectFailure(
-            () -> observer.getParameterName(null, null), "FederateNotExecutionMember",
-            "looking up a parameter name before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -86,17 +69,6 @@ final class ParameterLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> owner.getParameterHandle(derivedInteraction, unknownParameterName), "NameNotFound",
             "looking up an unknown parameter name");
-         // Java exposes no public invalid-handle constructors; null supplies typed invalid inputs.
-         JavaTckSupport.expectFailure(
-            () -> owner.getParameterHandle(null, inheritedParameterName),
-            "InvalidInteractionClassHandle",
-            "looking up a parameter from an invalid interaction-class handle");
-         JavaTckSupport.expectFailure(
-            () -> owner.getParameterName(null, baseInherited), "InvalidInteractionClassHandle",
-            "looking up a parameter name from an invalid interaction-class handle");
-         JavaTckSupport.expectFailure(
-            () -> owner.getParameterName(derivedInteraction, null), "InvalidParameterHandle",
-            "looking up a parameter name from an invalid parameter handle");
          JavaTckSupport.expectFailure(
             () -> owner.getParameterName(baseInteraction, derivedParameter),
             "InteractionParameterNotDefined",
@@ -105,16 +77,28 @@ final class ParameterLookupLifecycleTck {
          member.joinFederationExecution("java-tck-parameter-lookup-member",
             "java-tck-parameter-lookup-member", federation);
          memberJoined = true;
+         InteractionClassHandle memberBase =
+            member.getInteractionClassHandle(baseInteractionName);
+         ParameterHandle memberBaseInherited =
+            member.getParameterHandle(memberBase, inheritedParameterName);
          InteractionClassHandle memberDerived =
             member.getInteractionClassHandle(derivedInteractionName);
          ParameterHandle memberInherited =
             member.getParameterHandle(memberDerived, inheritedParameterName);
          ParameterHandle memberDerivedParameter =
             member.getParameterHandle(memberDerived, derivedParameterName);
-         JavaTckSupport.check(derivedInteraction.equals(memberDerived)
+         JavaTckSupport.check(baseInteraction.equals(memberBase)
+               && derivedInteraction.equals(memberDerived)
+               && baseInherited.equals(memberBaseInherited)
                && baseInherited.equals(memberInherited)
-               && derivedParameter.equals(memberDerivedParameter),
-            "inherited parameter handles did not retain cross-federate identity");
+               && derivedParameter.equals(memberDerivedParameter)
+               && inheritedParameterName.equals(
+                  member.getParameterName(memberBase, memberBaseInherited))
+               && inheritedParameterName.equals(
+                  member.getParameterName(memberDerived, memberInherited))
+               && derivedParameterName.equals(
+                  member.getParameterName(memberDerived, memberDerivedParameter)),
+            "inherited parameter handles or names did not retain cross-federate identity");
 
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;
@@ -137,7 +121,6 @@ final class ParameterLookupLifecycleTck {
          }
          if (memberConnected) { try { member.disconnect(); } catch (Exception ignored) { } }
          if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
-         if (observerConnected) { try { observer.disconnect(); } catch (Exception ignored) { } }
       }
    }
 

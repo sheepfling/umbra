@@ -4082,14 +4082,15 @@ the C++ invalid-handle and handle-based pre-connect/pre-membership checks are
 not mirrored. This is local-provider evidence, not independent-provider
 interoperability or conformance evidence.
 
-The opt-in `java-tck.parameter-lookup-lifecycle` case checks parameter lookup
-boundaries, inherited parameter identity across base/derived interaction classes
-and federates, and unknown, invalid, and class-mismatch failures. Its rich FOM,
-typed class names, and parameter names are adapter-configurable through the
-`hla.rti.tck.typedDerivedInteractionClass` and
-`hla.rti.tck.typedDerivedParameter` properties (alongside the existing typed
-FOM properties). It uses only the official Java API and remains unverified
-against a provider runtime.
+`java-tck.parameter-lookup-lifecycle` checks parameter handle results and exact
+parameter-name round-trips across base/derived interaction classes and two
+joined federates. Unknown-name and valid wrong-class errors are supplemental.
+It uses the adapter-supplied `fom-model-tck.xml` and `HLAinteger64Time`; focused
+current-source Umbra JNI runs passed under both callback models. Java exposes no
+standard default-invalid interaction-class or parameter handle, so the C++
+invalid-handle and handle-based pre-connect/pre-membership checks are not
+mirrored. This is local-provider evidence, not independent-provider
+interoperability or conformance evidence.
 
 The opt-in `java-tck.regional-attribute-value-request-filtering` case exercises
 regional `requestAttributeValueUpdateWithRegions` overlap filtering, empty

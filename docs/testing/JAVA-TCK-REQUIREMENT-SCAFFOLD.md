@@ -22,10 +22,10 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1144 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 582 |
-| Default `unsupported` scenarios | 382 |
-| Scenarios with explicit `requirement_mappings` | 666 |
-| Explicit mapping records | 2714 |
+| Default `run` scenarios | 583 |
+| Default `unsupported` scenarios | 381 |
+| Scenarios with explicit `requirement_mappings` | 667 |
+| Explicit mapping records | 2716 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -1253,7 +1253,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.ordinary-multi-attribute-subscription-projection`](#scenario-java-tck.ordinary-multi-attribute-subscription-projection) — Project ordinary multi-attribute updates to each subscriber's declared attributes (`object-management`; default `run`; C++ source pointer not declared).
 - [`java-tck.ordinary-multi-attribute-value-update-request-response`](#scenario-java-tck.ordinary-multi-attribute-value-update-request-response) — Request full and selective multi-attribute values and verify standard responses (`object-management`; default `run`; C++ source pointer not declared).
 - [`java-tck.ownership-acquisition-if-available`](#scenario-java-tck.ownership-acquisition-if-available) — Reject invalid If Available requests, report unavailable ownership, and acquire after unconditional divestiture (`ownership`; default `run`; C++ pointer `cpp-tck.ownership-acquisition-if-available`).
-- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 - [`java-tck.query-lits-source-resignation`](#scenario-java-tck.query-lits-source-resignation) — Keep Query LITS defined for a queued timestamped interaction after source resignation (`query-galt-lits-source-resignation`; default `run`; C++ pointer `cpp-tck.query-lits-source-resignation`).
 - [`java-tck.receive-order-attribute-update`](#scenario-java-tck.receive-order-attribute-update) — Deliver two distinct ordinary receive-order attribute updates (`receive-order-attribute-update`; default `run`; C++ pointer `cpp-tck.receive-order-attribute-update`).
 - [`java-tck.receive-order-object-removal`](#scenario-java-tck.receive-order-object-removal) — Deliver an ordinary object removal with standard callback metadata (`receive-order-object-removal`; default `run`; C++ pointer `cpp-tck.receive-order-object-removal`).
@@ -1553,7 +1553,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `cpp-1516.1-interaction-lookup`
 
 - [`java-tck.interaction-class-lookup-lifecycle`](#scenario-java-tck.interaction-class-lookup-lifecycle) — Resolve interaction-class handles across lifecycle and additional-FOM composition boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.interaction-class-lookup-lifecycle`).
-- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 - [`java-tck.service-report-interaction-parameter-lookup-failures`](#scenario-java-tck.service-report-interaction-parameter-lookup-failures) — Verify ordered MOM failure reports and recovery for interaction and parameter lookups (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-interaction-parameter-lookup-failures`).
 - [`java-tck.service-report-interaction-parameter-lookups`](#scenario-java-tck.service-report-interaction-parameter-lookups) — Verify successful and failed service reports for interaction-class and parameter lookups (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-interaction-parameter-lookups`).
 
@@ -2238,7 +2238,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-parameter-lookup`
 
-- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 - [`java-tck.service-report-interaction-parameter-lookup-failures`](#scenario-java-tck.service-report-interaction-parameter-lookup-failures) — Verify ordered MOM failure reports and recovery for interaction and parameter lookups (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-interaction-parameter-lookup-failures`).
 - [`java-tck.service-report-interaction-parameter-lookups`](#scenario-java-tck.service-report-interaction-parameter-lookups) — Verify successful and failed service reports for interaction-class and parameter lookups (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.service-report-interaction-parameter-lookups`).
 
@@ -2378,7 +2378,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.dimension-lookup-lifecycle`](#scenario-java-tck.dimension-lookup-lifecycle) — Resolve adapter-supplied dimension handles, names, upper bounds, and class associations across the execution lifecycle (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.dimension-lookup-lifecycle`).
 - [`java-tck.interaction-class-lookup-lifecycle`](#scenario-java-tck.interaction-class-lookup-lifecycle) — Resolve interaction-class handles across lifecycle and additional-FOM composition boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.interaction-class-lookup-lifecycle`).
 - [`java-tck.object-class-lookup-lifecycle`](#scenario-java-tck.object-class-lookup-lifecycle) — Resolve object-class handles across lifecycle and additional-FOM composition boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.object-class-lookup-lifecycle`).
-- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 - [`java-tck.support-services`](#scenario-java-tck.support-services) — Check support lookup lifecycle gates, public handle identity, and encoding (`support-services`; default `run`; C++ source pointer not declared).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -3037,7 +3037,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.fom-model`](#scenario-java-tck.fom-model) — Load a rich adapter FOM and verify qualified identity for repeated object-class names, hierarchy, metadata, and typed delivery (`fom-model`; default `unsupported`; C++ pointer `cpp-tck.fom-model`).
 - [`java-tck.fom-root-hierarchy`](#scenario-java-tck.fom-root-hierarchy) — Require standard object and interaction roots (`fom-composition`; default `unsupported`; C++ pointer `cpp-tck.fom-root-hierarchy`).
 - [`java-tck.inherited-interaction-class-delivery`](#scenario-java-tck.inherited-interaction-class-delivery) — Route derived interactions through base subscriptions with directional class boundaries (`interaction-class-inheritance`; default `run`; C++ pointer `cpp-tck.inherited-interaction-class-delivery`).
-- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 - [`java-tck.timestamped-inherited-interaction-class-delivery`](#scenario-java-tck.timestamped-inherited-interaction-class-delivery) — Project timestamped derived interactions through base and derived subscriptions (`timestamped-interaction-class-inheritance`; default `unsupported`; C++ pointer `cpp-tck.timestamped-inherited-interaction-class-delivery`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -7602,12 +7602,14 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-10-support-services-page-254-l143-35`
 
 - [`java-tck.parameter-handle-name-lookup`](#scenario-java-tck.parameter-handle-name-lookup) — Parameter handle and name lookups round-trip the configured FOM name (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-handle-name-lookup`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-10-support-services-page-254-l26-3`
 
 - [`java-tck.parameter-handle-name-lookup`](#scenario-java-tck.parameter-handle-name-lookup) — Parameter handle and name lookups round-trip the configured FOM name (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-handle-name-lookup`).
+- [`java-tck.parameter-lookup-lifecycle`](#scenario-java-tck.parameter-lookup-lifecycle) — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries (`handle-lookup`; default `run`; C++ pointer `cpp-tck.parameter-lookup-lifecycle`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -12140,6 +12142,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.attribute-lookup-lifecycle`:
   - `requirement-candidate-content-clauses-10-support-services-page-249-l146-36` → `hla-1516.1-2025:clause-10.9`
   - `requirement-candidate-content-clauses-10-support-services-page-250-l109-27` → `hla-1516.1-2025:clause-10.10`
+- `java-tck.parameter-lookup-lifecycle`:
+  - `requirement-candidate-content-clauses-10-support-services-page-254-l26-3` → `hla-1516.1-2025:clause-10.15`
+  - `requirement-candidate-content-clauses-10-support-services-page-254-l143-35` → `hla-1516.1-2025:clause-10.16`
 - `java-tck.directed-interaction-publication-send-fence`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-081-l17-3` → `hla-1516.1-2025:clause-5.1`
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52` → `hla-1516.1-2025:clause-5.1.4`
@@ -13715,7 +13720,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.normalize-object-instance-handle-region-coordinate"></a>`java-tck.normalize-object-instance-handle-region-coordinate` — Use the normalized object-instance handle as an HLAobjectInstance point range | `org.hla.rti.tck.SupportServicesScenarioRegistry#normalizeObjectInstanceHandleRegionCoordinate` | 28 | `requirement-candidate-content-clauses-10-support-services-page-267-l39-9` | `cpp-tck.normalize-object-instance-handle-region-coordinate` | `run` | provider JAR and factory; callback model; adapter-supplied model FOM, standard MIM, and logical-time implementation; object class and attribute names |
 | <a id="scenario-java-tck.object-class-lookup-lifecycle"></a>`java-tck.object-class-lookup-lifecycle` — Resolve object-class handles across lifecycle and additional-FOM composition boundaries | `org.hla.rti.tck.RtiTckMain#objectClassLookupLifecycle` | 9 | `cpp-1516.1-object-class-lookup`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.1-fom-module-composition`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.object-class-lookup-lifecycle` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.parameter-handle-name-lookup"></a>`java-tck.parameter-handle-name-lookup` — Parameter handle and name lookups round-trip the configured FOM name | `org.hla.rti.tck.SupportServicesScenarioRegistry#parameterHandleNameLookup` | 10 | `requirement-candidate-content-clauses-10-support-services-page-254-l26-3`, `requirement-candidate-content-clauses-10-support-services-page-254-l143-35` | `cpp-tck.parameter-handle-name-lookup` | `run` | provider JAR and factory; callback model; P0 FOM and logical-time implementation; configured interaction-class and parameter names |
-| <a id="scenario-java-tck.parameter-lookup-lifecycle"></a>`java-tck.parameter-lookup-lifecycle` — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries | `org.hla.rti.tck.RtiTckMain#parameterLookupLifecycle` | 9 | `cpp-1516.1-parameter-lookup`, `cpp-1516.1-interaction-lookup`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.2-fom-root-hierarchy`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.parameter-lookup-lifecycle` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.parameter-lookup-lifecycle"></a>`java-tck.parameter-lookup-lifecycle` — Resolve ordinary parameter handles across lifecycle and inherited interaction-class boundaries | `org.hla.rti.tck.RtiTckMain#parameterLookupLifecycle` | 11 | `cpp-1516.1-parameter-lookup`, `cpp-1516.1-interaction-lookup`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.2-fom-root-hierarchy`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-10-support-services-page-254-l26-3`, `requirement-candidate-content-clauses-10-support-services-page-254-l143-35` | `cpp-tck.parameter-lookup-lifecycle` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with HLAinteractionRoot.TckTypedInteraction, HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction, IntegerParameter, and DerivedParameter; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.privilege-attribute-availability"></a>`java-tck.privilege-attribute-availability` — Resolve HLAprivilegeToDeleteObject on every object class in the P0 TCK FOM | `org.hla.rti.tck.PrivilegeAttributeAvailabilityTck#run` | 12 | `requirement-candidate-content-clauses-07-ownership-management-page-153-l84-26`, `requirement-candidate-sections-semantic-clauses-5-6-page-092-l94-20`, `requirement-candidate-sections-semantic-clause-4b-page-051-l146-1` | `cpp-tck.privilege-attribute-availability` | `run` | pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider; p0-tck.xml with the composed standard MIM; HLA_EVOKED and HLA_IMMEDIATE callback models; logical-time implementation |
 | <a id="scenario-java-tck.standard-order-transportation-lookups"></a>`java-tck.standard-order-transportation-lookups` — Check mandatory order and transportation lookups across connection and membership | `org.hla.rti.tck.RtiTckMain#standardOrderTransportationLookups` | 12 | `requirement-candidate-content-clauses-06-object-management-page-111-l25-6`, `requirement-candidate-content-clauses-08-time-management-page-188-l69-21`, `requirement-candidate-content-clauses-08-time-management-page-188-l75-23`, `requirement-candidate-content-clauses-08-time-management-page-188-l81-25`, `requirement-candidate-content-clauses-10-support-services-page-255-l122-31`, `requirement-candidate-content-clauses-10-support-services-page-256-l53-11`, `requirement-candidate-content-clauses-10-support-services-page-256-l152-37`, `requirement-candidate-content-clauses-10-support-services-page-257-l108-25` | `cpp-tck.standard-order-and-transportation-lookups-contract` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.support-lookups-valid-inputs-after-resignation"></a>`java-tck.support-lookups-valid-inputs-after-resignation` — Check class, attribute, and parameter lookups after resignation with valid adapter FOM inputs | `org.hla.rti.tck.RtiTckMain#supportLookupsAfterResignation` | 14 | `cpp-1516.1-object-class-handle-membership-boundary-after-resignation`, `cpp-1516.1-object-class-name-membership-boundary-after-resignation`, `cpp-1516.1-attribute-handle-membership-boundary-after-resignation`, `cpp-1516.1-attribute-name-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-handle-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-name-membership-boundary-after-resignation`, `cpp-1516.1-parameter-handle-membership-boundary-after-resignation`, `cpp-1516.1-parameter-name-membership-boundary-after-resignation` | `cpp-tck.support-lookup-valid-inputs-after-resignation-contract` | `run` | not scenario-declared |
