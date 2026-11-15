@@ -5,25 +5,25 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 539)
+## Current finish gates and next handoff — 2026-11-15 (increment 540)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 added a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
-Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The two files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. The archive preserves its edition labels, and its 2010 notes do not describe 2025 behavior.
+Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 
-**Citation status rechecked at increment 539:**
+**Citation status rechecked at increment 540:**
 
-- Published candidate HEAD `49b5d9eb8b486890695c2b76a974e2c603de8978` resolves 4,796/4,805 source-line references. Nine are out of range in four 2025 source/test files. The source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; intervening commits were documentation-only.
+- Current published candidate HEAD `52bb208631fb6629e49406ff3f25fe24ca13756b` resolves 4,796/4,805 source-line references. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the intervening commits are documentation-only.
 - The candidate worktree resolves all 4,805 references. Bounded inspection confirms the cited `serveConnection`, timeout parser, five Catch2 cases, and Federate-Lost MOM scenario, but the source/test edits remain uncommitted.
 - Remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` also resolves 4,796/4,805.
-- Local `feature/initial-work` at `9679bffb74da8b044682a2ee9d3855a4840bf681` passes line bounds, but is not a safe citation revision: `tck_connection_lifecycle.cpp#L2389` is an automatic delete-then-divest assertion, `#L2765` is a fault-parameter lookup, and the Federate-Lost scenario’s post-loss assertion is at `#L2983`. That local branch is 18 commits ahead of the remote initial-work branch.
+- Local `feature/initial-work` at `6265bca881f23b995f7eef76f89f9d3af3e90d6f` passes line bounds only. `tck_connection_lifecycle.cpp#L2389` is an automatic delete-then-divest assertion and `#L2765` is a fault-parameter lookup; the Federate-Lost scenario’s post-loss assertion is at `#L2983`. The local branch is 19 commits ahead of its remote and is not a safe citation target.
 - The current GitHub query found no open pull requests. The [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the refreshed revisions and all nine pending targets. Do not retarget citations to unrelated code to make line checks pass.
 
 1. **Stabilize the nine source citations.** Have the source owners publish the reviewed 2025 source/test edits on a suitable revision. Then rerun all 4,805 checks and verify each target’s meaning against that exact revision.
-2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The DSE #003 layout review remains one selected hosted sample; full-width hosted layout review is not claimed for all 515 diagrams.
-3. **Close the handoff.** After source stabilization, refresh the source-dependency and render audits. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
+2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The DSE #003 review remains one selected hosted sample; full-width hosted layout review is not claimed for all 515 diagrams.
+3. **Close out the handoff.** After source stabilization, refresh the source-dependency and render audits. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
-**Next handoff:** ask source owners to publish the reviewed 2025 source/test edits without importing unrelated primary-branch work. Verify the nine line and semantic targets at that published revision, then refresh the dependency and render audits. The qualitative completion estimate remains 95% until that citation closeout is complete.
+**Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch work. Verify the nine line and semantic targets at that revision, then refresh the dependency and render audits. The qualitative completion estimate remains 95% until that citation closeout is complete.
 
 ## Current baseline
 

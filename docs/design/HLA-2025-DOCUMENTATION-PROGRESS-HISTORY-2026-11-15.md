@@ -229,3 +229,15 @@ The remote `origin/feature/initial-work` revision `c9c5a9e410539b039cd8bba35b53d
 Updated the source-dependency snapshot and the current roadmap handoff to these exact revisions. The overall working completion estimate remains **approximately 95%**; the source citation gate is still open until the source owners publish the reviewed 2025 edits and all nine targets pass line and semantic checks there. No C++ files were changed, and no build, tests, or CI ran. Keep 2010 and Requirements Lab work separate.
 
 **Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch changes. Then rerun the 4,805-reference checker and verify the nine semantic targets against the exact published revision.
+
+## Increment 540 — refresh current source-branch evidence (2026-11-15)
+
+The published candidate branch remains at `52bb208631fb6629e49406ff3f25fe24ca13756b`; the remote initial-work source branch remains at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180`. The candidate source tree is unchanged from its last source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the later candidate commits touched documentation paths only.
+
+**Source-line checks:** The documentation checker covers 4,805 unique references across 41 IEEE 1516.1-2025 Markdown files. Candidate HEAD resolves 4,796/4,805; the current worktree resolves all 4,805. The nine unresolved references remain in four source/test files and still match the uncommitted worktree targets. Remote initial-work also resolves 4,796/4,805.
+
+Local `feature/initial-work` advanced to `6265bca881f23b995f7eef76f89f9d3af3e90d6f` and is 19 commits ahead of its remote. Its 4,805/4,805 result is bounds-only: TCK line 2389 remains an automatic delete-then-divest assertion, line 2765 is a fault-parameter lookup, the Federate-Lost scenario begins at line 2607, and the post-loss assertion is at line 2983. The current GitHub query found no open pull requests, so the cited changes remain unpublished.
+
+Updated the active roadmap and hosted-source dependency snapshot to these revisions. The overall working completion estimate remains **approximately 95%**. The closeout still requires source-owner publication and fresh line plus semantic validation of all nine citations at that revision. No C++ source was changed; no build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+**Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch work; then rerun the 4,805-reference checker and semantically verify all nine anchors at the exact published revision.

@@ -2637,9 +2637,9 @@
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
   },
   "latest_candidate_reference_snapshot": {
-    "as_of": "2026-11-15 increment 539",
+    "as_of": "2026-11-15 increment 540",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_revision": "49b5d9eb8b486890695c2b76a974e2c603de8978",
+    "candidate_revision": "52bb208631fb6629e49406ff3f25fe24ca13756b",
     "remote_branch_matches_candidate": true,
     "markdown_files": 41,
     "unique_source_line_references": 4805,
@@ -2648,7 +2648,7 @@
       "unresolved": 0,
       "source_edits_uncommitted": true,
       "source_tree_matches_last_committed_source": true,
-      "note": "All 4,805 references resolve in the current worktree. Bounded inspection rechecked the nine cited functions and test cases; the source/test edits remain uncommitted."
+      "note": "Current worktree source/test edits resolve all 4,805 references. The nine cited targets were previously checked in bounded ranges and remain present at the same lines; the edits are uncommitted."
     },
     "candidate_head": {
       "resolved": 4796,
@@ -2673,25 +2673,25 @@
         "out_of_range_references": 9,
         "affected_target_files": 4
       },
-      "revision": "49b5d9eb8b486890695c2b76a974e2c603de8978"
+      "revision": "52bb208631fb6629e49406ff3f25fe24ca13756b"
     },
     "primary_head": {
-      "revision": "9679bffb74da8b044682a2ee9d3855a4840bf681",
+      "revision": "6265bca881f23b995f7eef76f89f9d3af3e90d6f",
       "candidate_markdown_files_checked": 41,
       "candidate_references_checked": 4805,
       "candidate_lines_in_range": 4805,
       "candidate_lines_out_of_range": 0,
       "published_on_candidate_branch": false,
-      "commits_ahead_of_remote_initial_work": 18,
+      "commits_ahead_of_remote_initial_work": 19,
       "semantic_review_complete": false,
-      "note": "Bounds only. At local feature/initial-work HEAD, candidate line 2389 is an automatic delete-then-divest assertion; the Federate-Lost MOM scenario starts at line 2607 and its post-loss assertion is at 2983. This unpublished branch is not a safe citation target."
+      "note": "Bounds only. At local feature/initial-work HEAD, tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion and #L2765 is a fault-parameter lookup. The Federate-Lost MOM scenario starts at line 2607 and its post-loss assertion is at 2983. This local branch is unpublished and 19 commits ahead of origin/feature/initial-work."
     },
     "diagram_publication": {
       "published_additions": 7,
       "published_revised_bodies": 21,
       "current_diagram_count": 515
     },
-    "interpretation": "Current candidate HEAD 49b5d9eb8b486890695c2b76a974e2c603de8978 resolves 4,796/4,805 source-line references; the source tree is unchanged from source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d. Current worktree edits resolve all 4,805 and bounded semantic inspection confirms all nine targets, but those edits remain uncommitted. Remote initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 also resolves 4,796/4,805. Local primary 9679bffb74da8b044682a2ee9d3855a4840bf681 passes line bounds only; its TCK target semantics differ, and it is 18 commits ahead of the remote initial-work branch. No open GitHub PRs were found. Repeat line and semantic checks after source-owner publication.",
+    "interpretation": "At current candidate HEAD 52bb208631fb6629e49406ff3f25fe24ca13756b, the checker resolves 4,796/4,805 source-line references; the source tree is unchanged from source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The worktree resolves all 4,805 with uncommitted source/test edits. Remote initial-work c9c5a9e410539b039cd8bba35b53d0ef2b24d180 still resolves 4,796/4,805. Local primary 6265bca881f23b995f7eef76f89f9d3af3e90d6f passes line bounds only and remains semantically mismatched at TCK lines 2389 and 2765; it is 19 commits ahead of the remote. No open GitHub PRs were found. Repeat line and semantic checks after source-owner publication.",
     "remote_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "open_pull_requests": 0,
     "initial_work": {
@@ -2701,17 +2701,17 @@
       "references_checked": 4805
     },
     "semantic_target_review": {
-      "as_of": "2026-11-15 increment 539",
-      "revision": "Candidate worktree based on 49b5d9eb8b486890695c2b76a974e2c603de8978 plus active, uncommitted source/test edits.",
+      "as_of": "2026-11-15 increment 540",
+      "revision": "Current candidate worktree based on 52bb208631fb6629e49406ff3f25fe24ca13756b plus active, uncommitted source/test edits.",
       "anchors_reviewed": 9,
-      "result": "All nine current worktree targets resolve and bounded inspection matches the guide descriptions; repeat against the exact published source revision before closing.",
+      "result": "All nine current worktree targets resolve and bounded inspection matches the guide descriptions; the published candidate still has nine out-of-range anchors.",
       "checks": [
         "process_federation_service_host.cpp#L357 begins serveConnection, whose inspected body handles initial frames, resume assessment/replay, and inactive-session paths.",
         "rti_initialization_data.cpp#L241 is the RTI_TIMEOUT_HEART branch; the same parser handles RTI_TIMEOUT_PURGE nearby.",
         "The five Catch2 lines name the resume-history, inactive-session purge, reconnect timeout, heartbeat recovery, and resume-history-gap cases referenced by the guide.",
         "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2765 is the post-loss HLAfederatesInFederation update in that scenario."
       ],
-      "primary_revision_semantic_mismatch": "At local primary HEAD 9679bffb74da8b044682a2ee9d3855a4840bf681, tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion, the Federate-Lost MOM scenario starts at L2607, and its post-loss HLAfederatesInFederation update is at L2983. The current local primary is unpublished and 18 commits ahead of origin/feature/initial-work.",
+      "primary_revision_semantic_mismatch": "At local primary HEAD 6265bca881f23b995f7eef76f89f9d3af3e90d6f, tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion and #L2765 is a fault-parameter lookup; the Federate-Lost MOM scenario starts at L2607 and its post-loss update is at L2983. The local branch is unpublished and 19 commits ahead of origin/feature/initial-work.",
       "status": "Provisional until the cited source/test edits are published and rechecked."
     },
     "source_baseline_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
