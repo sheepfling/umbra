@@ -5,11 +5,11 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 537)
+## Current finish gates and next handoff — 2026-11-15 (increment 538)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 adds a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its three route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
-The guide navigation audit found all 32 guide targets in both the [living behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) and [thematic reading paths](HLA-2025-THEMATIC-READING-PATHS.md). It also confirmed that every current guide contains at least one Mermaid diagram. The backlog index exceeds GitHub's Markdown API input limit, so that page remains excluded from API GFM checks; its new relative target exists and both indexes' target sets now match the 32 guide files.
+The guide navigation audit found all 32 guide targets in both the [living behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) and [thematic reading paths](HLA-2025-THEMATIC-READING-PATHS.md). It also confirmed that every current guide contains at least one Mermaid diagram. Increment 538 moved dated review summaries into a companion [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md), leaving the living index at 244,539 bytes and the archive at 229,965 bytes; both are below GitHub's Markdown API input limit. Their conversion and navigation links are verified in the progress history.
 
 Source-link checks distinguish published and local revisions:
 

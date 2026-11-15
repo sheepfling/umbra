@@ -57,6 +57,7 @@ and the evidence needed before expansion.
 - [HLA behavior guide index](design/HLA-BEHAVIOR-FLOW-GUIDES.md) — start here
   for HLA-first reader paths, the conceptual federation-execution map, the
   prioritized guide backlog, and explicit 2010/2025 boundaries.
+- [Historical behavior-guide review archive](design/HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md) — dated reader-gap snapshots retained for traceability; current priorities remain in the index.
 - [2025 cross-cutting state, event, and observation model](design/HLA-2025-CROSS-CUTTING-STATE-EVENT-OBSERVATION-GUIDE.md) — a
   portable way to reason about service admission/results, state, effects,
   eligibility, and observation without treating them as one universal RTI

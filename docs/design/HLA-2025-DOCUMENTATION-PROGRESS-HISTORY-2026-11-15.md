@@ -189,3 +189,31 @@ owners publish the cited changes and the targets are checked against that
 revision. Nonregional receive-order push remains source-only without focused
 DSE test evidence. No Mermaid body changed. No C++ build, tests, or CI ran.
 Keep 2010 and the Requirements Lab separate.
+
+## Increment 538 — separate dated review history from living index (2026-11-15)
+
+The living behavior backlog had grown to 473,507 bytes and 5,806 lines. Its
+current navigation and actionable priorities ended at a clear boundary before
+a large dated review archive. Moved that archive into
+[HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md),
+leaving the living index at 244,539 bytes and 2,209 lines. The companion
+archive is 229,965 bytes and 3,617 lines; both are below GitHub’s Markdown API
+input limit. The archive introduction keeps historical edition labels clear
+and states that 2010 entries do not describe 2025 behavior.
+
+**Verification:** The dated review text is preserved exactly after line-ending
+normalization; all nine archived 2010 or cross-edition section headings remain
+intact. All three original Mermaid bodies are unchanged. A final relative-link audit checked 350 file targets across the README, index,
+archive, roadmap, and progress-history page; all target files exist. The existing
+object-information guide link to the index’s normative-source-access heading
+still targets that unchanged section. GitHub Markdown API GFM conversion returned nonempty output for
+both new page sizes; it registered all 3/3 Mermaid blocks in the living index
+and 0/0 in the text-only archive. This checks GFM parsing and container
+registration, not hosted browser layout.
+
+The overall working completion estimate remains **approximately 95%**. The
+open handoff is unchanged: after the owners publish the reviewed 2025 source
+and test changes, verify the nine pending candidate-HEAD source citations at
+an exact published revision, then refresh the hosted dependency and render
+audits. No C++ build, tests, or CI ran. Keep 2010 and Requirements Lab
+separate.
