@@ -48035,8 +48035,46 @@
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-table-5-p296-r011",
+        "requirement-candidate-table-5-p296-r028",
+        "requirement-candidate-table-5-p299-r006",
+        "requirement-candidate-table-5-p304-r009",
+        "requirement-candidate-table-5-p301-r001"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-table-5-p296-r011",
+        "requirement-candidate-table-5-p296-r028",
+        "requirement-candidate-table-5-p299-r006",
+        "requirement-candidate-table-5-p304-r009",
+        "requirement-candidate-table-5-p301-r001"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-table-5-p296-r011",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p296-r028",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p299-r006",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p304-r009",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p301-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_note": "Direct Table 5 mappings are limited to p.296 r011 (the successful GetTimeFactory report's type-12 FactoryClass return), p.296 r028 (its exact LOGICAL_TIME_FACTORY enumerant), p.299 r006 (the OrderType supplied/returned argument forms), p.304 r009 (the TransportationTypeHandle supplied/returned argument forms), and the complete p.301 r001 ServiceReportRecord parent row. The Java case verifies the four order/transportation API lookup results, the LogicalTimeFactory name, and all five reports in order, including the zero supplied-argument count and type-12 returned value for GetTimeFactory. For every report it checks all eight standard parameters, service type 6, success, exception, serial, invoking federate, and exact supplied/returned argument records. The GetTimeFactory argument name is intentionally unspecified, matching the paired C++ witness. The mappings do not claim detached p.301 r002-r006 or p.302 r001 under RL-406, p.300 r015 under RL-404, the unresolved HLAservce/HLAservice source discrepancy under RL-407, every FactoryClass value, or broader §11.5.1 coverage; local Umbra JNI evidence only.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -48045,7 +48083,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportOrderTransportationLookups",
       "parity": "cpp-tck.service-report-order-transportation-lookups",
       "default_status": "unsupported",
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time under HLA_EVOKED and HLA_IMMEDIATE. The Java case checks the four order/transportation lookup results and the successful GetTimeFactory result, then verifies all five ordered service reports including GetTimeFactory's zero supplied-argument count and type-12 return value. The type-12 argument name is left unspecified, matching the C++ witness. Results: out/java-tck/order-transportation-lookups-20261103/results/order-transportation-lookups-hla_{evoked,immediate}.results.json and .junit.xml. Existing requirement mappings are unchanged; local JNI evidence only.",
+      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time under HLA_EVOKED and HLA_IMMEDIATE. The Java case checks the four order/transportation lookup results and the successful GetTimeFactory result, then verifies all five ordered service reports including GetTimeFactory's zero supplied-argument count and type-12 return value. The type-12 argument name is left unspecified, matching the C++ witness. Focused Table 5 mappings cover only p.296 r011/r028, p.299 r006, p.304 r009, and complete parent row p.301 r001 to §11.5.1; RL-404, RL-406, and RL-407 caveats remain unmapped. Results: out/java-tck/order-transportation-lookups-20261103/results/order-transportation-lookups-hla_{evoked,immediate}.results.json and .junit.xml. Evidence is local JNI only.",
       "exclusion": "Requires adapter-supplied standard MIM and callback model. The Umbra JNI profile opts in after focused runtime verification; other providers need their own evidence."
     },
     {

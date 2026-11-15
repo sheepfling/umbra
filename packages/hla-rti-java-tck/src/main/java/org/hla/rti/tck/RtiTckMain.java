@@ -7963,12 +7963,17 @@ public final class RtiTckMain {
                "cpp-1516.1-mom-service-reporting"
             }, false), RtiTckMain::serviceReportNextMessageRequestAvailable);
       run(new Scenario("java-tck.service-report-order-transportation-lookups",
-            "standard MOM reports for order and transportation lookup values",
+            "standard MOM reports for order, transportation, and time-factory lookup values",
             "mom-service-reporting",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getOrderType;RTIambassador.getOrderName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getOrderType;RTIambassador.getOrderName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-federation-create-join-resign-destroy"
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-table-5-p296-r011",
+               "requirement-candidate-table-5-p296-r028",
+               "requirement-candidate-table-5-p299-r006",
+               "requirement-candidate-table-5-p304-r009",
+               "requirement-candidate-table-5-p301-r001"
             }, false), RtiTckMain::serviceReportOrderTransportationLookups);
       run(new Scenario("java-tck.service-report-order-transportation-lookup-failures",
             "ordered MOM failure reports and order lookup recovery",
