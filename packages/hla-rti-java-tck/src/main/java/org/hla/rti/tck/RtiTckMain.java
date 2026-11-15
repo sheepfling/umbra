@@ -540,6 +540,14 @@ public final class RtiTckMain {
       "hla.rti.tck.threeDimensionalFom";
    private static final String DDM_SECOND_DIMENSION_PROPERTY =
       "hla.rti.tck.ddmSecondDimension";
+   private static final String DIMENSION_LOOKUP_OBJECT_CLASS_PROPERTY =
+      "hla.rti.tck.dimensionLookupObjectClass";
+   private static final String DIMENSION_LOOKUP_INTERACTION_CLASS_PROPERTY =
+      "hla.rti.tck.dimensionLookupInteractionClass";
+   private static final String DIMENSION_LOOKUP_FIRST_DIMENSION_PROPERTY =
+      "hla.rti.tck.dimensionLookupFirstDimension";
+   private static final String DIMENSION_LOOKUP_SECOND_DIMENSION_PROPERTY =
+      "hla.rti.tck.dimensionLookupSecondDimension";
    private static final String DDM_THIRD_DIMENSION_PROPERTY =
       "hla.rti.tck.ddmThirdDimension";
    private static final String DDM_UNRELATED_DIMENSION_PROPERTY =
@@ -15000,10 +15008,14 @@ public final class RtiTckMain {
    }
 
    static void dimensionLookupLifecycle() throws Exception {
-      DimensionLookupLifecycleTck.run(factory(), requireFom(),
-         requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
-         requireAdapterValue(INTERACTION_CLASS_PROPERTY), requireAdapterValue(DIMENSION_PROPERTY),
-         requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
+      DimensionLookupLifecycleTck.run(factory(), requireFom(), timeImplementation(),
+         System.getProperty(DIMENSION_LOOKUP_OBJECT_CLASS_PROPERTY,
+            "HLAobjectRoot.TckTransportRegionalObject"),
+         System.getProperty(DIMENSION_LOOKUP_INTERACTION_CLASS_PROPERTY,
+            "HLAinteractionRoot.TckTransportRegionalInteraction"),
+         System.getProperty(DIMENSION_LOOKUP_FIRST_DIMENSION_PROPERTY, "TckDimensionX"),
+         System.getProperty(DIMENSION_LOOKUP_SECOND_DIMENSION_PROPERTY, "TckDimensionY"),
+         callbackModel());
    }
 
    static void handleNormalizationMembershipBoundaries() throws Exception {

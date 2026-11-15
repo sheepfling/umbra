@@ -16,16 +16,17 @@ import java.util.UUID;
 final class DimensionLookupLifecycleTck {
    private DimensionLookupLifecycleTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
-         String interactionClassName, String firstDimensionName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String interactionClassName, String firstDimensionName,
          String secondDimensionName, CallbackModel callbackModel) throws Exception {
       RTIambassador lifecycle = factory.getRtiAmbassador();
       boolean lifecycleConnected = false;
       try {
-         expectLifecycleFailures(lifecycle, firstDimensionName, "NotConnected", "before connect");
+         expectDimensionHandleLifecycleFailure(
+            lifecycle, firstDimensionName, "NotConnected", "before connect");
          lifecycle.connect(callbacks(), callbackModel);
          lifecycleConnected = true;
-         expectLifecycleFailures(lifecycle, firstDimensionName,
+         expectDimensionHandleLifecycleFailure(lifecycle, firstDimensionName,
             "FederateNotExecutionMember", "after connect before join");
       } finally {
          if (lifecycleConnected) {
@@ -46,7 +47,7 @@ final class DimensionLookupLifecycleTck {
          ownerConnected = true;
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
-         owner.createFederationExecution(federation, fom);
+         owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          owner.joinFederationExecution("java-tck-dimension-owner", federation);
          ownerJoined = true;
@@ -80,10 +81,10 @@ final class DimensionLookupLifecycleTck {
             "dimension handle-to-name lookup did not round-trip");
          long firstBound = owner.getDimensionUpperBound(ownerFirst);
          long secondBound = owner.getDimensionUpperBound(ownerSecond);
-         JavaTckSupport.check(firstBound > 0 && secondBound > 0
+         JavaTckSupport.check(firstBound == 10L && secondBound == 10L
                && firstBound == member.getDimensionUpperBound(memberFirst)
                && secondBound == member.getDimensionUpperBound(memberSecond),
-            "dimension upper bounds were not positive and stable across federates");
+            "dimension upper bounds did not match the FDD values or remain stable across federates");
 
          DimensionHandleSet ownerObjectDimensions =
             owner.getAvailableDimensionsForObjectClass(ownerObject);
@@ -109,23 +110,13 @@ final class DimensionLookupLifecycleTck {
             () -> owner.getDimensionHandle(missingDimensionName), "NameNotFound",
             "looking up an unknown dimension name");
          JavaTckSupport.expectFailure(
-            () -> owner.getDimensionName(null), "InvalidDimensionHandle",
-            "looking up an invalid dimension name");
-         JavaTckSupport.expectFailure(
-            () -> owner.getDimensionUpperBound(null), "InvalidDimensionHandle",
-            "looking up an invalid dimension upper bound");
-         JavaTckSupport.expectFailure(
-            () -> owner.getAvailableDimensionsForObjectClass(null),
-            "InvalidObjectClassHandle", "looking up dimensions for an invalid object class");
-         JavaTckSupport.expectFailure(
-            () -> owner.getAvailableDimensionsForInteractionClass(null),
-            "InvalidInteractionClassHandle",
-            "looking up dimensions for an invalid interaction class");
+            () -> member.getDimensionHandle(missingDimensionName), "NameNotFound",
+            "looking up an unknown dimension name through the member");
 
          owner.resignFederationExecution(ResignAction.NO_ACTION);
          ownerJoined = false;
-         expectLifecycleFailures(owner, firstDimensionName,
-            "FederateNotExecutionMember", "after resignation");
+         expectLifecycleFailuresAfterResignation(
+            owner, firstDimensionName, ownerFirst, ownerObject, ownerInteraction);
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;
          owner.destroyFederationExecution(federation);
@@ -148,19 +139,30 @@ final class DimensionLookupLifecycleTck {
       }
    }
 
-   private static void expectLifecycleFailures(RTIambassador ambassador, String dimension,
-         String exception, String phase) throws Exception {
+   private static void expectDimensionHandleLifecycleFailure(
+         RTIambassador ambassador, String dimension, String exception, String phase)
+         throws Exception {
       JavaTckSupport.expectFailure(() -> ambassador.getDimensionHandle(dimension), exception,
          "looking up a dimension handle " + phase);
-      JavaTckSupport.expectFailure(() -> ambassador.getDimensionName(null), exception,
+   }
+
+   private static void expectLifecycleFailuresAfterResignation(RTIambassador ambassador,
+         String dimension, DimensionHandle validDimension, ObjectClassHandle validObjectClass,
+         InteractionClassHandle validInteractionClass) throws Exception {
+      String exception = "FederateNotExecutionMember";
+      String phase = "after resignation";
+      expectDimensionHandleLifecycleFailure(ambassador, dimension, exception, phase);
+      JavaTckSupport.expectFailure(() -> ambassador.getDimensionName(validDimension), exception,
          "looking up a dimension name " + phase);
-      JavaTckSupport.expectFailure(() -> ambassador.getDimensionUpperBound(null), exception,
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getDimensionUpperBound(validDimension), exception,
          "looking up a dimension upper bound " + phase);
       JavaTckSupport.expectFailure(
-         () -> ambassador.getAvailableDimensionsForObjectClass(null), exception,
+         () -> ambassador.getAvailableDimensionsForObjectClass(validObjectClass), exception,
          "looking up object-class dimensions " + phase);
       JavaTckSupport.expectFailure(
-         () -> ambassador.getAvailableDimensionsForInteractionClass(null), exception,
+         () -> ambassador.getAvailableDimensionsForInteractionClass(validInteractionClass),
+         exception,
          "looking up interaction-class dimensions " + phase);
    }
 

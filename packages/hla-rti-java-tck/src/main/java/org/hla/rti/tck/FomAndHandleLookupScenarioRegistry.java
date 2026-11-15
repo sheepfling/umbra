@@ -828,13 +828,14 @@ final class FomAndHandleLookupScenarioRegistry {
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.dimension-lookup-lifecycle",
             "dimension metadata lookups across connection and federation lifecycle",
             "handle-lookup",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;DimensionHandle.equals;DimensionHandleSet.contains;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-ddm-dimension-metadata",
                "cpp-1516.1-support-lookup-negative-boundaries",
                "cpp-1516.2-fom-dimension-and-metadata-lookups",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::dimensionLookupLifecycle);
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-10-support-services-page-261-l30-6"
+            }, true), RtiTckMain::dimensionLookupLifecycle);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.handle-normalization-membership-boundaries",
             "standard handle and service-group normalization call-state boundaries",
             "handle-lookup",

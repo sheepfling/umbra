@@ -88785,6 +88785,7 @@
       "cpp_test": "src/tck_lookup_lifecycle_scenarios.cpp#scenarioDimensionLookupLifecycle",
       "runner_id": "cpp-tck.dimension-lookup-lifecycle",
       "parity": "java-tck.dimension-lookup-lifecycle",
+      "parity_scope_note": "The Java mirror directly maps the exact FDD-declared Get Dimension Upper Bound return to §10.25 with RL-442 retained for the pinned Lab crosswalk issue; focused local Umbra JNI runs pass under both callback models. It covers the same configured dimension names, stable handles, name round-trips, exact upper bound 10, class associations, and valid-handle post-resignation boundaries. C++ default-invalid handle inputs and related invalid-handle precedence remain outside portable Java coverage because the standard Java API has no default-invalid dimension or class-handle representation. C++ installed-package evidence and mappings remain scoped to this C++ scenario.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

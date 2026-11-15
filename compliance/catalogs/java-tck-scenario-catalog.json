@@ -53300,6 +53300,8 @@
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getDimensionName",
         "RTIambassador.getDimensionUpperBound",
+        "DimensionHandle.equals",
+        "DimensionHandleSet.contains",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
@@ -53308,8 +53310,25 @@
         "cpp-1516.1-ddm-dimension-metadata",
         "cpp-1516.1-support-lookup-negative-boundaries",
         "cpp-1516.2-fom-dimension-and-metadata-lookups",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-261-l30-6"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-261-l30-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-10.25"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-261-l30-6",
+          "standard_section": "hla-1516.1-2025:clause-10.25",
+          "note": "Direct Java witness: Get Dimension Upper Bound returns exactly the FDD-declared positive value 10 for both configured dimensions through the owner and joining member. RL-442 records that the pinned Lab exports this requirement under §10.24.6; the canonical service heading and API declaration place it at §10.25."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The sole direct Java mapping is requirement-candidate-content-clauses-10-support-services-page-261-l30-6 -> IEEE 1516.1-2025 §10.25 for Get Dimension Upper Bound returns. RL-442 records the pinned Requirements Lab crosswalk defect that exports this requirement as §10.24.6; the canonical service heading and API declaration place the service at §10.25, and §10.24.6 is not claimed. The owner and joining member verify the exact FDD-declared upper bound 10 for both configured dimensions. Dimension names, handle identity/name round-trips, class-dimension associations, lifecycle behavior, and unknown-name exceptions are supplemental witnesses and add no mappings.",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Results: out/java-tck/dimension-lookup-lifecycle-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Provider-neutral traceability exports are out/java-tck/dimension-lookup-lifecycle-java-parity-20261115/{provider-neutral-evoked,provider-neutral-immediate}.json; each reports one pass and zero failures. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
       "contract_refs": [
         "dimension-lookup-api-contract.json",
         "dimension-lookup-requirements-contract.json",
@@ -53317,8 +53336,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#dimensionLookupLifecycle",
       "parity": "cpp-tck.dimension-lookup-lifecycle",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, dimensional object/interaction classes, two dimension names (hla.rti.tck.dimension and hla.rti.tck.ddmSecondDimension), provider, endpoint, and callback model; uses no region creation or DDM region services and has no provider runtime evidence yet."
+      "parity_scope_note": "The Java mirror checks the same configured dimension names, stable handles, exact name round-trips, exact FDD upper bound 10, and object/interaction class associations across the owner and joining member. It preserves pre-Connect/pre-join dimension-name checks and post-resignation checks with valid handles. C++ default-invalid dimension/object-class/interaction-class handles and the related invalid-handle exception-precedence probes are omitted because the standard Java API has no default-invalid handle representation; null is not used as a substitute.",
+      "default_status": "run",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTransportRegionalObject, HLAinteractionRoot.TckTransportRegionalInteraction, and TckDimensionX/TckDimensionY each declaring upperBound 10",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.handle-normalization-membership-boundaries",

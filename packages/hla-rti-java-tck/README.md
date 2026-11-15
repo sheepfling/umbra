@@ -4363,12 +4363,19 @@ reports the expected object and attributes. Immediate-callback mode follows
 the standard If-Available/If-Wanted boundary instead. Provider runtime remains
 unverified.
 
-The opt-in `java-tck.dimension-lookup-lifecycle` case exercises standard
-dimension handle/name/upper-bound lookups and object/interaction class dimension
-associations through pre-connect, pre-join, joined, and post-resignation states.
-The adapter supplies the FOM, object/interaction class names, and two dimension
-names (`hla.rti.tck.dimension` and `hla.rti.tck.ddmSecondDimension`). It creates
-no regions and calls no DDM region services; provider runtime remains unverified.
+`java-tck.dimension-lookup-lifecycle` checks dimension handle/name round-trips,
+the exact FDD-declared upper bound of 10 for `TckDimensionX` and
+`TckDimensionY`, and their object/interaction class associations across the
+owner and joining member. It also checks dimension-name lookup before connect,
+before join, and after resignation using valid inputs. The focused case passed
+under both callback models on the current-source Umbra JNI provider using
+`fom-model-tck.xml` and `HLAinteger64Time`. Its direct mapping is limited to
+Get Dimension Upper Bound at §10.25; RL-442 records the Requirements Lab's
+crosswalk to §10.24.6, which is not claimed. C++ default-invalid handle probes
+are omitted because Java has no standard default-invalid dimension or class
+handle. The test creates no regions and calls no DDM region services. This is
+local-provider evidence, not independent-provider interoperability or
+conformance evidence.
 
 The opt-in `java-tck.handle-normalization-membership-boundaries` case checks
 service-group, federate, object-class, interaction-class, and object-instance
