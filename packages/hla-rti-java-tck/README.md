@@ -693,7 +693,7 @@ is a standard FOM-loading/rejection exception and that membership/declarations
 remain unchanged, then checks that a valid extension join succeeds. Supply
 invalid paths through `hla.rti.tck.invalidFomModules`, separated by the
 platform path separator.
-The opt-in `java-tck.fom-incomplete-class-definition` scenario mirrors the
+The default `java-tck.fom-incomplete-class-definition` scenario mirrors the
 public C++ TCK case for schema-valid object and interaction class scaffolds.
 It rejects each unfinished module union at Create and additional-module Join,
 then retries with its companion module and checks that the completed class and
@@ -701,10 +701,12 @@ member are visible. Supply the base FOM and four scaffold/provider modules via
 `hla.rti.tck.fom`, `hla.rti.tck.incompleteObjectClassScaffoldFom`,
 `hla.rti.tck.completeObjectClassProviderFom`,
 `hla.rti.tck.incompleteInteractionClassScaffoldFom`, and
-`hla.rti.tck.completeInteractionClassProviderFom`.
-A focused run using the current-source JNI native build and cached Umbra Java
-adapter JAR passed 1/1 with these inputs; independent-provider behavior and
-conformance remain unverified.
+`hla.rti.tck.completeInteractionClassProviderFom`. Its bounded direct mapping is
+IEEE 1516.1-2025 §4.1.4.1, covering these unfinished class-union outcomes only.
+Focused default runs passed in both callback models on the current-source JNI
+build; results are in
+`out/java-tck/fom-incomplete-class-definition-current-source-20261115/`.
+Independent-provider behavior and conformance remain unverified.
 The opt-in `java-tck.fom-attribute-table-nonblank-semantics` scenario mirrors
 the public C++ check for an empty attribute-table Semantics element. Supply
 `attribute-table-empty-semantics-tck.xml` through
@@ -817,16 +819,16 @@ public transportation handle/name lookup and does not assert which description
 is retained. Both callback-model runs against provider build
 `umbra-jni-20261106` failed at Create with `InconsistentFOM`, so the Join and
 lookup assertions remain unexecuted on that build.
-The opt-in `java-tck.fom-automatic-resign-action-setting` scenario rejects an
+The default `java-tck.fom-automatic-resign-action-setting` scenario rejects an
 unsupported `resignAction` value with `InvalidFOM`, then accepts each of the six
 defined settings and checks the joined federate's public
-`getAutomaticResignDirective` value. Supply the seven FOM modules through the
-`hla.rti.tck.resignAction*Fom` properties and the pinned MIM through
-`--mim-path`; focused runs also require `--run-unverified`.
-The scenario compiled against the pinned API JAR and passed in both callback
-models on provider build `umbra-jni-20261106`; results are in
-`out/java-tck/fom-automatic-resign-action-setting-java-port-20261113/`.
-Evidence covers these seven FOM fixtures only.
+`getAutomaticResignDirective` value. Its direct mappings cover the Automatic
+Resign Action switches-table row and its values in IEEE 1516.2-2025 §6.2.13 and
+§4; they do not cover every FOM row or the SOM optional/NA rules. Supply the
+seven FOM modules through the `hla.rti.tck.resignAction*Fom` properties and the
+pinned MIM through `--mim-path`. Default focused runs passed in both callback
+models on the current-source Umbra JNI build; results are in
+`out/java-tck/fom-automatic-resign-action-setting-java-parity-20261115/`.
 The opt-in `java-tck.fom-interaction-class-hierarchy` case resolves the
 three-level `TckTypedInteraction` hierarchy from `fom-model-tck.xml`, checks
 qualified interaction names round-trip through distinct handles, and verifies

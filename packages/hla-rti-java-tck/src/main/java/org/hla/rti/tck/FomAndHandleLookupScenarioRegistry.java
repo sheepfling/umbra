@@ -111,7 +111,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "fom-composition",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(fomModules);RTIambassador.joinFederationExecution(additionalFomModules);RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getFederateHandle;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.1-fom-module-composition",
-               "cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+               "cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomIncompleteClassDefinition);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-additional-module-join-atomicity",
             "Enforce additional FOM module consistency and atomicity during Join Federation Execution",
@@ -482,7 +482,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l10-1",
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l14-2",
                "requirement-candidate-sections-semantic-clause-4b-page-067-l30-2"
-            }, false), FomAndHandleLookupScenarioRegistry::fomAutomaticResignActionSetting);
+            }, true), FomAndHandleLookupScenarioRegistry::fomAutomaticResignActionSetting);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-root-hierarchy",
             "Require standard object and interaction roots",
             "fom-composition",

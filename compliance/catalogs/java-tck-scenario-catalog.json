@@ -11423,14 +11423,14 @@
           "standard_section": "hla-1516.2-2025:clause-C.3"
         }
       ],
-      "mapping_note": "Direct bounded coverage for IEEE 1516.1-2025 §4.1.4.1 p. 48 l. 138 and l. 141: schema-valid modules with an object-class or interaction-class scaffold but no class-level sharing are rejected by Create and by Join when the union leaves that class unfinished. Companion modules supply the omitted class fields, including interaction transportation and order, and the completed unions succeed. Failed Join attempts leave the joining federate and scaffold class absent; a complete same-name retry succeeds. The Java case covers one scaffold per class family, not every incomplete class member or FOM condition. Runtime provider verification remains pending.",
+  "mapping_note": "Direct bounded coverage for IEEE 1516.1-2025 §4.1.4.1 p. 48 l. 138 and l. 141: schema-valid modules with an object-class or interaction-class scaffold but no class-level sharing are rejected by Create and by Join when the union leaves that class unfinished. Companion modules supply the omitted class fields, including interaction transportation and order, and the completed unions succeed. Failed Join attempts leave the joining federate and scaffold class absent; a complete same-name retry succeeds. The Java case covers one scaffold per class family, not every incomplete class member or FOM condition.",
       "contract_refs": [
         "standard-fom-full-class-definition-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomIncompleteClassDefinition",
       "parity": "cpp-tck.fom-incomplete-class-definition",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied base FOM and four schema-valid scaffold/provider FOM modules; configure hla.rti.tck.fom, hla.rti.tck.incompleteObjectClassScaffoldFom, hla.rti.tck.completeObjectClassProviderFom, hla.rti.tck.incompleteInteractionClassScaffoldFom, and hla.rti.tck.completeInteractionClassProviderFom. A focused run passed 1/1 using the current-source JNI native build and cached Umbra Java adapter JAR; independent providers and conformance remain unverified."
+  "default_status": "run",
+  "evidence_note": "Focused default Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on current-source Umbra JNI using the pinned IEEE 1516.1-2025 Java API, HLAinteger64Time, a base FOM, and the four schema-valid scaffold/provider FOM modules. Results and JUnit are in out/java-tck/fom-incomplete-class-definition-current-source-20261115/{evoked,immediate}.{json,xml}. Independent-provider behavior and conformance remain unverified."
     },
     {
       "id": "java-tck.fom-additional-module-join-atomicity",
@@ -15252,7 +15252,7 @@
       ],
       "java_test": "org.hla.rti.tck.FomAndHandleLookupScenarioRegistry#fomAutomaticResignActionSetting",
       "parity": "cpp-tck.fom-automatic-resign-action-setting",
-      "default_status": "unsupported",
+      "default_status": "run",
       "callback_models": [
         "evoked",
         "immediate"
@@ -15269,8 +15269,7 @@
         "NoAction FOM through hla.rti.tck.resignActionNoActionFom",
         "logical-time implementation, federate type, and callback model"
       ],
-      "exclusion": "Focused execution requires the pinned MIM, all six valid action FOMs, the unsupported-value FOM, and --run-unverified; default suites use a general-purpose FOM.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 API JAR. Focused HLA_EVOKED and HLA_IMMEDIATE runs passed on provider build umbra-jni-20261106 using the pinned HLAstandardMIM-2025.xml, six allowed-action FOMs, and one unsupported-value FOM; results are in out/java-tck/fom-automatic-resign-action-setting-java-port-20261113/{evoked,immediate}.results.json. This evidence covers these seven fixture cases only."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 API JAR. Default focused HLA_EVOKED and HLA_IMMEDIATE runs passed on the current-source Umbra JNI build using the pinned HLAstandardMIM-2025.xml, six allowed-action FOMs, and one unsupported-value FOM; results are in out/java-tck/fom-automatic-resign-action-setting-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. This evidence covers these seven fixture cases only."
     },
     {
       "id": "java-tck.fom-dynamic-update-condition-valid",
