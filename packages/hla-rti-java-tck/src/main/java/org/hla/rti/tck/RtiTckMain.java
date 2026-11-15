@@ -192,14 +192,28 @@ public final class RtiTckMain {
       "hla.rti.tck.arrayElementOmittedFom";
    private static final String ARRAY_ELEMENT_BASIC_FOM_PROPERTY =
       "hla.rti.tck.arrayElementBasicFom";
+   private static final String ARRAY_ELEMENT_INVALID_NAME_FOM_PROPERTY =
+      "hla.rti.tck.arrayElementInvalidNameFom";
    private static final String RECORD_MEMBER_VALID_FOM_PROPERTY =
       "hla.rti.tck.recordMemberValidFom";
+   private static final String RECORD_MEMBER_FIELD_TYPES_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberFieldTypesFom";
    private static final String RECORD_MEMBER_OMITTED_FOM_PROPERTY =
       "hla.rti.tck.recordMemberOmittedFom";
+   private static final String RECORD_MEMBER_ENCODING_MISMATCH_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberEncodingMismatchFom";
    private static final String RECORD_MEMBER_BASIC_FIELD_FOM_PROPERTY =
       "hla.rti.tck.recordMemberBasicFieldFom";
    private static final String RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY =
       "hla.rti.tck.recordMemberBasicAlternativeFom";
+   private static final String RECORD_MEMBER_RESERVED_HLA_NAME_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberReservedHlaNameFom";
+   private static final String RECORD_MEMBER_RESERVED_NA_NAME_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberReservedNaNameFom";
+   private static final String RECORD_MEMBER_RESERVED_HLA_FIELD_NAME_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberReservedHlaFieldNameFom";
+   private static final String RECORD_MEMBER_RESERVED_NA_FIELD_NAME_FOM_PROPERTY =
+      "hla.rti.tck.recordMemberReservedNaFieldNameFom";
    private static final String VARIANT_DISCRIMINANT_VALID_FOM_PROPERTY =
       "hla.rti.tck.variantDiscriminantValidFom";
    private static final String VARIANT_DISCRIMINANT_OMITTED_FOM_PROPERTY =
@@ -14743,6 +14757,7 @@ public final class RtiTckMain {
       FomArrayElementCategoryTck.run(factory(),
          requireAdapterFile(ARRAY_ELEMENT_VALID_FOM_PROPERTY),
          requireAdapterFile(ARRAY_ELEMENT_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(ARRAY_ELEMENT_INVALID_NAME_FOM_PROPERTY),
          requireAdapterFile(ARRAY_ELEMENT_BASIC_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
@@ -14750,9 +14765,15 @@ public final class RtiTckMain {
    static void fomRecordMemberCategory() throws Exception {
       FomRecordMemberCategoryTck.run(factory(),
          requireAdapterFile(RECORD_MEMBER_VALID_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_FIELD_TYPES_FOM_PROPERTY),
          requireAdapterFile(RECORD_MEMBER_OMITTED_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_ENCODING_MISMATCH_FOM_PROPERTY),
          requireAdapterFile(RECORD_MEMBER_BASIC_FIELD_FOM_PROPERTY),
          requireAdapterFile(RECORD_MEMBER_BASIC_ALTERNATIVE_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_RESERVED_HLA_NAME_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_RESERVED_NA_NAME_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_RESERVED_HLA_FIELD_NAME_FOM_PROPERTY),
+         requireAdapterFile(RECORD_MEMBER_RESERVED_NA_FIELD_NAME_FOM_PROPERTY),
          timeImplementation(), callbackModel());
    }
 

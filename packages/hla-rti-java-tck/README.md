@@ -762,20 +762,24 @@ callback models on current-source Umbra JNI; results/JUnit are in
 `out/java-tck/fom-enumerator-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
 Coverage is limited to this prohibited character and enumerator row;
 independent-provider behavior and conformance are not claimed.
-The opt-in `java-tck.fom-array-data-type-name-convention` scenario accepts a
+The default-run `java-tck.fom-array-data-type-name-convention` scenario accepts a
 valid Array Data Type name and rejects its period-containing counterpart as
 `InconsistentFOM`. Supply the paired fixtures through
 `hla.rti.tck.arrayDataTypeValidNameFom` and
-`hla.rti.tck.arrayDataTypeInvalidNameFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; coverage is limited to
-this period restriction.
-The opt-in `java-tck.fom-array-element-type-reference` scenario accepts the
-control Array Data Type that names the standard `HLAbyte` type and rejects the
-otherwise identical FOM with an undeclared Element Type as `InconsistentFOM`.
+`hla.rti.tck.arrayDataTypeInvalidNameFom`. Focused default runs passed under
+both callback models against current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-array-data-type-name-convention-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+Coverage is limited to this period restriction; independent-provider behavior
+and conformance are not claimed.
+The default-run `java-tck.fom-array-element-type-reference` scenario accepts
+the control Array Data Type that names the standard `HLAbyte` type and rejects
+the otherwise identical FOM with an undeclared Element Type as `InconsistentFOM`.
 Supply the fixtures through `hla.rti.tck.arrayElementTypeValidFom` and
-`hla.rti.tck.arrayElementTypeInvalidFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; coverage is limited to
-this single-module reference.
+`hla.rti.tck.arrayElementTypeInvalidFom`. Focused default runs passed under
+both callback models against current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-array-element-type-reference-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+This covers the single-module reference only; independent-provider behavior
+and conformance are not claimed.
 The opt-in `java-tck.fom-variant-record-name-convention` scenario accepts a
 valid Variant Record Name and rejects its period-containing counterpart as
 `InconsistentFOM`. Supply the fixtures through
@@ -987,14 +991,33 @@ adapter-supplied modules to accept an omitted representation, reject a
 non-basic representation, and retry a valid create. Both passed focused
 installed-provider runs under evoked and immediate callbacks; neither is an
 independent-provider conformance claim.
-The default-run `java-tck.fom-array-element-category`,
-`java-tck.fom-record-member-category`, and
-`java-tck.fom-variant-discriminant-category` cases similarly validate named
-or omitted type categories, reject invalid raw-basic or non-enumerated types,
-and retry a valid Create. Their FOM inputs remain adapter-owned. Each passed
+The default-run `java-tck.fom-array-element-category` case accepts named and
+omitted Element Types, rejects raw `HLAinteger32BE`, rejects the schema-valid
+but HLA-reserved `HLAUserArray` name with `InconsistentFOM` or `InvalidFOM`,
+and retries the valid named FOM under the same federation name. Supply the
+reserved-name module through `hla.rti.tck.arrayElementInvalidNameFom` alongside
+the existing named, omitted, and raw-basic array FOM properties. Its direct
+mapping is IEEE 1516.2-2025 §4.14.6 for these selected cases. Focused default
+runs passed both callback models on current-source Umbra JNI; results/JUnit are
+in `out/java-tck/fom-array-element-category-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+Independent-provider behavior and conformance are not claimed.
+
+The default-run `java-tck.fom-record-member-category` case accepts named,
+heterogeneous, and omitted record members; rejects raw basic Field and
+Alternative types, a mismatched predefined record encoding marker, and the
+tested mixed-case HLA/NA reserved Record Name and Field Name forms; then retries
+the valid FOM. Its direct mappings cover selected IEEE 1516.2-2025 §6.2.19 and
+§4.14.7 rows plus §4 rules for these examples. Supply the ten FOM modules
+through the `hla.rti.tck.recordMember*Fom` properties. Focused default runs
+passed both callback models on current-source Umbra JNI; results/JUnit are in
+`out/java-tck/fom-record-member-category-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
+Independent-provider behavior and conformance are not claimed.
+
+The default-run `java-tck.fom-variant-discriminant-category` case accepts named
+and omitted type categories, rejects invalid raw-basic or non-enumerated types,
+and retries a valid Create. Its FOM inputs remain adapter-owned. It passed
 focused installed-provider evoked and immediate runs; independent-provider
-behavior remains unverified. The record-member Lab mapping remains at broad
-clause 4 pending a more precise source mapping.
+behavior remains unverified.
 The default-run `java-tck.fom-variant-enumerator-syntax`,
 `java-tck.fom-variant-enumerator-membership`, and
 `java-tck.fom-variant-range-semantics` cases cover enumerator forms, declared

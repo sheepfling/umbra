@@ -4,6 +4,8 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.exceptions.InconsistentFOM;
+import hla.rti1516_2025.exceptions.InvalidFOM;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 
@@ -12,7 +14,8 @@ final class FomArrayElementCategoryTck {
    private FomArrayElementCategoryTck() { }
 
    static void run(RtiFactory factory, String valid, String omitted,
-         String basic, String timeImplementation, CallbackModel callbackModel)
+         String invalidArrayName, String basic, String timeImplementation,
+         CallbackModel callbackModel)
          throws Exception {
       RTIambassador creator = factory.getRtiAmbassador();
       String federation = "java-tck-array-element-" + UUID.randomUUID();
@@ -32,10 +35,28 @@ final class FomArrayElementCategoryTck {
          creator.destroyFederationExecution(federation);
          created = false;
 
+         boolean rejectedInvalidArrayName = false;
+         try {
+            creator.createFederationExecution(federation,
+               new String[] {invalidArrayName}, timeImplementation);
+            created = true;
+         } catch (InconsistentFOM | InvalidFOM expected) {
+            rejectedInvalidArrayName = true;
+         }
+         if (created) {
+            creator.destroyFederationExecution(federation);
+            created = false;
+         }
+         JavaTckSupport.check(rejectedInvalidArrayName,
+            "an array data type name with a reserved, nonstandard HLA prefix was accepted");
+
+         // If Create unexpectedly succeeds, retain cleanup ownership before the assertion fails.
+         created = true;
          JavaTckSupport.expectFailure(
             () -> creator.createFederationExecution(federation,
                new String[] {basic}, timeImplementation),
             "InconsistentFOM", "raw basic-data array Element Type");
+         created = false;
          creator.createFederationExecution(federation,
             new String[] {valid}, timeImplementation);
          created = true;

@@ -401,7 +401,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(valid control FOM);RTIambassador.destroyFederationExecution;RTIambassador.createFederationExecution(invalid FOM);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l114-22"
-            }, false), FomAndHandleLookupScenarioRegistry::fomArrayDataTypeNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomArrayDataTypeNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-array-element-type-reference",
             "Reject an array data type with an unresolved Element Type",
@@ -409,7 +409,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "RTIambassador.connect;RTIambassador.createFederationExecution(valid HLAbyte control FOM);RTIambassador.destroyFederationExecution;RTIambassador.createFederationExecution(unresolved Element Type FOM);RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-094-l118-23"
-            }, false), FomAndHandleLookupScenarioRegistry::fomArrayElementTypeReference);
+            }, true), FomAndHandleLookupScenarioRegistry::fomArrayElementTypeReference);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-variant-record-name-convention",
             "Reject a Variant Record Name that violates HLA name conventions",
@@ -529,13 +529,13 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomEnumeratedRepresentation);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-array-element-category",
-            "Accept named and omitted array Element Types and reject raw basic-data elements",
+            "Accept named and omitted array Element Types and reject raw basic-data elements and nonconforming array names",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomArrayElementCategory);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-record-member-category",
-            "Accept named and omitted record member types and reject raw basic-data members",
+            "Validate fixed-record encoding, names/member types, and variant-record member categories",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
