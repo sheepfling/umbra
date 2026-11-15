@@ -7984,7 +7984,7 @@ public final class RtiTckMain {
                 "cpp-1516.1-federation-create-join-resign-destroy",
                 "requirement-candidate-content-clauses-11-management-object-model-page-293-l95-31",
                 "requirement-candidate-table-5-p299-r001"
-            }, false), RtiTckMain::serviceReportOrderTransportationLookupFailures);
+            }, true), RtiTckMain::serviceReportOrderTransportationLookupFailures);
       run(new Scenario("java-tck.service-report-interaction-parameter-lookups",
             "standard MOM reports for interaction-class and parameter lookup results",
             "mom-service-reporting",
@@ -13194,7 +13194,7 @@ public final class RtiTckMain {
 
    private static void serviceReportOrderTransportationLookupFailures() throws Exception {
       ServiceReportOrderTransportationLookupTck.runFailures(factory(), requireFom(),
-         requireMim(), timeImplementation(), callbackModel());
+         requireMim(), requireAdditionalFom(), timeImplementation(), callbackModel());
    }
 
    private static void serviceReportInteractionParameterLookups() throws Exception {

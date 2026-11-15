@@ -156,34 +156,47 @@ final class ServiceReportOrderTransportationLookupTck {
       }
    }
 
-   static void runFailures(RtiFactory factory, String fom, String mim,
+   static void runFailures(RtiFactory factory, String fom, String mim, String additionalFom,
          String timeImplementation, CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String suffix = UUID.randomUUID().toString();
       String federation = "java-tck-service-report-order-transport-failures-" + suffix;
+      String foreignFederation = federation + "-foreign";
       String subjectName = "java-tck-order-transport-failure-subject-" + suffix;
       String observerName = "java-tck-order-transport-failure-observer-" + suffix;
       String unsupportedOrder = "TckUnsupportedOrder";
       String unsupportedTransportation = "TckUnsupportedTransportation";
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean foreignConnected = false, foreignCreated = false, foreignJoined = false;
       InteractionClassHandle reportClass = null;
       try {
+         JavaTckSupport.check(additionalFom != null && !additionalFom.isEmpty(),
+            "order/transportation failure report case requires an adapter-supplied additional FOM");
          subject.connect(emptyCallbacks(), callbackModel);
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(emptyCallbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecutionWithMIM(
+            foreignFederation, new String[] {additionalFom}, mim, timeImplementation);
+         foreignCreated = true;
          FederateHandle subjectHandle = subject.joinFederationExecution(
             subjectName, "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution(observerName, "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(
+            "java-tck-order-transport-failure-foreign-" + suffix, "java-tck", foreignFederation);
+         foreignJoined = true;
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -208,13 +221,12 @@ final class ServiceReportOrderTransportationLookupTck {
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
 
-         // The Java API has no public default constructor for an invalid handle.
-         // Decode this adapter's HLAvariableArray representation of the zero-valued,
-         // default-invalid handle: nine elements containing the transportation
-         // discriminator followed by the eight-octet identity.
          TransportationTypeHandle invalidTransportation =
-            subject.getTransportationTypeHandleFactory().decode(
-               new byte[] {0, 0, 0, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0}, 0);
+             foreign.getTransportationTypeHandle("TckAdditionalTransport");
+          JavaTckSupport.check(invalidTransportation != null
+                && "TckAdditionalTransport".equals(
+                   foreign.getTransportationTypeName(invalidTransportation)),
+             "additional FOM did not resolve the foreign transportation handle");
          subject.setServiceReportingSwitch(true);
          JavaTckSupport.expectFailure(() -> subject.getOrderType(unsupportedOrder),
             "InvalidOrderName", "reported unsupported order-name lookup");
@@ -261,6 +273,10 @@ final class ServiceReportOrderTransportationLookupTck {
          subjectJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
+         foreign.resignFederationExecution(ResignAction.NO_ACTION);
+         foreignJoined = false;
+         foreign.destroyFederationExecution(foreignFederation);
+         foreignCreated = false;
       } finally {
          if (reportSubscribed && observerJoined && reportClass != null) {
             try { observer.unsubscribeInteractionClass(reportClass); }
@@ -273,6 +289,12 @@ final class ServiceReportOrderTransportationLookupTck {
             try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) resign(foreign);
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
+         if (foreignConnected) disconnect(foreign);
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
       }
