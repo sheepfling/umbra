@@ -121,7 +121,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
                "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17",
                "requirement-candidate-content-clauses-04-federation-management-page-057-l44-6"
-            }, false),
+            }, true),
          RtiTckMain::fomAdditionalModuleJoinAtomicity);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-invalid-composite-join-atomicity",
             "Reject mixed valid and invalid additional FOM modules without partial composition",

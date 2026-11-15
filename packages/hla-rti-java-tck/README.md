@@ -699,12 +699,19 @@ NULL reports.
 The companion staged-unsubscribe case removes the passive service-report class,
 queries again, and verifies the active application interaction is the sole
 remaining interaction subscription while the other two NULL reports remain.
-The opt-in `java-tck.fom-additional-module-join-atomicity` scenario retries a
-member join with each adapter-supplied invalid FOM input, verifies the failure
-is a standard FOM-loading/rejection exception and that membership/declarations
-remain unchanged, then checks that a valid extension join succeeds. Supply
-invalid paths through `hla.rti.tck.invalidFomModules`, separated by the
-platform path separator.
+The default-run `java-tck.fom-additional-module-join-atomicity` case mirrors
+the C++ Join checks. It rejects the adapter's 3 invalid and 11 standard-invalid
+FOM inputs without admitting the member or extension class, accepts an identical
+duplicate attribute declaration, rejects attribute-order, interaction-order,
+transportation, and dimension-bound conflicts, and then accepts the valid
+extension Join. Supply the lists with `hla.rti.tck.invalidFomModules` and
+`hla.rti.tck.standardInvalidFomModules`; pass the duplicate, conflict, and
+dimension fixtures through their `hla.rti.tck.fomAdditionalJoin*` properties.
+Focused default runs passed under both callback models against current-source
+Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-additional-module-join-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+The mappings cover these selected fixture outcomes only; they do not establish
+exhaustive FOM validation or conformance.
 The default `java-tck.fom-incomplete-class-definition` scenario mirrors the
 public C++ TCK case for schema-valid object and interaction class scaffolds.
 It rejects each unfinished module union at Create and additional-module Join,

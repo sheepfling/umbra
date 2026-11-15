@@ -11535,7 +11535,7 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l24-7",
           "standard_section": "hla-1516.1-2025:clause-4.1.4",
-          "note": "The public additional-module Join call rejects each adapter-supplied standard-invalid FOM fixture by exception; the seven standard-invalid fixtures validate against the pinned IEEE 1516.2-2025 DIF XSD. This is bounded semantic/profile-invalid evidence, not exhaustive validation of every noncompliant module."
+          "note": "The public additional-module Join call rejects the three malformed/namespace/duplicate inputs and eleven current-package standard-invalid FOM inputs with a permitted FOM exception. This is bounded evidence for these adapter fixtures, not exhaustive validation or classification of every noncompliant module."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-048-l54-17",
@@ -11548,19 +11548,21 @@
           "note": "The public Join path accepts an additional module that repeats the current FDD's TckObject.Value declaration with matching semantics, then rejects separate XSD-valid modules that conflict on attribute order, attribute transportation, interaction-class order, or TckDuplicateDimension upper bound. The member-name lookups confirm no conflicting join succeeded, and the owner still observes the dimension's original upper bound after rejection. This is bounded evidence for the selected duplicate/non-conflict rule, not exhaustive coverage of every declaration kind."
         }
       ],
-      "mapping_note": "Direct, fixture-bounded evidence for §4.1.4 p. 48 l. 24: the public additional-module Join call throws an allowed FOM exception for each adapter-supplied standard-invalid module, including seven modules that validate against the pinned 2025 DIF XSD. The post-failure checks show no member or extension declaration was included, and a later valid Join succeeds; that atomicity evidence maps to p. 48 l. 54. The selected §4.11 p. 57 l. 44 rule is directly tested by accepting an identical current-FDD attribute declaration and rejecting additional modules that conflict on object-attribute order, attribute transportation, interaction-class order, or dimension upper bound. The dimension case also verifies the current bound remains unchanged. Neither mapping claims exhaustive validation or conflict coverage.",
+      "mapping_note": "Direct, fixture-bounded evidence for IEEE 1516.1-2025 sections 4.1.4, 4.1.4.1, and 4.11: the public additional-module Join call rejects the three malformed/namespace/duplicate inputs and eleven current-package standard-invalid FOM inputs with a permitted FOM exception. After each mixed valid-extension/invalid-module rejection, member and extension-class lookups remain absent; a later valid Join succeeds. The scenario also accepts an identical current-FDD attribute declaration, rejects separate modules that conflict on attribute order, interaction order, or transportation, and rejects a conflicting dimension upper bound while preserving the original bound. Coverage is limited to these adapter fixtures and does not claim exhaustive validation or conflict coverage.",
       "parity_scope_note": "Covers the C++ primary's invalid mixed-module Join attempts, identical duplicate attribute acceptance, attribute-order, interaction-order, and transportation conflict rejection, valid extension Join, and dimension upper-bound conflict. The Java case checks public API handles and membership under both callback models.",
       "adapter_inputs": [
-        "Java IEEE 1516.1-2025 provider JAR and factory, callback model, and logical-time implementation",
-        "hla.rti.tck.fom: base P0 FOM; hla.rti.tck.additionalFom: valid extension FOM",
-        "hla.rti.tck.invalidFomModules: three invalid FOM paths separated by the platform path separator",
-        "hla.rti.tck.standardInvalidFomModules: seven schema-valid standard-invalid FOM paths separated by the platform path separator",
-        "hla.rti.tck.fomExtensionObjectClass: extension object-class name",
-        "hla.rti.tck.fomAdditionalJoinDuplicate and hla.rti.tck.fomAdditionalJoinOrderConflict",
-        "hla.rti.tck.fomAdditionalJoinInteractionConflict and hla.rti.tck.fomAdditionalJoinTransportationConflict",
-        "hla.rti.tck.fomAdditionalJoinDimensionBase and hla.rti.tck.fomAdditionalJoinDimensionConflict"
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "base FOM p0-tck.xml through hla.rti.tck.fom and valid extension FOM fom-extension-tck.xml through hla.rti.tck.additionalFom",
+        "invalidFomModules: invalid-malformed-tck.xml, invalid-namespace-tck.xml, invalid-duplicate-tck.xml (3 paths, platform path separator)",
+        "standardInvalidFomModules: invalid-zero-update-rate-tck.xml, invalid-dimension-default-value-tck.xml, invalid-array-cardinality-tck.xml, invalid-variable-array-encoding-tck.xml, invalid-fixed-array-encoding-tck.xml, invalid-reference-object-name-tck.xml, invalid-reference-basic-representation-tck.xml, invalid-data-type-representation-name-collision-tck.xml, invalid-model-identification-blank-version-tck.xml, invalid-basic-data-representation-reserved-hla-name-tck.xml, invalid-basic-data-representation-endian-enumeration-tck.xml (11 paths, platform path separator)",
+        "fomExtensionObjectClass: HLAobjectRoot.TckExtensionObject",
+        "fomAdditionalJoinDuplicate: fom-additional-duplicate-tck.xml",
+        "fomAdditionalJoinOrderConflict: fom-additional-order-conflict-tck.xml",
+        "fomAdditionalJoinInteractionConflict: fom-additional-interaction-order-conflict-tck.xml and fomAdditionalJoinTransportationConflict: fom-additional-transportation-conflict-tck.xml",
+        "fomAdditionalJoinDimensionBase: dimension-duplicate-base-tck.xml and fomAdditionalJoinDimensionConflict: dimension-duplicate-conflicting-upper-bound-tck.xml",
+        "logical-time implementation HLAinteger64Time and HLA_EVOKED/HLA_IMMEDIATE callback models"
       ],
-      "evidence_note": "The Java TCK built against the pinned IEEE 1516.1-2025 API JAR. The focused scenario passed under HLA_EVOKED and HLA_IMMEDIATE (1/1 each) against the current-source Umbra JNI provider, using the adapter FOM fixtures listed above. The run rejected all ten invalid modules without membership or extension-class inclusion; accepted the matching duplicate attribute with identical class/attribute handles; rejected attribute-order, interaction-order, transportation, and dimension-bound conflicts; retained the original dimension bound; and accepted the valid extension Join. Results: out/java-tck/fom-additional-module-join-atomicity-java-port-20261106/results/{evoked,immediate}.results.json and .junit.xml. The matching C++ primary and contract CTests passed under both callback models (4/4). This is local-provider public-API evidence, not independent-provider interoperability or overall IEEE conformance.",
+      "evidence_note": "Focused default-run Java TCK executions passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI and the pinned official API using p0-tck.xml, fom-extension-tck.xml, all three invalid FOM inputs, and all eleven current-package standard-invalid FOM inputs. The scenario verified 14 rejected joins without member/extension inclusion; accepted the identical duplicate attribute with matching handles; rejected attribute-order, interaction-order, transportation, and dimension-bound conflicts; preserved the original dimension bound; and accepted the later valid extension Join. Results/JUnit: out/java-tck/fom-additional-module-join-atomicity-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The matching C++ primary/contract pair has prior 4/4 focused CTest evidence. Local-provider public-API evidence only; no independent-provider or conformance claim.",
       "callback_models": [
         "evoked",
         "immediate"
