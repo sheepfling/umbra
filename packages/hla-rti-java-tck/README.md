@@ -61,6 +61,18 @@ primary passed focused CTest 2/2 and direct runs in both models. Results are in
 `out/mgw/cpp-tck-mom-object-instances-discovered-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-object-instances-removed-mim-attribute`
+case checks the zero baseline, counts three receive-order removals only after their
+callbacks arrive, verifies each callback's tag and producer, and compares direct
+counts with the periodic value before and after reporting is disabled. The Java
+case also checks RTI ownership of its MOM attribute, retired object-name lookup, and
+the `RequestAttributeValueUpdate` service report. It maps only the standard MIM
+definition in IEEE 1516.1-2025 §11.4.1. Java passed under both callback models; the
+paired C++ primary passed focused CTest 2/2 and direct runs in both models. Results
+are in `out/java-tck/federate-mom-object-instances-removed-java-parity-20261115/`
+and `out/mgw/cpp-tck-mom-object-instances-removed-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the
