@@ -15529,6 +15529,7 @@
       "cpp_test": "src/portable_tck.cpp#scenarioDimensionLookupValidHandlesAfterResignationPortable",
       "runner_id": "cpp-tck.dimension-lookup-valid-handles-after-resignation",
       "parity": "java-tck.dimension-lookup-valid-handles-after-resignation",
+      "parity_scope_note": "The Java mirror checks the same valid object-class, interaction-class, and dimension metadata calls after resignation, with the names and positive bound verified before resigning. It creates no regions and claims no DDM region behavior. The four cpp-1516.1-* IDs remain internal scenario references with no direct requirement-section mapping; Java focused local-provider runs pass both callback models.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

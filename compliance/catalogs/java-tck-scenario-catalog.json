@@ -9896,8 +9896,16 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#dimensionLookupAfterResignation",
       "parity": "cpp-tck.dimension-lookup-valid-handles-after-resignation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional FOM with the configured object/interaction classes and dimension, plus a Java IEEE 1516.1-2025 provider; no DDM region operations are exercised. Keep unsupported pending provider runtime verification."
+      "mapping_note": "The four cpp-1516.1-* requirement_ids are repository-internal scenario references. The paired C++ catalog case has no direct requirement-section mapping, so this Java scenario makes no direct normative mapping claim.",
+      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Results: out/java-tck/dimension-lookup-valid-handles-after-resignation-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "parity_scope_note": "The Java mirror obtains valid object-class, interaction-class, and dimension handles and confirms their names and a positive upper bound while joined, then checks that the four dimension metadata/class-association services reject those valid handles after resignation with FederateNotExecutionMember. It creates no regions and invokes no DDM region services.",
+      "default_status": "run",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTransportRegionalObject, HLAinteractionRoot.TckTransportRegionalInteraction, and TckDimensionX",
+        "HLAinteger64Time logical-time implementation",
+        "HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ]
     },
     {
       "id": "java-tck.update-rate-lookups-valid-inputs-after-resignation",

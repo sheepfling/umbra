@@ -15,9 +15,9 @@ import java.util.UUID;
 final class DimensionLookupAfterResignationTck {
    private DimensionLookupAfterResignationTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
-         String interactionClassName, String dimensionName, CallbackModel callbackModel)
-         throws Exception {
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String interactionClassName, String dimensionName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-dimension-lookup-resigned-" + UUID.randomUUID();
@@ -28,7 +28,7 @@ final class DimensionLookupAfterResignationTck {
          ownerConnected = true;
          member.connect(noOpCallbacks(), callbackModel);
          memberConnected = true;
-         owner.createFederationExecution(federation, fom);
+         owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          owner.joinFederationExecution("java-tck-dimension-lookup-owner", federation);
          ownerJoined = true;

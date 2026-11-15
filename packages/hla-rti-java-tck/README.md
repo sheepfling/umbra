@@ -4048,12 +4048,13 @@ adapter supplies the FOM, names, provider, endpoint, and callback model; this
 scenario is paired with the promoted C++ case and remains unsupported pending
 Java-provider runtime evidence.
 
-The opt-in `java-tck.dimension-lookup-valid-handles-after-resignation` case
-resolves adapter-FOM object, interaction, and dimension handles and verifies
-dimension name/upper-bound lookups while joined. After resignation, the same
-valid handles must fail dimension and class-available-dimensions queries with
-`FederateNotExecutionMember`. It performs no DDM region operations and remains
-unsupported pending Java-provider runtime verification.
+The default `java-tck.dimension-lookup-valid-handles-after-resignation` case
+resolves object, interaction, and dimension handles from `fom-model-tck.xml`
+using `HLAinteger64Time`, then verifies their names and a positive dimension
+bound while joined. After resignation, the same valid handles must fail
+dimension and class-available-dimensions queries with
+`FederateNotExecutionMember`. It performs no DDM region operations. Focused
+runs passed under both callback models on the current-source Umbra JNI provider.
 
 The opt-in `java-tck.interaction-class-lookup-lifecycle` case checks lookup
 connection and membership boundaries, stable base-class handle/name round trips,

@@ -22,8 +22,8 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1144 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 585 |
-| Default `unsupported` scenarios | 379 |
+| Default `run` scenarios | 586 |
+| Default `unsupported` scenarios | 378 |
 | Scenarios with explicit `requirement_mappings` | 668 |
 | Explicit mapping records | 2717 |
 
@@ -864,13 +864,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-dimension-name-membership-boundary-after-resignation`
 
-- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
+- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `run`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `cpp-1516.1-dimension-upper-bound-membership-boundary-after-resignation`
 
-- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
+- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `run`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -1527,7 +1527,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-interaction-class-dimension-lookup-membership-boundary-after-resignation`
 
-- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
+- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `run`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -1872,7 +1872,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-object-class-dimension-lookup-membership-boundary-after-resignation`
 
-- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `unsupported`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
+- [`java-tck.dimension-lookup-valid-handles-after-resignation`](#scenario-java-tck.dimension-lookup-valid-handles-after-resignation) — Check dimension lookup membership boundaries after resignation with valid FOM handles (`handle-lookup`; default `run`; C++ pointer `cpp-tck.dimension-lookup-valid-handles-after-resignation`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -13712,7 +13712,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.attribute-lookup-lifecycle"></a>`java-tck.attribute-lookup-lifecycle` — Resolve ordinary attribute handles across lifecycle and inherited object-class boundaries | `org.hla.rti.tck.RtiTckMain#attributeLookupLifecycle` | 11 | `cpp-1516.1-attribute-lookup`, `cpp-1516.1-object-class-lookup`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.2-fom-root-hierarchy`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-10-support-services-page-249-l146-36`, `requirement-candidate-content-clauses-10-support-services-page-250-l109-27` | `cpp-tck.attribute-lookup-lifecycle` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with TckTypedObject, TckTypedDerivedObject, Identity, and DerivedValue; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.attribute-name-lookup"></a>`java-tck.attribute-name-lookup` — Get Attribute Name returns the configured name for a valid handle pair | `org.hla.rti.tck.SupportServicesScenarioRegistry#attributeNameLookup` | 10 | `requirement-candidate-content-clauses-10-support-services-page-250-l109-27` | `cpp-tck.attribute-name-lookup` | `run` | provider JAR and factory; callback model; P0 FOM and logical-time implementation; configured object class and attribute names |
 | <a id="scenario-java-tck.dimension-lookup-lifecycle"></a>`java-tck.dimension-lookup-lifecycle` — Resolve adapter-supplied dimension handles, names, upper bounds, and class associations across the execution lifecycle | `org.hla.rti.tck.RtiTckMain#dimensionLookupLifecycle` | 15 | `cpp-1516.1-ddm-dimension-metadata`, `cpp-1516.1-support-lookup-negative-boundaries`, `cpp-1516.2-fom-dimension-and-metadata-lookups`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-10-support-services-page-261-l30-6` | `cpp-tck.dimension-lookup-lifecycle` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTransportRegionalObject, HLAinteractionRoot.TckTransportRegionalInteraction, and TckDimensionX/TckDimensionY each declaring upperBound 10; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
-| <a id="scenario-java-tck.dimension-lookup-valid-handles-after-resignation"></a>`java-tck.dimension-lookup-valid-handles-after-resignation` — Check dimension lookup membership boundaries after resignation with valid FOM handles | `org.hla.rti.tck.RtiTckMain#dimensionLookupAfterResignation` | 15 | `cpp-1516.1-object-class-dimension-lookup-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-dimension-lookup-membership-boundary-after-resignation`, `cpp-1516.1-dimension-name-membership-boundary-after-resignation`, `cpp-1516.1-dimension-upper-bound-membership-boundary-after-resignation` | `cpp-tck.dimension-lookup-valid-handles-after-resignation` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.dimension-lookup-valid-handles-after-resignation"></a>`java-tck.dimension-lookup-valid-handles-after-resignation` — Check dimension lookup membership boundaries after resignation with valid FOM handles | `org.hla.rti.tck.RtiTckMain#dimensionLookupAfterResignation` | 15 | `cpp-1516.1-object-class-dimension-lookup-membership-boundary-after-resignation`, `cpp-1516.1-interaction-class-dimension-lookup-membership-boundary-after-resignation`, `cpp-1516.1-dimension-name-membership-boundary-after-resignation`, `cpp-1516.1-dimension-upper-bound-membership-boundary-after-resignation` | `cpp-tck.dimension-lookup-valid-handles-after-resignation` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTransportRegionalObject, HLAinteractionRoot.TckTransportRegionalInteraction, and TckDimensionX; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.handle-normalization-equal-instances"></a>`java-tck.handle-normalization-equal-instances` — Equal standard handles produce equal normalized values | `org.hla.rti.tck.SupportServicesScenarioRegistry#handleNormalizationEqualInstances` | 26 | `requirement-candidate-content-clauses-10-support-services-page-244-l161-52` | `cpp-tck.handle-normalization-equal-instances` | `run` | provider JAR and factory; callback model; adapter-supplied FOM and logical-time implementation; object class, attribute, and interaction class names |
 | <a id="scenario-java-tck.handle-normalization-membership-boundaries"></a>`java-tck.handle-normalization-membership-boundaries` — Check standard handle and service-group normalization call-state boundaries | `org.hla.rti.tck.RtiTckMain#handleNormalizationMembershipBoundaries` | 16 | `cpp-1516.1-normalize-service-group-membership-boundaries`, `cpp-1516.1-normalize-federate-handle-membership-boundaries`, `cpp-1516.1-normalize-object-class-handle-membership-boundaries`, `cpp-1516.1-normalize-interaction-class-handle-membership-boundaries`, `cpp-1516.1-normalize-object-instance-handle-membership-boundaries` | `cpp-tck.handle-normalization-membership-boundaries` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTypedObject, its Identity attribute, and HLAinteractionRoot.TckTypedInteraction; HLAinteger64Time logical-time implementation; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.interaction-class-handle-lookup"></a>`java-tck.interaction-class-handle-lookup` — Interaction-class handle and name lookups round-trip the configured FOM name | `org.hla.rti.tck.SupportServicesScenarioRegistry#interactionClassHandleNameLookup` | 9 | `requirement-candidate-content-clauses-10-support-services-page-252-l140-35`, `requirement-candidate-content-clauses-10-support-services-page-253-l89-21` | `cpp-tck.interaction-class-handle-lookup` | `run` | provider JAR and factory; callback model; P0 FOM and logical-time implementation; configured interaction-class name |

@@ -14335,8 +14335,13 @@ public final class RtiTckMain {
    }
 
    static void dimensionLookupAfterResignation() throws Exception {
-      DimensionLookupAfterResignationTck.run(factory(), requireFom(), objectClassName(),
-         interactionClassName(), dimensionName(), callbackModel());
+      DimensionLookupAfterResignationTck.run(factory(), requireFom(), timeImplementation(),
+         System.getProperty(DIMENSION_LOOKUP_OBJECT_CLASS_PROPERTY,
+            "HLAobjectRoot.TckTransportRegionalObject"),
+         System.getProperty(DIMENSION_LOOKUP_INTERACTION_CLASS_PROPERTY,
+            "HLAinteractionRoot.TckTransportRegionalInteraction"),
+         System.getProperty(DIMENSION_LOOKUP_FIRST_DIMENSION_PROPERTY, "TckDimensionX"),
+         callbackModel());
    }
 
    static void interactionClassLookupLifecycle() throws Exception {

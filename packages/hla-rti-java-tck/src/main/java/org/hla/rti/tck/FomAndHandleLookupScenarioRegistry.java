@@ -39,7 +39,7 @@ final class FomAndHandleLookupScenarioRegistry {
                "cpp-1516.1-interaction-class-dimension-lookup-membership-boundary-after-resignation",
                "cpp-1516.1-dimension-name-membership-boundary-after-resignation",
                "cpp-1516.1-dimension-upper-bound-membership-boundary-after-resignation"
-            }, false), RtiTckMain::dimensionLookupAfterResignation);
+            }, true), RtiTckMain::dimensionLookupAfterResignation);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-model",
             "Load a rich adapter FOM and verify hierarchy, metadata, and typed delivery",
             "fom-model",
