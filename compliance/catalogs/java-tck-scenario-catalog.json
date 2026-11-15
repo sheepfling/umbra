@@ -41022,9 +41022,30 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportRegionalInteraction",
       "parity": "cpp-tck.service-report-regional-interaction",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied dimensional FOM, standard MIM, interaction and parameter names, and two dimension names, plus an installed IEEE 1516.1-2025 provider; provider profiles must opt in after their own runtime verification.",
-      "evidence_note": "The Umbra JNI profile opts in after focused current-source runs passed with ddm-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY under HLA_EVOKED and HLA_IMMEDIATE. The Java case validates the callback region copy's dimension set and exact bounds inside receiveInteraction, plus the ordinary payload/tag/producer delivery and service report. Existing requirement mappings are unchanged; this is local provider evidence only."
+      "default_status": "run",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against the matched current-source Umbra JNI bundle built 2026-11-14 using ddm-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. The Java case checks the successful SendInteractionWithRegions service report and separately verifies the regional delivery. Its paired C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions against the installed 2026-11-10 package; scoped C++ evidence validation returned valid=true with no findings. Java results/JUnit: out/java-tck/service-report-regional-interaction-parity-20261115/results/{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: out/mgw/cpp-tck-service-report-regional-interaction-parity-20261115/{results.json,results.xml}. Java catalog validation passed. Runtime evidence is local Umbra only; independent-provider verification and conformance are not claimed.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-292-l9-2",
+          "standard_section": "hla-1516.1-2025:clause-11.5"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct §11.5 witness: with Service Reporting enabled and Send Service Reports To File disabled, a successful SendInteractionWithRegions call produces an HLAreportServiceInvocation received by the subscribed observer. The case checks report identity, service name/type, success, exception, and serial. The mapping is limited to positive report generation and those asserted fields; it does not claim a §11.5.1 Table 5 row, DDM subsection coverage, or conformance. Dimensional FOM checks, region behavior, and regional application delivery remain supplemental.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time",
+        "hla.rti.tck.ddmObjectClass=HLAobjectRoot.TckObject and hla.rti.tck.ddmAttribute=Value",
+        "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
+        "hla.rti.tck.dimension=TckDimensionX and hla.rti.tck.ddmSecondDimension=TckDimensionY",
+        "callback model selected by the adapter"
+      ]
     },
     {
       "id": "java-tck.service-report-regional-interaction-subscription",

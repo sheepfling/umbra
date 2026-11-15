@@ -6279,7 +6279,7 @@ public final class RtiTckMain {
                 "cpp-1516.1-explicit-mim-composition",
                 "cpp-1516.1-ddm-regional-interaction-subscription",
                 "cpp-1516.1-ddm-regional-interaction-delivery"
-             }, false), RtiTckMain::serviceReportRegionalInteraction);
+             }, true), RtiTckMain::serviceReportRegionalInteraction);
        run(new Scenario("java-tck.service-report-regional-interaction-subscription",
              "report passive and active regional interaction subscriptions and unsubscription",
              "mom-service-reporting",
