@@ -418,7 +418,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-095-l46-9",
                "requirement-candidate-sections-semantic-clause-4c-page-077-l58-2"
-            }, false), FomAndHandleLookupScenarioRegistry::fomVariantRecordNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomVariantRecordNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-variant-discriminant-name-convention",
             "Reject a Variant Record Discriminant Name that violates HLA name conventions",
@@ -427,7 +427,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-095-l50-10",
                "requirement-candidate-sections-semantic-clause-4c-page-077-l62-3"
-            }, false), FomAndHandleLookupScenarioRegistry::fomVariantDiscriminantNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomVariantDiscriminantNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-variant-alternative-name-convention",
             "Reject a Variant Record Alternative Name that violates HLA name conventions",
@@ -436,7 +436,7 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {
                "requirement-candidate-sections-semantic-clauses-5-6-page-095-l70-15",
                "requirement-candidate-sections-semantic-clause-4c-page-077-l74-6"
-            }, false), FomAndHandleLookupScenarioRegistry::fomVariantAlternativeNameConvention);
+            }, true), FomAndHandleLookupScenarioRegistry::fomVariantAlternativeNameConvention);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.fom-variant-alternative-type-category",
             "Reject a basic data type used for a Variant Record Alternative Type",

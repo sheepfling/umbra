@@ -780,27 +780,33 @@ both callback models against current-source Umbra JNI; results/JUnit are in
 `out/java-tck/fom-array-element-type-reference-java-parity-20261115/{evoked,immediate}-default.{results.json,junit.xml}`.
 This covers the single-module reference only; independent-provider behavior
 and conformance are not claimed.
-The opt-in `java-tck.fom-variant-record-name-convention` scenario accepts a
-valid Variant Record Name and rejects its period-containing counterpart as
+The default-run `java-tck.fom-variant-record-name-convention` scenario accepts
+a valid Variant Record Name and rejects its period-containing counterpart as
 `InconsistentFOM`. Supply the fixtures through
 `hla.rti.tck.variantRecordValidNameFom` and
 `hla.rti.tck.variantRecordInvalidNameFom`. Focused runs passed under both
-callback models with the 2026-11-06 JNI provider build; this covers the tested
-period restriction only.
-The opt-in `java-tck.fom-variant-discriminant-name-convention` scenario accepts
+callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-variant-record-name-convention-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This covers the tested period restriction only; independent-provider behavior
+and conformance are not claimed.
+The default-run `java-tck.fom-variant-discriminant-name-convention` scenario accepts
 a valid Variant Record Discriminant Name and rejects its period-containing
 counterpart as `InconsistentFOM`. Supply the fixtures through
 `hla.rti.tck.variantDiscriminantValidNameFom` and
 `hla.rti.tck.variantDiscriminantInvalidNameFom`. Focused runs passed under
-both callback models with the 2026-11-06 JNI provider build; this covers the
-tested period restriction only.
-The opt-in `java-tck.fom-variant-alternative-name-convention` scenario accepts
+both callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-variant-discriminant-name-convention-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This covers the tested period restriction only; independent-provider behavior
+and conformance are not claimed.
+The default-run `java-tck.fom-variant-alternative-name-convention` scenario accepts
 a valid Variant Record Alternative Name and rejects its period-containing
 counterpart as `InconsistentFOM`. Supply the fixtures through
 `hla.rti.tck.variantAlternativeValidNameFom` and
 `hla.rti.tck.variantAlternativeInvalidNameFom`. Focused runs passed under
-both callback models with the 2026-11-06 JNI provider build; this covers the
-tested period restriction only.
+both callback models against current-source Umbra JNI. Results/JUnit are in
+`out/java-tck/fom-variant-alternative-name-convention-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}`.
+This covers the tested period restriction only; independent-provider behavior
+and conformance are not claimed.
 The opt-in `java-tck.fom-variant-alternative-type-category` scenario accepts
 the enumerated `HLAboolean` Alternative Type control and rejects the otherwise
 schema-valid alternative using basic `HLAinteger32BE` as `InconsistentFOM`.
