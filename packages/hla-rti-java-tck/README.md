@@ -3364,10 +3364,14 @@ provider-specific evidence, not an interoperability or conformance claim.
 
 The `java-tck.timestamped-object-deletion-no-fanout` scenario checks a
 timestamped deletion exactly at the producer lookahead boundary, retraction of
-a later deletion when no recipient is eligible, temporary loss and restoration
-of the object-name mapping and attribute ownership, absence of recipient
-callbacks, and the already-retracted terminal exception. It remains unsupported
-by default until exercised against a Java provider.
+a later deletion when no recipient is eligible, restoration of the object-name
+mapping and attribute ownership, absence of a request-retraction callback, and
+the already-retracted terminal exception. It leaves the owner's object-name
+lookup between scheduling and the deletion timestamp unasserted because that
+pre-timestamp state is not prescribed. Current-source runs passed under both
+HLA_EVOKED and HLA_IMMEDIATE with the local JNI provider and adapter-supplied
+FOM, object class, attribute, and HLAinteger64Time. This is provider-specific
+evidence, not an interoperability or conformance claim.
 
 The `java-tck.timestamped-object-deletion-tombstone` scenario reserves and
 registers a named instance, deletes it at a timestamp, advances to its terminal

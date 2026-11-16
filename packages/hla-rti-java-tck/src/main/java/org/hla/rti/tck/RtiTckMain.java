@@ -5117,11 +5117,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.timestamped-object-deletion-no-fanout",
             "retract a timestamped deletion with no eligible recipient and restore object state",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.enableTimeRegulation;RTIambassador.getTimeFactory;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.deleteObjectInstance(time);RTIambassador.retract;RTIambassador.isAttributeOwnedByFederate;RTIambassador.disableTimeRegulation;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.removeObjectInstance;FederateAmbassador.requestRetraction",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.enableTimeRegulation;RTIambassador.getTimeFactory;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.deleteObjectInstance(time);RTIambassador.retract;RTIambassador.isAttributeOwnedByFederate;RTIambassador.disableTimeRegulation;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.requestRetraction",
             new String[] {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectDeletionNoFanout);
+            }, true), RtiTckMain::timestampedObjectDeletionNoFanout);
       run(new Scenario("java-tck.timestamped-object-deletion-tombstone",
             "reuse a named object instance after a timestamped-deletion tombstone becomes terminal",
             "time",

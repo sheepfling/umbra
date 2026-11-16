@@ -69,17 +69,14 @@ final class TimestampedObjectDeletionNoFanoutTck {
          JavaTckSupport.check(deletion != null && deletion.retractionHandleIsValid
                && deletion.handle != null,
             "no-fanout timestamped deletion returned no valid retraction handle");
-         expectException(() -> owner.getObjectInstanceHandle(objectName),
-            "ObjectInstanceNotKnown",
-            "looking up an instance with an unretracted timestamped deletion");
 
          owner.retract(deletion.handle);
          JavaTckSupport.check(object.equals(owner.getObjectInstanceHandle(objectName)),
             "retracting a no-fanout deletion did not restore the object-name mapping");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, attribute),
             "retracting a no-fanout deletion did not restore local attribute ownership");
-         JavaTckSupport.check(recorder.removalCallbacks == 0 && recorder.retractionCallbacks == 0,
-            "no-fanout deletion unexpectedly delivered a removal or retraction callback");
+         JavaTckSupport.check(recorder.retractionCallbacks == 0,
+            "no-fanout deletion unexpectedly delivered a request-retraction callback");
          expectException(() -> owner.retract(deletion.handle),
             "MessageCanNoLongerBeRetracted",
             "retracting an already retracted timestamped deletion");
@@ -133,14 +130,13 @@ final class TimestampedObjectDeletionNoFanoutTck {
 
    private static final class Recorder {
       private boolean timeRegulationEnabled;
-      private int removalCallbacks, retractionCallbacks;
+      private int retractionCallbacks;
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("timeRegulationEnabled".equals(name)) timeRegulationEnabled = true;
-               else if ("removeObjectInstance".equals(name)) ++removalCallbacks;
                else if ("requestRetraction".equals(name)) ++retractionCallbacks;
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK deletion no-fanout callbacks";

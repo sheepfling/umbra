@@ -4313,8 +4313,8 @@
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.removeObjectInstance",
         "FederateAmbassador.requestRetraction"
       ],
       "requirement_ids": [
@@ -4335,8 +4335,10 @@
         "time-role-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionNoFanout",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until exercised against an IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion-no-fanout",
+      "evidence_note": "Current-source Java passed under HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute TCK FOM, object class, and attribute. The paired C++ primary and contract selectors passed both callback models. The case checks that retraction at the exact lookahead boundary is rejected, retracts a no-recipient timestamped deletion, verifies object-name and ownership restoration, observes no request-retraction callback, and checks the terminal repeated-retraction exception. It does not assert the owner's object-name lookup between scheduling the deletion and its timestamp because the standard leaves that pre-timestamp state unspecified. No direct standard-section mapping is claimed; the paired C++ catalog provides no selected candidate-to-clause mapping. Results: out/java-tck/object-deletion-no-fanout-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-object-deletion-no-fanout-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-tombstone",
