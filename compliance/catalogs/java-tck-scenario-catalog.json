@@ -12231,8 +12231,8 @@
         "logical time implementation, RTI address, and callback model"
       ],
       "exclusion": "Default-disabled; focused execution requires --run-unverified with a Java provider and the adapter-managed Join-response process fixture.",
-      "evidence_note": "Compiled against the pinned official 2025 Java API and passed focused HLA_EVOKED/HLA_IMMEDIATE runs against the current-source JNI provider. In each run, the fixture accepted the recovering member's Join and installed its session before the adapter closed the socket without sending the response; the Java test verified that the replayed joinFederationExecution result matched getFederateHandle, and the fixture confirmed exactly two joined sessions. Results and fault evidence are in out/java-tck/connection-fault-join-response-replay-20261103/results/{evoked,immediate}.results.json, .junit.xml, and .fault-evidence.json. This is local provider and adapter-managed fault evidence only; no independent-provider, interoperability, or conformance claim.",
-      "promotion": "candidate"
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source local Umbra JNI. In each run, the fixture accepted the recovering member's Join and installed its session before closing the socket without sending the response; the Java test verified that joinFederationExecution returned the same handle as getFederateHandle, and the fixture confirmed exactly two joined sessions and successful socket closure. Results, JUnit, and fault evidence are under out/java-tck/connection-fault-join-response-replay-current-source-20261116/{evoked,immediate}.{results.json,junit.xml,fault-evidence.json}; traceability is in {evoked,immediate}.traceability.json. This is local-provider and adapter-managed fault evidence only; no independent-provider, interoperability, or conformance claim.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.connection-fault-inactive-session-purge",
