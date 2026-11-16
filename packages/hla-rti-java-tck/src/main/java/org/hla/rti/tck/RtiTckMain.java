@@ -6339,9 +6339,9 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.ownership-after-fom-merge",
             "keep a join-added attribute unowned until its acquisition notification",
             "ownership",
-            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution(additional FOM);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.isAttributeOwnedByFederate;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
+            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution(additional FOM);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.isAttributeOwnedByFederate;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
             new String[] {"cpp-1516.1-fom-module-composition", "cpp-1516.1-ownership-management"},
-            false), RtiTckMain::ownershipAfterFomMerge);
+            true), RtiTckMain::ownershipAfterFomMerge);
       run(new Scenario("java-tck.resign-divests-all-instance-attributes",
             "release two attributes on each of two objects without deleting either object",
             "ownership",
@@ -10785,6 +10785,10 @@ public final class RtiTckMain {
    }
 
    private static void ownershipAfterFomMerge() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "Post-join ownership notification timing requires HLA_EVOKED.");
+      }
       String extensionFom = System.getProperty(OWNERSHIP_EXTENSION_FOM_PROPERTY);
       check(extensionFom != null && !extensionFom.isEmpty()
             && Files.isRegularFile(Path.of(extensionFom)),

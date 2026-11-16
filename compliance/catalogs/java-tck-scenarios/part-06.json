@@ -5304,6 +5304,7 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -5342,14 +5343,17 @@
           "standard_section": "hla-1516.1-2025:clause-7.1"
         }
       ],
-      "mapping_note": "Java parity for the evoked public-API post-join FOM ownership-state witness. Four page-148 candidate statements map to §7.1 and are tested as a group, not independently complete requirements. Official API-only JAR compilation passed; Java provider-runtime execution remains unverified.",
+      "mapping_note": "The four direct mappings from requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29, page-148-l100-31, page-148-l103-32, and page-148-l106-33 to IEEE 1516.1-2025 clause 7.1 are tested together as one public-API ownership-state witness; none is claimed independently complete. The case checks the join-added attribute on a preexisting instance remains unowned through publication and transfers only with the tagged acquisition notification. HLA_EVOKED is required for the callback timing; HLA_IMMEDIATE is explicitly excluded.",
       "contract_refs": [
         "standard-ownership-after-fom-merge-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAfterFomMerge",
       "parity": "cpp-tck.ownership-after-fom-merge",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied base and extension FOMs, added attribute name, HLA_EVOKED, and a standard 2025 Java provider; provider-runtime execution is unverified."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED against the local Umbra JNI provider using HLAinteger64Time, p0-tck.xml, ownership-post-join-extension-tck.xml, HLAobjectRoot.TckObject, Value, and AddedAfterRegistration. Under HLA_IMMEDIATE, Java explicitly records this timing-specific case as unsupported; it is not counted as a behavior pass. The paired C++ primary and contract selectors passed both focused CTests and direct executions under HLA_EVOKED against the installed MinGW package. Results: out/java-tck/ownership-after-fom-merge-20261116/{promoted-evoked,immediate-scope}/{results.json,junit.xml}; .build/cpp-tck-evidence-20261116/ownership-after-fom-merge-java-parity-20261116.{json,xml}. These are bounded local-provider results, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "This case requires HLA_EVOKED to observe the post-join acquisition notification timing. HLA_IMMEDIATE cannot preserve this ownership-state witness; Java records it as unsupported and the paired C++ catalog excludes it."
     },
     {
       "id": "java-tck.resign-divests-all-instance-attributes",

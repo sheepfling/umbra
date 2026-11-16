@@ -822,6 +822,12 @@ HLA_EVOKED. It queues an If Available request, deletes the object before that
 request can be serviced, and checks for exactly one tagged removal callback
 with no stale ownership callback. HLA_IMMEDIATE is recorded as unsupported
 because it cannot preserve the queued-result ordering.
+The `java-tck.ownership-after-fom-merge` scenario requires an adapter-supplied
+extension FOM. It verifies that a join-added attribute on a preexisting object
+starts unowned, publication alone does not transfer it, and the joiner's tagged
+If Available acquisition notification establishes ownership. It is enabled for
+HLA_EVOKED; HLA_IMMEDIATE is recorded as unsupported because it cannot preserve
+the notification timing witness.
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback
