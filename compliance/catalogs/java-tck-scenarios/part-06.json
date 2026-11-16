@@ -5106,8 +5106,10 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#divestitureIfWantedMixedAcquirers",
       "parity": "cpp-tck.divestiture-if-wanted-mixed-acquirers",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied two-attribute FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callback models."
+      "mapping_note": "The paired C++ primary and contract catalog rows select no direct requirement-candidate-to-section mapping; Java makes no direct clause claim and retains the generic object-management, ownership-management, and federation-lifecycle requirement IDs.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute-tck.xml FOM with HLAobjectRoot.TckMultiAttributeObject, FirstValue, and SecondValue. As in the paired C++ scenario, HLA_EVOKED uses If Available for the second requester, while HLA_IMMEDIATE uses a regular pending acquisition. The paired C++ primary and contract direct selectors passed all four callback-model executions on the installed MinGW package. Focused CTest discovery returned zero registered cases. Results: out/java-tck/divestiture-if-wanted-mixed-acquirers-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-divestiture-if-wanted-mixed-acquirers-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.divestiture-if-wanted-return-set",

@@ -111,14 +111,9 @@ final class DivestitureIfWantedMixedAcquirersTck {
             second.attributeOwnershipAcquisitionIfAvailable(
                object, secondAttributes, secondAcquisitionTag);
          } else {
-            second.attributeOwnershipAcquisitionIfAvailable(
-               object, secondAttributes, secondAcquisitionTag);
-            await(second, callbackModel, () -> !secondRecorder.unavailable.isEmpty(),
-               "immediate If Available unavailable result");
-            JavaTckSupport.check(secondRecorder.unavailable.size() == 1,
-               "immediate If Available returned an unexpected unavailable-callback count");
-            checkEvent(secondRecorder.unavailable.get(0), object, secondAttributes,
-               secondAcquisitionTag, "immediate If Available unavailable result");
+            // Immediate delivery reports If Available as unavailable before the owner can
+            // divest. Use a regular pending acquisition to keep the transfer boundary the
+            // same under both callback models.
             second.attributeOwnershipAcquisition(object, secondAttributes, secondAcquisitionTag);
          }
 

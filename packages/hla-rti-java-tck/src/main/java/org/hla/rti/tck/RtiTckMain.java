@@ -6036,12 +6036,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.divestiture-if-wanted-mixed-acquirers",
             "transfer two independently requested attributes to regular and If Available candidates",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution(DELETE_OBJECTS);RTIambassador.resignFederationExecution(NO_ACTION);RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::divestitureIfWantedMixedAcquirers);
+            }, true), RtiTckMain::divestitureIfWantedMixedAcquirers);
       run(new Scenario("java-tck.divestiture-if-wanted-return-set",
             "return only requested attributes from Divestiture If Wanted and require a new call for later acquisitions",
             "ownership",

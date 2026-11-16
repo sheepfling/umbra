@@ -800,8 +800,11 @@ is unverified.
 The `java-tck.divestiture-if-wanted-mixed-acquirers` scenario uses that same
 adapter-supplied FOM. It verifies that If Wanted is a no-op without pending
 acquirers, then transfers two attributes to independent requesters with the
-exact divestiture tag. With immediate callbacks, If Available is first observed
-as unavailable before a regular pending acquisition is used for the transfer.
+exact divestiture tag. Under HLA_EVOKED, the second requester uses If Available;
+under HLA_IMMEDIATE, a regular pending acquisition keeps both callback models at
+the same pending-transfer boundary. It is enabled by default after focused local
+JNI runs passed under both callback models and the paired C++ primary/contract
+selectors passed all four callback-model runs.
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback
