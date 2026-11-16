@@ -5031,8 +5031,8 @@
         "RTIambassador.cancelAttributeOwnershipAcquisition",
         "RTIambassador.attributeOwnershipDivestitureIfWanted",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeObjectClassAttributes",
-        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution(CANCEL_THEN_DELETE_THEN_DIVEST)",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -5055,8 +5055,10 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#partialAttributeOwnershipTransfer",
       "parity": "cpp-tck.partial-attribute-ownership-transfer",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied multi-attribute FOM and provider profile supporting ownership transfer; the Java scenario uses only standard IEEE 1516.1-2025 ownership APIs."
+      "mapping_note": "No direct clause mapping is carried into this Java mirror. The paired C++ catalog selects page-151 ownership-transfer candidates, but its mapping note describes negotiated-divestiture cancellation; the paired implementation instead cancels regular attribute acquisition and invokes Divestiture If Wanted. The Java case retains the generic object-management and ownership-management requirement IDs pending correction of that local crosswalk.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute-tck.xml FOM with HLAobjectRoot.TckMultiAttributeObject, FirstValue, and SecondValue. The paired C++ primary and contract direct selectors passed all four callback-model executions on the installed MinGW package. Focused CTest discovery returned zero registered cases. Results: out/java-tck/partial-ownership-transfer-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-partial-ownership-transfer-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.divestiture-if-wanted-mixed-acquirers",

@@ -734,7 +734,12 @@ release, and a pending attribute cannot be unpublished before release denial.
 The `java-tck.partial-attribute-ownership-transfer` case uses the
 adapter-supplied multi-attribute FOM and logical-time implementation. It cancels
 one attribute from a two-attribute acquisition, then verifies that If Wanted
-divests and notifies only the remaining requested attribute.
+divests and notifies only the remaining requested attribute. It is enabled by
+default; focused local JNI runs passed under both callback models, and the paired
+C++ primary and contract selectors passed all four callback-model runs. The
+current C++ catalog mapping note describes negotiated-divestiture cancellation,
+which this scenario does not perform, so the Java mirror makes no direct clause
+claim while that local crosswalk remains unresolved.
 The `java-tck.negotiated-divestiture-partial-acquisition-cancellation` case
 uses the adapter-supplied multi-attribute FOM and logical-time implementation.
 It confirms negotiated divestiture transfers only the still-requested attribute
