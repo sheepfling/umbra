@@ -3342,7 +3342,8 @@
       ],
       "requirement_ids": [
         "java-1516.1-attribute-value-update-reflection",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-203-l104-28"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-203-l104-28"
@@ -3356,7 +3357,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.14"
         }
       ],
-      "mapping_note": "Direct coverage is limited to the Clause 8.14 no-future-delivery promise for a timestamp at or below a completed grant. The receiver completes TAR(5) before the publisher enables regulation; the late publisher sends valid TSO(5), advances to TAR(4), then TAR(6), and the receiver's later TAR(6) must not reflect it. A timestamp-7 reflection is a supplemental positive control. The source uses only the official Java 1516.1-2025 API; Java provider-runtime execution has not been performed. The matching C++ primary and contract installed-package CTest selectors pass under both callback models; this is not Java conformance evidence.",
+      "mapping_note": "Direct coverage is limited to the IEEE 1516.1-2025 §8.14 no-future-delivery promise: after the receiver completes TAR(5), the valid timestamp-5 update remains undelivered through the later receiver TAR(6). The timestamp-7 update is a supplemental positive control, and the timestamp-4 frontier is supplemental. The local Java and installed-package C++ runs are provider-scoped behavioral evidence; they do not establish independent-provider interoperability or overall conformance.",
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
         "timestamped-attribute-update-requirements-contract.json",
@@ -3371,7 +3372,7 @@
         "immediate"
       ],
       "promotion": "promoted",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Default-enabled current-source Umbra JNI runs passed under HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time, without --run-unverified, using ddm-multi-attribute-tck.xml and HLAobjectRoot.TckTimestampedAttributePasselObject/ReliableValue. The receiver completes TAR(5) before the publisher enters Time Regulation; a timestamp-5 update is not delivered after the grant through later TAR(6), while the timestamp-7 positive control is reflected exactly once. Results: out/java-tck/timestamped-attribute-update-tar-post-grant-cutoff-review-20261105/verified-{evoked-integer64,evoked-float64,immediate-integer64,immediate-float64}.results.json and matching .junit.xml. This provider-local evidence does not establish independent-provider interoperability or overall conformance."
+      "evidence_note": "Source comparison on 2026-11-16 found the Java case matches the paired C++ primary cutoff and positive-control assertions; Java also checks that the reflected producer is the publisher. Current-source Umbra JNI reruns passed under HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time, ddm-multi-attribute-tck.xml, HLAobjectRoot.TckTimestampedAttributePasselObject, and ReliableValue. Results: out/java-tck/attribute-tar-post-grant-cutoff-20261116/{evoked,immediate}/{results.json,junit.xml}. Paired installed-package C++ primary and contract selectors passed 4/4 callback-model executions: out/mgw/cpp-tck-attribute-tar-post-grant-cutoff-parity-20261116/{results.json,junit.xml}. Earlier Java HLAinteger64Time/HLAfloat64Time results remain in out/java-tck/timestamped-attribute-update-tar-post-grant-cutoff-review-20261105. Local-provider evidence only; independent-provider interoperability and overall conformance remain unverified."
     },
     {
       "id": "java-tck.timestamped-attribute-update-time-advancing-cutoff",
