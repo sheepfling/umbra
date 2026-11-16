@@ -65740,19 +65740,27 @@
     },
     {
       "id": "java-tck.federate-mom-updated-object-report",
-      "category": "object-management",
+      "category": "joined-federate-mom-object-statistics",
       "title": "Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
         "RTIambassador.updateAttributeValues(receive-order)",
         "RTIambassador.deleteObjectInstance(receive-order)",
         "RTIambassador.getInteractionClassHandle",
@@ -65764,7 +65772,9 @@
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
-        "RTIambassador.sendInteraction",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.getObjectClassHandleFactory",
         "ObjectClassHandleFactory.decode",
         "RTIambassador.evokeCallback",
@@ -65772,11 +65782,20 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.receiveInteraction",
-        "HLAbyte",
-        "HLAvariableArray",
-        "HLAfixedRecord",
-        "HLAoctet",
-        "HLAinteger32BE"
+        "EncoderFactory.createHLAbyte",
+        "HLAbyte.toByteArray",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "EncoderFactory.createHLAoctet",
+        "HLAoctet.toByteArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.getValue",
+        "FederateHandle.encodedLength",
+        "FederateHandle.encode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
@@ -65784,7 +65803,35 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-joined-federate-mom-object-instances-updated-service",
+        "cpp-tck-joined-federate-mom-object-instances-updated-request",
+        "cpp-tck-joined-federate-mom-object-instances-updated-mim-report"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-service",
+          "standard_section": "hla-1516.1-2025:clause-6.10"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-request",
+          "standard_section": "hla-1516.1-2025:clause-6.12"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-mim-report",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings follow the paired C++ requirements contract: receive-order Update Attribute Values maps to IEEE 1516.1-2025 §6.10, the standard sendInteraction request map to §6.12, and the MIM HLAreportObjectInstancesUpdated count response to §11.4.1. The Java case publishes one adapter-supplied class/attribute, registers two instances, updates the first twice and the second once, then requests the subject's report. It checks one reliable report with the standard single class/count record for two distinct instances; repeating an update does not increase the count. It does not claim other MOM report leaves, empty responses, timestamped updates, independent-provider behavior, or conformance.",
+      "callback_models": [
+        "evoked",
+        "immediate"
       ],
       "contract_refs": [
         "standard-joined-federate-mom-object-instances-updated-report-api-contract.json",
@@ -65801,8 +65848,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-updated-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-updated-object-report-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); direct results: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-updated-report-20261116.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-reflection-counts",

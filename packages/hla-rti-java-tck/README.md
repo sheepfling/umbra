@@ -1920,6 +1920,14 @@ under both callback models using `p0-tck.xml` with
 `ddm-multi-attribute-tck.xml`. Direct mappings cover §§5.2, 5.8, 6.8, 6.10,
 6.11, 6.12, and 11.4.1; evidence is bounded to this report and local provider.
 
+The default-run `java-tck.federate-mom-updated-object-report` scenario
+publishes one object class, registers two instances, updates one instance twice
+and the other once, then requests HLAreportObjectInstancesUpdated for the
+subject. It checks the standard report metadata and decodes one class/count
+record with a distinct-instance count of two. Java and the paired C++
+primary/contract passed under both callback models. Direct mappings cover
+§§6.10, 6.12, and 11.4.1; this is bounded local-provider evidence.
+
 The adapter-required `java-tck.mom-save-restore-interactions` case has both
 federates publish the three standard save/restore MOM interactions. During the
 active save it sends Save Begun and Save Complete; during the active restore it
