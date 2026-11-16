@@ -6979,11 +6979,15 @@
       "category": "ownership",
       "title": "Preserve an ownership-acquisition cancellation confirmation through federation save and restore",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7003,6 +7007,8 @@
         "RTIambassador.queryAttributeOwnership",
         "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.NO_ACTION",
+        "ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
@@ -7017,7 +7023,11 @@
         "FederateAmbassador.federationRestoreBegun",
         "FederateAmbassador.initiateFederateRestore",
         "FederateAmbassador.federationRestored",
-        "FederateAmbassador.federationNotRestored"
+        "FederateAmbassador.federationNotRestored",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "ObjectInstanceHandle.equals",
+        "FederateHandle.equals"
       ],
       "requirement_ids": [
         "cpp-1516.1-ownership-management",
@@ -7038,8 +7048,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionCancellationSaveRestore",
       "parity": "cpp-tck.ownership-acquisition-cancellation-save-restore",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM, logical-time implementation, callback model, and a provider supporting ownership and federation save/restore. The Java scenario uses callback queueing for HLA_EVOKED and standard callback disable/enable services for HLA_IMMEDIATE."
+      "default_status": "run",
+      "mapping_note": "The cpp-1516.1-ownership-management, cpp-1516.1-federation-save-lifecycle, and cpp-1516.1-federation-restore-lifecycle identifiers are repository-internal cross-cutting references and have no direct normative section mapping; this scenario makes no IEEE clause claim. Assertions are bounded to one pending acquisition cancellation across a successful save and restore, exactly one cancellation confirmation after restore, no acquisition notification, preserved owner state, post-restore handle lookup, and the restored ownership query. HLA_EVOKED uses callback queueing; HLA_IMMEDIATE defers callbacks with disable/enable services.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied FOM with the configured object class and attribute",
+        "provider logical-time implementation",
+        "provider support for ownership management and federation save/restore",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/ownership-acquisition-cancellation-save-restore-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence is in out/cpp-tck-evidence-20261116/ownership-acquisition-cancellation-save-restore-java-parity-20261116.{json,xml}. Internal requirement IDs remain unmapped to normative clauses; local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.if-available-ownership-restore-unavailable-callback",
