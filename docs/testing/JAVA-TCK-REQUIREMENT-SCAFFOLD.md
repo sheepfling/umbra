@@ -22,10 +22,10 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1196 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 649 |
-| Default `unsupported` scenarios | 315 |
-| Scenarios with explicit `requirement_mappings` | 694 |
-| Explicit mapping records | 2823 |
+| Default `run` scenarios | 650 |
+| Default `unsupported` scenarios | 314 |
+| Scenarios with explicit `requirement_mappings` | 695 |
+| Explicit mapping records | 2825 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -273,7 +273,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-reflections-received-counts`](#scenario-java-tck.federate-mom-reflections-received-counts) — Report received attribute reflections by standard transportation and application object class (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflections-received-counts`).
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.federation-auto-provide-mom-switch`](#scenario-java-tck.federation-auto-provide-mom-switch) — Set federation-wide Auto Provide through the standard federation MOM interaction (`auto-provide`; default `run`; C++ pointer `cpp-tck.federation-auto-provide-mom-switch`).
 - [`java-tck.regional-attribute-value-update-response-recheck`](#scenario-java-tck.regional-attribute-value-update-response-recheck) — Recheck regional attribute-value response eligibility at reflection delivery (`regional-attribute-value-request`; default `unsupported`; C++ pointer `cpp-tck.regional-attribute-value-update-response-recheck`).
 - [`java-tck.regional-auto-provide-callback-control`](#scenario-java-tck.regional-auto-provide-callback-control) — Resume gated regional discovery and Auto Provide callbacks when callback servicing is enabled (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-callback-control`).
@@ -982,7 +981,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
 - [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
-- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-send-service-reports-to-file-mom-switch`](#scenario-java-tck.federate-send-service-reports-to-file-mom-switch) — Set the joined federate's Send Service Reports to File switch through standard HLAsetSwitches without changing neighboring switches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-send-service-reports-to-file-mom-switch`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
@@ -1608,7 +1606,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
 - [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
-- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.federate-send-service-reports-to-file-mom-switch`](#scenario-java-tck.federate-send-service-reports-to-file-mom-switch) — Set the joined federate's Send Service Reports to File switch through standard HLAsetSwitches without changing neighboring switches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-send-service-reports-to-file-mom-switch`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-service-reporting-mom-switch`](#scenario-java-tck.federate-service-reporting-mom-switch) — Set the joined federate's Service Reporting switch through standard HLAsetSwitches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mom-switch`).
@@ -1964,7 +1961,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
 - [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
-- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.federation-auto-provide-mom-switch`](#scenario-java-tck.federation-auto-provide-mom-switch) — Set federation-wide Auto Provide through the standard federation MOM interaction (`auto-provide`; default `run`; C++ pointer `cpp-tck.federation-auto-provide-mom-switch`).
 - [`java-tck.federation-teardown-isolation`](#scenario-java-tck.federation-teardown-isolation) — Preserve named update-rate admission history in a live federation after a sibling federation is destroyed (`federation-isolation`; default `unsupported`; C++ pointer `cpp-tck.federation-teardown-isolation`).
 - [`java-tck.foreign-object-instance-handle-lookup-boundary`](#scenario-java-tck.foreign-object-instance-handle-lookup-boundary) — Check object-instance handle lookup is scoped to its federation execution (`object-management`; default `run`; C++ pointer `cpp-tck.foreign-object-instance-handle-lookup-boundary`).
@@ -2696,7 +2692,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.custom-transportation-timestamped-regional-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-regional-attribute-delivery) — Deliver and retract timestamped regional attribute updates with the adapter-declared custom transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`).
 - [`java-tck.custom-transportation-timestamped-regional-interaction-delivery`](#scenario-java-tck.custom-transportation-timestamped-regional-interaction-delivery) — Deliver a timestamped regional interaction using the adapter-declared custom FOM transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-regional-interaction-delivery`).
 - [`java-tck.federate-mom-reflections-received-counts`](#scenario-java-tck.federate-mom-reflections-received-counts) — Report received attribute reflections by standard transportation and application object class (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflections-received-counts`).
-- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report HLAupdatesSent by standard transportation and adapter-supplied object class (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.fom-transportation-handle-stability`](#scenario-java-tck.fom-transportation-handle-stability) — Preserve transportation handle identity across an additional-FOM join (`fom-composition`; default `run`; C++ pointer `cpp-tck.fom-transportation-handle-stability`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -8151,6 +8146,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-directed-interactions-received-counts`](#scenario-java-tck.federate-mom-directed-interactions-received-counts) — Verify directed-interaction received-count reports by transportation type (`directed-interactions`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-directed-interactions-received-counts`).
 - [`java-tck.federate-mom-interactions-received-counts`](#scenario-java-tck.federate-mom-interactions-received-counts) — Report received interaction counts by standard transportation type for a target federate (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-interactions-received-counts`).
 - [`java-tck.federate-mom-interactions-sent-counts`](#scenario-java-tck.federate-mom-interactions-sent-counts) — Report interactions sent by standard transportation and adapter-supplied interaction class (`joined-federate-mom-interaction-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-interactions-sent-counts`).
+- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report attribute update counts by standard transportation and object class (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -8207,6 +8203,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-time-state-durations`](#scenario-java-tck.federate-mom-time-state-durations) — Observe joined-federate HLAtimeGrantedTime and HLAtimeAdvancingTime directly and periodically (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-time-state-durations`).
 - [`java-tck.federate-mom-tso-length-periodic`](#scenario-java-tck.federate-mom-tso-length-periodic) — Observe direct and periodic federate MOM HLATSOlength around timestamped delivery (`time-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-tso-length-periodic`).
 - [`java-tck.federate-mom-updated-object-count-periodic`](#scenario-java-tck.federate-mom-updated-object-count-periodic) — Check registration and updated-object MOM counts directly and periodically (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-updated-object-count-periodic`).
+- [`java-tck.federate-mom-updates-sent-counts`](#scenario-java-tck.federate-mom-updates-sent-counts) — Report attribute update counts by standard transportation and object class (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-counts`).
 - [`java-tck.federate-mom-updates-sent-mim-attribute`](#scenario-java-tck.federate-mom-updates-sent-mim-attribute) — Count each successful receive-order Update Attribute Values invocation in HLAupdatesSent (`object-management`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-updates-sent-mim-attribute`).
 - [`java-tck.federation-mom-federates-in-federation`](#scenario-java-tck.federation-mom-federates-in-federation) — Observe conditional federation roster updates on federate join and resign (`federation-mom`; default `run`; C++ pointer `cpp-tck.federation-mom-federates-in-federation-contract`).
 
@@ -9911,8 +9908,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-11-management-object-model-page-358-l34-10` → `hla-1516.1-2025:clause-12.8`
   - `requirement-candidate-content-clauses-04-federation-management-page-053-l43-7-no-intercommunication` → `hla-1516.1-2025:clause-4.5`
 - `java-tck.local-delete-object-instance`:
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18`
 - `java-tck.local-delete-object-instance-name-lookup-boundary`:
   - `cpp-1516.1-local-object-instance-deletion` → `hla-1516.1-2025:clause-6.18.1`
   - `cpp-1516.1-object-instance-name-lifecycle` → `hla-1516.1-2025:clause-10.8`
@@ -9985,24 +9982,24 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l146-39` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l155-42` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
 - `java-tck.object-class-attribute-value-update-request-baseline`:
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l146-39` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l152-41` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
 - `java-tck.object-class-timestamped-provider-response`:
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l146-39` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l152-41` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l12-2` → `hla-1516.1-2025:clause-6.21`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.6`
@@ -10011,7 +10008,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l155-42` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
@@ -10020,14 +10017,14 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l155-42` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
 - `java-tck.attribute-value-update-request-multi-requester`:
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l155-42` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
@@ -10048,23 +10045,23 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-107-l45-11` → `hla-1516.1-2025:clause-6.1.2`
   - `requirement-candidate-content-clauses-06-object-management-page-107-l51-13` → `hla-1516.1-2025:clause-6.1.2`
   - `requirement-candidate-content-clauses-06-object-management-page-115-l101-27` → `hla-1516.1-2025:clause-6.5.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8`
   - `requirement-candidate-content-clauses-06-object-management-page-118-l67-18` → `hla-1516.1-2025:clause-6.8.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-119-l103-29` → `hla-1516.1-2025:clause-6.9.3`
+  - `requirement-candidate-content-clauses-06-object-management-page-119-l103-29` → `hla-1516.1-2025:clause-6.9`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18`
 - `java-tck.attribute-subscription-invocations-accumulate`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40` → `hla-1516.1-2025:clause-5.8`
 - `java-tck.attribute-subscription-per-attribute-mode-transitions`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l129-40` → `hla-1516.1-2025:clause-5.8`
 - `java-tck.selective-attribute-unsubscription`:
-  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4` → `hla-1516.1-2025:clause-5.9.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4` → `hla-1516.1-2025:clause-5.9`
 - `java-tck.whole-class-attribute-unsubscription`:
-  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5` → `hla-1516.1-2025:clause-5.9.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5` → `hla-1516.1-2025:clause-5.9`
 - `java-tck.empty-attribute-unsubscription-is-no-op`:
-  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6` → `hla-1516.1-2025:clause-5.9.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6` → `hla-1516.1-2025:clause-5.9`
 - `java-tck.passive-subscription-no-start-registration`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l144-45` → `hla-1516.1-2025:clause-5.8`
 - `java-tck.empty-attribute-subscription-is-no-op`:
@@ -10075,11 +10072,11 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-090-l79-22` → `hla-1516.1-2025:clause-5.2`
   - `requirement-candidate-content-clauses-05-declaration-management-page-091-l121-35` → `hla-1516.1-2025:clause-5.3`
   - `requirement-candidate-content-clauses-05-declaration-management-page-091-l127-37` → `hla-1516.1-2025:clause-5.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l22-3` → `hla-1516.1-2025:clause-6.8.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l22-3` → `hla-1516.1-2025:clause-6.8`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8`
 - `java-tck.named-registration-multi-recipient`:
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l64-17` → `hla-1516.1-2025:clause-6.8.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l70-19` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l64-17` → `hla-1516.1-2025:clause-6.8`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l70-19` → `hla-1516.1-2025:clause-6.8`
 - `java-tck.subscription-initial-reflection-projection`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l63-18` → `hla-1516.1-2025:clause-5.8`
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l66-19` → `hla-1516.1-2025:clause-5.8`
@@ -10091,7 +10088,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-135-l140-37` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l143-38` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-135-l155-42` → `hla-1516.1-2025:clause-6.21`
-  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-136-l21-5` → `hla-1516.1-2025:clause-6.21`
   - `requirement-candidate-content-clauses-06-object-management-page-137-l43-9` → `hla-1516.1-2025:clause-6.22`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
@@ -10100,29 +10097,29 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-129-l138-39` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l144-41` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-130-l167-50` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
 - `java-tck.object-deletion-service-boundaries`:
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33` → `hla-1516.1-2025:clause-4.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-119-l103-29` → `hla-1516.1-2025:clause-6.9.3`
+  - `requirement-candidate-content-clauses-06-object-management-page-119-l103-29` → `hla-1516.1-2025:clause-6.9`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l123-34` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l132-37` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l135-38` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l138-39` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l144-41` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-130-l167-50` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-130-l137-40` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l140-38` → `hla-1516.1-2025:clause-6.18`
+  - `requirement-candidate-content-clauses-06-object-management-page-132-l146-40` → `hla-1516.1-2025:clause-6.18`
   - `requirement-candidate-content-clauses-07-ownership-management-page-153-l111-35` → `hla-1516.1-2025:clause-7.1.3`
 - `java-tck.receive-order-object-removal`:
   - `requirement-candidate-content-clauses-06-object-management-page-129-l138-39` → `hla-1516.1-2025:clause-6.16`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17`
 - `java-tck.resign-delete-objects-then-divest-cross-object-effects`:
   - `cpp-1516.1-federation-create-join-resign-destroy` → `hla-1516.1-2025:clause-4.12`
   - `cpp-1516.1-object-management` → `hla-1516.1-2025:clause-5.2`
@@ -10239,26 +10236,26 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.confirm-divestiture-from-callback`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-156-l41-12` → `hla-1516.1-2025:clause-7.3.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11` → `hla-1516.1-2025:clause-7.6.3`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11` → `hla-1516.1-2025:clause-7.6`
   - `requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40` → `hla-1516.1-2025:clause-7.8`
 - `java-tck.confirm-divestiture-mixed-set-atomicity`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11` → `hla-1516.1-2025:clause-7.6.3`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11` → `hla-1516.1-2025:clause-7.6`
 - `java-tck.attribute-multi-recipient-fifo`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36` → `hla-1516.1-2025:clause-5.8`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l79-23` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l115-35` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l115-35` → `hla-1516.1-2025:clause-6.11`
 - `java-tck.receive-order-attribute-update`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l117-36` → `hla-1516.1-2025:clause-5.8`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l79-23` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l115-35` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l115-35` → `hla-1516.1-2025:clause-6.11`
 - `java-tck.object-registration-discovery-lifecycle`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16` → `hla-1516.1-2025:clause-5.8`
 - `java-tck.overlapping-object-class-subscriptions-single-discovery`:
@@ -10268,12 +10265,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-096-l96-29` → `hla-1516.1-2025:clause-5.8`
   - `requirement-candidate-content-clauses-05-declaration-management-page-083-l176-57` → `hla-1516.1-2025:clause-5.1.3`
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l32-10` → `hla-1516.1-2025:clause-5.1.3`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18` → `hla-1516.1-2025:clause-5.1.4`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21` → `hla-1516.1-2025:clause-5.1.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18` → `hla-1516.1-2025:clause-5.1.3`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21` → `hla-1516.1-2025:clause-5.1.3`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-06-object-management-page-124-l41-12` → `hla-1516.1-2025:clause-6.12`
   - `requirement-candidate-content-clauses-06-object-management-page-124-l53-16` → `hla-1516.1-2025:clause-6.12`
   - `requirement-candidate-content-clauses-06-object-management-page-125-l127-38` → `hla-1516.1-2025:clause-6.13`
@@ -10283,7 +10280,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l110-31` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l112-34` → `hla-1516.1-2025:clause-6.11`
 - `java-tck.standard-order-transportation-lookups`:
   - `requirement-candidate-content-clauses-01-overview-page-018-l58-7-order` → `hla-1516.1-2025:clause-1.5`
   - `requirement-candidate-sections-semantic-clause-4b-page-063-l39-1` → `hla-1516.2-2025:clause-4`
@@ -10300,19 +10297,19 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-10-support-services-page-257-l108-25` → `hla-1516.1-2025:clause-10.20.4`
 - `java-tck.directed-interaction-subscription-accumulation`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l134-39` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l107-31` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l113-33` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l107-31` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l113-33` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.directed-interaction-received-class-projection`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l143-42` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l56-18` → `hla-1516.1-2025:clause-5.1.5`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l65-21` → `hla-1516.1-2025:clause-5.1.5`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l74-24` → `hla-1516.1-2025:clause-5.1.5`
-  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l92-30` → `hla-1516.1-2025:clause-5.1.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l46-14` → `hla-1516.1-2025:clause-6.14.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l52-16` → `hla-1516.1-2025:clause-6.14.3`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l56-18` → `hla-1516.1-2025:clause-5.1.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l65-21` → `hla-1516.1-2025:clause-5.1.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l74-24` → `hla-1516.1-2025:clause-5.1.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l92-30` → `hla-1516.1-2025:clause-5.1.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l46-14` → `hla-1516.1-2025:clause-6.14`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l52-16` → `hla-1516.1-2025:clause-6.14`
 - `java-tck.directed-known-object-class-fallback`:
   - `requirement-candidate-content-clauses-06-object-management-page-109-l88-26` → `hla-1516.1-2025:clause-6.1.9`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l52-16` → `hla-1516.1-2025:clause-6.14.3`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l52-16` → `hla-1516.1-2025:clause-6.14`
   - `requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26` → `hla-1516.1-2025:clause-8`
   - `requirement-candidate-content-clauses-08-time-management-page-197-l20-3` → `hla-1516.1-2025:clause-8.10.2`
 - `java-tck.directed-interaction-no-applicable-subscription`:
@@ -10522,9 +10519,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-sections-semantic-clause-4a-page-047-l27-1` → `hla-1516.2-2025:clause-4`
   - `requirement-candidate-sections-semantic-clause-7-annexes-a-c-page-110-l22-5` → `hla-1516.2-2025:clause-C.2`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.fom-dimension-reference-resolution`:
   - `requirement-candidate-sections-semantic-clause-4b-page-054-l65-4` → `hla-1516.2-2025:clause-4.7.1`
   - `requirement-candidate-sections-semantic-clauses-5-6-page-092-l78-16` → `hla-1516.2-2025:clause-6.2.5`
@@ -10732,10 +10729,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-099-l75-20` → `hla-1516.1-2025:clause-5.10`
   - `requirement-candidate-content-clauses-05-declaration-management-page-100-l129-35` → `hla-1516.1-2025:clause-5.11`
 - `java-tck.interaction-transportation-query-valid-inputs-after-resignation`:
-  - `requirement-candidate-content-clauses-06-object-management-page-146-l58-12` → `hla-1516.1-2025:clause-6.32.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l24-3` → `hla-1516.1-2025:clause-6.33.6`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l30-5` → `hla-1516.1-2025:clause-6.33.6`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33.6`
+  - `requirement-candidate-content-clauses-06-object-management-page-146-l58-12` → `hla-1516.1-2025:clause-6.32`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l24-3` → `hla-1516.1-2025:clause-6.33`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l30-5` → `hla-1516.1-2025:clause-6.33`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33`
 - `java-tck.directed-interaction-target-lifecycle`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l161-52` → `hla-1516.1-2025:clause-5.1.4`
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60` → `hla-1516.1-2025:clause-5.1.4`
@@ -10743,14 +10740,14 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33` → `hla-1516.1-2025:clause-5.12`
   - `requirement-candidate-content-clauses-05-declaration-management-page-102-l163-46` → `hla-1516.1-2025:clause-5.13`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.directed-interaction-derived-object-target`:
-  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2` → `hla-1516.1-2025:clause-5.1.5`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2` → `hla-1516.1-2025:clause-5.1.4`
 - `java-tck.transport-order`:
   - `requirement-candidate-content-clauses-06-object-management-page-139-l123-31` → `hla-1516.1-2025:clause-6.25`
-  - `requirement-candidate-content-clauses-06-object-management-page-139-l132-34` → `hla-1516.1-2025:clause-6.25.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-139-l132-34` → `hla-1516.1-2025:clause-6.25`
   - `requirement-candidate-content-clauses-06-object-management-page-140-l178-51` → `hla-1516.1-2025:clause-6.26`
   - `requirement-candidate-content-clauses-06-object-management-page-140-l181-52` → `hla-1516.1-2025:clause-6.26`
   - `requirement-candidate-content-clauses-06-object-management-page-141-l11-1` → `hla-1516.1-2025:clause-6.26`
@@ -10765,13 +10762,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-144-l88-20` → `hla-1516.1-2025:clause-6.30`
   - `requirement-candidate-content-clauses-06-object-management-page-144-l100-24` → `hla-1516.1-2025:clause-6.30`
   - `requirement-candidate-content-clauses-06-object-management-page-144-l103-25` → `hla-1516.1-2025:clause-6.30`
-  - `requirement-candidate-content-clauses-06-object-management-page-144-l94-22` → `hla-1516.1-2025:clause-6.30.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-145-l119-33` → `hla-1516.1-2025:clause-6.31.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-145-l122-34` → `hla-1516.1-2025:clause-6.31.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-146-l58-12` → `hla-1516.1-2025:clause-6.32.5`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l24-3` → `hla-1516.1-2025:clause-6.33.6`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l30-5` → `hla-1516.1-2025:clause-6.33.6`
-  - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33.6`
+  - `requirement-candidate-content-clauses-06-object-management-page-144-l94-22` → `hla-1516.1-2025:clause-6.30`
+  - `requirement-candidate-content-clauses-06-object-management-page-145-l119-33` → `hla-1516.1-2025:clause-6.31`
+  - `requirement-candidate-content-clauses-06-object-management-page-145-l122-34` → `hla-1516.1-2025:clause-6.31`
+  - `requirement-candidate-content-clauses-06-object-management-page-146-l58-12` → `hla-1516.1-2025:clause-6.32`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l24-3` → `hla-1516.1-2025:clause-6.33`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l30-5` → `hla-1516.1-2025:clause-6.33`
+  - `requirement-candidate-content-clauses-06-object-management-page-147-l33-6` → `hla-1516.1-2025:clause-6.33`
   - `requirement-candidate-content-clauses-06-object-management-page-112-l12-3` → `hla-1516.1-2025:clause-6.1.11`
   - `requirement-candidate-content-clauses-06-object-management-page-111-l58-17` → `hla-1516.1-2025:clause-6.1.11`
 - `java-tck.mom-transportation-type-change-request`:
@@ -10806,7 +10803,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21` → `hla-1516.1-2025:clause-5.1.4`
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l74-24` → `hla-1516.1-2025:clause-5.1.4`
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l83-27` → `hla-1516.1-2025:clause-5.1.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-124-l17-4` → `hla-1516.1-2025:clause-6.12.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-124-l17-4` → `hla-1516.1-2025:clause-6.12`
   - `requirement-candidate-content-clauses-06-object-management-page-124-l41-12` → `hla-1516.1-2025:clause-6.12`
   - `requirement-candidate-content-clauses-06-object-management-page-124-l47-14` → `hla-1516.1-2025:clause-6.12`
   - `requirement-candidate-content-clauses-06-object-management-page-124-l53-16` → `hla-1516.1-2025:clause-6.12`
@@ -10982,12 +10979,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-084-l185-60` → `hla-1516.1-2025:clause-5.1.4`
   - `requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10` → `hla-1516.1-2025:clause-5.1.5`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l22-3` → `hla-1516.1-2025:clause-6.8.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l22-3` → `hla-1516.1-2025:clause-6.8`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8`
   - `requirement-candidate-content-clauses-06-object-management-page-126-l167-46` → `hla-1516.1-2025:clause-6.14`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.directed-interaction-mixed-subscription-fanout`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10` → `hla-1516.1-2025:clause-5.1.5`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
@@ -10999,10 +10996,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.directed-derived-object-target-eligibility`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10` → `hla-1516.1-2025:clause-5.1.5`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l28-5` → `hla-1516.1-2025:clause-6.8`
   - `requirement-candidate-content-clauses-06-object-management-page-126-l167-46` → `hla-1516.1-2025:clause-6.14`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.order-type-controls`:
   - `requirement-candidate-content-clauses-08-time-management-page-212-l42-7` → `hla-1516.1-2025:clause-8.24.4`
   - `requirement-candidate-content-clauses-08-time-management-page-212-l48-9` → `hla-1516.1-2025:clause-8.24.4`
@@ -11443,8 +11440,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-source-refinement-send-interaction-published-class` → `hla-1516.1-2025:clause-5.1.3`
 - `java-tck.timestamped-interaction-cross-producer-order`:
   - `requirement-candidate-content-clauses-06-object-management-page-123-l157-44` → `hla-1516.1-2025:clause-6.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-181-l148-13` → `hla-1516.1-2025:clause-8.1.4`
 - `java-tck.timestamped-interaction-no-fanout`:
   - `requirement-candidate-content-clauses-08-time-management-page-210-l21-3` → `hla-1516.1-2025:clause-8.22.3`
@@ -11481,19 +11478,19 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.timestamped-directed-zero-lookahead-send-at-grant`:
   - `requirement-candidate-content-clauses-08-time-management-page-198-l192-57` → `hla-1516.1-2025:clause-8.11`
   - `requirement-candidate-content-clauses-06-object-management-page-126-l179-50` → `hla-1516.1-2025:clause-6.14`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l101-29` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l104-30` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l110-32` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l116-34` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l119-35` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l125-37` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l101-29` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l104-30` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l110-32` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l116-34` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l119-35` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l125-37` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.timestamped-directed-zero-lookahead-tar-send-boundary`:
   - `requirement-candidate-content-clauses-08-time-management-page-178-l45-12` → `hla-1516.1-2025:clause-8`
 - `java-tck.timestamped-directed-interaction-subscription-kind`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33` → `hla-1516.1-2025:clause-5.12`
   - `requirement-candidate-content-clauses-06-object-management-page-126-l179-50` → `hla-1516.1-2025:clause-6.14`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l7-1` → `hla-1516.1-2025:clause-6.14.3`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l7-1` → `hla-1516.1-2025:clause-6.14`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.7`
 - `java-tck.timestamped-directed-interaction-tar-nmr`:
@@ -11528,12 +11525,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l98-27` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3` → `hla-1516.1-2025:clause-7`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17` → `hla-1516.1-2025:clause-7`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25` → `hla-1516.1-2025:clause-7`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3` → `hla-1516.1-2025:clause-7.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17` → `hla-1516.1-2025:clause-7.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25` → `hla-1516.1-2025:clause-7.1`
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l156-49` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l57-17` → `hla-1516.1-2025:clause-8.1.3`
@@ -11558,8 +11555,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l98-27` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-178-l27-6` → `hla-1516.1-2025:clause-8`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-200-l131-38` → `hla-1516.1-2025:clause-8.12`
@@ -11593,9 +11590,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l98-27` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l57-17` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-210-l30-6` → `hla-1516.1-2025:clause-8.22.3`
   - `requirement-candidate-content-clauses-08-time-management-page-211-l86-22` → `hla-1516.1-2025:clause-8.23.3`
@@ -11616,7 +11613,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-08-time-management-page-180-l150-47` → `hla-1516.1-2025:clause-8.1.4`
 - `java-tck.timestamped-attribute-update-reenable`:
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.6`
   - `requirement-candidate-content-clauses-08-time-management-page-191-l73-17` → `hla-1516.1-2025:clause-8.5`
@@ -11625,11 +11622,11 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.timestamped-attribute-update-tar-post-grant-cutoff`:
   - `requirement-candidate-content-clauses-08-time-management-page-203-l104-28` → `hla-1516.1-2025:clause-8.14`
 - `java-tck.timestamped-attribute-update-time-advancing-cutoff`:
-  - `requirement-candidate-content-clauses-06-object-management-page-121-l132-39` → `hla-1516.1-2025:clause-6.10.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-121-l132-39` → `hla-1516.1-2025:clause-6.10.3`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
 - `java-tck.timestamped-attribute-update-regulation-reenable`:
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-182-l16-4` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-182-l19-5` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-182-l25-7` → `hla-1516.1-2025:clause-8.1.5`
@@ -11650,10 +11647,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-129-l159-46` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l150-43` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l162-47` → `hla-1516.1-2025:clause-6.16`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l21-5` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l39-11` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l45-13` → `hla-1516.1-2025:clause-8.1.3`
@@ -11667,10 +11664,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-129-l159-46` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l150-43` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l162-47` → `hla-1516.1-2025:clause-6.16`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l21-5` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l39-11` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l45-13` → `hla-1516.1-2025:clause-8.1.3`
@@ -11682,10 +11679,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-129-l159-46` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l150-43` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l162-47` → `hla-1516.1-2025:clause-6.16`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l110-32` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l21-5` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l39-11` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l45-13` → `hla-1516.1-2025:clause-8.1.3`
@@ -11695,9 +11692,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-129-l123-34` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l138-39` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l159-46` → `hla-1516.1-2025:clause-6.16`
-  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-130-l8-1` → `hla-1516.1-2025:clause-6.16`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-182-l16-4` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.5`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.6`
@@ -11707,7 +11704,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.privilege-to-delete-publication-eligibility`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-153-l87-27` → `hla-1516.1-2025:clause-7.1.3`
 - `java-tck.privilege-to-delete-transfer`:
-  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-131-l101-29` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-07-ownership-management-page-153-l96-30` → `hla-1516.1-2025:clause-7.1.3`
   - `requirement-candidate-content-clauses-07-ownership-management-page-153-l99-31` → `hla-1516.1-2025:clause-7.1.3`
   - `requirement-candidate-content-clauses-07-ownership-management-page-153-l108-34` → `hla-1516.1-2025:clause-7.1.3`
@@ -11723,10 +11720,10 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.if-available-deleted-object`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-152-l101-32` → `hla-1516.1-2025:clause-7.1.2.2`
 - `java-tck.ownership-after-fom-merge`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29` → `hla-1516.1-2025:clause-7`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l100-31` → `hla-1516.1-2025:clause-7`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l103-32` → `hla-1516.1-2025:clause-7`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l106-33` → `hla-1516.1-2025:clause-7`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29` → `hla-1516.1-2025:clause-7.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l100-31` → `hla-1516.1-2025:clause-7.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l103-32` → `hla-1516.1-2025:clause-7.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-148-l106-33` → `hla-1516.1-2025:clause-7.1`
 - `java-tck.resign-divests-all-instance-attributes`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-151-l99-32` → `hla-1516.1-2025:clause-7.1.2.1`
 - `java-tck.unconditional-divestiture-assumption-coalescing`:
@@ -11758,28 +11755,28 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.selective-unpublication-pending-acquisition`:
   - `requirement-source-refinement-unpublication-pending-acquisition` → `hla-1516.1-2025:clause-5.3.3`
 - `java-tck.ownership-acquisition-if-available`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9.1`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43` → `hla-1516.1-2025:clause-7.9.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43` → `hla-1516.1-2025:clause-7.9`
   - `requirement-candidate-content-clauses-07-ownership-management-page-152-l155-50` → `hla-1516.1-2025:clause-7.1.2.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52` → `hla-1516.1-2025:clause-7.1.2.2`
 - `java-tck.ownership-query-partition-cleanup`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5` → `hla-1516.1-2025:clause-7.19.6`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6` → `hla-1516.1-2025:clause-7.19.6`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5` → `hla-1516.1-2025:clause-7.19`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6` → `hla-1516.1-2025:clause-7.19`
 - `java-tck.ownership-query-result-nullification`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5` → `hla-1516.1-2025:clause-7.19.6`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6` → `hla-1516.1-2025:clause-7.19.6`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5` → `hla-1516.1-2025:clause-7.19`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6` → `hla-1516.1-2025:clause-7.19`
 - `java-tck.attribute-ownership-acquisition-cancellation`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1` → `hla-1516.1-2025:clause-7.15`
   - `requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3` → `hla-1516.1-2025:clause-7.15`
@@ -11791,17 +11788,17 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.attribute-ownership-release-denied`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6` → `hla-1516.1-2025:clause-7.12`
 - `java-tck.attribute-ownership-query-owner-report`:
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-query-save-restore-results`:
   - `requirement-candidate-content-clauses-04-federation-management-page-065-l96-24` → `hla-1516.1-2025:clause-4.19`
   - `requirement-candidate-content-clauses-04-federation-management-page-069-l70-17` → `hla-1516.1-2025:clause-4.23`
   - `requirement-candidate-content-clauses-04-federation-management-page-075-l44-7` → `hla-1516.1-2025:clause-4.30`
   - `requirement-candidate-content-clauses-04-federation-management-page-075-l47-8` → `hla-1516.1-2025:clause-4.30`
   - `requirement-candidate-content-clauses-04-federation-management-page-076-l18-2` → `hla-1516.1-2025:clause-4.32`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-acquisition-cancellation-transfer-race`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-170-l25-5` → `hla-1516.1-2025:clause-7.15`
 - `java-tck.ownership-acquisition-cancellation-denial-race`:
@@ -11811,7 +11808,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.negotiated-divestiture-partial-acquisition-cancellation`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48` → `hla-1516.1-2025:clause-7.3`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3` → `hla-1516.1-2025:clause-7.14.6`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3` → `hla-1516.1-2025:clause-7.14`
   - `requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1` → `hla-1516.1-2025:clause-7.15`
   - `requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13` → `hla-1516.1-2025:clause-7.16`
 - `java-tck.negotiated-divestiture-no-accepter`:
@@ -11895,7 +11892,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-11-management-object-model-page-291-l191-63` → `hla-1516.1-2025:clause-11.4.2`
   - `requirement-candidate-content-clauses-11-management-object-model-page-291-l200-66` → `hla-1516.1-2025:clause-11.4.2`
 - `java-tck.attribute-scope-advisories`:
-  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12` → `hla-1516.1-2025:clause-5.9.4`
+  - `requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12` → `hla-1516.1-2025:clause-5.9`
 - `java-tck.attribute-scope-ownership-acquisition-no-out-of-scope`:
   - `requirement-candidate-content-clauses-10-support-services-page-244-l23-7` → `hla-1516.1-2025:clause-10.1.2.1`
   - `requirement-candidate-content-clauses-10-support-services-page-244-l38-12` → `hla-1516.1-2025:clause-10.1.2.1`
@@ -12383,8 +12380,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.named-registration`:
   - `requirement-candidate-content-clauses-05-declaration-management-page-081-l17-3` → `hla-1516.1-2025:clause-5.1`
   - `requirement-candidate-content-clauses-06-object-management-page-116-l99-26` → `hla-1516.1-2025:clause-6.6.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l58-15` → `hla-1516.1-2025:clause-6.8.4`
-  - `requirement-candidate-content-clauses-06-object-management-page-118-l64-17` → `hla-1516.1-2025:clause-6.8.4`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l58-15` → `hla-1516.1-2025:clause-6.8`
+  - `requirement-candidate-content-clauses-06-object-management-page-118-l64-17` → `hla-1516.1-2025:clause-6.8`
 - `java-tck.final-federate-resignation-cleanup`:
   - `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33` → `hla-1516.1-2025:clause-4.12`
   - `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate` → `hla-1516.1-2025:clause-4.12`
@@ -12481,9 +12478,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-05-declaration-management-page-085-l32-10` → `hla-1516.1-2025:clause-5.1.5`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l104-29` → `hla-1516.1-2025:clause-5.12`
   - `requirement-candidate-content-clauses-05-declaration-management-page-101-l116-33` → `hla-1516.1-2025:clause-5.12`
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14.3`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l37-11` → `hla-1516.1-2025:clause-6.14`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l83-23` → `hla-1516.1-2025:clause-6.15`
+  - `requirement-candidate-content-clauses-06-object-management-page-128-l86-24` → `hla-1516.1-2025:clause-6.15`
 - `java-tck.asynchronous-interaction-delivery`:
   - `requirement-candidate-content-clauses-08-time-management-page-184-l133-40` → `hla-1516.1-2025:clause-8.1.5`
 - `java-tck.asynchronous-delivery-tso-exclusion`:
@@ -12850,9 +12847,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-04-federation-management-page-076-l162-43` → `hla-1516.1-2025:clause-4.32`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l57-17` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-210-l21-3` → `hla-1516.1-2025:clause-8.22.3`
@@ -12869,12 +12866,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-04-federation-management-page-072-l131-32` → `hla-1516.1-2025:clause-4.27`
   - `requirement-candidate-content-clauses-04-federation-management-page-076-l18-2` → `hla-1516.1-2025:clause-4.32`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
-  - `requirement-candidate-content-clauses-06-object-management-page-121-l36-10` → `hla-1516.1-2025:clause-6.10.5`
+  - `requirement-candidate-content-clauses-06-object-management-page-121-l36-10` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l103-31` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l103-31` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-210-l21-3` → `hla-1516.1-2025:clause-8.22.3`
@@ -12890,9 +12887,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-04-federation-management-page-076-l18-2` → `hla-1516.1-2025:clause-4.32`
   - `requirement-candidate-content-clauses-06-object-management-page-120-l83-22` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-06-object-management-page-122-l61-17` → `hla-1516.1-2025:clause-6.11`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11.1`
-  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11.1`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l85-25` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l97-29` → `hla-1516.1-2025:clause-6.11`
+  - `requirement-candidate-content-clauses-06-object-management-page-122-l121-37` → `hla-1516.1-2025:clause-6.11`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l57-17` → `hla-1516.1-2025:clause-8.1.3`
   - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-210-l21-3` → `hla-1516.1-2025:clause-8.22.3`
@@ -13111,6 +13108,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
 - `java-tck.federate-mom-updates-sent-mim-attribute`:
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
+- `java-tck.federate-mom-updates-sent-counts`:
+  - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
+  - `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` → `hla-1516.1-2025:clause-11.4.1`
 - `java-tck.federate-mom-object-instances-updated-mim-attribute`:
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
 - `java-tck.federate-mom-updated-object-count-periodic`:
@@ -13160,7 +13160,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-08-time-management-page-187-l40-11` → `hla-1516.1-2025:clause-8.1.8`
   - `requirement-candidate-content-clauses-08-time-management-page-187-l46-13` → `hla-1516.1-2025:clause-8.1.8`
 - `java-tck.delay-subscription-evaluation-directed-interaction`:
-  - `requirement-candidate-content-clauses-06-object-management-page-127-l25-7` → `hla-1516.1-2025:clause-6.14.3`
+  - `requirement-candidate-content-clauses-06-object-management-page-127-l25-7` → `hla-1516.1-2025:clause-6.14`
 - `java-tck.delay-subscription-evaluation-timestamped-directed-interaction`:
   - `requirement-candidate-content-clauses-08-time-management-page-187-l25-6` → `hla-1516.1-2025:clause-8.1.8`
   - `requirement-candidate-content-clauses-08-time-management-page-187-l40-11` → `hla-1516.1-2025:clause-8.1.8`
@@ -13200,43 +13200,43 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40` → `hla-1516.1-2025:clause-7.8`
   - `requirement-candidate-content-clauses-07-ownership-management-page-161-l143-42` → `hla-1516.1-2025:clause-7.8`
   - `requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6` → `hla-1516.1-2025:clause-7.12`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-transition-query`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36` → `hla-1516.1-2025:clause-7.2`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-reacquisition-query`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27` → `hla-1516.1-2025:clause-7.7.3`
   - `requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40` → `hla-1516.1-2025:clause-7.8`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-competing-if-available-query`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27` → `hla-1516.1-2025:clause-7.7.3`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9.1`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34` → `hla-1516.1-2025:clause-7.9.1`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43` → `hla-1516.1-2025:clause-7.9.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43` → `hla-1516.1-2025:clause-7.9`
   - `requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1` → `hla-1516.1-2025:clause-7.10`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-mixed-if-available-query`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-154-l117-36` → `hla-1516.1-2025:clause-7.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-160-l101-27` → `hla-1516.1-2025:clause-7.7.3`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9.1`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34` → `hla-1516.1-2025:clause-7.9.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34` → `hla-1516.1-2025:clause-7.9`
   - `requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1` → `hla-1516.1-2025:clause-7.10`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17.5`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18.4`
-  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18.4`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14` → `hla-1516.1-2025:clause-7.17`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13` → `hla-1516.1-2025:clause-7.18`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14` → `hla-1516.1-2025:clause-7.18`
 - `java-tck.ownership-unpublish-owned`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-150-l53-16` → `hla-1516.1-2025:clause-7.1.1`
   - `requirement-candidate-content-clauses-07-ownership-management-page-151-l84-27` → `hla-1516.1-2025:clause-7.1.2.1`
@@ -14171,7 +14171,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
 | <a id="scenario-java-tck.federate-exception-report-delivery"></a>`java-tck.federate-exception-report-delivery` — Deliver standard HLAreportException only while the joined federate's Exception Reporting switch is enabled | `org.hla.rti.tck.RtiTckMain#federateExceptionReportDelivery` | 24 | `cpp-1516.1-federation-mom`, `cpp-1516.1-exception-reporting-switch-membership-boundary`, `cpp-1516.1-object-class-lookup`, `cpp-1516.1-explicit-mim-composition` | `cpp-tck.federate-exception-report-delivery` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.federate-exception-reporting-mim-attribute"></a>`java-tck.federate-exception-reporting-mim-attribute` — Observe conditional HLAexceptionReporting MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateExceptionReportingMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-exception-reporting-mim-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.federate-exception-reporting-mim-attribute"></a>`java-tck.federate-exception-reporting-mim-attribute` — Observe conditional HLAexceptionReporting MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateExceptionReportingMomAttribute` | 20 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-exception-reporting-mim-attribute` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-exception-reporting-mom-switch"></a>`java-tck.federate-exception-reporting-mom-switch` — Set the joined federate's Exception Reporting switch through standard HLAsetSwitches without changing neighboring switches | `org.hla.rti.tck.RtiTckMain#federateExceptionReportingMomSwitch` | 17 | `cpp-1516.1-explicit-mim-composition` | `cpp-tck.federate-exception-reporting-mom-switch` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-exception-missing-parameter"></a>`java-tck.federate-mom-exception-missing-parameter` — Report a missing HLAsyncPointName through HLAreportMOMexception | `org.hla.rti.tck.RtiTckMain#federateMomExceptionMissingParameter` | 21 | `cpp-1516.1-federation-mom`, `cpp-1516.1-explicit-mim-composition` | `cpp-tck.federate-mom-exception-missing-parameter` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-exception-report-delivery"></a>`java-tck.federate-mom-exception-report-delivery` — Report malformed standard MOM interaction parameters through HLAreportMOMexception | `org.hla.rti.tck.RtiTckMain#federateMomExceptionReportDelivery` | 25 | `cpp-1516.1-federation-mom`, `cpp-1516.1-explicit-mim-composition` | `cpp-tck.federate-mom-exception-report-delivery` | `run` | not scenario-declared |
@@ -14394,7 +14394,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.federate-mom-updated-object-count-periodic"></a>`java-tck.federate-mom-updated-object-count-periodic` — Check registration and updated-object MOM counts directly and periodically | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectCountPeriodic` | 35 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` | `cpp-tck.joined-federate-mom-updated-object-count-periodic` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updated-object-report"></a>`java-tck.federate-mom-updated-object-report` — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectReport` | 34 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-attribute-value-update-response`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.joined-federate-mom-object-instances-updated-report` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updated-timestamped-object-report"></a>`java-tck.federate-mom-updated-timestamped-object-report` — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedTimestampedObjectReport` | 47 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-timestamped-attribute-update`, `cpp-1516.1-timestamped-attribute-reflect`, `cpp-1516.1-time-advance-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.federate-mom-updates-sent-counts"></a>`java-tck.federate-mom-updates-sent-counts` — Report HLAupdatesSent by standard transportation and adapter-supplied object class | `org.hla.rti.tck.RtiTckMain#federateMomUpdatesSentCounts` | 30 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-attribute-value-update-response`, `cpp-1516.1-transportation-type-control` | `cpp-tck.joined-federate-mom-updates-sent-counts` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.federate-mom-updates-sent-counts"></a>`java-tck.federate-mom-updates-sent-counts` — Report attribute update counts by standard transportation and object class | `org.hla.rti.tck.RtiTckMain#federateMomUpdatesSentCounts` | 56 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57`, `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` | `cpp-tck.joined-federate-mom-updates-sent-counts` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updates-sent-mim-attribute"></a>`java-tck.federate-mom-updates-sent-mim-attribute` — Count each successful receive-order Update Attribute Values invocation in HLAupdatesSent | `org.hla.rti.tck.RtiTckMain#federateMomUpdatesSent` | 38 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` | `cpp-tck.joined-federate-mom-updates-sent-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-selected-update-thresholds"></a>`java-tck.federate-selected-update-thresholds` — Deliver updates selected by two federates with different thresholds | `org.hla.rti.tck.FederateUpdateThresholdsScenarioRegistry#federateSelectedUpdateThresholds` | 14 | `summary-rule-9`, `detailed-rule-9` | `cpp-tck.federate-selected-update-thresholds` | `unsupported` | adapter FOM containing the selected object class and attribute; object-class name and attribute name; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |
 | <a id="scenario-java-tck.foreign-object-instance-handle-lookup-boundary"></a>`java-tck.foreign-object-instance-handle-lookup-boundary` — Check object-instance handle lookup is scoped to its federation execution | `org.hla.rti.tck.RtiTckMain#foreignObjectInstanceHandleLookupBoundary` | 15 | `cpp-1516.1-object-instance-name-lifecycle`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.foreign-object-instance-handle-lookup-boundary` | `run` | not scenario-declared |

@@ -192,6 +192,18 @@ are in
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-mom-updates-sent-counts` case requests
+`HLAreportUpdatesSent` after one reliable and two best-effort attribute updates. It
+checks the target's per-transport `HLAupdateCounts` for the registered object class,
+the empty report pair for a requester with no updates, and standard callback
+metadata. It maps the two paired MOM candidates to IEEE 1516.1-2025 §11.4.1; detailed
+counts remain scenario assertions and RL-112 records the generic candidate
+refinement gap. Java passed both callback models; the paired 98-assertion C++ Catch2
+case passed focused CTest 1/1 in HLA_EVOKED. Results are in
+`out/java-tck/federate-mom-updates-sent-counts-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

@@ -1364,12 +1364,28 @@ void scenarioSynchronousUpdateRateMessageDrop(
       deliveredDuringWindow <= sentCount,
       "Synchronous update-rate message dropping delivered more updates than were sent");
 
+  // publisherRate uses N-1 send intervals, whereas the observed drop count
+  // includes all N sent updates. Add the initial send boundary so the
+  // predicted rate difference and observed count use the same event window.
   auto const expectedDropCount =
-      elapsed.count() * (publisherRate - subscribedRate);
+      elapsed.count() * (publisherRate - subscribedRate) + 1.0;
   auto const observedDropCount = static_cast<double>(sentCount - deliveredDuringWindow);
+  auto const dropCountDifference = std::abs(observedDropCount - expectedDropCount);
+  auto const failureDetail =
+      std::string{"Synchronous update-rate message dropping did not match the required "
+                  "Rp-Rs drop rate within two boundary updates: expected="} +
+      std::to_string(expectedDropCount) + ", observed=" +
+      std::to_string(observedDropCount) + ", difference=" +
+      std::to_string(dropCountDifference) + ", sent=" +
+      std::to_string(sentCount) + ", delivered_during_window=" +
+      std::to_string(deliveredDuringWindow) + ", elapsed_seconds=" +
+      std::to_string(elapsed.count()) + ", publisher_rate=" +
+      std::to_string(publisherRate) + ", subscribed_rate=" +
+      std::to_string(subscribedRate) + ", evoke_rate=" +
+      std::to_string(evokeRate);
   require(
-      std::abs(observedDropCount - expectedDropCount) <= 2.0,
-      "Synchronous update-rate message dropping did not match the required Rp-Rs drop rate within two boundary updates");
+      dropCountDifference <= 2.0,
+      failureDetail);
 
   receiver.rtiAmbassador().unsubscribeObjectClassAttributes(
       receiverClass,

@@ -1167,6 +1167,7 @@ bool EmbeddedFederationRegistry::canPurgeOrphanObjectInstance(
   return !objectInstance.deleteAccepted &&
          objectInstance.attributeOwnersByHandle.empty() &&
          objectInstance.knownObjectClassHandlesByFederate.empty() &&
+         objectInstance.ownershipAssumptionRecipientsByAttribute.empty() &&
          objectInstance.pendingDiscoveryFederates.empty() &&
          objectInstance.pendingRemovalFederates.empty() &&
          !objectInstance.pendingTimestampedDeletionMessageId.has_value() &&

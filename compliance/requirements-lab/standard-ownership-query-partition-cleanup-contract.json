@@ -5,14 +5,14 @@
   "status": "experimental-public-api-not-conformance-evidence",
   "notes": "This contract records the portable C++ TCK check and focused pure-Java parity for mixed ordinary attribute ownership queries and read-only ownership-state checks. The sources use only the official IEEE RTIambassador and FederateAmbassador APIs plus their language standard libraries; adapters supply the provider package, two-attribute FOM, endpoint, and callback configuration. They verify disconnected and connected-unjoined query exceptions, exact owned and unowned callback partitions, owner/observer/unowned boolean results before and after the query, and suppression of pending query results when the object is removed. Exception checks are API-contract details, not direct normative mappings. The broader Java invalid-object/attribute scenario stays independent and currently fails on the provider's wrapped exception; no negative failure is suppressed. Callback order, private registries, interoperability, and conformance are not asserted.",
   "requirement_mappings": [
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13", "standard_section": "hla-1516.1-2025:clause-7.17.5"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18.4"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5", "standard_section": "hla-1516.1-2025:clause-7.19.6"},
-    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6", "standard_section": "hla-1516.1-2025:clause-7.19.6"}
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13", "standard_section": "hla-1516.1-2025:clause-7.17"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15", "standard_section": "hla-1516.1-2025:clause-7.18"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18", "standard_section": "hla-1516.1-2025:clause-7.18"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20", "standard_section": "hla-1516.1-2025:clause-7.18"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21", "standard_section": "hla-1516.1-2025:clause-7.18"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23", "standard_section": "hla-1516.1-2025:clause-7.18"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5", "standard_section": "hla-1516.1-2025:clause-7.19"},
+    {"requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6", "standard_section": "hla-1516.1-2025:clause-7.19"}
   ],
   "api_surfaces": [
     {

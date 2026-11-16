@@ -1084,19 +1084,19 @@
         "requirement-candidate-content-clauses-06-object-management-page-132-l146-40"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.18.1"
+        "hla-1516.1-2025:clause-6.18"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         }
       ],
-      "mapping_note": "Direct mappings are limited to §6.18.1 and match the C++ scenario: page-132-l140-38 covers the invoking federate forgetting its known-object state after local deletion, followed by an eligible rediscovery; page-132-l146-40 covers federation-object retention and the no-owned-attributes precondition, exercised by FederateOwnsAttributes and a subsequent owner update/reflection after rediscovery. OwnershipAcquisitionPending remains supplemental. Fabricated pre-connect/pre-join invalid-handle checks are omitted. Each recipient resolves its local object handle by standard name, and producer identity is checked by standard federate name; no cross-ambassador handle equality is assumed. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings are limited to §6.18 and match the C++ scenario: page-132-l140-38 covers the invoking federate forgetting its known-object state after local deletion, followed by an eligible rediscovery; page-132-l146-40 covers federation-object retention and the no-owned-attributes precondition, exercised by FederateOwnsAttributes and a subsequent owner update/reflection after rediscovery. OwnershipAcquisitionPending remains supplemental. Fabricated pre-connect/pre-join invalid-handle checks are omitted. Each recipient resolves its local object handle by standard name, and producer identity is checked by standard federate name; no cross-ambassador handle equality is assumed. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -4809,7 +4809,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22"
       ],
       "requirement_mappings": [
@@ -4831,11 +4830,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -4895,7 +4894,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22"
       ],
       "requirement_mappings": [
@@ -4917,11 +4915,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -4977,7 +4975,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
@@ -5002,11 +4999,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l12-2",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -5076,7 +5073,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22",
         "hla-1516.1-2025:clause-7.1"
       ],
@@ -5095,7 +5091,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -5115,7 +5111,7 @@
           "note": "The non-owner member attempts to update the owner-registered attribute and receives AttributeNotOwned; the rejected call produces neither the owner Provide Attribute Value Update callback nor a member reflection. This is the bounded ownership-enforcement witness at p. 148 l. 22."
         }
       ],
-      "mapping_note": "Direct mappings cover the object-instance Request Attribute Value Update service and owner callback (§6.21), request-tag propagation (§6.21.5), one Provide Attribute Value Update callback for the owner (§6.22), the provider's ordinary Update/Reflect value and tag (§6.10), and §7.1 ownership enforcement: a non-owner's Update Attribute Values call is rejected with AttributeNotOwned, while the owner alone receives the tested Provide callback. The two-federate fixture uses one object and one attribute; setup, discovery, and cleanup are not separate claims. This scenario exercises the instance-designator overload only; the page-137 l40-8 candidate remains excluded because its structural-clause extraction mismatch is recorded in the issue ledger.",
+      "mapping_note": "Direct mappings cover the object-instance Request Attribute Value Update service and owner callback (§6.21), request-tag propagation (§6.21), one Provide Attribute Value Update callback for the owner (§6.22), the provider's ordinary Update/Reflect value and tag (§6.10), and §7.1 ownership enforcement: a non-owner's Update Attribute Values call is rejected with AttributeNotOwned, while the owner alone receives the tested Provide callback. The two-federate fixture uses one object and one attribute; setup, discovery, and cleanup are not separate claims. This scenario exercises the instance-designator overload only; the page-137 l40-8 candidate remains excluded because its structural-clause extraction mismatch is recorded in the issue ledger.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5186,8 +5182,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5"
+        "hla-1516.1-2025:clause-6.21"
       ],
       "requirement_mappings": [
         {
@@ -5204,7 +5199,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
@@ -5215,7 +5210,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.10"
         }
       ],
-      "mapping_note": "Direct mappings cover instance- and class-scoped Request Attribute Value Update solicitation and the owner callback (§6.21), request-tag propagation (§6.21.5), and the provider's ordinary Update/Reflect response content and tag (§6.10). The portable Java subset omits fabricated invalid ObjectClass/Attribute handles and does not claim those C++ supplemental assertions. Adapter setup, discovery, and cleanup are setup. The class overload exercises one base-class object only; subclass expansion and multi-instance fan-out are not claimed. The Java source uses only official IEEE 1516.1-2025 APIs and receiver-local handles. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings cover instance- and class-scoped Request Attribute Value Update solicitation and the owner callback (§6.21), request-tag propagation (§6.21), and the provider's ordinary Update/Reflect response content and tag (§6.10). The portable Java subset omits fabricated invalid ObjectClass/Attribute handles and does not claim those C++ supplemental assertions. Adapter setup, discovery, and cleanup are setup. The class overload exercises one base-class object only; subclass expansion and multi-instance fan-out are not claimed. The Java source uses only official IEEE 1516.1-2025 APIs and receiver-local handles. Official-API compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5286,7 +5281,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22"
       ],
       "requirement_mappings": [
@@ -5304,7 +5298,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -5319,7 +5313,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.10"
         }
       ],
-      "mapping_note": "Parity for two independent object-instance requests (§6.21), distinct request tags (§6.21.5), one owner callback per request (§6.22), and an ordinary response reflected to both active subscribers with standard value/tag/metadata (§6.10). Identity lookups and declarations are fixture controls; callback order, DDM behavior, and provider-internal fan-out are not claimed. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied class/attribute names; this is not independent-provider or conformance evidence.",
+      "mapping_note": "Parity for two independent object-instance requests (§6.21), distinct request tags (§6.21), one owner callback per request (§6.22), and an ordinary response reflected to both active subscribers with standard value/tag/metadata (§6.10). Identity lookups and declarations are fixture controls; callback order, DDM behavior, and provider-internal fan-out are not claimed. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied class/attribute names; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5627,10 +5621,11 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.1.2",
         "hla-1516.1-2025:clause-6.5.3",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.8.4",
-        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.18.1"
+        "hla-1516.1-2025:clause-6.18"
       ],
       "requirement_mappings": [
         {
@@ -5651,7 +5646,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l67-18",
@@ -5659,7 +5654,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
-          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+          "standard_section": "hla-1516.1-2025:clause-6.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
@@ -5671,14 +5666,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         }
       ],
-      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 and page-118-l67-18 -> §6.8.4 for successful unnamed registration; page-119-l103-29 -> §6.9.3 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18.1 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Pre-connect/pre-join reservation exception precedence, unreserved named registration, owner-local-delete denial, and pending-acquisition local-delete denial remain internal boundary assertions without separate normative mappings. Fabricated invalid-class and unknown-object handles are not used. Object and class handles are checked only within each ambassador; producer identity is resolved by its standard federate name. The official-API Java case passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 -> §6.8 for successful unnamed registration and page-118-l67-18 -> §6.8.4 for the returned handle's postcondition; page-119-l103-29 -> §6.9 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Pre-connect/pre-join reservation exception precedence, unreserved named registration, owner-local-delete denial, and pending-acquisition local-delete denial remain internal boundary assertions without separate normative mappings. Fabricated invalid-class and unknown-object handles are not used. Object and class handles are checked only within each ambassador; producer identity is resolved by its standard federate name. The official-API Java case passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -5929,15 +5924,15 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.9.4"
+        "hla-1516.1-2025:clause-5.9"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l17-4",
-          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+          "standard_section": "hla-1516.1-2025:clause-5.9"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l17-4 -> §5.9.4: after confirming two federates independently receive both attributes, the scenario supplies only the first attribute to Unsubscribe Object Class Attributes for one federate and verifies that only its subscription changes; the other federate continues receiving both attributes. Registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Each receiver's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
+      "mapping_note": "Direct mapping is limited to page-098-l17-4 -> §5.9: after confirming two federates independently receive both attributes, the scenario supplies only the first attribute to Unsubscribe Object Class Attributes for one federate and verifies that only its subscription changes; the other federate continues receiving both attributes. Registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. Each receiver's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -5989,15 +5984,15 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.9.4"
+        "hla-1516.1-2025:clause-5.9"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l20-5",
-          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+          "standard_section": "hla-1516.1-2025:clause-5.9"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l20-5 -> §5.9.4: after confirming an active two-attribute subscription receives both exact values and tag, the scenario invokes Unsubscribe Object Class and verifies that a later update delivers neither attribute. The attribute-set overload is covered separately; registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. The receiving federate's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
+      "mapping_note": "Direct mapping is limited to page-098-l20-5 -> §5.9: after confirming an active two-attribute subscription receives both exact values and tag, the scenario invokes Unsubscribe Object Class and verifies that a later update delivers neither attribute. The attribute-set overload is covered separately; registration, update delivery, and cleanup are fixture behavior and are not asserted as separate requirements. The receiving federate's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -6050,15 +6045,15 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.9.4"
+        "hla-1516.1-2025:clause-5.9"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l23-6",
-          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+          "standard_section": "hla-1516.1-2025:clause-5.9"
         }
       ],
-      "mapping_note": "Direct mapping is limited to page-098-l23-6 -> §5.9.4: after establishing an active two-attribute subscription and confirming exact values and tag, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. The receiving federate's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
+      "mapping_note": "Direct mapping is limited to page-098-l23-6 -> §5.9: after establishing an active two-attribute subscription and confirming exact values and tag, the scenario calls Unsubscribe Object Class Attributes with an empty set and confirms both attributes remain reflected on the next update. Active-subscription preservation is demonstrated; passive-state preservation is not separately asserted. The receiving federate's object and attribute handles are resolved through its own standard API ambassador. Official API-only JAR compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-lookup-api-contract.json",
@@ -6237,7 +6232,7 @@
         "hla-1516.1-2025:clause-5.1.2",
         "hla-1516.1-2025:clause-5.2",
         "hla-1516.1-2025:clause-5.3",
-        "hla-1516.1-2025:clause-6.8.4"
+        "hla-1516.1-2025:clause-6.8"
       ],
       "requirement_mappings": [
         {
@@ -6258,14 +6253,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Direct mappings match the promoted C++ row: page-082-l191-62 -> §5.1.2 for publication as a registration prerequisite (ObjectClassNotPublished while unpublished, then successful registration after republication); page-090-l79-22 -> §5.2 for whole-class unpublication; page-091-l121-35 and page-091-l127-37 -> §5.3 for active subscription and discovery; page-118-l22-3 and page-118-l28-5 -> §6.8.4 for registration and instance-name/receiver-local handle/class lookups. Resignation and disconnect are fixture cleanup only. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ row: page-082-l191-62 -> §5.1.2 for publication as a registration prerequisite (ObjectClassNotPublished while unpublished, then successful registration after republication); page-090-l79-22 -> §5.2 for whole-class unpublication; page-091-l121-35 and page-091-l127-37 -> §5.3 for active subscription and discovery; page-118-l22-3 and page-118-l28-5 -> §6.8 for registration and instance-name/receiver-local handle/class lookups. Resignation and disconnect are fixture cleanup only. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "object-class-attribute-declaration-api-contract.json",
         "object-class-attribute-declaration-requirements-contract.json",
@@ -6317,19 +6312,19 @@
         "requirement-candidate-content-clauses-06-object-management-page-118-l70-19"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.8.4"
+        "hla-1516.1-2025:clause-6.8"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l70-19",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Direct source mappings: page-118-l64-17 -> §6.8.4 for registering both names after the adapter-backed reservation-success callbacks; page-118-l70-19 -> §6.8.4 for bidirectional name/handle identity at the publisher and both discovering subscribers. Callback ordering and cross-ambassador object/class/attribute-handle equality are not asserted. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied names; this is not independent-provider or conformance evidence.",
+      "mapping_note": "Direct source mappings: page-118-l64-17 -> §6.8 for registering both names after the adapter-backed reservation-success callbacks; page-118-l70-19 -> §6.8 for bidirectional name/handle identity at the publisher and both discovering subscribers. Callback ordering and cross-ambassador object/class/attribute-handle equality are not asserted. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied names; this is not independent-provider or conformance evidence.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -6551,7 +6546,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.21",
-        "hla-1516.1-2025:clause-6.21.5",
         "hla-1516.1-2025:clause-6.22"
       ],
       "requirement_mappings": [
@@ -6569,7 +6563,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-136-l21-5",
-          "standard_section": "hla-1516.1-2025:clause-6.21.5"
+          "standard_section": "hla-1516.1-2025:clause-6.21"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-137-l43-9",
@@ -6584,7 +6578,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.10"
         }
       ],
-      "mapping_note": "Parity covers full and selective object-instance requests (§6.21), request-tag propagation (§6.21.5), exactly one owner callback per request (§6.22), and ordinary Update/Reflect values and response tag (§6.10). Setup/discovery are controls, not separate claims; callback order, DDM behavior, and provider-internal delivery policy are outside scope. Each federate resolves class, attribute, and object identity locally. The Java source compiles against the official API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied FOM/names; independent-provider conformance is not claimed.",
+      "mapping_note": "Parity covers full and selective object-instance requests (§6.21), request-tag propagation (§6.21), exactly one owner callback per request (§6.22), and ordinary Update/Reflect values and response tag (§6.10). Setup/discovery are controls, not separate claims; callback order, DDM behavior, and provider-internal delivery policy are outside scope. Each federate resolves class, attribute, and object identity locally. The Java source compiles against the official API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied FOM/names; independent-provider conformance is not claimed.",
       "contract_refs": [
         "attribute-value-update-request-api-contract.json",
         "attribute-value-update-request-requirements-contract.json",
@@ -6644,7 +6638,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
         "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1"
+        "hla-1516.1-2025:clause-6.17"
       ],
       "requirement_mappings": [
         {
@@ -6665,18 +6659,18 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         }
       ],
-      "mapping_note": "Direct pairs follow the ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17.1 removal callback delivery. The scenario verifies two ordinary deletions and exactly one matching local object handle, tag, and producer at each active subscriber. The historical scenario ID retains 'fifo' for C++ parity, but Java imposes no removal-order requirement; absence of owner loopback is supplemental. The unmatched page-130-l137-40 candidate is not selected for direct mapping. Java uses only the official IEEE API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct pairs follow the ordinary-deletion trace: page-129-l123-34, page-129-l138-39, and page-129-l144-41 -> §6.16; page-130-l167-50 and page-130-l8-1 -> §6.16.4 tag handling; page-131-l101-29 and page-131-l110-32 -> §6.17 removal callback delivery. The scenario verifies two ordinary deletions and exactly one matching local object handle, tag, and producer at each active subscriber. The historical scenario ID retains 'fifo' for C++ parity, but Java imposes no removal-order requirement; absence of owner loopback is supplemental. The unmatched page-130-l137-40 candidate is not selected for direct mapping. Java uses only the official IEEE API and passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -6751,12 +6745,12 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
-        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-6.16",
         "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1",
-        "hla-1516.1-2025:clause-6.18.1",
-        "hla-1516.1-2025:clause-7.1.3"
+        "hla-1516.1-2025:clause-7.1.3",
+        "hla-1516.1-2025:clause-6.17",
+        "hla-1516.1-2025:clause-6.18"
       ],
       "requirement_mappings": [
         {
@@ -6765,7 +6759,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
-          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+          "standard_section": "hla-1516.1-2025:clause-6.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
@@ -6793,7 +6787,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l137-40",
@@ -6801,26 +6795,26 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-132-l146-40",
-          "standard_section": "hla-1516.1-2025:clause-6.18.1"
+          "standard_section": "hla-1516.1-2025:clause-6.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l111-35",
           "standard_section": "hla-1516.1-2025:clause-7.1.3"
         }
       ],
-      "mapping_note": "Direct mappings: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-119-l103-29 -> §6.9.3 object-instance lookup; page-129-l123-34/l132-37/l138-39/l144-41 -> §6.16 ordinary deletion and same-execution handle non-reuse; page-129-l135-38 -> §6.16 former-owner ownership query returns ObjectInstanceNotKnown after deletion, without asserting optional name reuse; page-130-l167-50/l8-1/l137-40 -> §6.16.4 deletion tag and recipient/owner post-removal unknown-object boundaries; page-131-l101-29/l110-32 -> §6.17.1 removal callback; page-132-l140-38/l146-40 -> §6.18.1 recipient-local deletion. Direct page-153-l111-35 -> canonical §7.1.3: the registrant initially owns HLAprivilegeToDeleteObject and can delete. Supplemental checks: the non-owner gets DeletePrivilegeNotHeld without removal; after the successful deletion call, the owner no longer knows the object while an evoked recipient still knows it until its queued removal callback is serviced. The queued interval is not assigned a new direct mapping. Privilege transfer remains separate. Fabricated unknown-object handles are omitted; pre-connect/pre-join lookup precedence remains internal. Java checks receiver-local object handles and resolves callback producer identity by standard federate name, without comparing handles across ambassadors. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-119-l103-29 -> §6.9 object-instance lookup; page-129-l123-34/l132-37/l138-39/l144-41 -> §6.16 ordinary deletion and same-execution handle non-reuse; page-129-l135-38 -> §6.16 former-owner ownership query returns ObjectInstanceNotKnown after deletion, without asserting optional name reuse; page-130-l167-50/l8-1/l137-40 -> §6.16.4 deletion tag and recipient/owner post-removal unknown-object boundaries; page-131-l101-29/l110-32 -> §6.17 removal callback; page-132-l140-38/l146-40 -> §6.18 recipient-local deletion. Direct page-153-l111-35 -> canonical §7.1.3: the registrant initially owns HLAprivilegeToDeleteObject and can delete. Supplemental checks: the non-owner gets DeletePrivilegeNotHeld without removal; after the successful deletion call, the owner no longer knows the object while an evoked recipient still knows it until its queued removal callback is serviced. The queued interval is not assigned a new direct mapping. Privilege transfer remains separate. Fabricated unknown-object handles are omitted; pre-connect/pre-join lookup precedence remains internal. Java checks receiver-local object handles and resolves callback producer identity by standard federate name, without comparing handles across ambassadors. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -6875,8 +6869,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
-        "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1"
+        "hla-1516.1-2025:clause-6.17"
       ],
       "requirement_mappings": [
         {
@@ -6885,14 +6878,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         }
       ],
-      "mapping_note": "Direct pure-API witnesses: ordinary deletion delivers exactly one removal to a known subscribed receiver (§6.16), carrying the supplied tag (§6.16.4) and producing federate (§6.17.1). FOM lookup, publication, registration, and discovery are setup assertions, not additional direct mappings here. The publisher no-callback check does not establish a normative absence under evoked callbacks without servicing its queue. Installed Java adapter passes both callback models on 2026-10-22; no independent-provider conformance claim.",
+      "mapping_note": "Direct pure-API witnesses: ordinary deletion delivers exactly one removal to a known subscribed receiver (§6.16), carrying the supplied tag (§6.16) and producing federate (§6.17). FOM lookup, publication, registration, and discovery are setup assertions, not additional direct mappings here. The publisher no-callback check does not establish a normative absence under evoked callbacks without servicing its queue. Installed Java adapter passes both callback models on 2026-10-22; no independent-provider conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
@@ -8721,7 +8714,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.3.4",
-        "hla-1516.1-2025:clause-7.6.3",
+        "hla-1516.1-2025:clause-7.6",
         "hla-1516.1-2025:clause-7.8"
       ],
       "requirement_mappings": [
@@ -8735,7 +8728,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
-          "standard_section": "hla-1516.1-2025:clause-7.6.3"
+          "standard_section": "hla-1516.1-2025:clause-7.6"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-161-l137-40",
@@ -8787,15 +8780,15 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.6.3"
+        "hla-1516.1-2025:clause-7.6"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l53-11",
-          "standard_section": "hla-1516.1-2025:clause-7.6.3"
+          "standard_section": "hla-1516.1-2025:clause-7.6"
         }
       ],
-      "mapping_note": "Official 1516.1-2025 Java API-only parity checks typed AttributeDivestitureWasNotRequested rejection of a mixed requested/unrequested set, no partial ownership transfer or acquisition notification, and successful later confirmation of only the requested attribute. The adapter supplies a two-attribute FOM and names; the requester uses its own standard object and attribute handles. Only page-159-l53-11 -> §7.6.3 is selected from the native plan; process transport and MOM reporting are excluded. Java compiles against the official API-only JAR and passed focused installed JNI runs in HLA_EVOKED and HLA_IMMEDIATE. C++ installed-package primary/contract passed 4/4 across both callback modes; independent-provider conformance is unverified.",
+      "mapping_note": "Official 1516.1-2025 Java API-only parity checks typed AttributeDivestitureWasNotRequested rejection of a mixed requested/unrequested set, no partial ownership transfer or acquisition notification, and successful later confirmation of only the requested attribute. The adapter supplies a two-attribute FOM and names; the requester uses its own standard object and attribute handles. Only page-159-l53-11 -> §7.6 is selected from the native plan; process transport and MOM reporting are excluded. Java compiles against the official API-only JAR and passed focused installed JNI runs in HLA_EVOKED and HLA_IMMEDIATE. C++ installed-package primary/contract passed 4/4 across both callback modes; independent-provider conformance is unverified.",
       "contract_refs": [
         "standard-confirm-divestiture-mixed-set-atomicity-contract.json"
       ],
@@ -8889,7 +8882,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-6.11"
       ],
       "requirement_mappings": [
@@ -8915,11 +8907,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l115-35",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         }
       ],
       "mapping_note": "Direct pairs cover active subscription under §5.8 (page-096-l117-36), ordinary update values and tags under §6.10 (page-120-l83-22/l110-31), and reflection values, transportation, producer, and no-publisher-loopback under §6.11.1 (page-122-l61-17/l79-23/l112-34/l115-35). Two active subscribers each receive one matching reflection per ordinary update. The historical 'fifo' ID preserves C++ parity, but this Java case does not assert sender-order delivery because that ordering has no direct mapping here. Discovery and federation lifecycle are setup; object/class/attribute handles are used only within their own ambassador. Java compiles against the official IEEE API and passed focused installed JNI runs in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
@@ -8987,7 +8979,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-6.11"
       ],
       "requirement_mappings": [
@@ -9013,11 +9004,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l115-35",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         }
       ],
       "mapping_note": "Direct pairs cover active subscription under §5.8 (page-096-l117-36), ordinary update values and tags under §6.10 (page-120-l83-22/l110-31), and reflection values, transportation, producer, and no-publisher-loopback under §6.11.1 (page-122-l61-17/l79-23/l112-34/l115-35). The receiver gets each distinct ordinary update once, matched to its own object handle and the publisher's standard federate name. Callback servicing in HLA_EVOKED is supplemental. The case imposes no sender-order assertion because that ordering has no direct mapping here; federation lifecycle and discovery are setup. Java compiles against the official IEEE API and passed focused installed JNI runs in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
@@ -9221,10 +9212,8 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.3",
-        "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-6.12",
         "hla-1516.1-2025:clause-6.13",
         "hla-1516.1-2025:clause-6.11"
@@ -9244,11 +9233,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l56-18",
-          "standard_section": "hla-1516.1-2025:clause-5.1.4"
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l65-21",
-          "standard_section": "hla-1516.1-2025:clause-5.1.4"
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
@@ -9264,7 +9253,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
@@ -9279,7 +9268,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.13"
         }
       ],
-      "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3 and §5.1.4), send to a subscribed interaction recipient and tag (§6.12), and producer identity in Receive Interaction (§6.13). The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence. Java provider runtime remains unvalidated.",
+      "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3), send to a subscribed interaction recipient and tag (§6.12), and producer identity in Receive Interaction (§6.13). The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence. Java provider runtime remains unvalidated.",
       "contract_refs": [
         "connection-callback-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -9338,7 +9327,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-6.11"
       ],
       "requirement_mappings": [
@@ -9364,7 +9352,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l112-34",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         }
       ],
       "mapping_note": "Direct mappings shared with the C++ scenario: active subscription creation and delivery relevance (page-096-l96-29 and page-096-l117-36) -> §5.8; ordinary Update payload/tag (page-120-l83-22 and page-120-l110-31) -> §6.10; Reflect callback values and producing-federate metadata (page-122-l61-17 and page-122-l112-34) -> §6.11.1. Passive observer delivery after active relevance is established is supplemental because there is no immutable direct requirement candidate for that assertion. Java additionally checks FOM handle/name round-trips and empty regions as supplemental behavior.",
@@ -9862,18 +9850,18 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l107-31",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l113-33",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.15"
       ],
-      "mapping_note": "Direct mappings match the promoted C++ subscription-accumulation case: page-101-l134-39 -> §5.12 for two sequential universal subscriptions retaining both sibling classes; page-128-l107-31/l113-33 -> §6.15.1 for two ordinary sends delivered through the receive-order directed callback overload with no timestamp or retraction handle. The positive timestamped paired witness is java-tck.timestamped-directed-zero-lookahead-send-at-grant; neither scenario alone claims the full paired/iff rule. Names are adapter-overridable and callback assertions use receiver-local standard handles. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ subscription-accumulation case: page-101-l134-39 -> §5.12 for two sequential universal subscriptions retaining both sibling classes; page-128-l107-31/l113-33 -> §6.15 for two ordinary sends delivered through the receive-order directed callback overload with no timestamp or retraction handle. The positive timestamped paired witness is java-tck.timestamped-directed-zero-lookahead-send-at-grant; neither scenario alone claims the full paired/iff rule. Names are adapter-overridable and callback assertions use receiver-local standard handles. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "directed-interaction-requirements-contract.json",
@@ -9951,35 +9939,35 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l56-18",
-          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+          "standard_section": "hla-1516.1-2025:clause-5.1.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l65-21",
-          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+          "standard_section": "hla-1516.1-2025:clause-5.1.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l74-24",
-          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+          "standard_section": "hla-1516.1-2025:clause-5.1.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l92-30",
-          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+          "standard_section": "hla-1516.1-2025:clause-5.1.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l46-14",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         }
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-5.1.5",
-        "hla-1516.1-2025:clause-6.14.3"
+        "hla-1516.1-2025:clause-5.1.4",
+        "hla-1516.1-2025:clause-6.14"
       ],
-      "mapping_note": "Direct mappings match the promoted C++ case: the publisher universally subscribes to both directed classes but receives no callback for its own valid send (§6.14.3 page-127-l46-14), while both receivers get the tag unchanged (page-127-l52-16). A base-class send containing the FDD-defined derived-only parameter throws InteractionParameterNotDefined without delivery (§5.1.5 page-085-l65-21). The valid derived send preserves exact-class inherited/derived values (l74-24), projects only the inherited value to the superclass (l92-30), and gives each recipient one class view (l56-18). The §5.12 page-101-l143-42 declaration mapping remains separate. Receiver-local standard handles and bounded callback servicing avoid cross-ambassador identity assumptions. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ case: the publisher universally subscribes to both directed classes but receives no callback for its own valid send (§6.14 page-127-l46-14), while both receivers get the tag unchanged (page-127-l52-16). A base-class send containing the FDD-defined derived-only parameter throws InteractionParameterNotDefined without delivery (§5.1.4 page-085-l65-21). The valid derived send preserves exact-class inherited/derived values (l74-24), projects only the inherited value to the superclass (l92-30), and gives each recipient one class view (l56-18). The §5.12 page-101-l143-42 declaration mapping remains separate. Receiver-local standard handles and bounded callback servicing avoid cross-ambassador identity assumptions. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "standard-directed-interaction-contract.json"
@@ -10055,7 +10043,7 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.1.9",
-        "hla-1516.1-2025:clause-6.14.3",
+        "hla-1516.1-2025:clause-6.14",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.10.2"
       ],
@@ -10066,7 +10054,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l52-16",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-175-l86-26",
@@ -10077,7 +10065,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.10.2"
         }
       ],
-      "mapping_note": "Direct mappings match the promoted C++ case: page-109-l88-26 -> §6.1.9 for exactly one base-class discovery and known-class lookup; page-127-l52-16 -> §6.14.3 for receive-order and timestamped directed callbacks projected to the base interaction and base parameter despite an inapplicable child-class subscription; page-175-l86-26 -> Clause 8's timestamped-activity statement (the pinned Lab has no narrower subsection); page-197-l20-3 -> §8.10.2 for timestamped delivery before the NMR grant at message time. The Java test uses standard universal subscriptions and receiver-local handles, checks timestamp/order/retraction metadata, and observes directed-before-grant callback order. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ case: page-109-l88-26 -> §6.1.9 for exactly one base-class discovery and known-class lookup; page-127-l52-16 -> §6.14 for receive-order and timestamped directed callbacks projected to the base interaction and base parameter despite an inapplicable child-class subscription; page-175-l86-26 -> Clause 8's timestamped-activity statement (the pinned Lab has no narrower subsection); page-197-l20-3 -> §8.10.2 for timestamped delivery before the NMR grant at message time. The Java test uses standard universal subscriptions and receiver-local handles, checks timestamp/order/retraction metadata, and observes directed-before-grant callback order. Focused installed-provider runs passed under both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "standard-directed-interaction-contract.json"
@@ -13876,8 +13864,8 @@
         "hla-1516.2-2025:clause-4",
         "hla-1516.2-2025:clause-C.2",
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-6.14.3",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -13902,15 +13890,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
       "mapping_note": "Compiles against the 2025 Java API; scenario-ID parity for later-module directed-interaction acceptance, universally subscribed targeted delivery, missing-reference rejection, and valid retry. Java universal subscription matches the C++ test's universally=true flag; private OMT sharing metadata is not publicly introspected. Matching C++ primary and contract passed 4/4 at out/mgw/directed-reference-resolution-20261021.json.",
@@ -17295,28 +17283,28 @@
         "requirement-candidate-content-clauses-06-object-management-page-147-l33-6"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.32.5",
-        "hla-1516.1-2025:clause-6.33.6"
+        "hla-1516.1-2025:clause-6.32",
+        "hla-1516.1-2025:clause-6.33"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
-          "standard_section": "hla-1516.1-2025:clause-6.32.5"
+          "standard_section": "hla-1516.1-2025:clause-6.32"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         }
       ],
-      "mapping_note": "Maps only the post-resignation FederateNotExecutionMember query outcome (§6.32.5) and the successful query's callback assertions for publisher, interaction class, and resolvable transportation handle (§6.33.6). Fixture setup/lookups, cleanup, and callback count/order remain supplemental. Focused local Java runtime evidence is not independent-provider conformance evidence.",
+      "mapping_note": "Maps only the post-resignation FederateNotExecutionMember query outcome (§6.32) and the successful query's callback assertions for publisher, interaction class, and resolvable transportation handle (§6.33). Fixture setup/lookups, cleanup, and callback count/order remain supplemental. Focused local Java runtime evidence is not independent-provider conformance evidence.",
       "contract_refs": [
         "interaction-transportation-query-valid-inputs-after-resignation-api-contract.json",
         "interaction-transportation-query-valid-inputs-after-resignation-requirements-contract.json"
@@ -17344,8 +17332,8 @@
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
         "hla-1516.1-2025:clause-5.13",
-        "hla-1516.1-2025:clause-6.14.3",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -17374,18 +17362,18 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
-      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication (5.1.4), known-target delivery (5.1.5), subscription/unsubscription services (5.12 and 5.13), directed send and its ObjectInstanceNotKnown exception (6.14.3), and receive callback content/metadata (6.15.1). Object deletion/removal assertions, handle lookup, discovery, declarations used only as fixture setup, and cleanup are not mapped as independent requirements here. Assertions suppressing an already queued callback across unsubscribe, unpublish, or target deletion are supplementary lifecycle regressions; the cited clauses do not specify those exact queue-cutoff boundaries. The Java source uses only the official 1516.1-2025 API and passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct candidate-to-clause anchors cover directed-interaction publication (5.1.4), known-target delivery (5.1.5), subscription/unsubscription services (5.12 and 5.13), directed send and its ObjectInstanceNotKnown exception (6.14), and receive callback content/metadata (6.15). Object deletion/removal assertions, handle lookup, discovery, declarations used only as fixture setup, and cleanup are not mapped as independent requirements here. Assertions suppressing an already queued callback across unsubscribe, unpublish, or target deletion are supplementary lifecycle regressions; the cited clauses do not specify those exact queue-cutoff boundaries. The Java source uses only the official 1516.1-2025 API and passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
       "category": "directed-interaction",
       "title": "Fence directed delivery and callback metadata across target deletion",
       "api_methods": [
@@ -17502,15 +17490,15 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.1.5"
+        "hla-1516.1-2025:clause-5.1.4"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l8-2",
-          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+          "standard_section": "hla-1516.1-2025:clause-5.1.4"
         }
       ],
-      "mapping_note": "Direct mapping to §5.1.5: the published directed interaction class is resolved by standard name on each ambassador and delivered under the receiver-local class handle. Discovered derived-target identity and observer exclusion are supplemental assertions. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mapping to §5.1.4: the published directed interaction class is resolved by standard name on each ambassador and delivered under the receiver-local class handle. Discovered derived-target identity and observer exclusion are supplemental assertions. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -17610,17 +17598,15 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.25",
-        "hla-1516.1-2025:clause-6.25.1",
         "hla-1516.1-2025:clause-6.26",
         "hla-1516.1-2025:clause-6.27",
         "hla-1516.1-2025:clause-6.28",
         "hla-1516.1-2025:clause-6.29",
         "hla-1516.1-2025:clause-6.30",
-        "hla-1516.1-2025:clause-6.30.3",
-        "hla-1516.1-2025:clause-6.31.3",
-        "hla-1516.1-2025:clause-6.32.5",
-        "hla-1516.1-2025:clause-6.33.6",
-        "hla-1516.1-2025:clause-6.1.11"
+        "hla-1516.1-2025:clause-6.1.11",
+        "hla-1516.1-2025:clause-6.31",
+        "hla-1516.1-2025:clause-6.32",
+        "hla-1516.1-2025:clause-6.33"
       ],
       "requirement_mappings": [
         {
@@ -17629,7 +17615,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-139-l132-34",
-          "standard_section": "hla-1516.1-2025:clause-6.25.1"
+          "standard_section": "hla-1516.1-2025:clause-6.25"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-140-l178-51",
@@ -17692,31 +17678,31 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-144-l94-22",
-          "standard_section": "hla-1516.1-2025:clause-6.30.3"
+          "standard_section": "hla-1516.1-2025:clause-6.30"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l119-33",
-          "standard_section": "hla-1516.1-2025:clause-6.31.3"
+          "standard_section": "hla-1516.1-2025:clause-6.31"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-145-l122-34",
-          "standard_section": "hla-1516.1-2025:clause-6.31.3"
+          "standard_section": "hla-1516.1-2025:clause-6.31"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-146-l58-12",
-          "standard_section": "hla-1516.1-2025:clause-6.32.5"
+          "standard_section": "hla-1516.1-2025:clause-6.32"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l24-3",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l30-5",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-147-l33-6",
-          "standard_section": "hla-1516.1-2025:clause-6.33.6"
+          "standard_section": "hla-1516.1-2025:clause-6.33"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l12-3",
@@ -17727,7 +17713,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.1.11"
         }
       ],
-      "mapping_note": "Direct Java public-API witnesses mirror cpp-tck.transport-order. The adapter-supplied hla.rti.tck.transportOrderDefaultFom fixture declares TckObject.Value as HLAbestEffort; two joined federates each register an object and query that FOM default (\u00a76.25 and \u00a76.27). The base FOM path checks default and per-instance transport requests, full two-attribute confirmation payloads, class-default changes affecting a later instance, query callbacks, and the unowned Name attribute report matching its FOM-declared HLAreliable type (\u00a7\u00a76.25.1\u20136.29). Interaction checks cover the initial reliable query result, the HLAbestEffort confirmation, a send before confirmation and a send after confirmation in both callback models, and the queried resulting type (\u00a7\u00a76.30, 6.30.3, 6.31.3, 6.32.5, 6.33.6). The mapped \u00a76.1.11 assertions check transportation values in the attribute request/confirmation path; unchanged-type interaction confirmation remains supplemental. Order-control calls and the valid-but-unpublished interaction-order rejection are supplemental and unmapped. C++ invalid-handle boundaries are omitted because the official Java API provides no portable invalid handle values; Java OrderType also has no equivalent to the C++ invalid enum cast. Focused runs use the official IEEE 1516.1-2025 Java API and local Umbra JNI provider; independent-provider behavior and conformance are not claimed.",
+      "mapping_note": "Direct Java public-API witnesses mirror cpp-tck.transport-order. The adapter-supplied hla.rti.tck.transportOrderDefaultFom fixture declares TckObject.Value as HLAbestEffort; two joined federates each register an object and query that FOM default (\u00a76.25 and \u00a76.27). The base FOM path checks default and per-instance transport requests, full two-attribute confirmation payloads, class-default changes affecting a later instance, query callbacks, and the unowned Name attribute report matching its FOM-declared HLAreliable type (\u00a7\u00a76.25\u20136.29). Interaction checks cover the initial reliable query result, the HLAbestEffort confirmation, a send before confirmation and a send after confirmation in both callback models, and the queried resulting type (\u00a7\u00a76.30, 6.30, 6.31, 6.32, 6.33). The mapped \u00a76.1.11 assertions check transportation values in the attribute request/confirmation path; unchanged-type interaction confirmation remains supplemental. Order-control calls and the valid-but-unpublished interaction-order rejection are supplemental and unmapped. C++ invalid-handle boundaries are omitted because the official Java API provides no portable invalid handle values; Java OrderType also has no equivalent to the C++ invalid enum cast. Focused runs use the official IEEE 1516.1-2025 Java API and local Umbra JNI provider; independent-provider behavior and conformance are not claimed.",
       "contract_refs": [
         "order-type-api-contract.json",
         "order-type-requirements-contract.json",
@@ -18201,7 +18187,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-5.1.4",
-        "hla-1516.1-2025:clause-6.12.4",
         "hla-1516.1-2025:clause-6.13",
         "hla-1516.1-2025:clause-6.12"
       ],
@@ -18240,7 +18225,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l17-4",
-          "standard_section": "hla-1516.1-2025:clause-6.12.4"
+          "standard_section": "hla-1516.1-2025:clause-6.12"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
@@ -18267,7 +18252,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.13"
         }
       ],
-      "mapping_note": "Direct mappings: page-083-l176-57 -> Clause 5.1.3; page-084-l26-8, l32-10, l44-14, l56-18, l65-21, l74-24, and l83-27 -> Clause 5.1.4; page-124-l17-4, l41-12, l47-14, and l53-16 -> Clause 6.12.4; page-125-l88-25, l127-38, and l136-41 -> Clause 6.13. The sender supplies one interaction class and parameter value; active and passive receivers check the callback class and exact parameter set/value. This witnesses the scoped sent/received-class and parameter definitions, not federation-wide uniqueness beyond this send. Pre-connect/pre-join and invalid-handle/send-fence checks are internal-only. Java provider execution remains unvalidated.",
+      "mapping_note": "Direct mappings: page-083-l176-57 -> Clause 5.1.3; page-084-l26-8, l32-10, l44-14, l56-18, l65-21, l74-24, and l83-27 -> Clause 5.1.4; page-124-l17-4, l41-12, l47-14, and l53-16 -> Clause 6.12; page-125-l88-25, l127-38, and l136-41 -> Clause 6.13. The sender supplies one interaction class and parameter value; active and passive receivers check the callback class and exact parameter set/value. This witnesses the scoped sent/received-class and parameter definitions, not federation-wide uniqueness beyond this send. Pre-connect/pre-join and invalid-handle/send-fence checks are internal-only. Java provider execution remains unvalidated.",
       "contract_refs": [
         "receive-order-interaction-api-contract.json",
         "receive-order-interaction-requirements-contract.json",
@@ -22770,10 +22755,9 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.14",
-        "hla-1516.1-2025:clause-6.14.3",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -22794,11 +22778,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
@@ -22806,18 +22790,18 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
-      "mapping_note": "Direct mappings match the promoted C++ row: interaction declaration and directed semantics (§§5.1.4, 5.1.5, 5.12), target registration/discovery (§6.8.4), directed send (§§6.14, 6.14.3), and directed receipt (§6.15.1). Two universal subscribers independently receive both tagged parameter values; producer-order FIFO is an additional regression assertion, not independently established conformance evidence. Class/member names and discovered object handles are resolved locally through the standard API, with adapter-supplied FOM, logical time, endpoint, and callback model. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings match the promoted C++ row: interaction declaration and directed semantics (§§5.1.4, 5.1.5, 5.12), target registration/discovery (§6.8), directed send (§§6.14, 6.14), and directed receipt (§6.15). Two universal subscribers independently receive both tagged parameter values; producer-order FIFO is an additional regression assertion, not independently established conformance evidence. Class/member names and discovered object handles are resolved locally through the standard API, with adapter-supplied FOM, logical time, endpoint, and callback model. Focused installed-provider runs passed in both callback models; independent-provider conformance remains unverified.",
       "category": "directed-interaction",
       "title": "Deliver ordinary directed interactions to two universal subscribers in producer order",
       "api_methods": [
@@ -23077,9 +23061,9 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-6.8.4",
+        "hla-1516.1-2025:clause-6.8",
         "hla-1516.1-2025:clause-6.14",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -23092,7 +23076,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l28-5",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-126-l167-46",
@@ -23100,14 +23084,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
-      "mapping_note": "Direct source-matrix mappings are limited to generic known-target delivery (5.1.5), the effective directed-subscription selector (5.12), object registration (6.8.4), ordinary directed send (6.14), and receiveDirectedInteraction content/metadata (6.15.1). Derived-class target applicability, inheritance from the class on which the interaction is published, by-ownership versus universal eligibility, handle-stability checks, discovery metadata, and publisher/attribute-only exclusion are supplemental assertions; the referenced standard-directed-derived-object-target-contract.json is experimental public-API evidence, not conformance evidence. The Java source uses only standard APIs; provider, model FOM, logical-time implementation, endpoint, names, and callback configuration are adapter-supplied. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct source-matrix mappings are limited to generic known-target delivery (5.1.5), the effective directed-subscription selector (5.12), object registration (6.8), ordinary directed send (6.14), and receiveDirectedInteraction content/metadata (6.15). Derived-class target applicability, inheritance from the class on which the interaction is published, by-ownership versus universal eligibility, handle-stability checks, discovery metadata, and publisher/attribute-only exclusion are supplemental assertions; the referenced standard-directed-derived-object-target-contract.json is experimental public-API evidence, not conformance evidence. The Java source uses only standard APIs; provider, model FOM, logical-time implementation, endpoint, names, and callback configuration are adapter-supplied. Focused installed JNI runs passed in both callback models; independent-provider conformance remains unverified.",
       "category": "directed-interaction",
       "title": "Deliver receive-order directed interactions to a derived target owner and a universal subscriber, excluding non-eligible subscribers",
       "api_methods": [
@@ -32165,11 +32149,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-181-l148-13",
@@ -32178,10 +32162,10 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.12",
-        "hla-1516.1-2025:clause-6.17.1",
-        "hla-1516.1-2025:clause-8.1.4"
+        "hla-1516.1-2025:clause-8.1.4",
+        "hla-1516.1-2025:clause-6.17"
       ],
-      "mapping_note": "Parity mapping to the promoted C++ scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17.1). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers observe non-FQR interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; this does not cover the Flush Queue Request exception or every sender/sequence permutation. Focused installed-provider runs passed in both callback models after aligning sender frontiers and callback waits with the C++ peer; independent-provider conformance remains unclaimed.",
+      "mapping_note": "Parity mapping to the promoted C++ scenario: three timestamped sendInteraction calls, one timestamped updateAttributeValues call, and one timestamped deleteObjectInstance call return valid, pairwise-distinct MessageRetractionHandles across all three service types (§6.12). The subscribed receiver's Remove Object Instance callback preserves the producer identity, and the deleting sender receives no loopback callback (§6.17). The time-8 attribute reflection is a positive control, not an additional attribute-order mapping. Two constrained receivers observe non-FQR interaction timestamp order 5 and 7 despite send order 7, 5, 5 (§8.1.4). Equal-time order is unrestricted; this does not cover the Flush Queue Request exception or every sender/sequence permutation. Focused installed-provider runs passed in both callback models after aligning sender frontiers and callback waits with the C++ peer; independent-provider conformance remains unclaimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "timestamped-interaction-api-contract.json",
@@ -32895,7 +32879,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-8.11",
         "hla-1516.1-2025:clause-6.14",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -32908,30 +32892,30 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l104-30",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l116-34",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l119-35",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l125-37",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
-      "mapping_note": "Direct §8.11 page-198-l192-57 evidence is the explicit NMRA post-grant permission: after TAG(T) with zero lookahead, the sender accepts sendDirectedInteraction at T. Direct page-126-l179-50 -> §6.14 witnesses two distinct designators for concurrent timestamped directed sends; page-128 l101/l104/l110/l116/l119/l125 -> §6.15.1 witnesses timestamp, TSO order, producer identity, no sender callback, and one intended recipient. The page-128 l107/l113 paired rules require the separate receive-order witness; page-127 l7/l157 remains unclaimed. Callback order is supplemental.",
+      "mapping_note": "Direct §8.11 page-198-l192-57 evidence is the explicit NMRA post-grant permission: after TAG(T) with zero lookahead, the sender accepts sendDirectedInteraction at T. Direct page-126-l179-50 -> §6.14 witnesses two distinct designators for concurrent timestamped directed sends; page-128 l101/l104/l110/l116/l119/l125 -> §6.15 witnesses timestamp, TSO order, producer identity, no sender callback, and one intended recipient. The page-128 l107/l113 paired rules require the separate receive-order witness; page-127 l7/l157 remains unclaimed. Callback order is supplemental.",
       "contract_refs": [
         "timestamped-directed-interaction-api-contract.json",
         "next-message-request-available-api-contract.json"
@@ -33130,7 +33114,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l7-1",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
@@ -33144,11 +33128,10 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.12",
         "hla-1516.1-2025:clause-6.14",
-        "hla-1516.1-2025:clause-6.14.3",
         "hla-1516.1-2025:clause-8.1.7"
       ],
       "evidence_note": "Built against the pinned official IEEE 1516.1-2025 API JAR. Current-source Umbra JNI focused runs passed by default, without --run-unverified, for HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time (4/4). Results are in out/java-tck/timestamped-directed-interaction-subscription-kind-review-20261104/. Java catalog validation passed with 879 scenarios and no findings; parity audit resolved 879 Java IDs with 0 unpaired. The directed Catch2 lane check passed with 53 cases, 49 mapped, 4 explicit, 0 unclassified, and 99 direct pairs. Local JNI results do not establish independent-provider conformance.",
-      "mapping_note": "Direct mappings cover by-ownership and universal subscriptions (§5.12), directed-interaction send and retraction-designator behavior (§§6.14 and 6.14.3), and queued timestamped delivery before grant (§8.1.7). The recipient-eligibility matrix and positive-lookahead lower-bound check are supplemental. The case makes no receive-order-only, region, provider-internal, independent-provider, or conformance claim.",
+      "mapping_note": "Direct mappings cover by-ownership and universal subscriptions (§5.12), directed-interaction send and retraction-designator behavior (§§6.14 and 6.14), and queued timestamped delivery before grant (§8.1.7). The recipient-eligibility matrix and positive-lookahead lower-bound check are supplemental. The case makes no receive-order-only, region, provider-internal, independent-provider, or conformance claim.",
       "contract_refs": [
         "standard-directed-interaction-subscription-kind-contract.json",
         "timestamped-directed-interaction-api-contract.json",
@@ -34392,8 +34375,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
-        "hla-1516.1-2025:clause-6.11.1",
-        "hla-1516.1-2025:clause-7",
+        "hla-1516.1-2025:clause-7.1",
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-8.1.3"
       ],
@@ -34412,27 +34394,27 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l58-17",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l82-25",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l42-13",
@@ -34447,7 +34429,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.3"
         }
       ],
-      "mapping_note": "Direct mappings reproduce the paired C++ case's 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs. Assertions cover accepted TSO Update Attribute Values and retraction-handle creation (§6.10); receiver reflection, timestamp and retraction metadata, and passelization (§6.11/§6.11.1); and ownership transfer and callbacks (§7/§7.2). The page 180 line 57 candidate is mapped to §8.1.3 in the reviewed Requirements Lab contract. Reflection after divestiture and before the constrained grant is an observed cross-service sequence; this scenario adds no further direct pair for the callback ordering.",
+      "mapping_note": "Direct mappings reproduce the paired C++ case's 12 exact Requirements Lab-to-IEEE 1516.1-2025 pairs. Assertions cover accepted TSO Update Attribute Values and retraction-handle creation (§6.10); receiver reflection, timestamp and retraction metadata, and passelization (§6.11/§6.11.1); and ownership transfer and callbacks (§7.1/§7.2). The page 180 line 57 candidate is mapped to §8.1.3 in the reviewed Requirements Lab contract. Reflection after divestiture and before the constrained grant is an observed cross-service sequence; this scenario adds no further direct pair for the callback ordering.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -35098,7 +35080,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.2",
         "hla-1516.1-2025:clause-8.1.5",
@@ -35130,11 +35111,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l27-6",
@@ -35779,7 +35760,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.3",
         "hla-1516.1-2025:clause-8.22.3",
         "hla-1516.1-2025:clause-8.23.3"
@@ -35799,15 +35779,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
@@ -36183,7 +36163,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
@@ -36208,7 +36188,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.5",
         "hla-1516.1-2025:clause-8.6",
@@ -36370,20 +36349,20 @@
         "requirement-candidate-content-clauses-08-time-management-page-184-l91-26"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.10.5",
+        "hla-1516.1-2025:clause-6.10.3",
         "hla-1516.1-2025:clause-8.1.7"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l132-39",
-          "standard_section": "hla-1516.1-2025:clause-6.10.5"
+          "standard_section": "hla-1516.1-2025:clause-6.10.3"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
           "standard_section": "hla-1516.1-2025:clause-8.1.7"
         }
       ],
-      "mapping_note": "At initial time 0, the sender has lookahead 5 and remains in TAR(10) while the peer regulator holds its time. Timestamp 14 must raise InvalidLogicalTime; equality 15 and later 16 are accepted. Direct mappings are limited to §6.10.5 and §8.1.7 for this timestamped Update Attribute Values bound while Time Advancing; no reflection or other TSO service is claimed.",
+      "mapping_note": "At initial time 0, the sender has lookahead 5 and remains in TAR(10) while the peer regulator holds its time. Timestamp 14 must raise InvalidLogicalTime; equality 15 and later 16 are accepted. Direct mappings are limited to §6.10.3 and §8.1.7 for this timestamped Update Attribute Values bound while Time Advancing; no reflection or other TSO service is claimed.",
       "contract_refs": [
         "timestamped-attribute-update-api-contract.json",
         "timestamped-attribute-update-requirements-contract.json",
@@ -36471,7 +36450,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
@@ -36504,7 +36483,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.2",
@@ -36831,19 +36809,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
@@ -36880,13 +36858,12 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
-        "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-8.1.3",
         "hla-1516.1-2025:clause-8.8",
-        "hla-1516.1-2025:clause-8.10.2"
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-6.17"
       ],
-      "mapping_note": "Direct mappings: page-180-l21-5, l39-11, and l45-13 -> §8.1.3 cover the timestamped deletion sender/receiver message relationship exercised here; page-197-l20-3 and l50-13 -> §8.10.2 require NMR to target and deliver the next qualifying TSO message after invocation; deletion/removal/retraction assertions map to §§6.16, 6.16.4, and 6.17.1. The Java case checks one timestamped removal before one grant, including object, producer, tag, timestamp, sent and received order, retraction handle, and final queried time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-nmr-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
+      "mapping_note": "Direct mappings: page-180-l21-5, l39-11, and l45-13 -> §8.1.3 cover the timestamped deletion sender/receiver message relationship exercised here; page-197-l20-3 and l50-13 -> §8.10.2 require NMR to target and deliver the next qualifying TSO message after invocation; deletion/removal/retraction assertions map to §§6.16, 6.16, and 6.17. The Java case checks one timestamped removal before one grant, including object, producer, tag, timestamp, sent and received order, retraction handle, and final queried time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-nmr-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -36999,19 +36976,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
@@ -37040,12 +37017,11 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
-        "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-8.1.3",
-        "hla-1516.1-2025:clause-8.11"
+        "hla-1516.1-2025:clause-8.11",
+        "hla-1516.1-2025:clause-6.17"
       ],
-      "mapping_note": "Direct mappings: page-180-l21-5, page-180-l39-11, and page-180-l45-13 -> §8.1.3 cover the timestamped deletion send and matching removal receive relationship; page-198-l177-52 -> §8.11 requires NMRA to target the next qualifying TSO message; page-199-l40-12 -> §8.11 requires callback delivery after invocation. Deletion/removal/retraction assertions map to §§6.16, 6.16.4, and 6.17.1. The Java case checks one timestamped removal before one grant, including object, producer, tag, timestamp, sent and received order, retraction handle, and final queried time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-nmra-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
+      "mapping_note": "Direct mappings: page-180-l21-5, page-180-l39-11, and page-180-l45-13 -> §8.1.3 cover the timestamped deletion send and matching removal receive relationship; page-198-l177-52 -> §8.11 requires NMRA to target the next qualifying TSO message; page-199-l40-12 -> §8.11 requires callback delivery after invocation. Deletion/removal/retraction assertions map to §§6.16, 6.16, and 6.17. The Java case checks one timestamped removal before one grant, including object, producer, tag, timestamp, sent and received order, retraction handle, and final queried time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-nmra-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -37158,19 +37134,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l21-5",
@@ -37195,17 +37171,16 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
-        "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-8",
         "hla-1516.1-2025:clause-8.1.3",
-        "hla-1516.1-2025:clause-8.14.4"
+        "hla-1516.1-2025:clause-8.14.4",
+        "hla-1516.1-2025:clause-6.17"
       ],
       "callback_models": [
         "evoked",
         "immediate"
       ],
-      "mapping_note": "Direct mappings: page-180-l21-5 identifies Delete Object Instance as sending a message; page-180-l39-11 and page-180-l45-13 define the receiving-service and sent-to-received message relation in §8.1.3. Page-178-l51-14 remains the Lab's canonical chapter-level §8 mapping; page-204-l86-25 maps TARA's timestamped-delivery/grant condition to §8.14.4; deletion, removal, and retraction map to §§6.16, 6.16.4, and 6.17.1. The case requests TARA(6) while GALT is 3, sends a timestamp-5 deletion, then advances the publisher to 6; removal at 5 precedes grant 6. Java checks object, producer, tag, sent and received order, retraction handle, callback order, pre-request GALT, publisher and receiver grants, and queried receiver time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-tara-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
+      "mapping_note": "Direct mappings: page-180-l21-5 identifies Delete Object Instance as sending a message; page-180-l39-11 and page-180-l45-13 define the receiving-service and sent-to-received message relation in §8.1.3. Page-178-l51-14 remains the Lab's canonical chapter-level §8 mapping; page-204-l86-25 maps TARA's timestamped-delivery/grant condition to §8.14.4; deletion, removal, and retraction map to §§6.16, 6.16, and 6.17. The case requests TARA(6) while GALT is 3, sends a timestamp-5 deletion, then advances the publisher to 6; removal at 5 precedes grant 6. Java checks object, producer, tag, sent and received order, retraction handle, callback order, pre-request GALT, publisher and receiver grants, and queried receiver time. It passed HLA_EVOKED and HLA_IMMEDIATE with HLAinteger64Time and HLAfloat64Time on the current-source JNI provider (4/4) using p0-tck.xml and HLAobjectRoot.TckObject/Value. Installed-package C++ primary and contract direct selectors passed both callback models and both time factories (8/8); the focused CTest query had zero registrations. The Java FederateAmbassador callback has no separate time-text argument, so that C++-specific assertion is not represented. Results: out/java-tck/timestamped-object-deletion-future-tara-arrival-port-20261104/. Independent-provider interoperability and conformance are not claimed.",
       "contract_refs": [
         "timestamped-object-deletion-api-contract.json",
         "timestamped-object-deletion-requirements-contract.json",
@@ -37436,15 +37411,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
-          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+          "standard_section": "hla-1516.1-2025:clause-6.16"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
@@ -37473,13 +37448,12 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
-        "hla-1516.1-2025:clause-6.16.4",
-        "hla-1516.1-2025:clause-6.17.1",
         "hla-1516.1-2025:clause-8.1.5",
         "hla-1516.1-2025:clause-8.1.6",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.3.1",
-        "hla-1516.1-2025:clause-8.8"
+        "hla-1516.1-2025:clause-8.8",
+        "hla-1516.1-2025:clause-6.17"
       ],
       "mapping_note": "Direct coverage includes timestamped Delete Object Instance and Remove Object Instance metadata, queued delivery across the Time Regulation role transition, and removal-before-grant ordering. The publisher no-self-removal rule is not claimed. Query Lookahead is checked but intentionally unmapped: the current Lab candidate points to Modify Lookahead clause 8.20.4, which this scenario does not invoke. Federation lifecycle setup/cleanup and provider-specific callback timing are not claimed.",
       "contract_refs": [
@@ -37735,13 +37709,13 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-153-l108-34"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.17.1",
-        "hla-1516.1-2025:clause-7.1.3"
+        "hla-1516.1-2025:clause-7.1.3",
+        "hla-1516.1-2025:clause-6.17"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
-          "standard_section": "hla-1516.1-2025:clause-6.17.1"
+          "standard_section": "hla-1516.1-2025:clause-6.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l96-30",
@@ -37756,7 +37730,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.1.3"
         }
       ],
-      "mapping_note": "Direct §6.17.1 page-131-l101-29: ordinary Remove Object Instance identifies the original registrant even when the new privilege owner deletes. Direct §7.1.3 page-153-l96-30 and l99-31: regular acquisition and Divestiture If Wanted transfer HLAprivilegeToDeleteObject alongside an ordinary attribute, with ownership and callback checks. Direct §7.1.3 page-153-l108-34: the new ordinary-attribute owner can provide a value. Former-owner AttributeNotOwned remains supplemental. Java compiles against the official 1516.1-2025 API JAR; provider runtime remains unverified and this candidate row is not promoted by C++ adapter evidence.",
+      "mapping_note": "Direct §6.17 page-131-l101-29: ordinary Remove Object Instance identifies the original registrant even when the new privilege owner deletes. Direct §7.1.3 page-153-l96-30 and l99-31: regular acquisition and Divestiture If Wanted transfer HLAprivilegeToDeleteObject alongside an ordinary attribute, with ownership and callback checks. Direct §7.1.3 page-153-l108-34: the new ordinary-attribute owner can provide a value. Former-owner AttributeNotOwned remains supplemental. Java compiles against the official 1516.1-2025 API JAR; provider runtime remains unverified and this candidate row is not promoted by C++ adapter evidence.",
       "contract_refs": [
         "privilege-to-delete-transfer-requirements-contract.json",
         "object-instance-deletion-requirements-contract.json"
@@ -38163,27 +38137,27 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-148-l106-33"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7"
+        "hla-1516.1-2025:clause-7.1"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l94-29",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l100-31",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l103-32",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l106-33",
-          "standard_section": "hla-1516.1-2025:clause-7"
+          "standard_section": "hla-1516.1-2025:clause-7.1"
         }
       ],
-      "mapping_note": "Java parity for the evoked public-API post-join FOM ownership-state witness. Four page-148 candidate fragments are treated as a group under §7, not independently complete requirements. Official API-only JAR compilation passed; Java provider-runtime execution remains unverified.",
+      "mapping_note": "Java parity for the evoked public-API post-join FOM ownership-state witness. Four page-148 candidate statements map to §7.1 and are tested as a group, not independently complete requirements. Official API-only JAR compilation passed; Java provider-runtime execution remains unverified.",
       "contract_refs": [
         "standard-ownership-after-fom-merge-contract.json"
       ],
@@ -38798,17 +38772,17 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.9",
         "hla-1516.1-2025:clause-7.1.2.2"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l155-50",
@@ -38819,7 +38793,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
         }
       ],
-      "mapping_note": "Pinned §7.9.1 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. Evoked mode tests identical and mixed pending repeats; immediate mode makes no pending-timing assertion. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. A standard local deletion yields a known-format handle unknown to the requester; a real attribute from an adapter-selectable foreign class tests AttributeNotDefined without a synthetic malformed handle. Java compiles against the official API-only JAR and passed focused JNI runs in both callback models with exact-one terminal callback checks (out/java-tck/ownership-acquisition-if-available-cardinality-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Negotiated-divestiture eligibility, independent-provider behavior, and conformance are not claimed.",
+      "mapping_note": "Pinned §7.9 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. Evoked mode tests identical and mixed pending repeats; immediate mode makes no pending-timing assertion. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. A standard local deletion yields a known-format handle unknown to the requester; a real attribute from an adapter-selectable foreign class tests AttributeNotDefined without a synthetic malformed handle. Java compiles against the official API-only JAR and passed focused JNI runs in both callback models with exact-one terminal callback checks (out/java-tck/ownership-acquisition-if-available-cardinality-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Negotiated-divestiture eligibility, independent-provider behavior, and conformance are not claimed.",
       "contract_refs": [
         "attribute-ownership-acquisition-if-available-api-contract.json",
         "attribute-ownership-acquisition-if-available-requirements-contract.json",
@@ -38882,45 +38856,45 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4",
-        "hla-1516.1-2025:clause-7.19.6"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18",
+        "hla-1516.1-2025:clause-7.19"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5",
-          "standard_section": "hla-1516.1-2025:clause-7.19.6"
+          "standard_section": "hla-1516.1-2025:clause-7.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6",
-          "standard_section": "hla-1516.1-2025:clause-7.19.6"
+          "standard_section": "hla-1516.1-2025:clause-7.19"
         }
       ],
-      "mapping_note": "Standard-API Java parity checks exact owned/unowned query partitions, read-only ownership state, evoked pre-service withholding, and nullification of pending results after object removal. It also checks ObjectInstanceNotKnown using the actual removed handle and AttributeNotDefined using an adapter-selected foreign-class attribute; no malformed proxy handle is used for joined-member boundaries. The eight direct pairs mirror the bounded C++ crosswalk across clauses 7.17.5, 7.18.4, and 7.19.6. The source compiles against the official 2025 API JAR and passed both JNI callback modes with exact-one partition checks (out/java-tck/ownership-query-partition-cleanup-cardinality-*-jni-20261022.json). C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests. No independent-provider or conformance claim.",
+      "mapping_note": "Standard-API Java parity checks exact owned/unowned query partitions, read-only ownership state, evoked pre-service withholding, and nullification of pending results after object removal. It also checks ObjectInstanceNotKnown using the actual removed handle and AttributeNotDefined using an adapter-selected foreign-class attribute; no malformed proxy handle is used for joined-member boundaries. The eight direct pairs mirror the bounded C++ crosswalk across clauses 7.17, 7.18, and 7.19. The source compiles against the official 2025 API JAR and passed both JNI callback modes with exact-one partition checks (out/java-tck/ownership-query-partition-cleanup-cardinality-*-jni-20261022.json). C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests. No independent-provider or conformance claim.",
       "contract_refs": [
         "standard-ownership-query-partition-cleanup-contract.json",
         "attribute-ownership-query-unowned-result-api-contract.json",
@@ -38978,45 +38952,45 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4",
-        "hla-1516.1-2025:clause-7.19.6"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18",
+        "hla-1516.1-2025:clause-7.19"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l57-13",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l58-15",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l67-18",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l73-20",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l76-21",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l82-23",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l34-5",
-          "standard_section": "hla-1516.1-2025:clause-7.19.6"
+          "standard_section": "hla-1516.1-2025:clause-7.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-174-l37-6",
-          "standard_section": "hla-1516.1-2025:clause-7.19.6"
+          "standard_section": "hla-1516.1-2025:clause-7.19"
         }
       ],
-      "mapping_note": "Standard-API parity verifies disconnected and connected-unjoined query exceptions, exact owned/unowned callback partitions, read-only owner/observer/unowned boolean results before and after query, and nullification of pending reports on object removal. Direct pairs cover the callback in clause 7.17.5, five bounded query-result statements in 7.18.4, and both ownership-state read statements in 7.19.6; the exception checks are API-contract details. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE with exact-one partition checks (out/java-tck/ownership-query-result-nullification-cardinality-*-jni-20261022.json). The fuller partition/cleanup companion separately passed the valid removed-object and foreign-attribute boundaries. No independent-provider or conformance claim.",
+      "mapping_note": "Standard-API parity verifies disconnected and connected-unjoined query exceptions, exact owned/unowned callback partitions, read-only owner/observer/unowned boolean results before and after query, and nullification of pending reports on object removal. Direct pairs cover the callback in clause 7.17, five bounded query-result statements in 7.18, and both ownership-state read statements in 7.19; the exception checks are API-contract details. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE with exact-one partition checks (out/java-tck/ownership-query-result-nullification-cardinality-*-jni-20261022.json). The fuller partition/cleanup companion separately passed the valid removed-object and foreign-attribute boundaries. No independent-provider or conformance claim.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -39337,24 +39311,24 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
-      "mapping_note": "Pure Java parity queries one owned attribute and checks exactly one Inform Attribute Ownership callback identifying the object, attribute, and current federate owner without changing ownership. Evoked queues are drained before the exact-one assertion. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/attribute-ownership-query-owner-report-drained-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. The three direct clause 7.17.5/7.18.4 mappings cover only the owned-result branch; unowned/RTI-owned results, independent-provider behavior, and conformance are not claimed.",
+      "mapping_note": "Pure Java parity queries one owned attribute and checks exactly one Inform Attribute Ownership callback identifying the object, attribute, and current federate owner without changing ownership. Evoked queues are drained before the exact-one assertion. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/attribute-ownership-query-owner-report-drained-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. The three direct clause 7.17/7.18 mappings cover only the owned-result branch; unowned/RTI-owned results, independent-provider behavior, and conformance are not claimed.",
       "contract_refs": [
         "attribute-ownership-query-owner-report-api-contract.json",
         "attribute-ownership-query-owner-report-requirements-contract.json"
@@ -39563,8 +39537,8 @@
         "hla-1516.1-2025:clause-4.23",
         "hla-1516.1-2025:clause-4.30",
         "hla-1516.1-2025:clause-4.32",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -39589,11 +39563,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Pure Java parity saves a two-member federation, changes one owned attribute through negotiated transfer, restores the snapshot, then checks the original owner, an unowned companion, and the RTI-owned standard MOM attribute. It uses the standard named-join overload so the requested federate names match the restored identity callbacks. The seven direct pairs cover bounded save/restore initiation, completion, saved-state return, and owned-result query/report behavior. Official 2025 API JAR compilation and focused JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-query-save-restore-results-named-join-*-jni-20261022.json); C++ primary/contract passed 4/4 direct runs and 4/4 focused CTests. No independent-provider or conformance claim.",
@@ -39822,7 +39796,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.3",
-        "hla-1516.1-2025:clause-7.14.6",
+        "hla-1516.1-2025:clause-7.14",
         "hla-1516.1-2025:clause-7.15",
         "hla-1516.1-2025:clause-7.16"
       ],
@@ -39837,7 +39811,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3",
-          "standard_section": "hla-1516.1-2025:clause-7.14.6"
+          "standard_section": "hla-1516.1-2025:clause-7.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
@@ -39848,7 +39822,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.16"
         }
       ],
-      "mapping_note": "Java parity checks the same standard APIs and direct outcomes: §7.2 tag echo and §7.3 retained-attribute confirmation only under evoked callbacks, §7.14.6 cancellation of the owner's remaining negotiated offer, §7.15 partial acquisition cancellation, and §7.16 the single confirmation with the canceled subset. Split ownership and acquisition delivery are additional API observations. Java compiles against the official API-only JAR; provider runtime remains unverified. Paired current-source installed-package C++ primary/contract passed 4/4 across evoked/immediate callbacks.",
+      "mapping_note": "Java parity checks the same standard APIs and direct outcomes: §7.2 tag echo and §7.3 retained-attribute confirmation only under evoked callbacks, §7.14 cancellation of the owner's remaining negotiated offer, §7.15 partial acquisition cancellation, and §7.16 the single confirmation with the canceled subset. Split ownership and acquisition delivery are additional API observations. Java compiles against the official API-only JAR; provider runtime remains unverified. Paired current-source installed-package C++ primary/contract passed 4/4 across evoked/immediate callbacks.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -41418,15 +41392,15 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.9.4"
+        "hla-1516.1-2025:clause-5.9"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12",
-          "standard_section": "hla-1516.1-2025:clause-5.9.4"
+          "standard_section": "hla-1516.1-2025:clause-5.9"
         }
       ],
-      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed. The direct requirement mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9.4; §10.1.3 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. The Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no Java conformance claim is made.",
+      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed. The direct requirement mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9; §10.1.3 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. The Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no Java conformance claim is made.",
       "contract_refs": [
         "object-attribute-scope-api-contract.json",
         "object-attribute-scope-requirements-contract.json",
@@ -51571,7 +51545,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1",
         "hla-1516.1-2025:clause-6.6.4",
-        "hla-1516.1-2025:clause-6.8.4"
+        "hla-1516.1-2025:clause-6.8"
       ],
       "requirement_mappings": [
         {
@@ -51584,14 +51558,14 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l58-15",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Installed-provider adapter evidence only, not independent-provider conformance. The direct §5.1 mapping covers a reserved named registration attempt while object-class attributes are unpublished raising ObjectClassNotPublished, followed by publication and successful registration with the same reservation. The direct §6.6.4 mapping covers the reservation-success callback without pre-registration discovery. For §6.8.4, page-118-l58-15 is witnessed by a second published federate failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner succeeds; page-118-l64-17 is witnessed by name/handle lookup and the subscriber's exact named discovery. After success, owner release fails with ObjectInstanceNameNotReserved and another published federate's registration fails with ObjectInstanceNameInUse; these post-success consumption/in-use checks remain supplemental rather than newly mapped. The unnamed-registration collision check remains supplemental pending an exact pinned mapping; no provider-specific generated-name prefix is asserted.",
+      "mapping_note": "Installed-provider adapter evidence only, not independent-provider conformance. The direct §5.1 mapping covers a reserved named registration attempt while object-class attributes are unpublished raising ObjectClassNotPublished, followed by publication and successful registration with the same reservation. The direct §6.6.4 mapping covers the reservation-success callback without pre-registration discovery. For §6.8, page-118-l58-15 is witnessed by a second published federate failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner succeeds; page-118-l64-17 is witnessed by name/handle lookup and the subscriber's exact named discovery. After success, owner release fails with ObjectInstanceNameNotReserved and another published federate's registration fails with ObjectInstanceNameInUse; these post-success consumption/in-use checks remain supplemental rather than newly mapped. The unnamed-registration collision check remains supplemental pending an exact pinned mapping; no provider-specific generated-name prefix is asserted.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -54222,8 +54196,8 @@
         "hla-1516.1-2025:clause-5.1.4",
         "hla-1516.1-2025:clause-5.1.5",
         "hla-1516.1-2025:clause-5.12",
-        "hla-1516.1-2025:clause-6.14.3",
-        "hla-1516.1-2025:clause-6.15.1"
+        "hla-1516.1-2025:clause-6.14",
+        "hla-1516.1-2025:clause-6.15"
       ],
       "requirement_mappings": [
         {
@@ -54252,18 +54226,18 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l37-11",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l83-23",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-128-l86-24",
-          "standard_section": "hla-1516.1-2025:clause-6.15.1"
+          "standard_section": "hla-1516.1-2025:clause-6.15"
         }
       ],
-      "mapping_note": "Direct mappings cover the initial directed send before publishObjectClassDirectedInteractions, which raises InteractionClassNotPublished and produces no callback, followed by one callback preserving the class, target, parameter payload, and tag under §5.1 p. 81 l. 17; directed-interaction publication/unpublication (§5.1.4); known-target delivery (§5.1.5); interaction subscription (§5.12); the sendDirectedInteraction publication-state exception after whole-class unpublication (§6.14.3); and received parameter/tag/producer callback content (§6.15.1). Fixture setup, discovery, lookups, and cleanup are not separate claims. The standard-API-only Java source passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
+      "mapping_note": "Direct mappings cover the initial directed send before publishObjectClassDirectedInteractions, which raises InteractionClassNotPublished and produces no callback, followed by one callback preserving the class, target, parameter payload, and tag under §5.1 p. 81 l. 17; directed-interaction publication/unpublication (§5.1.4); known-target delivery (§5.1.5); interaction subscription (§5.12); the sendDirectedInteraction publication-state exception after whole-class unpublication (§6.14); and received parameter/tag/producer callback content (§6.15). Fixture setup, discovery, lookups, and cleanup are not separate claims. The standard-API-only Java source passed focused installed JNI runs in both callback models; independent-provider conformance remains unverified.",
       "contract_refs": [
         "directed-interaction-api-contract.json",
         "directed-interaction-requirements-contract.json",
@@ -58871,7 +58845,6 @@
         "hla-1516.1-2025:clause-4.32",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.3",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.22.3",
@@ -58920,15 +58893,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
@@ -59046,9 +59019,7 @@
         "hla-1516.1-2025:clause-4.27",
         "hla-1516.1-2025:clause-4.32",
         "hla-1516.1-2025:clause-6.10",
-        "hla-1516.1-2025:clause-6.10.5",
         "hla-1516.1-2025:clause-6.11",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.22.3",
@@ -59099,7 +59070,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-121-l36-10",
-          "standard_section": "hla-1516.1-2025:clause-6.10.5"
+          "standard_section": "hla-1516.1-2025:clause-6.10"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l61-17",
@@ -59107,19 +59078,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l103-31",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
@@ -59261,7 +59232,6 @@
         "hla-1516.1-2025:clause-4.32",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.11",
-        "hla-1516.1-2025:clause-6.11.1",
         "hla-1516.1-2025:clause-8.1.3",
         "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.22.3",
@@ -59301,15 +59271,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l85-25",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l97-29",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-122-l121-37",
-          "standard_section": "hla-1516.1-2025:clause-6.11.1"
+          "standard_section": "hla-1516.1-2025:clause-6.11"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-180-l57-17",
@@ -62901,6 +62871,7 @@
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.requestAttributeValueUpdate",
@@ -64068,7 +64039,7 @@
         "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit: out/java-tck/federate-mom-interactions-sent-counts-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed.",
         "default_status": "run"
       },
-    {
+        {
       "id": "java-tck.federate-mom-directed-interactions-sent-mim-attribute",
       "category": "directed-interactions",
       "title": "Verify direct and periodic MOM counts separate ordinary and directed interaction sends",
@@ -64314,133 +64285,133 @@
       "parity": "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
       "default_status": "run"
     },
-    {
-      "id": "java-tck.federate-mom-directed-interactions-sent-counts",
-      "category": "directed-interactions",
-      "title": "Verify directed-interaction sent-count reports exclude ordinary sends",
-      "api_methods": [
-        "RtiFactory.getRtiAmbassador",
-        "RtiFactory.getEncoderFactory",
-        "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecutionWithMIM",
-        "RTIambassador.joinFederationExecution",
-        "RTIambassador.getObjectClassHandle",
-        "RTIambassador.getObjectClassName",
-        "RTIambassador.getAttributeHandle",
-        "RTIambassador.getAttributeName",
-        "RTIambassador.getFederateHandle",
-        "RTIambassador.getInteractionClassHandle",
-        "RTIambassador.getInteractionClassName",
-        "RTIambassador.getParameterHandle",
-        "RTIambassador.getParameterName",
-        "RTIambassador.getTransportationTypeHandle",
-        "RTIambassador.getTransportationTypeName",
-        "RTIambassador.getAttributeHandleSetFactory",
-        "AttributeHandleSetFactory.create",
-        "AttributeHandleSet.add",
-        "RTIambassador.getInteractionClassHandleSetFactory",
-        "InteractionClassHandleSetFactory.create",
-        "InteractionClassHandleSet.add",
-        "RTIambassador.publishObjectClassAttributes",
-        "RTIambassador.subscribeObjectClassAttributes",
-        "RTIambassador.publishInteractionClass",
-        "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.registerObjectInstance",
-        "RTIambassador.getParameterHandleValueMapFactory",
-        "ParameterHandleValueMapFactory.create",
-        "ParameterHandleValueMap.put",
-        "RTIambassador.sendInteraction(receive-order)",
-        "RTIambassador.sendDirectedInteraction(receive-order)",
-        "RTIambassador.requestInteractionTransportationTypeChange",
-        "RTIambassador.subscribeInteractionClass",
-        "RTIambassador.evokeCallback",
-        "RTIambassador.unsubscribeInteractionClass",
-        "RTIambassador.unsubscribeObjectClassAttributes",
-        "RTIambassador.unpublishObjectClassAttributes",
-        "RTIambassador.unpublishObjectClassDirectedInteractions",
-        "RTIambassador.unpublishInteractionClass",
-        "RTIambassador.resignFederationExecution",
-        "RTIambassador.destroyFederationExecution",
-        "RTIambassador.disconnect",
-        "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.confirmInteractionTransportationTypeChange",
-        "FederateAmbassador.receiveInteraction(receive-order)",
-        "EncoderFactory.createHLAfixedRecord",
-        "EncoderFactory.createHLAvariableArray",
-        "EncoderFactory.createHLAinteger32BE",
-        "EncoderFactory.createHLAbyte",
-        "HLAfixedRecord.add",
-        "HLAfixedRecord.get",
-        "HLAvariableArray.decode",
-        "HLAvariableArray.size",
-        "HLAvariableArray.get",
-        "HLAvariableArray.toByteArray",
-        "HLAinteger32BE.getValue",
-        "Handle.encodedLength",
-        "Handle.encode"
-      ],
-      "requirement_ids": [
-        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
-      ],
-      "contract_refs": [
-        "explicit-mim-api-contract.json",
-        "explicit-mim-requirements-contract.json",
-        "object-class-lookup-api-contract.json",
-        "attribute-lookup-api-contract.json",
-        "interaction-class-lookup-api-contract.json",
-        "parameter-lookup-api-contract.json",
-        "transportation-type-api-contract.json",
-        "publish-object-class-attributes-api-contract.json",
-        "publish-object-class-attributes-requirements-contract.json",
-        "subscribe-object-class-attributes-api-contract.json",
-        "subscribe-object-class-attributes-requirements-contract.json",
-        "publish-interaction-class-api-contract.json",
-        "publish-interaction-class-requirements-contract.json",
-        "publish-object-class-directed-interactions-api-contract.json",
-        "publish-object-class-directed-interactions-requirements-contract.json",
-        "object-instance-registration-api-contract.json",
-        "object-instance-registration-requirements-contract.json",
-        "receive-order-interaction-api-contract.json",
-        "receive-order-interaction-requirements-contract.json",
-        "directed-interaction-api-contract.json",
-        "directed-interaction-requirements-contract.json",
-        "transportation-type-change-api-contract.json",
-        "transportation-type-change-requirements-contract.json",
-        "subscribe-interaction-class-api-contract.json",
-        "subscribe-interaction-class-requirements-contract.json",
-        "unsubscribe-interaction-class-api-contract.json",
-        "unsubscribe-interaction-class-requirements-contract.json",
-        "unsubscribe-object-class-attributes-api-contract.json",
-        "unsubscribe-object-class-attributes-requirements-contract.json",
-        "unpublish-object-class-attributes-api-contract.json",
-        "unpublish-object-class-attributes-requirements-contract.json",
-        "unpublish-object-class-directed-interactions-api-contract.json",
-        "unpublish-object-class-directed-interactions-requirements-contract.json",
-        "unpublish-interaction-class-api-contract.json",
-        "unpublish-interaction-class-requirements-contract.json",
-        "joined-federate-mom-public-requirements-contract.json",
-        "standard-joined-federate-mom-directed-interactions-sent-counts-contract.json"
-      ],
-      "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDirectedInteractionsSentCounts",
-      "parity": "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
-      "default_status": "run",
-      "standard_sections": [
-        "hla-1516.1-2025:clause-11.4.1"
-      ],
-      "requirement_mappings": [
         {
-          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
-          "standard_section": "hla-1516.1-2025:clause-11.4.1"
-        }
-      ],
-      "mapping_note": "The direct mapping is recorded by joined-federate-mom-public-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. That generic candidate supports the public MOM request/report surface but does not state the per-transport directed-only accounting or NULL-bucket assertions. RL-114 records that refinement gap; those narrower assertions are bounded test evidence from the pinned MIM and scenario contract, not additional normative mappings.",
-      "callback_models": [
-        "evoked",
-        "immediate"
-      ],
-      "callback_model_scope_note": "Both callback models verify two reports per request for the sender and idle federates; the sender report contains the two directed reliable sends, excludes ordinary sends from the reliable and best-effort buckets, and preserves empty transport buckets for the idle federate. Report interaction metadata, transportation identifiers, nested HLAinteractionCounts encoding, and cleanup are checked.",
-      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit and traceability: out/java-tck/federate-mom-directed-interactions-sent-counts-java-parity-20261115/ ({evoked,immediate}.{results.json,junit.xml,traceability.json}). The paired C++ primary passed focused CTest 2/2 and direct runs in both models; evidence: out/mgw/cpp-tck-mom-directed-interactions-sent-counts-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
-    },
+          "id": "java-tck.federate-mom-directed-interactions-sent-counts",
+          "category": "directed-interactions",
+          "title": "Verify directed-interaction sent-count reports exclude ordinary sends",
+          "api_methods": [
+            "RtiFactory.getRtiAmbassador",
+            "RtiFactory.getEncoderFactory",
+            "RTIambassador.connect(callback model supplied by adapter)",
+            "RTIambassador.createFederationExecutionWithMIM",
+            "RTIambassador.joinFederationExecution",
+            "RTIambassador.getObjectClassHandle",
+            "RTIambassador.getObjectClassName",
+            "RTIambassador.getAttributeHandle",
+            "RTIambassador.getAttributeName",
+            "RTIambassador.getFederateHandle",
+            "RTIambassador.getInteractionClassHandle",
+            "RTIambassador.getInteractionClassName",
+            "RTIambassador.getParameterHandle",
+            "RTIambassador.getParameterName",
+            "RTIambassador.getTransportationTypeHandle",
+            "RTIambassador.getTransportationTypeName",
+            "RTIambassador.getAttributeHandleSetFactory",
+            "AttributeHandleSetFactory.create",
+            "AttributeHandleSet.add",
+            "RTIambassador.getInteractionClassHandleSetFactory",
+            "InteractionClassHandleSetFactory.create",
+            "InteractionClassHandleSet.add",
+            "RTIambassador.publishObjectClassAttributes",
+            "RTIambassador.subscribeObjectClassAttributes",
+            "RTIambassador.publishInteractionClass",
+            "RTIambassador.publishObjectClassDirectedInteractions",
+            "RTIambassador.registerObjectInstance",
+            "RTIambassador.getParameterHandleValueMapFactory",
+            "ParameterHandleValueMapFactory.create",
+            "ParameterHandleValueMap.put",
+            "RTIambassador.sendInteraction(receive-order)",
+            "RTIambassador.sendDirectedInteraction(receive-order)",
+            "RTIambassador.requestInteractionTransportationTypeChange",
+            "RTIambassador.subscribeInteractionClass",
+            "RTIambassador.evokeCallback",
+            "RTIambassador.unsubscribeInteractionClass",
+            "RTIambassador.unsubscribeObjectClassAttributes",
+            "RTIambassador.unpublishObjectClassAttributes",
+            "RTIambassador.unpublishObjectClassDirectedInteractions",
+            "RTIambassador.unpublishInteractionClass",
+            "RTIambassador.resignFederationExecution",
+            "RTIambassador.destroyFederationExecution",
+            "RTIambassador.disconnect",
+            "FederateAmbassador.discoverObjectInstance",
+            "FederateAmbassador.confirmInteractionTransportationTypeChange",
+            "FederateAmbassador.receiveInteraction(receive-order)",
+            "EncoderFactory.createHLAfixedRecord",
+            "EncoderFactory.createHLAvariableArray",
+            "EncoderFactory.createHLAinteger32BE",
+            "EncoderFactory.createHLAbyte",
+            "HLAfixedRecord.add",
+            "HLAfixedRecord.get",
+            "HLAvariableArray.decode",
+            "HLAvariableArray.size",
+            "HLAvariableArray.get",
+            "HLAvariableArray.toByteArray",
+            "HLAinteger32BE.getValue",
+            "Handle.encodedLength",
+            "Handle.encode"
+          ],
+          "requirement_ids": [
+            "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
+          ],
+          "contract_refs": [
+            "explicit-mim-api-contract.json",
+            "explicit-mim-requirements-contract.json",
+            "object-class-lookup-api-contract.json",
+            "attribute-lookup-api-contract.json",
+            "interaction-class-lookup-api-contract.json",
+            "parameter-lookup-api-contract.json",
+            "transportation-type-api-contract.json",
+            "publish-object-class-attributes-api-contract.json",
+            "publish-object-class-attributes-requirements-contract.json",
+            "subscribe-object-class-attributes-api-contract.json",
+            "subscribe-object-class-attributes-requirements-contract.json",
+            "publish-interaction-class-api-contract.json",
+            "publish-interaction-class-requirements-contract.json",
+            "publish-object-class-directed-interactions-api-contract.json",
+            "publish-object-class-directed-interactions-requirements-contract.json",
+            "object-instance-registration-api-contract.json",
+            "object-instance-registration-requirements-contract.json",
+            "receive-order-interaction-api-contract.json",
+            "receive-order-interaction-requirements-contract.json",
+            "directed-interaction-api-contract.json",
+            "directed-interaction-requirements-contract.json",
+            "transportation-type-change-api-contract.json",
+            "transportation-type-change-requirements-contract.json",
+            "subscribe-interaction-class-api-contract.json",
+            "subscribe-interaction-class-requirements-contract.json",
+            "unsubscribe-interaction-class-api-contract.json",
+            "unsubscribe-interaction-class-requirements-contract.json",
+            "unsubscribe-object-class-attributes-api-contract.json",
+            "unsubscribe-object-class-attributes-requirements-contract.json",
+            "unpublish-object-class-attributes-api-contract.json",
+            "unpublish-object-class-attributes-requirements-contract.json",
+            "unpublish-object-class-directed-interactions-api-contract.json",
+            "unpublish-object-class-directed-interactions-requirements-contract.json",
+            "unpublish-interaction-class-api-contract.json",
+            "unpublish-interaction-class-requirements-contract.json",
+            "joined-federate-mom-public-requirements-contract.json",
+            "standard-joined-federate-mom-directed-interactions-sent-counts-contract.json"
+          ],
+          "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDirectedInteractionsSentCounts",
+          "parity": "cpp-tck.joined-federate-mom-directed-interactions-sent-counts",
+          "default_status": "run",
+          "standard_sections": [
+            "hla-1516.1-2025:clause-11.4.1"
+          ],
+          "requirement_mappings": [
+            {
+              "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+              "standard_section": "hla-1516.1-2025:clause-11.4.1"
+            }
+          ],
+          "mapping_note": "The direct mapping is recorded by joined-federate-mom-public-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 \u00a711.4.1. That generic candidate supports the public MOM request/report surface but does not state the per-transport directed-only accounting or NULL-bucket assertions. RL-114 records that refinement gap; those narrower assertions are bounded test evidence from the pinned MIM and scenario contract, not additional normative mappings.",
+          "callback_models": [
+            "evoked",
+            "immediate"
+          ],
+          "callback_model_scope_note": "Both callback models verify two reports per request for the sender and idle federates; the sender report contains the two directed reliable sends, excludes ordinary sends from the reliable and best-effort buckets, and preserves empty transport buckets for the idle federate. Report interaction metadata, transportation identifiers, nested HLAinteractionCounts encoding, and cleanup are checked.",
+          "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit and traceability: out/java-tck/federate-mom-directed-interactions-sent-counts-java-parity-20261115/ ({evoked,immediate}.{results.json,junit.xml,traceability.json}). The paired C++ primary passed focused CTest 2/2 and direct runs in both models; evidence: out/mgw/cpp-tck-mom-directed-interactions-sent-counts-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
+        },
     {
       "id": "java-tck.federate-mom-directed-interactions-received-mim-attribute",
       "category": "directed-interactions",
@@ -64642,74 +64613,118 @@
       "default_status": "run",
       "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckObject.Value. Results/JUnit: out/java-tck/federate-mom-updates-sent-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; evidence is recorded at out/mgw/cpp-tck-mom-updates-sent-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
-    {
-      "id": "java-tck.federate-mom-updates-sent-counts",
-      "category": "object-management",
-      "title": "Report HLAupdatesSent by standard transportation and adapter-supplied object class",
-      "api_methods": [
-        "RTIambassador.connect",
-        "RTIambassador.createFederationExecutionWithMIM",
-        "RTIambassador.joinFederationExecution",
-        "RTIambassador.getObjectClassHandle",
-        "RTIambassador.getObjectClassName",
-        "RTIambassador.getAttributeHandle",
-        "RTIambassador.getAttributeName",
-        "RTIambassador.getTransportationTypeHandle",
-        "RTIambassador.getTransportationTypeName",
-        "RTIambassador.publishObjectClassAttributes",
-        "RTIambassador.registerObjectInstance",
-        "RTIambassador.updateAttributeValues(receive-order)",
-        "RTIambassador.requestAttributeTransportationTypeChange",
-        "RTIambassador.getInteractionClassHandle",
-        "RTIambassador.getInteractionClassName",
-        "RTIambassador.getParameterHandle",
-        "RTIambassador.getParameterName",
-        "RTIambassador.subscribeInteractionClass",
-        "RTIambassador.sendInteraction",
-        "RTIambassador.unsubscribeInteractionClass",
-        "RTIambassador.unpublishObjectClassAttributes",
-        "RTIambassador.resignFederationExecution",
-        "RTIambassador.destroyFederationExecution",
-        "RTIambassador.disconnect",
-        "FederateAmbassador.receiveInteraction",
-        "FederateAmbassador.confirmAttributeTransportationTypeChange",
-        "HLAvariableArray",
-        "HLAfixedRecord",
-        "HLAinteger32BE",
-        "HLAbyte"
-      ],
-      "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-transportation-type-control"
-      ],
-      "contract_refs": [
-        "explicit-mim-api-contract.json",
-        "explicit-mim-requirements-contract.json",
-        "object-instance-registration-api-contract.json",
-        "object-instance-registration-requirements-contract.json",
-        "publish-object-class-attributes-api-contract.json",
-        "publish-object-class-attributes-requirements-contract.json",
-        "subscribe-interaction-class-api-contract.json",
-        "subscribe-interaction-class-requirements-contract.json",
-        "attribute-value-update-response-api-contract.json",
-        "attribute-value-update-response-requirements-contract.json",
-        "transportation-type-api-contract.json",
-        "transportation-type-change-api-contract.json",
-        "transportation-type-change-requirements-contract.json",
-        "unpublish-object-class-attributes-api-contract.json",
-        "unpublish-object-class-attributes-requirements-contract.json",
-        "unsubscribe-interaction-class-api-contract.json",
-        "unsubscribe-interaction-class-requirements-contract.json",
-        "joined-federate-mom-public-requirements-contract.json"
-      ],
-      "java_test": "org.hla.rti.tck.RtiTckMain#federateMomUpdatesSentCounts",
-      "parity": "cpp-tck.joined-federate-mom-updates-sent-counts",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
-    },
+      {
+        "id": "java-tck.federate-mom-updates-sent-counts",
+        "category": "object-management",
+        "title": "Report attribute update counts by standard transportation and object class",
+        "api_methods": [
+          "RtiFactory.getRtiAmbassador",
+          "RtiFactory.getEncoderFactory",
+          "RTIambassador.connect(callback model supplied by adapter)",
+          "RTIambassador.createFederationExecutionWithMIM",
+          "RTIambassador.joinFederationExecution",
+          "RTIambassador.getObjectClassHandle",
+          "RTIambassador.getObjectClassName",
+          "RTIambassador.getAttributeHandle",
+          "RTIambassador.getAttributeName",
+          "RTIambassador.getAttributeHandleSetFactory",
+          "AttributeHandleSetFactory.create",
+          "AttributeHandleSet.add",
+          "RTIambassador.getAttributeHandleValueMapFactory",
+          "AttributeHandleValueMapFactory.create",
+          "AttributeHandleValueMap.put",
+          "RTIambassador.getTransportationTypeHandle",
+          "RTIambassador.getTransportationTypeName",
+          "RTIambassador.publishObjectClassAttributes",
+          "RTIambassador.registerObjectInstance",
+          "RTIambassador.updateAttributeValues(receive-order)",
+          "RTIambassador.requestAttributeTransportationTypeChange",
+          "RTIambassador.getInteractionClassHandle",
+          "RTIambassador.getInteractionClassName",
+          "RTIambassador.getParameterHandle",
+          "RTIambassador.getParameterName",
+          "RTIambassador.getParameterHandleValueMapFactory",
+          "ParameterHandleValueMapFactory.create",
+          "ParameterHandleValueMap.put",
+          "RTIambassador.subscribeInteractionClass",
+          "RTIambassador.sendInteraction(receive-order)",
+          "RTIambassador.evokeCallback",
+          "RTIambassador.unsubscribeInteractionClass",
+          "RTIambassador.unpublishObjectClassAttributes",
+          "RTIambassador.resignFederationExecution",
+          "RTIambassador.destroyFederationExecution",
+          "RTIambassador.disconnect",
+          "FederateAmbassador.receiveInteraction",
+          "FederateAmbassador.confirmAttributeTransportationTypeChange",
+          "EncoderFactory.createHLAbyte",
+          "HLAbyte.toByteArray",
+          "Handle.encodedLength",
+          "Handle.encode",
+          "EncoderFactory.createHLAvariableArray",
+          "HLAvariableArray.decode",
+          "HLAvariableArray.size",
+          "HLAvariableArray.get",
+          "HLAvariableArray.toByteArray",
+          "EncoderFactory.createHLAfixedRecord",
+          "HLAfixedRecord.add",
+          "HLAfixedRecord.get",
+          "EncoderFactory.createHLAinteger32BE",
+          "HLAinteger32BE.getValue",
+          "HLAvariableArray",
+          "HLAfixedRecord",
+          "HLAinteger32BE",
+          "HLAbyte"
+        ],
+        "requirement_ids": [
+          "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
+        ],
+        "contract_refs": [
+          "explicit-mim-api-contract.json",
+          "explicit-mim-requirements-contract.json",
+          "object-instance-registration-api-contract.json",
+          "object-instance-registration-requirements-contract.json",
+          "publish-object-class-attributes-api-contract.json",
+          "publish-object-class-attributes-requirements-contract.json",
+          "subscribe-interaction-class-api-contract.json",
+          "subscribe-interaction-class-requirements-contract.json",
+          "attribute-value-update-response-api-contract.json",
+          "attribute-value-update-response-requirements-contract.json",
+          "transportation-type-api-contract.json",
+          "transportation-type-change-api-contract.json",
+          "transportation-type-change-requirements-contract.json",
+          "unpublish-object-class-attributes-api-contract.json",
+          "unpublish-object-class-attributes-requirements-contract.json",
+          "unsubscribe-interaction-class-api-contract.json",
+          "unsubscribe-interaction-class-requirements-contract.json",
+          "joined-federate-mom-public-requirements-contract.json",
+          "mom-service-reporting-requirements-contract.json",
+          "standard-joined-federate-mom-updates-sent-counts-contract.json"
+        ],
+        "java_test": "org.hla.rti.tck.RtiTckMain#federateMomUpdatesSentCounts",
+        "parity": "cpp-tck.joined-federate-mom-updates-sent-counts",
+        "default_status": "run",
+        "standard_sections": [
+          "hla-1516.1-2025:clause-11.4.1"
+        ],
+        "requirement_mappings": [
+          {
+            "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+            "standard_section": "hla-1516.1-2025:clause-11.4.1"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+            "standard_section": "hla-1516.1-2025:clause-11.4.1"
+          }
+        ],
+        "mapping_note": "Direct mappings follow the paired C++ requirement plan: the two selected MOM candidates map to IEEE 1516.1-2025 §11.4.1 for the standard HLArequestUpdatesSent/HLAreportUpdatesSent surface. Counts by transportation and registered class, empty requester buckets, nested HLAupdateCounts decoding, and report metadata remain bounded scenario assertions; RL-112 records the generic candidate refinement gap. Provider-independent behavior and conformance are not claimed.",
+        "callback_models": [
+          "evoked",
+          "immediate"
+        ],
+        "callback_model_scope_note": "Both callback models verify one reliable and two best-effort updates for the target, the corresponding per-transport class counts, an empty report pair for a requester with no updates, nested HLAupdateCounts decoding, and standard report metadata. Custom and remote transportation types are not covered.",
+        "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-updates-sent-counts-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
+      },
     {
       "id": "java-tck.federate-mom-object-instances-updated-mim-attribute",
       "category": "object-management",
@@ -67222,15 +67237,15 @@
         "requirement-candidate-content-clauses-06-object-management-page-127-l25-7"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.14.3"
+        "hla-1516.1-2025:clause-6.14"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-127-l25-7",
-          "standard_section": "hla-1516.1-2025:clause-6.14.3"
+          "standard_section": "hla-1516.1-2025:clause-6.14"
         }
       ],
-      "mapping_note": "The Java peer mirrors the C++ directed-interaction sequence under both switch FOM configurations: it discovers the target, sends before adding the matching directed subscription, then sends while subscribed and removes that subscription before callback service. Its post-unsubscription assertion directly targets the subscription-loss branch of §6.14.3 page-127 l25. The enabled late-subscription assertion remains part of this scenario and is not weakened when the provider fails it.",
+      "mapping_note": "The Java peer mirrors the C++ directed-interaction sequence under both switch FOM configurations: it discovers the target, sends before adding the matching directed subscription, then sends while subscribed and removes that subscription before callback service. Its post-unsubscription assertion directly targets the subscription-loss branch of §6.14 page-127 l25. The enabled late-subscription assertion remains part of this scenario and is not weakened when the provider fails it.",
       "mapping_classification": "direct-requirement-mapped",
       "evidence_note": "The Java TCK compiled against the pinned official API JAR. Under both HLA_EVOKED and HLA_IMMEDIATE, the current-source JNI provider confirmed the configured enabled switch and target discovery but delivered no first directed interaction sent before subscription; the Java case failed that enabled-configuration assertion before reaching the later unsubscribe assertion. The paired current C++ TCK executable passed both callback models using the same p0-tck-without-switches.xml and switches-tck.xml modules. Java results: out/java-tck/delay-subscription-evaluation-directed-interaction-current-source-20261106/{evoked,immediate}/results.json and junit.xml. C++ result: out/mgw/cpp-tck/tck-results/delay-subscription-evaluation-directed-interaction-2026-11-06.{json,junit.xml}. This is local provider-gap evidence, not independent-provider interoperability or overall conformance evidence.",
       "contract_refs": [
@@ -68047,8 +68062,8 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.8",
         "hla-1516.1-2025:clause-7.12",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -68065,11 +68080,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Java API-only parity checks the tagged release and denial callbacks, drains evoked delivery before exact-one assertions, and then verifies Query Attribute Ownership reports the unchanged original owner exactly once. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-denial-query-drained-*-jni-20261022.json). The C++ primary/contract passed 4/4 current-source direct runs and 4/4 focused CTests. No independent-provider or conformance claim.",
@@ -68114,8 +68129,8 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -68124,19 +68139,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Standard-API Java parity queries the original federate owner, unconditionally divests the attribute, and then queries the unowned state. Evoked delivery is drained before exact-one owner/unowned callback checks. The source compiles against the official 2025 API JAR and passed focused JNI runs in both callback models (out/java-tck/ownership-transition-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused CTests. No independent-provider or conformance claim.",
@@ -68189,8 +68204,8 @@
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.7.3",
         "hla-1516.1-2025:clause-7.8",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -68207,19 +68222,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Standard-API Java parity checks original owner, unowned state, and second-federate owner after acquisition. It drains evoked delivery before each exact-one callback assertion. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-reacquisition-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused CTests. No competing-acquirer, independent-provider, or conformance claim.",
@@ -68274,10 +68289,10 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.7.3",
-        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.9",
         "hla-1516.1-2025:clause-7.10",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -68290,15 +68305,15 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
@@ -68306,19 +68321,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Standard-API Java parity gives two published contenders the same unowned attribute, accepts either winner, requires one acquisition notification and one unavailable reply, and queries the actual winning owner. Evoked queues are drained before exact-one callback assertions. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-competing-if-available-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused CTests. No general arbitration, independent-provider, or conformance claim.",
@@ -68373,10 +68388,10 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-7.2",
         "hla-1516.1-2025:clause-7.7.3",
-        "hla-1516.1-2025:clause-7.9.1",
+        "hla-1516.1-2025:clause-7.9",
         "hla-1516.1-2025:clause-7.10",
-        "hla-1516.1-2025:clause-7.17.5",
-        "hla-1516.1-2025:clause-7.18.4"
+        "hla-1516.1-2025:clause-7.17",
+        "hla-1516.1-2025:clause-7.18"
       ],
       "requirement_mappings": [
         {
@@ -68389,11 +68404,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l120-34",
-          "standard_section": "hla-1516.1-2025:clause-7.9.1"
+          "standard_section": "hla-1516.1-2025:clause-7.9"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-165-l14-1",
@@ -68401,19 +68416,19 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l54-12",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-172-l60-14",
-          "standard_section": "hla-1516.1-2025:clause-7.17.5"
+          "standard_section": "hla-1516.1-2025:clause-7.17"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l52-13",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-173-l55-14",
-          "standard_section": "hla-1516.1-2025:clause-7.18.4"
+          "standard_section": "hla-1516.1-2025:clause-7.18"
         }
       ],
       "mapping_note": "Standard-API Java parity for the native-green mixed If Available per-attribute ownership outcome. One request partitions an unowned and a held attribute into acquisition and unavailable callbacks with exact object, attribute, and tag checks; ownership queries confirm both final owners and no release request is accepted. Evoked callback queues are drained before exact-one assertions. The source compiles against the official 2025 API JAR and passed focused JNI runs in HLA_EVOKED and HLA_IMMEDIATE (out/java-tck/ownership-mixed-if-available-query-drained-*-jni-20261022.json). The C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. No independent-provider or conformance claim.",

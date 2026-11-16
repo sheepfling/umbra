@@ -780,9 +780,16 @@ if(BUILD_TESTING)
         if(_tck_process_adapter)
           list(APPEND _tck_test_labels process-adapter)
         endif()
+        # Primary/contract twins and callback-model variants can use the same
+        # deterministic federation name. Serialize only that scenario family;
+        # unrelated portable TCK scenarios remain eligible for parallel runs.
+        string(REGEX REPLACE "_contract$" "" _tck_resource_slug
+          "${_tck_scenario_slug}")
+        set(_tck_resource_lock "portable_cpp_tck_${_tck_resource_slug}")
         set_tests_properties("${_tck_test_name}" PROPERTIES
           LABELS "${_tck_test_labels}"
-          SKIP_REGULAR_EXPRESSION "skipped ")
+          SKIP_REGULAR_EXPRESSION "skipped "
+          RESOURCE_LOCK "${_tck_resource_lock}")
         if(_tck_provider_test_environment)
           set_tests_properties("${_tck_test_name}" PROPERTIES
             ENVIRONMENT "${_tck_provider_test_environment}")
