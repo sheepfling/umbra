@@ -85,6 +85,29 @@ direct runs in both models. Results are in
 `out/mgw/cpp-tck-mom-object-instances-deleted-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-updates-sent-mim-attribute` case checks the
+zero baseline, one `HLAupdatesSent` increment for each of three successful updates,
+including a repeated update to one object, and the value of five after two additional
+updates with periodic reports enabled. It compares direct and periodic values and
+confirms the count remains stable after reports are disabled. It maps only the
+standard MIM definition in IEEE 1516.1-2025 §11.4.1. Java passed under both callback
+models; the paired C++ primary passed focused CTest 2/2 and direct runs in both
+models. Results are in
+`out/java-tck/federate-mom-updates-sent-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-updates-sent-java-parity-20261115.{json,xml}`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+The default-run `java-tck.federate-mom-reflections-received-mim-attribute` case
+checks one `HLAreflectionsReceived` increment for each of three separate reflection
+callbacks, including two updates to the same object. It compares direct counter
+requests with the periodic value and verifies the count after periodic reporting is
+disabled. It maps only the standard MIM definition in IEEE 1516.1-2025 §11.4.1.
+Java passed under both callback models, and the paired C++ primary passed focused
+CTest 2/2 and direct runs in both models. Results are in
+`out/java-tck/federate-mom-reflections-received-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-reflections-received-java-parity-20261115.{json,xml}`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the
