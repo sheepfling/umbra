@@ -204,6 +204,20 @@ case passed focused CTest 1/1 in HLA_EVOKED. Results are in
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-reflections-received-counts` case requests
+`HLAreportReflectionsReceived` after one reliable and two best-effort attribute
+reflections. It checks the target's per-transport `HLAreflectCounts` for the
+registered object class, the two empty report buckets for a requester with no
+reflections, and standard callback metadata. It maps the paired public MOM
+request/report candidates to IEEE 1516.1-2025 §11.4.1; callback counts, transport
+buckets, class grouping, and nested encoding remain scenario assertions, with RL-118
+recording the generic candidate refinement gap. Java passed both callback models;
+the paired 129-assertion C++ Catch2 case passed focused CTest 1/1 in HLA_EVOKED.
+Results are in
+`out/java-tck/federate-mom-reflections-received-counts-java-parity-20261115/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

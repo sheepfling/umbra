@@ -65837,7 +65837,9 @@
       "category": "joined-federate-mom-reflection-statistics",
       "title": "Report received attribute reflections by standard transportation and application object class",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -65845,6 +65847,12 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.publishObjectClassAttributes",
@@ -65856,8 +65864,12 @@
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.subscribeInteractionClass",
-        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteraction(receive-order)",
+        "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -65868,18 +65880,28 @@
         "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.confirmAttributeTransportationTypeChange",
         "FederateAmbassador.receiveInteraction",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.size",
+        "HLAvariableArray.get",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.getValue",
+        "EncoderFactory.createHLAbyte",
+        "HLAbyte.toByteArray",
+        "Handle.encodedLength",
+        "Handle.encode",
         "HLAvariableArray",
         "HLAfixedRecord",
         "HLAinteger32BE",
         "HLAbyte"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-transportation-type-control",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -65901,12 +65923,33 @@
         "unsubscribe-object-class-attributes-requirements-contract.json",
         "unpublish-object-class-attributes-api-contract.json",
         "unpublish-object-class-attributes-requirements-contract.json",
-        "joined-federate-mom-public-requirements-contract.json"
+        "joined-federate-mom-public-requirements-contract.json",
+        "mom-service-reporting-requirements-contract.json",
+        "standard-joined-federate-mom-reflections-received-counts-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomReflectionsReceivedCounts",
       "parity": "cpp-tck.joined-federate-mom-reflections-received-counts",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "Direct mappings follow the paired C++ requirement plan: the two selected MOM candidates map to IEEE 1516.1-2025 §11.4.1 for the standard HLArequestReflectionsReceived/HLAreportReflectionsReceived surface. Callback-boundary counts, transport buckets, registered-class grouping, empty requester reports, nested HLAreflectCounts decoding, and report metadata remain bounded scenario assertions; RL-118 records the generic candidate refinement gap. Provider-independent behavior and conformance are not claimed.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models verify three application reflections for the target federate: one reliable and two best-effort deliveries. The corresponding HLAreportReflectionsReceived reports decode one class count in each transport bucket; an idle requester receives two empty buckets. Callback metadata and nested HLAreflectCounts encoding are checked. Custom and remote transportation types are not covered.",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-reflections-received-counts-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-reflected-object-report",

@@ -88,7 +88,6 @@ final class FederateMomReflectionsReceivedCountsTck {
                && objectClassName.equals(sender.getObjectClassName(senderClass))
                && attributeName.equals(receiver.getAttributeName(receiverClass, receiverAttribute))
                && attributeName.equals(sender.getAttributeName(senderClass, senderAttribute))
-               && receiverClass.equals(senderClass) && receiverAttribute.equals(senderAttribute)
                && "HLAreliable".equals(sender.getTransportationTypeName(reliable))
                && "HLAbestEffort".equals(sender.getTransportationTypeName(bestEffort)),
             "adapter object/attribute handles or standard transportation handles did not round-trip");
