@@ -1902,6 +1902,15 @@ both callback models against the paired C++ primary and contract. Results are
 in `out/java-tck/federate-mom-reflected-null-java-parity-20261116/`. The direct
 mapping covers §§6.12, 6.13, and 11.4.1; this is local-provider evidence only.
 
+The default-run `java-tck.federate-mom-reflected-multi-class-object-report`
+scenario registers two instances in each of two object classes, sends six
+receive-order updates, and checks four discoveries plus six reflections at a
+separate joined target. A requester then reads the target's standard reflected
+object report and the test decodes exactly two distinct instances per class.
+Java and the paired C++ primary/contract passed under both callback models using
+`p0-tck.xml` with `ddm-multi-attribute-tck.xml`. The direct mappings cover
+§§5.8, 6.8, 6.10, 6.11, and 11.4.1; this is bounded local-provider evidence.
+
 The adapter-required `java-tck.mom-save-restore-interactions` case has both
 federates publish the three standard save/restore MOM interactions. During the
 active save it sends Save Begun and Save Complete; during the active restore it

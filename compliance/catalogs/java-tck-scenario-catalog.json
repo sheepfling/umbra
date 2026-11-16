@@ -66658,10 +66658,12 @@
     },
     {
       "id": "java-tck.federate-mom-reflected-multi-class-object-report",
-      "category": "object-management",
+      "category": "joined-federate-mom-object-statistics",
       "title": "Request standard HLAobjectInstancesReflected counts across two registered object classes",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -66669,12 +66671,19 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
         "RTIambassador.updateAttributeValues(receive-order)",
+        "RTIambassador.deleteObjectInstance(receive-order)",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -66684,7 +66693,9 @@
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
-        "RTIambassador.sendInteraction",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.getObjectClassHandleFactory",
         "ObjectClassHandleFactory.decode",
         "RTIambassador.evokeCallback",
@@ -66692,13 +66703,24 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.reflectAttributeValues(receive-order)",
         "FederateAmbassador.receiveInteraction",
-        "HLAbyte",
-        "HLAvariableArray",
-        "HLAfixedRecord",
-        "HLAoctet",
-        "HLAinteger32BE"
+        "EncoderFactory.createHLAbyte",
+        "HLAbyte.toByteArray",
+        "HLAbyte.decode",
+        "HLAbyte.getValue",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "EncoderFactory.createHLAoctet",
+        "HLAoctet.toByteArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.getValue",
+        "Handle.encodedLength",
+        "Handle.encode"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
@@ -66706,7 +66728,47 @@
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-subscription",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-registration",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-update",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-callback",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-request-report"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.8",
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-registration",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-update",
+          "standard_section": "hla-1516.1-2025:clause-6.10"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.11"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-multi-class-request-report",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings follow the paired C++ requirements contract: the target's active subscriptions to each tested class map to IEEE 1516.1-2025 §5.8, object registration/discovery to §6.8, receive-order attribute updates to §6.10, reflect callbacks to §6.11, and the standard HLArequestObjectInstancesReflected/HLAreportObjectInstancesReflected count response to §11.4.1. The Java case registers two instances in each of two classes, sends six updates, validates four discoveries and six reflections, then decodes exactly two distinct instances per class in the target's report. Repeated updates to one instance do not increase its count. This is limited to the two-class, one-attribute report path and makes no claim about DDM region services, other report leaves, independent-provider behavior, or conformance.",
+      "callback_models": [
+        "evoked",
+        "immediate"
       ],
       "contract_refs": [
         "standard-joined-federate-mom-object-instances-reflected-multi-class-report-api-contract.json",
@@ -66723,8 +66785,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomReflectedMultiClassObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied base and additional FOMs, standard MIM, two distinct object classes and attributes, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, ddm-multi-attribute-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time with HLAobjectRoot.TckObject.Value and HLAobjectRoot.TckMultiAttributeObject.FirstValue. Results/JUnit: out/java-tck/federate-mom-reflected-multi-class-object-report-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); direct results: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-reflected-multi-class-report-20261116.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-updated-multi-class-object-report",
