@@ -41929,7 +41929,7 @@
         }
       ],
       "mapping_note": "Direct Table 5 rows r007 and r010 only: the successful AssociateRegionsForUpdates report encodes the supplied argument as a two-entry Array<AttributeRegionAssociation>; the Java source checks each ordered record and its singleton attributeHandleSet/regionHandleSet pair. This directly witnesses the r007 pair shape and r010 array form. The source uses only official IEEE 1516.1-2025 Java API types and standard MOM encoding elements. It does not claim other Table 5 value forms or full §11.5.1 coverage.",
-      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed with the Umbra JNI capability profile under HLA_EVOKED and HLA_IMMEDIATE. Both runs used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAobjectRoot.TckTypedObject, Identity, IntegerValue, TckDimension, and HLAinteger64Time. Each run verified one successful report, the two-entry variable array and exact ordered singleton pairs, Null return, serial 0, empty exception, and callback metadata. Results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261114/{evoked,immediate}.{results.json,junit.xml}. Umbra JNI evidence only; no independent-provider or conformance claim.",
+      "evidence_note": "The current-source Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API and passed with the Umbra JNI capability profile under HLA_EVOKED and HLA_IMMEDIATE. Both runs used p0-tck-without-switches.xml, fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAobjectRoot.TckTypedObject, Identity, IntegerValue, TckDimension, and HLAinteger64Time. Each run verified the successful Associate report, the two-entry variable array and ordered singleton pairs, Null return, serial 0, empty exception, and callback metadata. The Java case also verifies that a foreign-region request throws RegionNotCreatedByThisFederate and delivers the matching failure report at serial 1, then verifies the successful Unassociate report at serial 2. As in the C++ catalog, the failure report is supplemental API-boundary evidence and adds no direct Table 5 mapping. Results/JUnit: out/java-tck/service-report-associate-regions-java-parity-20261114/{evoked,immediate}.{results.json,junit.xml}. Umbra JNI evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "explicit-mim-api-contract.json",
@@ -65891,7 +65891,7 @@
         "provider-supported logical-time implementation",
         "callback model selected by the adapter"
       ],
-      "exclusion": "Local Umbra JNI runs verified this bounded assertion under both callback models. The Java case does not assert file creation or path identity, any other filesystem contents or record fields, or persistence.",
+      "exclusion": "The portable Java case is limited to public HLAreportServiceFile reflection and the initial Table 5 row r013 CallbackModel value. The paired C++ primary also checks report-file allocation, count and identity, local file contents and persistence across restore, and service-report append behavior; those host-filesystem checks are provider implementation coverage and are explicitly not applicable to the portable Java TCK in java_tck.py. Keep the scenario opt-in under provider profiles after local Umbra verification.",
       "mapping_note": "Direct Table 5 mapping is limited to row r013 in §11.5.1: the CallbackModel enumerant in the initial record read using the public HLAreportServiceFile MOM value. The existing §11.5.2 mapping remains limited to the reflected HLAreportServiceFile value."
     },
     {
@@ -71002,6 +71002,10 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMissingRtiMessageTimeout",
       "parity": "cpp-tck.federate-missing-rti-message-timeout-recovers",
+      "callback_models": [
+        "evoked"
+      ],
+      "callback_model_scope_note": "This scenario deliberately leaves the federate idle under HLA_EVOKED so callback-poll service traffic cannot independently demonstrate RTI reachability. The paired C++ and Java cases cover only this model; no HLA_IMMEDIATE behavior is claimed.",
       "default_status": "unsupported",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-12-programming-language-mappings-page-402-l101-33"
@@ -71015,9 +71019,10 @@
           "standard_section": "hla-1516.1-2025:clause-12.13.4.5"
         }
       ],
-      "mapping_note": "The Java test waits for one RTI heartbeat reply to be suppressed, then for the configured recovery window to complete. It verifies no connectionLost callback, the same federate handle, and a successful federation-list service afterward. This is bounded to recoverable missing message timeout behavior in §12.13.4.5; suppression and timeout values are adapter inputs.",
+      "mapping_note": "Direct mapping to IEEE 1516.1-2025 §12.13.4.5 is limited to recoverable missing-RTI-message timeout behavior: after the adapter suppresses one heartbeat reply, the test verifies recovery within the configured window, no connectionLost callback, the same federate handle, and a successful public federation-list service. The accelerated timeout and heartbeat-suppression behavior are provider-specific adapter inputs, not portable timeout defaults. Only HLA_EVOKED is in scope.",
       "mapping_classification": "direct-requirement-mapped",
-      "exclusion": "Opt-in Java TCK scenario: RtiTckMain registers defaultEnabled=false, so it is reported unsupported by the default suite unless selected through a capability profile or enabled with -Dhla.rti.tck.runUnverified=true."
+      "evidence_note": "The current Java TCK source compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed 1/1 HLA_EVOKED process-adapter runs on 2026-11-16 using a JNI bridge rebuilt from the current checkout. The adapter used the current-source public-server heartbeat fixture and confirmed readiness, reply suppression, session resumption, and clean fixture exit. Results and fault evidence: out/java-tck/federate-missing-rti-message-timeout-current-source-20261116/results/{evoked.results.json,evoked.junit.xml,evoked.fault-evidence.json}. This is local-provider evidence only; no independent-provider behavior or conformance is claimed.",
+      "exclusion": "Adapter-required: the focused current-process adapter packages/hla-rti-java-tck/adapters/current-process/run_federate_missing_rti_message_timeout.py must start the heartbeat-suppression fixture, provide ready/suppressed/resumed markers, and supply the accelerated settings. The generic Java default runner does not own that external fixture, so RtiTckMain keeps the case default-disabled and the catalog reports it unsupported there. This is a runner-fixture limitation; the Java assertions mirror the C++ primary for the supported HLA_EVOKED model."
     },
     {
       "id": "java-tck.federate-reconnect-timeout",
