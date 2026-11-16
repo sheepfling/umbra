@@ -5440,3 +5440,20 @@ and 8/8 direct runs. Their direct mapping remains limited to the exercised
 `.build/cpp-tck-evidence-20261116/{timestamped-local-delete-attribute,timestamped-local-delete-object,timestamped-delete-privilege}-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
+
+The default-run `java-tck.mixed-order-attribute-passel-retraction` case checks
+that the receive-order attribute from one mixed-order update is delivered once
+before `Retract` and remains delivered once after retraction, while the queued
+timestamped attribute stays suppressed through the receiver's grant. Its direct
+mapping remains limited to §8.2. The default-run
+`java-tck.mixed-order-attribute-passels-separate-messages` case checks that one
+update containing both attributes is delivered as two attribute-only reflection
+messages with their respective receive and timestamp orders. Its five direct
+mappings remain in §§6.1.12 and 8.1.3. Both Java cases passed under both callback
+models with `ddm-multi-attribute-tck.xml` and `HLAinteger64Time`; each paired C++
+primary/contract selector passed 4/4 focused CTests and direct runs. Results are
+in `out/java-tck/mixed-order-attribute-passel-retraction-java-parity-20261116/{evoked,immediate}/`,
+`out/java-tck/mixed-order-attribute-passels-separate-messages-java-parity-20261116/{evoked,immediate}/`,
+and `.build/cpp-tck-evidence-20261116/{mixed-order-attribute-passel-retraction,mixed-order-attribute-passels-separate-messages}-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
