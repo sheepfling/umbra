@@ -7734,6 +7734,9 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7741,7 +7744,7 @@
         "RTIambassador.negotiatedAttributeOwnershipDivestiture",
         "RTIambassador.cancelAttributeOwnershipAcquisition",
         "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
-        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.evokeCallback",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -7757,6 +7760,7 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "mapping_note": "The paired C++ primary and contract carry repository-internal cpp-1516.1-* requirement identifiers and have no direct requirement-to-section mapping. This Java scenario preserves those internal references and makes no canonical IEEE 1516.1-2025 clause claim. The pre-delivery callback suppression checks are bounded public-API observations.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -7767,8 +7771,18 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#negotiatedDivestiturePreDeliveryCancellation",
       "parity": "cpp-tck.negotiated-divestiture-pre-delivery-cancellation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java scenario uses standard IEEE 1516.1-2025 ownership and callback APIs."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "provider logical-time implementation and callback model"
+      ],
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/negotiated-divestiture-pre-delivery-cancellation-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/negotiated-divestiture-pre-delivery-cancellation-java-parity-20261116.{json,xml}. These are local-provider results, not independent-provider interoperability or conformance evidence."
     },
     {
       "id": "java-tck.negotiated-willing-to-acquire-continuation",
@@ -7780,6 +7794,9 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7788,7 +7805,7 @@
         "RTIambassador.cancelAttributeOwnershipAcquisition",
         "RTIambassador.negotiatedAttributeOwnershipDivestiture",
         "RTIambassador.confirmDivestiture",
-        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.evokeCallback",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -7805,6 +7822,7 @@
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management"
       ],
+      "mapping_note": "The paired C++ primary and contract carry repository-internal cpp-1516.1-* requirement identifiers and have no direct requirement-to-section mapping. This Java scenario preserves those internal references and makes no canonical IEEE 1516.1-2025 clause claim. The two-candidate continuation and callback payload checks are bounded public-API observations.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -7817,8 +7835,18 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#negotiatedWillingToAcquireContinuation",
       "parity": "cpp-tck.negotiated-willing-to-acquire-continuation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callback models."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "provider logical-time implementation and callback model"
+      ],
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/negotiated-willing-to-acquire-continuation-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/negotiated-willing-to-acquire-continuation-java-parity-20261116.{json,xml}. This internal scenario has no direct normative mapping; local-provider results do not establish independent-provider interoperability or conformance."
     },
     {
       "id": "java-tck.synchronization",
@@ -8399,9 +8427,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#momSaveRestoreInteractions",
       "parity": "cpp-tck.mom-save-restore-interactions",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied application FOM, standard MIM, logical-time implementation, provider, and callback model.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteractionRoot.TckInteraction/Payload, and HLAinteger64Time. The paired installed-package MinGW C++ primary and contract passed four direct executions across both callback models. Java results/JUnit: out/java-tck/unconditional-divestiture-assumption-coalescing-java-port-20261114/mom-save-restore-p0-{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: .build/cpp-tck-service-report-regional-interaction-failure-20261114/mom-save-restore-java-parity.{results.json,junit.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "HLAstandardMIM-2025.xml",
+        "hla.rti.tck.interactionClass=HLAinteractionRoot.TckInteraction and hla.rti.tck.parameter=Payload",
+        "provider logical-time implementation and callback model"
+      ],
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteractionRoot.TckInteraction/Payload, and HLAinteger64Time. Results/JUnit: out/java-tck/mom-save-restore-interactions-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/mom-save-restore-interactions-java-parity-20261116.{json,xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.callback-controls-timestamped-attribute-update",

@@ -97,6 +97,8 @@ final class NegotiatedDivestiturePreDeliveryCancellationTck {
          requester.cancelAttributeOwnershipAcquisition(object, requesterAttributes);
          await(requester, callbackModel, () -> !requesterRecorder.cancellations.isEmpty(),
             "pre-delivery acquisition-cancellation confirmation");
+         JavaTckSupport.check(requesterRecorder.cancellations.size() == 1,
+            "pre-delivery acquisition cancellation produced duplicate confirmations");
          OwnershipEvent cancellation = requesterRecorder.cancellations.get(0);
          JavaTckSupport.check(object.equals(cancellation.object)
                && cancellation.attributes.equals(new HashSet<>(requesterAttributeSet)),

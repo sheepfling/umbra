@@ -808,11 +808,21 @@ C++ evidence is in
 `.build/cpp-tck-evidence-20261116/negotiated-divestiture-partial-acquisition-cancellation-java-parity-20261116.{json,xml}`.
 These are local-provider results, not independent-provider interoperability
 or conformance evidence.
-The `java-tck.negotiated-divestiture-pre-delivery-cancellation` case uses the
-adapter FOM and logical-time implementation. In the evoked model, it verifies
-that canceling before callback servicing suppresses both queued owner callbacks,
-then cancels the pending negotiated divestiture and confirms ownership is
-unchanged.
+The default-enabled `java-tck.negotiated-divestiture-pre-delivery-cancellation`
+case uses `p0-tck.xml`, HLAobjectRoot.TckObject, and Value. It cancels the
+requester's acquisition before servicing callbacks, checks one exact
+cancellation confirmation, and under HLA_EVOKED confirms neither the negotiated
+confirmation nor ordinary release callback appears before or after callback
+servicing. Ownership remains with the original owner. The paired C++ rows use
+internal scenario identifiers and have no direct normative mapping; this Java
+case preserves that disposition. Java passed 1/1 under both callback models, and
+the C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs. Java
+evidence is in
+`out/java-tck/negotiated-divestiture-pre-delivery-cancellation-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-divestiture-pre-delivery-cancellation-java-parity-20261116.{json,xml}`.
+These local-provider results do not establish independent-provider behavior or
+conformance.
 The `java-tck.negotiated-divestiture-cancellation` case follows the standard
 two-federate acquisition path, checks the confirmation carries the acquisition
 tag, cancels the negotiated divestiture, and verifies that the ordinary release
@@ -857,11 +867,21 @@ C++ evidence is in
 `.build/cpp-tck-evidence-20261116/negotiated-divestiture-if-wanted-completion-java-parity-20261116.{json,xml}`.
 These are local-provider results, not independent-provider interoperability
 or conformance evidence.
-The `java-tck.negotiated-willing-to-acquire-continuation` case also uses the
-adapter FOM and logical-time implementation. It checks that a canceled first
-candidate does not block the second willing candidate from receiving the
-negotiated transfer; immediate delivery uses the equivalent regular pending
-request path because If Available completes as unavailable immediately.
+The default-enabled `java-tck.negotiated-willing-to-acquire-continuation` case
+uses `p0-tck.xml`, HLAobjectRoot.TckObject, and Value. In HLA_EVOKED it checks
+that canceling the first If Available candidate leaves the second candidate
+selected; under HLA_IMMEDIATE it follows the regular pending-acquisition path
+after the first request completes as unavailable. Both paths verify ownership
+stays with the owner until confirmation and then transfers only to the second
+candidate with the correct request and confirmation tags. The paired C++ rows
+carry internal identifiers only, so no normative section is claimed. Java
+passed 1/1 under both callback models; the C++ primary/contract passed 4/4
+focused CTests and 4/4 direct runs. Java evidence is in
+`out/java-tck/negotiated-willing-to-acquire-continuation-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-willing-to-acquire-continuation-java-parity-20261116.{json,xml}`.
+These local-provider results do not establish independent-provider behavior or
+conformance.
 The default-run `java-tck.resign-pending-acquisition-rejection` case verifies the
 standard `OwnershipAcquisitionPending` failure for unconditional resign,
 confirms the named requester remains joined, then cancels the request through
@@ -2166,14 +2186,20 @@ record with a distinct-instance count of two. Java and the paired C++
 primary/contract passed under both callback models. Direct mappings cover
 §§6.10, 6.12, and 11.4.1; this is bounded local-provider evidence.
 
-The adapter-required `java-tck.mom-save-restore-interactions` case has both
-federates publish the three standard save/restore MOM interactions. During the
-active save it sends Save Begun and Save Complete; during the active restore it
-sends Restore Complete. It checks the matching completion callbacks and that
-application sends fail with SaveInProgress or RestoreInProgress during those
-transitions. Current-source JNI and paired installed-package C++ runs passed in
-both callback models. This is one bounded positive path and local-provider
-evidence only.
+The default-enabled `java-tck.mom-save-restore-interactions` case uses
+`p0-tck.xml`, `HLAstandardMIM-2025.xml`, and the HLAinteractionRoot.TckInteraction
+application interaction. Both federates publish the three standard
+save/restore MOM interactions. During the active save it sends Save Begun and
+Save Complete; during the active restore it sends Restore Complete. It checks
+the matching completion callbacks and that application sends fail with
+SaveInProgress or RestoreInProgress during those transitions. The three
+page-291 witnesses map directly to IEEE 1516.1-2025 §11.4.2. Java passed 1/1
+under both callback models; the C++ primary/contract passed 4/4 focused CTests
+and 4/4 direct runs. Java evidence is in
+`out/java-tck/mom-save-restore-interactions-java-parity-20261116/`; C++ evidence
+is in
+`.build/cpp-tck-evidence-20261116/mom-save-restore-interactions-java-parity-20261116.{json,xml}`.
+This is one bounded positive path and local-provider evidence only.
 
 The default-run `java-tck.federate-mom-publication-query` scenario requests
 standard federate MOM publication reports after publishing an adapter-named

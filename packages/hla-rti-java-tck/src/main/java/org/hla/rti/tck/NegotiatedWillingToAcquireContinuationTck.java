@@ -216,6 +216,8 @@ final class NegotiatedWillingToAcquireContinuationTck {
       first.cancelAttributeOwnershipAcquisition(object, attributes);
       await(first, callbackModel, () -> !recorder.cancellations.isEmpty(),
          "first candidate acquisition-cancellation confirmation");
+      JavaTckSupport.check(recorder.cancellations.size() == 1,
+         "first candidate acquisition cancellation produced duplicate confirmations");
       OwnershipEvent cancellation = recorder.cancellations.get(0);
       JavaTckSupport.check(object.equals(cancellation.object)
             && cancellation.attributes.equals(new HashSet<>(attributes))

@@ -6327,11 +6327,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.negotiated-divestiture-pre-delivery-cancellation",
             "suppress negotiated-divestiture and ordinary release callbacks when acquisition is canceled before evoked delivery",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::negotiatedDivestiturePreDeliveryCancellation);
+            }, true), RtiTckMain::negotiatedDivestiturePreDeliveryCancellation);
       run(new Scenario("java-tck.negotiated-divestiture-cancellation",
             "cancel negotiated divestiture and restore the ordinary pending-acquisition release path",
             "ownership",
@@ -6359,11 +6359,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.negotiated-willing-to-acquire-continuation",
             "continue negotiated divestiture with the next willing-to-acquire candidate after the first candidate cancels",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::negotiatedWillingToAcquireContinuation);
+            }, true), RtiTckMain::negotiatedWillingToAcquireContinuation);
       run(new Scenario("java-tck.if-available-during-negotiated-divestiture",
             "select an evoked If Available requester for negotiated divestiture and transfer only at confirmation",
             "ownership",
@@ -6473,7 +6473,7 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-11-management-object-model-page-291-l185-61",
                "requirement-candidate-content-clauses-11-management-object-model-page-291-l191-63",
                "requirement-candidate-content-clauses-11-management-object-model-page-291-l200-66"
-            }, false), RtiTckMain::momSaveRestoreInteractions);
+            }, true), RtiTckMain::momSaveRestoreInteractions);
       CallbackControlsScenarioRegistry.registerDataAndAdvisories();
       run(new Scenario("java-tck.regional-interaction-routing",
              "route ordinary regional interactions, filter disjoint subscriptions, and restore delivery after resubscription",
