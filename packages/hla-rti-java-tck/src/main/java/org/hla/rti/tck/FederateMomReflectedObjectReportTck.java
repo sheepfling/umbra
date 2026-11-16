@@ -17,7 +17,6 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
-import hla.rti1516_2025.encoding.HLAbyte;
 import hla.rti1516_2025.encoding.HLAfixedRecord;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
 import hla.rti1516_2025.encoding.HLAoctet;
@@ -43,7 +42,8 @@ final class FederateMomReflectedObjectReportTck {
    private FederateMomReflectedObjectReportTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String objectClassName, String attributeName, CallbackModel callbackModel)
+         String objectClassName, String attributeName, String secondObjectClassName,
+         String secondAttributeName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador requester = factory.getRtiAmbassador();
       RTIambassador subject = factory.getRtiAmbassador();
@@ -55,10 +55,13 @@ final class FederateMomReflectedObjectReportTck {
       String federation = "java-tck-federate-mom-reflected-object-report-" + UUID.randomUUID();
       boolean requesterConnected = false, subjectConnected = false, monitorConnected = false;
       boolean created = false, requesterJoined = false, subjectJoined = false, monitorJoined = false;
-      boolean requesterSubscribed = false, monitorSubscribed = false, subjectPublished = false;
+      boolean requesterSubscribed = false, requesterSecondSubscribed = false;
+      boolean monitorSubscribed = false, subjectPublished = false, subjectSecondPublished = false;
       InteractionClassHandle requestClass = null, reportClass = null;
-      ObjectClassHandle requesterObjectClass = null, subjectObjectClass = null;
-      AttributeHandle requesterAttribute = null, subjectAttribute = null;
+      ObjectClassHandle requesterObjectClass = null, requesterSecondObjectClass = null;
+      ObjectClassHandle subjectObjectClass = null, subjectSecondObjectClass = null;
+      AttributeHandle requesterAttribute = null, requesterSecondAttribute = null;
+      AttributeHandle subjectAttribute = null, subjectSecondAttribute = null;
       try {
          requester.connect(requesterRecorder.proxy(), callbackModel);
          requesterConnected = true;
@@ -96,26 +99,46 @@ final class FederateMomReflectedObjectReportTck {
 
          requesterObjectClass = requester.getObjectClassHandle(objectClassName);
          requesterAttribute = requester.getAttributeHandle(requesterObjectClass, attributeName);
+         requesterSecondObjectClass = requester.getObjectClassHandle(secondObjectClassName);
+         requesterSecondAttribute = requester.getAttributeHandle(requesterSecondObjectClass,
+            secondAttributeName);
          subjectObjectClass = subject.getObjectClassHandle(objectClassName);
          subjectAttribute = subject.getAttributeHandle(subjectObjectClass, attributeName);
-         JavaTckSupport.check(objectClassName.equals(requester.getObjectClassName(requesterObjectClass))
+         subjectSecondObjectClass = subject.getObjectClassHandle(secondObjectClassName);
+         subjectSecondAttribute = subject.getAttributeHandle(subjectSecondObjectClass,
+            secondAttributeName);
+         JavaTckSupport.check(!objectClassName.equals(secondObjectClassName)
+               && objectClassName.equals(requester.getObjectClassName(requesterObjectClass))
+               && secondObjectClassName.equals(requester.getObjectClassName(
+                  requesterSecondObjectClass))
                && objectClassName.equals(subject.getObjectClassName(subjectObjectClass))
+               && secondObjectClassName.equals(subject.getObjectClassName(
+                  subjectSecondObjectClass))
                && attributeName.equals(requester.getAttributeName(requesterObjectClass,
                   requesterAttribute))
-               && attributeName.equals(subject.getAttributeName(subjectObjectClass, subjectAttribute))
-               && requesterObjectClass.equals(subjectObjectClass)
-               && requesterAttribute.equals(subjectAttribute),
-            "adapter-supplied application handles did not round-trip consistently");
+               && attributeName.equals(subject.getAttributeName(subjectObjectClass,
+                  subjectAttribute))
+               && secondAttributeName.equals(requester.getAttributeName(
+                  requesterSecondObjectClass, requesterSecondAttribute))
+               && secondAttributeName.equals(subject.getAttributeName(subjectSecondObjectClass,
+                  subjectSecondAttribute)),
+            "adapter-supplied application classes or attributes did not round-trip distinctly");
          requester.subscribeObjectClassAttributes(requesterObjectClass,
             JavaTckSupport.attributeSet(requester, requesterAttribute), "");
          requesterSubscribed = true;
+         requester.subscribeObjectClassAttributes(requesterSecondObjectClass,
+            JavaTckSupport.attributeSet(requester, requesterSecondAttribute), "");
+         requesterSecondSubscribed = true;
          subject.publishObjectClassAttributes(subjectObjectClass,
             JavaTckSupport.attributeSet(subject, subjectAttribute));
          subjectPublished = true;
+         subject.publishObjectClassAttributes(subjectSecondObjectClass,
+            JavaTckSupport.attributeSet(subject, subjectSecondAttribute));
+         subjectSecondPublished = true;
 
          int discoveriesBefore = requesterRecorder.discoveries.size();
          ObjectInstanceHandle firstObject = subject.registerObjectInstance(subjectObjectClass);
-         ObjectInstanceHandle secondObject = subject.registerObjectInstance(subjectObjectClass);
+         ObjectInstanceHandle secondObject = subject.registerObjectInstance(subjectSecondObjectClass);
          JavaTckSupport.check(firstObject != null && secondObject != null
                && !firstObject.equals(secondObject),
             "reflected-object registration returned invalid or duplicate handles");
@@ -129,36 +152,45 @@ final class FederateMomReflectedObjectReportTck {
          Discovery secondDiscovery = requesterRecorder.discovery(secondObject, discoveriesBefore);
          JavaTckSupport.check(firstDiscovery != null && secondDiscovery != null
                && requesterObjectClass.equals(firstDiscovery.objectClass)
-               && requesterObjectClass.equals(secondDiscovery.objectClass)
-               && subjectFederate.equals(firstDiscovery.producer)
-               && subjectFederate.equals(secondDiscovery.producer)
+               && requesterSecondObjectClass.equals(secondDiscovery.objectClass)
+               && Arrays.equals(encode(subjectFederate), encode(firstDiscovery.producer))
+               && Arrays.equals(encode(subjectFederate), encode(secondDiscovery.producer))
                && requesterObjectClass.equals(requester.getKnownObjectClassHandle(firstObject))
-               && requesterObjectClass.equals(requester.getKnownObjectClassHandle(secondObject)),
+               && requesterSecondObjectClass.equals(
+                  requester.getKnownObjectClassHandle(secondObject)),
             "reflected-object discovery had the wrong class, producer, or known-object state");
 
          int reflectionStart = requesterRecorder.reflections.size();
-         update(subject, firstObject, subjectAttribute, encoder, (byte) 1);
-         update(subject, firstObject, subjectAttribute, encoder, (byte) 2);
-         update(subject, secondObject, subjectAttribute, encoder, (byte) 3);
+         update(subject, firstObject, subjectAttribute, encoder, 1);
          await(requester, callbackModel,
             () -> reflectionsFor(requesterRecorder, reflectionStart, firstObject, secondObject)
-               .size() >= 3,
-            "three receive-order application reflections");
+               .size() >= 1, "first receive-order application reflection");
+         update(subject, firstObject, subjectAttribute, encoder, 2);
+         await(requester, callbackModel,
+            () -> reflectionsFor(requesterRecorder, reflectionStart, firstObject, secondObject)
+               .size() >= 2, "repeated receive-order reflection of the server instance");
+         update(subject, secondObject, subjectSecondAttribute, encoder, 3);
+         await(requester, callbackModel,
+            () -> reflectionsFor(requesterRecorder, reflectionStart, firstObject, secondObject)
+               .size() >= 3, "receive-order reflection of the soda instance");
          List<Reflection> applicationReflections = reflectionsFor(requesterRecorder,
             reflectionStart, firstObject, secondObject);
          List<Integer> firstValues = new ArrayList<>();
          List<Integer> secondValues = new ArrayList<>();
          for (Reflection reflection : applicationReflections) {
+            boolean firstObjectReflection = firstObject.equals(reflection.object);
+            AttributeHandle expectedAttribute = firstObjectReflection
+               ? requesterAttribute : requesterSecondAttribute;
             JavaTckSupport.check(reflection.values.size() == 1
-                  && reflection.values.containsKey(requesterAttribute)
+                  && reflection.values.containsKey(expectedAttribute)
                   && reliable.equals(reflection.transportation) && reflection.tag.length == 0
-                  && subjectFederate.equals(reflection.producer)
+                  && Arrays.equals(encode(subjectFederate), encode(reflection.producer))
                   && (reflection.regions == null || reflection.regions.isEmpty()),
                "application reflection returned unexpected attribute or transport metadata");
-            HLAbyte value = encoder.createHLAbyte();
-            value.decode(reflection.values.get(requesterAttribute));
-            if (firstObject.equals(reflection.object)) firstValues.add((int) value.getValue());
-            else secondValues.add((int) value.getValue());
+            HLAinteger32BE value = encoder.createHLAinteger32BE();
+            value.decode(reflection.values.get(expectedAttribute));
+            if (firstObjectReflection) firstValues.add(value.getValue());
+            else secondValues.add(value.getValue());
          }
          JavaTckSupport.check(applicationReflections.size() == 3
                && firstValues.equals(Arrays.asList(1, 2))
@@ -170,6 +202,13 @@ final class FederateMomReflectedObjectReportTck {
             .create(1);
          requestParameters.put(requestFederate, encode(requesterFederate));
          monitor.sendInteraction(requestClass, requestParameters, new byte[0]);
+         if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
+            JavaTckSupport.check(monitorRecorder.interactions.size() == reportStart + 1,
+               "HLA_IMMEDIATE reflected-object report did not arrive before Send Interaction returned");
+         } else {
+            JavaTckSupport.check(monitorRecorder.interactions.size() == reportStart,
+               "HLA_EVOKED reflected-object report crossed the callback boundary early");
+         }
          InteractionClassHandle resolvedReportClass = reportClass;
          await(monitor, callbackModel,
             () -> findReport(monitorRecorder, reportStart, resolvedReportClass, reportCounts) != null,
@@ -184,23 +223,29 @@ final class FederateMomReflectedObjectReportTck {
                && reliable.equals(report.transportation) && report.tag.length == 0
                && report.producer == null && report.regionsEmpty,
             "reflected-object report had a non-standard reliable one-parameter response shape");
-         List<ObjectClassCount> counts = decodeObjectClassCounts(encoder,
-            monitor.getObjectClassHandleFactory(), report.parameters.get(reportCounts));
-         JavaTckSupport.check(counts.size() == 1
-               && requesterObjectClass.equals(counts.get(0).objectClass)
-               && counts.get(0).count == 2,
-            "reflected-object report did not count two distinct instances by registered class");
+         Map<String, Integer> counts = decodeObjectClassCounts(encoder,
+            monitor.getObjectClassHandleFactory(), monitor, report.parameters.get(reportCounts));
+         JavaTckSupport.check(counts.size() == 2
+               && Integer.valueOf(1).equals(counts.get(objectClassName))
+               && Integer.valueOf(1).equals(counts.get(secondObjectClassName)),
+            "reflected-object report did not count one distinct instance for each registered class");
 
          monitor.unsubscribeInteractionClass(reportClass);
          monitorSubscribed = false;
          requester.unsubscribeObjectClassAttributes(requesterObjectClass,
             JavaTckSupport.attributeSet(requester, requesterAttribute));
          requesterSubscribed = false;
+         requester.unsubscribeObjectClassAttributes(requesterSecondObjectClass,
+            JavaTckSupport.attributeSet(requester, requesterSecondAttribute));
+         requesterSecondSubscribed = false;
          subject.deleteObjectInstance(firstObject, new byte[0]);
          subject.deleteObjectInstance(secondObject, new byte[0]);
          subject.unpublishObjectClassAttributes(subjectObjectClass,
             JavaTckSupport.attributeSet(subject, subjectAttribute));
          subjectPublished = false;
+         subject.unpublishObjectClassAttributes(subjectSecondObjectClass,
+            JavaTckSupport.attributeSet(subject, subjectSecondAttribute));
+         subjectSecondPublished = false;
          requester.resignFederationExecution(ResignAction.NO_ACTION);
          requesterJoined = false;
          subject.resignFederationExecution(ResignAction.NO_ACTION);
@@ -218,10 +263,20 @@ final class FederateMomReflectedObjectReportTck {
             requester.unsubscribeObjectClassAttributes(requesterObjectClass,
                JavaTckSupport.attributeSet(requester, requesterAttribute));
          } catch (Exception ignored) { }
+         if (requesterSecondSubscribed && requesterJoined && requesterSecondObjectClass != null
+               && requesterSecondAttribute != null) try {
+            requester.unsubscribeObjectClassAttributes(requesterSecondObjectClass,
+               JavaTckSupport.attributeSet(requester, requesterSecondAttribute));
+         } catch (Exception ignored) { }
          if (subjectPublished && subjectJoined && subjectObjectClass != null
                && subjectAttribute != null) try {
             subject.unpublishObjectClassAttributes(subjectObjectClass,
                JavaTckSupport.attributeSet(subject, subjectAttribute));
+         } catch (Exception ignored) { }
+         if (subjectSecondPublished && subjectJoined && subjectSecondObjectClass != null
+               && subjectSecondAttribute != null) try {
+            subject.unpublishObjectClassAttributes(subjectSecondObjectClass,
+               JavaTckSupport.attributeSet(subject, subjectSecondAttribute));
          } catch (Exception ignored) { }
          if (requesterJoined) resign(requester);
          if (subjectJoined) resign(subject);
@@ -235,9 +290,9 @@ final class FederateMomReflectedObjectReportTck {
    }
 
    private static void update(RTIambassador subject, ObjectInstanceHandle object,
-         AttributeHandle attribute, EncoderFactory encoder, byte value) throws Exception {
+         AttributeHandle attribute, EncoderFactory encoder, int value) throws Exception {
       AttributeHandleValueMap values = subject.getAttributeHandleValueMapFactory().create(1);
-      values.put(attribute, encoder.createHLAbyte(value).toByteArray());
+      values.put(attribute, encoder.createHLAinteger32BE(value).toByteArray());
       subject.updateAttributeValues(object, values, new byte[0]);
    }
 
@@ -252,8 +307,9 @@ final class FederateMomReflectedObjectReportTck {
       return result;
    }
 
-   private static List<ObjectClassCount> decodeObjectClassCounts(EncoderFactory encoder,
-         ObjectClassHandleFactory classFactory, byte[] encoded) throws Exception {
+   private static Map<String, Integer> decodeObjectClassCounts(EncoderFactory encoder,
+         ObjectClassHandleFactory classFactory, RTIambassador decoder, byte[] encoded)
+         throws Exception {
       HLAvariableArray<HLAoctet> handlePrototype = encoder.createHLAvariableArray(
          index -> encoder.createHLAoctet(), encoder.createHLAoctet());
       HLAfixedRecord recordPrototype = encoder.createHLAfixedRecord();
@@ -268,13 +324,16 @@ final class FederateMomReflectedObjectReportTck {
             return record;
          }, recordPrototype);
       records.decode(encoded);
-      List<ObjectClassCount> result = new ArrayList<>();
+      Map<String, Integer> result = new LinkedHashMap<>();
       for (HLAfixedRecord record : records) {
          @SuppressWarnings("unchecked")
          HLAvariableArray<HLAoctet> handle = (HLAvariableArray<HLAoctet>) record.get(0);
          HLAinteger32BE count = (HLAinteger32BE) record.get(1);
-         result.add(new ObjectClassCount(classFactory.decode(handle.toByteArray(), 0),
-            count.getValue()));
+         ObjectClassHandle objectClass = classFactory.decode(handle.toByteArray(), 0);
+         String objectClassName = decoder.getObjectClassName(objectClass);
+         JavaTckSupport.check(!result.containsKey(objectClassName),
+            "reflected-object report repeated an object-class count record");
+         result.put(objectClassName, count.getValue());
       }
       return result;
    }
@@ -351,14 +410,6 @@ final class FederateMomReflectedObjectReportTck {
          this.transportation = transportation;
          this.producer = producer;
          this.regions = regions == null ? null : (RegionHandleSet) regions.clone();
-      }
-   }
-   private static final class ObjectClassCount {
-      private final ObjectClassHandle objectClass;
-      private final int count;
-      private ObjectClassCount(ObjectClassHandle objectClass, int count) {
-         this.objectClass = objectClass;
-         this.count = count;
       }
    }
    private static final class Interaction {

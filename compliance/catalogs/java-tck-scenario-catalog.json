@@ -66011,12 +66011,14 @@
       "callback_model_scope_note": "Both callback models verify three application reflections for the target federate: one reliable and two best-effort deliveries. The corresponding HLAreportReflectionsReceived reports decode one class count in each transport bucket; an idle requester receives two empty buckets. Callback metadata and nested HLAreflectCounts encoding are checked. Custom and remote transportation types are not covered.",
       "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-reflections-received-counts-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-mom-reflected-object-report",
-      "category": "object-management",
-      "title": "Request class-scoped HLAobjectInstancesReflected counts after verifying discovery and receive-order reflection callbacks",
+      "category": "joined-federate-mom-reflection-statistics",
+      "title": "Request HLAreportObjectInstancesReflected for two object classes; repeated reflections of one instance count once",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -66024,6 +66026,12 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -66040,7 +66048,9 @@
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
-        "RTIambassador.sendInteraction",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.getObjectClassHandleFactory",
         "ObjectClassHandleFactory.decode",
         "RTIambassador.evokeCallback",
@@ -66050,19 +66060,23 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.receiveInteraction",
-        "HLAbyte",
-        "HLAvariableArray",
-        "HLAfixedRecord",
-        "HLAoctet",
-        "HLAinteger32BE"
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAoctet",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "HLAinteger32BE.decode",
+        "HLAinteger32BE.getValue",
+        "HLAoctet.toByteArray",
+        "Handle.encodedLength",
+        "Handle.encode"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-attribute-value-update-response",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
       ],
       "contract_refs": [
         "standard-joined-federate-mom-object-instances-reflected-report-api-contract.json",
@@ -66073,14 +66087,47 @@
         "object-instance-registration-requirements-contract.json",
         "publish-object-class-attributes-api-contract.json",
         "publish-object-class-attributes-requirements-contract.json",
+        "subscribe-object-class-attributes-api-contract.json",
+        "subscribe-object-class-attributes-requirements-contract.json",
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
+        "object-instance-deletion-api-contract.json",
+        "object-instance-deletion-requirements-contract.json",
+        "subscribe-interaction-class-api-contract.json",
+        "subscribe-interaction-class-requirements-contract.json",
+        "unsubscribe-interaction-class-api-contract.json",
+        "unsubscribe-interaction-class-requirements-contract.json",
+        "unsubscribe-object-class-attributes-api-contract.json",
+        "unsubscribe-object-class-attributes-requirements-contract.json",
+        "unpublish-object-class-attributes-api-contract.json",
+        "unpublish-object-class-attributes-requirements-contract.json",
+        "receive-order-interaction-api-contract.json",
+        "receive-order-interaction-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomReflectedObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-reflected-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "Direct mappings follow the paired C++ requirement plan: the two selected MOM candidates map to IEEE 1516.1-2025 §11.4.1 for the HLAreportObjectInstancesReflected Table 7 P leaf. RL-111 records that the generic candidate cannot express request/report correlation, callback-boundary ownership, distinct-object counts, or nested class-count encoding. Counts, callback details, and report metadata remain bounded scenario evidence; local-provider behavior only, with no conformance claim.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models register one HLAobjectRoot.Employee.Server/Efficiency object and one HLAobjectRoot.Food.Drink.Soda/Flavor object. The requester observes two receive-order reflections of the Server instance and one of the Soda instance; the report must contain one distinct instance for each class. It also checks discovery identity, reflection value and metadata, reliable report transport, empty tag, absent producer and regions, and the HLA_EVOKED versus HLA_IMMEDIATE callback boundary.",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using RestaurantFOMmodule-2025.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.Employee.Server/Efficiency, and HLAobjectRoot.Food.Drink.Soda/Flavor. Results/JUnit: out/java-tck/federate-mom-reflected-object-report-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. The paired 51-assertion C++ HLA_EVOKED case and 50-assertion HLA_IMMEDIATE companion passed focused CTest 2/2. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-reflected-timestamped-object-report",

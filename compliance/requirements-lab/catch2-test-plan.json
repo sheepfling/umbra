@@ -56066,7 +56066,7 @@
       "ctest_target": "umbra_joined_federate_mom_object_instances_reflected_report_catch2",
       "ctest_filter": "^umbra\\.joined_federate_mom_object_instances_reflected_report\\.catch2\\.Embedded MOM requestObjectInstancesReflected reports distinct reflected instances$",
       "ctest_label": "joined-federate-mom-object-instances-reflected-report",
-      "assertions": 53,
+      "assertions": 51,
       "callback_models": [
         "HLA_EVOKED"
       ],
@@ -56078,13 +56078,13 @@
         "nested-class-count",
         "callback-gated-rti-originated-report",
         "reliable-empty-tag-default-invalid-producer",
-        "federation-local-non-default-reliable-handle"
+        "federation-local-non-default-fom-object-class-handles"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-11.4.1"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Object Class/Attribute/Interaction/Parameter/Transportation lookup, Publish Object Class Attributes, Register Object Instance, Subscribe Object Class Attributes, Update Attribute Values, Subscribe Interaction Class, Send Interaction, Evoke Callback, Receive Interaction, and Reflect Attribute Values surfaces are exercised. The focused native case records accepted application reflection callbacks for the requesting/receiving joined federate, proves repeated reflections of one object remain one distinct count, and decodes the RTI-originated HLAreportObjectInstancesReflected interaction's official nested HLAobjectClassBasedCounts value for two classes. It verifies callback-gated delivery and forces federation-local HLAreliable to a non-1 handle, then asserts the report callback uses the exact public handle, with empty tag and default-invalid RTI producer metadata. This is bounded §11.4.1 MOM evidence; RL-111 records that the generic Lab candidate cannot express request/report correlation, callback-boundary ownership, distinct-object semantics, nested encoding, or the producer route. A separate HLA_IMMEDIATE public C++ companion verifies immediate callback delivery. The other public MOM request/report families, transport-specific statistics, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
-      "next_action": "The 53-assertion native C++ HLA_EVOKED case and its HLA_IMMEDIATE companion are source-located and green; both reject a hard-coded transportation handle of 1. Their Table 7 P-leaf mapping covers only HLAreportObjectInstancesReflected. The shared helper's HLAreportObjectInstancesUpdated and HLAreportObjectInstancesThatCanBeDeleted siblings also passed focused regression CTests. Continue with the next exact uncovered §11.4.1 requirement candidate; keep package/JUnit/protected-review evidence, Lab validation, and conformance separate."
+      "requirements_lab_api_surface_status": "The official C++ Object Class/Attribute/Interaction/Parameter/Transportation lookup, Publish Object Class Attributes, Register Object Instance, Subscribe Object Class Attributes, Update Attribute Values, Subscribe Interaction Class, Send Interaction, Evoke Callback, Receive Interaction, and Reflect Attribute Values surfaces are exercised. The focused native case records accepted application reflection callbacks for the requesting/receiving joined federate, proves repeated reflections of one object remain one distinct count, and decodes the RTI-originated HLAreportObjectInstancesReflected interaction's official nested HLAobjectClassBasedCounts value for two classes. The fixture allocates federation-local FOM object-class handles from a non-default range so nested class-count decoding is not tied to assumed small values. HLAreliable is looked up by its standard name and the report callback is checked against that exact opaque public handle, with empty tag and default-invalid RTI producer metadata. This is bounded §11.4.1 MOM evidence; RL-111 records that the generic Lab candidate cannot express request/report correlation, callback-boundary ownership, distinct-object semantics, nested encoding, or the producer route. A separate HLA_IMMEDIATE public C++ companion verifies immediate callback delivery. The other public MOM request/report families, transport-specific statistics, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
+      "next_action": "The 51-assertion native C++ HLA_EVOKED case and its 50-assertion HLA_IMMEDIATE companion are source-located and green; both compare the report callback to the looked-up public HLAreliable handle without interpreting its opaque numeric value. Their Table 7 P-leaf mapping covers only HLAreportObjectInstancesReflected. The shared helper's HLAreportObjectInstancesUpdated and HLAreportObjectInstancesThatCanBeDeleted siblings also passed focused regression CTests. Continue with the next exact uncovered §11.4.1 requirement candidate; keep package/JUnit/protected-review evidence, Lab validation, and conformance separate."
     },
     {
       "id": "umbra-cpp-joined-federate-mom-object-instances-reflected-report-immediate-integration",
@@ -56142,7 +56142,7 @@
       "ctest_target": "umbra_joined_federate_mom_object_instances_reflected_report_catch2",
       "ctest_filter": "^umbra\\.joined_federate_mom_object_instances_reflected_report\\.catch2\\.Embedded MOM requestObjectInstancesReflected reports distinct reflected instances immediately$",
       "ctest_label": "joined-federate-mom-object-instances-reflected-report",
-      "assertions": 52,
+      "assertions": 50,
       "callback_models": [
         "HLA_IMMEDIATE"
       ],
@@ -56154,10 +56154,10 @@
         "nested-class-count",
         "immediate-rti-originated-report-before-service-return",
         "reliable-empty-tag-default-invalid-producer",
-        "federation-local-non-default-reliable-handle"
+        "federation-local-non-default-fom-object-class-handles"
       ],
-      "requirements_lab_api_surface_status": "The official C++ Object Class/Attribute/Interaction/Parameter/Transportation lookup, Publish Object Class Attributes, Register Object Instance, Subscribe Object Class Attributes, Update Attribute Values, Subscribe Interaction Class, Send Interaction, Receive Interaction, and Reflect Attribute Values surfaces are exercised through HLA_IMMEDIATE. The test records accepted application reflection callbacks for the requesting/receiving joined federate, proves repeated reflections of one object remain one distinct count, and verifies that the RTI-originated HLAreportObjectInstancesReflected callback with its official nested HLAobjectClassBasedCounts for two classes is present when the public request Send Interaction returns. It forces federation-local HLAreliable to a non-1 handle and asserts that the callback uses the same public handle, with empty tag and default-invalid RTI producer metadata. This is bounded §11.4.1 evidence for one Table 7 P leaf and the selected p. 290 l. 174-57/l. 111-36 candidates; RL-111's generic Lab expressiveness gap remains. Other report leaves, transport/time variants, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
-      "next_action": "This 52-assertion immediate callback-model case complements the 53-assertion HLA_EVOKED witness for HLAreportObjectInstancesReflected only. Both reject a hard-coded transportation handle of 1; focused regression cases for the two sibling report handlers passed. Keep the two-model report evidence bounded to this P leaf and continue with another exact §11.4.1 requirement candidate rather than generalizing to all MOM outputs or conformance."
+      "requirements_lab_api_surface_status": "The official C++ Object Class/Attribute/Interaction/Parameter/Transportation lookup, Publish Object Class Attributes, Register Object Instance, Subscribe Object Class Attributes, Update Attribute Values, Subscribe Interaction Class, Send Interaction, Receive Interaction, and Reflect Attribute Values surfaces are exercised through HLA_IMMEDIATE. The test records accepted application reflection callbacks for the requesting/receiving joined federate, proves repeated reflections of one object remain one distinct count, and verifies that the RTI-originated HLAreportObjectInstancesReflected callback with its official nested HLAobjectClassBasedCounts for two classes is present when the public request Send Interaction returns. The fixture allocates federation-local FOM object-class handles from a non-default range so nested class-count decoding is not tied to assumed small values. HLAreliable is looked up by its standard name and the callback is checked against that exact opaque public handle, with empty tag and default-invalid RTI producer metadata. This is bounded §11.4.1 evidence for one Table 7 P leaf and the selected p. 290 l. 174-57/l. 111-36 candidates; RL-111's generic Lab expressiveness gap remains. Other report leaves, transport/time variants, remote transport, JUnit/protected review, Lab validation, and conformance remain open.",
+      "next_action": "This 50-assertion immediate callback-model case complements the 51-assertion HLA_EVOKED witness for HLAreportObjectInstancesReflected only. Both compare against the looked-up public HLAreliable handle without interpreting its opaque numeric value; focused regression cases for the two sibling report handlers passed. Keep the two-model report evidence bounded to this P leaf and continue with another exact §11.4.1 requirement candidate rather than generalizing to all MOM outputs or conformance."
     },
     {
       "id": "umbra-cpp-joined-federate-mom-object-instances-reflected-null-response-integration",

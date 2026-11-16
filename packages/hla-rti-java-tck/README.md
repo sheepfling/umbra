@@ -241,6 +241,18 @@ generic candidate refinement gap. Java passed both callback models; the paired
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-reflected-object-report` case requests
+`HLAreportObjectInstancesReflected` after registering one object in each of two
+application classes. It observes two reflections of the first object and one of the
+second, then checks the report counts one distinct instance for each class. It maps
+the paired MOM candidates to IEEE 1516.1-2025 §11.4.1 for this Table 7 P report leaf;
+RL-111 records the generic candidate refinement gap. Java passed in both callback
+models; the paired 51-assertion HLA_EVOKED C++ case and 50-assertion HLA_IMMEDIATE
+companion passed focused CTest 2/2. Results are in
+`out/java-tck/federate-mom-reflected-object-report-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

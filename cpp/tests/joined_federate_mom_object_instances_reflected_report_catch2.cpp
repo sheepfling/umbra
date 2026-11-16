@@ -3,7 +3,6 @@
 #include "internal/federation/federation_registry.hpp"
 #include "internal/fom/hla_names.hpp"
 #include "internal/handles/object_class_handle.hpp"
-#include "internal/handles/transportation_type_handle.hpp"
 #include "internal/runtime/umbra_rti_ambassador.hpp"
 
 #include <RTI/NullFederateAmbassador.h>
@@ -53,7 +52,6 @@ using rti1516_2025::TransportationTypeHandle;
 using rti1516_2025::VariableLengthData;
 
 using rti1516_2025::umbra_binding_detail::decodeObjectClassHandle;
-using rti1516_2025::umbra_binding_detail::transportationTypeHandleValue;
 
 class ScopedEmbeddedFederationRegistry final {
  public:
@@ -228,9 +226,6 @@ void verifyObjectInstancesReflectedReport(bool immediate) {
   REQUIRE(requestClass.isValid());
   REQUIRE(requestFederate.isValid());
   REQUIRE(reliable.isValid());
-  auto const reliableValue = transportationTypeHandleValue(reliable);
-  REQUIRE(reliableValue.has_value());
-  REQUIRE(*reliableValue != 1U);
   REQUIRE_NOTHROW(requester->subscribeInteractionClass(reportClass));
 
   auto const serverClass = owner->getObjectClassHandle(

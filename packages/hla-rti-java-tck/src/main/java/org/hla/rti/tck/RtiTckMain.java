@@ -7481,17 +7481,13 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::federateMomUpdatedObjectReport);
       run(new Scenario("java-tck.federate-mom-reflected-object-report",
-            "request class-scoped HLAobjectInstancesReflected counts after verifying discovery and receive-order reflection callbacks",
-            "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(receive-order);RTIambassador.deleteObjectInstance(receive-order);RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.receiveInteraction;HLAbyte;HLAvariableArray;HLAfixedRecord;HLAoctet;HLAinteger32BE",
+            "request class-scoped HLAobjectInstancesReflected counts after repeated reflections across two object classes",
+            "joined-federate-mom-reflection-statistics",
+            "RtiFactory.getRtiAmbassador;RtiFactory.getEncoderFactory;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.getAttributeHandleValueMapFactory;AttributeHandleValueMapFactory.create;AttributeHandleValueMap.put;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(receive-order);RTIambassador.deleteObjectInstance(receive-order);RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.sendInteraction(receive-order);RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAvariableArray;HLAvariableArray.decode;HLAvariableArray.toByteArray;EncoderFactory.createHLAoctet;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;HLAfixedRecord.get;HLAinteger32BE.decode;HLAinteger32BE.getValue;Handle.encodedLength;Handle.encode",
             new String[] {
-               "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-attribute-value-update-request",
-               "cpp-1516.1-attribute-value-update-response",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomReflectedObjectReport);
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
+            }, true), RtiTckMain::federateMomReflectedObjectReport);
       run(new Scenario("java-tck.federate-mom-reflections-received-counts",
             "request HLAreportReflectionsReceived for per-transport object-class reflection counts, including empty federate counts",
             "joined-federate-mom-reflection-statistics",
@@ -12512,7 +12508,8 @@ public final class RtiTckMain {
 
    private static void federateMomReflectedObjectReport() throws Exception {
       FederateMomReflectedObjectReportTck.run(factory(), requireFom(), requireMim(),
-         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+         timeImplementation(), objectClassName(), attributeName(), secondObjectClassName(),
+         secondObjectClassAttributeName(), callbackModel());
    }
 
    private static void federateMomReflectionsReceivedCounts() throws Exception {
