@@ -811,6 +811,12 @@ the requested attribute, and a later acquisition requires a new If Wanted call.
 It covers the selected direct §7.1.2.1 mapping and is enabled by default after
 both Java callback-model runs and all four paired C++ primary/contract runs
 passed.
+The `java-tck.if-available-during-negotiated-divestiture` scenario is limited to
+HLA_EVOKED. It checks that a repeated If Available request preserves the first
+pending request, unpublishing is blocked until the terminal acquisition
+notification, and ownership transfers only at Confirm Divestiture. It is enabled
+for HLA_EVOKED; HLA_IMMEDIATE is recorded as unsupported because it cannot
+preserve the queued-request ordering.
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback

@@ -5175,7 +5175,9 @@
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.negotiatedAttributeOwnershipDivestiture",
         "RTIambassador.confirmDivestiture",
+        "RTIambassador.evokeCallback",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.deleteObjectInstance",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
@@ -5189,11 +5191,16 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-152-l101-32",
-        "requirement-candidate-content-clauses-07-ownership-management-page-151-l132-43"
+        "requirement-candidate-content-clauses-07-ownership-management-page-151-l132-43",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l135-39",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l141-41",
+        "requirement-candidate-content-clauses-07-ownership-management-page-164-l108-31"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.1.2.2",
-        "hla-1516.1-2025:clause-7.1.2.1"
+        "hla-1516.1-2025:clause-7.1.2.1",
+        "hla-1516.1-2025:clause-7.9",
+        "hla-1516.1-2025:clause-7.9.4"
       ],
       "requirement_mappings": [
         {
@@ -5203,16 +5210,31 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-151-l132-43",
           "standard_section": "hla-1516.1-2025:clause-7.1.2.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l135-39",
+          "standard_section": "hla-1516.1-2025:clause-7.9"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l141-41",
+          "standard_section": "hla-1516.1-2025:clause-7.9"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-164-l108-31",
+          "standard_section": "hla-1516.1-2025:clause-7.9.4"
         }
       ],
-      "mapping_note": "Java parity for direct §7.1.2.2 positive If Available eligibility and the §7.1.2.1 negotiated-confirmation transfer branch, with exact tagged callbacks and public ownership queries. HLA_EVOKED ordering is required; this does not claim HLA_IMMEDIATE behavior. Official API-only JAR compilation passed; provider-runtime execution remains unverified.",
+      "mapping_note": "Direct §7.1.2.2 page-152-l101-32 positive eligibility: the queued If Available request for an owner-held attribute is selected when the owner begins negotiated divestiture. Direct §7.1.2.1 page-151-l132-43 covers only the negotiated-confirmation transfer branch: ownership stays with the owner until Confirm Divestiture, then moves before callback evocation, and the confirmation-tagged notification follows. Direct §7.9 page-163-l135-39/l141-41: a repeated If Available call while the original request is pending may throw AttributeAlreadyBeingAcquired but does not replace the original willingness; the original request tag survives and transfers exactly once. Direct §7.9.4 page-164-l108-31: unpublishing while the request is pending throws OwnershipAcquisitionPending, then succeeds after the terminal acquisition notification. HLA_EVOKED ordering is required; HLA_IMMEDIATE is explicitly excluded.",
       "contract_refs": [
         "standard-if-available-during-negotiated-divestiture-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ifAvailableDuringNegotiatedDivestiture",
       "parity": "cpp-tck.if-available-during-negotiated-divestiture",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied standard IEEE 1516.1-2025 Java provider configured for HLA_EVOKED; provider-runtime execution is unverified, and immediate callbacks do not preserve this queued If Available ordering."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED against the local Umbra JNI provider using HLAinteger64Time, p0-tck.xml, HLAobjectRoot.TckObject, and Value. Under HLA_IMMEDIATE, Java explicitly records this ordering-specific case as unsupported; it is not counted as a behavior pass. The paired C++ primary and contract selectors passed the two applicable HLA_EVOKED executions; HLA_IMMEDIATE is outside the C++ case's declared callback-model scope. Focused CTest discovery returned zero registered cases. Results: out/java-tck/if-available-negotiated-divestiture-20261116/promoted-evoked/{results.json,junit.xml}; out/java-tck/if-available-negotiated-divestiture-20261116/immediate-scope/{results.json,junit.xml}; out/mgw/cpp-tck-if-available-negotiated-divestiture-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "This case requires HLA_EVOKED to retain and observe the queued If Available request before negotiation. HLA_IMMEDIATE cannot establish that intermediate state; Java records it as unsupported and the paired C++ catalog excludes it."
     },
     {
       "id": "java-tck.if-available-deleted-object",

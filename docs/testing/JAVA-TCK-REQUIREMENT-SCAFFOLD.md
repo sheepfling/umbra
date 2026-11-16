@@ -22,10 +22,10 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Distinct stable requirement IDs | 1295 |
 | Scenarios with a C++ parity pointer | 897 |
 | Scenarios without a C++ parity pointer | 67 |
-| Default `run` scenarios | 678 |
-| Default `unsupported` scenarios | 286 |
+| Default `run` scenarios | 679 |
+| Default `unsupported` scenarios | 285 |
 | Scenarios with explicit `requirement_mappings` | 718 |
-| Explicit mapping records | 2943 |
+| Explicit mapping records | 2946 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -2004,7 +2004,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.divestiture-if-wanted-return-set`](#scenario-java-tck.divestiture-if-wanted-return-set) — Return only transferred attributes from Divestiture If Wanted and require a new call for later acquisitions (`ownership`; default `run`; C++ pointer `cpp-tck.divestiture-if-wanted-return-set`).
 - [`java-tck.federation-restore-work-item-ownership-assumption`](#scenario-java-tck.federation-restore-work-item-ownership-assumption) — Preserve pending object discovery and ownership-assumption callbacks across federation save and restore (`federation-restore-work-item-ownership-assumption`; default `run`; C++ pointer `cpp-tck.federation-restore-work-item-ownership-assumption`).
 - [`java-tck.if-available-deleted-object`](#scenario-java-tck.if-available-deleted-object) — Remove a deleted object without delivering its queued If Available result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.if-available-deleted-object`).
-- [`java-tck.if-available-during-negotiated-divestiture`](#scenario-java-tck.if-available-during-negotiated-divestiture) — Select an evoked If Available requester through negotiated divestiture and transfer at confirmation (`ownership`; default `unsupported`; C++ pointer `cpp-tck.if-available-during-negotiated-divestiture`).
+- [`java-tck.if-available-during-negotiated-divestiture`](#scenario-java-tck.if-available-during-negotiated-divestiture) — Select an evoked If Available requester through negotiated divestiture and transfer at confirmation (`ownership`; default `run`; C++ pointer `cpp-tck.if-available-during-negotiated-divestiture`).
 - [`java-tck.if-available-ownership-restore-unavailable-callback`](#scenario-java-tck.if-available-ownership-restore-unavailable-callback) — Restore a pending If Available request and deliver its unavailable callback (`ownership`; default `unsupported`; C++ pointer `cpp-tck.if-available-ownership-restore-unavailable-callback`).
 - [`java-tck.local-delete-object-instance`](#scenario-java-tck.local-delete-object-instance) — Exercise local object deletion boundaries, ownership protection, rediscovery, and continued updates (`local-object-instance-deletion`; default `run`; C++ pointer `cpp-tck.local-delete-object-instance`).
 - [`java-tck.negotiated-divestiture-cancellation`](#scenario-java-tck.negotiated-divestiture-cancellation) — Cancel negotiated divestiture and restore the ordinary pending-acquisition release path (`ownership`; default `run`; C++ pointer `cpp-tck.negotiated-divestiture-cancellation`).
@@ -12320,6 +12320,9 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - `java-tck.if-available-during-negotiated-divestiture`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-152-l101-32` → `hla-1516.1-2025:clause-7.1.2.2`
   - `requirement-candidate-content-clauses-07-ownership-management-page-151-l132-43` → `hla-1516.1-2025:clause-7.1.2.1`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l135-39` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-163-l141-41` → `hla-1516.1-2025:clause-7.9`
+  - `requirement-candidate-content-clauses-07-ownership-management-page-164-l108-31` → `hla-1516.1-2025:clause-7.9.4`
 - `java-tck.if-available-deleted-object`:
   - `requirement-candidate-content-clauses-07-ownership-management-page-152-l101-32` → `hla-1516.1-2025:clause-7.1.2.2`
 - `java-tck.ownership-after-fom-merge`:
@@ -15188,7 +15191,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.divestiture-if-wanted-mixed-acquirers"></a>`java-tck.divestiture-if-wanted-mixed-acquirers` — Transfer two independently requested attributes to regular and If Available candidates | `org.hla.rti.tck.RtiTckMain#divestitureIfWantedMixedAcquirers` | 23 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.divestiture-if-wanted-mixed-acquirers` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.divestiture-if-wanted-return-set"></a>`java-tck.divestiture-if-wanted-return-set` — Return only transferred attributes from Divestiture If Wanted and require a new call for later acquisitions | `org.hla.rti.tck.RtiTckMain#divestitureIfWantedReturnSet` | 17 | `cpp-1516.1-ownership-management` | `cpp-tck.divestiture-if-wanted-return-set` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.if-available-deleted-object"></a>`java-tck.if-available-deleted-object` — Remove a deleted object without delivering its queued If Available result | `org.hla.rti.tck.RtiTckMain#ifAvailableDeletedObject` | 17 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management` | `cpp-tck.if-available-deleted-object` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.if-available-during-negotiated-divestiture"></a>`java-tck.if-available-during-negotiated-divestiture` — Select an evoked If Available requester through negotiated divestiture and transfer at confirmation | `org.hla.rti.tck.RtiTckMain#ifAvailableDuringNegotiatedDivestiture` | 19 | `cpp-1516.1-ownership-management` | `cpp-tck.if-available-during-negotiated-divestiture` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.if-available-during-negotiated-divestiture"></a>`java-tck.if-available-during-negotiated-divestiture` — Select an evoked If Available requester through negotiated divestiture and transfer at confirmation | `org.hla.rti.tck.RtiTckMain#ifAvailableDuringNegotiatedDivestiture` | 21 | `cpp-1516.1-ownership-management` | `cpp-tck.if-available-during-negotiated-divestiture` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.if-available-ownership-restore-unavailable-callback"></a>`java-tck.if-available-ownership-restore-unavailable-callback` — Restore a pending If Available request and deliver its unavailable callback | `org.hla.rti.tck.RtiTckMain#ifAvailableOwnershipRestoreUnavailable` | 37 | `cpp-1516.1-ownership-management`, `cpp-1516.1-federation-save-lifecycle`, `cpp-1516.1-federation-restore-lifecycle` | `cpp-tck.if-available-ownership-restore-unavailable-callback` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.negotiated-divestiture-cancellation"></a>`java-tck.negotiated-divestiture-cancellation` — Cancel negotiated divestiture and restore the ordinary pending-acquisition release path | `org.hla.rti.tck.RtiTckMain#negotiatedDivestitureCancellation` | 24 | `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management` | `cpp-tck.negotiated-divestiture-cancellation` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.negotiated-divestiture-duplicate-request"></a>`java-tck.negotiated-divestiture-duplicate-request` — Reject a duplicate negotiated divestiture while the original request remains pending | `org.hla.rti.tck.RtiTckMain#negotiatedDivestitureDuplicateRequest` | 22 | `requirement-candidate-content-clauses-07-ownership-management-page-156-l8-1`, `requirement-candidate-content-clauses-07-ownership-management-page-156-l35-10`, `requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5` | `cpp-tck.negotiated-divestiture-duplicate-request` | `unsupported` | adapter-supplied FOM defining the configured object class and attribute; logical-time implementation and HLA_EVOKED or HLA_IMMEDIATE callback model |

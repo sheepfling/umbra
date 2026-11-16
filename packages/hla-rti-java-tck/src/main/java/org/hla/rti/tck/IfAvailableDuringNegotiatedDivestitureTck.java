@@ -9,6 +9,7 @@ import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
+import hla.rti1516_2025.exceptions.AttributeAlreadyBeingAcquired;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -73,10 +74,26 @@ final class IfAvailableDuringNegotiatedDivestitureTck {
             "registrant did not initially own the negotiated attribute");
 
          byte[] requestTag = {0x6a, 0x71};
+         byte[] repeatedRequestTag = {0x6d, 0x71};
          byte[] divestitureTag = {0x6b, 0x71};
          byte[] confirmationTag = {0x6c, 0x71};
          requester.attributeOwnershipAcquisitionIfAvailable(
             object, requesterAttributes, requestTag);
+         try {
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               object, requesterAttributes, repeatedRequestTag);
+         } catch (AttributeAlreadyBeingAcquired ignored) {
+            // Either outcome preserves the original pending willingness.
+         }
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(object, requesterAttribute)
+               && requesterRecorder.acquisitions.isEmpty(),
+            "repeating If Available changed the pending request or transferred ownership");
+         JavaTckSupport.expectFailure(
+            () -> requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes),
+            "OwnershipAcquisitionPending",
+            "unpublishing while the If Available request is pending");
+
          owner.negotiatedAttributeOwnershipDivestiture(
             object, ownerAttributes, divestitureTag);
          await(owner, () -> !ownerRecorder.confirmations.isEmpty(),
@@ -96,6 +113,7 @@ final class IfAvailableDuringNegotiatedDivestitureTck {
             "negotiated If Available acquisition notification");
          checkEvent(requesterRecorder.acquisitions.get(0), object, requesterAttributes,
             confirmationTag, "negotiated If Available acquisition notification");
+         requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes);
 
          owner.deleteObjectInstance(object, new byte[0]);
          requester.resignFederationExecution(ResignAction.NO_ACTION);

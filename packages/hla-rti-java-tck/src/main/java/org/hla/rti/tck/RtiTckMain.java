@@ -6327,8 +6327,8 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.if-available-during-negotiated-divestiture",
             "select an evoked If Available requester for negotiated divestiture and transfer only at confirmation",
             "ownership",
-            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {"cpp-1516.1-ownership-management"}, true),
          RtiTckMain::ifAvailableDuringNegotiatedDivestiture);
       run(new Scenario("java-tck.if-available-deleted-object",
             "remove a deleted object without delivering its queued If Available result",
@@ -10767,6 +10767,10 @@ public final class RtiTckMain {
    }
 
    private static void ifAvailableDuringNegotiatedDivestiture() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "The queued If Available negotiated-divestiture case requires HLA_EVOKED.");
+      }
       IfAvailableDuringNegotiatedDivestitureTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
