@@ -6061,7 +6061,12 @@ public final class RtiTckMain {
             "deliver one full-set assumption callback to the eligible publisher only",
             "ownership",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipAssumption",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-157-l79-21",
+               "requirement-candidate-content-clauses-07-ownership-management-page-157-l82-22",
+               "requirement-candidate-content-clauses-07-ownership-management-page-157-l97-27",
+               "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29"
+            }, true),
          RtiTckMain::unconditionalDivestitureAssumptionCoalescing);
       run(new Scenario("java-tck.ownership-acquisition-publication-fence",
             "enforce known-class publication, pending acquisition, and exact ownership transfer",
@@ -6272,7 +6277,9 @@ public final class RtiTckMain {
             "observe all three cancellation reply forms for disjoint requested attributes",
             "ownership",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipUnavailable",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-170-l16-2"
+            }, true),
          RtiTckMain::ownershipAcquisitionCancellationMixedReplies);
       run(new Scenario("java-tck.negotiated-divestiture-partial-acquisition-cancellation",
             "cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",

@@ -5561,9 +5561,22 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#unconditionalDivestitureAssumptionCoalescing",
       "parity": "cpp-tck.unconditional-divestiture-assumption-coalescing",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied two-attribute FOM, logical-time implementation, provider, and callback model.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider, using ddm-multi-attribute-tck.xml, HLAobjectRoot.TckMultiAttributeObject, FirstValue/SecondValue, and HLAinteger64Time. The paired installed-package MinGW C++ primary and contract passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java results/JUnit: out/java-tck/unconditional-divestiture-assumption-coalescing-java-port-20261114/current-source-{evoked,immediate}.{results.json,junit.xml}; C++ results/JUnit: .build/cpp-tck-service-report-regional-interaction-failure-20261114/unconditional-divestiture-assumption-java-parity.{results.json,junit.xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
+      "default_status": "run",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue. Java results are out/java-tck/unconditional-divestiture-assumption-coalescing-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/unconditional-divestiture-assumption-coalescing-java-parity-20261116.{json,xml}. These local-provider results do not establish independent-provider behavior, interoperability, or conformance.",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.4"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "hla.rti.tck.multiAttributeFom with HLAobjectRoot.TckMultiAttributeObject.FirstValue and SecondValue",
+        "provider logical-time implementation and callback model"
+      ],
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-transfer-regional-update",
@@ -7121,7 +7134,8 @@
         "FederateAmbassador.attributeOwnershipUnavailable"
       ],
       "requirement_ids": [
-        "cpp-1516.1-ownership-management"
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l16-2"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l16-2"
@@ -7136,7 +7150,7 @@
         }
       ],
       "mapping_note": "One HLA_EVOKED cancellation invocation covers three requested attributes with disjoint acquisition-notification, unavailable, and cancellation-confirmation replies. The case asserts exactly one reply of each form, each reply's object and attribute subset, the applicable tags, exact coverage of the requested set, and final ownership for all three attributes. Direct mapping: p170 l16-2 -> §7.15. The case does not cover HLA_IMMEDIATE or every ownership-cancellation race.",
-      "evidence_note": "Rebuilt against the pinned official 2025 API JAR and reran with --run-unverified, p0-tck.xml, HLAobjectRoot.TckObject, Value/Name/PayRate, and HLA_EVOKED against the current Umbra JNI provider. Passed 1/1 (0 failed, 872 filtered). Result artifacts: out/java-tck/mixed-replies-parity-20261104/evoked.results.json and evoked.junit.xml. This is bounded local-provider evidence; HLA_IMMEDIATE, independent-provider behavior, and conformance are unverified.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Default-enabled HLA_EVOKED Java passed 1/1 with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/p0-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckObject Value/Name/PayRate. The provider JAR and JNI DLL are in out/jni-regional-routing-20261114. Java results are out/java-tck/ownership-acquisition-cancellation-mixed-replies-java-parity-20261116/evoked-default.{json,xml}. The installed-package C++ primary and contract passed 2/2 focused CTests and 2/2 direct executions under HLA_EVOKED; evidence is in .build/cpp-tck-evidence-20261116/ownership-acquisition-cancellation-mixed-replies-java-parity-20261116.{json,xml}. These local-provider results do not establish HLA_IMMEDIATE behavior, independent-provider behavior, interoperability, or conformance.",
       "contract_refs": [
         "standard-ownership-acquisition-cancellation-mixed-replies-contract.json"
       ],
@@ -7145,8 +7159,14 @@
       "callback_models": [
         "evoked"
       ],
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied three-attribute FOM, federate type, and HLA_EVOKED callbacks. The focused local Umbra JNI run passed; independent-provider verification remains pending, so the scenario stays unsupported by default."
+      "default_status": "run",
+      "mapping_classification": "direct-requirement-mapped",
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied FOM with HLAobjectRoot.TckObject.Value, Name, and PayRate",
+        "HLA_EVOKED callback model"
+      ],
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.negotiated-divestiture-partial-acquisition-cancellation",

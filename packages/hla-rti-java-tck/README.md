@@ -883,13 +883,20 @@ selectors passed 4/4 focused CTests and 4/4 direct executions. Results are under
 `out/java-tck/unconditional-attribute-ownership-divestiture-java-parity-20261116/`
 and `.build/cpp-tck-evidence-20261116/unconditional-attribute-ownership-divestiture-java-parity-20261116.{json,xml}`.
 
-The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
+The default-enabled `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback
 at the eligible publisher. It also checks that the divesting owner and a
-subscribed non-publisher receive no assumption callback. Current-source JNI
-runs passed in both callback models; the paired C++ primary and contract passed
-their focused installed-package runs. This is local-provider evidence only.
+subscribed non-publisher receive no assumption callback. It maps four direct
+IEEE 1516.1-2025 §7.4 witnesses (page 157, lines 79, 82, 97, and 103). Java
+passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE; the paired C++ primary and
+contract passed 4/4 focused CTests and 4/4 direct executions across both
+callback models. Java results are in
+`out/java-tck/unconditional-divestiture-assumption-coalescing-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/unconditional-divestiture-assumption-coalescing-java-parity-20261116.{json,xml}`.
+This local-provider evidence does not establish independent-provider behavior,
+interoperability, or conformance.
 The `java-tck.ownership-state-save-restore` case completes an ordinary negotiated
 transfer before saving, restores that completed owner state, and confirms it
 through both `isAttributeOwnedByFederate` and `queryAttributeOwnership`. Cleanup
@@ -945,15 +952,19 @@ checks the exact unavailable reply when the owner denies release after the
 requester's cancellation call completes. It runs with evoked callbacks only;
 immediate mode reports unsupported because it cannot express this callback
 boundary race. It does not claim the three-reply aggregate obligation.
-The opt-in `java-tck.ownership-acquisition-cancellation-mixed-replies`
-candidate translates the promoted C++ aggregate: one cancellation call spans
-three adapter-named attributes and expects disjoint cancellation, acquisition,
-and unavailable callbacks. It requires evoked callbacks and the adapter's
-three-attribute FOM (`hla.rti.tck.attribute`,
-`hla.rti.tck.ownershipMixedTransferredAttribute`, and
-`hla.rti.tck.ownershipMixedDeniedAttribute`). The local JNI gate currently
-receives the acquisition and unavailable replies but not the cancellation
-confirmation, so this Java case remains disabled by default.
+The default-enabled, HLA_EVOKED-only
+`java-tck.ownership-acquisition-cancellation-mixed-replies` case mirrors the
+C++ aggregate: one cancellation spans three adapter-named attributes and
+produces disjoint cancellation, acquisition, and unavailable callbacks. It
+checks each exact subset and tag, full requested-set coverage, and final
+ownership. Java passed 1/1 with `p0-tck.xml`, HLAinteger64Time, and
+HLAobjectRoot.TckObject Value/Name/PayRate; the paired C++ primary/contract
+passed 2/2 focused CTests and 2/2 direct executions under HLA_EVOKED. It maps
+IEEE 1516.1-2025 §7.15, page 170 line 16. Results are in
+`out/java-tck/ownership-acquisition-cancellation-mixed-replies-java-parity-20261116/`
+and `.build/cpp-tck-evidence-20261116/ownership-acquisition-cancellation-mixed-replies-java-parity-20261116.{json,xml}`.
+This local-provider evidence does not cover HLA_IMMEDIATE, independent-provider
+behavior, or conformance.
 The `java-tck.auto-provide` case verifies the configured standard Auto Provide
 switch and two object discoveries, first with Attribute Scope Advisory disabled
 and then enabled. Each discovery yields one provider callback carrying the same
