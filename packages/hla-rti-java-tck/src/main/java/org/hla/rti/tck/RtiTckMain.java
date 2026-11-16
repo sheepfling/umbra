@@ -7115,7 +7115,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateObjectClassRelevanceAdvisoryMomAttribute);
+            }, true), RtiTckMain::federateObjectClassRelevanceAdvisoryMomAttribute);
       run(new Scenario("java-tck.federate-attribute-relevance-advisory-mim-attribute",
             "observe Attribute Relevance Advisory switch changes and direct MOM value requests",
             "federation-management",
@@ -7125,7 +7125,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateAttributeRelevanceAdvisoryMomAttribute);
+            }, true), RtiTckMain::federateAttributeRelevanceAdvisoryMomAttribute);
       run(new Scenario("java-tck.federate-attribute-scope-advisory-mim-attribute",
             "observe Attribute Scope Advisory switch changes and direct MOM value requests",
             "federation-management",
@@ -7135,7 +7135,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateAttributeScopeAdvisoryMomAttribute);
+            }, true), RtiTckMain::federateAttributeScopeAdvisoryMomAttribute);
       run(new Scenario("java-tck.federate-interaction-relevance-advisory-mim-attribute",
             "observe Interaction Relevance Advisory switch changes and direct MOM value requests",
             "federation-management",
@@ -7145,7 +7145,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateInteractionRelevanceAdvisoryMomAttribute);
+            }, true), RtiTckMain::federateInteractionRelevanceAdvisoryMomAttribute);
       run(new Scenario("java-tck.federate-asynchronous-delivery-mim-attribute",
             "observe Asynchronous Delivery service transitions through the standard federate MOM object",
             "asynchronous-delivery",

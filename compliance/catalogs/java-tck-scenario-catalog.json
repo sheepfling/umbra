@@ -63033,7 +63033,7 @@
       "default_status": "run",
       "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-service-reporting-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); pair results/JUnit: out/mgw/cpp-tck-service-reporting-mim-attribute-java-parity-20261116-pair.{json,xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-object-class-relevance-advisory-mim-attribute",
       "category": "federation-management",
       "title": "Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API",
@@ -63062,18 +63062,71 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-object-class-relevance-advisory-mim-attribute",
+        "cpp-tck-federate-object-class-relevance-advisory-getter",
+        "cpp-tck-federate-object-class-relevance-advisory-setter",
+        "cpp-tck-federate-object-class-relevance-advisory-direct-request",
+        "cpp-tck-federate-object-class-relevance-advisory-subscription",
+        "cpp-tck-federate-object-class-relevance-advisory-reflection-callback",
+        "requirement-source-refinement-mom-object-class-relevance"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-10.34",
+        "hla-1516.1-2025:clause-10.35",
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.34"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.35"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-object-class-relevance-advisory-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        },
+        {
+          "requirement_id": "requirement-source-refinement-mom-object-class-relevance",
+          "standard_section": "hla-1516.1-2025:clause-11.6"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct API/MIM mappings follow standard-federate-object-class-relevance-advisory-mim-attribute-requirements-contract: the MIM attribute maps to IEEE 1516.1-2025 §11.4.1, the public getter and setter to §§10.34 and 10.35, the direct request to §6.21, subscription to §5.8, and the reflection callback to §6.9.3. The paired C++ catalog also maps requirement-source-refinement-mom-object-class-relevance to §11.6; the Requirements Lab treats this as cross-cutting rather than a one-to-one API mapping. This bounded scenario checks the switch effect by reading its initial value, setting the opposite value, checking the getter and exactly one HLAobjectClassRelevanceAdvisory MOM reflection, requesting and decoding the value, then restoring and verifying the original value. It does not claim all advisory-switch behavior.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe the subject federate's switch, the corresponding reliable conditional HLAobjectClassRelevanceAdvisory reflection and direct value request, and restoration to the initial state. Each reflection is checked for HLAinteger32BE encoding, empty tag, invalid producer, absent regions, and exact cardinality.",
       "contract_refs": [
         "standard-federate-object-class-relevance-advisory-mim-attribute-api-contract.json",
         "standard-federate-object-class-relevance-advisory-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateObjectClassRelevanceAdvisoryMomAttribute",
       "parity": "cpp-tck.federate-object-class-relevance-advisory-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/object-class-relevance-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); pair results/JUnit: out/mgw/cpp-tck-object-class-relevance-advisory-mim-attribute-java-parity-20261116-pair.{json,xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-attribute-relevance-advisory-mim-attribute",
       "category": "federation-management",
       "title": "Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API",
@@ -63102,18 +63155,71 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-attribute-relevance-advisory-mim-attribute",
+        "cpp-tck-federate-attribute-relevance-advisory-getter",
+        "cpp-tck-federate-attribute-relevance-advisory-setter",
+        "cpp-tck-federate-attribute-relevance-advisory-direct-request",
+        "cpp-tck-federate-attribute-relevance-advisory-subscription",
+        "cpp-tck-federate-attribute-relevance-advisory-reflection-callback",
+        "requirement-source-refinement-mom-attribute-relevance"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-10.36",
+        "hla-1516.1-2025:clause-10.37",
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-11.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.36"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.37"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-relevance-advisory-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        },
+        {
+          "requirement_id": "requirement-source-refinement-mom-attribute-relevance",
+          "standard_section": "hla-1516.1-2025:clause-11.6"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct API/MIM mappings follow standard-federate-attribute-relevance-advisory-mim-attribute-requirements-contract: the MIM attribute maps to IEEE 1516.1-2025 §11.4.1, the public getter and setter to §§10.36 and 10.37, the direct request to §6.21, subscription to §5.8, and the reflection callback to §6.9.3. The Java case reads the initial switch, sets the opposite value, verifies the public getter and exactly one reliable conditional HLAinteger32BE reflection, requests and decodes the value, then restores and verifies the original value. The paired C++ catalog also maps requirement-source-refinement-mom-attribute-relevance to §11.6; the Requirements Lab describes it as cross-cutting rather than a one-to-one API mapping. This bounded case checks that switch effect only, not all advisory behavior.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe HLAattributeRelevanceAdvisory before and after the subject changes and restores getAttributeRelevanceAdvisorySwitch. The monitor checks one reliable conditional reflection per transition, direct value requests, HLAinteger32BE encoding, empty tags, invalid producers, and absent regions.",
       "contract_refs": [
         "standard-federate-attribute-relevance-advisory-mim-attribute-api-contract.json",
         "standard-federate-attribute-relevance-advisory-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAttributeRelevanceAdvisoryMomAttribute",
       "parity": "cpp-tck.federate-attribute-relevance-advisory-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-attribute-relevance-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions per scenario); pair results/JUnit: out/mgw/cpp-tck-mom-advisory-boolean-attributes-java-parity-20261116-pair. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-attribute-scope-advisory-mim-attribute",
       "category": "federation-management",
       "title": "Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API",
@@ -63142,18 +63248,65 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-attribute-scope-advisory-mim-attribute",
+        "cpp-tck-federate-attribute-scope-advisory-getter",
+        "cpp-tck-federate-attribute-scope-advisory-setter",
+        "cpp-tck-federate-attribute-scope-advisory-direct-request",
+        "cpp-tck-federate-attribute-scope-advisory-subscription",
+        "cpp-tck-federate-attribute-scope-advisory-reflection-callback"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-10.38",
+        "hla-1516.1-2025:clause-10.39",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.38"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.39"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-attribute-scope-advisory-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct API/MIM mappings follow standard-federate-attribute-scope-advisory-mim-attribute-requirements-contract: the MIM attribute maps to IEEE 1516.1-2025 §11.4.1, the public getter and setter to §§10.38 and 10.39, the direct request to §6.21, subscription to §5.8, and the reflection callback to §6.9.3. The Java case reads the initial switch, sets the opposite value, verifies the public getter and exactly one reliable conditional HLAinteger32BE reflection, requests and decodes the value, then restores and verifies the original value. This is limited to the standard HLAattributeScopeAdvisory conditional MIM value and its public API surface; it does not claim all attribute-scope advisory behavior.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe HLAattributeScopeAdvisory before and after the subject changes and restores getAttributeScopeAdvisorySwitch. The monitor checks one reliable conditional reflection per transition, direct value requests, HLAinteger32BE encoding, empty tags, invalid producers, and absent regions.",
       "contract_refs": [
         "standard-federate-attribute-scope-advisory-mim-attribute-api-contract.json",
         "standard-federate-attribute-scope-advisory-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAttributeScopeAdvisoryMomAttribute",
       "parity": "cpp-tck.federate-attribute-scope-advisory-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-attribute-scope-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions per scenario); pair results/JUnit: out/mgw/cpp-tck-mom-advisory-boolean-attributes-java-parity-20261116-pair. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-interaction-relevance-advisory-mim-attribute",
       "category": "federation-management",
       "title": "Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API",
@@ -63182,16 +63335,63 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-interaction-relevance-advisory-mim-attribute",
+        "cpp-tck-federate-interaction-relevance-advisory-getter",
+        "cpp-tck-federate-interaction-relevance-advisory-setter",
+        "cpp-tck-federate-interaction-relevance-advisory-direct-request",
+        "cpp-tck-federate-interaction-relevance-advisory-subscription",
+        "cpp-tck-federate-interaction-relevance-advisory-reflection-callback"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-10.40",
+        "hla-1516.1-2025:clause-10.41",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.40"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.41"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-interaction-relevance-advisory-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct API/MIM mappings follow standard-federate-interaction-relevance-advisory-mim-attribute-requirements-contract: the MIM attribute maps to IEEE 1516.1-2025 §11.4.1, the public getter and setter to §§10.40 and 10.41, the direct request to §6.21, subscription to §5.8, and the reflection callback to §6.9.3. The Java case reads the initial switch, sets the opposite value, verifies the public getter and exactly one reliable conditional HLAinteger32BE reflection, requests and decodes the value, then restores and verifies the original value. This is limited to the standard HLAinteractionRelevanceAdvisory conditional MIM value and its public API surface; it does not claim all interaction-relevance advisory behavior.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe HLAinteractionRelevanceAdvisory before and after the subject changes and restores getInteractionRelevanceAdvisorySwitch. The monitor checks one reliable conditional reflection per transition, direct value requests, HLAinteger32BE encoding, empty tags, invalid producers, and absent regions.",
       "contract_refs": [
         "standard-federate-interaction-relevance-advisory-mim-attribute-api-contract.json",
         "standard-federate-interaction-relevance-advisory-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateInteractionRelevanceAdvisoryMomAttribute",
       "parity": "cpp-tck.federate-interaction-relevance-advisory-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-interaction-relevance-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions per scenario); pair results/JUnit: out/mgw/cpp-tck-mom-advisory-boolean-attributes-java-parity-20261116-pair. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-asynchronous-delivery-mim-attribute",

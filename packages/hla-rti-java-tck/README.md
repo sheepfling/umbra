@@ -120,6 +120,43 @@ and contract passed all four direct runs. Results are in
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-object-class-relevance-advisory-mim-attribute`
+case observes the `HLAobjectClassRelevanceAdvisory` switch's bounded effect: it
+checks the initial state, one opposite-state change and conditional reflection,
+a direct value request, and restoration. Its API mappings cover IEEE 1516.1-2025
+§§5.8, 6.9.3, 6.21, 10.34, 10.35, and 11.4.1; the paired C++ source-refinement
+mapping to §11.6 is explicitly cross-cutting and limited to the exercised switch
+effect. Java and the paired C++ primary/contract passed both callback models.
+Results are in `out/java-tck/object-class-relevance-advisory-mim-attribute-java-parity-20261116/`
+and `out/mgw/cpp-tck-object-class-relevance-advisory-mim-attribute-java-parity-20261116-pair.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
+The default-run `java-tck.federate-attribute-relevance-advisory-mim-attribute` case
+checks the HLAattributeRelevanceAdvisory switch's initial value, one opposite-state
+change, the conditional reflection, a direct value request, and restoration. It maps
+the public MIM/API surfaces to IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21, 10.36, 10.37,
+and 11.4.1. The paired C++ source-refinement mapping to §11.6 is cross-cutting and
+limited to the switch effect. Java and paired C++ primary/contract runs passed both
+callback models; Java results are in
+`out/java-tck/federate-attribute-relevance-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/`.
+
+The default-run `java-tck.federate-attribute-scope-advisory-mim-attribute` case
+checks the HLAattributeScopeAdvisory switch's initial value, one opposite-state
+change, its conditional reflection, a direct value request, and restoration. It maps
+the public MIM/API surfaces to IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21, 10.38, 10.39,
+and 11.4.1. Java and paired C++ primary/contract runs passed both callback models.
+Java results are in
+`out/java-tck/federate-attribute-scope-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/`.
+
+The default-run `java-tck.federate-interaction-relevance-advisory-mim-attribute`
+case checks the HLAinteractionRelevanceAdvisory switch's initial value, one
+opposite-state change, its conditional reflection, a direct value request, and
+restoration. It maps the public MIM/API surfaces to IEEE 1516.1-2025 §§5.8, 6.9.3,
+6.21, 10.40, 10.41, and 11.4.1. Java and paired C++ primary/contract runs passed
+both callback models. Java results are in
+`out/java-tck/federate-interaction-relevance-advisory-mim-attribute-java-parity-20261116/{evoked,immediate}/`.
+
 The default-run `java-tck.federate-exception-reporting-mim-attribute` case
 observes the subject's `HLAexceptionReporting` value directly, changes the public
 switch, checks one reliable conditional reflection, and restores the original value.

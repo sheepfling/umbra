@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1249 |
+| Distinct stable requirement IDs | 1275 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 664 |
-| Default `unsupported` scenarios | 300 |
-| Scenarios with explicit `requirement_mappings` | 708 |
-| Explicit mapping records | 2887 |
+| Default `run` scenarios | 668 |
+| Default `unsupported` scenarios | 296 |
+| Scenarios with explicit `requirement_mappings` | 712 |
+| Explicit mapping records | 2913 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -175,14 +175,14 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.custom-transportation-attribute-delivery`](#scenario-java-tck.custom-transportation-attribute-delivery) — Deliver an ordinary attribute update with the adapter-declared custom FOM transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-attribute-delivery`).
 - [`java-tck.default-rate-subscription-no-reduction`](#scenario-java-tck.default-rate-subscription-no-reduction) — Reflect every update in a burst under a default-rate attribute subscription (`default-rate-subscription-no-reduction`; default `run`; C++ pointer `cpp-tck.default-rate-subscription-no-reduction`).
 - [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
-- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
-- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mim-attribute`](#scenario-java-tck.federate-automatic-resign-action-mim-attribute) — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mim-attribute`).
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
-- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-logical-time-mim-periodic`](#scenario-java-tck.federate-logical-time-mim-periodic) — Observe periodic HLAlogicalTime MOM values across standard time advances (`time-management`; default `run`; C++ pointer `cpp-tck.federate-logical-time-mim-periodic`).
 - [`java-tck.federate-lookahead-mim-periodic`](#scenario-java-tck.federate-lookahead-mim-periodic) — Observe periodic HLAlookahead MOM values across standard lookahead changes (`time-management`; default `run`; C++ pointer `cpp-tck.federate-lookahead-mim-periodic`).
-- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-time-constrained-mim-attribute`](#scenario-java-tck.federate-time-constrained-mim-attribute) — Observe conditional HLAtimeConstrained MOM values across standard service transitions (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-constrained-mim-attribute`).
 - [`java-tck.federate-time-manager-state-mim-attribute`](#scenario-java-tck.federate-time-manager-state-mim-attribute) — Observe conditional HLAtimeManagerState transitions across all standard advance services (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-manager-state-mim-attribute`).
@@ -233,16 +233,16 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.auto-provide-disabled-explicit-request`](#scenario-java-tck.auto-provide-disabled-explicit-request) — Use object-scoped and class-scoped explicit value requests while Auto Provide is disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-explicit-request`).
 - [`java-tck.callback-controls-attribute-value-request`](#scenario-java-tck.callback-controls-attribute-value-request) — Gate ordinary instance-scoped attribute-value request callbacks while callbacks are disabled (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-attribute-value-request`).
 - [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
-- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
-- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mim-attribute`](#scenario-java-tck.federate-automatic-resign-action-mim-attribute) — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mim-attribute`).
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
-- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-mom-object-lifecycle`](#scenario-java-tck.federate-mom-object-lifecycle) — Verify joined-federate and federation MOM Table 8 P sets and MIM/FOM composition (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-lifecycle`).
 - [`java-tck.federate-mom-reflected-multi-class-object-report`](#scenario-java-tck.federate-mom-reflected-multi-class-object-report) — Request standard HLAobjectInstancesReflected counts across two registered object classes (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-reflected-multi-class-report`).
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-time-constrained-mim-attribute`](#scenario-java-tck.federate-time-constrained-mim-attribute) — Observe conditional HLAtimeConstrained MOM values across standard service transitions (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-constrained-mim-attribute`).
 - [`java-tck.federate-time-regulating-mim-attribute`](#scenario-java-tck.federate-time-regulating-mim-attribute) — Observe conditional HLAtimeRegulating MOM values across standard service transitions (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-regulating-mim-attribute`).
@@ -921,14 +921,14 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 - [`java-tck.explicit-mim-creation`](#scenario-java-tck.explicit-mim-creation) — Create a federation with an adapter-supplied MIM and preserve standard MOM and caller FOM declarations (`fom-composition`; default `run`; C++ pointer `cpp-tck.explicit-mim-creation`).
 - [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
-- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
-- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mim-attribute`](#scenario-java-tck.federate-automatic-resign-action-mim-attribute) — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mom-switch`](#scenario-java-tck.federate-automatic-resign-action-mom-switch) — Set the joined federate's Automatic Resign Action through standard HLAsetSwitches without changing neighboring switches (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mom-switch`).
 - [`java-tck.federate-exception-report-delivery`](#scenario-java-tck.federate-exception-report-delivery) — Deliver standard HLAreportException only while the joined federate's Exception Reporting switch is enabled (`mom-exception-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-exception-report-delivery`).
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
 - [`java-tck.federate-exception-reporting-mom-switch`](#scenario-java-tck.federate-exception-reporting-mom-switch) — Set the joined federate's Exception Reporting switch through standard HLAsetSwitches without changing neighboring switches (`mom-exception-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-exception-reporting-mom-switch`).
-- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-logical-time-mim-periodic`](#scenario-java-tck.federate-logical-time-mim-periodic) — Observe periodic HLAlogicalTime MOM values across standard time advances (`time-management`; default `run`; C++ pointer `cpp-tck.federate-logical-time-mim-periodic`).
 - [`java-tck.federate-lookahead-mim-periodic`](#scenario-java-tck.federate-lookahead-mim-periodic) — Observe periodic HLAlookahead MOM values across standard lookahead changes (`time-management`; default `run`; C++ pointer `cpp-tck.federate-lookahead-mim-periodic`).
 - [`java-tck.federate-mom-complete-object-class-publication-query`](#scenario-java-tck.federate-mom-complete-object-class-publication-query) — Verify the complete adapter-configured application-attribute publication set and inherited HLAprivilegeToDeleteObject through the standard MIM (`federate-mom`; default `run`; C++ pointer `cpp-tck.federate-mom-complete-object-class-publication-query`).
@@ -971,7 +971,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAreportObjectInstancesUpdated response for a joined federate with no updates (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-send-service-reports-to-file-mom-switch`](#scenario-java-tck.federate-send-service-reports-to-file-mom-switch) — Set the joined federate's Send Service Reports to File switch through standard HLAsetSwitches without changing neighboring switches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-send-service-reports-to-file-mom-switch`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-service-reporting-mom-switch`](#scenario-java-tck.federate-service-reporting-mom-switch) — Set the joined federate's Service Reporting switch through standard HLAsetSwitches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mom-switch`).
@@ -1104,11 +1104,11 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.duplicate-federate-name-join-boundary`](#scenario-java-tck.duplicate-federate-name-join-boundary) — Check duplicate named joins and recovery using a distinct federate name (`federation-management`; default `run`; C++ pointer `cpp-tck.duplicate-federate-name-join-boundary`).
 - [`java-tck.federate-application-multiple-executions`](#scenario-java-tck.federate-application-multiple-executions) — Preserve case-distinct names and isolate data across executions (`lifecycle`; default `run`; C++ pointer `cpp-tck.application-multiple-federates-across-executions`).
 - [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
-- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
-- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mim-attribute`](#scenario-java-tck.federate-automatic-resign-action-mim-attribute) — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mim-attribute`).
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
-- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-logical-time-mim-periodic`](#scenario-java-tck.federate-logical-time-mim-periodic) — Observe periodic HLAlogicalTime MOM values across standard time advances (`time-management`; default `run`; C++ pointer `cpp-tck.federate-logical-time-mim-periodic`).
 - [`java-tck.federate-lookahead-mim-periodic`](#scenario-java-tck.federate-lookahead-mim-periodic) — Observe periodic HLAlookahead MOM values across standard lookahead changes (`time-management`; default `run`; C++ pointer `cpp-tck.federate-lookahead-mim-periodic`).
 - [`java-tck.federate-lookup-lifecycle`](#scenario-java-tck.federate-lookup-lifecycle) — Federate handle and name lookups across membership and resignation (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-lookup-lifecycle-contract`).
@@ -1120,7 +1120,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAreportObjectInstancesUpdated response for a joined federate with no updates (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `run`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-time-constrained-mim-attribute`](#scenario-java-tck.federate-time-constrained-mim-attribute) — Observe conditional HLAtimeConstrained MOM values across standard service transitions (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-constrained-mim-attribute`).
 - [`java-tck.federate-time-manager-state-mim-attribute`](#scenario-java-tck.federate-time-manager-state-mim-attribute) — Observe conditional HLAtimeManagerState transitions across all standard advance services (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-manager-state-mim-attribute`).
@@ -2880,6 +2880,78 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `cpp-tck-federate-attribute-relevance-advisory-direct-request`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-relevance-advisory-getter`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-relevance-advisory-mim-attribute`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-relevance-advisory-reflection-callback`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-relevance-advisory-setter`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-relevance-advisory-subscription`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-direct-request`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-getter`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-mim-attribute`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-reflection-callback`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-setter`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-attribute-scope-advisory-subscription`
+
+- [`java-tck.federate-attribute-scope-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-scope-advisory-mim-attribute) — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-scope-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `cpp-tck-federate-exception-reporting-direct-request`
 
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
@@ -2913,6 +2985,78 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `cpp-tck-federate-exception-reporting-subscription`
 
 - [`java-tck.federate-exception-reporting-mim-attribute`](#scenario-java-tck.federate-exception-reporting-mim-attribute) — Observe conditional HLAexceptionReporting MOM updates through the standard API (`mom-exception-reporting`; default `run`; C++ pointer `cpp-tck.federate-exception-reporting-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-direct-request`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-getter`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-mim-attribute`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-reflection-callback`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-setter`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-interaction-relevance-advisory-subscription`
+
+- [`java-tck.federate-interaction-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute) — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-interaction-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-direct-request`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-getter`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-mim-attribute`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-reflection-callback`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-setter`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-object-class-relevance-advisory-subscription`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -10126,6 +10270,18 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-source-refinement-mom-attribute-relevance`
+
+- [`java-tck.federate-attribute-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute) — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-attribute-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-source-refinement-mom-object-class-relevance`
+
+- [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-source-refinement-parallel-state-constraints`
 
 - [`java-tck.federation-save-restore-interlocks`](#scenario-java-tck.federation-save-restore-interlocks) — Reject declaration, object, interaction, ownership, time, order, transportation, DDM, advisory, and synchronization services during active save and restore (`federation-save-restore-interlocks`; default `unsupported`; C++ pointer `cpp-tck.federation-save-restore-interlocks`).
@@ -13389,6 +13545,36 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `cpp-tck-federate-service-reporting-direct-request` → `hla-1516.1-2025:clause-6.21`
   - `cpp-tck-federate-service-reporting-subscription` → `hla-1516.1-2025:clause-5.8`
   - `cpp-tck-federate-service-reporting-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
+- `java-tck.federate-object-class-relevance-advisory-mim-attribute`:
+  - `cpp-tck-federate-object-class-relevance-advisory-mim-attribute` → `hla-1516.1-2025:clause-11.4.1`
+  - `cpp-tck-federate-object-class-relevance-advisory-getter` → `hla-1516.1-2025:clause-10.34`
+  - `cpp-tck-federate-object-class-relevance-advisory-setter` → `hla-1516.1-2025:clause-10.35`
+  - `cpp-tck-federate-object-class-relevance-advisory-direct-request` → `hla-1516.1-2025:clause-6.21`
+  - `cpp-tck-federate-object-class-relevance-advisory-subscription` → `hla-1516.1-2025:clause-5.8`
+  - `cpp-tck-federate-object-class-relevance-advisory-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
+  - `requirement-source-refinement-mom-object-class-relevance` → `hla-1516.1-2025:clause-11.6`
+- `java-tck.federate-attribute-relevance-advisory-mim-attribute`:
+  - `cpp-tck-federate-attribute-relevance-advisory-mim-attribute` → `hla-1516.1-2025:clause-11.4.1`
+  - `cpp-tck-federate-attribute-relevance-advisory-getter` → `hla-1516.1-2025:clause-10.36`
+  - `cpp-tck-federate-attribute-relevance-advisory-setter` → `hla-1516.1-2025:clause-10.37`
+  - `cpp-tck-federate-attribute-relevance-advisory-direct-request` → `hla-1516.1-2025:clause-6.21`
+  - `cpp-tck-federate-attribute-relevance-advisory-subscription` → `hla-1516.1-2025:clause-5.8`
+  - `cpp-tck-federate-attribute-relevance-advisory-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
+  - `requirement-source-refinement-mom-attribute-relevance` → `hla-1516.1-2025:clause-11.6`
+- `java-tck.federate-attribute-scope-advisory-mim-attribute`:
+  - `cpp-tck-federate-attribute-scope-advisory-mim-attribute` → `hla-1516.1-2025:clause-11.4.1`
+  - `cpp-tck-federate-attribute-scope-advisory-getter` → `hla-1516.1-2025:clause-10.38`
+  - `cpp-tck-federate-attribute-scope-advisory-setter` → `hla-1516.1-2025:clause-10.39`
+  - `cpp-tck-federate-attribute-scope-advisory-direct-request` → `hla-1516.1-2025:clause-6.21`
+  - `cpp-tck-federate-attribute-scope-advisory-subscription` → `hla-1516.1-2025:clause-5.8`
+  - `cpp-tck-federate-attribute-scope-advisory-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
+- `java-tck.federate-interaction-relevance-advisory-mim-attribute`:
+  - `cpp-tck-federate-interaction-relevance-advisory-mim-attribute` → `hla-1516.1-2025:clause-11.4.1`
+  - `cpp-tck-federate-interaction-relevance-advisory-getter` → `hla-1516.1-2025:clause-10.40`
+  - `cpp-tck-federate-interaction-relevance-advisory-setter` → `hla-1516.1-2025:clause-10.41`
+  - `cpp-tck-federate-interaction-relevance-advisory-direct-request` → `hla-1516.1-2025:clause-6.21`
+  - `cpp-tck-federate-interaction-relevance-advisory-subscription` → `hla-1516.1-2025:clause-5.8`
+  - `cpp-tck-federate-interaction-relevance-advisory-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
 - `java-tck.federate-mom-interactions-received-counts`:
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` → `hla-1516.1-2025:clause-11.4.1`
@@ -14162,13 +14348,13 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.automatic-resign-directive-standard-enumerator-values"></a>`java-tck.automatic-resign-directive-standard-enumerator-values` — Round-trip every standard ResignAction value through the automatic-resign directive | `org.hla.rti.tck.RtiTckMain#automaticResignDirectiveStandardEnumeratorValues` | 8 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-automatic-resign-directive-standard-enumerator-values` | `cpp-tck.automatic-resign-directive-enum-values-contract` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.connect-before-federation-disconnect-after-resign"></a>`java-tck.connect-before-federation-disconnect-after-resign` — Require Connect before federation creation and Disconnect after resignation | `org.hla.rti.tck.RtiTckMain#connectBeforeFederationDisconnectAfterResign` | 6 | `java-1516.1-federation-create-join-resign-destroy` | `cpp-tck.connect-before-federation-disconnect-after-resign` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.duplicate-federate-name-join-boundary"></a>`java-tck.duplicate-federate-name-join-boundary` — Check duplicate named joins and recovery using a distinct federate name | `org.hla.rti.tck.RtiTckMain#duplicateFederateNameJoinBoundary` | 9 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-federate-name-already-in-use-join-boundary`, `cpp-1516.1-join-after-duplicate-name-rejection` | `cpp-tck.duplicate-federate-name-join-boundary` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute"></a>`java-tck.federate-attribute-relevance-advisory-mim-attribute` — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateAttributeRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-attribute-relevance-advisory-mim-attribute` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.federate-attribute-scope-advisory-mim-attribute"></a>`java-tck.federate-attribute-scope-advisory-mim-attribute` — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateAttributeScopeAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-attribute-scope-advisory-mim-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.federate-attribute-relevance-advisory-mim-attribute"></a>`java-tck.federate-attribute-relevance-advisory-mim-attribute` — Observe conditional HLAattributeRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateAttributeRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-tck-federate-attribute-relevance-advisory-mim-attribute`, `cpp-tck-federate-attribute-relevance-advisory-getter`, `cpp-tck-federate-attribute-relevance-advisory-setter`, `cpp-tck-federate-attribute-relevance-advisory-direct-request`, `cpp-tck-federate-attribute-relevance-advisory-subscription`, `cpp-tck-federate-attribute-relevance-advisory-reflection-callback`, `requirement-source-refinement-mom-attribute-relevance` | `cpp-tck.federate-attribute-relevance-advisory-mim-attribute` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.federate-attribute-scope-advisory-mim-attribute"></a>`java-tck.federate-attribute-scope-advisory-mim-attribute` — Observe conditional HLAattributeScopeAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateAttributeScopeAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-tck-federate-attribute-scope-advisory-mim-attribute`, `cpp-tck-federate-attribute-scope-advisory-getter`, `cpp-tck-federate-attribute-scope-advisory-setter`, `cpp-tck-federate-attribute-scope-advisory-direct-request`, `cpp-tck-federate-attribute-scope-advisory-subscription`, `cpp-tck-federate-attribute-scope-advisory-reflection-callback` | `cpp-tck.federate-attribute-scope-advisory-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-automatic-resign-action-mim-attribute"></a>`java-tck.federate-automatic-resign-action-mim-attribute` — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API | `org.hla.rti.tck.RtiTckMain#federateAutomaticResignActionMomAttribute` | 24 | `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-automatic-resign-action-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-automatic-resign-action-mom-switch"></a>`java-tck.federate-automatic-resign-action-mom-switch` — Set the joined federate's Automatic Resign Action through standard HLAsetSwitches without changing neighboring switches | `org.hla.rti.tck.RtiTckMain#federateAutomaticResignActionMomSwitch` | 17 | `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-explicit-mim-composition` | `cpp-tck.federate-automatic-resign-action-mom-switch` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute"></a>`java-tck.federate-interaction-relevance-advisory-mim-attribute` — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateInteractionRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-interaction-relevance-advisory-mim-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.federate-interaction-relevance-advisory-mim-attribute"></a>`java-tck.federate-interaction-relevance-advisory-mim-attribute` — Observe conditional HLAinteractionRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateInteractionRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-tck-federate-interaction-relevance-advisory-mim-attribute`, `cpp-tck-federate-interaction-relevance-advisory-getter`, `cpp-tck-federate-interaction-relevance-advisory-setter`, `cpp-tck-federate-interaction-relevance-advisory-direct-request`, `cpp-tck-federate-interaction-relevance-advisory-subscription`, `cpp-tck-federate-interaction-relevance-advisory-reflection-callback` | `cpp-tck.federate-interaction-relevance-advisory-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-lookup-lifecycle"></a>`java-tck.federate-lookup-lifecycle` — Federate handle and name lookups across membership and resignation | `org.hla.rti.tck.RtiTckMain#federateLookupLifecycle` | 8 | `cpp-1516.1-federate-lookup`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-lookup-lifecycle-contract` | `run` | provider JAR and factory; federation FOM and endpoint; callback model; federate type via hla.rti.tck.federateType |
-| <a id="scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute"></a>`java-tck.federate-object-class-relevance-advisory-mim-attribute` — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateObjectClassRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-object-class-relevance-advisory-mim-attribute` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute"></a>`java-tck.federate-object-class-relevance-advisory-mim-attribute` — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API | `org.hla.rti.tck.RtiTckMain#federateObjectClassRelevanceAdvisoryMomAttribute` | 19 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-tck-federate-object-class-relevance-advisory-mim-attribute`, `cpp-tck-federate-object-class-relevance-advisory-getter`, `cpp-tck-federate-object-class-relevance-advisory-setter`, `cpp-tck-federate-object-class-relevance-advisory-direct-request`, `cpp-tck-federate-object-class-relevance-advisory-subscription`, `cpp-tck-federate-object-class-relevance-advisory-reflection-callback`, `requirement-source-refinement-mom-object-class-relevance` | `cpp-tck.federate-object-class-relevance-advisory-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federation-list-services"></a>`java-tck.federation-list-services` — Exercise federation execution and member listing reports across callback boundaries | `org.hla.rti.tck.RtiTckMain#federationListServices` | 13 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-federation-query-reports` | `cpp-tck.federation-list-services-contract` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federation-management-requires-connection"></a>`java-tck.federation-management-requires-connection` — Require an RTI connection for federation Create, Destroy, Join, and Resign services | `org.hla.rti.tck.RtiTckMain#federationManagementRequiresConnection` | 4 | `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federation-management-requires-connection` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.final-federate-resignation-cleanup"></a>`java-tck.final-federate-resignation-cleanup` — Apply final-member NO_ACTION cleanup and reuse the former object's instance name | `org.hla.rti.tck.RtiTckMain#finalFederateResignationCleanup` | 17 | `requirement-candidate-content-clauses-04-federation-management-page-058-l112-33`, `requirement-candidate-content-clauses-04-federation-management-page-059-l8-1-last-federate`, `requirement-candidate-content-clauses-06-object-management-page-113-l21-3`, `requirement-candidate-content-clauses-06-object-management-page-113-l153-40` | `cpp-tck.final-federate-resignation-cleanup` | `run` | not scenario-declared |
