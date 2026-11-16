@@ -796,19 +796,45 @@ two-federate acquisition path, checks the confirmation carries the acquisition
 tag, cancels the negotiated divestiture, and verifies that the ordinary release
 request is restored without changing ownership. It uses byte-array tags and
 adapter-supplied federation inputs; provider runtime remains unverified.
-The `java-tck.negotiated-divestiture-duplicate-request` case verifies that a
-second divestiture request throws `AttributeAlreadyBeingDivested`, the current
-owner can still send an update while the first request is pending, and the
-original request transfers ownership only after `confirmDivestiture`. Focused
-local JNI runs passed in both callback models with the adapter's P0 FOM; the
-case maps these bounded observations to IEEE 1516.1-2025 §7.3.
-The `java-tck.negotiated-divestiture-if-wanted-completion` case exercises the
-alternate completion path: after the owner receives the acquisition request
-and confirmation callback, it calls `attributeOwnershipDivestitureIfWanted`
-instead of `confirmDivestiture`. The case checks the exact returned attribute
-set, ownership transfer, and acquisition callback tag. Focused local JNI runs
-passed in both callback models, with the alternate termination assertion
-mapped to IEEE 1516.1-2025 §7.3.
+The default-enabled `java-tck.negotiated-divestiture-no-accepter` case checks
+the eligible publisher's exact assumption callback after the owner offers
+negotiated divestiture, retained ownership while no acquirer exists, the exact
+confirmation request after acquisition begins, and transfer only after the
+owner confirms. Its direct mappings are page 156 line 50 to IEEE 1516.1-2025
+§7.3, page 155 lines 164 and 167 to §7.3, and page 151 line 27 to §7.1.2.1.
+Java passed 1/1 under both callback models; the paired C++ primary and contract
+passed 4/4 focused CTests and 4/4 direct executions. Java evidence is in
+`out/java-tck/negotiated-divestiture-no-accepter-java-parity-20261116/`; C++
+evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-divestiture-no-accepter-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider interoperability
+or conformance evidence.
+The default-enabled `java-tck.negotiated-divestiture-duplicate-request` case
+verifies that a second divestiture request throws
+`AttributeAlreadyBeingDivested`, the current owner can still send a tagged
+update while the first request is pending, and the original request transfers
+ownership only after `confirmDivestiture`. It maps the three selected
+page-156 witnesses directly to IEEE 1516.1-2025 §7.3. Java passed 1/1 under
+both callback models; the paired C++ primary passed 2/2 focused CTests and 2/2
+direct executions. Java evidence is in
+`out/java-tck/negotiated-divestiture-duplicate-request-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-divestiture-duplicate-request-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider interoperability
+or conformance evidence.
+The default-enabled `java-tck.negotiated-divestiture-if-wanted-completion`
+case exercises the alternate completion path: after the owner receives the
+acquisition request and confirmation callback, it calls
+`attributeOwnershipDivestitureIfWanted` instead of `confirmDivestiture`. It
+checks the exact returned attribute set, ownership transfer, and acquisition
+callback tag. It maps page 156 line 20 directly to IEEE 1516.1-2025 §7.3. Java
+passed 1/1 under both callback models; the paired C++ primary passed 2/2
+focused CTests and 2/2 direct executions. Java evidence is in
+`out/java-tck/negotiated-divestiture-if-wanted-completion-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-divestiture-if-wanted-completion-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider interoperability
+or conformance evidence.
 The `java-tck.negotiated-willing-to-acquire-continuation` case also uses the
 adapter FOM and logical-time implementation. It checks that a canceled first
 candidate does not block the second willing candidate from receiving the

@@ -90,6 +90,13 @@ final class NegotiatedDivestitureNoAccepterTck {
          requesterRecorder.clearOwnershipEvents();
          owner.negotiatedAttributeOwnershipDivestiture(object, ownerAttributeSet, offerTag);
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
+         await(requester, callbackModel,
+            () -> !requesterRecorder.assumptions.isEmpty(),
+            "negotiated divestiture assumption request to the eligible publisher");
+         JavaTckSupport.check(requesterRecorder.assumptions.size() == 1,
+            "negotiated divestiture did not produce exactly one assumption request");
+         checkEvent(requesterRecorder.assumptions.get(0), object, requesterAttributeSet,
+            offerTag, "negotiated divestiture assumption request");
          JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute)
                && !requester.isAttributeOwnedByFederate(object, requesterAttribute)
                && ownerRecorder.confirmations.isEmpty(),
