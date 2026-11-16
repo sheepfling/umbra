@@ -212,6 +212,16 @@ ordering remain scenario evidence. Java passed both callback models. Results are
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-galt-lits-periodic` case checks direct and
+periodic GALT/LITS values of 2 with one time-regulating federate at time 0 and
+lookahead 2. After that last regulator disables regulation, both direct queries are
+undefined and both MOM attribute values are empty. It maps only the standard MIM
+GALT/LITS definitions to IEEE 1516.1-2025 §11.4.1; the timing sequence and encodings
+remain scenario evidence. Java passed both callback models. Results are in
+`out/java-tck/federate-mom-galt-lits-periodic-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only
