@@ -5465,3 +5465,17 @@ The default-run `java-tck.pending-negotiated-ownership-save-restore` case preser
 The default-run `java-tck.ownership-acquisition-cancellation-save-restore` case preserves a pending acquisition cancellation across federation save and restore. It checks one post-restore cancellation confirmation, no acquisition notification, preserved ownership, restored handles, and the ownership query. Its repository-internal `cpp-1516.1-*` IDs have no direct IEEE clause mapping. Java passed under both callback models; the paired C++ primary/contract selectors passed 4/4 focused CTests and direct runs. Results are in `out/java-tck/ownership-acquisition-cancellation-save-restore-java-parity-20261116/{evoked,immediate}/` and `out/cpp-tck-evidence-20261116/ownership-acquisition-cancellation-save-restore-java-parity-20261116.{json,xml}`. This is local-provider evidence only; independent-provider behavior and conformance are not claimed.
 
 The default-run `java-tck.if-available-ownership-restore-unavailable-callback` case preserves a pending If Available request across federation save and restore, then checks one unavailable callback with the original tag, preserved ownership, restored handles, and the ownership query. Its repository-internal `cpp-1516.1-*` IDs have no direct IEEE clause mapping. Java passed under both callback models; the paired C++ primary/contract selectors passed 4/4 focused CTests and 4/4 direct runs. Results are in `out/java-tck/if-available-ownership-restore-unavailable-java-parity-20261116/{evoked,immediate}/` and `out/cpp-tck-evidence-20261116/if-available-ownership-restore-unavailable-java-parity-20261116.{json,xml}`. This is local-provider evidence only; independent-provider behavior and conformance are not claimed.
+
+The default-run `java-tck.ownership-cancellation-idle` case checks the exact
+tag on the owner's release request, one cancellation confirmation, no acquisition
+notification, and retained ownership. In `HLA_IMMEDIATE`, the requester makes no
+RTI call between cancellation and callback observation; `HLA_EVOKED` services its
+callback queue. Its direct mappings cover IEEE 1516.1-2025 §§7.8, 7.15, and 7.16.
+The Java cancellation-confirmation method has no tag parameter, so the C++-only
+empty confirmation-tag assertion has no Java-visible counterpart. Java passed
+under both callback models; the paired C++ primary/contract selectors passed 4/4
+focused CTests and 4/4 direct runs. Results are in
+`out/java-tck/ownership-cancellation-idle-java-parity-20261116/{evoked,immediate}/`
+and `out/cpp-tck-evidence-20261116/ownership-cancellation-idle-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.

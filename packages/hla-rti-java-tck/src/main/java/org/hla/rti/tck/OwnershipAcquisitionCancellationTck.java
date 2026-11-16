@@ -22,8 +22,9 @@ final class OwnershipAcquisitionCancellationTck {
 
    private OwnershipAcquisitionCancellationTck() { }
 
-   static void runIdle(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, CallbackModel callbackModel) throws Exception {
+   static void runIdle(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder();
@@ -39,11 +40,13 @@ final class OwnershipAcquisitionCancellationTck {
          ownerConnected = true;
          requester.connect(requesterRecorder.proxy(), callbackModel);
          requesterConnected = true;
-         owner.createFederationExecution(federation, fom);
+         owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution("java-tck-idle-cancellation-owner", federation);
+         owner.joinFederationExecution(
+            "java-tck-idle-cancellation-owner", "tck-type", federation);
          ownerJoined = true;
-         requester.joinFederationExecution("java-tck-idle-cancellation-requester", federation);
+         requester.joinFederationExecution(
+            "java-tck-idle-cancellation-requester", "tck-type", federation);
          requesterJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -76,8 +79,9 @@ final class OwnershipAcquisitionCancellationTck {
             "idle ownership cancellation produced duplicate release requests");
          OwnershipEvent release = ownerRecorder.releaseRequests.get(0);
          JavaTckSupport.check(object.equals(release.object)
-               && ownerAttributes.equals(release.attributes),
-            "idle ownership cancellation release request lost the object or attribute");
+               && ownerAttributes.equals(release.attributes)
+               && Arrays.equals(tag, release.tag),
+            "idle ownership cancellation release request lost the object, attribute, or tag");
 
          requester.cancelAttributeOwnershipAcquisition(object, requesterAttributes);
          // In immediate mode, await only observes a thread-safe callback list; it

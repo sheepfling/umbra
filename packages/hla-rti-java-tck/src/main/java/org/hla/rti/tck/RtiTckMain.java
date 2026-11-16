@@ -6118,8 +6118,8 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.ownership-cancellation-idle",
              "confirm an ordinary ownership cancellation without requester-side RTI servicing in immediate mode",
              "ownership",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
-             new String[] {"cpp-1516.1-ownership-management"}, false),
+             "RtiFactory.getRtiAmbassador;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.subscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;ResignAction.CANCEL_PENDING_OWNERSHIP_ACQUISITIONS;ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;ObjectClassHandle.equals;AttributeHandle.equals;AttributeHandleSet.equals;ObjectInstanceHandle.equals",
+             new String[] {"cpp-1516.1-ownership-management"}, true),
           RtiTckMain::ownershipCancellationIdle);
        run(new Scenario("java-tck.attribute-ownership-release-denied",
              "deny an ordinary ownership request, verify callbacks, and preserve the current owner",
@@ -10630,7 +10630,7 @@ public final class RtiTckMain {
    }
 
    private static void ownershipCancellationIdle() throws Exception {
-      OwnershipAcquisitionCancellationTck.runIdle(factory(), requireFom(),
+      OwnershipAcquisitionCancellationTck.runIdle(factory(), requireFom(), timeImplementation(),
          typedObjectClassName(), typedIdentityAttributeName(), callbackModel());
    }
 
