@@ -18,6 +18,9 @@ import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import hla.rti1516_2025.encoding.EncoderFactory;
 import hla.rti1516_2025.encoding.HLAinteger32BE;
+import hla.rti1516_2025.time.LogicalTime;
+import hla.rti1516_2025.time.LogicalTimeFactory;
+import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
@@ -40,18 +43,24 @@ final class FederateMomTimeStateDurationsTck {
             && !timeImplementation.isEmpty(),
          "joined-federate MOM time-state testing requires adapter-supplied MIM and logical-time implementation");
       RTIambassador subject = factory.getRtiAmbassador();
+      RTIambassador regulator = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       EncoderFactory encoder = factory.getEncoderFactory();
       Recorder subjectRecorder = new Recorder();
+      Recorder regulatorRecorder = new Recorder();
       Recorder observerRecorder = new Recorder();
       String federation = "java-tck-federate-mom-time-state-durations-" + UUID.randomUUID();
-      boolean subjectConnected = false, observerConnected = false, created = false;
-      boolean subjectJoined = false, observerJoined = false, subscribed = false;
+      boolean subjectConnected = false, regulatorConnected = false, observerConnected = false;
+      boolean created = false;
+      boolean subjectJoined = false, regulatorJoined = false, observerJoined = false;
+      boolean subscribed = false, timeConstrained = false, timeRegulating = false;
       ObjectClassHandle momClass = null;
       AttributeHandleSet momAttributes = null;
       try {
          subject.connect(subjectRecorder.proxy(), callbackModel);
          subjectConnected = true;
+         regulator.connect(regulatorRecorder.proxy(), callbackModel);
+         regulatorConnected = true;
          observer.connect(observerRecorder.proxy(), callbackModel);
          observerConnected = true;
          subject.createFederationExecutionWithMIM(federation, new String[] {fom}, mim,
@@ -85,6 +94,8 @@ final class FederateMomTimeStateDurationsTck {
          FederateHandle subjectFederate = subject.joinFederationExecution(
             "mom-duration-subject", "java-tck", federation);
          subjectJoined = true;
+         regulator.joinFederationExecution("mom-duration-regulator", "java-tck", federation);
+         regulatorJoined = true;
          byte[] encodedSubject = encode(subjectFederate);
          await(observer, callbackModel,
             () -> observerRecorder.momReflection(federateAttribute, encodedSubject) != null,
@@ -97,18 +108,51 @@ final class FederateMomTimeStateDurationsTck {
                && !initial.values.containsKey(timeAdvancingAttribute),
             "initial joined-federate MOM reflection did not omit conditional time-state fields");
 
-         int directStart = observerRecorder.reflections.size();
-         observer.requestAttributeValueUpdate(momObject,
-            JavaTckSupport.attributeSet(observer, timeGrantedAttribute, timeAdvancingAttribute),
-            new byte[0]);
-         await(observer, callbackModel,
-            () -> findDurationReflection(observerRecorder, directStart, momObject,
-               timeGrantedAttribute, timeAdvancingAttribute) != null,
-            "direct joined-federate MOM duration reflection");
-         Reflection direct = findDurationReflection(observerRecorder, directStart, momObject,
-            timeGrantedAttribute, timeAdvancingAttribute);
-         validateDurationReflection(direct, momObject, timeGrantedAttribute,
-            timeAdvancingAttribute, reliable, encoder, "direct time-state reflection");
+         DurationValues initialDurations = requestDurations(observer, observerRecorder,
+            callbackModel, momObject, timeGrantedAttribute, timeAdvancingAttribute, reliable,
+            encoder, "initial direct time-state reflection");
+         JavaTckSupport.check(initialDurations.granted >= 0 && initialDurations.advancing >= 0,
+            "initial joined-federate time-state durations were negative");
+
+         LogicalTimeFactory<?, ?> timeFactory = regulator.getTimeFactory();
+         JavaTckSupport.check(timeFactory.getName().equals(subject.getTimeFactory().getName())
+               && timeFactory.getName().equals(observer.getTimeFactory().getName()),
+            "joined-federate MOM members selected different logical-time factories");
+         LogicalTime<?, ?> initialTime = (LogicalTime<?, ?>) timeFactory.makeInitial();
+         LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime<?, ?> targetTime = add(initialTime, intervalOffset(epsilon, 2));
+
+         subject.enableTimeConstrained();
+         timeConstrained = true;
+         await(subject, callbackModel, () -> subjectRecorder.timeConstrainedEnabled == 1,
+            "target timeConstrainedEnabled callback");
+         regulator.enableTimeRegulation(epsilon);
+         timeRegulating = true;
+         await(regulator, callbackModel, () -> regulatorRecorder.timeRegulationEnabled == 1,
+            "regulator timeRegulationEnabled callback");
+         subject.timeAdvanceRequest(targetTime);
+         Thread.sleep(60L);
+         DurationValues whileAdvancing = requestDurations(observer, observerRecorder,
+            callbackModel, momObject, timeGrantedAttribute, timeAdvancingAttribute, reliable,
+            encoder, "time-state reflection while target is advancing");
+         JavaTckSupport.check(whileAdvancing.granted >= initialDurations.granted
+               && whileAdvancing.advancing >= initialDurations.advancing
+               && whileAdvancing.advancing > 0,
+            "time-state durations did not grow while the target was advancing");
+
+         regulator.timeAdvanceRequest(targetTime);
+         await(subject, callbackModel, () -> targetTime.equals(subjectRecorder.timeAdvanceGrant),
+            "target timeAdvanceGrant callback");
+         await(regulator, callbackModel,
+            () -> targetTime.equals(regulatorRecorder.timeAdvanceGrant),
+            "regulator timeAdvanceGrant callback");
+         Thread.sleep(60L);
+         DurationValues afterGrant = requestDurations(observer, observerRecorder, callbackModel,
+            momObject, timeGrantedAttribute, timeAdvancingAttribute, reliable, encoder,
+            "time-state reflection after target grant");
+         JavaTckSupport.check(afterGrant.granted >= initialDurations.granted
+               && afterGrant.granted > 0 && afterGrant.advancing >= whileAdvancing.advancing,
+            "time-state durations did not retain accumulated time after the target grant");
 
          InteractionClassHandle setTiming = observer.getInteractionClassHandle(SET_TIMING);
          ParameterHandle timingFederate = observer.getParameterHandle(setTiming, "HLAfederate");
@@ -125,29 +169,73 @@ final class FederateMomTimeStateDurationsTck {
             "periodic joined-federate MOM duration reflection");
          Reflection periodic = findDurationReflection(observerRecorder, periodicStart, momObject,
             timeGrantedAttribute, timeAdvancingAttribute);
-         validateDurationReflection(periodic, momObject, timeGrantedAttribute,
-            timeAdvancingAttribute, reliable, encoder, "periodic time-state reflection");
+         DurationValues periodicDurations = validateDurationReflection(periodic, momObject,
+            timeGrantedAttribute, timeAdvancingAttribute, reliable, encoder,
+            "periodic time-state reflection");
+         JavaTckSupport.check(periodicDurations.granted >= afterGrant.granted
+               && periodicDurations.advancing >= afterGrant.advancing,
+            "periodic time-state values were smaller than the preceding direct values");
+
+         DurationValues afterPeriodic = requestDurations(observer, observerRecorder,
+            callbackModel, momObject, timeGrantedAttribute, timeAdvancingAttribute, reliable,
+            encoder, "direct time-state reflection after periodic reporting");
+         JavaTckSupport.check(afterPeriodic.granted < periodicDurations.granted
+               && afterPeriodic.advancing <= periodicDurations.advancing,
+            "direct time-state request did not observe the interval consumed "
+               + "by periodic reporting");
+         Thread.sleep(30L);
+         DurationValues secondAfterPeriodic = requestDurations(observer, observerRecorder,
+            callbackModel, momObject, timeGrantedAttribute, timeAdvancingAttribute, reliable,
+            encoder, "second direct time-state reflection after periodic reporting");
+         JavaTckSupport.check(secondAfterPeriodic.granted >= afterPeriodic.granted
+               && secondAfterPeriodic.advancing >= afterPeriodic.advancing,
+            "time-state durations decreased across successive direct requests");
          sendTiming(observer, setTiming, timingFederate, reportPeriod, subjectFederate, 0, encoder);
 
          observer.unsubscribeObjectClassAttributes(momClass, momAttributes);
          subscribed = false;
          subject.resignFederationExecution(ResignAction.NO_ACTION);
          subjectJoined = false;
+         timeConstrained = false;
+         regulator.resignFederationExecution(ResignAction.NO_ACTION);
+         regulatorJoined = false;
+         timeRegulating = false;
          observer.resignFederationExecution(ResignAction.NO_ACTION);
          observerJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
       } finally {
+         if (timeConstrained && subjectJoined) try { subject.disableTimeConstrained(); }
+            catch (Exception ignored) { }
+         if (timeRegulating && regulatorJoined) try { regulator.disableTimeRegulation(); }
+            catch (Exception ignored) { }
          if (subscribed && observerJoined && momClass != null && momAttributes != null) try {
             observer.unsubscribeObjectClassAttributes(momClass, momAttributes);
          } catch (Exception ignored) { }
          if (subjectJoined) resign(subject);
+         if (regulatorJoined) resign(regulator);
          if (observerJoined) resign(observer);
          if (created) try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          if (observerConnected) disconnect(observer);
+         if (regulatorConnected) disconnect(regulator);
          if (subjectConnected) disconnect(subject);
       }
+   }
+
+   private static DurationValues requestDurations(RTIambassador observer, Recorder recorder,
+         CallbackModel callbackModel, ObjectInstanceHandle object, AttributeHandle granted,
+         AttributeHandle advancing, TransportationTypeHandle reliable, EncoderFactory encoder,
+         String description) throws Exception {
+      int first = recorder.reflections.size();
+      observer.requestAttributeValueUpdate(object,
+         JavaTckSupport.attributeSet(observer, granted, advancing), new byte[0]);
+      await(observer, callbackModel,
+         () -> findDurationReflection(recorder, first, object, granted, advancing) != null,
+         description);
+      Reflection reflection = findDurationReflection(recorder, first, object, granted, advancing);
+      return validateDurationReflection(reflection, object, granted, advancing, reliable, encoder,
+         description);
    }
 
    private static Reflection findDurationReflection(Recorder recorder, int first,
@@ -161,7 +249,7 @@ final class FederateMomTimeStateDurationsTck {
       return null;
    }
 
-   private static void validateDurationReflection(Reflection reflection,
+   private static DurationValues validateDurationReflection(Reflection reflection,
          ObjectInstanceHandle object, AttributeHandle granted, AttributeHandle advancing,
          TransportationTypeHandle reliable, EncoderFactory encoder, String description)
          throws Exception {
@@ -171,18 +259,33 @@ final class FederateMomTimeStateDurationsTck {
             && reliable.equals(reflection.transportation) && reflection.producer == null
             && (reflection.regions == null || reflection.regions.isEmpty()),
          description + " returned non-standard MOM reflection metadata or fields");
-      validateDuration(reflection.values.get(granted), encoder, description + " HLAtimeGrantedTime");
-      validateDuration(reflection.values.get(advancing), encoder,
+      int grantedValue = validateDuration(reflection.values.get(granted), encoder,
+         description + " HLAtimeGrantedTime");
+      int advancingValue = validateDuration(reflection.values.get(advancing), encoder,
          description + " HLAtimeAdvancingTime");
+      return new DurationValues(grantedValue, advancingValue);
    }
 
-   private static void validateDuration(byte[] encoded, EncoderFactory encoder, String description)
+   private static int validateDuration(byte[] encoded, EncoderFactory encoder, String description)
          throws Exception {
       JavaTckSupport.check(encoded != null && encoded.length == 4,
          description + " did not use four-octet HLAinteger32BE encoding");
       HLAinteger32BE value = encoder.createHLAinteger32BE();
       value.decode(encoded);
       JavaTckSupport.check(value.getValue() >= 0, description + " returned a negative duration");
+      return value.getValue();
+   }
+
+   private static LogicalTimeInterval intervalOffset(LogicalTimeInterval epsilon, int steps)
+         throws Exception {
+      LogicalTimeInterval result = epsilon;
+      for (int i = 1; i < steps; ++i) result = (LogicalTimeInterval) result.add(epsilon);
+      return result;
+   }
+
+   private static LogicalTime add(LogicalTime start, LogicalTimeInterval interval)
+         throws Exception {
+      return (LogicalTime) start.add(interval);
    }
 
    private static void sendTiming(RTIambassador sender, InteractionClassHandle interaction,
@@ -238,8 +341,21 @@ final class FederateMomTimeStateDurationsTck {
       }
    }
 
+   private static final class DurationValues {
+      private final int granted;
+      private final int advancing;
+
+      private DurationValues(int granted, int advancing) {
+         this.granted = granted;
+         this.advancing = advancing;
+      }
+   }
+
    private static final class Recorder {
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private volatile int timeConstrainedEnabled;
+      private volatile int timeRegulationEnabled;
+      private volatile LogicalTime<?, ?> timeAdvanceGrant;
       private Reflection momReflection(AttributeHandle attribute, byte[] expected) {
          for (Reflection reflection : reflections) {
             byte[] value = reflection.values.get(attribute);
@@ -258,6 +374,13 @@ final class FederateMomTimeStateDurationsTck {
                      (AttributeHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
                      (RegionHandleSet) arguments[5]));
+               } else if ("timeConstrainedEnabled".equals(name)) {
+                  ++timeConstrainedEnabled;
+               } else if ("timeRegulationEnabled".equals(name)) {
+                  ++timeRegulationEnabled;
+               } else if ("timeAdvanceGrant".equals(name) && arguments != null
+                     && arguments.length == 1) {
+                  timeAdvanceGrant = (LogicalTime<?, ?>) arguments[0];
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK time-state MOM callbacks";

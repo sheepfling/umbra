@@ -222,6 +222,17 @@ remain scenario evidence. Java passed both callback models. Results are in
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-time-state-durations` case follows the target
+through time-constrained enablement, an advance to time 2, and the grant. It checks
+direct and periodic `HLAtimeGrantedTime`/`HLAtimeAdvancingTime` encodings and
+nonnegative monotonic values, including the smaller direct values after the periodic
+report consumes its interval. The MIM attribute definitions map to IEEE 1516.1-2025
+§11.4.1; duration accumulation and consumption remain scenario evidence. Java passed
+both callback models, and the paired 192-assertion C++ Catch2 case passed 1/1. Results
+are in `out/java-tck/federate-mom-time-state-durations-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only
