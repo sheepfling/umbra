@@ -895,13 +895,30 @@ transfer before saving, restores that completed owner state, and confirms it
 through both `isAttributeOwnedByFederate` and `queryAttributeOwnership`. Cleanup
 unconditionally divests the acquirer and leaves the prior owner with `NO_ACTION`,
 matching the portable C++ scenario's resign boundary.
-The `java-tck.attribute-ownership-acquisition-cancellation` case ports the
-ordinary cancellation contract, including pre-request/owned-attribute failures,
-the cancellation confirmation metadata, no acquisition notification, and
-preserved ownership after cancellation.
-The `java-tck.attribute-ownership-release-denied` case verifies the exact
-ownership-release request and unavailable callback payloads, unchanged ownership
-before and after denial, and the absence of an acquisition notification.
+The default-enabled `java-tck.attribute-ownership-acquisition-cancellation`
+case checks ordinary acquisition cancellation, its grouped confirmation,
+preserved ownership, rejection of unconditional divestiture while acquisition
+is pending, and the race where If-Wanted divestiture completes before
+cancellation. The race checks the exact tagged acquisition notification and
+transferred ownership. It maps direct witnesses to IEEE 1516.1-2025
+§§7.1.2.2, 7.15, 7.16, and the evoked publication guard in §7.8.4. Java passed
+1/1 under each callback model; the paired C++ primary/contract passed 4/4
+focused CTests and 4/4 direct executions. Results are in
+`out/java-tck/attribute-ownership-acquisition-cancellation-java-parity-20261116/`
+and `.build/cpp-tck-evidence-20261116/attribute-ownership-acquisition-cancellation-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider or conformance evidence.
+The default-enabled `java-tck.attribute-ownership-release-denied` case checks
+the owner's exact Release request, the denial tag and unavailable callback,
+and unchanged ownership. Its multi-acquirer phase verifies that one denial
+terminates both pending acquisitions with one exact unavailable callback each.
+It maps direct witnesses to IEEE 1516.1-2025 §§7.1.2.2 and 7.12. Java passed
+1/1 under each callback model with the typed model FOM and HLAfloat64Time; the
+paired C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions.
+Results are in
+`out/java-tck/attribute-ownership-release-denied-java-parity-20261116/` and
+`.build/cpp-tck-evidence-20261116/attribute-ownership-release-denied-java-parity-20261116.{json,xml}`.
+These local-provider results do not establish independent-provider behavior or
+conformance.
 The `java-tck.attribute-ownership-query-owner-report` case checks the exact
 `informAttributeOwnership` object, attribute set, and federate handle, then
 rechecks that querying did not change ownership.

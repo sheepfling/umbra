@@ -6456,6 +6456,8 @@
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.attributeOwnershipAcquisition",
         "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.deleteObjectInstance",
         "RTIambassador.evokeCallback",
@@ -6474,7 +6476,19 @@
       "requirement_ids": [
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l19-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l46-12",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l128-41",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l30-9",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l36-11",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
@@ -6483,12 +6497,18 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-170-l52-14",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l46-11",
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13",
-        "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24"
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l128-41",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l30-9",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l36-11",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24",
+        "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.15",
         "hla-1516.1-2025:clause-7.16",
-        "hla-1516.1-2025:clause-7.1.2.2"
+        "hla-1516.1-2025:clause-7.1.2.2",
+        "hla-1516.1-2025:clause-7.8.4"
       ],
       "requirement_mappings": [
         {
@@ -6516,18 +6536,49 @@
           "standard_section": "hla-1516.1-2025:clause-7.16"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l128-41",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l30-9",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l36-11",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l75-24",
           "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5",
+          "standard_section": "hla-1516.1-2025:clause-7.8.4"
         }
       ],
-      "mapping_note": "Direct clause 7.15 pairs cover a pending regular cancellation (page-170-l13-1), the exact confirmation reply (l19-3), rejection of canceling an If Available-only request (l46-12), and its override by a regular acquisition (l52-14). Clause 7.16 covers both attributes no longer being acquisition candidates and one grouped callback; clause 7.1.2.2 covers the pending If Available exclusion. Unknown-object and other unmapped negatives remain API-contract observations. HLA_EVOKED object-removal suppression is supplemental evidence. Source compiles against the official 2025 Java API JAR and passed focused JNI runs under both callback models (out/java-tck/acquisition-cancellation-*-jni-20261022.json). C++ primary/contract passed four focused CTests. No cross-provider or conformance claim.",
+      "mapping_note": "Direct §7.15 pairs cover a pending regular cancellation (page 170 l.13), the exact confirmation callback (l.19), rejection of canceling an If Available-only request (l.46), and its override by a regular acquisition (l.52). §7.16 pairs verify both requested attributes cease being acquisition candidates and one grouped confirmation contains the exact object and attribute set. §7.1.2.2 pairs cover the pending If Available exclusion (page 153 l.75), rejection of unconditional divestiture while acquisition is pending (page 152 l.128), successful cancellation (page 153 l.15), its confirmation payload (l.30; the standard Java callback has no tag parameter), and cancellation losing to completed transfer with the exact tagged acquisition notification (l.36). §7.8.4 is limited to the HLA_EVOKED check that publication stays active before cancellation confirmation. Unknown-object and object-removal stale-callback assertions remain API-contract or supplemental evidence.",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "contract_refs": [
         "standard-attribute-ownership-acquisition-cancellation-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipAcquisitionCancellation",
       "parity": "cpp-tck.attribute-ownership-acquisition-cancellation",
-      "default_status": "unsupported",
-      "exclusion": "Default-disabled for unconfigured adapters; requires an IEEE 1516.1-2025 FOM with the configured typed object class and two distinct transferable attributes, a matching provider time representation, and standard attribute ownership services. The test uses only the standard Java API."
+      "default_status": "run",
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied model FOM with HLAobjectRoot.TckTypedObject.Identity and IntegerValue",
+        "provider time representation and callback model"
+      ],
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Default-enabled current-source Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using packages/hla-rti-cpp-tck/fom/region-service-report-float64-model-tck.xml, HLAfloat64Time, and HLAobjectRoot.TckTypedObject.Identity/IntegerValue. Results are out/java-tck/attribute-ownership-acquisition-cancellation-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; results are in .build/cpp-tck-evidence-20261116/attribute-ownership-acquisition-cancellation-java-parity-20261116.{json,xml}. These are local-provider results only and do not establish independent-provider behavior, interoperability, or conformance.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-ownership-release-denied",
@@ -6545,6 +6596,7 @@
         "RTIambassador.attributeOwnershipAcquisition",
         "RTIambassador.attributeOwnershipReleaseDenied",
         "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
@@ -6558,29 +6610,66 @@
       "requirement_ids": [
         "cpp-1516.1-object-management",
         "cpp-1516.1-ownership-management",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27-release",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l89-28",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6"
+        "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27-release",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l89-28",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.12"
+        "hla-1516.1-2025:clause-7.12",
+        "hla-1516.1-2025:clause-7.1.2.2"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-167-l28-6",
           "standard_section": "hla-1516.1-2025:clause-7.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l86-27-release",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l89-28",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
         }
       ],
-      "mapping_note": "Direct §7.12 page-167-l28-6: one Release Denied terminates two pending regular acquisitions and delivers one Attribute Ownership Unavailable callback with the denial tag to each acquirer, without changing ownership; both may unpublish afterward because the pending acquisitions ended. The single-acquirer phase retains exact metadata checks. The multi-acquirer phase does not require a fixed owner-release callback count because §7.11 permits coalescing. Java compiles against the official API-only JAR; provider runtime remains unverified and this row stays non-promoted.",
+      "mapping_note": "Direct §7.1.2.2 pairs cover a regular acquisition producing a Release request to the current owner with the exact object, attribute set, and acquisition tag (page 152 l.86 and recipient condition l.89), followed by Release Denied completing the request with an exact tagged Attribute Ownership Unavailable callback and no transfer (page 153 l.15). The §7.12 page-167-l.28 pair covers denial of two pending regular acquisitions: both acquirers receive one exact unavailable callback carrying the denial tag, and ownership remains with the original owner. The multi-acquirer phase does not require a fixed owner Release callback count because §7.11 permits coalescing. This row does not claim full subsection coverage.",
       "contract_refs": [
         "attribute-ownership-release-denied-api-contract.json",
         "attribute-ownership-release-denied-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipReleaseDenied",
       "parity": "cpp-tck.attribute-ownership-release-denied",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 FOM and a provider supporting standard attribute ownership services. The test uses only the standard Java API; provider runtime verification is pending."
+      "default_status": "run",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied model FOM with one transferable object attribute",
+        "provider logical-time representation and callback model"
+      ],
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Default-enabled current-source Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using packages/hla-rti-cpp-tck/fom/region-service-report-float64-model-tck.xml, HLAfloat64Time, and HLAobjectRoot.TckTypedObject.Identity. The matching provider JAR and JNI DLL are in out/jni-regional-routing-20261114. Java results are out/java-tck/attribute-ownership-release-denied-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/attribute-ownership-release-denied-java-parity-20261116.{json,xml}. These are local-provider results only and do not establish independent-provider behavior, interoperability, or conformance.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.attribute-ownership-query-owner-report",

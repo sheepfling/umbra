@@ -10,6 +10,7 @@ import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -212,6 +213,11 @@ final class OwnershipAcquisitionCancellationTck {
          requesterRecorder.clearOwnershipEvents();
          requester.attributeOwnershipAcquisition(
             registeredObject, requesterAttributeSet, acquisitionTag);
+         JavaTckSupport.expectFailure(
+            () -> requester.unconditionalAttributeOwnershipDivestiture(
+               registeredObject, requesterAttributeSet, acquisitionTag),
+            "AttributeNotOwned",
+            "divesting attributes while their ownership acquisition is pending");
          requester.cancelAttributeOwnershipAcquisition(registeredObject, requesterAttributeSet);
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.check(requesterRecorder.cancellations.isEmpty(),
@@ -287,6 +293,57 @@ final class OwnershipAcquisitionCancellationTck {
             requester.unpublishObjectClassAttributes(requesterClass, oneAttribute);
             requesterPublished = false;
          }
+
+         requester.publishObjectClassAttributes(requesterClass, requesterAttributeSet);
+         requesterPublished = true;
+         ObjectInstanceHandle failedCancellationObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(failedCancellationObject != null,
+            "failed-cancellation registration returned a null object handle");
+         await(requester, callbackModel,
+            () -> requesterRecorder.discoveries.contains(failedCancellationObject),
+            "failed-cancellation object discovery");
+         byte[] failedCancellationAcquisitionTag = {(byte) 0xa6, 0x25};
+         byte[] failedCancellationDivestitureTag = {(byte) 0xd6, 0x25};
+         ownerRecorder.clearOwnershipEvents();
+         requesterRecorder.clearOwnershipEvents();
+         requester.attributeOwnershipAcquisition(
+            failedCancellationObject, requesterAttributeSet,
+            failedCancellationAcquisitionTag);
+         await(owner, callbackModel, () -> !ownerRecorder.releaseRequests.isEmpty(),
+            "failed-cancellation owner release request");
+         OwnershipEvent releaseRequest = ownerRecorder.releaseRequests.get(0);
+         JavaTckSupport.check(failedCancellationObject.equals(releaseRequest.object)
+               && ownerAttributes.equals(releaseRequest.attributes)
+               && Arrays.equals(failedCancellationAcquisitionTag, releaseRequest.tag),
+            "failed-cancellation release request returned the wrong object, attributes, or tag");
+         AttributeHandleSet divested = owner.attributeOwnershipDivestitureIfWanted(
+            failedCancellationObject, ownerAttributes, failedCancellationDivestitureTag);
+         JavaTckSupport.check(ownerAttributes.equals(divested),
+            "failed-cancellation If-Wanted divestiture returned the wrong attribute set");
+         JavaTckSupport.expectFailure(
+            () -> requester.cancelAttributeOwnershipAcquisition(
+               failedCancellationObject, requesterAttributeSet),
+            "AttributeAlreadyOwned", "canceling after the pending acquisition was granted");
+         await(requester, callbackModel, () -> !requesterRecorder.acquisitions.isEmpty(),
+            "failed-cancellation acquisition notification");
+         OwnershipEvent acquisition = requesterRecorder.acquisitions.get(0);
+         JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1
+               && requesterRecorder.cancellations.isEmpty()
+               && failedCancellationObject.equals(acquisition.object)
+               && requesterAttributeSet.equals(acquisition.attributes)
+               && Arrays.equals(failedCancellationDivestitureTag, acquisition.tag),
+            "failed cancellation did not report the exact acquisition notification");
+         JavaTckSupport.check(!owner.isAttributeOwnedByFederate(
+                  failedCancellationObject, ownerAttribute)
+               && !owner.isAttributeOwnedByFederate(
+                  failedCancellationObject, ownerSecondAttribute)
+               && requester.isAttributeOwnedByFederate(
+                  failedCancellationObject, requesterAttribute)
+               && requester.isAttributeOwnedByFederate(
+                  failedCancellationObject, requesterSecondAttribute),
+            "failed-cancellation notification did not confirm ownership transfer");
+         requester.unconditionalAttributeOwnershipDivestiture(
+            failedCancellationObject, requesterAttributeSet, new byte[0]);
       } finally {
          if (requesterJoined && requesterPublished && requesterClass != null
                && requesterAttributes != null) {
@@ -332,10 +389,13 @@ final class OwnershipAcquisitionCancellationTck {
    private static final class OwnershipEvent {
       private final ObjectInstanceHandle object;
       private final AttributeHandleSet attributes;
+      private final byte[] tag;
 
-      private OwnershipEvent(ObjectInstanceHandle object, AttributeHandleSet attributes) {
-         this.object = object;
-         this.attributes = attributes;
+      private OwnershipEvent(Object[] arguments) {
+         object = (ObjectInstanceHandle) arguments[0];
+         attributes = (AttributeHandleSet) arguments[1];
+         tag = arguments.length >= 3 && arguments[2] instanceof byte[]
+            ? ((byte[]) arguments[2]).clone() : null;
       }
    }
 
@@ -357,20 +417,16 @@ final class OwnershipAcquisitionCancellationTck {
                   discoveries.add((ObjectInstanceHandle) arguments[0]);
                } else if ("confirmAttributeOwnershipAcquisitionCancellation".equals(name)
                      && arguments != null && arguments.length >= 2) {
-                  cancellations.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1]));
+                  cancellations.add(new OwnershipEvent(arguments));
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length >= 2) {
-                  acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1]));
+                  acquisitions.add(new OwnershipEvent(arguments));
                } else if ("attributeOwnershipUnavailable".equals(name)
                      && arguments != null && arguments.length >= 2) {
-                  unavailable.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1]));
+                  unavailable.add(new OwnershipEvent(arguments));
                } else if ("requestAttributeOwnershipRelease".equals(name)
                      && arguments != null && arguments.length >= 2) {
-                  releaseRequests.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
-                     (AttributeHandleSet) arguments[1]));
+                  releaseRequests.add(new OwnershipEvent(arguments));
                } else if ("removeObjectInstance".equals(name)
                      && arguments != null && arguments.length >= 1) {
                   removals.add((ObjectInstanceHandle) arguments[0]);
