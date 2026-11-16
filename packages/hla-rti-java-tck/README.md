@@ -1884,13 +1884,14 @@ states. The adapter supplies the FOM, standard MIM, object-class and attribute
 names, logical time, and callback model. It passed installed-provider runs in
 both callback models; independent-provider behavior is not yet verified.
 
-The adapter-required `java-tck.federate-mom-updated-null-object-report` scenario
+The default-run `java-tck.federate-mom-updated-null-object-report` scenario
 requests HLArequestObjectInstancesUpdated for a joined subject with no successful
 updates. It checks exactly one reliable HLAreportObjectInstancesUpdated response,
 its single HLAobjectInstanceCounts parameter and empty metadata, and decodes the
-value as an empty count array. Current-source JNI runs passed in both callback
-models, as did the paired installed-package C++ primary and contract. This is a
-bounded §11.4.1(d) witness and local-provider evidence only.
+value as an empty count array. Java passed in both callback models against the
+paired C++ primary and contract. Results are in
+`out/java-tck/federate-mom-updated-null-object-report-java-parity-20261116/`.
+This is a bounded §11.4.1(d) witness and local-provider evidence only.
 
 The adapter-required `java-tck.mom-save-restore-interactions` case has both
 federates publish the three standard save/restore MOM interactions. During the
