@@ -253,6 +253,20 @@ companion passed focused CTest 2/2. Results are in
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-reflected-timestamped-object-report` case
+registers two Server/Efficiency objects and sends three timestamped updates at one
+logical time, including two updates to the first object. It checks each reflection's
+value, tag, order, producer, reliable transport, retraction handle, and logical time,
+then verifies all reflections arrive before the target's grant. A distinct requester
+decodes the standard `HLAreportObjectInstancesReflected` response and expects two
+distinct instances. Its 13 direct section mappings cover subscription/discovery,
+registration, timestamped update/reflection and time management through §11.4.1. Java
+passed in both callback models against the paired C++ primary/contract evidence.
+Results are in
+`out/java-tck/federate-mom-reflected-timestamped-object-report-java-parity-20261116/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

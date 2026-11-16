@@ -7497,20 +7497,24 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
             }, true), RtiTckMain::federateMomReflectionsReceivedCounts);
       run(new Scenario("java-tck.federate-mom-reflected-timestamped-object-report",
-            "verify timestamped reflection callbacks before requesting class-scoped HLAobjectInstancesReflected counts",
-            "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.unpublishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues(timestamp-order);RTIambassador.enableTimeRegulation;RTIambassador.enableTimeConstrained;RTIambassador.getTimeFactory;RTIambassador.queryLogicalTime;RTIambassador.timeAdvanceRequest;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(timestamp-order);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.receiveInteraction;HLAbyte;HLAvariableArray;HLAfixedRecord;HLAoctet;HLAinteger32BE",
+            "request HLAreportObjectInstancesReflected after three timestamped reflections to two objects and count distinct instances",
+            "joined-federate-mom-object-statistics",
+            "RtiFactory.getRtiAmbassador;RtiFactory.getEncoderFactory;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeEpsilon;LogicalTime.add;RTIambassador.enableTimeRegulation;FederateAmbassador.timeRegulationEnabled;RTIambassador.enableTimeConstrained;FederateAmbassador.timeConstrainedEnabled;RTIambassador.queryLogicalTime;RTIambassador.timeAdvanceRequest;RTIambassador.getAttributeHandleValueMapFactory;AttributeHandleValueMapFactory.create;AttributeHandleValueMap.put;RTIambassador.updateAttributeValues(timestamp-order);MessageRetractionReturn.retractionHandleIsValid;MessageRetractionHandle.equals;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.sendInteraction(receive-order);RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.deleteObjectInstance(receive-order);RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues(timestamp-order);FederateAmbassador.timeAdvanceGrant;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAbyte;HLAbyte.toByteArray;HLAbyte.decode;EncoderFactory.createHLAvariableArray;HLAvariableArray.decode;HLAvariableArray.toByteArray;EncoderFactory.createHLAoctet;HLAoctet.toByteArray;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;HLAfixedRecord.get;EncoderFactory.createHLAinteger32BE;HLAinteger32BE.getValue;Handle.encodedLength;Handle.encode",
             new String[] {
-               "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-timestamped-attribute-update",
-               "cpp-1516.1-timestamped-attribute-reflect",
-               "cpp-1516.1-time-advance-request",
-               "cpp-1516.1-time-management",
-               "cpp-1516.1-time-advance-and-grant",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomReflectedTimestampedObjectReport);
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-subscription",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-registration",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-order",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-update",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-callback",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-time-regulation",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-regulation-callback",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-service",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-callback",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-time-advance",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-grant-callback",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-request-report",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-mim-report"
+            }, true), RtiTckMain::federateMomReflectedTimestampedObjectReport);
       run(new Scenario("java-tck.federate-mom-updated-timestamped-object-report",
             "verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts",
             "object-management",
