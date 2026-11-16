@@ -817,6 +817,11 @@ pending request, unpublishing is blocked until the terminal acquisition
 notification, and ownership transfers only at Confirm Divestiture. It is enabled
 for HLA_EVOKED; HLA_IMMEDIATE is recorded as unsupported because it cannot
 preserve the queued-request ordering.
+The `java-tck.if-available-deleted-object` scenario is also limited to
+HLA_EVOKED. It queues an If Available request, deletes the object before that
+request can be serviced, and checks for exactly one tagged removal callback
+with no stale ownership callback. HLA_IMMEDIATE is recorded as unsupported
+because it cannot preserve the queued-result ordering.
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback

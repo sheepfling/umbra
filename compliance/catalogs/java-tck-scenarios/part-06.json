@@ -5251,6 +5251,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.deleteObjectInstance",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -5275,14 +5276,17 @@
           "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
         }
       ],
-      "mapping_note": "Parity for the evoked deletion-nullified If Available public-API witness. Page-152-l101-32 maps only the accepted request; the queued-result nullification after object deletion has no dedicated pinned granular candidate and is not claimed as mapped conformance evidence. Official API-only JAR compilation passed; provider-runtime execution remains unverified.",
+      "mapping_note": "Direct requirement-candidate-content-clauses-07-ownership-management-page-152-l101-32 -> IEEE 1516.1-2025 clause 7.1.2.2 only for the accepted If Available request while an owner holds the attribute. The receive-order deletion/nullification witness, tagged removal callback, and absence of stale ownership callbacks are cross-service public-API behavior without a dedicated pinned granular candidate and are not claimed as mapped conformance evidence. HLA_EVOKED is required to observe the queued intermediate state; HLA_IMMEDIATE is explicitly excluded.",
       "contract_refs": [
         "standard-if-available-deleted-object-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ifAvailableDeletedObject",
       "parity": "cpp-tck.if-available-deleted-object",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 Java provider configured for HLA_EVOKED; provider-runtime execution is unverified and immediate callbacks do not preserve this queued-result ordering."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED against the local Umbra JNI provider using HLAinteger64Time and p0-tck.xml with HLAobjectRoot.TckObject and Value. Under HLA_IMMEDIATE, Java explicitly records this queued-result case as unsupported; it is not counted as a behavior pass. The paired C++ primary and contract direct selectors passed both applicable HLA_EVOKED executions against the installed MinGW package; the focused CTest XML records both corresponding tests passing. Results: out/java-tck/if-available-deleted-object-20261116/promoted-evoked/{results.json,junit.xml}; out/java-tck/if-available-deleted-object-20261116/immediate-scope/{results.json,junit.xml}; .build/cpp-tck-evidence-20261116/ownership-release-deleted-object-closeout-current-source-20261116.{json,xml}. These are bounded local-provider results, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted",
+      "callback_models": ["evoked"],
+      "callback_model_scope_note": "This case requires HLA_EVOKED to retain the If Available result until the receive-order deletion is serviced. HLA_IMMEDIATE cannot preserve the queued intermediate state; Java records it as unsupported and the paired C++ catalog excludes it."
     },
     {
       "id": "java-tck.ownership-after-fom-merge",

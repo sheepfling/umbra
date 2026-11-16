@@ -6333,9 +6333,9 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.if-available-deleted-object",
             "remove a deleted object without delivering its queued If Available result",
             "ownership",
-            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
+            "RTIambassador.connect(HLA_EVOKED from adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.deleteObjectInstance;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.attributeOwnershipUnavailable",
             new String[] {"cpp-1516.1-object-management", "cpp-1516.1-ownership-management"},
-            false), RtiTckMain::ifAvailableDeletedObject);
+            true), RtiTckMain::ifAvailableDeletedObject);
       run(new Scenario("java-tck.ownership-after-fom-merge",
             "keep a join-added attribute unowned until its acquisition notification",
             "ownership",
@@ -10776,6 +10776,10 @@ public final class RtiTckMain {
    }
 
    private static void ifAvailableDeletedObject() throws Exception {
+      if (callbackModel() != CallbackModel.HLA_EVOKED) {
+         throw new UnsupportedPortableScenario(
+            "The queued If Available deletion case requires HLA_EVOKED.");
+      }
       IfAvailableDeletedObjectTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
