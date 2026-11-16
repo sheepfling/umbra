@@ -10,6 +10,7 @@ import hla.rti1516_2025.OrderType;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RTIambassador;
+import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TimeQueryReturn;
@@ -223,6 +224,7 @@ final class TimestampedInteractionMixedAdvancesTck {
             && expectedTime.equals(delivery.time)
             && delivery.sentOrder == OrderType.TIMESTAMP
             && delivery.receivedOrder == OrderType.TIMESTAMP
+            && delivery.regionsEmpty
             && expectedRetraction.handle.equals(delivery.retractionHandle)
             && delivery.transportation != null
             && !receiver.getTransportationTypeName(delivery.transportation).isEmpty(),
@@ -551,6 +553,9 @@ final class TimestampedInteractionMixedAdvancesTck {
             && recorder.parameters != null && recorder.parameters.size() == 1
             && Arrays.equals(expectedPayload, recorder.parameters.get(expectedParameter)),
          description + " received the wrong interaction class or parameter payload");
+      JavaTckSupport.check(recorder.timedInteractions.size() == 1
+            && recorder.timedInteractions.get(0).regionsEmpty,
+         description + " unexpectedly included regional receive data");
       JavaTckSupport.check(Arrays.equals(expectedTag, recorder.tag),
          description + " did not preserve the user tag");
       JavaTckSupport.check(expectedProducer.equals(recorder.producer)
@@ -563,6 +568,8 @@ final class TimestampedInteractionMixedAdvancesTck {
          description + " did not preserve the message retraction handle");
       JavaTckSupport.check(recorder.transportation != null,
          description + " returned no transportation handle");
+      JavaTckSupport.check(!ambassador.getTransportationTypeName(recorder.transportation).isEmpty(),
+         description + " returned an unresolvable transportation handle");
       if (expectedTransportationName != null) {
          JavaTckSupport.check(expectedTransportationName.equals(
                ambassador.getTransportationTypeName(recorder.transportation)),
@@ -593,12 +600,13 @@ final class TimestampedInteractionMixedAdvancesTck {
       private final OrderType sentOrder;
       private final OrderType receivedOrder;
       private final MessageRetractionHandle retractionHandle;
+      private final boolean regionsEmpty;
 
       private InteractionDelivery(InteractionClassHandle interactionClass,
             ParameterHandleValueMap parameters, byte[] tag,
             TransportationTypeHandle transportation, FederateHandle producer,
             LogicalTime<?, ?> time, OrderType sentOrder, OrderType receivedOrder,
-            MessageRetractionHandle retractionHandle) {
+            MessageRetractionHandle retractionHandle, boolean regionsEmpty) {
          this.interactionClass = interactionClass;
          this.parameters = parameters.clone();
          this.tag = tag.clone();
@@ -608,6 +616,7 @@ final class TimestampedInteractionMixedAdvancesTck {
          this.sentOrder = sentOrder;
          this.receivedOrder = receivedOrder;
          this.retractionHandle = retractionHandle;
+         this.regionsEmpty = regionsEmpty;
       }
    }
 
@@ -650,13 +659,15 @@ final class TimestampedInteractionMixedAdvancesTck {
                   tag = ((byte[]) arguments[2]).clone();
                   transportation = (TransportationTypeHandle) arguments[3];
                   producer = (FederateHandle) arguments[4];
+                  RegionHandleSet regions = (RegionHandleSet) arguments[5];
                   interactionTime = (LogicalTime<?, ?>) arguments[6];
                   sentOrder = (OrderType) arguments[7];
                   receivedOrder = (OrderType) arguments[8];
                   retractionHandle = (MessageRetractionHandle) arguments[9];
+                  boolean regionsEmpty = regions == null || regions.isEmpty();
                   timedInteractions.add(new InteractionDelivery(interactionClass,
                      parameters, tag, transportation, producer, interactionTime,
-                     sentOrder, receivedOrder, retractionHandle));
+                     sentOrder, receivedOrder, retractionHandle, regionsEmpty));
                   callbackOrder.add(name);
                } else if ("timeAdvanceGrant".equals(name)
                      && arguments != null && arguments.length == 1) {
