@@ -331,8 +331,9 @@
       "category": "attribute-scope-advisory",
       "title": "Report standard attribute scope transitions for regional subscriptions and update associations",
       "api_methods": [
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution(FOM)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getDimensionHandle",
@@ -357,11 +358,19 @@
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.NO_ACTION",
+        "ResignAction.DELETE_OBJECTS",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "RTIambassador.evokeMultipleCallbacks",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.attributesInScope",
-        "FederateAmbassador.attributesOutOfScope"
+        "FederateAmbassador.attributesOutOfScope",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "DimensionHandle.equals",
+        "ObjectInstanceHandle.equals",
+        "AttributeHandleSet.equals"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-attribute-scope-advisory",
@@ -380,7 +389,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.9"
         }
       ],
-      "mapping_note": "Directly asserts that the invoking member receives no Attributes Out Of Scope advisory when its final regional subscription is removed. The direct requirement mapping is requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> §5.9; §10.1.3 identifies this implicit, self-caused out-of-scope transition as one that does not generate the advisory. The Java source uses only official IEEE 1516.1-2025 APIs; provider runtime remains unverified, so no Java conformance claim is made.",
+      "mapping_note": "The direct mapping is limited to requirement-candidate-content-clauses-05-declaration-management-page-098-l41-12 -> IEEE 1516.1-2025 §5.9: the invoking member receives no Attributes Out Of Scope advisory when it removes its final regional subscription. IEEE 1516.1-2025 §10.1.3 identifies that implicit, self-caused transition. Source-region transitions, switch suppression, grouped callback contents, and stale-callback suppression remain scenario assertions without additional direct mappings.",
       "contract_refs": [
         "object-attribute-scope-api-contract.json",
         "object-attribute-scope-requirements-contract.json",
@@ -391,8 +400,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeScopeAdvisories",
       "parity": "cpp-tck.attribute-scope-advisories",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied DDM FOM, object/attribute/two-dimension names, and an installed IEEE 1516.1-2025 Java provider; runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "ddm-tck.xml supplied through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value",
+        "TckDimensionX and TckDimensionY",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "exclusion": "Requires the adapter-supplied DDM FOM, HLAobjectRoot.TckObject/Value and TckDimensionX/TckDimensionY names, plus an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, ddm-tck.xml, HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. Results/JUnit: out/java-tck/attribute-scope-advisories-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/attribute-scope-advisories-java-parity-20261116.{json,xml}. The only direct mapping is the no-Attributes-Out-Of-Scope advisory on final self-unsubscription to IEEE 1516.1-2025 §5.9; local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.attribute-scope-ownership-acquisition-no-out-of-scope",

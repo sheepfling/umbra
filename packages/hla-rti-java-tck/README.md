@@ -5556,3 +5556,18 @@ and
 `out/cpp-tck-evidence-20261116/discovered-class-stability-after-specific-subscription-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
+
+The default-run `java-tck.attribute-scope-advisories` case verifies grouped
+in-scope and out-of-scope callbacks as update regions move, no advisory when a
+member removes its final regional subscription, switch suppression, and stale
+in-scope callback cancellation after a region change. Its sole direct mapping
+is the final self-unsubscription rule in IEEE 1516.1-2025 §5.9; the other
+transitions and callback details remain scenario assertions. Java passed under
+both callback models with `ddm-tck.xml`, HLAobjectRoot.TckObject, Value,
+TckDimensionX, and TckDimensionY. The installed-package C++ primary/contract
+selectors passed 4/4 focused CTests and 4/4 direct runs. Results are in
+`out/java-tck/attribute-scope-advisories-java-parity-20261116/{evoked,immediate}/`
+and
+`out/cpp-tck-evidence-20261116/attribute-scope-advisories-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.

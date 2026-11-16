@@ -61,9 +61,11 @@ final class AttributeScopeAdvisoriesTck {
          memberConnected = true;
          owner.createFederationExecution(federation, fom);
          created = true;
-         owner.joinFederationExecution("attribute-scope-owner", federation);
+         owner.joinFederationExecution(
+            "attribute-scope-owner", "tck-type", federation);
          ownerJoined = true;
-         member.joinFederationExecution("attribute-scope-member", federation);
+         member.joinFederationExecution(
+            "attribute-scope-member", "tck-type", federation);
          memberJoined = true;
 
          ownerClass = owner.getObjectClassHandle(objectClassName);
