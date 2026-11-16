@@ -2656,14 +2656,22 @@ C++ evidence is in
 This is bounded local-provider evidence, not independent-provider
 behavior or an overall conformance claim.
 
-The opt-in `java-tck.ownership-transfer-deferred-regional-update` scenario
+The default `java-tck.ownership-transfer-deferred-regional-update` scenario
 stages the new owner's region association before transfer. It checks the current
 owner's update carries its distinct `[1,3]` source bounds while the staged
 association has `[6,8]` bounds, then transfers the attribute and verifies the
 first new-owner update carries the staged bounds without another association
 call. The receiver queries dimensions and bounds from each copied region during
-the reflection callback. It passed both callback models on the local JNI
-provider; this is not independent-provider evidence.
+the reflection callback. The default Java case passed 1/1 under each
+callback model against the current-source JNI provider using `ddm-tck.xml`,
+`HLAinteger64Time`, `HLAobjectRoot.TckObject`, `Value`, `TckDimensionX`,
+and `TckDimensionY`. The paired installed-package C++ primary/contract
+slice passed 4/4 focused CTests and 4/4 direct executions across both
+models. Java evidence is under
+`out/java-tck/ownership-transfer-deferred-regional-update-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/ownership-transfer-deferred-regional-update-java-parity-20261116.{json,xml}`. These are bounded local-provider results, not independent-provider
+behavior or an overall conformance claim.
 
 The opt-in `java-tck.attribute-scope-advisories` scenario checks regional
 scope-in/scope-out callbacks caused by source reassociation and active

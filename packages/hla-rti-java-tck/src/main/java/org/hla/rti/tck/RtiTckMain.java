@@ -6024,7 +6024,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ddm-regional-object-registration",
                "cpp-1516.1-ddm-regional-object-update",
                "cpp-1516.1-ddm-region-designator-callback"
-            }, false), RtiTckMain::ownershipTransferDeferredRegionalUpdate);
+            }, true), RtiTckMain::ownershipTransferDeferredRegionalUpdate);
       run(new Scenario("java-tck.partial-attribute-ownership-transfer",
             "cancel one attribute from a multi-attribute acquisition and transfer only the other",
             "ownership",

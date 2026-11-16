@@ -5719,6 +5719,7 @@
       "category": "ownership-transfer-regional-update",
       "title": "Promote a deferred update-region association atomically with ownership acquisition",
       "api_methods": [
+        "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -5797,7 +5798,11 @@
       "mapping_note": "The Java port mirrors the bounded §9.1.3.2 evidence in cpp-tck.ownership-transfer-deferred-regional-update: a non-owner establishes a deferred update-region association while the current owner retains ownership; the current owner's update still carries its own [1,3] source range instead of the pending [6,8] range. After ownership acquisition, the new owner's first update carries the deferred [6,8] source range without another associateRegionsForUpdates call. The receiver inspects copied source-region dimensions and bounds during each reflection. Both callback models passed on the local JNI provider; this is not independent-provider evidence or an overall conformance claim. The four cpp-1516.1 IDs are retained as internal provenance.",
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipTransferDeferredRegionalUpdate",
       "parity": "cpp-tck.ownership-transfer-deferred-regional-update",
-      "default_status": "run"
+      "default_status": "run",
+      "promotion": "promoted",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": ["evoked", "immediate"],
+      "evidence_note": "Focused default-enabled Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider using ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, and TckDimensionX/Y. The paired installed-package C++ primary/contract slice passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java evidence: out/java-tck/ownership-transfer-deferred-regional-update-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; C++ evidence: .build/cpp-tck-evidence-20261116/ownership-transfer-deferred-regional-update-java-parity-20261116.{json,xml}. Bounded local-provider evidence only; not independent-provider behavior or an overall conformance claim."
     },
     {
       "id": "java-tck.ownership-acquisition-publication-fence",
