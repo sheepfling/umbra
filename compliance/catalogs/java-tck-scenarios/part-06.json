@@ -4411,11 +4411,13 @@
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getTimeFactory",
+        "RTIambassador.queryLogicalTime",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.deleteObjectInstance(time)",
         "RTIambassador.deleteObjectInstance(time, already removed object)",
         "RTIambassador.retract",
+        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.disableTimeRegulation",
@@ -4433,8 +4435,41 @@
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l83-23",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l45-11",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l36-8",
+        "requirement-candidate-content-clauses-08-time-management-page-210-l39-9"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l83-23",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-194-l45-11",
+          "standard_section": "hla-1516.1-2025:clause-8.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l27-5",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l36-8",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l39-9",
+          "standard_section": "hla-1516.1-2025:clause-8.22.3"
+        }
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.17",
+        "hla-1516.1-2025:clause-8.8",
+        "hla-1516.1-2025:clause-8.22.3"
+      ],
+      "mapping_note": "The Clause 6.17 mapping covers the timestamped removal callback carrying the requested logical time. Clause 8.22.3 mappings cover the returned and callback retraction handle, restored name-to-handle identity at both recipients, and producer attribute ownership before deletion and after retraction. The Clause 8.8 mapping covers observing the queued removal after the constrained member requests a time advance; no ordering relative to the grant is asserted. Java has no standard default-invalid ObjectInstanceHandle representation, so the C++ invalid-handle boundary check is not claimed. The Java stale-handle check instead calls timestamped delete after that object has been terminally removed.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -4451,8 +4486,10 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRetraction",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until exercised against an IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion",
+      "evidence_note": "Current-source Java passed under HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute TCK FOM, object class, and attribute. The paired C++ primary and contract selectors passed both callback models. The case verifies timestamped removal metadata, retraction and object-identity/attribute-ownership restoration, suppressed constrained delivery for the retracted event, and terminal removal, with the Java API-compatible stale-handle negative. No exact removal-to-grant callback order or exact grant-time claim is made. The Java API has no default-invalid ObjectInstanceHandle representation, so that C++ invalid-handle boundary check is not claimed. Results: out/java-tck/object-deletion-retraction-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-object-deletion-retraction-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-regulation-reenable",

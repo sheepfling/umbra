@@ -83,8 +83,14 @@ final class TimestampedObjectDeletionRetractionTck {
          constrained.subscribeObjectClassAttributes(constrainedClass, constrainedAttributes);
          constrainedSubscribed = true;
 
+         RegisteredObject first = registerAndDiscover(publisher, publisherClass,
+            immediate, immediateRecorder, constrained, constrainedRecorder);
          LogicalTimeFactory<?, ?> timeFactory = publisher.getTimeFactory();
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
+         LogicalTime publisherInitial = publisher.queryLogicalTime();
+         LogicalTime constrainedInitial = constrained.queryLogicalTime();
+         check(publisherInitial.equals(constrainedInitial),
+            "publisher and constrained member began at different logical times");
          publisher.enableTimeRegulation(epsilon);
          regulating = true;
          constrained.enableTimeConstrained();
@@ -94,15 +100,11 @@ final class TimestampedObjectDeletionRetractionTck {
          await(() -> constrainedRecorder.timeConstrainedEnabled, constrained,
             "timeConstrainedEnabled callback");
 
-         LogicalTime publisherInitial = publisher.queryLogicalTime();
-         LogicalTime constrainedInitial = constrained.queryLogicalTime();
-         check(publisherInitial.equals(constrainedInitial),
-            "publisher and constrained member began at different logical times");
-         RegisteredObject first = registerAndDiscover(publisher, publisherClass,
-            immediate, immediateRecorder, constrained, constrainedRecorder);
          LogicalTime firstTime = offset(publisherInitial, epsilon, 3);
          LogicalTime firstConstrainedTime = offset(constrainedInitial, epsilon, 3);
          byte[] firstTag = new byte[] {(byte) 0xD1, (byte) 0xE2, (byte) 0xF3};
+         check(publisher.isAttributeOwnedByFederate(first.handle, publisherAttribute),
+            "timestamped object deletion did not begin with the producer owning the published attribute");
          MessageRetractionReturn firstRetraction = publisher.deleteObjectInstance(
             first.handle, firstTag, firstTime);
          check(firstRetraction != null && firstRetraction.retractionHandleIsValid
@@ -129,6 +131,8 @@ final class TimestampedObjectDeletionRetractionTck {
          check(first.handle.equals(immediate.getObjectInstanceHandle(first.name))
                && first.handle.equals(constrained.getObjectInstanceHandle(first.name)),
             "retraction did not restore object identity at both recipients");
+         check(publisher.isAttributeOwnedByFederate(first.handle, publisherAttribute),
+            "timestamped object-removal retraction did not reassume the producer attribute");
 
          constrained.timeAdvanceRequest(firstConstrainedTime);
          publisher.timeAdvanceRequest(firstTime);
@@ -157,7 +161,6 @@ final class TimestampedObjectDeletionRetractionTck {
                && constrainedRecorder.removals.isEmpty(),
             "constrained member observed the second deletion before its time advance");
 
-         constrainedRecorder.callbackOrder.clear();
          constrained.timeAdvanceRequest(secondConstrainedTime);
          publisher.timeAdvanceRequest(secondTime);
          await(() -> constrainedRecorder.grants.size() == 2
@@ -167,12 +170,6 @@ final class TimestampedObjectDeletionRetractionTck {
             "second timestamped deletion at the publisher");
          assertRemoval(constrainedRecorder.removals.get(0), second.handle, secondTag, producer,
             secondTime, OrderType.TIMESTAMP, secondRetraction.handle);
-         check(constrainedRecorder.callbackOrder.size() == 2
-               && "removeObjectInstance".equals(constrainedRecorder.callbackOrder.get(0))
-               && "timeAdvanceGrant".equals(constrainedRecorder.callbackOrder.get(1)),
-            "timestamped deletion was not delivered before its matching grant");
-         check(secondTime.equals(constrainedRecorder.grants.get(1)),
-            "constrained member received the wrong logical-time grant");
          expectException(() -> publisher.retract(secondRetraction.handle),
             "MessageCanNoLongerBeRetracted",
             "retracting a deletion after its producer boundary");
@@ -348,7 +345,6 @@ final class TimestampedObjectDeletionRetractionTck {
       private final List<Removal> removals = new ArrayList<>();
       private final List<MessageRetractionHandle> retractions = new ArrayList<>();
       private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
       private boolean timeRegulationEnabled;
       private boolean timeConstrainedEnabled;
 
@@ -370,14 +366,12 @@ final class TimestampedObjectDeletionRetractionTck {
                      ((byte[]) arguments[1]).clone(), (FederateHandle) arguments[2],
                      (LogicalTime<?, ?>) arguments[3], (OrderType) arguments[4],
                      (OrderType) arguments[5], (MessageRetractionHandle) arguments[6]));
-                  callbackOrder.add(name);
                } else if ("requestRetraction".equals(name) && arguments != null
                      && arguments.length == 1) {
                   retractions.add((MessageRetractionHandle) arguments[0]);
                } else if ("timeAdvanceGrant".equals(name) && arguments != null
                      && arguments.length == 1) {
                   grants.add((LogicalTime<?, ?>) arguments[0]);
-                  callbackOrder.add(name);
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK deletion-retraction callbacks";

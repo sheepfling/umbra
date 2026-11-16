@@ -3385,15 +3385,21 @@ scenario is enabled by default. These results are provider-local evidence, not
 independent-provider interoperability or conformance.
 
 The `java-tck.timestamped-object-deletion-retraction` scenario sends two
-timestamped deletions to an unconstrained and a constrained recipient. The first
-is retracted after the unconstrained recipient observes provisional removal,
-checking the Request Retraction callback and restored name-to-handle identity;
-the constrained recipient must not observe the retracted deletion at its grant.
-The second deletion is delivered before the constrained grant, after which
-retraction must fail with `MessageCanNoLongerBeRetracted` and both recipients
-must observe terminal removal; a subsequent timestamped delete using that
-removed handle must fail with `ObjectInstanceNotKnown`. It remains unsupported
-by default pending execution against a Java provider.
+uses an unconstrained and a constrained recipient. The first deletion is
+retracted after the unconstrained recipient observes provisional removal; the
+case checks the Request Retraction callback, restored object identity and
+producer attribute ownership, and no constrained removal after its time
+advance. The second deletion is observed by both recipients after the
+constrained member requests a time advance; terminal retraction and a later
+timestamped delete using the removed handle must fail with
+`MessageCanNoLongerBeRetracted` and `ObjectInstanceNotKnown`, respectively.
+Current-source runs passed under both HLA_EVOKED and HLA_IMMEDIATE against the
+local Umbra JNI provider; the paired C++ primary and contract selectors passed
+both callback models. The Java case does not claim an exact removal-to-grant
+callback order or exact grant time, and it cannot represent the default-invalid
+object handle used by the C++ boundary check. This scenario is enabled by
+default. The evidence is provider-local, not independent-provider
+interoperability or conformance.
 
 The `java-tck.timestamped-object-deletion-retraction-joined-owners` scenario
 transfers one attribute to a second owner, queues a timestamped deletion, and
