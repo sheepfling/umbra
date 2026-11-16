@@ -4315,29 +4315,37 @@
       "requirement_ids": [
         "cpp-1516.1-connection-loss-callback",
         "cpp-1516.2-mim-federate-lost-report",
-        "requirement-candidate-content-clauses-04-federation-management-page-050-l45-14"
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l45-14",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-4.1.6"
+        "hla-1516.1-2025:clause-4.1.6",
+        "hla-1516.1-2025:clause-11.4.1"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l45-14",
           "standard_section": "hla-1516.1-2025:clause-4.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
         }
       ],
-      "mapping_note": "Direct mapping for the post-loss HLAfederatesInFederation roster update: requirement-candidate-content-clauses-04-federation-management-page-050-l45-14 -> IEEE 1516.1-2025 §4.1.6. The scenario subscribes before connection loss and verifies that the reflected roster contains only the survivor. The report payload/time and TSO-before-grant checks retain their existing behavioral IDs; the survivor synchronization continuation is supplemental and has no separate direct requirement mapping.",
+      "mapping_note": "The two direct mappings are bounded: the post-loss HLAfederatesInFederation roster update maps requirement-candidate-content-clauses-04-federation-management-page-050-l45-14 to §4.1.6; receipt and decoding of the Table 7 P-leaf HLAreportFederateLost maps requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36 to §11.4.1 through federate-lost-table7-p-leaf-requirements-contract.json. This is a runtime witness for one Table 7 P leaf only; it does not establish the universal all-P-leaves requirement or resolve RL-393. The adapter-managed connection-loss fixture remains required, so the case stays unsupported by the generic default runner.",
       "parity_scope_note": "Mirrors the C++ report identity/time and TSO-before-grant assertions, the post-loss roster reflection and public membership query, and the one-survivor synchronization continuation. Runtime evidence is current-source Umbra JNI with the adapter process fixture; independent-provider behavior and exhaustive connection-loss criteria are not claimed.",
       "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed through the current-source Umbra JNI provider in HLA_EVOKED and HLA_IMMEDIATE using run_connection_loss.py, p0-tck.xml, the standard MIM, and the public-server-loss fixture. Results: out/java-tck/federate-lost-mom-roster-sync-20261114/results/{evoked,immediate}.results.json and .junit.xml. Provider-local evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-connection-loss-cleanup-contract.json",
         "federate-lost-mom-report-requirements-contract.json",
-        "federate-lost-mom-report-api-contract.json"
+        "federate-lost-mom-report-api-contract.json",
+        "federate-lost-table7-p-leaf-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateLostMomReport",
       "parity": "cpp-tck.federate-lost-mom-report",
       "default_status": "unsupported",
-      "exclusion": "Opt-in because the default runner does not own this external process fixture. The connection-loss adapter must supply the provider JAR and endpoint, p0-tck.xml, the standard MIM, callback model, readiness/completion markers, and the public-server-loss fixture. The Java test uses only the IEEE 1516.1-2025 API; no provider-specific API or fault injection appears in the test source."
+      "exclusion": "Opt-in because the default runner does not own this external process fixture. The connection-loss adapter must supply the provider JAR and endpoint, p0-tck.xml, the standard MIM, callback model, readiness/completion markers, and the public-server-loss fixture. The Java test uses only the IEEE 1516.1-2025 API; no provider-specific API or fault injection appears in the test source.",
+      "mapping_classification": "direct-requirement-mapped"
     },
     {
       "id": "java-tck.asynchronous-delivery",
