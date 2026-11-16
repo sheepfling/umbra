@@ -22127,7 +22127,8 @@
         "RTIambassador.requestAttributeValueUpdateWithRegions",
         "FederateAmbassador.provideAttributeValueUpdate"
       ],
-      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the native-green evoked default-region class request comparison. Java provider runtime is not yet verified.",
+      "mapping_note": "Official IEEE 1516.1-2025 API-only parity for the bounded evoked default-region class request comparison. Focused runtime passed against the local Umbra JNI provider; behavior on other providers remains unverified.",
+      "evidence_note": "Passed 1/1 under HLA_EVOKED against the local Umbra JNI provider using the pinned official Java API and packages/hla-rti-cpp-tck/fom/ddm-tck.xml configured with HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. Results and JUnit: out/java-tck/default-region-class-request-equivalence-current-source-20261116/{results.json,results.junit.xml}. This is local-provider evidence only; HLA_IMMEDIATE and other providers remain unverified.",
       "callback_models": [
         "evoked"
       ],
@@ -22137,13 +22138,13 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#defaultRegionClassRequestEquivalence",
       "parity": "cpp-tck.default-region-class-request-equivalence",
       "default_status": "unsupported",
-      "promotion": "candidate",
+      "promotion": "promoted",
       "adapter_inputs": [
         "provider Java API JAR and service-loaded RtiFactory",
         "adapter dimensional IEEE 1516.2-2025 FOM with configured object class, attribute, and two dimensions",
         "HLA_EVOKED callback model"
       ],
-      "exclusion": "Java provider runtime has not been executed; no provider-specific API, FOM path, or endpoint is embedded."
+      "exclusion": "The provider-neutral runner remains unsupported by default unless the adapter supplies a dimensional FOM and object, attribute, and dimension names. The local Umbra JNI profile has focused HLA_EVOKED pass evidence; other providers remain unverified."
     },
     {
       "id": "java-tck.regional-attribute-value-request-filtering",
