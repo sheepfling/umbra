@@ -4383,8 +4383,8 @@
       "title": "discover a derived object and reflect its inherited attribute through a base-class subscription",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -4399,11 +4399,16 @@
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.NO_ACTION",
+        "ResignAction.DELETE_OBJECTS",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "RTIambassador.evokeMultipleCallbacks",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.reflectAttributeValues"
+        "FederateAmbassador.reflectAttributeValues",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "ObjectInstanceHandle.equals"
       ],
       "requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4a-page-042-l10-2",
@@ -4425,7 +4430,20 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectClassAbstractionSubscription",
       "parity": "cpp-tck.object-class-abstraction-subscription",
-      "default_status": "unsupported",
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "fom-model-tck.xml supplied through hla.rti.tck.modelFom",
+        "HLAobjectRoot.TckTypedObject and HLAobjectRoot.TckTypedObject.TckTypedDerivedObject",
+        "Identity attribute",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-sections-semantic-clause-4a-page-042-l10-2",
         "requirement-candidate-content-clauses-06-object-management-page-107-l24-4",
@@ -4454,9 +4472,10 @@
           "standard_section": "hla-1516.1-2025:clause-6.1.1"
         }
       ],
-      "mapping_note": "The Java scenario uses the same typed hierarchy and inherited Identity attribute through the official IEEE 1516.1-2025 Java API. It verifies a derived registration is discovered with the subscriber's base class view, Get Known Object Class Handle retains that view, and the inherited Identity update is reflected. Five focused current-source Umbra JNI runs passed under each of HLA_EVOKED and HLA_IMMEDIATE; other providers and conformance are unverified.",
+      "mapping_note": "Direct mappings are limited to requirement-candidate-sections-semantic-clause-4a-page-042-l10-2 -> IEEE 1516.2-2025 §4 and the three selected page-107 object-registration/discovery candidates -> IEEE 1516.1-2025 §6.1.1. A registered derived object is discovered with the subscriber's base-class view, Get Known Object Class Handle retains that view, and the inherited Identity update is reflected once. Java also resolves the callback's object through the local object-name lookup; this is supplemental to the selected requirements. The source imports only the official IEEE 1516.1-2025 Java API and JDK.",
       "mapping_classification": "direct-requirement-mapped",
-      "exclusion": "Opt-in Java TCK scenario: RtiTckMain registers defaultEnabled=false, so it is reported unsupported by the default suite unless selected through a capability profile or enabled with -Dhla.rti.tck.runUnverified=true."
+      "exclusion": "Requires the adapter-supplied model FOM and typed object/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject and its TckTypedDerivedObject subclass, and Identity. Results/JUnit: out/java-tck/object-class-abstraction-subscription-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/object-class-abstraction-subscription-java-parity-20261116.{json,xml}. Direct mappings remain the selected IEEE 1516.2-2025 §4 and IEEE 1516.1-2025 §6.1.1 requirements. Local-provider evidence does not establish independent-provider behavior or conformance."
     }
   ]
 }

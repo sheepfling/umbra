@@ -1697,13 +1697,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.object-class-abstraction-subscription",
             "discover a derived object and reflect its inherited attribute through a base-class subscription",
             "object-registration-discovery",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;ResignAction.NO_ACTION;ResignAction.DELETE_OBJECTS;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;ObjectClassHandle.equals;AttributeHandle.equals;ObjectInstanceHandle.equals",
             new String[] {
                "requirement-candidate-sections-semantic-clause-4a-page-042-l10-2",
                "requirement-candidate-content-clauses-06-object-management-page-107-l24-4",
                "requirement-candidate-content-clauses-06-object-management-page-107-l45-11",
                "requirement-candidate-content-clauses-06-object-management-page-107-l105-31"
-            }, false), RtiTckMain::objectClassAbstractionSubscription);
+            }, true), RtiTckMain::objectClassAbstractionSubscription);
       run(new Scenario("java-tck.object-attribute-subscription-lifecycle",
             "exercise cross-class attribute rejection, empty/passive/active discovery, filtered reflection, downgrade, reactivation, and withdrawal",
             "object-attribute-subscription-lifecycle",

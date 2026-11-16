@@ -5441,6 +5441,20 @@ and 8/8 direct runs. Their direct mapping remains limited to the exercised
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
 
+The default-run `java-tck.object-class-abstraction-subscription` case verifies
+that a derived registration is discovered through a base-class subscription
+with the subscriber's class view, and that the inherited `Identity` value is
+reflected once. Its direct mappings remain limited to IEEE 1516.2-2025 §4 and
+the selected IEEE 1516.1-2025 §6.1.1 requirements. Java passed under both
+callback models with `fom-model-tck.xml` and HLAinteger64Time; the installed-
+package C++ primary/contract selectors passed 4/4 focused CTests and 4/4 direct
+runs. Results are in
+`out/java-tck/object-class-abstraction-subscription-java-parity-20261116/{evoked,immediate}/`
+and
+`out/cpp-tck-evidence-20261116/object-class-abstraction-subscription-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
+
 The default-run `java-tck.attribute-relevance-known-class` and
 `java-tck.attribute-relevance-known-class-disabled` cases exercise the same
 inherited class hierarchy with the `Advisories Use Known Class` FOM switch on

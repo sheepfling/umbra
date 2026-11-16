@@ -49,9 +49,11 @@ final class ObjectClassAbstractionSubscriptionTck {
          subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         publisher.joinFederationExecution("java-tck-abstraction-publisher", federation);
+         publisher.joinFederationExecution(
+            "java-tck-abstraction-publisher", "tck-type", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-abstraction-subscriber", federation);
+         subscriber.joinFederationExecution(
+            "java-tck-abstraction-subscriber", "tck-type", federation);
          subscriberJoined = true;
 
          publisherDerivedClass = publisher.getObjectClassHandle(derivedObjectClassName);
