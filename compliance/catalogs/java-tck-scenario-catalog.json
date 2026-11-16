@@ -7861,11 +7861,59 @@
       "id": "java-tck.connection-loss-automatic-cancel-pending-acquisition",
       "category": "connection",
       "title": "Cancel pending ownership acquisition after adapter-managed member loss",
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-4.1.6",
+        "hla-1516.1-2025:clause-10.43.6",
+        "hla-1516.1-2025:clause-10.44.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1",
+          "note": "The Java lost-member ambassador receives exactly one non-empty FederateAmbassador.connectionLost callback after adapter-managed transport loss."
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4",
+          "note": "After loss, pumping the current owner produces no stale requestAttributeOwnershipRelease callback; a later owner divestiture offers the attribute to the surviving candidate, which remains unowned until it requests acquisition."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6",
+          "note": "The lost member selects CANCEL_PENDING_OWNERSHIP_ACQUISITIONS and the later Connection Lost transition cancels its pending request."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+          "standard_section": "hla-1516.1-2025:clause-10.43.6",
+          "note": "Before loss, the lost member reads back CANCEL_PENDING_OWNERSHIP_ACQUISITIONS through RTIambassador.getAutomaticResignDirective."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
+          "standard_section": "hla-1516.1-2025:clause-10.44.6",
+          "note": "Before loss, the lost member selects CANCEL_PENDING_OWNERSHIP_ACQUISITIONS through RTIambassador.setAutomaticResignDirective."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The direct pairs follow Catch2 cases umbra-cpp-connection-lost-automatic-cancel-pending-acquisition-standalone and -immediate. Java verifies the directive round-trip, one connectionLost callback, suppression of stale owner-release work, and a fresh survivor assumption after later owner divestiture. Each Java run uses the selected callback model for all three participants; no cross-service callback ordering is asserted.",
       "api_methods": [
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withRtiAddress",
+        "RtiConfiguration.withAdditionalSettings",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7875,8 +7923,6 @@
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
         "RTIambassador.evokeMultipleCallbacks",
-        "RTIambassador.publishInteractionClass",
-        "RTIambassador.sendInteraction",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
@@ -7885,11 +7931,11 @@
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
       "requirement_ids": [
-        "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup",
-        "cpp-1516.1-automatic-resign-directive",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management"
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
       ],
       "contract_refs": [
         "connection-lost-api-contract.json",
@@ -7901,7 +7947,9 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#connectionLossAutomaticCancelPendingAcquisition",
       "parity": "cpp-tck.connection-loss-automatic-cancel-pending-acquisition",
       "default_status": "unsupported",
-      "exclusion": "Requires the adapter-managed public-server-loss process fixture, its endpoint and callback configuration, an ordinary configured interaction class for its handshake, and configured object class/attribute names."
+      "exclusion": "Default-disabled; focused execution requires the adapter-managed public-server-loss fixture, endpoint and callback configuration, Restaurant FOM, and configured object class and attribute names.",
+      "evidence_note": "The current Java TCK source compiled against the pinned official IEEE 1516.1-2025 API and passed under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI. It checked exact object discoveries, the directive round-trip, one non-empty connectionLost callback, absence of stale release callbacks after the callback-model-appropriate owner pump, and the later survivor assumption metadata. Results, JUnit, and traceability are under out/java-tck/connection-loss-automatic-cancel-pending-acquisition-current-source-20261116-parity/{evoked,immediate}.{results.json,junit.xml,traceability.json}. This is local-provider and adapter-managed fault evidence only; no independent-provider, interoperability, or conformance claim.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.resign-cancel-then-delete-then-divest-cross-object-effects",

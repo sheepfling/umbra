@@ -1396,13 +1396,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.connection-loss-automatic-cancel-pending-acquisition",
             "cancel pending ownership acquisition after adapter-managed member loss",
             "connection",
-            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.requestAttributeOwnershipAssumption",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.requestAttributeOwnershipAssumption",
             new String[] {
-               "cpp-1516.1-connection-loss-callback",
-               "cpp-1516.1-connection-loss-cleanup",
-               "cpp-1516.1-automatic-resign-directive",
-               "cpp-1516.1-object-management",
-               "cpp-1516.1-ownership-management"
+               "req-federate-connection-lost",
+               "req-connection-lost-service-behavior",
+               "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+               "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+               "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
             }, false), RtiTckMain::connectionLossAutomaticCancelPendingAcquisition);
       run(new Scenario("java-tck.federate-lost-mom-report",
             "deliver the standard federate-lost MOM report and lost-regulator TSO before the survivor grant",

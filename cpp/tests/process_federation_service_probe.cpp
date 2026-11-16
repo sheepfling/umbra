@@ -2727,6 +2727,8 @@ int runPublicServer(
                     if (request.operation ==
                             TransportServiceOperation::receive_interaction ||
                         request.operation ==
+                            TransportServiceOperation::claim_attribute_ownership_release ||
+                        request.operation ==
                             TransportServiceOperation::report_successful_service_invocation ||
                         request.operation ==
                             TransportServiceOperation::report_successful_void_service_invocation) {
@@ -2918,6 +2920,9 @@ int runPublicServer(
       throw std::runtime_error(
           "The installable process profile could not project pending-acquisition Connection Lost callbacks.");
     }
+    // Do not leave a listening socket for this intentionally lost session to
+    // resume against.  The survivor and owner sessions remain established.
+    listener->close();
     service.detach(*receiver);
     receiver->connection()->close();
     writeText(directory / "receiver-closed.ok", "ok\n");
@@ -2933,6 +2938,8 @@ int runPublicServer(
     });
 
     if (!serveExpectedSenderAfterEvokedPolls(
+            TransportServiceOperation::is_attribute_owned_by_federate) ||
+        !serveExpectedSenderAfterEvokedPolls(
             TransportServiceOperation::unconditional_attribute_ownership_divestiture) ||
         !serveExpectedSurvivorAfterEvokedPolls(
             TransportServiceOperation::is_attribute_owned_by_federate) ||
