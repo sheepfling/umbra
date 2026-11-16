@@ -192,6 +192,16 @@ are in
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
+`HLAROlength` baseline, a positive direct value while three receive-order interactions
+are queued, a positive periodic value while another interaction is queued, and zero
+after delivery. It maps only the standard MIM `HLAROlength` definition to
+IEEE 1516.1-2025 §11.4.1; queue timing and detailed values remain scenario evidence.
+Java passed both callback models. Results are in
+`out/java-tck/federate-mom-ro-length-periodic-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only

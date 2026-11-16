@@ -63603,13 +63603,17 @@
       "category": "time-management",
       "title": "Observe direct and periodic federate MOM HLAROlength while receive-order callbacks are queued",
       "api_methods": [
-        "RTIambassador.connect",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -63621,6 +63625,8 @@
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.requestAttributeValueUpdate(object)",
         "RTIambassador.sendInteraction(HLAsetTiming)",
@@ -63635,14 +63641,17 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.reflectAttributeValues",
         "FederateAmbassador.receiveInteraction",
+        "RtiFactory.getEncoderFactory",
+        "EncoderFactory.createHLAinteger32BE",
+        "Handle.encode",
+        "Handle.encodedLength",
+        "HLAinteger32BE.decode",
+        "HLAinteger32BE.getValue",
+        "HLAinteger32BE.toByteArray",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -63662,8 +63671,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomRoLengthPeriodic",
       "parity": "cpp-tck.joined-federate-mom-ro-length-periodic",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, receive-order interaction class and parameter, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run"
     },
     {
         "id": "java-tck.federate-mom-interactions-received-counts",

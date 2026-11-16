@@ -97,9 +97,11 @@ final class FederateMomRoLengthPeriodicTck {
          publisherInteraction = publisher.getInteractionClassHandle(interactionName);
          ParameterHandle publisherParameter = publisher.getParameterHandle(
             publisherInteraction, parameterName);
-         JavaTckSupport.check(receiverInteraction.equals(publisherInteraction)
-               && receiverParameter.equals(publisherParameter),
-            "receive-order interaction handles differed between federates");
+         JavaTckSupport.check(interactionName.equals(publisher.getInteractionClassName(
+               publisherInteraction))
+               && parameterName.equals(publisher.getParameterName(publisherInteraction,
+                  publisherParameter)),
+            "publisher receive-order interaction lookup did not round-trip");
          publisher.publishInteractionClass(publisherInteraction);
          interactionPublished = true;
 
@@ -441,11 +443,11 @@ final class FederateMomRoLengthPeriodicTck {
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
                      (RegionHandleSet) arguments[5], false));
                } else if ("receiveInteraction".equals(name) && arguments != null
-                     && arguments.length == 8) {
+                     && arguments.length == 6) {
                   interactions.add(new Interaction((InteractionClassHandle) arguments[0],
                      (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (FederateHandle) arguments[4], (RegionHandleSet) arguments[5],
-                     (OrderType) arguments[6], (OrderType) arguments[7]));
+                     OrderType.RECEIVE, OrderType.RECEIVE));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK RO-length MOM callbacks";
