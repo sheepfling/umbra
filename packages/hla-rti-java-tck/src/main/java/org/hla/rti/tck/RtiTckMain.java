@@ -1868,13 +1868,8 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.receive-order-object-removal-subscription-withdrawal",
             "deliver a queued terminal object removal after subscription withdrawal",
             "object-management",
-            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
-            new String[] {
-               "cpp-1516.1-object-management",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-instance-deletion",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::receiveOrderObjectRemovalSubscriptionWithdrawal);
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            new String[0], false), RtiTckMain::receiveOrderObjectRemovalSubscriptionWithdrawal);
       run(new Scenario("java-tck.resign-delete-objects-multi-recipient-fifo",
             "deliver resign-time object removals to two active subscribers in producer order",
             "object-management",
@@ -3674,11 +3669,13 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.attribute-fdd-preferred-order-default",
             "optional timestamp and FDD-preferred order for attribute updates",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.getTimeFactory;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;RTIambassador.enableTimeRegulation;RTIambassador.registerObjectInstance;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.getTransportationTypeName;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.reflectAttributeValues(LogicalTime)",
+            "RtiFactory.getRtiAmbassador;RTIambassador.connect(FederateAmbassador, CallbackModel);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;LogicalTimeFactory.getName;LogicalTimeFactory.makeEpsilon;RTIambassador.queryLogicalTime;LogicalTime.add(LogicalTimeInterval);RTIambassador.enableTimeRegulation;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.updateAttributeValues;RTIambassador.updateAttributeValues(LogicalTime);RTIambassador.evokeCallback;RTIambassador.getTransportationTypeName;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.reflectAttributeValues(LogicalTime)",
             new String[] {
+               "requirement-candidate-content-clauses-06-object-management-page-120-l101-28",
                "requirement-candidate-content-clauses-08-time-management-page-180-l78-23",
                "requirement-candidate-content-clauses-08-time-management-page-180-l84-25",
-               "requirement-candidate-content-clauses-08-time-management-page-180-l114-35"
+               "requirement-candidate-content-clauses-08-time-management-page-180-l114-35",
+               "requirement-candidate-sections-semantic-clauses-5-6-page-092-l86-18"
             }, false), RtiTckMain::attributeFddPreferredOrderDefault);
        run(new Scenario("java-tck.timestamped-interaction-mixed-advances",
             "timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA", "time",
@@ -3713,20 +3710,75 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.sent-tso-per-recipient-order-conversion",
             "report sent TSO and receiver-dependent received order for one interaction",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.changeInteractionOrderType(TIMESTAMP);RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.sendInteraction(time);RTIambassador.timeAdvanceRequest;RTIambassador.getTransportationTypeName;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(time);FederateAmbassador.timeAdvanceGrant",
+            "RtiFactory.getRtiAmbassador;RTIambassador.connect(callback model supplied by adapter);"
+               + "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;"
+               + "RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;"
+               + "RTIambassador.getParameterHandle;RTIambassador.publishInteractionClass;"
+               + "RTIambassador.subscribeInteractionClass;"
+               + "RTIambassador.changeInteractionOrderType(TIMESTAMP);"
+               + "RTIambassador.getTimeFactory;LogicalTimeFactory.getName;"
+               + "LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.makeZero;"
+               + "LogicalTimeInterval.add;LogicalTime.add(LogicalTimeInterval);"
+               + "RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;"
+               + "RTIambassador.queryLogicalTime;"
+               + "RTIambassador.getParameterHandleValueMapFactory;"
+               + "ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;"
+               + "RTIambassador.sendInteraction(LogicalTime);"
+               + "MessageRetractionReturn.retractionHandleIsValid;MessageRetractionReturn.handle;"
+               + "RTIambassador.timeAdvanceRequest;RTIambassador.getTransportationTypeName;"
+               + "RTIambassador.evokeMultipleCallbacks;RTIambassador.disableTimeConstrained;"
+               + "RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeInteractionClass;"
+               + "RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;"
+               + "RTIambassador.destroyFederationExecution;RTIambassador.disconnect;"
+               + "FederateAmbassador.timeConstrainedEnabled;"
+               + "FederateAmbassador.timeRegulationEnabled;"
+               + "FederateAmbassador.receiveInteraction(LogicalTime);"
+               + "FederateAmbassador.timeAdvanceGrant",
             new String[] {
-               "cpp-1516.1-interaction-management",
-               "cpp-1516.1-timestamped-interaction-delivery",
-               "cpp-1516.1-time-advance-and-grant"
+               "requirement-candidate-content-clauses-08-time-management-page-180-l138-43",
+               "requirement-candidate-content-clauses-08-time-management-page-180-l144-45",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
             }, false), RtiTckMain::sentTsoPerRecipientOrderConversion);
       run(new Scenario("java-tck.sent-tso-attribute-per-recipient-order-conversion",
             "report sent TSO and receiver-dependent received order for one timestamped attribute update",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP);RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.updateAttributeValues(time);RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.getTransportationTypeName;RTIambassador.evokeMultipleCallbacks;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.reflectAttributeValues(time);FederateAmbassador.timeAdvanceGrant",
+            "RtiFactory.getRtiAmbassador;RTIambassador.connect(callback model supplied by adapter);"
+               + "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;"
+               + "RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;"
+               + "RTIambassador.getObjectClassName;RTIambassador.getAttributeName;"
+               + "RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;"
+               + "AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;"
+               + "RTIambassador.subscribeObjectClassAttributes;"
+               + "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP);"
+               + "RTIambassador.registerObjectInstance;ObjectInstanceHandle.encodedLength;"
+               + "RTIambassador.getTimeFactory;LogicalTimeFactory.getName;"
+               + "LogicalTimeFactory.makeEpsilon;LogicalTimeFactory.makeZero;"
+               + "LogicalTimeInterval.add;RTIambassador.enableTimeConstrained;"
+               + "RTIambassador.enableTimeRegulation;RTIambassador.queryLogicalTime;"
+               + "RTIambassador.getAttributeHandleValueMapFactory;"
+               + "AttributeHandleValueMapFactory.create;AttributeHandleValueMap.put;"
+               + "RTIambassador.updateAttributeValues(LogicalTime);"
+               + "MessageRetractionReturn.retractionHandleIsValid;MessageRetractionReturn.handle;"
+               + "RTIambassador.timeAdvanceRequest;RTIambassador.getTransportationTypeName;"
+               + "RTIambassador.evokeMultipleCallbacks;RTIambassador.disableTimeConstrained;"
+               + "RTIambassador.disableTimeRegulation;"
+               + "RTIambassador.unsubscribeObjectClassAttributes;"
+               + "RTIambassador.unpublishObjectClassAttributes;"
+               + "RTIambassador.resignFederationExecution;"
+               + "RTIambassador.destroyFederationExecution;RTIambassador.disconnect;"
+               + "FederateAmbassador.discoverObjectInstance;"
+               + "FederateAmbassador.timeConstrainedEnabled;"
+               + "FederateAmbassador.timeRegulationEnabled;"
+               + "FederateAmbassador.reflectAttributeValues(LogicalTime);"
+               + "FederateAmbassador.timeAdvanceGrant",
             new String[] {
-               "cpp-1516.1-timestamped-attribute-update",
-               "cpp-1516.1-timestamped-attribute-reflect",
-               "cpp-1516.1-time-advance-and-grant"
+               "requirement-candidate-content-clauses-08-time-management-page-181-l118-3",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l121-4",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l133-8",
+               "requirement-candidate-content-clauses-08-time-management-page-181-l139-10"
             }, false), RtiTckMain::sentTsoAttributePerRecipientOrderConversion);
       run(new Scenario("java-tck.timestamped-interaction-tar-equal-boundary",
             "deliver an equal-time timestamped interaction before the TAR grant", "time",

@@ -469,10 +469,12 @@
       "category": "object-removal-subscription-withdrawal",
       "title": "Deliver a queued terminal object removal after withdrawing one active subscription",
       "api_methods": [
+        "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -486,14 +488,10 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance"
       ],
-      "requirement_ids": [
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-federation-create-join-resign-destroy"
-      ],
+      "requirement_ids": [],
       "selected_requirements_lab_requirement_ids": [],
       "standard_sections": [],
+      "mapping_classification": "api-contract-only-not-normative-conformance",
       "mapping_note": "The queued removal after subscription withdrawal is an API-only implementation/compatibility witness. No pinned requirement currently establishes that post-withdrawal delivery rule. Ordinary subscribed removal delivery/tag/producer has a separate mapped Java case; this diagnostic case remains opt-in despite adapter passes and makes no IEEE conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",

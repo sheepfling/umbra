@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1286 |
+| Distinct stable requirement IDs | 1292 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
 | Default `run` scenarios | 668 |
 | Default `unsupported` scenarios | 296 |
 | Scenarios with explicit `requirement_mappings` | 716 |
-| Explicit mapping records | 2935 |
+| Explicit mapping records | 2937 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -1163,7 +1163,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.query-lits-source-resignation`](#scenario-java-tck.query-lits-source-resignation) — Keep Query LITS defined for a queued timestamped interaction after source resignation (`query-galt-lits-source-resignation`; default `run`; C++ pointer `cpp-tck.query-lits-source-resignation`).
 - [`java-tck.receive-order-attribute-update`](#scenario-java-tck.receive-order-attribute-update) — Deliver two distinct ordinary receive-order attribute updates (`receive-order-attribute-update`; default `run`; C++ pointer `cpp-tck.receive-order-attribute-update`).
 - [`java-tck.receive-order-object-removal`](#scenario-java-tck.receive-order-object-removal) — Deliver an ordinary object removal with standard callback metadata (`receive-order-object-removal`; default `run`; C++ pointer `cpp-tck.receive-order-object-removal`).
-- [`java-tck.receive-order-object-removal-subscription-withdrawal`](#scenario-java-tck.receive-order-object-removal-subscription-withdrawal) — Deliver a queued terminal object removal after withdrawing one active subscription (`object-removal-subscription-withdrawal`; default `unsupported`; C++ pointer `cpp-tck.receive-order-object-removal-subscription-withdrawal`).
 - [`java-tck.region-range-dimension-validation`](#scenario-java-tck.region-range-dimension-validation) — Reject range queries and changes for dimensions absent from a region (`ddm-region-lifecycle`; default `unsupported`; C++ pointer `cpp-tck.region-range-dimension-validation`).
 - [`java-tck.region-range-validation`](#scenario-java-tck.region-range-validation) — Accept ranges ending at the dimension upper bound and reject equal or reversed bounds (`ddm-region-lifecycle`; default `unsupported`; C++ pointer `cpp-tck.region-range-validation`).
 - [`java-tck.regional-attribute-update-callback-ddm-recheck`](#scenario-java-tck.regional-attribute-update-callback-ddm-recheck) — Recheck direct regional attribute-update eligibility at callback delivery after a region mutation (`regional-attribute-update-callback-ddm-recheck`; default `unsupported`; C++ pointer `cpp-tck.regional-attribute-update-callback-ddm-recheck`).
@@ -1806,7 +1805,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.local-delete-object-instance`](#scenario-java-tck.local-delete-object-instance) — Exercise local object deletion boundaries, ownership protection, rediscovery, and continued updates (`local-object-instance-deletion`; default `run`; C++ pointer `cpp-tck.local-delete-object-instance`).
 - [`java-tck.object-deletion-service-boundaries`](#scenario-java-tck.object-deletion-service-boundaries) — Exercise ordinary object-deletion service boundaries, removal metadata, and resignation cleanup (`object-management`; default `run`; C++ pointer `cpp-tck.object-deletion-service-boundaries`).
 - [`java-tck.object-removal-multi-recipient-fifo`](#scenario-java-tck.object-removal-multi-recipient-fifo) — Deliver ordinary object removals to two active subscribers without owner loopback (`object-management`; default `run`; C++ source pointer not declared).
-- [`java-tck.receive-order-object-removal-subscription-withdrawal`](#scenario-java-tck.receive-order-object-removal-subscription-withdrawal) — Deliver a queued terminal object removal after withdrawing one active subscription (`object-removal-subscription-withdrawal`; default `unsupported`; C++ pointer `cpp-tck.receive-order-object-removal-subscription-withdrawal`).
 - [`java-tck.remote-delete-known-object-class-lookup-boundary`](#scenario-java-tck.remote-delete-known-object-class-lookup-boundary) — Check known-class lookup rejects deletion locally and after remote removal (`object-management`; default `run`; C++ pointer `cpp-tck.remote-delete-known-object-class-lookup-boundary`).
 - [`java-tck.remote-delete-object-instance-name-lookup-boundary`](#scenario-java-tck.remote-delete-object-instance-name-lookup-boundary) — Check object-name and handle lookups reject a remotely deleted object (`object-management`; default `run`; C++ pointer `cpp-tck.remote-delete-object-instance-name-lookup-boundary`).
 - [`java-tck.resign-delete-object-lookup-boundary`](#scenario-java-tck.resign-delete-object-lookup-boundary) — Check object identity lookups after DELETE_OBJECTS resignation (`object-management`; default `run`; C++ pointer `cpp-tck.resign-delete-object-lookup-boundary`).
@@ -1866,7 +1864,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.ownership-acquisition-if-available`](#scenario-java-tck.ownership-acquisition-if-available) — Reject invalid If Available requests, report unavailable ownership, and acquire after unconditional divestiture (`ownership`; default `run`; C++ pointer `cpp-tck.ownership-acquisition-if-available`).
 - [`java-tck.ownership-acquisition-publication-fence`](#scenario-java-tck.ownership-acquisition-publication-fence) — Enforce known-class publication, pending acquisition, and exact ownership transfer (`ownership`; default `run`; C++ pointer `cpp-tck.ownership-acquisition-publication-fence`).
 - [`java-tck.partial-attribute-ownership-transfer`](#scenario-java-tck.partial-attribute-ownership-transfer) — Cancel one attribute from a multi-attribute acquisition and transfer only the other (`ownership`; default `unsupported`; C++ pointer `cpp-tck.partial-attribute-ownership-transfer`).
-- [`java-tck.receive-order-object-removal-subscription-withdrawal`](#scenario-java-tck.receive-order-object-removal-subscription-withdrawal) — Deliver a queued terminal object removal after withdrawing one active subscription (`object-removal-subscription-withdrawal`; default `unsupported`; C++ pointer `cpp-tck.receive-order-object-removal-subscription-withdrawal`).
 - [`java-tck.regional-auto-provide-multi-provider`](#scenario-java-tck.regional-auto-provide-multi-provider) — Fan out regional Auto Provide requests across owners after attribute ownership transfer (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-multi-provider`).
 - [`java-tck.resign-cancel-if-available-pending`](#scenario-java-tck.resign-cancel-if-available-pending) — Cancel a pending If Available ownership acquisition during resignation without delivering a stale result (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-if-available-pending`).
 - [`java-tck.resign-cancel-negotiated-pending`](#scenario-java-tck.resign-cancel-negotiated-pending) — Cancel a pending negotiated ownership transfer during resignation without delivering stale owner callbacks (`ownership`; default `run`; C++ pointer `cpp-tck.resign-cancel-negotiated-pending`).
@@ -1933,7 +1930,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.object-registration-service-boundaries`](#scenario-java-tck.object-registration-service-boundaries) — Exercise object-registration boundaries, discovery identity, and local-delete lookup cleanup (`object-management`; default `run`; C++ pointer `cpp-tck.object-registration-service-boundaries`).
 - [`java-tck.object-removal-multi-recipient-fifo`](#scenario-java-tck.object-removal-multi-recipient-fifo) — Deliver ordinary object removals to two active subscribers without owner loopback (`object-management`; default `run`; C++ source pointer not declared).
 - [`java-tck.receive-order-object-removal`](#scenario-java-tck.receive-order-object-removal) — Deliver an ordinary object removal with standard callback metadata (`receive-order-object-removal`; default `run`; C++ pointer `cpp-tck.receive-order-object-removal`).
-- [`java-tck.receive-order-object-removal-subscription-withdrawal`](#scenario-java-tck.receive-order-object-removal-subscription-withdrawal) — Deliver a queued terminal object removal after withdrawing one active subscription (`object-removal-subscription-withdrawal`; default `unsupported`; C++ pointer `cpp-tck.receive-order-object-removal-subscription-withdrawal`).
 - [`java-tck.regional-auto-provide-callback-control`](#scenario-java-tck.regional-auto-provide-callback-control) — Resume gated regional discovery and Auto Provide callbacks when callback servicing is enabled (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-callback-control`).
 - [`java-tck.regional-auto-provide-multi-provider`](#scenario-java-tck.regional-auto-provide-multi-provider) — Fan out regional Auto Provide requests across owners after attribute ownership transfer (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-multi-provider`).
 - [`java-tck.regional-auto-provide-multi-source`](#scenario-java-tck.regional-auto-provide-multi-source) — Route independent regional Auto Provide source attributes to separate subscriber regions (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-multi-source`).
@@ -5333,6 +5329,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-06-object-management-page-120-l101-28`
+
+- [`java-tck.attribute-fdd-preferred-order-default`](#scenario-java-tck.attribute-fdd-preferred-order-default) — Optional timestamp and FDD-preferred order for attribute updates (`time-management`; default `unsupported`; C++ pointer `cpp-tck.attribute-fdd-preferred-order-default`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-06-object-management-page-120-l110-31`
 
 - [`java-tck.attribute-interaction`](#scenario-java-tck.attribute-interaction) — Exercise ordinary attribute and interaction publication, subscription, delivery, and callback control (`interaction-management`; default `run`; C++ source pointer not declared).
@@ -6426,6 +6428,18 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-08-time-management-page-180-l138-43`
+
+- [`java-tck.sent-tso-per-recipient-order-conversion`](#scenario-java-tck.sent-tso-per-recipient-order-conversion) — Report sent TSO and receiver-dependent received order for one timestamped interaction (`time-management`; default `unsupported`; C++ pointer `cpp-tck.sent-tso-per-recipient-order-conversion`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-08-time-management-page-180-l144-45`
+
+- [`java-tck.sent-tso-per-recipient-order-conversion`](#scenario-java-tck.sent-tso-per-recipient-order-conversion) — Report sent TSO and receiver-dependent received order for one timestamped interaction (`time-management`; default `unsupported`; C++ pointer `cpp-tck.sent-tso-per-recipient-order-conversion`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-08-time-management-page-180-l150-47`
 
 - [`java-tck.timestamped-attribute-sender-regulation-transition`](#scenario-java-tck.timestamped-attribute-sender-regulation-transition) — Keep timestamp and preferred attribute order fixed while sender Time Regulation changes the effective message order (`time`; default `run`; C++ pointer `cpp-tck.timestamped-attribute-sender-regulation-transition`).
@@ -6468,6 +6482,18 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-08-time-management-page-180-l72-21`
 
 - [`java-tck.attribute-update-order-classification`](#scenario-java-tck.attribute-update-order-classification) — Classify receive-order and timestamp-order attribute updates at the same receiver (`attribute-update-order-classification`; default `run`; C++ pointer `cpp-tck.attribute-update-order-classification`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-08-time-management-page-180-l78-23`
+
+- [`java-tck.attribute-fdd-preferred-order-default`](#scenario-java-tck.attribute-fdd-preferred-order-default) — Optional timestamp and FDD-preferred order for attribute updates (`time-management`; default `unsupported`; C++ pointer `cpp-tck.attribute-fdd-preferred-order-default`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-08-time-management-page-180-l84-25`
+
+- [`java-tck.attribute-fdd-preferred-order-default`](#scenario-java-tck.attribute-fdd-preferred-order-default) — Optional timestamp and FDD-preferred order for attribute updates (`time-management`; default `unsupported`; C++ pointer `cpp-tck.attribute-fdd-preferred-order-default`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -9917,6 +9943,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-sections-semantic-clauses-5-6-page-092-l86-18`
+
+- [`java-tck.attribute-fdd-preferred-order-default`](#scenario-java-tck.attribute-fdd-preferred-order-default) — Optional timestamp and FDD-preferred order for attribute updates (`time-management`; default `unsupported`; C++ pointer `cpp-tck.attribute-fdd-preferred-order-default`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-sections-semantic-clauses-5-6-page-092-l94-20`
 
 - [`java-tck.privilege-attribute-availability`](#scenario-java-tck.privilege-attribute-availability) — Resolve HLAprivilegeToDeleteObject on every object class in the P0 TCK FOM (`handle-lookup`; default `run`; C++ pointer `cpp-tck.privilege-attribute-availability`).
@@ -11776,9 +11808,11 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-08-time-management-page-180-l78-23` → `hla-1516.1-2025:clause-8.1.4`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l84-25` → `hla-1516.1-2025:clause-8.1.4`
 - `java-tck.attribute-fdd-preferred-order-default`:
+  - `requirement-candidate-content-clauses-06-object-management-page-120-l101-28` → `hla-1516.1-2025:clause-6.10`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l78-23` → `hla-1516.1-2025:clause-8.1.4`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l84-25` → `hla-1516.1-2025:clause-8.1.4`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l114-35` → `hla-1516.1-2025:clause-8.1.4`
+  - `requirement-candidate-sections-semantic-clauses-5-6-page-092-l86-18` → `hla-1516.2-2025:clause-6.2.5`
 - `java-tck.sent-tso-per-recipient-order-conversion`:
   - `requirement-candidate-content-clauses-08-time-management-page-180-l138-43` → `hla-1516.1-2025:clause-8.1.4`
   - `requirement-candidate-content-clauses-08-time-management-page-180-l144-45` → `hla-1516.1-2025:clause-8.1.4`
@@ -14027,6 +14061,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ## Explicit non-normative/API-only dispositions
 
 - `java-tck.callback-reentrancy` — No rationale recorded.
+- `java-tck.receive-order-object-removal-subscription-withdrawal` — Keep opt-in: the queued post-withdrawal terminal-removal assertion lacks a pinned direct normative mapping; installed-provider execution alone does not establish standard portability.
 - `java-tck.receive-order-multi-attribute-update-callback-cancellation` — Provider, compatible multi-attribute FOM, endpoint, object/attribute names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider.
 - `java-tck.regional-three-dimensional-overlap` — Requires the adapter-supplied three-dimensional FOM via hla.rti.tck.threeDimensionalFom, configured object and attribute names, and three dimension names. Uses only the official Java API.
 - `java-tck.service-report-interaction-dimensions-invalid-handle-contexts` — Opt-in because the companion needs a separate additional FOM execution. Configure hla.rti.tck.additionalFom with fom-extension-tck.xml alongside the primary dimensional FOM, standard MIM, logical-time implementation, provider, endpoint, and callback model. Runtime evidence is local Umbra JNI only.
@@ -15079,7 +15114,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.receive-order-object-removal-subscription-withdrawal"></a>`java-tck.receive-order-object-removal-subscription-withdrawal` — Deliver a queued terminal object removal after withdrawing one active subscription | `org.hla.rti.tck.RtiTckMain#receiveOrderObjectRemovalSubscriptionWithdrawal` | 16 | `cpp-1516.1-object-management`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-object-instance-deletion`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.receive-order-object-removal-subscription-withdrawal` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.receive-order-object-removal-subscription-withdrawal"></a>`java-tck.receive-order-object-removal-subscription-withdrawal` — Deliver a queued terminal object removal after withdrawing one active subscription | `org.hla.rti.tck.RtiTckMain#receiveOrderObjectRemovalSubscriptionWithdrawal` | 18 | explicit API-only disposition | `cpp-tck.receive-order-object-removal-subscription-withdrawal` | `unsupported` | not scenario-declared |
 
 ### `ordinary-delivery`
 
@@ -15446,7 +15481,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.attribute-fdd-preferred-order-default"></a>`java-tck.attribute-fdd-preferred-order-default` — Optional timestamp and FDD-preferred order for attribute updates | `org.hla.rti.tck.RtiTckMain#attributeFddPreferredOrderDefault` | 26 | `java-1516.1-timestamped-attribute-update`, `java-1516.1-timestamped-attribute-reflect`, `requirement-candidate-content-clauses-08-time-management-page-180-l114-35` | `cpp-tck.attribute-fdd-preferred-order-default` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.attribute-fdd-preferred-order-default"></a>`java-tck.attribute-fdd-preferred-order-default` — Optional timestamp and FDD-preferred order for attribute updates | `org.hla.rti.tck.RtiTckMain#attributeFddPreferredOrderDefault` | 31 | `java-1516.1-timestamped-attribute-update`, `java-1516.1-timestamped-attribute-reflect`, `requirement-candidate-content-clauses-06-object-management-page-120-l101-28`, `requirement-candidate-content-clauses-08-time-management-page-180-l78-23`, `requirement-candidate-content-clauses-08-time-management-page-180-l84-25`, `requirement-candidate-content-clauses-08-time-management-page-180-l114-35`, `requirement-candidate-sections-semantic-clauses-5-6-page-092-l86-18` | `cpp-tck.attribute-fdd-preferred-order-default` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.disable-time-regulation-send-order"></a>`java-tck.disable-time-regulation-send-order` — Convert a timestamped interaction send to receive order after disabling Time Regulation | `org.hla.rti.tck.RtiTckMain#disableTimeRegulationSendOrder` | 16 | `requirement-candidate-content-clauses-08-time-management-page-190-l106-26` | `cpp-tck.disable-time-regulation-send-order` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-logical-time-mim-periodic"></a>`java-tck.federate-logical-time-mim-periodic` — Observe periodic HLAlogicalTime MOM values across standard time advances | `org.hla.rti.tck.RtiTckMain#federateLogicalTimeMomPeriodic` | 40 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-time-management`, `cpp-1516.1-time-role-callbacks`, `cpp-1516.1-time-advance-request`, `cpp-1516.1-time-advance-and-grant`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-logical-time-mim-periodic` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-lookahead-mim-periodic"></a>`java-tck.federate-lookahead-mim-periodic` — Observe periodic HLAlookahead MOM values across standard lookahead changes | `org.hla.rti.tck.RtiTckMain#federateLookaheadMomPeriodic` | 33 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-time-management`, `cpp-1516.1-time-role-callbacks`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-lookahead-mim-periodic` | `run` | not scenario-declared |
@@ -15461,8 +15496,8 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.interaction-fdd-preferred-order-default"></a>`java-tck.interaction-fdd-preferred-order-default` — Timestamped interaction sends preserve each interaction class's FDD-preferred order by default | `org.hla.rti.tck.RtiTckMain#interactionFddPreferredOrderDefault` | 22 | `java-1516.1-interaction-declaration-and-delivery` | `cpp-tck.interaction-fdd-preferred-order-default` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.modify-lookahead-contract"></a>`java-tck.modify-lookahead-contract` — Query and modify lookahead across immediate, gradual-decrease, and pending-advance boundaries | `org.hla.rti.tck.RtiTckMain#modifyLookaheadContract` | 14 | `requirement-candidate-content-clauses-08-time-management-page-204-l38-9`, `requirement-candidate-content-clauses-08-time-management-page-208-l66-15`, `requirement-candidate-content-clauses-08-time-management-page-208-l75-18`, `requirement-candidate-content-clauses-08-time-management-page-208-l78-19`, `requirement-candidate-content-clauses-08-time-management-page-208-l84-21`, `requirement-candidate-content-clauses-08-time-management-page-208-l162-43`, `requirement-candidate-content-clauses-08-time-management-page-208-l72-17` | `cpp-tck.modify-lookahead` | `run` | Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider; Adapter-supplied federation FOM; Logical-time implementation shared by both joined federates; HLA_EVOKED or HLA_IMMEDIATE callback model |
 | <a id="scenario-java-tck.send-message-time-state-preservation-granted"></a>`java-tck.send-message-time-state-preservation-granted` — Preserve a sender's Time Granted state across ordinary Send Message | `org.hla.rti.tck.RtiTckMain#sendMessageTimeStatePreservationGranted` | 16 | `cpp-1516.1-interaction-management`, `cpp-1516.1-time-advance-request` | `cpp-tck.send-message-time-state-preservation-granted` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.sent-tso-attribute-per-recipient-order-conversion"></a>`java-tck.sent-tso-attribute-per-recipient-order-conversion` — Report sent TSO and receiver-dependent received order for one timestamped attribute update | `org.hla.rti.tck.RtiTckMain#sentTsoAttributePerRecipientOrderConversion` | 24 | `cpp-1516.1-timestamped-attribute-update`, `cpp-1516.1-timestamped-attribute-reflect`, `cpp-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-181-l118-3`, `requirement-candidate-content-clauses-08-time-management-page-181-l121-4`, `requirement-candidate-content-clauses-08-time-management-page-181-l133-8`, `requirement-candidate-content-clauses-08-time-management-page-181-l139-10` | `cpp-tck.sent-tso-attribute-per-recipient-order-conversion` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.sent-tso-per-recipient-order-conversion"></a>`java-tck.sent-tso-per-recipient-order-conversion` — Report sent TSO and receiver-dependent received order for one timestamped interaction | `org.hla.rti.tck.RtiTckMain#sentTsoPerRecipientOrderConversion` | 18 | `cpp-1516.1-interaction-management`, `cpp-1516.1-timestamped-interaction-delivery`, `cpp-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-181-l118-3`, `requirement-candidate-content-clauses-08-time-management-page-181-l121-4`, `requirement-candidate-content-clauses-08-time-management-page-181-l133-8`, `requirement-candidate-content-clauses-08-time-management-page-181-l139-10` | `cpp-tck.sent-tso-per-recipient-order-conversion` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.sent-tso-attribute-per-recipient-order-conversion"></a>`java-tck.sent-tso-attribute-per-recipient-order-conversion` — Report sent TSO and receiver-dependent received order for one timestamped attribute update | `org.hla.rti.tck.RtiTckMain#sentTsoAttributePerRecipientOrderConversion` | 45 | `cpp-1516.1-timestamped-attribute-update`, `cpp-1516.1-timestamped-attribute-reflect`, `cpp-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-181-l118-3`, `requirement-candidate-content-clauses-08-time-management-page-181-l121-4`, `requirement-candidate-content-clauses-08-time-management-page-181-l133-8`, `requirement-candidate-content-clauses-08-time-management-page-181-l139-10` | `cpp-tck.sent-tso-attribute-per-recipient-order-conversion` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.sent-tso-per-recipient-order-conversion"></a>`java-tck.sent-tso-per-recipient-order-conversion` — Report sent TSO and receiver-dependent received order for one timestamped interaction | `org.hla.rti.tck.RtiTckMain#sentTsoPerRecipientOrderConversion` | 39 | `cpp-1516.1-interaction-management`, `cpp-1516.1-timestamped-interaction-delivery`, `cpp-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-180-l138-43`, `requirement-candidate-content-clauses-08-time-management-page-180-l144-45`, `requirement-candidate-content-clauses-08-time-management-page-181-l118-3`, `requirement-candidate-content-clauses-08-time-management-page-181-l121-4`, `requirement-candidate-content-clauses-08-time-management-page-181-l133-8`, `requirement-candidate-content-clauses-08-time-management-page-181-l139-10` | `cpp-tck.sent-tso-per-recipient-order-conversion` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.time-constrained-disable-queued-attribute-to-ro"></a>`java-tck.time-constrained-disable-queued-attribute-to-ro` — Deliver queued and subsequent timestamped attribute updates in receive order after disabling Time Constrained | `org.hla.rti.tck.RtiTckMain#timeConstrainedDisableQueuedAttributeToRo` | 22 | `requirement-candidate-content-clauses-08-time-management-page-193-l61-13` | `cpp-tck.time-constrained-disable-queued-attribute-to-ro` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.time-constrained-disable-queued-deletion-to-ro"></a>`java-tck.time-constrained-disable-queued-deletion-to-ro` — Deliver queued and subsequent timestamped object deletions in receive order after disabling Time Constrained | `org.hla.rti.tck.RtiTckMain#timeConstrainedDisableQueuedDeletionToRo` | 21 | `requirement-candidate-content-clauses-08-time-management-page-193-l61-13`, `requirement-candidate-content-clauses-06-object-management-page-132-l113-32` | `cpp-tck.time-constrained-disable-queued-deletion-to-ro` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.time-constrained-disable-queued-directed-to-ro"></a>`java-tck.time-constrained-disable-queued-directed-to-ro` — Deliver queued and subsequent timestamped directed interactions in receive order after disabling Time Constrained | `org.hla.rti.tck.RtiTckMain#timeConstrainedDisableQueuedDirectedToRo` | 25 | `requirement-candidate-content-clauses-08-time-management-page-193-l61-13` | `cpp-tck.time-constrained-disable-queued-directed-to-ro` | `unsupported` | not scenario-declared |
