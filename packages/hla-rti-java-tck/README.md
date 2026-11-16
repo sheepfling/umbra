@@ -170,6 +170,28 @@ and `out/mgw/cpp-tck-mom-directed-interactions-received-counts-java-parity-20261
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-mom-interactions-received-counts` case requests
+`HLAreportInteractionsReceived` after one reliable and two best-effort application
+receives. It verifies the target federate's two transport buckets, empty buckets for
+a requester with no receipts, nested `HLAinteractionCounts` decoding, and standard
+report metadata. It maps the public MOM request/report surface to IEEE 1516.1-2025
+§11.4.1; detailed counts and empty responses remain scenario evidence. Java passed
+both callback models. Results are in
+`out/java-tck/federate-mom-interactions-received-counts-java-parity-20261115/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
+The default-run `java-tck.federate-mom-interactions-sent-counts` case requests
+`HLAreportInteractionsSent` after one reliable and two best-effort application sends.
+It verifies the sender's two transport buckets, empty buckets for an idle federate,
+nested `HLAinteractionCounts` decoding, and standard report metadata. It maps the
+public MOM request/report surface to IEEE 1516.1-2025 §11.4.1; detailed counts and
+empty responses remain scenario evidence. Java passed both callback models. Results
+are in
+`out/java-tck/federate-mom-interactions-sent-counts-java-parity-20261115/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only

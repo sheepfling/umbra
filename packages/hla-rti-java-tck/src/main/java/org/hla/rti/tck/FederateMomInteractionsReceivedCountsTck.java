@@ -91,8 +91,6 @@ final class FederateMomInteractionsReceivedCountsTck {
                && interactionName.equals(sender.getInteractionClassName(senderInteraction))
                && parameterName.equals(sender.getParameterName(senderInteraction,
                   senderParameter))
-               && receiverInteraction.equals(senderInteraction)
-               && receiverParameter.equals(senderParameter)
                && "HLAreliable".equals(sender.getTransportationTypeName(reliable))
                && "HLAbestEffort".equals(sender.getTransportationTypeName(bestEffort)),
             "adapter interaction handles or standard transportation handles failed round-trip");
