@@ -5372,6 +5372,7 @@
         "RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES)",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.evokeCallback",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
@@ -5400,7 +5401,13 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignDivestsAllInstanceAttributes",
       "parity": "cpp-tck.resign-divests-all-instance-attributes",
-      "default_status": "run"
+      "default_status": "run",
+      "promotion": "promoted",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "evidence_note": "Focused current-source Umbra JNI runs passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE using p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, and Name. Paired installed-package C++ primary/contract selectors passed 4/4 focused CTests and 4/4 direct executions across both callback models. Evidence: out/java-tck/resign-divests-all-instance-attributes-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; .build/cpp-tck-evidence-20261116/resign-divests-all-instance-attributes-java-parity-20261116.{json,xml}. Bounded Umbra evidence only; not independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.unconditional-attribute-ownership-divestiture",

@@ -4343,10 +4343,13 @@ retains both objects and releases both attributes. Each survivor ownership query
 must produce exactly one `attributeIsNotOwned` callback containing the requested
 pair, with no ownership-information or RTI-owned callback. The direct mapping is
 limited to the two-object/two-attribute witness in §7.1.2.1, not the complete
-resignation-action matrix. Focused current-source Umbra JNI runs passed both
-callback modes with the adapter's known-class FOM and `HLAinteger64Time`;
-results are under
-`out/java-tck/resign-divests-all-instance-attributes-java-parity-20261115/`.
+resignation-action matrix. Focused current-source Umbra JNI runs passed 1/1
+under each callback mode using `p0-tck.xml`, `HLAinteger64Time`,
+`HLAobjectRoot.TckObject`, `Value`, and `Name`. Results/JUnit are under
+`out/java-tck/resign-divests-all-instance-attributes-java-parity-20261116/`.
+The paired installed-package C++ primary/contract selectors passed 4/4 focused
+CTests and 4/4 direct executions across both callback models; evidence is under
+`.build/cpp-tck-evidence-20261116/resign-divests-all-instance-attributes-java-parity-20261116.{json,xml}`.
 
 The default `java-tck.automatic-resign-directive-lifecycle-boundaries` scenario
 checks that the standard automatic-resign directive getter/setter work while
