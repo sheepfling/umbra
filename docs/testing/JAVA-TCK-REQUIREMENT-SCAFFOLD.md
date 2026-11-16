@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1275 |
+| Distinct stable requirement IDs | 1281 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
 | Default `run` scenarios | 668 |
 | Default `unsupported` scenarios | 296 |
-| Scenarios with explicit `requirement_mappings` | 712 |
-| Explicit mapping records | 2913 |
+| Scenarios with explicit `requirement_mappings` | 713 |
+| Explicit mapping records | 2919 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -2877,6 +2877,42 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `cpp-1516.2-mim-federate-lost-report`
 
 - [`java-tck.federate-lost-mom-report`](#scenario-java-tck.federate-lost-mom-report) — Receive the standard federate-lost MOM report after adapter-managed connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.federate-lost-mom-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-direct-request`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-disable`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-enable`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-mim-attribute`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-reflection-callback`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-federate-asynchronous-delivery-subscription`
+
+- [`java-tck.federate-asynchronous-delivery-mim-attribute`](#scenario-java-tck.federate-asynchronous-delivery-mim-attribute) — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions (`asynchronous-delivery`; default `run`; C++ pointer `cpp-tck.federate-asynchronous-delivery-mim-attribute`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -13575,6 +13611,13 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `cpp-tck-federate-interaction-relevance-advisory-direct-request` → `hla-1516.1-2025:clause-6.21`
   - `cpp-tck-federate-interaction-relevance-advisory-subscription` → `hla-1516.1-2025:clause-5.8`
   - `cpp-tck-federate-interaction-relevance-advisory-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
+- `java-tck.federate-asynchronous-delivery-mim-attribute`:
+  - `cpp-tck-federate-asynchronous-delivery-mim-attribute` → `hla-1516.1-2025:clause-11.4.1`
+  - `cpp-tck-federate-asynchronous-delivery-enable` → `hla-1516.1-2025:clause-8.15`
+  - `cpp-tck-federate-asynchronous-delivery-disable` → `hla-1516.1-2025:clause-8.16`
+  - `cpp-tck-federate-asynchronous-delivery-direct-request` → `hla-1516.1-2025:clause-6.21`
+  - `cpp-tck-federate-asynchronous-delivery-subscription` → `hla-1516.1-2025:clause-5.8`
+  - `cpp-tck-federate-asynchronous-delivery-reflection-callback` → `hla-1516.1-2025:clause-6.9.3`
 - `java-tck.federate-mom-interactions-received-counts`:
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` → `hla-1516.1-2025:clause-11.4.1`
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` → `hla-1516.1-2025:clause-11.4.1`
@@ -13993,7 +14036,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.asynchronous-delivery-time-advancing-ro"></a>`java-tck.asynchronous-delivery-time-advancing-ro` — Deliver receive-order interaction callbacks when asynchronous delivery is enabled during Time Advancing | `org.hla.rti.tck.RtiTckMain#asynchronousDeliveryTimeAdvancingRo` | 26 | `cpp-1516.1-asynchronous-delivery-enable` | `cpp-tck.asynchronous-delivery-time-advancing-ro` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.asynchronous-delivery-tso-exclusion"></a>`java-tck.asynchronous-delivery-tso-exclusion` — Keep timestamped interactions behind the time gate while asynchronous delivery releases receive-order traffic | `org.hla.rti.tck.RtiTckMain#asynchronousDeliveryTsoExclusion` | 29 | `cpp-1516.1-asynchronous-delivery-enable`, `cpp-1516.1-timestamped-interaction`, `cpp-1516.1-time-advance-request` | `cpp-tck.asynchronous-delivery-tso-exclusion` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.asynchronous-interaction-delivery"></a>`java-tck.asynchronous-interaction-delivery` — Retain receive-order interactions until asynchronous delivery is enabled or time advances | `org.hla.rti.tck.RtiTckMain#asynchronousInteractionDelivery` | 25 | `cpp-1516.1-asynchronous-delivery-enable`, `cpp-1516.1-asynchronous-delivery-disable`, `cpp-1516.1-callback-servicing` | `cpp-tck.asynchronous-delivery-contract` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.federate-asynchronous-delivery-mim-attribute"></a>`java-tck.federate-asynchronous-delivery-mim-attribute` — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions | `org.hla.rti.tck.RtiTckMain#federateAsynchronousDeliveryMomAttribute` | 20 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-asynchronous-delivery-enable`, `cpp-1516.1-asynchronous-delivery-disable`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.federate-asynchronous-delivery-mim-attribute` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.federate-asynchronous-delivery-mim-attribute"></a>`java-tck.federate-asynchronous-delivery-mim-attribute` — Observe conditional HLAasynchronousDelivery MOM values across standard service transitions | `org.hla.rti.tck.RtiTckMain#federateAsynchronousDeliveryMomAttribute` | 20 | `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-asynchronous-delivery-enable`, `cpp-1516.1-asynchronous-delivery-disable`, `cpp-1516.1-attribute-update-reflect`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-tck-federate-asynchronous-delivery-mim-attribute`, `cpp-tck-federate-asynchronous-delivery-enable`, `cpp-tck-federate-asynchronous-delivery-disable`, `cpp-tck-federate-asynchronous-delivery-direct-request`, `cpp-tck-federate-asynchronous-delivery-subscription`, `cpp-tck-federate-asynchronous-delivery-reflection-callback` | `cpp-tck.federate-asynchronous-delivery-mim-attribute` | `run` | not scenario-declared |
 
 ### `attribute-relevance-update-rate`
 

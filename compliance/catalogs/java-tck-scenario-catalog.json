@@ -63425,7 +63425,13 @@
         "cpp-1516.1-asynchronous-delivery-disable",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-asynchronous-delivery-mim-attribute",
+        "cpp-tck-federate-asynchronous-delivery-enable",
+        "cpp-tck-federate-asynchronous-delivery-disable",
+        "cpp-tck-federate-asynchronous-delivery-direct-request",
+        "cpp-tck-federate-asynchronous-delivery-subscription",
+        "cpp-tck-federate-asynchronous-delivery-reflection-callback"
       ],
       "contract_refs": [
         "standard-federate-asynchronous-delivery-mim-attribute-api-contract.json",
@@ -63434,7 +63440,43 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#federateAsynchronousDeliveryMomAttribute",
       "parity": "cpp-tck.federate-asynchronous-delivery-mim-attribute",
       "default_status": "run",
-      "evidence_note": "Installed Java JNI adapter passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-10-22: out/java-tck/federate-asynchronous-mom-{evoked,immediate}-default-20261022.json. C++ primary and contract passed both modes in out/mgw/tck-dse-ro-regional-20261016/federate-asynchronous-delivery-mim-attribute-verified-20261016.json. For a non-null Java producer handle, the pure standard getFederateName service must reject it as InvalidFederateHandle; null also represents no producer. Application FOM, standard MIM, time, endpoint, and callback model remain adapter-owned."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API and passed default-run HLA_EVOKED and HLA_IMMEDIATE on 2026-11-16 using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results, JUnit, and traceability are in out/java-tck/federate-asynchronous-delivery-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml,traceability.json}. The current-source C++ primary and contract passed all four direct callback-model executions; the primary-only promoted evidence validator passed. Pair evidence: out/mgw/cpp-tck-federate-asynchronous-delivery-mim-attribute-java-parity-20261116-pair.{json,xml}; primary evidence: out/mgw/cpp-tck-federate-asynchronous-delivery-mim-attribute-java-parity-20261116.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed.",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-8.15",
+        "hla-1516.1-2025:clause-8.16",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-enable",
+          "standard_section": "hla-1516.1-2025:clause-8.15"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-disable",
+          "standard_section": "hla-1516.1-2025:clause-8.16"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-asynchronous-delivery-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct MIM/API mappings follow standard-federate-asynchronous-delivery-mim-attribute-requirements-contract: the HLAasynchronousDelivery MIM attribute maps to §11.4.1; Enable and Disable Asynchronous Delivery map to §§8.15 and 8.16; the direct attribute-value request maps to §6.21; subscription maps to §5.8; and reflection callback value/metadata maps to §6.9.3. For the Java callback model, null means no producing federate; when the handle is non-null, getFederateName must reject it with InvalidFederateHandle, matching the paired C++ invalid-producer assertion without claiming identical handle representations."
     },
     {
       "id": "java-tck.federate-time-constrained-mim-attribute",

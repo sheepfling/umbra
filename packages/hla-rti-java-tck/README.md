@@ -5180,3 +5180,5 @@ direct mappings cover IEEE 1516.1-2025 §§12.13.4.5, 12.13.4.5.1,
 12.13.4.5.2, 12.13.4.5.3, and 13.2.
 This is bounded Java API and wire-protocol evidence, not complete provider
 interoperability or conformance.
+
+The default-run java-tck.federate-asynchronous-delivery-mim-attribute case checks the MIM-derived initial HLAasynchronousDelivery value, one opposite-state transition, a direct request, conditional reflection metadata, and restoration. Its direct mappings cover IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21, 8.15–8.16, and 11.4.1. A non-null producer handle must be rejected by getFederateName with InvalidFederateHandle; null represents no producer. Java and the paired current-source C++ primary/contract passed both callback models. Results are in out/java-tck/federate-asynchronous-delivery-mim-attribute-java-parity-20261116/{evoked,immediate}/ and out/mgw/cpp-tck-federate-asynchronous-delivery-mim-attribute-java-parity-20261116-pair.{json,xml}.
