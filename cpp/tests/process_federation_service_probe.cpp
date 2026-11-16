@@ -2487,6 +2487,8 @@ int runPublicServer(
       directory / "automatic-delete-objects.mode");
   bool const automaticDeleteThenDivest = std::filesystem::exists(
       directory / "automatic-delete-then-divest.mode");
+  bool const verifyDeletedObjectNameAfterDeleteThenDivest = std::filesystem::exists(
+      directory / "verify-deleted-object-name-after-delete-then-divest.mode");
   std::unique_ptr<ProcessTransportSession> sender;
   std::unique_ptr<ProcessTransportSession> receiver;
   std::unique_ptr<ProcessTransportSession> survivor;
@@ -3242,6 +3244,10 @@ int runPublicServer(
                     if (request.operation ==
                             TransportServiceOperation::receive_interaction ||
                         request.operation ==
+                            TransportServiceOperation::report_failed_service_invocation ||
+                        request.operation ==
+                            TransportServiceOperation::report_service_exception ||
+                        request.operation ==
                             TransportServiceOperation::report_successful_service_invocation ||
                         request.operation ==
                             TransportServiceOperation::report_successful_void_service_invocation) {
@@ -3286,7 +3292,7 @@ int runPublicServer(
         error = std::current_exception();
       }
     };
-    std::array const senderOperations{
+    std::vector<TransportServiceOperation> senderOperations{
         TransportServiceOperation::get_object_class_handle,
         TransportServiceOperation::get_attribute_handle,
         TransportServiceOperation::publish_object_class_attributes,
@@ -3297,6 +3303,11 @@ int runPublicServer(
         TransportServiceOperation::get_object_instance_handle,
         TransportServiceOperation::is_attribute_owned_by_federate,
         TransportServiceOperation::resign_federation_execution};
+    if (verifyDeletedObjectNameAfterDeleteThenDivest) {
+      senderOperations.insert(
+          senderOperations.begin() + 8,
+          TransportServiceOperation::get_object_instance_handle);
+    }
     std::array const receiverOperations{
         TransportServiceOperation::get_object_class_handle,
         TransportServiceOperation::get_attribute_handle,
@@ -3305,6 +3316,7 @@ int runPublicServer(
         TransportServiceOperation::attribute_ownership_acquisition_if_available,
         TransportServiceOperation::is_attribute_owned_by_federate,
         TransportServiceOperation::register_object_instance,
+        TransportServiceOperation::get_object_instance_name,
         TransportServiceOperation::set_automatic_resign_directive,
         TransportServiceOperation::get_automatic_resign_directive};
     try {

@@ -1387,11 +1387,11 @@ public final class RtiTckMain {
             "connection",
             "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.connectionLost;FederateAmbassador.requestAttributeOwnershipAssumption;FederateAmbassador.removeObjectInstance",
             new String[] {
-               "cpp-1516.1-connection-loss-callback",
-               "cpp-1516.1-connection-loss-cleanup",
-               "cpp-1516.1-automatic-resign-directive",
-               "cpp-1516.1-object-management",
-               "cpp-1516.1-ownership-management"
+               "req-federate-connection-lost",
+               "req-connection-lost-service-behavior",
+               "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+               "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+               "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
             }, false), RtiTckMain::connectionLossAutomaticDeleteThenDivest);
       run(new Scenario("java-tck.connection-loss-automatic-cancel-pending-acquisition",
             "cancel pending ownership acquisition after adapter-managed member loss",

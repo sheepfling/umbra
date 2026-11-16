@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
@@ -46,17 +47,21 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
       Recorder survivorCallbacks = new Recorder();
       Recorder lostCallbacks = new Recorder();
       AtomicReference<String> loss = new AtomicReference<>();
+      AtomicInteger lossCallbackCount = new AtomicInteger();
       boolean survivorConnected = false;
       boolean survivorJoined = false;
       try {
          survivor.connect(survivorCallbacks.proxy(), callbackModel, survivorConfiguration);
          survivorConnected = true;
-         lost.connect(lostCallbacks.proxy(loss), callbackModel, lostConfiguration);
+         lost.connect(lostCallbacks.proxy(loss, lossCallbackCount), callbackModel,
+            lostConfiguration);
          survivor.createFederationExecution(federation, fom, timeImplementation);
          survivor.joinFederationExecution(survivorName, federateType, federation);
          survivorJoined = true;
          FederateHandle lostFederate = lost.joinFederationExecution(
             lostName, federateType, federation);
+         JavaTckSupport.check(lostFederate != null,
+            "connection-loss member join returned no federate handle");
 
          ObjectClassHandle survivorClass = survivor.getObjectClassHandle(objectClassName);
          ObjectClassHandle lostClass = lost.getObjectClassHandle(objectClassName);
@@ -73,17 +78,41 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
 
          ObjectInstanceHandle retainedObject = survivor.registerObjectInstance(survivorClass);
          String retainedName = survivor.getObjectInstanceName(retainedObject);
-         await(() -> lostCallbacks.discoveries.contains(retainedObject), lost,
+         await(() -> lostCallbacks.discoveries.stream()
+               .anyMatch(discovery -> retainedObject.equals(discovery.object)), lost,
             callbackModel, timeoutMillis, "lost member did not discover retained object");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(lost);
+         List<Discovery> retainedDiscoveries = lostCallbacks.discoveries.stream()
+            .filter(discovery -> retainedObject.equals(discovery.object)).toList();
+         JavaTckSupport.check(retainedDiscoveries.size() == 1
+               && lostClass.equals(retainedDiscoveries.get(0).objectClass),
+            "lost member discovery changed the retained object, class, or callback count");
+         byte[] divestitureTag = new byte[] {(byte) 0xD4, (byte) 0x25};
          survivor.unconditionalAttributeOwnershipDivestiture(
-            retainedObject, survivorAttributes, new byte[0]);
-         byte[] acquisitionTag = new byte[] {(byte) 0xD4, (byte) 0x25};
+            retainedObject, survivorAttributes, divestitureTag);
+         await(() -> lostCallbacks.assumptions.size() == 1, lost,
+            callbackModel, timeoutMillis,
+            "lost member did not receive the retained-attribute assumption");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(lost);
+         JavaTckSupport.check(lostCallbacks.assumptions.size() == 1,
+            "setup divestiture delivered duplicate ownership-assumption callbacks");
+         OwnershipEvent divestiture = lostCallbacks.assumptions.get(0);
+         JavaTckSupport.check(retainedObject.equals(divestiture.object)
+               && divestiture.attributes.size() == 1
+               && divestiture.attributes.contains(lostAttribute)
+               && java.util.Arrays.equals(divestitureTag, divestiture.tag),
+            "setup divestiture changed its object, attribute, or tag");
+         byte[] acquisitionTag = new byte[] {(byte) 0xD5, (byte) 0x25};
          lost.attributeOwnershipAcquisitionIfAvailable(
             retainedObject, lostAttributes, acquisitionTag);
          await(() -> lostCallbacks.acquisitions.size() == 1, lost,
             callbackModel, timeoutMillis, "lost member did not acquire retained attribute");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(lost);
+         JavaTckSupport.check(lostCallbacks.acquisitions.size() == 1,
+            "setup acquisition delivered duplicate ownership notifications");
          OwnershipEvent acquisition = lostCallbacks.acquisitions.get(0);
          JavaTckSupport.check(retainedObject.equals(acquisition.object)
+               && acquisition.attributes.size() == 1
                && acquisition.attributes.contains(lostAttribute)
                && java.util.Arrays.equals(acquisitionTag, acquisition.tag)
                && lost.isAttributeOwnedByFederate(retainedObject, lostAttribute),
@@ -92,8 +121,18 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
          ObjectInstanceHandle departingObject = lost.registerObjectInstance(lostClass);
          JavaTckSupport.check(departingObject != null && !departingObject.equals(retainedObject),
             "lost member registered an invalid or duplicate departing object");
-         await(() -> survivorCallbacks.discoveries.contains(departingObject), survivor,
+         String deletedObjectName = lost.getObjectInstanceName(departingObject);
+         JavaTckSupport.check(deletedObjectName != null && !deletedObjectName.isEmpty(),
+            "lost member's departing object has no name");
+         await(() -> survivorCallbacks.discoveries.stream()
+               .anyMatch(discovery -> departingObject.equals(discovery.object)), survivor,
             callbackModel, timeoutMillis, "survivor did not discover departing object");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(survivor);
+         List<Discovery> departingDiscoveries = survivorCallbacks.discoveries.stream()
+            .filter(discovery -> departingObject.equals(discovery.object)).toList();
+         JavaTckSupport.check(departingDiscoveries.size() == 1
+               && survivorClass.equals(departingDiscoveries.get(0).objectClass),
+            "survivor discovery changed the departing object, class, or callback count");
          lost.setAutomaticResignDirective(ResignAction.DELETE_OBJECTS_THEN_DIVEST);
          JavaTckSupport.check(lost.getAutomaticResignDirective()
                == ResignAction.DELETE_OBJECTS_THEN_DIVEST,
@@ -114,10 +153,14 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
          }
          JavaTckSupport.check(loss.get() != null && !loss.get().isEmpty(),
             "timed out waiting for a non-empty connectionLost callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(lost);
+         JavaTckSupport.check(lossCallbackCount.get() == 1,
+            "connection loss delivered duplicate connectionLost callbacks");
 
          await(() -> !survivorCallbacks.assumptions.isEmpty()
                && survivorCallbacks.removals.size() == 1, survivor,
             callbackModel, timeoutMillis, "delete-then-divest cleanup callbacks");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(survivor);
          List<OwnershipEvent> assumptions = List.copyOf(survivorCallbacks.assumptions);
          List<RemovalEvent> removals = List.copyOf(survivorCallbacks.removals);
          JavaTckSupport.check(assumptions.size() == 1,
@@ -136,6 +179,9 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
          JavaTckSupport.check(retainedName != null && !retainedName.isEmpty()
                && retainedObject.equals(survivor.getObjectInstanceHandle(retainedName)),
             "automatic delete-then-divest removed the retained object");
+         JavaTckSupport.expectFailure(
+            () -> survivor.getObjectInstanceHandle(deletedObjectName),
+            "ObjectInstanceNotKnown", "lookup after automatic object deletion");
          JavaTckSupport.check(!survivor.isAttributeOwnedByFederate(
                retainedObject, survivorAttribute),
             "survivor unexpectedly owns the retained attribute offered by automatic divestiture");
@@ -168,6 +214,15 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
       JavaTckSupport.check(condition.getAsBoolean(), failure);
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass) {
+         this.object = object;
+         this.objectClass = objectClass;
+      }
+   }
+
    private static final class OwnershipEvent {
       private final ObjectInstanceHandle object;
       private final AttributeHandleSet attributes;
@@ -192,22 +247,25 @@ final class ConnectionLossAutomaticDeleteThenDivestTck {
    }
 
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> assumptions = new CopyOnWriteArrayList<>();
       private final List<RemovalEvent> removals = new CopyOnWriteArrayList<>();
-      private FederateAmbassador proxy() { return proxy(null); }
-      private FederateAmbassador proxy(AtomicReference<String> connectionLoss) {
+      private FederateAmbassador proxy() { return proxy(null, null); }
+      private FederateAmbassador proxy(AtomicReference<String> connectionLoss,
+            AtomicInteger connectionLossCount) {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("connectionLost".equals(name) && arguments != null
                      && arguments.length == 1 && connectionLoss != null) {
+                  connectionLossCount.incrementAndGet();
                   connectionLoss.set((String) arguments[0]);
                } else if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 1) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                     && arguments.length >= 2) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1]));
                } else if ("attributeOwnershipAcquisitionNotification".equals(name)
                      && arguments != null && arguments.length == 3) {
                   acquisitions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],

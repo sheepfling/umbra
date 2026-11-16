@@ -7774,39 +7774,49 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
         "hla-1516.1-2025:clause-4.4",
-        "hla-1516.1-2025:clause-4",
-        "hla-1516.1-2025:clause-10.44",
-        "hla-1516.1-2025:clause-10.45.3"
+        "hla-1516.1-2025:clause-4.1.6",
+        "hla-1516.1-2025:clause-10.43.6",
+        "hla-1516.1-2025:clause-10.44.6"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "req-federate-connection-lost",
-          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+          "standard_section": "hla-1516.1-2025:clause-4.1.1",
+          "note": "The Java lost-member ambassador receives exactly one non-empty FederateAmbassador.connectionLost callback after adapter-managed transport loss."
         },
         {
           "requirement_id": "req-connection-lost-service-behavior",
-          "standard_section": "hla-1516.1-2025:clause-4.4"
+          "standard_section": "hla-1516.1-2025:clause-4.4",
+          "note": "The survivor receives one removal callback for the lost member's delete-privileged object and one ownership-assumption callback for the retained attribute; the retained object remains and the attribute is no longer owned by the survivor."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
-          "standard_section": "hla-1516.1-2025:clause-4"
+          "standard_section": "hla-1516.1-2025:clause-4.1.6",
+          "note": "The one removeObjectInstance callback identifies the lost member with the same FederateHandle returned from its join."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
-          "standard_section": "hla-1516.1-2025:clause-10.44"
+          "standard_section": "hla-1516.1-2025:clause-10.43.6",
+          "note": "Before loss, the lost member reads back DELETE_OBJECTS_THEN_DIVEST through RTIambassador.getAutomaticResignDirective."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
-          "standard_section": "hla-1516.1-2025:clause-10.45.3"
+          "standard_section": "hla-1516.1-2025:clause-10.44.6",
+          "note": "Before loss, the lost member selects DELETE_OBJECTS_THEN_DIVEST through RTIambassador.setAutomaticResignDirective."
         }
       ],
-      "mapping_note": "Direct pairs: req-federate-connection-lost -> Clause 4.1.1; req-connection-lost-service-behavior -> Clause 4.4; page-050-l36-11 -> Clause 4; page-274-l181-57 -> Clause 10.44; page-275-l119-36 -> Clause 10.45.3. The two-object deletion/divestiture effects are tested after an adapter-managed transport loss; callback ordering is not asserted as a normative cross-service rule.",
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The direct pairs follow focused Catch2 plan case umbra-cpp-connection-lost-automatic-delete-then-divest-integration. Java checks the directive round-trip, one connectionLost callback, the lost FederateHandle in the deletion callback, exact retained-attribute assumption, deleted-name failure, retained-object identity, and released ownership. Callback ordering is left as implementation behavior rather than a normative cross-service claim.",
       "api_methods": [
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withRtiAddress",
+        "RtiConfiguration.withAdditionalSettings",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
-        "RTIambassador.getFederateHandle",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7817,8 +7827,6 @@
         "RTIambassador.setAutomaticResignDirective",
         "RTIambassador.getAutomaticResignDirective",
         "RTIambassador.isAttributeOwnedByFederate",
-        "RTIambassador.publishInteractionClass",
-        "RTIambassador.sendInteraction",
         "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.disconnect",
@@ -7829,11 +7837,11 @@
         "FederateAmbassador.removeObjectInstance"
       ],
       "requirement_ids": [
-        "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup",
-        "cpp-1516.1-automatic-resign-directive",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management"
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
       ],
       "contract_refs": [
         "connection-lost-api-contract.json",
@@ -7845,7 +7853,9 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#connectionLossAutomaticDeleteThenDivest",
       "parity": "cpp-tck.connection-loss-automatic-delete-then-divest",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-managed public-server-loss fixture, endpoint and callback configuration, an ordinary handshake interaction, and configured object class/attribute names."
+      "exclusion": "Default-disabled; focused execution requires the adapter-managed public-server-loss fixture, endpoint and callback configuration, Restaurant FOM, and configured object class/attribute names.",
+      "evidence_note": "The current Java TCK source compiled against the pinned official IEEE 1516.1-2025 API and passed under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI. It verified setup ownership transfer tags, exact object discoveries, one non-empty connectionLost callback, directive round-trip, one lost-object removal with producer handle, one retained-attribute assumption, deleted-name failure, retained-object identity, and released ownership. Results, JUnit, and traceability are under out/java-tck/connection-loss-automatic-delete-then-divest-current-source-20261116/{evoked,immediate}.{results.json,junit.xml,traceability.json}. This is local-provider and adapter-managed fault evidence only; no independent-provider, interoperability, or conformance claim.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.connection-loss-automatic-cancel-pending-acquisition",

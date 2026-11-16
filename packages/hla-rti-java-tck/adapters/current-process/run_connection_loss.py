@@ -114,6 +114,9 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
         (markers / "automatic-delete-then-divest.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
+        (markers / "verify-deleted-object-name-after-delete-then-divest.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     if arguments.scenario in {
         "java-tck.connection-loss-automatic-cancel-pending-acquisition",
     }:
@@ -210,6 +213,8 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
                 "service-failure.txt",
                 "service-report-files.txt",
                 "service-report-directory-loaded.txt",
+                "automatic-delete-then-divest-sender-reader.error",
+                "automatic-delete-then-divest-receiver-reader.error",
             ):
                 diagnostic = markers / diagnostic_name
                 if diagnostic.is_file():
