@@ -41,9 +41,11 @@ final class KnownClassAttributeRelevanceTck {
          subscriberConnected = true;
          publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         publisher.joinFederationExecution("java-tck-known-class-publisher", federation);
+         publisher.joinFederationExecution(
+            "java-tck-known-class-publisher", "tck-type", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-known-class-subscriber", federation);
+         subscriber.joinFederationExecution(
+            "java-tck-known-class-subscriber", "tck-type", federation);
          subscriberJoined = true;
 
          JavaTckSupport.check(publisher.getAdvisoriesUseKnownClassSwitch()
@@ -55,6 +57,9 @@ final class KnownClassAttributeRelevanceTck {
          JavaTckSupport.check(publisher.getAttributeRelevanceAdvisorySwitch()
                && subscriber.getAttributeRelevanceAdvisorySwitch(),
             "adapter FOM must enable attribute-relevance advisories");
+         publisher.setAttributeRelevanceAdvisorySwitch(true);
+         JavaTckSupport.check(publisher.getAttributeRelevanceAdvisorySwitch(),
+            "setting Attribute Relevance Advisory to TRUE did not enable the switch");
 
          ObjectClassHandle publisherBase = publisher.getObjectClassHandle(baseObjectClassName);
          ObjectClassHandle publisherDerived =
@@ -62,14 +67,20 @@ final class KnownClassAttributeRelevanceTck {
          ObjectClassHandle subscriberBase = subscriber.getObjectClassHandle(baseObjectClassName);
          ObjectClassHandle subscriberDerived =
             subscriber.getObjectClassHandle(derivedObjectClassName);
+         JavaTckSupport.check(publisherBase.equals(subscriberBase)
+               && publisherDerived.equals(subscriberDerived),
+            "known-class FOM object-class handles changed across federation members");
          AttributeHandle publisherKnown =
-            publisher.getAttributeHandle(publisherBase, knownAttributeName);
+            publisher.getAttributeHandle(publisherDerived, knownAttributeName);
          AttributeHandle publisherDerivedOnly =
             publisher.getAttributeHandle(publisherDerived, derivedAttributeName);
          AttributeHandle subscriberKnown =
             subscriber.getAttributeHandle(subscriberBase, knownAttributeName);
          AttributeHandle subscriberDerivedOnly =
             subscriber.getAttributeHandle(subscriberDerived, derivedAttributeName);
+         JavaTckSupport.check(publisherKnown.equals(subscriberKnown)
+               && publisherDerivedOnly.equals(subscriberDerivedOnly),
+            "known-class FOM attribute handles changed across federation members");
          AttributeHandleSet publisherAttributes =
             JavaTckSupport.attributeSet(publisher, publisherKnown, publisherDerivedOnly);
          AttributeHandleSet subscriberKnownAttributes =
@@ -102,6 +113,12 @@ final class KnownClassAttributeRelevanceTck {
                "known-class policy exposed an advisory for a derived-only attribute");
             JavaTckSupport.check(publisherRecorder.updatesOff.isEmpty(),
                "adding a derived-only subscription unexpectedly produced update-off");
+            subscriber.unsubscribeObjectClassAttributes(subscriberDerived,
+               subscriberDerivedAttributes);
+            driveFor(publisher, subscriber, callbackModel, 150);
+            JavaTckSupport.check(publisherRecorder.updatesOn.size() == 1
+                  && publisherRecorder.updatesOff.isEmpty(),
+               "removing a derived-only subscription changed known-class advisory state");
          } else {
             driveUntil(publisher, subscriber,
                () -> publisherRecorder.updatesOn.size() >= 2, callbackModel, 3000);
@@ -120,24 +137,29 @@ final class KnownClassAttributeRelevanceTck {
                "derived-only unsubscribe produced duplicate update-off advisories");
          }
 
+         int updatesOnBeforeDisable = publisherRecorder.updatesOn.size();
+         int updatesOffBeforeDisable = publisherRecorder.updatesOff.size();
+         publisher.setAttributeRelevanceAdvisorySwitch(false);
+         JavaTckSupport.check(!publisher.getAttributeRelevanceAdvisorySwitch(),
+            "setting Attribute Relevance Advisory to FALSE did not disable the switch");
          subscriber.unsubscribeObjectClassAttributes(subscriberBase, subscriberKnownAttributes);
-         driveUntil(publisher, subscriber,
-            () -> publisherRecorder.updatesOff.size()
-               == (expectedKnownClassPolicy ? 1 : 2), callbackModel, 3000);
-         assertAdvisory(publisherRecorder.updatesOff,
-            expectedKnownClassPolicy ? 0 : 1, object, publisherKnown,
-            "removal of known base-attribute subscription");
-         JavaTckSupport.check(publisherRecorder.updatesOff.size()
-               == (expectedKnownClassPolicy ? 1 : 2),
-            "base-attribute unsubscribe produced an unexpected update-off count");
+         driveFor(publisher, subscriber, callbackModel, 150);
+         JavaTckSupport.check(publisherRecorder.updatesOn.size() == updatesOnBeforeDisable
+               && publisherRecorder.updatesOff.size() == updatesOffBeforeDisable,
+            "FALSE still generated Turn Updates Off for the withdrawn base attribute");
+         subscriber.subscribeObjectClassAttributes(subscriberBase, subscriberKnownAttributes);
+         driveFor(publisher, subscriber, callbackModel, 150);
+         JavaTckSupport.check(publisherRecorder.updatesOn.size() == updatesOnBeforeDisable
+               && publisherRecorder.updatesOff.size() == updatesOffBeforeDisable,
+            "disabled Attribute Relevance Advisory switch generated Turn Updates On");
+         subscriber.unsubscribeObjectClassAttributes(subscriberBase, subscriberKnownAttributes);
 
          subscriber.unsubscribeObjectClass(subscriberBase);
-         subscriber.unsubscribeObjectClass(subscriberDerived);
          publisher.unpublishObjectClassAttributes(publisherDerived, publisherAttributes);
          publisher.unpublishObjectClass(publisherDerived);
       } finally {
-         if (subscriberJoined) resign(subscriber);
-         if (publisherJoined) resign(publisher);
+         if (subscriberJoined) resign(subscriber, ResignAction.NO_ACTION);
+         if (publisherJoined) resign(publisher, ResignAction.DELETE_OBJECTS);
          if (created) {
             try {
                publisher.destroyFederationExecution(federation);
@@ -189,9 +211,9 @@ final class KnownClassAttributeRelevanceTck {
       }
    }
 
-   private static void resign(RTIambassador ambassador) {
+   private static void resign(RTIambassador ambassador, ResignAction action) {
       try {
-         ambassador.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
+         ambassador.resignFederationExecution(action);
       } catch (Exception ignored) {
       }
    }

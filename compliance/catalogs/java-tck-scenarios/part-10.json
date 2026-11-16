@@ -744,10 +744,11 @@
       "title": "Filter inherited attribute-relevance advisories using the enabled known-class policy",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getAdvisoriesUseKnownClassSwitch",
         "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.setAttributeRelevanceAdvisorySwitch",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -758,12 +759,17 @@
         "RTIambassador.unsubscribeObjectClass",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unpublishObjectClass",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.turnUpdatesOnForObjectInstance",
-        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+        "FederateAmbassador.turnUpdatesOffForObjectInstance",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-federation-create-join-resign-destroy",
@@ -784,7 +790,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct Clause 5.8 coverage is limited to the assertion that a derived registered object is discovered using the base object-class handle on which the subscriber declared its subscription (the closest subscribed superclass). The source uses only official IEEE 1516.1-2025 APIs; advisory filtering is not mapped, Java provider runtime evidence remains pending, and no conformance claim is made.",
+      "mapping_note": "Direct IEEE 1516.1-2025 §5.8 coverage is limited to discovery of the derived object using the closest subscribed superclass handle. Java also mirrors the C++ cross-member handle checks, known-class advisory filtering, derived-only subscription removal, and the disabled-advisory-switch path, but those policy/advisory assertions are not assigned a direct normative mapping. No independent-provider or conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json",
         "attribute-relevance-advisory-api-contract.json",
@@ -792,8 +798,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeRelevanceKnownClass",
       "parity": "cpp-tck.attribute-relevance-known-class",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied enabled-policy FOM and known/derived object-class and attribute names, plus a Java IEEE 1516.1-2025 provider and callback model. Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "known-class-advisory-tck.xml supplied through hla.rti.tck.knownClassFom",
+        "HLAobjectRoot.TckKnownClassObject and HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+        "Name and Efficiency attributes",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, the configured TckKnownClassObject hierarchy, Name, and Efficiency. Results/JUnit: out/java-tck/attribute-relevance-known-class-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/attribute-relevance-known-class-java-parity-20261116.{json,xml}. Only derived-object discovery through the subscribed superclass maps directly to §5.8; the remaining policy/advisory assertions are supplemental. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.attribute-relevance-known-class-disabled",
@@ -801,10 +820,11 @@
       "title": "Use declared subscriptions directly when the known-class policy is disabled",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getAdvisoriesUseKnownClassSwitch",
         "RTIambassador.getAttributeRelevanceAdvisorySwitch",
+        "RTIambassador.setAttributeRelevanceAdvisorySwitch",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -815,12 +835,17 @@
         "RTIambassador.unsubscribeObjectClass",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.unpublishObjectClass",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.turnUpdatesOnForObjectInstance",
-        "FederateAmbassador.turnUpdatesOffForObjectInstance"
+        "FederateAmbassador.turnUpdatesOffForObjectInstance",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-federation-create-join-resign-destroy",
@@ -841,7 +866,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.8"
         }
       ],
-      "mapping_note": "Direct Clause 5.8 coverage is limited to the assertion that a derived registered object is discovered using the base object-class handle on which the subscriber declared its subscription (the closest subscribed superclass). The source uses only official IEEE 1516.1-2025 APIs; advisory filtering is not mapped, Java provider runtime evidence remains pending, and no conformance claim is made.",
+      "mapping_note": "Direct IEEE 1516.1-2025 §5.8 coverage is limited to discovery of the derived object using the closest subscribed superclass handle. Java also mirrors the C++ cross-member handle checks, known-class advisory filtering, derived-only subscription removal, and the disabled-advisory-switch path, but those policy/advisory assertions are not assigned a direct normative mapping. No independent-provider or conformance claim is made.",
       "contract_refs": [
         "standard-known-class-attribute-relevance-contract.json",
         "attribute-relevance-advisory-api-contract.json",
@@ -849,8 +874,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeRelevanceKnownClassDisabled",
       "parity": "cpp-tck.attribute-relevance-known-class-disabled",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied disabled-policy FOM and known/derived object-class and attribute names, plus a Java IEEE 1516.1-2025 provider and callback model. Provider runtime verification remains pending."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "known-class-advisory-disabled-tck.xml supplied through hla.rti.tck.knownClassDisabledFom",
+        "HLAobjectRoot.TckKnownClassObject and HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+        "Name and Efficiency attributes",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-disabled-tck.xml, HLAinteger64Time, the configured TckKnownClassObject hierarchy, Name, and Efficiency. Results/JUnit: out/java-tck/attribute-relevance-known-class-disabled-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence for the enabled and disabled policy cases is in out/cpp-tck-evidence-20261116/attribute-relevance-known-class-java-parity-20261116.{json,xml}. Only derived-object discovery through the subscribed superclass maps directly to §5.8; remaining policy/advisory assertions are supplemental. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.tara-undefined-galt-nrg",

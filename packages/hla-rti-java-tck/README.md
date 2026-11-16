@@ -5441,6 +5441,24 @@ and 8/8 direct runs. Their direct mapping remains limited to the exercised
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
 
+The default-run `java-tck.attribute-relevance-known-class` and
+`java-tck.attribute-relevance-known-class-disabled` cases exercise the same
+inherited class hierarchy with the `Advisories Use Known Class` FOM switch on
+and off. Both verify discovery through the closest subscribed superclass,
+cross-member class and attribute handle identity, and the expected base/derived
+attribute advisory sequences. They also check that disabling Attribute
+Relevance Advisory suppresses later update-on and update-off callbacks. Only
+the superclass discovery assertion maps directly to IEEE 1516.1-2025 §5.8;
+the policy and advisory assertions remain supplemental. Both Java cases passed
+under HLA_EVOKED and HLA_IMMEDIATE. Their paired C++ primary/contract cases
+passed 8/8 focused CTests and 8/8 direct runs across both policies and callback
+models. Results are in
+`out/java-tck/attribute-relevance-known-class-java-parity-20261116/{evoked,immediate}/`,
+`out/java-tck/attribute-relevance-known-class-disabled-java-parity-20261116/{evoked,immediate}/`,
+and `out/cpp-tck-evidence-20261116/attribute-relevance-known-class-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
+
 The default-run `java-tck.mixed-order-attribute-passel-retraction` case checks
 that the receive-order attribute from one mixed-order update is delivered once
 before `Retract` and remains delivered once after retraction, while the queued
