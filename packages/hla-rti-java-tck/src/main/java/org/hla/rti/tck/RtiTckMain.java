@@ -6070,13 +6070,20 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::ownershipAcquisitionPublicationFence);
+            }, true), RtiTckMain::ownershipAcquisitionPublicationFence);
       run(new Scenario("java-tck.acquisition-publication-guard-unavailable",
             "keep requester publication active until ownership acquisition reaches a terminal callback",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.unpublishObjectClassAttributes;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-            new String[] {"requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"},
-            false), RtiTckMain::acquisitionPublicationGuardUnavailable);
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.unpublishObjectClassAttributes;RTIambassador.attributeOwnershipReleaseDenied;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.resignFederationExecution;ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23",
+               "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23-if-available",
+               "requirement-candidate-content-clauses-07-ownership-management-page-153-l123-38",
+               "requirement-candidate-content-clauses-07-ownership-management-page-153-l129-40",
+               "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
+               "requirement-candidate-content-clauses-07-ownership-management-page-154-l66-21",
+               "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"
+            }, true), RtiTckMain::acquisitionPublicationGuardUnavailable);
       run(new Scenario("java-tck.selective-unpublication-pending-acquisition",
             "unpublish an unrelated attribute while another attribute has an ownership acquisition pending",
             "ownership",
@@ -6084,7 +6091,7 @@ public final class RtiTckMain {
             new String[] {
                "cpp-1516.1-declaration-management",
                "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::selectiveUnpublicationPendingAcquisition);
+            }, true), RtiTckMain::selectiveUnpublicationPendingAcquisition);
        run(new Scenario("java-tck.attribute-ownership-acquisition-cancellation",
              "cancel an ordinary ownership acquisition, verify its confirmation, and preserve ownership",
              "ownership",

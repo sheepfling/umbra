@@ -114,13 +114,6 @@ final class OwnershipAcquisitionPublicationFenceTck {
             "rejected acquisition of an unpublished attribute changed ownership");
          requester.publishObjectClassAttributes(requesterClass, requesterFirstOnly);
 
-         AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
-         AttributeHandleSet invalidAttributes = JavaTckSupport.attributeSet(
-            requester, invalidAttribute);
-         JavaTckSupport.expectFailure(
-            () -> requester.attributeOwnershipAcquisition(
-               object, invalidAttributes, acquisitionTag),
-            "AttributeNotDefined", "acquiring an undefined ownership attribute");
          JavaTckSupport.expectFailure(
             () -> owner.attributeOwnershipReleaseDenied(object, ownerSecondSet, denialTag),
             "AttributeNotOwned", "denying release for an attribute not owned by the owner");

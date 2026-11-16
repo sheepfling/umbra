@@ -5861,7 +5861,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.12"
         }
       ],
-      "mapping_note": "Direct §7.1.1 page-150-l17-4/l29-8: on a discovered object at its known class, regular acquisition distinguishes ObjectClassNotPublished from AttributeNotPublished after publication of a different attribute, preserves ownership after rejection, then succeeds after publishing the desired attribute and transferring exactly that attribute. Direct §7.12 page-167-l13-1: a second Release Denied after acquisition ended has no effect or new unavailable callback. Other mixed-acquisition checks are supplemental. This Java case compiles against the official API-only JAR; provider runtime remains unverified and the row stays candidate.",
+      "mapping_note": "Direct §7.1.1 page-150-l17-4/l29-8: on a discovered object at its known class, regular acquisition distinguishes ObjectClassNotPublished from AttributeNotPublished after publication of a different attribute, preserves ownership after rejection, then succeeds after publishing the desired attribute and transferring exactly that attribute. Direct §7.12 page-167-l13-1: a second Release Denied after acquisition ended has no effect or new unavailable callback. Other mixed-acquisition checks are supplemental. The Java port omits the C++ default-invalid AttributeHandle probe because the standard Java API provides no invalid-handle representation; that supplemental C++ branch has no portable Java counterpart.",
       "contract_refs": [
         "standard-ownership-acquisition-publication-fence-contract.json",
         "attribute-ownership-acquisition-api-contract.json",
@@ -5876,7 +5876,10 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipAcquisitionPublicationFence",
       "parity": "cpp-tck.ownership-acquisition-publication-fence",
       "default_status": "run",
-      "promotion": "candidate"
+      "promotion": "promoted",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": ["evoked", "immediate"],
+      "evidence_note": "Focused default-enabled Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider using ddm-multi-attribute-tck.xml, HLAinteger64Time, HLAobjectRoot.TckAttributeDimensionBaseObject.TckAttributeDimensionDerivedObject, inherited BaseValue, and DerivedValue. The paired installed-package C++ primary/contract slice passed 4/4 focused CTests and 4/4 direct executions across both callback models with the same derived class and attributes. Java evidence: out/java-tck/ownership-acquisition-publication-fence-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; C++ evidence: .build/cpp-tck-evidence-20261116/ownership-acquisition-publication-fence-java-parity-20261116.{json,xml}. Bounded local-provider evidence only; not independent-provider behavior or an overall conformance claim."
     },
     {
       "id": "java-tck.acquisition-publication-guard-unavailable",
@@ -5892,6 +5895,7 @@
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.attributeOwnershipReleaseDenied",
         "RTIambassador.attributeOwnershipDivestitureIfWanted",
@@ -5905,22 +5909,60 @@
         "FederateAmbassador.attributeOwnershipAcquisitionNotification"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23",
+        "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23-if-available",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l123-38",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l129-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l66-21",
         "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23",
+        "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23-if-available",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l123-38",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l129-40",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l66-21",
         "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-7.1.1",
+        "hla-1516.1-2025:clause-7.1.4",
         "hla-1516.1-2025:clause-7.8.4"
       ],
       "requirement_mappings": [
-        {
-          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5",
-          "standard_section": "hla-1516.1-2025:clause-7.8.4"
-        }
-      ],
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23",
+            "standard_section": "hla-1516.1-2025:clause-7.1.1"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-150-l74-23-if-available",
+            "standard_section": "hla-1516.1-2025:clause-7.1.1"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l123-38",
+            "standard_section": "hla-1516.1-2025:clause-7.1.4"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l129-40",
+            "standard_section": "hla-1516.1-2025:clause-7.1.4"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l57-18",
+            "standard_section": "hla-1516.1-2025:clause-7.1.4"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l66-21",
+            "standard_section": "hla-1516.1-2025:clause-7.1.4"
+          },
+          {
+            "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-163-l24-5",
+            "standard_section": "hla-1516.1-2025:clause-7.8.4"
+          }
+        ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "Direct mapping to §7.8.4's ownership-acquisition terminal paths. The requester must remain published until Attribute Ownership Unavailable after Release Denied and until Attribute Ownership Acquisition Notification after If-Wanted divestiture. The HLA_EVOKED path also checks that the guard remains active after ownership transfers but before the queued notification is evoked. The claim is limited to these unavailable and acquisition-notification outcomes for one attribute. Focused runs passed with the current Umbra JNI provider, p0-tck.xml, HLAobjectRoot.TckObject.Value, and both callback models; independent-provider behavior and conformance are not established.",
+      "mapping_note": "Direct mappings cover §7.1.1 standard acquisition and If-Available on separate objects, including the exact unavailable callback and preservation of current ownership. §7.1.4 assertions verify the acquisition tag in Request Attribute Ownership Release, the denial tag in Attribute Ownership Unavailable, and the If-Wanted divestiture tag in Attribute Ownership Acquisition Notification. §7.8.4 checks that requester publication remains active until the unavailable or acquisition-notification terminal callback, including while evoked callbacks are queued. This bounded local-provider evidence covers these mapped outcomes; it does not establish independent-provider behavior or conformance.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -5930,13 +5972,13 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#acquisitionPublicationGuardUnavailable",
       "parity": "cpp-tck.acquisition-publication-guard-unavailable",
-      "default_status": "unsupported",
+      "default_status": "run",
       "adapter_inputs": [
         "provider Java API JAR and service-loaded RtiFactory",
         "adapter FOM with one object class and one ownership-managed attribute",
         "provider callback model and federate type"
       ],
-      "exclusion": "Default-disabled; focused execution requires --run-unverified with adapter-supplied standard API, provider, FOM, object class and attribute names, endpoint, federate type, and callback model.",
+      "evidence_note": "Default-enabled Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, p0-tck.xml, HLAobjectRoot.TckObject.Value, and federate type tck-type. The paired installed-package C++ primary/contract slice passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java evidence: out/java-tck/acquisition-publication-guard-unavailable-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; C++ evidence: .build/cpp-tck-evidence-20261116/acquisition-publication-guard-unavailable-java-parity-20261116.{json,xml}. Bounded local-provider evidence only; independent-provider behavior and conformance are not established.",
       "promotion": "promoted"
     },
     {
@@ -5977,14 +6019,25 @@
           "standard_section": "hla-1516.1-2025:clause-5.3.3"
         }
       ],
-      "mapping_note": "Java parity tests the same §5.3.3 source-refinement behavior: unrelated attribute unpublication succeeds, later acquisition of that attribute fails, and the pending attribute cannot be unpublished. Ownership queries are supplementary. Java compiles against the official API-only JAR; provider runtime is unverified. C++ primary/contract passed 4/4 in both callback models.",
+      "mapping_note": "Direct source-refinement mapping to IEEE 1516.1-2025 §5.3.3: while an acquisition is pending for one published attribute, unpublishing an unrelated attribute succeeds, a later acquisition of that attribute fails with AttributeNotPublished, and unpublishing the pending attribute fails with OwnershipAcquisitionPending. Ownership queries are supplementary controls. The case is limited to this two-attribute witness.",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "contract_refs": [
         "standard-selective-unpublication-pending-acquisition-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#selectiveUnpublicationPendingAcquisition",
       "parity": "cpp-tck.selective-unpublication-pending-acquisition",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied two-attribute FOM, names, callback model, time implementation, and a standard 2025 Java provider; provider-runtime execution remains unverified."
+      "default_status": "run",
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied two-attribute FOM and object/attribute names",
+        "logical-time implementation and callback model"
+      ],
+      "evidence_note": "Default-enabled Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, ddm-multi-attribute-tck.xml, HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue, and HLAinteger64Time. The paired installed-package C++ primary/contract slice passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java evidence: out/java-tck/selective-unpublication-pending-acquisition-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; C++ evidence: .build/cpp-tck-evidence-20261116/selective-unpublication-pending-acquisition-java-parity-20261116.{json,xml}. Bounded local-provider evidence only; independent-provider behavior and conformance are not established.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.ownership-acquisition-if-available",

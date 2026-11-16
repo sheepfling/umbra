@@ -726,11 +726,52 @@ The federation restore ownership-assumption scenario also preserves pending
 object-discovery and ownership-assumption callbacks across a complete save and
 restore under both callback models, and checks that ownership is not transferred
 before the restored callback is serviced.
-The `java-tck.ownership-acquisition-publication-fence` scenario uses the
-adapter-supplied multi-attribute FOM from `hla.rti.tck.multiAttributeFom`. It
-checks that publication gates acquisition, an If Available request is
-superseded by a regular mixed-attribute request, only the owned subset prompts
-release, and a pending attribute cannot be unpublished before release denial.
+The default `java-tck.ownership-acquisition-publication-fence` scenario uses
+the adapter-supplied multi-attribute FOM from
+`hla.rti.tck.multiAttributeFom`. It directly checks the `ObjectClassNotPublished`
+and `AttributeNotPublished` publication gates and the clause 7.12 repeated
+Release Denied no-effect outcome. It also covers the supplemental mixed
+acquisition flow: the If Available request is superseded by a regular request,
+only the owned subset prompts release, and a pending attribute cannot be
+unpublished before release denial. The Java port omits the C++ default-invalid
+handle probe because the standard Java API has no invalid-handle sentinel.
+Default-enabled Java passed 1/1 under each callback model against the
+current-source JNI provider using `ddm-multi-attribute-tck.xml`,
+`HLAinteger64Time`, `HLAobjectRoot.TckAttributeDimensionBaseObject.TckAttributeDimensionDerivedObject`, inherited `BaseValue`, and
+`DerivedValue`. The paired installed-package C++ primary/contract slice passed
+4/4 focused CTests and 4/4 direct executions across both models. Java evidence
+is under
+`out/java-tck/ownership-acquisition-publication-fence-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/ownership-acquisition-publication-fence-java-parity-20261116.{json,xml}`. These are bounded local-provider results, not
+independent-provider behavior or an overall conformance claim.
+The default `java-tck.acquisition-publication-guard-unavailable` case checks
+the requester's publication guard through ownership-unavailable and
+acquisition-notification terminal paths. It also exercises If Available on a
+second object, checking callback timing and exact object, attribute, and tag
+values while ownership remains with the original owner. Its direct mappings
+cover IEEE 1516.1-2025 §§7.1.1, 7.1.4, and 7.8.4. Focused Java runs passed 1/1
+under each callback model with `p0-tck.xml` and `HLAobjectRoot.TckObject.Value`;
+the paired installed-package C++ primary/contract slice passed 4/4 focused
+CTests and 4/4 direct runs. Java evidence is in
+`out/java-tck/acquisition-publication-guard-unavailable-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/acquisition-publication-guard-unavailable-java-parity-20261116.{json,xml}`.
+These local-provider results do not establish independent-provider behavior or
+conformance.
+The default `java-tck.selective-unpublication-pending-acquisition` case uses
+the adapter's `ddm-multi-attribute-tck.xml` and checks that a pending request
+blocks unpublishing its attribute while an unrelated published attribute can
+be unpublished. A later acquisition of that withdrawn attribute fails with
+`AttributeNotPublished`. It maps the source-refinement witness to IEEE
+1516.1-2025 §5.3.3. Focused Java runs passed 1/1 under each callback model, and
+the paired installed-package C++ primary/contract slice passed 4/4 focused
+CTests and 4/4 direct runs. Java evidence is under
+`out/java-tck/selective-unpublication-pending-acquisition-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/selective-unpublication-pending-acquisition-java-parity-20261116.{json,xml}`.
+These local-provider results do not establish independent-provider behavior or
+conformance.
 The `java-tck.partial-attribute-ownership-transfer` case uses the
 adapter-supplied multi-attribute FOM and logical-time implementation. It cancels
 one attribute from a two-attribute acquisition, then verifies that If Wanted

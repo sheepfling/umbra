@@ -83,6 +83,13 @@ final class AcquisitionPublicationGuardUnavailableTck {
             () -> requesterCallbacks.discoveries.contains(object),
             "acquisition publication-guard object discovery");
 
+         ObjectInstanceHandle ifAvailableObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(ifAvailableObject != null && !ifAvailableObject.equals(object),
+            "If-Available publication-guard registration returned an invalid object handle");
+         await(requester, callbackModel,
+            () -> requesterCallbacks.discoveries.contains(ifAvailableObject),
+            "If-Available publication-guard object discovery");
+
          byte[] acquisitionTag = { (byte) 0xa5, 0x01 };
          byte[] denialTag = { (byte) 0xd3, 0x02 };
          byte[] divestitureTag = { (byte) 0xe7, 0x03 };
@@ -141,6 +148,26 @@ final class AcquisitionPublicationGuardUnavailableTck {
             "acquisition publication-guard acquisition notification");
          checkEvent(requesterCallbacks.acquisitions.get(0), object, requesterAttributes,
             divestitureTag, "acquisition notification");
+
+         requesterCallbacks.clearOwnershipEvents();
+         ownerCallbacks.clearOwnershipEvents();
+         requester.attributeOwnershipAcquisitionIfAvailable(ifAvailableObject,
+            requesterAttributes, acquisitionTag);
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.check(requesterCallbacks.unavailable.isEmpty(),
+               "If-Available result was delivered before the evoked callback was serviced");
+            expectPublicationPending(requester, requesterClass, requesterAttributes,
+               "before If-Available ownership-unavailable callback");
+         }
+         await(requester, callbackModel,
+            () -> !requesterCallbacks.unavailable.isEmpty(),
+            "If-Available publication-guard unavailable callback");
+         checkEvent(requesterCallbacks.unavailable.get(0), ifAvailableObject,
+            requesterAttributes, acquisitionTag, "If-Available unavailable callback");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(ifAvailableObject, ownerAttribute)
+               && !requester.isAttributeOwnedByFederate(ifAvailableObject, requesterAttribute),
+            "If-Available callback changed attribute ownership");
+
          requester.unpublishObjectClassAttributes(requesterClass, requesterAttributes);
          requesterPublished = false;
          owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
