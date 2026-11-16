@@ -5346,8 +5346,8 @@
       "title": "Report one subscriber-specific discovered class per federate",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -5355,14 +5355,19 @@
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "RTIambassador.evokeCallback",
-        "FederateAmbassador.discoverObjectInstance"
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "ObjectInstanceHandle.equals",
+        "ObjectClassHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
@@ -5393,7 +5398,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.3"
       ],
-      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mappings: one registered derived-class object is discovered once in a base-view federate and once in a derived-view federate, with Get Known Object Class Handle matching each federate's discovered class; the registrant's Get Known Object Class Handle returns the registered derived class. Each ambassador resolves its own object handle to the common object name; opaque handles are not compared across ambassadors. These assertions directly cover the §5.1.3 discovery and known-class rules at page 083 lines 17, 68, 71, and 77, alongside the existing line-29 per-federate class-variation mapping. The adapter supplies the hierarchy FOM, class/attribute names, provider, endpoint, and callback model; source imports only the official Java API and JDK.",
+      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mappings: one registered derived-class object is discovered once in a base-view federate and once in a derived-view federate, with Get Known Object Class Handle matching each federate's discovered class; the registrant's Get Known Object Class Handle returns the registered derived class. Each ambassador resolves its own object handle to the common object name; opaque handles are not compared across ambassadors. As a supplementary object-identity check, Java also round-trips each member's own object handle from that common name. The mapped assertions directly cover the §5.1.3 discovery and known-class rules at page 083 lines 17, 68, 71, and 77, alongside the existing line-29 per-federate class-variation mapping. The adapter supplies the hierarchy FOM, class/attribute names, provider, endpoint, and callback model; source imports only the official Java API and JDK.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5405,8 +5410,22 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#perFederateDiscoveredClass",
       "parity": "cpp-tck.per-federate-discovered-class",
-      "default_status": "unsupported",
-      "exclusion": "Requires a Java IEEE 1516.1-2025 provider adapter and a FOM containing the configured base/derived object-class hierarchy and attributes; run only with adapter-supplied inputs."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "known-class-advisory-tck.xml supplied through hla.rti.tck.knownClassFom",
+        "HLAobjectRoot.TckKnownClassObject and HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+        "Name and Efficiency attributes",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "exclusion": "Requires the adapter-supplied known-class hierarchy FOM and class/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: out/java-tck/per-federate-discovered-class-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract selectors for this case and registered-object-class-immutability passed 8/8 focused CTests and 8/8 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/object-class-view-java-parity-20261116.{json,xml}. Direct mappings remain limited to the selected §5.1.3 requirements. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.registered-object-class-immutability",
@@ -5414,8 +5433,8 @@
       "title": "Keep registered and federate-known object classes stable across subscription changes",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -5423,14 +5442,19 @@
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "RTIambassador.evokeCallback",
-        "FederateAmbassador.discoverObjectInstance"
+        "RTIambassador.evokeMultipleCallbacks",
+        "FederateAmbassador.discoverObjectInstance",
+        "ObjectInstanceHandle.equals",
+        "ObjectClassHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
@@ -5445,7 +5469,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1.3"
       ],
-      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mapping: the registrant remains at the registered derived class, while base- and derived-view subscribers retain the class first discovered after their subscription views change. Each ambassador resolves its own object handle to the same object name; no opaque handle is compared across ambassadors. Provider, endpoint, FOM, names, and callback model are adapter inputs; source imports only the official Java API and JDK.",
+      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mapping: the registrant remains at the registered derived class, while base- and derived-view subscribers retain the class first discovered after their subscription views change. Each ambassador resolves its own object handle to the same object name; no opaque handle is compared across ambassadors. Java also round-trips each member's own object handle from the common name as a supplementary identity check. Provider, endpoint, FOM, names, and callback model are adapter inputs; source imports only the official Java API and JDK.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5457,8 +5481,22 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#registeredObjectClassImmutability",
       "parity": "cpp-tck.registered-object-class-immutability",
-      "default_status": "unsupported",
-      "exclusion": "Requires a Java IEEE 1516.1-2025 provider adapter and a FOM containing the configured base/derived object-class hierarchy and attributes; run only with adapter-supplied inputs."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "known-class-advisory-tck.xml supplied through hla.rti.tck.knownClassFom",
+        "HLAobjectRoot.TckKnownClassObject and HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+        "Name and Efficiency attributes",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "exclusion": "Requires the adapter-supplied known-class hierarchy FOM and class/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: out/java-tck/registered-object-class-immutability-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract selectors for this case and per-federate-discovered-class passed 8/8 focused CTests and 8/8 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/object-class-view-java-parity-20261116.{json,xml}. The direct mapping remains the selected §5.1.3 registered-class requirement. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.discovered-class-stability-after-specific-subscription",
@@ -5466,8 +5504,8 @@
       "title": "Keep a base-class discovery unchanged after adding a more-specific subscription",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -5479,10 +5517,13 @@
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "RTIambassador.evokeCallback",
-        "FederateAmbassador.discoverObjectInstance"
+        "FederateAmbassador.discoverObjectInstance",
+        "ObjectClassHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
@@ -5509,8 +5550,22 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#discoveredClassStabilityAfterSpecificSubscription",
       "parity": "cpp-tck.discovered-class-stability-after-specific-subscription",
-      "default_status": "unsupported",
-      "exclusion": "Requires a Java IEEE 1516.1-2025 provider adapter and a FOM containing the configured base/derived object-class hierarchy and attributes; run only with adapter-supplied inputs."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "known-class-advisory-tck.xml supplied through hla.rti.tck.knownClassFom",
+        "HLAobjectRoot.TckKnownClassObject and HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject",
+        "Name and Efficiency attributes",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "exclusion": "Requires the adapter-supplied known-class hierarchy FOM and class/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: out/java-tck/discovered-class-stability-after-specific-subscription-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract selectors passed all four focused CTests and four direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/discovered-class-stability-after-specific-subscription-java-parity-20261116.{json,xml}. The direct mapping remains limited to the selected §5.1.3 subscription-class stability requirement. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.object-registration-discovery-multi-recipient",

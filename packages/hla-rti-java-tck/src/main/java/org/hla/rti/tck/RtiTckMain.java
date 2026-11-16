@@ -1668,32 +1668,32 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.per-federate-discovered-class",
             "report the same registered object using each subscriber federate's discovered class",
             "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;ResignAction.DELETE_OBJECTS;ResignAction.NO_ACTION;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;ObjectInstanceHandle.equals;ObjectClassHandle.equals",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::perFederateDiscoveredClass);
+            }, true), RtiTckMain::perFederateDiscoveredClass);
       run(new Scenario("java-tck.registered-object-class-immutability",
             "preserve the registered and federate-known object class across subscription class-view changes",
             "registered-object-class-immutability",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;ResignAction.DELETE_OBJECTS;ResignAction.NO_ACTION;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeMultipleCallbacks;FederateAmbassador.discoverObjectInstance;ObjectInstanceHandle.equals;ObjectClassHandle.equals",
             new String[] {
                "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-object-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::registeredObjectClassImmutability);
+            }, true), RtiTckMain::registeredObjectClassImmutability);
       run(new Scenario("java-tck.discovered-class-stability-after-specific-subscription",
             "keep a base-class discovery unchanged after adding a more-specific subscription",
             "discovered-class-stability",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getKnownObjectClassHandle;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;ResignAction.DELETE_OBJECTS;ResignAction.NO_ACTION;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;ObjectClassHandle.equals",
             new String[] {
                "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11",
                "cpp-1516.1-object-registration-discovery",
                "cpp-1516.1-object-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::discoveredClassStabilityAfterSpecificSubscription);
+            }, true), RtiTckMain::discoveredClassStabilityAfterSpecificSubscription);
       run(new Scenario("java-tck.object-class-abstraction-subscription",
             "discover a derived object and reflect its inherited attribute through a base-class subscription",
             "object-registration-discovery",
@@ -4787,11 +4787,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.attribute-scope-ownership-acquisition-no-out-of-scope",
             "do not report out of scope when the acting federate acquires attribute ownership",
             "attribute-scope-advisory",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.setAttributeScopeAdvisorySwitch;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributesOutOfScope;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM,logical-time implementation);RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.getAttributeScopeAdvisorySwitch;RTIambassador.setAttributeScopeAdvisorySwitch;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES;ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributesOutOfScope;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification;ObjectClassHandle.equals;AttributeHandle.equals",
             new String[] {
                "requirement-candidate-content-clauses-10-support-services-page-244-l23-7",
                "requirement-candidate-content-clauses-10-support-services-page-244-l38-12"
-            }, false), RtiTckMain::attributeScopeOwnershipAcquisitionNoOutOfScope);
+            }, true), RtiTckMain::attributeScopeOwnershipAcquisitionNoOutOfScope);
       run(new Scenario("java-tck.default-region-object-routing",
             "route ordinary object updates through default-source and explicit regions as declarations and associations change",
             "default-region-object-routing",
@@ -11464,6 +11464,7 @@ public final class RtiTckMain {
 
    private static void attributeScopeOwnershipAcquisitionNoOutOfScope() throws Exception {
       AttributeScopeOwnershipAcquisitionTck.run(factory(), requireAdapterFile(DDM_FOM_PROPERTY),
+         timeImplementation(),
          requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), callbackModel());
    }

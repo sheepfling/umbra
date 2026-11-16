@@ -5497,3 +5497,48 @@ focused CTests and 4/4 direct runs. Results are in
 and `out/cpp-tck-evidence-20261116/ownership-cancellation-idle-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
+
+The default-run `java-tck.attribute-scope-ownership-acquisition-no-out-of-scope`
+case verifies that the acquiring federate receives the ownership notification
+and owns the attribute, while that same acquisition generates no
+`attributesOutOfScope` callback during the 10-second observation window. Its
+direct mappings are limited to the acting-acquirer and no-notification
+requirements in IEEE 1516.1-2025 §10.1.2.1. Java passed under HLA_EVOKED and
+HLA_IMMEDIATE with the DDM TCK FOM and HLAinteger64Time. The paired installed-
+package C++ primary passed 2/2 focused CTests and 2/2 direct runs across both
+callback models. Results are in
+`out/java-tck/attribute-scope-ownership-acquisition-no-out-of-scope-java-parity-20261116/{evoked,immediate}/`
+and
+`out/cpp-tck-evidence-20261116/attribute-scope-ownership-acquisition-no-out-of-scope-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
+
+The default-run `java-tck.per-federate-discovered-class` case verifies one
+discovery per subscriber with the class view selected by that federate's
+subscription. `java-tck.registered-object-class-immutability` then changes both
+subscriber class views and confirms each discovered and registered class stays
+stable. Both cases round-trip each member's own object handle from the shared
+object name; they never compare opaque handles across ambassadors. Their direct
+mappings remain limited to the selected IEEE 1516.1-2025 §5.1.3 requirements.
+Java passed both cases under HLA_EVOKED and HLA_IMMEDIATE with the known-class
+hierarchy FOM and HLAinteger64Time. The installed-package C++ primary/contract
+selectors passed 8/8 focused CTests and 8/8 direct runs across both callback
+models. Results are in
+`out/java-tck/per-federate-discovered-class-java-parity-20261116/{evoked,immediate}/`,
+`out/java-tck/registered-object-class-immutability-java-parity-20261116/{evoked,immediate}/`,
+and `out/cpp-tck-evidence-20261116/object-class-view-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
+
+The default-run `java-tck.discovered-class-stability-after-specific-subscription`
+case records a discovery through a base-class subscription, adds the more-
+specific subscription, and confirms the discovered class stays stable with no
+duplicate callback. Its direct mapping is limited to the selected
+IEEE 1516.1-2025 §5.1.3 requirement. Java passed under both callback models;
+the installed-package C++ primary/contract selectors passed 4/4 focused CTests
+and 4/4 direct runs. Results are in
+`out/java-tck/discovered-class-stability-after-specific-subscription-java-parity-20261116/{evoked,immediate}/`
+and
+`out/cpp-tck-evidence-20261116/discovered-class-stability-after-specific-subscription-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.

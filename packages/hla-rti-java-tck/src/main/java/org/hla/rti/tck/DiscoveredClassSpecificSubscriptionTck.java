@@ -51,9 +51,11 @@ final class DiscoveredClassSpecificSubscriptionTck {
 
          publisher.createFederationExecution(federation, fom, timeImplementation);
          federationCreated = true;
-         publisher.joinFederationExecution("java-tck-specific-subscription-publisher", federation);
+         publisher.joinFederationExecution(
+            "java-tck-specific-subscription-publisher", "tck-type", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-specific-subscription-subscriber", federation);
+         subscriber.joinFederationExecution(
+            "java-tck-specific-subscription-subscriber", "tck-type", federation);
          subscriberJoined = true;
 
          ObjectClassHandle publisherBaseClass = publisher.getObjectClassHandle(baseClassName);

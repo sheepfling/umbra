@@ -78,12 +78,14 @@ final class PerFederateDiscoveredClassTck {
 
          publisher.createFederationExecution(federation, fom, timeImplementation);
          federationCreated = true;
-         publisher.joinFederationExecution("java-tck-per-class-publisher", federation);
+         publisher.joinFederationExecution(
+            "java-tck-per-class-publisher", "tck-type", federation);
          publisherJoined = true;
-         baseSubscriber.joinFederationExecution("java-tck-per-class-base-view", federation);
+         baseSubscriber.joinFederationExecution(
+            "java-tck-per-class-base-view", "tck-type", federation);
          baseJoined = true;
          derivedSubscriber.joinFederationExecution(
-            "java-tck-per-class-derived-view", federation);
+            "java-tck-per-class-derived-view", "tck-type", federation);
          derivedJoined = true;
 
          publisherDerivedClass = publisher.getObjectClassHandle(derivedClassName);
@@ -219,8 +221,12 @@ final class PerFederateDiscoveredClassTck {
             && publisherCallbacks.discoveries.isEmpty()
             && baseClass.equals(baseDiscovery.objectClass)
             && derivedClass.equals(derivedDiscovery.objectClass)
+            && publisherObject.equals(publisher.getObjectInstanceHandle(objectName))
             && objectName.equals(baseSubscriber.getObjectInstanceName(baseDiscovery.object))
             && objectName.equals(derivedSubscriber.getObjectInstanceName(derivedDiscovery.object))
+            && baseDiscovery.object.equals(baseSubscriber.getObjectInstanceHandle(objectName))
+            && derivedDiscovery.object.equals(
+               derivedSubscriber.getObjectInstanceHandle(objectName))
             && baseClass.equals(baseSubscriber.getKnownObjectClassHandle(baseDiscovery.object))
             && derivedClass.equals(
                derivedSubscriber.getKnownObjectClassHandle(derivedDiscovery.object))

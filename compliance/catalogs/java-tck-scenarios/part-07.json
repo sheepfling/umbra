@@ -400,8 +400,8 @@
       "title": "Do not report out of scope when the acting federate acquires attribute ownership",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -423,7 +423,9 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.attributesOutOfScope",
         "FederateAmbassador.requestDivestitureConfirmation",
-        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals"
       ],
       "requirement_ids": [
         "requirement-candidate-content-clauses-10-support-services-page-244-l23-7",
@@ -452,8 +454,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeScopeOwnershipAcquisitionNoOutOfScope",
       "parity": "cpp-tck.attribute-scope-ownership-acquisition-no-out-of-scope",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied DDM FOM and object/attribute names, plus an installed IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "DDM FOM supplied through hla.rti.tck.ddmFom",
+        "provider DDM object class and attribute names",
+        "HLAinteger64Time logical-time implementation",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "exclusion": "Requires the adapter-supplied DDM FOM and object/attribute names, and an installed IEEE 1516.1-2025 Java provider.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/attribute-scope-ownership-acquisition-no-out-of-scope-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary passed both focused CTests and both direct executions (2/2 each) across the callback models; evidence: out/cpp-tck-evidence-20261116/attribute-scope-ownership-acquisition-no-out-of-scope-java-parity-20261116.{json,xml}. The direct mapping remains limited to the acting acquirer's acquisition notification and no-out-of-scope advisory in §10.1.2.1. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.callback-controls-attribute-scope-advisories",

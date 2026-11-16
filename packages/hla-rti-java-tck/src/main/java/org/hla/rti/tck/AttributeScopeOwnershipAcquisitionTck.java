@@ -18,12 +18,13 @@ import java.util.function.BooleanSupplier;
 /** Ensures an acting federate receives no out-of-scope callback for its ownership acquisition. */
 final class AttributeScopeOwnershipAcquisitionTck {
    private static final long CALLBACK_TIMEOUT_NANOS = 15_000_000_000L;
-   private static final long OBSERVATION_MILLIS = 5_000L;
+   private static final long OBSERVATION_MILLIS = 10_000L;
 
    private AttributeScopeOwnershipAcquisitionTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName, String attributeName,
-         CallbackModel callbackModel) throws Exception {
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador acquirer = factory.getRtiAmbassador();
       Recorder ownerCallbacks = new Recorder();
@@ -44,11 +45,13 @@ final class AttributeScopeOwnershipAcquisitionTck {
          ownerConnected = true;
          acquirer.connect(acquirerCallbacks.proxy(), callbackModel);
          acquirerConnected = true;
-         owner.createFederationExecution(federation, fom);
+         owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution("attribute-scope-acquisition-owner", federation);
+         owner.joinFederationExecution(
+            "attribute-scope-acquisition-owner", "tck-type", federation);
          ownerJoined = true;
-         acquirer.joinFederationExecution("attribute-scope-acquisition-acquirer", federation);
+         acquirer.joinFederationExecution(
+            "attribute-scope-acquisition-acquirer", "tck-type", federation);
          acquirerJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
