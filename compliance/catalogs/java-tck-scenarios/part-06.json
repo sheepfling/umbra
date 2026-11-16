@@ -7178,6 +7178,9 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7199,7 +7202,12 @@
       ],
       "requirement_ids": [
         "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management"
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
+        "requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48",
+        "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
@@ -7209,7 +7217,7 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-7.2",
+        "hla-1516.1-2025:clause-7.1.4",
         "hla-1516.1-2025:clause-7.3",
         "hla-1516.1-2025:clause-7.14",
         "hla-1516.1-2025:clause-7.15",
@@ -7218,7 +7226,7 @@
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
-          "standard_section": "hla-1516.1-2025:clause-7.2"
+          "standard_section": "hla-1516.1-2025:clause-7.1.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48",
@@ -7237,7 +7245,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.16"
         }
       ],
-      "mapping_note": "Java parity checks the same standard APIs and direct outcomes: §7.2 tag echo and §7.3 retained-attribute confirmation only under evoked callbacks, §7.14 cancellation of the owner's remaining negotiated offer, §7.15 partial acquisition cancellation, and §7.16 the single confirmation with the canceled subset. Split ownership and acquisition delivery are additional API observations. Java compiles against the official API-only JAR; provider runtime remains unverified. Paired current-source installed-package C++ primary/contract passed 4/4 across evoked/immediate callbacks.",
+      "mapping_note": "Java checks the same direct outcomes as the C++ primary: the page-154-l27-8 acquisition-tag echo maps to §7.1.4 and is asserted for HLA_EVOKED; the page-155-l173-48 retained-attribute confirmation request maps to §7.3 and is also asserted for HLA_EVOKED. Across both callback models, the test cancels one requested attribute, checks one exact cancellation confirmation with that subset, transfers only the retained attribute, and cancels the owner's remaining negotiated offer. These map to page-169-l24-3 -> §7.14, page-170-l13-1 -> §7.15, and page-171-l52-13 -> §7.16. Split ownership and acquisition delivery are supplemental public-API observations.",
       "contract_refs": [
         "attribute-ownership-acquisition-api-contract.json",
         "attribute-ownership-acquisition-requirements-contract.json",
@@ -7248,8 +7256,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#negotiatedDivestiturePartialAcquisitionCancellation",
       "parity": "cpp-tck.negotiated-divestiture-partial-acquisition-cancellation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied multi-attribute FOM and ownership-capable provider profile; the Java scenario uses only standard IEEE 1516.1-2025 APIs and callbacks."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "hla.rti.tck.multiAttributeFom with HLAobjectRoot.TckMultiAttributeObject.FirstValue and SecondValue",
+        "provider logical-time implementation and callback model"
+      ],
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, ddm-multi-attribute-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue. Results are under out/java-tck/negotiated-divestiture-partial-acquisition-cancellation-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/negotiated-divestiture-partial-acquisition-cancellation-java-parity-20261116.{json,xml}.",
+      "mapping_classification": "direct-requirement-mapped",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.negotiated-divestiture-no-accepter",
@@ -7414,6 +7433,9 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -7431,7 +7453,16 @@
         "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
       ],
       "requirement_ids": [
-        "cpp-1516.1-ownership-management"
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l16-4",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l22-6",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l28-8",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l34-10",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l43-13",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l52-16",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l58-18",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l64-20",
+        "requirement-candidate-content-clauses-07-ownership-management-page-162-l76-24"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-07-ownership-management-page-162-l16-4",
@@ -7491,8 +7522,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipRepeatAcquisitionPending",
       "parity": "cpp-tck.ownership-repeat-acquisition-pending-preserves-state",
-      "default_status": "unsupported",
-      "exclusion": "Requires the adapter-supplied multi-attribute FOM, time implementation, and callback model. The case remains opt-in because it needs the adapter-supplied multi-attribute FOM and time implementation; independent-provider behavior and conformance are unverified."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "hla.rti.tck.multiAttributeFom with HLAobjectRoot.TckMultiAttributeObject.FirstValue and SecondValue",
+        "provider logical-time implementation and callback model"
+      ],
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue. Java results are in out/java-tck/ownership-repeat-acquisition-pending-preserves-state-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/ownership-repeat-acquisition-pending-preserves-state-java-parity-20261116.{json,xml}. These local-provider results do not establish independent-provider behavior, interoperability, or conformance.",
+      "mapping_classification": "direct-requirement-mapped",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.negotiated-divestiture-cancellation",

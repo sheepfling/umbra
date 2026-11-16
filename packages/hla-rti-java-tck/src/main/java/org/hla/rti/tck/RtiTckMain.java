@@ -6284,11 +6284,14 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.negotiated-divestiture-partial-acquisition-cancellation",
             "cancel one member of a negotiated multi-attribute acquisition and transfer only the retained attribute",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.confirmDivestiture;RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unpublishObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
             new String[] {
-               "cpp-1516.1-object-management",
-               "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::negotiatedDivestiturePartialAcquisitionCancellation);
+               "requirement-candidate-content-clauses-07-ownership-management-page-154-l27-8",
+               "requirement-candidate-content-clauses-07-ownership-management-page-155-l173-48",
+               "requirement-candidate-content-clauses-07-ownership-management-page-169-l24-3",
+               "requirement-candidate-content-clauses-07-ownership-management-page-170-l13-1",
+               "requirement-candidate-content-clauses-07-ownership-management-page-171-l52-13"
+            }, true), RtiTckMain::negotiatedDivestiturePartialAcquisitionCancellation);
       run(new Scenario("java-tck.negotiated-divestiture-no-accepter",
             "retain negotiated ownership until an acquirer arrives and the owner confirms",
             "ownership",
@@ -6308,8 +6311,18 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.ownership-repeat-acquisition-pending-preserves-state",
             "preserve pending and canceling acquisition states across repeated requests",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.disableCallbacks;RTIambassador.enableCallbacks;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.cancelAttributeOwnershipAcquisition;RTIambassador.disableCallbacks;RTIambassador.enableCallbacks;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l16-4",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l22-6",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l28-8",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l34-10",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l43-13",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l52-16",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l58-18",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l64-20",
+               "requirement-candidate-content-clauses-07-ownership-management-page-162-l76-24"
+            }, true),
          RtiTckMain::ownershipRepeatAcquisitionPending);
       run(new Scenario("java-tck.negotiated-divestiture-pre-delivery-cancellation",
             "suppress negotiated-divestiture and ordinary release callbacks when acquisition is canceled before evoked delivery",

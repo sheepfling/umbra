@@ -781,11 +781,33 @@ C++ primary and contract selectors passed all four callback-model runs. The
 current C++ catalog mapping note describes negotiated-divestiture cancellation,
 which this scenario does not perform, so the Java mirror makes no direct clause
 claim while that local crosswalk remains unresolved.
-The `java-tck.negotiated-divestiture-partial-acquisition-cancellation` case
-uses the adapter-supplied multi-attribute FOM and logical-time implementation.
-It confirms negotiated divestiture transfers only the still-requested attribute
-after the other acquisition is canceled, with callback payloads checked for
-both callback models.
+The default-enabled `java-tck.ownership-repeat-acquisition-pending-preserves-state`
+case covers two §7.8 states with the adapter's two-attribute FOM. A repeated
+`{A,B}` acquisition starts only B while A is already acquiring, then again
+while A's cancellation callback is pending. The Java case checks exact owner
+release and cancellation callback subsets and unchanged ownership. It maps nine
+direct page-162 witnesses to IEEE 1516.1-2025 §7.8. Java passed 1/1 under both
+callback models; the paired C++ primary and contract passed 4/4 focused CTests
+and 4/4 direct executions. Java evidence is in
+`out/java-tck/ownership-repeat-acquisition-pending-preserves-state-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/ownership-repeat-acquisition-pending-preserves-state-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider interoperability
+or conformance evidence.
+The default-enabled `java-tck.negotiated-divestiture-partial-acquisition-cancellation`
+case uses the adapter-supplied multi-attribute FOM. It cancels A from `{A,B}`,
+checks the exact cancellation callback, then verifies evoked confirmation
+contains only B and echoes the acquisition tag. Confirmation transfers only B;
+the acquisition callback carries B and the confirmation tag, while A remains
+with the owner. Its selected page-154, page-155, page-169, page-170, and page-171
+witnesses map directly to IEEE 1516.1-2025 §§7.1.4, 7.3, 7.14, 7.15, and 7.16.
+Java passed 1/1 under both callback models; the paired C++ primary and contract
+passed 4/4 focused CTests and 4/4 direct executions. Java evidence is in
+`out/java-tck/negotiated-divestiture-partial-acquisition-cancellation-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/negotiated-divestiture-partial-acquisition-cancellation-java-parity-20261116.{json,xml}`.
+These are local-provider results, not independent-provider interoperability
+or conformance evidence.
 The `java-tck.negotiated-divestiture-pre-delivery-cancellation` case uses the
 adapter FOM and logical-time implementation. In the evoked model, it verifies
 that canceling before callback servicing suppresses both queued owner callbacks,
