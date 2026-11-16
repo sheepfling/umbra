@@ -48,9 +48,9 @@ final class IfAvailableOwnershipRestoreUnavailableTck {
          requesterConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution(ownerName, federation);
+         owner.joinFederationExecution(ownerName, "tck-type", federation);
          ownerJoined = true;
-         requester.joinFederationExecution(requesterName, federation);
+         requester.joinFederationExecution(requesterName, "tck-type", federation);
          requesterJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
