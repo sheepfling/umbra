@@ -158,6 +158,18 @@ Results are in
 `out/mgw/cpp-tck-mom-directed-interactions-sent-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run `java-tck.federate-mom-directed-interactions-received-counts` case
+requests `HLAreportDirectedInteractionsReceived` after one ordinary and one directed
+reliable interaction. It verifies ordinary-receive exclusion, the reliable count,
+empty best-effort and idle-requester buckets, nested `HLAinteractionCounts` decoding,
+and standard report metadata. It maps the public MOM request/report surface to
+IEEE 1516.1-2025 §11.4.1; detailed bucket accounting remains scenario evidence.
+Java and the paired C++ primary passed both callback models. Results are in
+`out/java-tck/federate-mom-directed-interactions-received-counts-java-parity-20261115/`
+and `out/mgw/cpp-tck-mom-directed-interactions-received-counts-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only

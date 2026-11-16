@@ -7339,7 +7339,7 @@ public final class RtiTckMain {
                "cpp-1516.1-directed-interaction-delivery",
                "cpp-1516.1-transportation-type-control",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomDirectedInteractionsReceivedCounts);
+            }, true), RtiTckMain::federateMomDirectedInteractionsReceivedCounts);
       run(new Scenario("java-tck.federate-mom-directed-interactions-sent-counts",
             "verify directed-interaction sent-count reports exclude ordinary sends and preserve empty buckets",
             "directed-interactions",

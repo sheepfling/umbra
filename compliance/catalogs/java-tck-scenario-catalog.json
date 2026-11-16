@@ -64079,6 +64079,8 @@
       "category": "directed-interactions",
       "title": "Verify directed-interaction received-count reports by transportation type",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
@@ -64102,6 +64104,9 @@
         "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.sendDirectedInteraction(receive-order)",
         "RTIambassador.requestInteractionTransportationTypeChange",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.unsubscribeObjectClassDirectedInteractions",
         "RTIambassador.unpublishObjectClassDirectedInteractions",
         "RTIambassador.unsubscribeInteractionClass",
@@ -64115,22 +64120,48 @@
         "FederateAmbassador.receiveInteraction",
         "FederateAmbassador.receiveDirectedInteraction",
         "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "EncoderFactory.createHLAvariableArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAbyte",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.size",
+        "HLAvariableArray.get",
+        "HLAvariableArray.toByteArray",
+        "HLAinteger32BE.getValue",
+        "Handle.encodedLength",
+        "Handle.encode",
         "HLAvariableArray",
         "HLAfixedRecord",
         "HLAinteger32BE",
         "HLAbyte"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-directed-interaction-publication",
-        "cpp-1516.1-directed-interaction-subscription",
-        "cpp-1516.1-directed-interaction-delivery",
-        "cpp-1516.1-transportation-type-control",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "Direct mappings follow joined-federate-mom-public-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1 and requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36 -> §11.4.1. These candidate clauses support the standard HLArequestDirectedInteractionsReceived and HLAreportDirectedInteractionsReceived surface. They do not specify directed-only counters, per-transport bucket values, or NULL/empty buckets; those are scenario observations and are not additional normative claims.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models verify one ordinary receive is excluded from the directed count, one reliable directed receive appears in the receiver report, best-effort and idle-requester buckets remain empty, HLAinteractionCounts decodes as the expected nested structure, and the two standard transportation reports carry the expected metadata.",
+      "evidence_note": "Java focused runs passed 1/1 in HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API, using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit: out/java-tck/federate-mom-directed-interactions-received-counts-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct executions in both callback models; results/JUnit: out/mgw/cpp-tck-mom-directed-interactions-received-counts-java-parity-20261115.{json,xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -64175,8 +64206,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDirectedInteractionsReceivedCounts",
       "parity": "cpp-tck.joined-federate-mom-directed-interactions-received-counts",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, interaction class and parameter, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run"
     },
     {
       "id": "java-tck.federate-mom-directed-interactions-sent-counts",
