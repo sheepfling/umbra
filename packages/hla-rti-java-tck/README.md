@@ -3375,9 +3375,14 @@ evidence, not an interoperability or conformance claim.
 
 The `java-tck.timestamped-object-deletion-tombstone` scenario reserves and
 registers a named instance, deletes it at a timestamp, advances to its terminal
-boundary, verifies that retraction is no longer possible, then reserves and
-registers the same name again and checks the resulting handle lookup. It remains
-unsupported by default pending Java-provider execution.
+boundary and verifies that retraction is no longer possible. It then advances
+to the effective deletion timestamp before reserving and registering the same
+name again and checking the resulting handle lookup. Current-source runs passed
+under both HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider
+with the adapter-supplied FOM, object class, attribute, and HLAinteger64Time;
+the paired C++ primary and contract selectors passed both callback models. This
+scenario is enabled by default. These results are provider-local evidence, not
+independent-provider interoperability or conformance.
 
 The `java-tck.timestamped-object-deletion-retraction` scenario sends two
 timestamped deletions to an unconstrained and a constrained recipient. The first

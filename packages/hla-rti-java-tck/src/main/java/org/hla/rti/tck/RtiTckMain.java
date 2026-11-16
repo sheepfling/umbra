@@ -5125,11 +5125,11 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.timestamped-object-deletion-tombstone",
             "reuse a named object instance after a timestamped-deletion tombstone becomes terminal",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstance(named);RTIambassador.getObjectInstanceHandle;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.deleteObjectInstance(time);RTIambassador.timeAdvanceRequest;RTIambassador.retract;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstance(named);RTIambassador.getObjectInstanceHandle;RTIambassador.getTimeFactory;RTIambassador.enableTimeRegulation;RTIambassador.queryLogicalTime;RTIambassador.deleteObjectInstance(time);RTIambassador.timeAdvanceRequest;RTIambassador.retract;RTIambassador.disableTimeRegulation;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectDeletionTombstone);
+            }, true), RtiTckMain::timestampedObjectDeletionTombstone);
       run(new Scenario("java-tck.timestamped-object-deletion-retraction",
             "retract one timestamped removal before constrained delivery and reject retraction after delivery",
             "time",

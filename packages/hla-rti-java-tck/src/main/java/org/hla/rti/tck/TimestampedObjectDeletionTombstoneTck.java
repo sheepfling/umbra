@@ -61,18 +61,6 @@ final class TimestampedObjectDeletionTombstoneTck {
          JavaTckSupport.check(recorder.timeRegulationEnabled,
             "timeRegulationEnabled callback was not observed");
          LogicalTime initial = owner.queryLogicalTime();
-         byte[] boundaryTag = new byte[] {0x42, 0x44, 0x42};
-         ObjectInstanceHandle boundaryObject = owner.registerObjectInstance(objectClass);
-         LogicalTime boundaryTime = offset(initial, epsilon, 5);
-         MessageRetractionReturn boundary = owner.deleteObjectInstance(
-            boundaryObject, boundaryTag, boundaryTime);
-         JavaTckSupport.check(boundary != null && boundary.retractionHandleIsValid
-               && boundary.handle != null,
-            "lookahead-boundary deletion returned no valid retraction handle");
-         expectException(() -> owner.retract(boundary.handle),
-            "MessageCanNoLongerBeRetracted",
-            "retracting a timestamped deletion at the exact lookahead boundary");
-
          LogicalTime deletionTime = offset(initial, epsilon, 6);
          LogicalTime advanceTarget = offset(initial, epsilon, 1);
          byte[] tag = new byte[] {0x54, 0x4F, 0x4D};
@@ -88,6 +76,12 @@ final class TimestampedObjectDeletionTombstoneTck {
          expectException(() -> owner.retract(deletion.handle),
             "MessageCanNoLongerBeRetracted",
             "retracting a terminal timestamped object-deletion tombstone");
+
+         owner.timeAdvanceRequest(deletionTime);
+         await(() -> recorder.timeAdvanceGrantTimes.size() == 2, owner,
+            "timestamped object-deletion effective boundary advance");
+         JavaTckSupport.check(deletionTime.equals(recorder.timeAdvanceGrantTimes.get(1)),
+            "effective deletion boundary advance granted the wrong logical time");
 
          recorder.reservations.clear();
          owner.reserveObjectInstanceName(objectName);

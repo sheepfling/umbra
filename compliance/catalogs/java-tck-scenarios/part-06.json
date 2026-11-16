@@ -4356,12 +4356,15 @@
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getTimeFactory",
         "RTIambassador.enableTimeRegulation",
+        "RTIambassador.queryLogicalTime",
         "RTIambassador.deleteObjectInstance(time)",
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.retract",
+        "RTIambassador.disableTimeRegulation",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.objectInstanceNameReservationSucceeded",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.timeAdvanceGrant"
@@ -4387,8 +4390,10 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionTombstone",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until exercised against an IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion-tombstone",
+      "evidence_note": "Current-source Java passed under HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute TCK FOM, object class, and attribute. The paired C++ primary and contract selectors passed both callback models. The case verifies name reservation and registration, terminal retraction rejection after the lookahead boundary, completion at the effective deletion timestamp, same-name reservation and re-registration, and handle lookup. No direct standard-section mapping is claimed; the paired C++ catalog provides no selected candidate-to-clause mapping. Results: out/java-tck/object-deletion-tombstone-20261116/{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-object-deletion-tombstone-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-retraction",
