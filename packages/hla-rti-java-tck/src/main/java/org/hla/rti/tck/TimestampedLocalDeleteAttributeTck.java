@@ -186,7 +186,7 @@ final class TimestampedLocalDeleteAttributeTck {
                && localFirstTarget.equals(localRecorder.timeAdvanceGrantTimes.get(0)),
             "local deletion did not suppress only the local queued reflection");
          JavaTckSupport.check(localRecorder.callbackOrder.equals(
-               Arrays.asList("timeAdvanceGrant")),
+               Arrays.asList("grant")),
             "local deletion delivered a stale local reflection callback");
          checkReflection(surviving, survivingRecorder, object, survivingAttribute, value, tag,
             producer, firstTime, OrderType.TIMESTAMP, firstSent.handle,
@@ -206,6 +206,7 @@ final class TimestampedLocalDeleteAttributeTck {
          LogicalTime secondTime = offset(publisherInitial, epsilon, 7);
          LogicalTime localSecondTarget = offset(localInitial, epsilon, 7);
          LogicalTime survivingSecondTarget = offset(survivingInitial, epsilon, 7);
+         LogicalTime publisherSecondTarget = offset(publisherInitial, epsilon, 3);
          AttributeHandleValueMap secondValues = publisher.getAttributeHandleValueMapFactory()
             .create(1);
          secondValues.put(publisherAttribute, value);
@@ -220,7 +221,7 @@ final class TimestampedLocalDeleteAttributeTck {
          publisherRecorder.callbackOrder.clear();
          local.timeAdvanceRequest(localSecondTarget);
          surviving.timeAdvanceRequest(survivingSecondTarget);
-         publisher.timeAdvanceRequest(publisherTarget);
+         publisher.timeAdvanceRequest(publisherSecondTarget);
          awaitSessions(new RTIambassador[] {publisher, local, surviving}, callbackModel,
             () -> publisherRecorder.timeAdvanceGrantTimes.size() == 2
                && localRecorder.reflections.size() == 1

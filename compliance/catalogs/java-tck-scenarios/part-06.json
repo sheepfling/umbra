@@ -1811,11 +1811,15 @@
       "category": "time",
       "title": "Suppress one recipient's queued timestamped reflection after local deletion, then restore delivery",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -1823,11 +1827,23 @@
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "RTIambassador.queryLogicalTime",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.add",
+        "LogicalTimeInterval.add",
+        "LogicalTime.equals",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.enableTimeRegulation",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
         "RTIambassador.updateAttributeValues(time)",
+        "MessageRetractionReturn",
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.disableTimeRegulation",
@@ -1840,7 +1856,11 @@
         "FederateAmbassador.reflectAttributeValues(time)",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.timeConstrainedEnabled",
-        "FederateAmbassador.timeAdvanceGrant"
+        "FederateAmbassador.timeAdvanceGrant",
+        "ObjectInstanceHandle.equals",
+        "FederateHandle.equals",
+        "MessageRetractionHandle.equals",
+        "OrderType.TIMESTAMP"
       ],
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
@@ -1852,6 +1872,7 @@
         "cpp-1516.1-attribute-update-retraction",
         "cpp-1516.1-time-advance-request"
       ],
+      "mapping_note": "The cpp-1516.1-* identifiers are repository-internal scenario references, not direct normative mappings. The Java case preserves the C++ internal disposition and makes no IEEE 1516.1-2025 section claim. It checks that local deletion suppresses one queued reflection, the surviving subscriber receives it, and resubscription restores delivery with exact time, ordering, tag, producer, transportation, and retraction metadata.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -1868,19 +1889,34 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedLocalDeleteAttribute",
       "parity": "cpp-tck.timestamped-local-delete-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "HLAinteger64Time logical-time factory",
+        "provider endpoint and callback model"
+      ],
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/timestamped-local-delete-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/timestamped-local-delete-attribute-java-parity-20261116.{json,xml}. This is local-provider evidence only and makes no normative mapping, independent-provider interoperability, or conformance claim."
     },
     {
       "id": "java-tck.timestamped-local-delete-object",
       "category": "time",
       "title": "Suppress one recipient's queued timestamped object removal with local deletion",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -1888,11 +1924,19 @@
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "RTIambassador.queryLogicalTime",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.add",
+        "LogicalTimeInterval.add",
+        "LogicalTime.equals",
         "RTIambassador.enableTimeConstrained",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.deleteObjectInstance(time)",
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -1905,7 +1949,11 @@
         "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.timeRegulationEnabled",
         "FederateAmbassador.timeConstrainedEnabled",
-        "FederateAmbassador.timeAdvanceGrant"
+        "FederateAmbassador.timeAdvanceGrant",
+        "ObjectInstanceHandle.equals",
+        "FederateHandle.equals",
+        "MessageRetractionHandle.equals",
+        "OrderType.TIMESTAMP"
       ],
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
@@ -1933,8 +1981,20 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedLocalDeleteObject",
       "parity": "cpp-tck.timestamped-local-delete-object",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "mapping_note": "The cpp-1516.1-* identifiers are repository-internal scenario references, not direct normative mappings. The Java case preserves the C++ internal disposition and makes no IEEE 1516.1-2025 section claim. It verifies that local deletion suppresses the queued timestamped removal for one recipient while the surviving recipient receives the exact object, tag, producer, timestamp, sent/received order, retraction handle, and removal-before-grant sequence.",
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "HLAinteger64Time logical-time factory",
+        "provider endpoint and callback model"
+      ],
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/timestamped-local-delete-object-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models; evidence is in .build/cpp-tck-evidence-20261116/timestamped-local-delete-object-java-parity-20261116.{json,xml}. This is local-provider evidence only and makes no normative mapping, independent-provider interoperability, or conformance claim."
     },
     {
       "id": "java-tck.timestamped-attribute-order-cohort",
@@ -3650,19 +3710,27 @@
       "category": "time",
       "title": "Timestamped object deletion uses the live preferred order of HLAprivilegeToDeleteObject",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getTimeFactory",
         "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "LogicalTime.add",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.changeAttributeOrderType",
         "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.disableTimeRegulation",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
@@ -3670,7 +3738,14 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.removeObjectInstance(time)"
+        "FederateAmbassador.removeObjectInstance(time)",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "FederateHandle.equals",
+        "LogicalTime.equals",
+        "OrderType.RECEIVE",
+        "OrderType.TIMESTAMP",
+        "MessageRetractionHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-timestamped-object-deletion",
@@ -3695,27 +3770,46 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDeletePrivilegePreferredOrder",
       "parity": "cpp-tck.timestamped-delete-privilege-preferred-order",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback model. Source compiles only against the official IEEE 1516.1-2025 API; Java provider runtime is not yet verified."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "HLAinteger64Time logical-time factory",
+        "provider endpoint and callback model"
+      ],
+      "evidence_note": "The default-enabled Java primary passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/timestamped-delete-privilege-java-port-20261116/{preferred-evoked,preferred-immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract pair passed 8/8 focused CTests and 8/8 direct executions across both callback models for the RECEIVE-preferred and TIMESTAMP-preferred branches; evidence is in .build/cpp-tck-evidence-20261116/timestamped-delete-privilege-java-parity-20261116.{json,xml}. This is local-provider evidence only; the direct mapping remains limited to the RECEIVE-preferred §8.1.4 branch and does not claim the full order matrix, independent-provider interoperability, or conformance."
     },
     {
       "id": "java-tck.timestamped-delete-privilege-timestamp-order",
       "category": "time",
       "title": "Timestamped object deletion uses the live TIMESTAMP order of HLAprivilegeToDeleteObject",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getTimeFactory",
         "LogicalTimeFactory.makeEpsilon",
+        "RTIambassador.queryLogicalTime",
+        "LogicalTime.add",
         "RTIambassador.enableTimeRegulation",
         "RTIambassador.changeAttributeOrderType",
         "RTIambassador.deleteObjectInstance(time)",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.disableTimeRegulation",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
@@ -3723,7 +3817,14 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.removeObjectInstance(time)"
+        "FederateAmbassador.removeObjectInstance(time)",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "FederateHandle.equals",
+        "LogicalTime.equals",
+        "OrderType.RECEIVE",
+        "OrderType.TIMESTAMP",
+        "MessageRetractionHandle.equals"
       ],
       "requirement_ids": [
         "java-1516.1-timestamped-object-deletion",
@@ -3748,8 +3849,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedDeletePrivilegeTimestampOrder",
       "parity": "cpp-tck.timestamped-delete-privilege-timestamp-order",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied provider, endpoint, FOM, logical-time implementation, and callback model. Source compiles only against the official IEEE 1516.1-2025 API; Java provider runtime is not yet verified."
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "p0-tck.xml",
+        "hla.rti.tck.objectClass=HLAobjectRoot.TckObject and hla.rti.tck.attribute=Value",
+        "HLAinteger64Time logical-time factory",
+        "provider endpoint and callback model"
+      ],
+      "evidence_note": "The default-enabled Java primary passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/timestamped-delete-privilege-java-port-20261116/{timestamp-evoked,timestamp-immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract pair passed 8/8 focused CTests and 8/8 direct executions across both callback models for the RECEIVE-preferred and TIMESTAMP-preferred branches; evidence is in .build/cpp-tck-evidence-20261116/timestamped-delete-privilege-java-parity-20261116.{json,xml}. This is local-provider evidence only; the direct mapping remains limited to the TIMESTAMP-sent/RECEIVE-received §8.1.4 branch and does not claim the full order matrix, independent-provider interoperability, or conformance."
     },
     {
       "id": "java-tck.timestamped-object-deletion-mixed-advances",

@@ -5421,3 +5421,22 @@ This is bounded Java API and wire-protocol evidence, not complete provider
 interoperability or conformance.
 
 The default-run java-tck.federate-asynchronous-delivery-mim-attribute case checks the MIM-derived initial HLAasynchronousDelivery value, one opposite-state transition, a direct request, conditional reflection metadata, and restoration. Its direct mappings cover IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21, 8.15–8.16, and 11.4.1. A non-null producer handle must be rejected by getFederateName with InvalidFederateHandle; null represents no producer. Java and the paired current-source C++ primary/contract passed both callback models. Results are in out/java-tck/federate-asynchronous-delivery-mim-attribute-java-parity-20261116/{evoked,immediate}/ and out/mgw/cpp-tck-federate-asynchronous-delivery-mim-attribute-java-parity-20261116-pair.{json,xml}.
+
+The default-run `java-tck.timestamped-local-delete-attribute` and
+`java-tck.timestamped-local-delete-object` cases verify that local deletion
+suppresses a queued timestamped reflection or removal for one recipient while
+the surviving recipient receives the expected event and metadata. Each Java
+case passed under both callback models against the current-source JNI provider;
+the paired C++ primary/contract selectors passed focused CTest and direct runs
+in both models. Their `cpp-1516.1-*` references are repository-internal IDs and
+make no direct IEEE section claim. The two default-run
+`java-tck.timestamped-delete-privilege-*` cases check the RECEIVE-preferred and
+TIMESTAMP-preferred removal branches, including sent/received order, message
+metadata, and retraction behavior. Both Java cases passed under both callback
+models, and the paired C++ primary/contract selectors passed 8/8 focused CTests
+and 8/8 direct runs. Their direct mapping remains limited to the exercised
+§8.1.4 branches. Results are in
+`out/java-tck/timestamped-local-delete-scenarios-java-parity-20261116/` and
+`.build/cpp-tck-evidence-20261116/{timestamped-local-delete-attribute,timestamped-local-delete-object,timestamped-delete-privilege}-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
