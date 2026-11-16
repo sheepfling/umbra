@@ -129,7 +129,7 @@ final class TimestampedObjectDeletionAlternateAdvancesTck {
             (LogicalTimeInterval) taraFactory.makeEpsilon(), 7);
          LogicalTime nmraBoundary = offset(nmraInitial,
             (LogicalTimeInterval) nmraFactory.makeEpsilon(), 10);
-         LogicalTime publisherTarget = offset(initial, epsilon, 2);
+         LogicalTime publisherTarget = offset(initial, epsilon, 3);
          byte[] tag = new byte[] {(byte) 0xD8, 0x61, 0x4E};
          MessageRetractionReturn sent = publisher.deleteObjectInstance(object, tag, deletionTime);
          JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
@@ -363,11 +363,11 @@ final class TimestampedObjectDeletionAlternateAdvancesTck {
                if ("timeRegulationEnabled".equals(name)) timeRegulationEnabled = true;
                else if ("timeConstrainedEnabled".equals(name)) timeConstrainedEnabled = true;
                else if ("discoverObjectInstance".equals(name) && arguments != null
-                     && arguments.length >= 3) {
+                     && arguments.length >= 4) {
                   Discovery event = new Discovery();
                   event.object = (ObjectInstanceHandle) arguments[0];
                   event.objectClass = (ObjectClassHandle) arguments[1];
-                  event.producer = (FederateHandle) arguments[2];
+                  event.producer = (FederateHandle) arguments[3];
                   discoveries.add(event);
                } else if ("removeObjectInstance".equals(name) && arguments != null
                      && arguments.length == 7) {

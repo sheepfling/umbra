@@ -3762,6 +3762,13 @@
         "RTIambassador.timeAdvanceRequestAvailable",
         "RTIambassador.nextMessageRequestAvailable",
         "RTIambassador.queryLogicalTime",
+        "RTIambassador.disableTimeConstrained",
+        "RTIambassador.disableTimeRegulation",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.flushQueueGrant",
@@ -3769,8 +3776,16 @@
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-08-time-management-page-201-l7-1"
       ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-201-l7-1",
+          "standard_section": "hla-1516.1-2025:clause-8.12.3"
+        }
+      ],
+      "mapping_note": "Direct §8.12.3 mapping: the case queues a timestamped object deletion before Flush Queue Request and checks that Remove Object Instance precedes Flush Queue Grant. This is the only branch claimed by this mapping; the TARA and NMRA branches remain unclaimed. Java passed with HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute TCK FOM, object class, and attribute. The paired C++ primary and contract selectors passed both callback models. This is local-provider evidence, not independent-provider interoperability or conformance. Results: out/java-tck/object-deletion-mixed-advances-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-object-deletion-mixed-parity-20261116/{results.json,junit.xml}.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -3791,8 +3806,12 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionMixedAdvances",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until exercised against an IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion-mixed-advances",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-8.12.3"
+      ],
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-future-nmr-arrival",

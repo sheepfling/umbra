@@ -20,12 +20,12 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | Scenario sketches | 964 |
 | Categories | 147 |
 | Distinct stable requirement IDs | 1292 |
-| Scenarios with a C++ parity pointer | 890 |
-| Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 668 |
-| Default `unsupported` scenarios | 296 |
-| Scenarios with explicit `requirement_mappings` | 716 |
-| Explicit mapping records | 2937 |
+| Scenarios with a C++ parity pointer | 891 |
+| Scenarios without a C++ parity pointer | 73 |
+| Default `run` scenarios | 669 |
+| Default `unsupported` scenarios | 295 |
+| Scenarios with explicit `requirement_mappings` | 717 |
+| Explicit mapping records | 2938 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -3604,7 +3604,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-object-deletion-future-nmr-arrival`](#scenario-java-tck.timestamped-object-deletion-future-nmr-arrival) — Retarget a pending NMR after a future timestamped object deletion arrives (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-nmr-arrival`).
 - [`java-tck.timestamped-object-deletion-future-nmra-arrival`](#scenario-java-tck.timestamped-object-deletion-future-nmra-arrival) — Retarget a pending NMRA after a future timestamped object deletion arrives (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-nmra-arrival`).
 - [`java-tck.timestamped-object-deletion-future-tara-arrival`](#scenario-java-tck.timestamped-object-deletion-future-tara-arrival) — Deliver a future timestamped object deletion before a pending TARA grant (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-tara-arrival`).
-- [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `unsupported`; C++ source pointer not declared).
+- [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-mixed-advances`).
 - [`java-tck.timestamped-object-deletion-no-fanout`](#scenario-java-tck.timestamped-object-deletion-no-fanout) — Retract a timestamped object deletion without recipients and restore its object state (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-retraction`](#scenario-java-tck.timestamped-object-deletion-retraction) — Retract timestamped object removal before constrained delivery and reject terminal retraction (`time`; default `unsupported`; C++ source pointer not declared).
@@ -3725,7 +3725,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-object-deletion-future-nmr-arrival`](#scenario-java-tck.timestamped-object-deletion-future-nmr-arrival) — Retarget a pending NMR after a future timestamped object deletion arrives (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-nmr-arrival`).
 - [`java-tck.timestamped-object-deletion-future-nmra-arrival`](#scenario-java-tck.timestamped-object-deletion-future-nmra-arrival) — Retarget a pending NMRA after a future timestamped object deletion arrives (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-nmra-arrival`).
 - [`java-tck.timestamped-object-deletion-future-tara-arrival`](#scenario-java-tck.timestamped-object-deletion-future-tara-arrival) — Deliver a future timestamped object deletion before a pending TARA grant (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-tara-arrival`).
-- [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `unsupported`; C++ source pointer not declared).
+- [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-mixed-advances`).
 - [`java-tck.timestamped-object-deletion-no-fanout`](#scenario-java-tck.timestamped-object-deletion-no-fanout) — Retract a timestamped object deletion without recipients and restore its object state (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-retraction`](#scenario-java-tck.timestamped-object-deletion-retraction) — Retract timestamped object removal before constrained delivery and reject terminal retraction (`time`; default `unsupported`; C++ source pointer not declared).
@@ -7158,6 +7158,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-08-time-management-page-201-l7-1`
 
 - [`java-tck.timestamped-interaction-flush-queue-future-input`](#scenario-java-tck.timestamped-interaction-flush-queue-future-input) — Deliver TSO beyond the FQR request, report OLT, and enforce the optimistic send floor (`time`; default `run`; C++ pointer `cpp-tck.timestamped-interaction-flush-queue-future-input`).
+- [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-mixed-advances`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -12203,6 +12204,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-08-time-management-page-180-l93-28` → `hla-1516.1-2025:clause-8.1.4`
 - `java-tck.timestamped-delete-privilege-timestamp-order`:
   - `requirement-candidate-content-clauses-08-time-management-page-180-l93-28` → `hla-1516.1-2025:clause-8.1.4`
+- `java-tck.timestamped-object-deletion-mixed-advances`:
+  - `requirement-candidate-content-clauses-08-time-management-page-201-l7-1` → `hla-1516.1-2025:clause-8.12.3`
 - `java-tck.timestamped-object-deletion-future-nmr-arrival`:
   - `requirement-candidate-content-clauses-06-object-management-page-129-l123-34` → `hla-1516.1-2025:clause-6.16`
   - `requirement-candidate-content-clauses-06-object-management-page-129-l138-39` → `hla-1516.1-2025:clause-6.16`
@@ -15460,7 +15463,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.timestamped-interaction-zero-lookahead-send-at-grant"></a>`java-tck.timestamped-interaction-zero-lookahead-send-at-grant` — Accept a timestamped interaction after a zero-lookahead TARA grant | `org.hla.rti.tck.RtiTckMain#timestampedInteractionZeroLookaheadSendAtGrant` | 44 | `cpp-1516.1-timestamped-interaction-delivery` | `cpp-tck.timestamped-interaction-zero-lookahead-send-at-grant` | `run` | provider Java API JAR and service-loaded RtiFactory; FOM containing the selected interaction class and parameter; provider-supported logical-time implementation; callback model selected by the adapter |
 | <a id="scenario-java-tck.timestamped-local-delete-attribute"></a>`java-tck.timestamped-local-delete-attribute` — Suppress one recipient's queued timestamped reflection after local deletion, then restore delivery | `org.hla.rti.tck.RtiTckMain#timestampedLocalDeleteAttribute` | 30 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-object-instance-deletion`, `cpp-1516.1-local-object-instance-deletion`, `cpp-1516.1-timestamped-attribute-update`, `cpp-1516.1-timestamped-attribute-reflect`, `cpp-1516.1-attribute-update-retraction`, `cpp-1516.1-time-advance-request` | `cpp-tck.timestamped-local-delete-attribute` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-local-delete-object"></a>`java-tck.timestamped-local-delete-object` — Suppress one recipient's queued timestamped object removal with local deletion | `org.hla.rti.tck.RtiTckMain#timestampedLocalDeleteObject` | 30 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-object-instance-deletion`, `cpp-1516.1-local-object-instance-deletion`, `cpp-1516.1-timestamped-object-deletion`, `cpp-1516.1-timestamped-object-removal`, `cpp-1516.1-object-deletion-retraction`, `cpp-1516.1-time-advance-request` | `cpp-tck.timestamped-local-delete-object` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.timestamped-object-deletion-mixed-advances"></a>`java-tck.timestamped-object-deletion-mixed-advances` — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionMixedAdvances` | 22 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.timestamped-object-deletion-mixed-advances"></a>`java-tck.timestamped-object-deletion-mixed-advances` — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionMixedAdvances` | 29 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-201-l7-1` | `cpp-tck.timestamped-object-deletion-mixed-advances` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-no-fanout"></a>`java-tck.timestamped-object-deletion-no-fanout` — Retract a timestamped object deletion without recipients and restore its object state | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionNoFanout` | 21 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-regulation-reenable"></a>`java-tck.timestamped-object-deletion-regulation-reenable` — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRegulationReenable` | 30 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-retraction"></a>`java-tck.timestamped-object-deletion-retraction` — Retract timestamped object removal before constrained delivery and reject terminal retraction | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRetraction` | 30 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |

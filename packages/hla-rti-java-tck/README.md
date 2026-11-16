@@ -3357,8 +3357,10 @@ timestamped object deletion for three constrained recipients using Flush Queue,
 Time Advance Request Available, and Next Message Request Available. It checks
 removal-before-grant ordering, each service's distinct grant and logical-time
 result, exact removal metadata, Flush Queue time bounds, and the
-`MessageCanNoLongerBeRetracted` terminal boundary. It remains unsupported by
-default until run through a compatible provider adapter.
+`MessageCanNoLongerBeRetracted` terminal boundary. Current-source runs passed
+under both HLA_EVOKED and HLA_IMMEDIATE with the local JNI provider and the
+adapter-supplied FOM, object class, attribute, and HLAinteger64Time. This is
+provider-specific evidence, not an interoperability or conformance claim.
 
 The `java-tck.timestamped-object-deletion-no-fanout` scenario checks a
 timestamped deletion exactly at the producer lookahead boundary, retraction of
