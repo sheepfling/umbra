@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1209 |
+| Distinct stable requirement IDs | 1219 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
-| Default `run` scenarios | 655 |
-| Default `unsupported` scenarios | 309 |
-| Scenarios with explicit `requirement_mappings` | 700 |
-| Explicit mapping records | 2845 |
+| Default `run` scenarios | 656 |
+| Default `unsupported` scenarios | 308 |
+| Scenarios with explicit `requirement_mappings` | 701 |
+| Explicit mapping records | 2855 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -971,7 +971,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-send-service-reports-to-file-mom-switch`](#scenario-java-tck.federate-send-service-reports-to-file-mom-switch) — Set the joined federate's Send Service Reports to File switch through standard HLAsetSwitches without changing neighboring switches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-send-service-reports-to-file-mom-switch`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
@@ -1121,7 +1120,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.federate-object-class-relevance-advisory-mim-attribute`](#scenario-java-tck.federate-object-class-relevance-advisory-mim-attribute) — Observe conditional HLAobjectClassRelevanceAdvisory MOM updates through the standard API (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.federate-object-class-relevance-advisory-mim-attribute`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-time-constrained-mim-attribute`](#scenario-java-tck.federate-time-constrained-mim-attribute) — Observe conditional HLAtimeConstrained MOM values across standard service transitions (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-constrained-mim-attribute`).
@@ -1587,7 +1585,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-null-object-report`](#scenario-java-tck.federate-mom-updated-null-object-report) — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-null-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.federate-send-service-reports-to-file-mom-switch`](#scenario-java-tck.federate-send-service-reports-to-file-mom-switch) — Set the joined federate's Send Service Reports to File switch through standard HLAsetSwitches without changing neighboring switches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-send-service-reports-to-file-mom-switch`).
 - [`java-tck.federate-service-reporting-mim-attribute`](#scenario-java-tck.federate-service-reporting-mim-attribute) — Observe conditional HLAserviceReporting MOM updates through the standard API (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mim-attribute`).
 - [`java-tck.federate-service-reporting-mom-switch`](#scenario-java-tck.federate-service-reporting-mom-switch) — Set the joined federate's Service Reporting switch through standard HLAsetSwitches (`mom-service-reporting`; default `unsupported`; C++ pointer `cpp-tck.federate-service-reporting-mom-switch`).
@@ -1935,7 +1932,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.federate-mom-reflection-counts`](#scenario-java-tck.federate-mom-reflection-counts) — Observe reflected-object and reflection-invocation counts directly and periodically (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflection-counts`).
 - [`java-tck.federate-mom-updated-multi-class-object-report`](#scenario-java-tck.federate-mom-updated-multi-class-object-report) — Request standard HLAobjectInstancesUpdated counts across two registered object classes (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-multi-class-report`).
 - [`java-tck.federate-mom-updated-object-report`](#scenario-java-tck.federate-mom-updated-object-report) — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-report`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.federation-auto-provide-mom-switch`](#scenario-java-tck.federation-auto-provide-mom-switch) — Set federation-wide Auto Provide through the standard federation MOM interaction (`auto-provide`; default `run`; C++ pointer `cpp-tck.federation-auto-provide-mom-switch`).
 - [`java-tck.federation-teardown-isolation`](#scenario-java-tck.federation-teardown-isolation) — Preserve named update-rate admission history in a live federation after a sibling federation is destroyed (`federation-isolation`; default `unsupported`; C++ pointer `cpp-tck.federation-teardown-isolation`).
 - [`java-tck.foreign-object-instance-handle-lookup-boundary`](#scenario-java-tck.foreign-object-instance-handle-lookup-boundary) — Check object-instance handle lookup is scoped to its federation execution (`object-management`; default `run`; C++ pointer `cpp-tck.foreign-object-instance-handle-lookup-boundary`).
@@ -2302,7 +2298,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.custom-transportation-timestamped-regional-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-regional-attribute-delivery) — Deliver and retract timestamped regional attribute updates with the adapter-declared custom transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`).
 - [`java-tck.federate-logical-time-mim-periodic`](#scenario-java-tck.federate-logical-time-mim-periodic) — Observe periodic HLAlogicalTime MOM values across standard time advances (`time-management`; default `run`; C++ pointer `cpp-tck.federate-logical-time-mim-periodic`).
 - [`java-tck.federate-mom-reflection-counts`](#scenario-java-tck.federate-mom-reflection-counts) — Observe reflected-object and reflection-invocation counts directly and periodically (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflection-counts`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.federate-save-initiation-time-constrained-eligibility`](#scenario-java-tck.federate-save-initiation-time-constrained-eligibility) — Wait for every time-constrained member to become eligible before untimed save initiation (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.federate-save-initiation-time-constrained-eligibility`).
 - [`java-tck.federate-time-manager-state-mim-attribute`](#scenario-java-tck.federate-time-manager-state-mim-attribute) — Observe conditional HLAtimeManagerState transitions across all standard advance services (`time-management`; default `run`; C++ pointer `cpp-tck.federate-time-manager-state-mim-attribute`).
 - [`java-tck.fqr-timed-federation-save-callback`](#scenario-java-tck.fqr-timed-federation-save-callback) — Submit a timestamped federation save before FQR and initiate it before the later grant (`timed-federation-save-restore`; default `run`; C++ pointer `cpp-tck.fqr-timed-federation-save-callback`).
@@ -2469,7 +2464,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.custom-transportation-timestamped-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-attribute-delivery) — Deliver timestamped attribute updates using the adapter-declared custom FOM transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-attribute-delivery`).
 - [`java-tck.custom-transportation-timestamped-regional-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-regional-attribute-delivery) — Deliver and retract timestamped regional attribute updates with the adapter-declared custom transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`).
 - [`java-tck.federate-mom-reflection-counts`](#scenario-java-tck.federate-mom-reflection-counts) — Observe reflected-object and reflection-invocation counts directly and periodically (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflection-counts`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.object-class-timestamped-provider-response`](#scenario-java-tck.object-class-timestamped-provider-response) — Deliver a timestamped response to an object-class attribute-value request (`object-management`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.regional-auto-provide-timestamped-response`](#scenario-java-tck.regional-auto-provide-timestamped-response) — Respond to a scoped regional Auto Provide solicitation with a queued timestamped update (`regional-auto-provide`; default `run`; C++ pointer `cpp-tck.regional-auto-provide-timestamped-response`).
 - [`java-tck.sent-tso-attribute-per-recipient-order-conversion`](#scenario-java-tck.sent-tso-attribute-per-recipient-order-conversion) — Report sent TSO and receiver-dependent received order for one timestamped attribute update (`time-management`; default `unsupported`; C++ pointer `cpp-tck.sent-tso-attribute-per-recipient-order-conversion`).
@@ -2504,7 +2498,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.custom-transportation-timestamped-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-attribute-delivery) — Deliver timestamped attribute updates using the adapter-declared custom FOM transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-attribute-delivery`).
 - [`java-tck.custom-transportation-timestamped-regional-attribute-delivery`](#scenario-java-tck.custom-transportation-timestamped-regional-attribute-delivery) — Deliver and retract timestamped regional attribute updates with the adapter-declared custom transportation type (`transportation-delivery`; default `unsupported`; C++ pointer `cpp-tck.custom-transportation-timestamped-regional-attribute-delivery`).
 - [`java-tck.federate-mom-reflection-counts`](#scenario-java-tck.federate-mom-reflection-counts) — Observe reflected-object and reflection-invocation counts directly and periodically (`joined-federate-mom-reflection-statistics`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-reflection-counts`).
-- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts (`object-management`; default `unsupported`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 - [`java-tck.handle-wire-formats`](#scenario-java-tck.handle-wire-formats) — Round-trip dimension, region, and timestamped message-retraction handle encodings (`handle-encoding-decoding`; default `unsupported`; C++ pointer `cpp-tck.handle-wire-formats`).
 - [`java-tck.nmr-received-tso-attribute-update-floor`](#scenario-java-tck.nmr-received-tso-attribute-update-floor) — Enforce the NMR received-TSO floor for timestamped attribute updates (`next-message-request`; default `run`; C++ pointer `cpp-tck.nmr-received-tso-attribute-update-floor`).
 - [`java-tck.object-class-timestamped-provider-response`](#scenario-java-tck.object-class-timestamped-provider-response) — Deliver a timestamped response to an object-class attribute-value request (`object-management`; default `unsupported`; C++ source pointer not declared).
@@ -2962,6 +2955,66 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-update`
 
 - [`java-tck.federate-mom-reflected-timestamped-object-report`](#scenario-java-tck.federate-mom-reflected-timestamped-object-report) — Request HLAreportObjectInstancesReflected after three timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-grant-callback`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-request-report`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-time-management`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update`
+
+- [`java-tck.federate-mom-updated-timestamped-object-report`](#scenario-java-tck.federate-mom-updated-timestamped-object-report) — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances (`joined-federate-mom-object-statistics`; default `run`; C++ pointer `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -13210,6 +13263,17 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `cpp-tck-joined-federate-mom-object-instances-reflected-grant-callback` → `hla-1516.1-2025:clause-8.14`
   - `cpp-tck-joined-federate-mom-object-instances-reflected-request-report` → `hla-1516.1-2025:clause-6.12`
   - `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-mim-report` → `hla-1516.1-2025:clause-11.4.1`
+- `java-tck.federate-mom-updated-timestamped-object-report`:
+  - `cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order` → `hla-1516.1-2025:clause-8.25`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update` → `hla-1516.1-2025:clause-6.10`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection` → `hla-1516.1-2025:clause-6.11`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-time-management` → `hla-1516.1-2025:clause-8.2`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback` → `hla-1516.1-2025:clause-8.3`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service` → `hla-1516.1-2025:clause-8.5`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback` → `hla-1516.1-2025:clause-8.6`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants` → `hla-1516.1-2025:clause-8.8`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-grant-callback` → `hla-1516.1-2025:clause-8.14`
+  - `cpp-tck-joined-federate-mom-object-instances-updated-request-report` → `hla-1516.1-2025:clause-11.4.1`
 - `java-tck.federate-mom-updated-null-object-report`:
   - `requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39` → `hla-1516.1-2025:clause-11.4.1`
 - `java-tck.federate-mom-reflections-received-mim-attribute`:
@@ -14211,6 +14275,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.federate-mom-deletable-object-count"></a>`java-tck.federate-mom-deletable-object-count` — Request and periodically report HLAobjectInstancesThatCanBeDeleted as objects are registered and deleted | `org.hla.rti.tck.RtiTckMain#federateMomDeletableObjectCount` | 41 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` | `cpp-tck.joined-federate-mom-deletable-object-count` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-deletable-object-report"></a>`java-tck.federate-mom-deletable-object-report` — Request HLAreportObjectInstancesThatCanBeDeleted and verify live counts for two object classes plus removal of a deleted class | `org.hla.rti.tck.RtiTckMain#federateMomDeletableObjectReport` | 51 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57`, `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` | `cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-reflected-timestamped-object-report"></a>`java-tck.federate-mom-reflected-timestamped-object-report` — Request HLAreportObjectInstancesReflected after three timestamped reflections to two objects; count distinct instances | `org.hla.rti.tck.RtiTckMain#federateMomReflectedTimestampedObjectReport` | 73 | `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-subscription`, `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-registration`, `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-order`, `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-update`, `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-callback`, `cpp-tck-joined-federate-mom-object-instances-reflected-time-regulation`, `cpp-tck-joined-federate-mom-object-instances-reflected-regulation-callback`, `cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-service`, `cpp-tck-joined-federate-mom-object-instances-reflected-time-constrained-callback`, `cpp-tck-joined-federate-mom-object-instances-reflected-time-advance`, `cpp-tck-joined-federate-mom-object-instances-reflected-grant-callback`, `cpp-tck-joined-federate-mom-object-instances-reflected-request-report`, `cpp-tck-joined-federate-mom-object-instances-reflected-timestamped-mim-report` | `cpp-tck.joined-federate-mom-object-instances-reflected-timestamped-report` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.federate-mom-updated-timestamped-object-report"></a>`java-tck.federate-mom-updated-timestamped-object-report` — Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedTimestampedObjectReport` | 73 | `cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order`, `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update`, `cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection`, `cpp-tck-joined-federate-mom-object-instances-updated-time-management`, `cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback`, `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service`, `cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback`, `cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants`, `cpp-tck-joined-federate-mom-object-instances-updated-grant-callback`, `cpp-tck-joined-federate-mom-object-instances-updated-request-report` | `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report` | `run` | not scenario-declared |
 
 ### `joined-federate-mom-reflection-statistics`
 
@@ -14476,7 +14541,6 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.federate-mom-updated-null-object-report"></a>`java-tck.federate-mom-updated-null-object-report` — Verify the standard empty HLAobjectInstancesUpdated response for a joined federate with no updates | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedNullObjectReport` | 27 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-federation-create-join-resign-destroy`, `requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39` | `cpp-tck.joined-federate-mom-object-instances-updated-null-report` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updated-object-count-periodic"></a>`java-tck.federate-mom-updated-object-count-periodic` — Check registration and updated-object MOM counts directly and periodically | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectCountPeriodic` | 35 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` | `cpp-tck.joined-federate-mom-updated-object-count-periodic` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updated-object-report"></a>`java-tck.federate-mom-updated-object-report` — Request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedObjectReport` | 34 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-attribute-value-update-request`, `cpp-1516.1-attribute-value-update-response`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.joined-federate-mom-object-instances-updated-report` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.federate-mom-updated-timestamped-object-report"></a>`java-tck.federate-mom-updated-timestamped-object-report` — Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts | `org.hla.rti.tck.RtiTckMain#federateMomUpdatedTimestampedObjectReport` | 47 | `cpp-1516.1-mom-service-reporting`, `cpp-1516.1-explicit-mim-composition`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-timestamped-attribute-update`, `cpp-1516.1-timestamped-attribute-reflect`, `cpp-1516.1-time-advance-request`, `cpp-1516.1-federation-create-join-resign-destroy` | `cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updates-sent-counts"></a>`java-tck.federate-mom-updates-sent-counts` — Report attribute update counts by standard transportation and object class | `org.hla.rti.tck.RtiTckMain#federateMomUpdatesSentCounts` | 56 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57`, `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` | `cpp-tck.joined-federate-mom-updates-sent-counts` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-mom-updates-sent-mim-attribute"></a>`java-tck.federate-mom-updates-sent-mim-attribute` — Count each successful receive-order Update Attribute Values invocation in HLAupdatesSent | `org.hla.rti.tck.RtiTckMain#federateMomUpdatesSent` | 38 | `requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57` | `cpp-tck.joined-federate-mom-updates-sent-mim-attribute` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.federate-selected-update-thresholds"></a>`java-tck.federate-selected-update-thresholds` — Deliver updates selected by two federates with different thresholds | `org.hla.rti.tck.FederateUpdateThresholdsScenarioRegistry#federateSelectedUpdateThresholds` | 14 | `summary-rule-9`, `detailed-rule-9` | `cpp-tck.federate-selected-update-thresholds` | `unsupported` | adapter FOM containing the selected object class and attribute; object-class name and attribute name; provider-supported logical-time implementation; HLA_EVOKED and HLA_IMMEDIATE callback models |

@@ -267,6 +267,18 @@ Results are in
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-mom-updated-timestamped-object-report` case
+registers two Server/Efficiency objects and sends one timestamped update to each at
+one logical time. It checks both reflection payloads and delivery metadata before the
+target's grant, then has a separate monitor request `HLAreportObjectInstancesUpdated`
+and verify one class row with a count of two. Its 10 direct mappings cover timestamped
+update/reflection, time management, and the selected §11.4.1 MOM report leaf. Java
+passed in both callback models against the paired C++ primary/contract evidence.
+Results are in
+`out/java-tck/federate-mom-updated-timestamped-object-report-java-parity-20261116/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

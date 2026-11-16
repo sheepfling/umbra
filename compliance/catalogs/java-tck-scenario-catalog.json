@@ -66319,10 +66319,12 @@
         },
     {
       "id": "java-tck.federate-mom-updated-timestamped-object-report",
-      "category": "object-management",
-      "title": "Verify timestamped reflection and grants before requesting HLAobjectInstancesUpdated counts",
+      "category": "joined-federate-mom-object-statistics",
+      "title": "Request HLAreportObjectInstancesUpdated after two timestamped reflections to two objects; count distinct instances",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -66330,18 +66332,29 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.changeDefaultAttributeOrderType",
-        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
-        "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
-        "RTIambassador.updateAttributeValues(timestamp-order)",
-        "RTIambassador.enableTimeRegulation",
-        "RTIambassador.enableTimeConstrained",
         "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.getName",
+        "LogicalTimeFactory.makeEpsilon",
+        "LogicalTime.add",
+        "RTIambassador.enableTimeRegulation",
+        "FederateAmbassador.timeRegulationEnabled",
+        "RTIambassador.enableTimeConstrained",
+        "FederateAmbassador.timeConstrainedEnabled",
         "RTIambassador.queryLogicalTime",
         "RTIambassador.timeAdvanceRequest",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
+        "RTIambassador.updateAttributeValues(timestamp-order)",
+        "MessageRetractionReturn.retractionHandleIsValid",
+        "MessageRetractionHandle.equals",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -66351,33 +66364,49 @@
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
-        "RTIambassador.sendInteraction",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.getObjectClassHandleFactory",
         "ObjectClassHandleFactory.decode",
         "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.deleteObjectInstance(receive-order)",
+        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues(timestamp-order)",
-        "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.timeConstrainedEnabled",
         "FederateAmbassador.timeAdvanceGrant",
         "FederateAmbassador.receiveInteraction",
-        "HLAbyte",
-        "HLAvariableArray",
-        "HLAfixedRecord",
-        "HLAoctet",
-        "HLAinteger32BE"
+        "EncoderFactory.createHLAbyte",
+        "HLAbyte.toByteArray",
+        "HLAbyte.decode",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAoctet",
+        "HLAoctet.toByteArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.getValue",
+        "Handle.encodedLength",
+        "Handle.encode"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-timestamped-attribute-update",
-        "cpp-1516.1-timestamped-attribute-reflect",
-        "cpp-1516.1-time-advance-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order",
+        "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update",
+        "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection",
+        "cpp-tck-joined-federate-mom-object-instances-updated-time-management",
+        "cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback",
+        "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service",
+        "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback",
+        "cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants",
+        "cpp-tck-joined-federate-mom-object-instances-updated-grant-callback",
+        "cpp-tck-joined-federate-mom-object-instances-updated-request-report"
       ],
       "contract_refs": [
         "standard-joined-federate-mom-object-instances-updated-timestamped-report-api-contract.json",
@@ -66393,8 +66422,67 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomUpdatedTimestampedObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-updated-timestamped-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute, logical-time implementation, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.10",
+        "hla-1516.1-2025:clause-6.11",
+        "hla-1516.1-2025:clause-8.2",
+        "hla-1516.1-2025:clause-8.3",
+        "hla-1516.1-2025:clause-8.5",
+        "hla-1516.1-2025:clause-8.6",
+        "hla-1516.1-2025:clause-8.8",
+        "hla-1516.1-2025:clause-8.14",
+        "hla-1516.1-2025:clause-8.25",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamp-order",
+          "standard_section": "hla-1516.1-2025:clause-8.25"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-update",
+          "standard_section": "hla-1516.1-2025:clause-6.10"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-timestamped-reflection",
+          "standard_section": "hla-1516.1-2025:clause-6.11"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-time-management",
+          "standard_section": "hla-1516.1-2025:clause-8.2"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-regulation-callback",
+          "standard_section": "hla-1516.1-2025:clause-8.3"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-service",
+          "standard_section": "hla-1516.1-2025:clause-8.5"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-time-constrained-callback",
+          "standard_section": "hla-1516.1-2025:clause-8.6"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-time-advance-grants",
+          "standard_section": "hla-1516.1-2025:clause-8.8"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-grant-callback",
+          "standard_section": "hla-1516.1-2025:clause-8.14"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-updated-request-report",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "Direct mappings follow the paired C++ requirements contract. The §11.4.1 mapping is limited to the HLAreportObjectInstancesUpdated Table 7 P leaf; the other clauses cover timestamp order/update/reflection and time-management callbacks. Distinct-instance counts and callback details remain scenario evidence. This bounded API test is not a conformance claim.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using RestaurantFOMmodule-2025.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.Employee.Server, and Efficiency. Results/JUnit: out/java-tck/federate-mom-updated-timestamped-object-report-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed under both callback models; direct results: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-timestamped-reports-20261115.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-updated-null-object-report",
