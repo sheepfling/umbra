@@ -334,8 +334,8 @@ final class FederateMomDirectedInteractionsReceivedTck {
    private static int verifyCount(Reflection reflection, AttributeHandle attribute,
          TransportationTypeHandle reliable, EncoderFactory encoder, String description)
          throws Exception {
-      JavaTckSupport.check(reflection.values.size() == 1
-            && reflection.values.containsKey(attribute) && reflection.tag.length == 0
+      JavaTckSupport.check(reflection.values.containsKey(attribute)
+            && reflection.tag.length == 0
             && reliable.equals(reflection.transportation) && reflection.producer == null
             && (reflection.regions == null || reflection.regions.isEmpty())
             && !reflection.timestampOrdered,
@@ -383,6 +383,7 @@ final class FederateMomDirectedInteractionsReceivedTck {
          byte[] value = event.parameters.get(parameter);
          if (expectedClass.equals(event.interaction) && producer.equals(event.producer)
                && value != null && Arrays.equals(payload, value) && event.tag.length == 0
+               && (event.regions == null || event.regions.isEmpty())
                && reliable.equals(event.transportation)) ++count;
       }
       return count;
@@ -459,13 +460,16 @@ final class FederateMomDirectedInteractionsReceivedTck {
       private final byte[] tag;
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
+      private final RegionHandleSet regions;
       private Ordinary(InteractionClassHandle interaction, ParameterHandleValueMap parameters,
-            byte[] tag, TransportationTypeHandle transportation, FederateHandle producer) {
+            byte[] tag, TransportationTypeHandle transportation, FederateHandle producer,
+            RegionHandleSet regions) {
          this.interaction = interaction;
          this.parameters = parameters.clone();
          this.tag = tag.clone();
          this.transportation = transportation;
          this.producer = producer;
+         this.regions = regions == null ? null : (RegionHandleSet) regions.clone();
       }
    }
 
@@ -538,10 +542,11 @@ final class FederateMomDirectedInteractionsReceivedTck {
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
                      (RegionHandleSet) arguments[5], false));
                } else if ("receiveInteraction".equals(name) && arguments != null
-                     && arguments.length == 8) {
+                     && arguments.length == 6) {
                   ordinary.add(new Ordinary((InteractionClassHandle) arguments[0],
                      (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
-                     (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4]));
+                     (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
+                     (RegionHandleSet) arguments[5]));
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
                   directed.add(new Directed((InteractionClassHandle) arguments[0],

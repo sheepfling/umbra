@@ -561,11 +561,17 @@ final class FederateMomInteractionsReceivedTck {
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
                      (RegionHandleSet) arguments[5], false));
                } else if ("receiveInteraction".equals(name) && arguments != null
-                     && arguments.length == 8) {
+                     && arguments.length == 6) {
                   interactions.add(new Interaction((InteractionClassHandle) arguments[0],
                      (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (FederateHandle) arguments[4], (RegionHandleSet) arguments[5],
-                     (OrderType) arguments[6], (OrderType) arguments[7]));
+                     OrderType.RECEIVE, OrderType.RECEIVE));
+               } else if ("receiveInteraction".equals(name) && arguments != null
+                     && arguments.length == 10) {
+                  interactions.add(new Interaction((InteractionClassHandle) arguments[0],
+                     (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
+                     (FederateHandle) arguments[4], (RegionHandleSet) arguments[5],
+                     (OrderType) arguments[7], (OrderType) arguments[8]));
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK interactions-received MOM callbacks";

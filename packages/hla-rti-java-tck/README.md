@@ -108,6 +108,42 @@ CTest 2/2 and direct runs in both models. Results are in
 `out/mgw/cpp-tck-mom-reflections-received-java-parity-20261115.{json,xml}`. This is
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
+The default-run `java-tck.federate-mom-interactions-received-mim-attribute` case
+checks the zero baseline, one `HLAinteractionsReceived` increment for each of three
+delivered receive-order interactions, the value of five after two more interactions
+with periodic reports enabled, and the unchanged count after reporting is disabled.
+It maps only the standard MIM definition in IEEE 1516.1-2025 §11.4.1. Java passed
+under both callback models, and the paired C++ primary passed focused CTest 2/2 and
+direct runs in both models. Results are in
+`out/java-tck/federate-mom-interactions-received-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-interactions-received-java-parity-20261115.{json,xml}`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+The default-run `java-tck.federate-mom-interactions-sent-mim-attribute` case checks
+the zero baseline, captures the direct counter while periodic reports are enabled,
+then verifies that three accepted receive-order application sends raise both the
+direct and periodic `HLAinteractionsSent` values by exactly three. It maps only the
+bounded ordinary-send claim to IEEE 1516.1-2025 §11.4.1; the MIM's separate
+DDM-accounting semantic remains outside this case. Java passed under both callback
+models, and the paired C++ primary passed focused CTest 2/2 and direct runs in both
+models. Results are in
+`out/java-tck/federate-mom-interactions-sent-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-interactions-sent-java-parity-20261115.{json,xml}`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+The default-run
+`java-tck.federate-mom-directed-interactions-received-mim-attribute` case checks
+that an ordinary interaction increments only `HLAinteractionsReceived`, while three
+directed callbacks increment the total and directed counters to four and three.
+Two further directed callbacks raise their periodic values to six and five, and
+direct reads confirm both values after reporting is disabled. It has one unique
+direct mapping to the two standard MIM entries in IEEE 1516.1-2025 §11.4.1. Java
+passed under both callback models, and the paired C++ primary passed focused CTest
+2/2 and direct runs in both models. Results are in
+`out/java-tck/federate-mom-directed-interactions-received-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-directed-interactions-received-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the

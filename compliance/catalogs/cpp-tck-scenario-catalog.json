@@ -81602,7 +81602,6 @@
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.publishObjectClassAttributes",
-        "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",

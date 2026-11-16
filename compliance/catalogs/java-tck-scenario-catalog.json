@@ -63734,7 +63734,7 @@
     },
     {
       "id": "java-tck.federate-mom-interactions-received-mim-attribute",
-      "category": "time-management",
+      "category": "object-management",
       "title": "Observe direct and periodic HLAinteractionsReceived counts from delivered application interactions",
       "api_methods": [
         "RTIambassador.connect",
@@ -63746,6 +63746,8 @@
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getInteractionClassHandle",
@@ -63755,6 +63757,8 @@
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.requestAttributeValueUpdate(object)",
         "RTIambassador.sendInteraction(HLAsetTiming)",
@@ -63766,15 +63770,15 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.reflectAttributeValues",
-        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.receiveInteraction(receive-order)",
+        "RtiFactory.getEncoderFactory",
+        "EncoderFactory.createHLAinteger32BE",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -63790,16 +63794,32 @@
         "receive-order-interaction-api-contract.json",
         "mom-service-reporting-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-interactions-received-mim-attribute-contract.json",
         "standard-joined-federate-mom-interactions-received-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomInteractionsReceived",
       "parity": "cpp-tck.joined-federate-mom-interactions-received-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, receive-order interaction class and parameter, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The single direct mapping is the requirement-to-section pair recorded in standard-joined-federate-mom-interactions-received-mim-attribute-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. This bounded scenario checks the initial HLAinteractionsReceived value, the count of three after three delivered Receive Interaction callbacks, the periodic count of five after two more deliveries, and the unchanged direct count after periodic reports are disabled. Fixture, lookup, and callback-metadata checks support the exercise but are not separate mappings.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise three direct receive-order application interaction callbacks, baseline-relative HLAinteractionsReceived requests, the periodic value after two additional callbacks, and agreement after periodic reporting is disabled.",
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit: out/java-tck/federate-mom-interactions-received-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; evidence is recorded at out/mgw/cpp-tck-mom-interactions-received-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-interactions-sent-mim-attribute",
-      "category": "time-management",
+      "category": "object-management",
       "title": "Observe direct and periodic HLAinteractionsSent counts from accepted application sends",
       "api_methods": [
         "RTIambassador.connect",
@@ -63811,6 +63831,8 @@
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getInteractionClassHandle",
@@ -63820,6 +63842,8 @@
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.requestAttributeValueUpdate(object)",
         "RTIambassador.sendInteraction(HLAsetTiming)",
@@ -63831,15 +63855,15 @@
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.reflectAttributeValues",
-        "FederateAmbassador.receiveInteraction",
+        "FederateAmbassador.receiveInteraction(receive-order)",
+        "RtiFactory.getEncoderFactory",
+        "EncoderFactory.createHLAinteger32BE",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -63855,12 +63879,28 @@
         "receive-order-interaction-api-contract.json",
         "mom-service-reporting-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-interactions-sent-mim-attribute-contract.json",
         "standard-joined-federate-mom-interactions-sent-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomInteractionsSent",
       "parity": "cpp-tck.joined-federate-mom-interactions-sent-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, receive-order interaction class and parameter, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The single direct mapping is the requirement-to-section pair recorded in standard-joined-federate-mom-interactions-sent-mim-attribute-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. This bounded scenario checks the initial HLAinteractionsSent value, captures a direct baseline with periodic reports enabled, then checks that three accepted ordinary Receive Interaction sends raise the direct and periodic values by exactly three. DDM-accounting semantics and fixture, lookup, and callback-metadata checks are outside the direct mapping.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise the initial HLAinteractionsSent value, a direct baseline while periodic reporting is enabled, three accepted receive-order application sends, and matching direct and periodic values.",
+      "default_status": "run",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit: out/java-tck/federate-mom-interactions-sent-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; evidence is recorded at out/mgw/cpp-tck-mom-interactions-sent-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-interactions-sent-counts",
@@ -64221,14 +64261,17 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.subscribeObjectClassAttributes",
-        "RTIambassador.requestAttributeValueUpdate",
+        "RTIambassador.requestAttributeValueUpdate(object)",
         "RTIambassador.publishObjectClassAttributes",
-        "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
@@ -64236,8 +64279,14 @@
         "RTIambassador.getParameterName",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.getInteractionClassHandleSetFactory",
+        "InteractionClassHandleSetFactory.create",
+        "InteractionClassHandleSet.add",
         "RTIambassador.publishObjectClassDirectedInteractions",
         "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.sendDirectedInteraction(receive-order)",
         "RTIambassador.sendInteraction(HLAsetTiming)",
@@ -64253,19 +64302,17 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.reflectAttributeValues",
-        "FederateAmbassador.receiveInteraction",
-        "FederateAmbassador.receiveDirectedInteraction",
+        "FederateAmbassador.receiveInteraction(receive-order)",
+        "FederateAmbassador.receiveDirectedInteraction(receive-order)",
+        "RegionHandleSet.isEmpty",
+        "RtiFactory.getEncoderFactory",
+        "EncoderFactory.createHLAinteger32BE",
+        "Handle.encode",
+        "Handle.encodedLength",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-directed-interaction-publication",
-        "cpp-1516.1-directed-interaction-subscription",
-        "cpp-1516.1-directed-interaction-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -64295,12 +64342,28 @@
         "subscribe-object-class-directed-interactions-requirements-contract.json",
         "mom-service-reporting-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-directed-interactions-received-mim-attribute-contract.json",
         "standard-joined-federate-mom-directed-interactions-received-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDirectedInteractionsReceived",
       "parity": "cpp-tck.joined-federate-mom-directed-interactions-received-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, object class and attribute, receive-order interaction class and parameter, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "default_status": "run",
+      "mapping_note": "The unique direct requirement-to-section mapping is recorded in standard-joined-federate-mom-directed-interactions-received-mim-attribute-requirements-contract: requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57 -> IEEE 1516.1-2025 §11.4.1. This bounded case checks both standard MOM counts: an ordinary callback increments HLAinteractionsReceived only, three directed callbacks increment the total and directed values to four and three, and two further directed callbacks raise the periodic values to six and five; direct reads confirm the final values after reporting is disabled. Object, delivery-route, and callback-metadata checks support the exercise but are not separate mappings.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both standard callback models exercise the ordinary receiveInteraction route and the receiveDirectedInteraction route, compare each delivered callback with the total and directed MOM counts, check periodic values after two further directed sends, and verify the direct values after periodic reporting is disabled.",
+      "evidence_note": "Focused Java runs passed under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, HLAinteractionRoot.TckInteraction, and Payload. Results/JUnit: out/java-tck/federate-mom-directed-interactions-received-java-parity-20261115/{evoked,immediate}.{results.json,junit.xml}. The paired C++ primary passed focused CTest 2/2 and direct runs in both callback models; evidence is recorded at out/mgw/cpp-tck-mom-directed-interactions-received-java-parity-20261115.{json,xml}. Local-provider evidence only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-updates-sent-mim-attribute",
