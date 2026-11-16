@@ -3439,6 +3439,8 @@ int runPublicServer(
             &stopFederateLostReceiverReader};
     bool const automaticUnconditional = std::filesystem::exists(
         directory / "automatic-unconditional.mode");
+    bool const verifyLostFederateNameAfterConnectionLoss = std::filesystem::exists(
+        directory / "verify-lost-federate-name-after-connection-loss.mode");
     if (federateLostMomReport) {
       if (!serveExpectedSender(
               TransportServiceOperation::get_object_class_handle) ||
@@ -3640,11 +3642,16 @@ int runPublicServer(
       // resignation so an optional poll cannot race with post-loss lookups.
       automaticUnconditionalSender = std::thread([&] {
         try {
-          std::array const postLossOperations{
+          std::vector<TransportServiceOperation> postLossOperations{
               TransportServiceOperation::get_object_instance_handle,
               TransportServiceOperation::is_attribute_owned_by_federate,
               TransportServiceOperation::is_attribute_owned_by_federate,
               TransportServiceOperation::resign_federation_execution};
+          if (verifyLostFederateNameAfterConnectionLoss) {
+            postLossOperations.insert(
+                postLossOperations.begin(),
+                TransportServiceOperation::get_federate_name);
+          }
           std::size_t nextOperation = 0U;
           while (nextOperation < postLossOperations.size()) {
             if (!umbra::test::servePrimaryProcessRequest(

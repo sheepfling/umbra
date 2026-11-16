@@ -103,6 +103,9 @@ def run_model(arguments: argparse.Namespace, model: str, root: Path) -> int:
         (markers / "automatic-unconditional.mode").write_text(
             "enabled\n", encoding="utf-8"
         )
+        (markers / "verify-lost-federate-name-after-connection-loss.mode").write_text(
+            "enabled\n", encoding="utf-8"
+        )
     if arguments.scenario == "java-tck.automatic-resign-directive-delete-objects":
         (markers / "automatic-delete-objects.mode").write_text(
             "enabled\n", encoding="utf-8"

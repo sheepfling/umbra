@@ -1374,13 +1374,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.connection-loss-automatic-unconditional-divestiture",
             "automatically divest ownership after adapter-managed connection loss",
             "connection",
-            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.requestAttributeOwnershipAssumption",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getFederateName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.requestAttributeOwnershipAssumption",
             new String[] {
-               "cpp-1516.1-connection-loss-callback",
-               "cpp-1516.1-connection-loss-cleanup",
-               "cpp-1516.1-automatic-resign-directive",
-               "cpp-1516.1-object-management",
-               "cpp-1516.1-ownership-management"
+               "req-federate-connection-lost",
+               "req-connection-lost-service-behavior",
+               "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+               "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+               "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
             }, false), RtiTckMain::connectionLossAutomaticUnconditionalDivestiture);
       run(new Scenario("java-tck.connection-loss-automatic-delete-then-divest",
             "delete the lost member's object and release its retained attribute after connection loss",

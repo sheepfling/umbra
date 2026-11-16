@@ -7668,8 +7668,13 @@
       "category": "connection",
       "title": "Apply automatic unconditional divestiture after adapter-managed member loss",
       "api_methods": [
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withRtiAddress",
+        "RtiConfiguration.withAdditionalSettings",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateName",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
@@ -7680,8 +7685,6 @@
         "RTIambassador.setAutomaticResignDirective",
         "RTIambassador.getAutomaticResignDirective",
         "RTIambassador.isAttributeOwnedByFederate",
-        "RTIambassador.publishInteractionClass",
-        "RTIambassador.sendInteraction",
         "RTIambassador.evokeMultipleCallbacks",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.disconnect",
@@ -7690,11 +7693,58 @@
         "FederateAmbassador.requestAttributeOwnershipAssumption"
       ],
       "requirement_ids": [
-        "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup",
-        "cpp-1516.1-automatic-resign-directive",
-        "cpp-1516.1-object-management",
-        "cpp-1516.1-ownership-management"
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+        "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+        "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-4.1.6",
+        "hla-1516.1-2025:clause-10.43.6",
+        "hla-1516.1-2025:clause-10.44.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1",
+          "note": "The Java ambassador receives exactly one non-empty FederateAmbassador.connectionLost callback after the adapter-induced member transport loss."
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4",
+          "note": "The survivor observes one automatic ownership-assumption callback for the retained object, the lost member's Efficiency and HLAprivilegeToDeleteObject attributes, and an empty tag; the object remains and neither attribute is owned by the survivor."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6",
+          "note": "After Connection Lost, the survivor resolves the lost member's FederateHandle to its unchanged name with RTIambassador.getFederateName."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+          "standard_section": "hla-1516.1-2025:clause-10.43.6",
+          "note": "Before the fault, the lost member reads back UNCONDITIONALLY_DIVEST_ATTRIBUTES with RTIambassador.getAutomaticResignDirective."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-275-l119-36",
+          "standard_section": "hla-1516.1-2025:clause-10.44.6",
+          "note": "Before the fault, the lost member selects UNCONDITIONALLY_DIVEST_ATTRIBUTES with RTIambassador.setAutomaticResignDirective."
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The direct mappings follow the focused plan case umbra-cpp-connection-lost-automatic-unconditional-divest-standalone. The Java assertions cover connectionLost delivery, retained federate-name lookup, automatic-resign directive selection and readback, and the ownership-assumption result. Only the adapter-managed process transport fault and callback endpoint are test inputs; the Java TCK makes its assertions through the official 2025 API. This is one directive and one local-provider path, not interoperability or complete conformance.",
+      "callback_models": [
+        "evoked",
+        "immediate"
       ],
       "contract_refs": [
         "connection-lost-api-contract.json",
@@ -7706,7 +7756,9 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#connectionLossAutomaticUnconditionalDivestiture",
       "parity": "cpp-tck.connection-loss-automatic-unconditional-divestiture",
       "default_status": "unsupported",
-      "exclusion": "Requires the adapter-managed public-server-loss process fixture, its endpoint and callback configuration, an ordinary configured interaction class for its handshake, and configured object class/attribute names."
+      "exclusion": "Default-disabled; focused execution requires the adapter-managed public-server-loss fixture, its endpoint and callback configuration, the Restaurant FOM, and configured object class and attribute names. The fixture closes only the lost member transport and services the survivor's post-loss federate-name query.",
+      "evidence_note": "The current Java TCK source compiled against the pinned official IEEE 1516.1-2025 API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI. The runs checked one discovery with its class, one non-empty connectionLost callback, stable getFederateName after loss, exact automatic-divestiture attributes and empty tag, retained object identity, and released ownership. Results, JUnit, and traceability are under out/java-tck/connection-loss-automatic-unconditional-divestiture-current-source-20261116/{evoked,immediate}.{results.json,junit.xml,traceability.json}. This is local-provider and adapter-managed fault evidence only; no independent-provider, interoperability, or conformance claim.",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.connection-loss-automatic-delete-then-divest",

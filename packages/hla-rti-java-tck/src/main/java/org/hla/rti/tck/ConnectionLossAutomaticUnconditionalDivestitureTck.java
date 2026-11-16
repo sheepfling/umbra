@@ -4,6 +4,7 @@ import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
@@ -44,16 +46,21 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
       RTIambassador lost = factory.getRtiAmbassador();
       Recorder survivorCallbacks = new Recorder();
       AtomicReference<String> loss = new AtomicReference<>();
+      AtomicInteger lossCallbackCount = new AtomicInteger();
       boolean survivorConnected = false;
       boolean survivorJoined = false;
       try {
          survivor.connect(survivorCallbacks.proxy(), callbackModel, survivorConfiguration);
          survivorConnected = true;
-         lost.connect(connectionLossCallbacks(loss), callbackModel, lostConfiguration);
+         lost.connect(connectionLossCallbacks(loss, lossCallbackCount), callbackModel,
+            lostConfiguration);
          survivor.createFederationExecution(federation, fom, timeImplementation);
          survivor.joinFederationExecution(survivorName, federateType, federation);
          survivorJoined = true;
-         lost.joinFederationExecution(lostName, federateType, federation);
+         FederateHandle lostFederate = lost.joinFederationExecution(
+            lostName, federateType, federation);
+         JavaTckSupport.check(lostFederate != null,
+            "connection-loss member join returned no federate handle");
 
          ObjectClassHandle lostClass = lost.getObjectClassHandle(objectClassName);
          ObjectClassHandle survivorClass = survivor.getObjectClassHandle(objectClassName);
@@ -79,8 +86,17 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
          ObjectInstanceHandle object = lost.registerObjectInstance(lostClass);
          JavaTckSupport.check(object != null, "registration returned no object handle");
          String objectName = lost.getObjectInstanceName(object);
-         await(() -> survivorCallbacks.discoveries.contains(object), survivor, callbackModel,
+         await(() -> survivorCallbacks.discoveries.stream()
+               .anyMatch(discovery -> object.equals(discovery.object)), survivor, callbackModel,
             timeoutMillis, "survivor did not discover the registered object");
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.drain(survivor);
+         }
+         List<Discovery> discoveries = List.copyOf(survivorCallbacks.discoveries);
+         JavaTckSupport.check(discoveries.size() == 1
+               && object.equals(discoveries.get(0).object)
+               && survivorClass.equals(discoveries.get(0).objectClass),
+            "survivor discovery changed the object, class, or callback count");
 
          lost.setAutomaticResignDirective(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
          JavaTckSupport.check(lost.getAutomaticResignDirective()
@@ -101,7 +117,12 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
          }
          JavaTckSupport.check(loss.get() != null && !loss.get().isEmpty(),
             "timed out waiting for a non-empty connectionLost callback");
+         if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(lost);
+         JavaTckSupport.check(lossCallbackCount.get() == 1,
+            "connection loss delivered duplicate connectionLost callbacks");
          writeMarker(Path.of(completionMarkerPath), "callback-ok\n");
+         JavaTckSupport.check(lostName.equals(survivor.getFederateName(lostFederate)),
+            "connection loss changed the lost member's federate name");
 
          await(() -> !survivorCallbacks.assumptions.isEmpty(), survivor, callbackModel,
             timeoutMillis, "automatic unconditional-divestiture assumption callback");
@@ -115,6 +136,8 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
                && assumption.attributes.contains(survivorPrivilege)
                && assumption.tag.length == 0,
             "automatic divestiture offered the wrong object, attributes, or tag");
+         JavaTckSupport.check(lossCallbackCount.get() == 1,
+            "connection loss delivered duplicate connectionLost callbacks");
          JavaTckSupport.check(objectName != null && !objectName.isEmpty()
                && object.equals(survivor.getObjectInstanceHandle(objectName)),
             "automatic unconditional divestiture removed the retained object");
@@ -132,12 +155,14 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
       }
    }
 
-   private static FederateAmbassador connectionLossCallbacks(AtomicReference<String> loss) {
+   private static FederateAmbassador connectionLossCallbacks(
+         AtomicReference<String> loss, AtomicInteger callbackCount) {
       return (FederateAmbassador) Proxy.newProxyInstance(
          FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
          (proxy, method, arguments) -> {
             if ("connectionLost".equals(method.getName())
                   && arguments != null && arguments.length == 1) {
+               callbackCount.incrementAndGet();
                loss.set((String) arguments[0]);
             }
             if (method.getDeclaringClass() == Object.class) {
@@ -178,8 +203,18 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass) {
+         this.object = object;
+         this.objectClass = objectClass;
+      }
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> assumptions = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
@@ -188,8 +223,9 @@ final class ConnectionLossAutomaticUnconditionalDivestitureTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)
-                     && arguments != null && arguments.length >= 1) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                     && arguments != null && arguments.length >= 2) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1]));
                } else if ("requestAttributeOwnershipAssumption".equals(name)
                      && arguments != null && arguments.length == 3) {
                   assumptions.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
