@@ -62857,7 +62857,7 @@
       "default_status": "unsupported",
       "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
     },
-    {
+        {
       "id": "java-tck.federate-exception-reporting-mim-attribute",
       "category": "mom-exception-reporting",
       "title": "Observe conditional HLAexceptionReporting MOM updates through the standard API",
@@ -62887,18 +62887,65 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-exception-reporting-mim-attribute",
+        "cpp-tck-federate-exception-reporting-getter",
+        "cpp-tck-federate-exception-reporting-setter",
+        "cpp-tck-federate-exception-reporting-direct-request",
+        "cpp-tck-federate-exception-reporting-subscription",
+        "cpp-tck-federate-exception-reporting-reflection-callback"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-10.48",
+        "hla-1516.1-2025:clause-10.49",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.48"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.49"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-exception-reporting-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings follow standard-federate-exception-reporting-mim-attribute-requirements-contract: the HLAexceptionReporting MIM attribute maps to IEEE 1516.1-2025 §11.4.1; the public getter and setter map to §§10.48 and 10.49; the direct request maps to §6.21; subscription maps to §5.8; and the reflection callback maps to §6.9.3. The Java case observes the subject switch, toggles it away and back, checks one reliable conditional HLAinteger32BE reflection for each transition, and confirms direct requests match the public getter. It does not invoke a failing service or claim HLAreportException delivery.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe the subject federate's switch before and after each transition. A monitor identifies the subject HLAfederate MOM object, requests HLAexceptionReporting directly, checks exactly one reliable conditional reflection per change with empty tag, invalid producer, and absent regions, then confirms the final state is restored.",
       "contract_refs": [
         "standard-federate-exception-reporting-mim-attribute-api-contract.json",
         "standard-federate-exception-reporting-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateExceptionReportingMomAttribute",
       "parity": "cpp-tck.federate-exception-reporting-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/exception-reporting-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); pair results/JUnit: out/mgw/cpp-tck-exception-reporting-mim-attribute-java-parity-20261116-pair.{json,xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-service-reporting-mim-attribute",
       "category": "mom-service-reporting",
       "title": "Observe conditional HLAserviceReporting MOM updates through the standard API",
@@ -62928,16 +62975,63 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-update-reflect",
         "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-federate-service-reporting-mim-attribute",
+        "cpp-tck-federate-service-reporting-getter",
+        "cpp-tck-federate-service-reporting-setter",
+        "cpp-tck-federate-service-reporting-direct-request",
+        "cpp-tck-federate-service-reporting-subscription",
+        "cpp-tck-federate-service-reporting-reflection-callback"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1",
+        "hla-1516.1-2025:clause-10.46",
+        "hla-1516.1-2025:clause-10.47",
+        "hla-1516.1-2025:clause-6.21",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.9.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-mim-attribute",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-getter",
+          "standard_section": "hla-1516.1-2025:clause-10.46"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-setter",
+          "standard_section": "hla-1516.1-2025:clause-10.47"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-direct-request",
+          "standard_section": "hla-1516.1-2025:clause-6.21"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-subscription",
+          "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "cpp-tck-federate-service-reporting-reflection-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.9.3"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings follow standard-federate-service-reporting-mim-attribute-requirements-contract: the HLAserviceReporting MIM attribute maps to IEEE 1516.1-2025 §11.4.1; the public getter and setter map to §§10.46 and 10.47; the direct request maps to §6.21; subscription maps to §5.8; and the reflection callback maps to §6.9.3. The test observes the subject switch, toggles it away and back, checks one reliable conditional HLAinteger32BE reflection for each transition, and confirms direct requests match the public getter. No broader MOM exchange or conformance claim is made.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models observe the subject federate's switch before and after each transition. A monitor identifies the subject HLAfederate MOM object, requests HLAserviceReporting directly, checks exactly one reliable conditional reflection per change with empty tag, invalid producer, and absent regions, then confirms the final state is restored.",
       "contract_refs": [
         "standard-federate-service-reporting-mim-attribute-api-contract.json",
         "standard-federate-service-reporting-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateServiceReportingMomAttribute",
       "parity": "cpp-tck.federate-service-reporting-mim-attribute",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-service-reporting-mim-attribute-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); pair results/JUnit: out/mgw/cpp-tck-service-reporting-mim-attribute-java-parity-20261116-pair.{json,xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-object-class-relevance-advisory-mim-attribute",
@@ -65851,7 +65945,7 @@
       "default_status": "run",
       "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-updated-object-report-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); direct results: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-updated-report-20261116.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
-    {
+        {
       "id": "java-tck.federate-mom-reflection-counts",
       "category": "joined-federate-mom-reflection-statistics",
       "title": "Observe reflected-object and reflection-invocation counts directly and periodically",
@@ -65914,8 +66008,25 @@
         "cpp-1516.1-time-advance-request",
         "cpp-1516.1-time-management",
         "cpp-1516.1-time-advance-and-grant",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The direct mapping follows the paired C++ public MOM contract: the selected candidate for the standard HLAfederate statistics maps to IEEE 1516.1-2025 §11.4.1. The Java case checks direct values (0, 0), (1, 1), (1, 2), and (2, 3) across receive-order reflections, then (2, 4) after a timestamped reflection reaches the callback; a periodic HLAsetTiming report preserves (2, 4). Distinct-object accounting, callback-boundary invocation counts, timestamp delivery, and RTI-owned MOM exclusion are bounded scenario evidence; RL-107 records the generic candidate refinement gap. This does not claim conformance.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models use two application objects of the adapter-supplied class. Repeating a receive-order reflection of the first object increments HLAreflectionsReceived but leaves HLAobjectInstancesReflected at one; reflecting a second object increments both; one timestamped reflection increments only the invocation total after time advancement. Direct requests and periodic HLAsetTiming reporting agree at (2, 4).",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -65932,12 +66043,17 @@
         "timestamped-attribute-update-requirements-contract.json",
         "time-advance-api-contract.json",
         "time-advance-requirements-contract.json",
-        "joined-federate-mom-public-requirements-contract.json"
+        "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-reflection-counts-contract.json",
+        "standard-joined-federate-mom-object-instances-reflected-mim-attribute-contract.json",
+        "standard-joined-federate-mom-object-instances-reflected-mim-attribute-requirements-contract.json",
+        "standard-joined-federate-mom-reflections-received-mim-attribute-contract.json",
+        "standard-joined-federate-mom-reflections-received-mim-attribute-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomReflectionCounts",
       "parity": "cpp-tck.joined-federate-mom-reflection-counts",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM, standard MIM, logical-time implementation, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-reflection-counts-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); results/JUnit: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-reflection-counts-20261116.{json,junit.xml}. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-reflections-received-counts",

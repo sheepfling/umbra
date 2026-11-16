@@ -7094,7 +7094,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateExceptionReportingMomAttribute);
+            }, true), RtiTckMain::federateExceptionReportingMomAttribute);
       run(new Scenario("java-tck.federate-service-reporting-mim-attribute",
             "observe Service Reporting switch changes and direct value requests through the standard federate MOM object",
             "mom-service-reporting",
@@ -7105,7 +7105,7 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-update-reflect",
                "cpp-1516.1-attribute-value-update-request",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateServiceReportingMomAttribute);
+            }, true), RtiTckMain::federateServiceReportingMomAttribute);
       run(new Scenario("java-tck.federate-object-class-relevance-advisory-mim-attribute",
             "observe Object Class Relevance Advisory switch changes and direct MOM value requests",
             "federation-management",
@@ -7620,7 +7620,7 @@ public final class RtiTckMain {
                "cpp-1516.1-time-management",
                "cpp-1516.1-time-advance-and-grant",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomReflectionCounts);
+            }, true), RtiTckMain::federateMomReflectionCounts);
       run(new Scenario("java-tck.regional-auto-provide-response",
             "respond automatically to a scoped regional value request triggered by object discovery",
             "regional-auto-provide",

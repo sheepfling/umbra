@@ -108,6 +108,45 @@ CTest 2/2 and direct runs in both models. Results are in
 `out/mgw/cpp-tck-mom-reflections-received-java-parity-20261115.{json,xml}`. This is
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
+The default-run `java-tck.federate-service-reporting-mim-attribute` case
+observes the subject's `HLAserviceReporting` value directly, changes the public
+switch, checks one reliable conditional reflection, and restores the original value.
+Its six direct mappings cover the MIM value and public getter/setter, request,
+subscription, and reflection services in IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21,
+10.46, 10.47, and 11.4.1. Java passed both callback models; the paired C++ primary
+and contract passed all four direct runs. Results are in
+`out/java-tck/federate-service-reporting-mim-attribute-java-parity-20261116/` and
+`out/mgw/cpp-tck-service-reporting-mim-attribute-java-parity-20261116-pair.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
+The default-run `java-tck.federate-exception-reporting-mim-attribute` case
+observes the subject's `HLAexceptionReporting` value directly, changes the public
+switch, checks one reliable conditional reflection, and restores the original value.
+Its six direct mappings cover the MIM value and public getter/setter, request,
+subscription, and reflection services in IEEE 1516.1-2025 §§5.8, 6.9.3, 6.21,
+10.48, 10.49, and 11.4.1. It does not test exception-report delivery. Java passed
+both callback models; the paired C++ primary and contract passed all four direct
+runs. Results are in
+`out/java-tck/exception-reporting-mim-attribute-java-parity-20261116/` and
+`out/mgw/cpp-tck-exception-reporting-mim-attribute-java-parity-20261116-pair.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
+The default-run `java-tck.federate-mom-reflection-counts` case distinguishes the
+number of distinct application objects reflected from the number of reflection
+callbacks. It checks the direct counts at zero, after two reflections of one object,
+a reflection of a second object, and a timestamped reflection; periodic
+`HLAsetTiming` reporting agrees at `(2, 4)`. The direct mapping is the standard
+MOM statistics definition in IEEE 1516.1-2025 §11.4.1; callback-boundary and
+count transitions remain bounded scenario evidence, with RL-107 recording the
+generic candidate refinement gap. Java passed under both callback models, and the
+paired C++ primary/contract passed all four direct runs. Results are in
+`out/java-tck/federate-mom-reflection-counts-java-parity-20261116/` and
+`.build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+
 The default-run `java-tck.federate-mom-interactions-received-mim-attribute` case
 checks the zero baseline, one `HLAinteractionsReceived` increment for each of three
 delivered receive-order interactions, the value of five after two more interactions
