@@ -48,9 +48,9 @@ final class OwnershipStateSaveRestoreTck {
          acquirerConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution(ownerName, federation);
+         owner.joinFederationExecution(ownerName, "tck-type", federation);
          ownerJoined = true;
-         acquirer.joinFederationExecution(acquirerName, federation);
+         acquirer.joinFederationExecution(acquirerName, "tck-type", federation);
          acquirerJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -140,13 +140,20 @@ final class OwnershipStateSaveRestoreTck {
             "restore request returned an unexpected result");
          RestoreInitiation ownerRestore = last(ownerRecorder.restoreInitiations);
          RestoreInitiation acquirerRestore = last(acquirerRecorder.restoreInitiations);
-         JavaTckSupport.check(saveLabel.equals(ownerRestore.label)
-               && ownerName.equals(ownerRestore.federateName)
-               && ownerRestore.postRestoreHandle != null
-               && saveLabel.equals(acquirerRestore.label)
-               && acquirerName.equals(acquirerRestore.federateName)
-               && acquirerRestore.postRestoreHandle != null,
-            "restore initiation returned incorrect saved identity data");
+         JavaTckSupport.check(saveLabel.equals(ownerRestore.label),
+            "owner restore initiation returned the wrong label: " + ownerRestore.label);
+         JavaTckSupport.check(ownerName.equals(ownerRestore.federateName),
+            "owner restore initiation returned the wrong federate name: "
+               + ownerRestore.federateName);
+         JavaTckSupport.check(ownerRestore.postRestoreHandle != null,
+            "owner restore initiation returned no post-restore federate handle");
+         JavaTckSupport.check(saveLabel.equals(acquirerRestore.label),
+            "acquirer restore initiation returned the wrong label: " + acquirerRestore.label);
+         JavaTckSupport.check(acquirerName.equals(acquirerRestore.federateName),
+            "acquirer restore initiation returned the wrong federate name: "
+               + acquirerRestore.federateName);
+         JavaTckSupport.check(acquirerRestore.postRestoreHandle != null,
+            "acquirer restore initiation returned no post-restore federate handle");
          owner.federateRestoreComplete();
          acquirer.federateRestoreComplete();
          awaitBoth(owner, acquirer, callbackModel, objectClassName,

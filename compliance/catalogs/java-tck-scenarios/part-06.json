@@ -6501,11 +6501,15 @@
       "category": "ownership",
       "title": "Preserve completed negotiated attribute ownership through federation save and restore",
       "api_methods": [
+        "RtiFactory.getRtiAmbassador",
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM,logical-time implementation)",
+        "RTIambassador.joinFederationExecution(federateName,federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
@@ -6523,6 +6527,8 @@
         "RTIambassador.federateRestoreComplete",
         "RTIambassador.getFederateHandle",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
@@ -6531,10 +6537,17 @@
         "FederateAmbassador.informAttributeOwnership",
         "FederateAmbassador.initiateFederateSave",
         "FederateAmbassador.federationSaved",
+        "FederateAmbassador.federationNotSaved",
         "FederateAmbassador.requestFederationRestoreSucceeded",
+        "FederateAmbassador.requestFederationRestoreFailed",
         "FederateAmbassador.federationRestoreBegun",
         "FederateAmbassador.initiateFederateRestore",
-        "FederateAmbassador.federationRestored"
+        "FederateAmbassador.federationRestored",
+        "FederateAmbassador.federationNotRestored",
+        "ObjectClassHandle.equals",
+        "AttributeHandle.equals",
+        "ObjectInstanceHandle.equals",
+        "FederateHandle.equals"
       ],
       "requirement_ids": [
         "cpp-1516.1-ownership-management",
@@ -6558,8 +6571,21 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipStateSaveRestore",
       "parity": "cpp-tck.ownership-state-save-restore",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied FOM, logical-time implementation, callback model, and a provider supporting federation save/restore and ownership management. The portable Java scenario uses only IEEE 1516.1-2025 APIs."
+      "default_status": "run",
+      "mapping_note": "The three cpp-1516.1-* identifiers are repository-internal cross-cutting references and have no direct normative section mapping; this scenario makes no IEEE clause claim. Assertions are bounded to one completed negotiated transfer, successful save/restore, installation of post-restore federate handles, and the restored ownership query. The adapter must supply a FOM and logical-time implementation, and the provider must support ownership management and federation save/restore.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied FOM with the configured object class and attribute",
+        "provider logical-time implementation",
+        "provider support for ownership management and federation save/restore",
+        "provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 Java API, p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/ownership-state-save-restore-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence is in out/cpp-tck-evidence-20261116/ownership-state-save-restore-java-parity-20261116.{json,xml}. The internal requirement IDs remain unmapped to normative clauses; local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.pending-negotiated-ownership-save-restore",
