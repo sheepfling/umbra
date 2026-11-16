@@ -5175,13 +5175,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.timestamped-object-deletion-source-resignation-fanout",
             "deliver a queued timestamped object deletion independently to two constrained recipients after producer resignation",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.deleteObjectInstance(time);RTIambassador.timeAdvanceRequest;RTIambassador.nextMessageRequest;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.retract;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.deleteObjectInstance(time);RTIambassador.timeAdvanceRequest;RTIambassador.nextMessageRequest;RTIambassador.resignFederationExecution(UNCONDITIONALLY_DIVEST_ATTRIBUTES);RTIambassador.retract;RTIambassador.queryLogicalTime;RTIambassador.disableTimeConstrained;RTIambassador.disableTimeRegulation;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "req-federate-connect-before-rti-work",
                "req-disconnect-service-terminates-connection",
                "java-1516.1-object-registration-discovery",
                "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectDeletionSourceResignationFanout);
+            }, true), RtiTckMain::timestampedObjectDeletionSourceResignationFanout);
       run(new Scenario("java-tck.save-restore", "save and restore lifecycle", "save-restore",
             "requestFederationSave;federateSaveComplete;requestFederationRestore;federationRestored",
             new String[] {"java-1516.1-save-restore-lifecycle"}, false),

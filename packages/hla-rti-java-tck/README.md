@@ -3420,11 +3420,13 @@ callback models.
 The `java-tck.timestamped-object-deletion-source-resignation-fanout` scenario
 queues one timestamped deletion for two constrained recipients using different
 advance services. It resigns the producer before advancing a regulating clock,
-then checks independent callback-before-grant delivery, each recipient's grant
-and logical time, and the `FederateNotExecutionMember` retraction boundary.
+then checks each recipient's exact grant and callback-before-grant removal, the
+clock's safe frontier, and the `FederateNotExecutionMember` retraction boundary.
 Provider, FOM, logical-time implementation, endpoint, and callback model remain
-adapter supplied, so this scenario is unsupported by default until Java-provider
-execution.
+adapter supplied. This scenario is enabled by default. Focused local JNI runs
+passed under both callback models with the P0 TCK FOM and `HLAinteger64Time`; the
+paired C++ primary and contract runs passed both callback models. The evidence is
+provider-local, not independent-provider interoperability or conformance.
 
 The `java-tck.timestamped-object-deletion-regulation-reenable` scenario queues
 a timestamped removal, disables and re-enables producer regulation with a
