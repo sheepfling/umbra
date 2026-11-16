@@ -50,9 +50,9 @@ final class PendingNegotiatedOwnershipSaveRestoreTck {
          acquirerConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         owner.joinFederationExecution(ownerName, federation);
+         owner.joinFederationExecution(ownerName, "tck-type", federation);
          ownerJoined = true;
-         acquirer.joinFederationExecution(acquirerName, federation);
+         acquirer.joinFederationExecution(acquirerName, "tck-type", federation);
          acquirerJoined = true;
 
          ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName);
@@ -83,8 +83,13 @@ final class PendingNegotiatedOwnershipSaveRestoreTck {
              acquirer.disableCallbacks();
              acquirerCallbacksDisabled = true;
           }
-          acquirer.attributeOwnershipAcquisitionIfAvailable(
-             object, acquirerAttributes, ACQUISITION_TAG.clone());
+          if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
+             acquirer.attributeOwnershipAcquisition(
+                object, acquirerAttributes, ACQUISITION_TAG.clone());
+          } else {
+             acquirer.attributeOwnershipAcquisitionIfAvailable(
+                object, acquirerAttributes, ACQUISITION_TAG.clone());
+          }
          owner.negotiatedAttributeOwnershipDivestiture(
             object, ownerAttributes, DIVESTITURE_TAG.clone());
           if (!ownerCallbacksDisabled) {
@@ -233,9 +238,9 @@ final class PendingNegotiatedOwnershipSaveRestoreTck {
                && acquirerRestore.postRestoreHandle.equals(ownership.owner),
             "post-restore query returned the wrong object, attributes, or owner handle");
 
-         acquirer.resignFederationExecution(ResignAction.NO_ACTION);
+         acquirer.resignFederationExecution(ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
          acquirerJoined = false;
-         owner.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         owner.resignFederationExecution(ResignAction.NO_ACTION);
          ownerJoined = false;
          owner.destroyFederationExecution(federation);
          created = false;
@@ -246,8 +251,10 @@ final class PendingNegotiatedOwnershipSaveRestoreTck {
          if (ownerCallbacksDisabled) {
             try { owner.enableCallbacks(); } catch (Exception ignored) { }
          }
-         if (acquirerJoined) resign(acquirer, ResignAction.NO_ACTION);
-         if (ownerJoined) resign(owner, ResignAction.DELETE_OBJECTS);
+         if (acquirerJoined) {
+            resign(acquirer, ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES);
+         }
+         if (ownerJoined) resign(owner, ResignAction.NO_ACTION);
          if (created) {
             try { owner.destroyFederationExecution(federation); } catch (Exception ignored) { }
          }
@@ -259,13 +266,20 @@ final class PendingNegotiatedOwnershipSaveRestoreTck {
    private static void checkRestoreInitiation(String saveLabel, String ownerName,
          String acquirerName, RestoreInitiation ownerRestore,
          RestoreInitiation acquirerRestore) {
-      JavaTckSupport.check(saveLabel.equals(ownerRestore.label)
-            && ownerName.equals(ownerRestore.federateName)
-            && ownerRestore.postRestoreHandle != null
-            && saveLabel.equals(acquirerRestore.label)
-            && acquirerName.equals(acquirerRestore.federateName)
-            && acquirerRestore.postRestoreHandle != null,
-         "restore initiation returned incorrect saved identity data");
+      JavaTckSupport.check(saveLabel.equals(ownerRestore.label),
+         "owner restore initiation returned the wrong label: " + ownerRestore.label);
+      JavaTckSupport.check(ownerName.equals(ownerRestore.federateName),
+         "owner restore initiation returned the wrong federate name: "
+            + ownerRestore.federateName);
+      JavaTckSupport.check(ownerRestore.postRestoreHandle != null,
+         "owner restore initiation returned no post-restore federate handle");
+      JavaTckSupport.check(saveLabel.equals(acquirerRestore.label),
+         "acquirer restore initiation returned the wrong label: " + acquirerRestore.label);
+      JavaTckSupport.check(acquirerName.equals(acquirerRestore.federateName),
+         "acquirer restore initiation returned the wrong federate name: "
+            + acquirerRestore.federateName);
+      JavaTckSupport.check(acquirerRestore.postRestoreHandle != null,
+         "acquirer restore initiation returned no post-restore federate handle");
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
