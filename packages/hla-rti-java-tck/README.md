@@ -805,6 +805,12 @@ under HLA_IMMEDIATE, a regular pending acquisition keeps both callback models at
 the same pending-transfer boundary. It is enabled by default after focused local
 JNI runs passed under both callback models and the paired C++ primary/contract
 selectors passed all four callback-model runs.
+The `java-tck.divestiture-if-wanted-return-set` case uses the same FOM and checks
+that an empty If Wanted call transfers nothing, a partial return transfers only
+the requested attribute, and a later acquisition requires a new If Wanted call.
+It covers the selected direct §7.1.2.1 mapping and is enabled by default after
+both Java callback-model runs and all four paired C++ primary/contract runs
+passed.
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback

@@ -5149,14 +5149,15 @@
           "standard_section": "hla-1516.1-2025:clause-7.1.2.1"
         }
       ],
-      "mapping_note": "Java parity of the direct §7.1.2.1 page-151-l132-43 If Wanted branch: the empty, partial, and later separate return sets match immediate ownership state and exact tagged acquisition callbacks. Other composite divestiture paths are not claimed. Official API-only JAR compilation passed; provider-runtime execution remains unverified.",
+      "mapping_note": "The selected direct mapping to §7.1.2.1 page-151-l132-43 covers the If Wanted branch: empty, partial, and later separate return sets match immediate ownership state and exact tagged acquisition callbacks. This Java row makes no claim for the additional mappings in the paired C++ catalog or DDM scope continuity.",
       "contract_refs": [
         "standard-divestiture-if-wanted-return-set-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#divestitureIfWantedReturnSet",
       "parity": "cpp-tck.divestiture-if-wanted-return-set",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied two-attribute FOM, callback model, and a standard IEEE 1516.1-2025 Java provider; provider-runtime execution remains unverified."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute-tck.xml FOM with HLAobjectRoot.TckMultiAttributeObject, FirstValue, and SecondValue. The paired C++ primary and contract direct selectors passed all four callback-model executions on the installed MinGW package. Focused CTest discovery returned zero registered cases. Results: out/java-tck/divestiture-if-wanted-return-set-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-divestiture-if-wanted-return-set-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.if-available-during-negotiated-divestiture",

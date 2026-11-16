@@ -6046,7 +6046,7 @@ public final class RtiTckMain {
             "return only requested attributes from Divestiture If Wanted and require a new call for later acquisitions",
             "ownership",
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification",
-            new String[] {"cpp-1516.1-ownership-management"}, false),
+            new String[] {"cpp-1516.1-ownership-management"}, true),
          RtiTckMain::divestitureIfWantedReturnSet);
       run(new Scenario("java-tck.unconditional-attribute-ownership-divestiture",
             "resolve regular acquisition, rejected and retried If Available acquisition, and a published candidate through one unconditional divestiture",
