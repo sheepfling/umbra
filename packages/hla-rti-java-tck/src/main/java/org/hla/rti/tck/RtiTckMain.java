@@ -7542,14 +7542,18 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39"
             }, true), RtiTckMain::federateMomUpdatedNullObjectReport);
       run(new Scenario("java-tck.federate-mom-reflected-null-object-report",
-            "verify the standard empty HLAobjectInstancesReflected response for a joined federate with no reflections",
-            "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RtiFactory.getEncoderFactory;EncoderFactory.createHLAvariableArray;EncoderFactory.createHLAfixedRecord;EncoderFactory.createHLAoctet;EncoderFactory.createHLAinteger32BE;FederateAmbassador.receiveInteraction;HLAinteger32BE;HLAoctet;HLAfixedRecord;HLAvariableArray",
+            "verify the standard empty HLAreportObjectInstancesReflected response for a joined federate with no reflections",
+            "joined-federate-mom-object-statistics",
+            "RtiFactory.getRtiAmbassador;RtiFactory.getEncoderFactory;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction(receive-order);RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;EncoderFactory.createHLAvariableArray;HLAvariableArray.decode;HLAvariableArray.size;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;EncoderFactory.createHLAoctet;EncoderFactory.createHLAinteger32BE;HLAinteger32BE;HLAoctet;HLAfixedRecord;HLAvariableArray;FederateHandle.encodedLength;FederateHandle.encode;FederateAmbassador.receiveInteraction",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomReflectedNullObjectReport);
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-null-request",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-null-callback",
+               "cpp-tck-joined-federate-mom-object-instances-reflected-null-mim-response",
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39"
+            }, true), RtiTckMain::federateMomReflectedNullObjectReport);
       run(new Scenario("java-tck.federate-mom-reflected-multi-class-object-report",
             "request standard HLAobjectInstancesReflected counts across two registered object classes",
             "object-management",

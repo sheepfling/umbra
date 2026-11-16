@@ -66564,10 +66564,12 @@
     },
     {
       "id": "java-tck.federate-mom-reflected-null-object-report",
-      "category": "object-management",
-      "title": "Verify the standard empty HLAobjectInstancesReflected response for a joined federate with no reflections",
+      "category": "joined-federate-mom-object-statistics",
+      "title": "Verify the standard empty HLAreportObjectInstancesReflected response for a joined federate with no reflections",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
@@ -66577,28 +66579,70 @@
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.subscribeInteractionClass",
-        "RTIambassador.sendInteraction",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.evokeCallback",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "RtiFactory.getEncoderFactory",
         "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.size",
         "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
         "EncoderFactory.createHLAoctet",
         "EncoderFactory.createHLAinteger32BE",
-        "FederateAmbassador.receiveInteraction",
         "HLAinteger32BE",
         "HLAoctet",
         "HLAfixedRecord",
-        "HLAvariableArray"
+        "HLAvariableArray",
+        "FederateHandle.encodedLength",
+        "FederateHandle.encode",
+        "FederateAmbassador.receiveInteraction"
       ],
       "requirement_ids": [
         "cpp-1516.1-mom-service-reporting",
         "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-null-request",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-null-callback",
+        "cpp-tck-joined-federate-mom-object-instances-reflected-null-mim-response",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-null-request",
+          "standard_section": "hla-1516.1-2025:clause-6.12"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-null-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.13"
+        },
+        {
+          "requirement_id": "cpp-tck-joined-federate-mom-object-instances-reflected-null-mim-response",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l120-39",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct mappings follow the paired C++ requirements contract: the HLArequestObjectInstancesReflected request is mapped to IEEE 1516.1-2025 §6.12, the receiveInteraction callback to §6.13, and the standard NULL HLAreportObjectInstancesReflected response to §11.4.1. The selected Requirements Lab candidate also maps directly to §11.4.1. This bounded case selects a joined subject with no Reflect Attribute Values callbacks and checks one reliable report, its single HLAobjectInstanceCounts parameter, empty metadata, NULL producer, and an empty count list. It does not claim nonzero reflection counts, other MOM report leaves, independent-provider behavior, or conformance.",
+      "callback_models": [
+        "evoked",
+        "immediate"
       ],
       "contract_refs": [
         "standard-joined-federate-mom-object-instances-reflected-null-report-api-contract.json",
@@ -66609,8 +66653,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomReflectedNullObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-reflected-null-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using RestaurantFOMmodule-2025.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. Results/JUnit: out/java-tck/federate-mom-reflected-null-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The paired C++ primary and contract passed both callback models (four direct executions); direct results: .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results/joined-federate-mom-object-instances-reflected-null-report-20261116.json. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-reflected-multi-class-object-report",

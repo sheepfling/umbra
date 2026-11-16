@@ -1893,6 +1893,15 @@ paired C++ primary and contract. Results are in
 `out/java-tck/federate-mom-updated-null-object-report-java-parity-20261116/`.
 This is a bounded §11.4.1(d) witness and local-provider evidence only.
 
+The default-run `java-tck.federate-mom-reflected-null-object-report` scenario
+requests HLArequestObjectInstancesReflected for a joined subject with no
+Reflect Attribute Values callbacks. It checks exactly one reliable
+HLAreportObjectInstancesReflected response, its single HLAobjectInstanceCounts
+parameter and empty metadata, then decodes an empty count list. Java passed in
+both callback models against the paired C++ primary and contract. Results are
+in `out/java-tck/federate-mom-reflected-null-java-parity-20261116/`. The direct
+mapping covers §§6.12, 6.13, and 11.4.1; this is local-provider evidence only.
+
 The adapter-required `java-tck.mom-save-restore-interactions` case has both
 federates publish the three standard save/restore MOM interactions. During the
 active save it sends Save Begun and Save Complete; during the active restore it

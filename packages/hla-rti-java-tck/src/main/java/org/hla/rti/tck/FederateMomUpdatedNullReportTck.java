@@ -25,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Verifies the standard empty updated-object MOM response for a federate with no updates. */
+/** Verifies standard empty updated- or reflected-object MOM responses. */
 final class FederateMomUpdatedNullReportTck {
    private static final String REQUEST_CLASS =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesUpdated";
@@ -54,7 +54,9 @@ final class FederateMomUpdatedNullReportTck {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador requester = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
-      String federation = "java-tck-federate-mom-updated-null-report-" + UUID.randomUUID();
+      String reportKind = reflectedReport ? "reflected" : "updated";
+      String federation = "java-tck-federate-mom-" + reportKind + "-null-report-"
+         + UUID.randomUUID();
       boolean subjectConnected = false, requesterConnected = false, created = false;
       boolean subjectJoined = false, requesterJoined = false, subscribed = false;
       InteractionClassHandle reportClass = null;
@@ -67,9 +69,9 @@ final class FederateMomUpdatedNullReportTck {
             timeImplementation);
          created = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
-            "mom-updated-null-subject", "java-tck", federation);
+            "mom-null-report-subject", "java-tck", federation);
          subjectJoined = true;
-         requester.joinFederationExecution("mom-updated-null-requester", "java-tck",
+         requester.joinFederationExecution("mom-null-report-requester", "java-tck",
             federation);
          requesterJoined = true;
 
@@ -87,7 +89,7 @@ final class FederateMomUpdatedNullReportTck {
                && "HLAobjectInstanceCounts".equals(requester.getParameterName(reportClass,
                   reportCounts))
                && "HLAreliable".equals(requester.getTransportationTypeName(reliable)),
-            "standard updated-object request/report handles did not round-trip");
+            "standard object-report request/report handles did not round-trip");
          requester.subscribeInteractionClass(reportClass);
          subscribed = true;
 
