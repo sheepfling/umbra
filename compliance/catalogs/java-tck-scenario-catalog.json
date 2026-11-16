@@ -69699,13 +69699,14 @@
       "java_test": "org.hla.rti.tck.InvalidTransportSessionMetadataScenarioRegistry#rejectsInvalidTransportSessionMetadata",
       "parity": "cpp-tck.reject-invalid-transport-session-metadata",
       "default_status": "unsupported",
+      "promotion": "promoted",
       "adapter_inputs": [
         "pinned official IEEE 1516.1-2025 Java API JAR and provider JARs",
         "TCK FOM and logical-time implementation name required by the Java runner",
         "adapter-controlled TCP peer returning two malformed CTRL_NEW_SESSION_STATUS frames",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
-      "evidence_note": "The focused Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on provider umbra-jni-20261106. Each model attempted Connect twice: the peer returned a nonzero Session ID with reserved sequence 0x80000000, then a zero Session ID with valid sequence 0; Java reported ConnectionFailed both times and the peer observed EOF on both sockets. Results, JUnit, and peer observations are under out/java-tck/invalid-transport-session-metadata-java-port-20261113/{hla_evoked,hla_immediate}/. This is provider-specific evidence for these two federate-side malformed-status cases only, not independent-provider interoperability or complete conformance.",
+      "evidence_note": "The focused Java TCK compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed 1/1 under both HLA_EVOKED and HLA_IMMEDIATE on the current-source local Umbra JNI provider. Each model attempted Connect twice: the shared peer returned a nonzero Session ID with reserved sequence 0x80000000, then a zero Session ID with valid sequence 0; Java reported ConnectionFailed both times and the peer observed EOF on both sockets. Results, JUnit, peer observations, and traceability are under out/java-tck/invalid-transport-session-metadata-java-port-20261116/{hla_evoked,hla_immediate}/. The paired C++ adapter evidence is recorded in the C++ catalog. This is provider-specific evidence for these two federate-side malformed-status cases only, not independent-provider interoperability or complete conformance.",
       "exclusion": "The pure Java mock profile does not provide a controllable TCP peer that can return malformed session metadata. The focused adapter runner supplies the peer and checks socket closure."
     },
     {
