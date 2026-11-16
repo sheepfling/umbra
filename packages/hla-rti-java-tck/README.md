@@ -2635,7 +2635,7 @@ region-specific interaction advisory transitions, callback data for sends
 through separate regions, default-active subscription behavior, and stale-region
 rejection.
 
-The opt-in `java-tck.ownership-transfer-regional-update` scenario uses the
+The default `java-tck.ownership-transfer-regional-update` scenario uses the
 adapter-supplied dimensional DDM FOM and configured object, attribute, two
 object dimensions, and unrelated dimension. It rejects an unrelated-dimension
 registration with `InvalidRegionContext`, transfers and reacquires the
@@ -2643,9 +2643,18 @@ attribute, checks default-region delivery until explicit reassociation, and
 checks the new owner's source-region bounds from the callback's copied region.
 With Attribute Scope Advisory enabled, it also verifies no transient scope
 callbacks during Divestiture If Wanted or confirmed Negotiated Divestiture,
-then checks one out-of-scope and one in-scope callback in live controls. It
-passed both callback models on the local JNI provider; this is not
-independent-provider evidence.
+then checks one out-of-scope and one in-scope callback in live controls. Default runs passed 1/1 in both callback models against the current-source
+JNI provider using `ddm-tck.xml`, `HLAinteger64Time`,
+`HLAobjectRoot.TckObject`, `Value`, dimensions `TckDimensionX` and
+`TckDimensionY`, and unrelated dimension `TckUnrelatedDimension`. The
+paired installed-package C++ primary and contract runs passed 4/4 focused
+CTest cases and 4/4 direct executions across both callback models. Java
+evidence is under
+`out/java-tck/ownership-transfer-regional-update-java-parity-20261116/`;
+C++ evidence is in
+`.build/cpp-tck-evidence-20261116/ownership-transfer-regional-update-java-parity-20261116.{json,xml}`.
+This is bounded local-provider evidence, not independent-provider
+behavior or an overall conformance claim.
 
 The opt-in `java-tck.ownership-transfer-deferred-regional-update` scenario
 stages the new owner's region association before transfer. It checks the current

@@ -6014,7 +6014,7 @@ public final class RtiTckMain {
                "cpp-1516.1-ddm-regional-object-registration",
                "cpp-1516.1-ddm-regional-object-update",
                "cpp-1516.1-ddm-region-designator-callback"
-            }, false), RtiTckMain::ownershipTransferRegionalUpdate);
+            }, true), RtiTckMain::ownershipTransferRegionalUpdate);
       run(new Scenario("java-tck.ownership-transfer-deferred-regional-update",
             "promote a deferred update-region association atomically with ownership acquisition",
             "ownership-transfer-regional-update",

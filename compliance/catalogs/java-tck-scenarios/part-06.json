@@ -5570,6 +5570,7 @@
       "category": "ownership-transfer-regional-update",
       "title": "Clear former-owner regional update state at ownership transfer and require explicit reassociation",
       "api_methods": [
+        "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -5707,7 +5708,11 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipTransferRegionalUpdate",
       "parity": "cpp-tck.ownership-transfer-regional-update",
-      "default_status": "run"
+      "default_status": "run",
+      "promotion": "promoted",
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": ["evoked", "immediate"],
+      "evidence_note": "Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider using ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, TckDimensionX/Y, and TckUnrelatedDimension. The paired installed-package C++ primary/contract slice passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java evidence: out/java-tck/ownership-transfer-regional-update-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; C++ evidence: .build/cpp-tck-evidence-20261116/ownership-transfer-regional-update-java-parity-20261116.{json,xml}. Bounded local-provider evidence only; not independent-provider behavior or an overall conformance claim."
     },
     {
       "id": "java-tck.ownership-transfer-deferred-regional-update",
