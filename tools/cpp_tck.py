@@ -9,6 +9,11 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
+if __package__:
+    from .java_tck_catalog import load_java_tck_catalog
+else:
+    from java_tck_catalog import load_java_tck_catalog
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "cpp-tck-scenario-catalog.json"
 SOURCE_ROOT = ROOT / "packages" / "hla-rti-cpp-tck"
@@ -486,7 +491,7 @@ def load_catalog(path: Path) -> CppTckCatalog:
                     f"{requirement_id} disposition needs a non-empty {field}"
                 )
     parity_path = ROOT / parity_catalog
-    parity = load_json(parity_path)
+    parity = load_java_tck_catalog(parity_path)
     if parity.get("kind") != "portable-java-tck-catalog":
         raise ValueError(f"unsupported parity catalog: {parity_path}")
     parity_ids = {

@@ -323,6 +323,8 @@ python tools/run_java_tck.py matrix \
 
 `compliance/catalogs/java-tck-scenario-catalog.json` is the source of truth for
 scenario IDs, standard Java API methods, requirements IDs, and contract files.
+It is an ordered index; scenario records live in the listed files under
+`compliance/catalogs/java-tck-scenarios/` so focused catalog edits stay bounded.
 Validate the source boundary and catalog with:
 
 ```text

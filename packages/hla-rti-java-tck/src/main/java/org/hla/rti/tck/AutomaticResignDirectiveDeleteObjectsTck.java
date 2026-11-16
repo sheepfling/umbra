@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 /** Tests DELETE_OBJECTS after adapter-induced connection loss using only the standard HLA API. */
@@ -45,14 +44,14 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
       RTIambassador survivor = factory.getRtiAmbassador();
       RTIambassador lost = factory.getRtiAmbassador();
       Recorder survivorCallbacks = new Recorder();
-      AtomicReference<String> loss = new AtomicReference<>();
+      List<String> lossMessages = new CopyOnWriteArrayList<>();
       boolean survivorConnected = false;
       boolean lostConnected = false;
       boolean survivorJoined = false;
       try {
          survivor.connect(survivorCallbacks.proxy(), callbackModel, survivorConfiguration);
          survivorConnected = true;
-         lost.connect(connectionLossCallbacks(loss), callbackModel, lostConfiguration);
+         lost.connect(connectionLossCallbacks(lossMessages), callbackModel, lostConfiguration);
          lostConnected = true;
          survivor.createFederationExecution(federation, fom, timeImplementation);
          survivor.joinFederationExecution(survivorName, federateType, federation);
@@ -78,24 +77,36 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
             "registration returned an empty object name");
          await(() -> survivorCallbacks.hasDiscovery(object), survivor, callbackModel,
             timeoutMillis, "survivor did not discover the registered object");
+         List<Discovery> discoveries = survivorCallbacks.discoveries();
+         JavaTckSupport.check(discoveries.size() == 1
+               && object.equals(discoveries.get(0).object)
+               && survivorClass.equals(discoveries.get(0).objectClass),
+            "survivor did not receive exactly one discovery with the registered object's class");
          lost.setAutomaticResignDirective(ResignAction.DELETE_OBJECTS);
          JavaTckSupport.check(lost.getAutomaticResignDirective() == ResignAction.DELETE_OBJECTS,
             "DELETE_OBJECTS automatic resign directive did not round-trip");
          JavaTckSupport.check(object.equals(survivor.getObjectInstanceHandle(objectName)),
             "object-name lookup failed before automatic resignation");
+         JavaTckSupport.check(survivorCallbacks.removals().isEmpty(),
+            "automatic DELETE_OBJECTS removed the object before connection loss");
          writeMarker(Path.of(readyMarkerPath), "ready\n");
 
          long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
-         while (loss.get() == null && System.nanoTime() < deadline) {
+         while (lossMessages.isEmpty() && System.nanoTime() < deadline) {
             try {
                lost.evokeMultipleCallbacks(0.0, 0.05);
             } catch (Exception ignored) {
                // The adapter may surface transport loss before queuing its callback.
             }
-            if (loss.get() == null) Thread.sleep(1L);
+            if (lossMessages.isEmpty()) Thread.sleep(1L);
          }
-         JavaTckSupport.check(loss.get() != null && !loss.get().isEmpty(),
+         JavaTckSupport.check(!lossMessages.isEmpty(),
             "timed out waiting for a non-empty connectionLost callback");
+         JavaTckSupport.check(lossMessages.get(0) != null && !lossMessages.get(0).isEmpty(),
+            "connectionLost delivered an empty fault description");
+         drainLossCallbacks(lost, callbackModel);
+         JavaTckSupport.check(lossMessages.size() == 1,
+            "connection loss delivered duplicate callbacks");
          lostConnected = false;
          writeMarker(Path.of(completionMarkerPath), "callback-ok\n");
 
@@ -130,13 +141,13 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
       }
    }
 
-   private static FederateAmbassador connectionLossCallbacks(AtomicReference<String> loss) {
+   private static FederateAmbassador connectionLossCallbacks(List<String> lossMessages) {
       return (FederateAmbassador) Proxy.newProxyInstance(
          FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
          (proxy, method, arguments) -> {
             if ("connectionLost".equals(method.getName())
                   && arguments != null && arguments.length == 1) {
-               loss.set((String) arguments[0]);
+               lossMessages.add((String) arguments[0]);
             }
             if (method.getDeclaringClass() == Object.class) {
                if ("toString".equals(method.getName())) return "Java TCK lost-member callbacks";
@@ -145,6 +156,22 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
             }
             return null;
          });
+   }
+
+   private static void drainLossCallbacks(RTIambassador lost, CallbackModel callbackModel)
+         throws Exception {
+      long deadline = System.nanoTime() + 50_000_000L;
+      while (System.nanoTime() < deadline) {
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            try {
+               lost.evokeMultipleCallbacks(0.0, 0.01);
+            } catch (Exception ignored) {
+               // The adapter may report the transport loss while callbacks are draining.
+            }
+         } else {
+            Thread.sleep(1L);
+         }
+      }
    }
 
    private static void writeMarker(Path path, String contents) throws Exception {
@@ -175,8 +202,18 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass) {
+         this.object = object;
+         this.objectClass = objectClass;
+      }
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Removal> removals = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
@@ -185,8 +222,9 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)
-                     && arguments != null && arguments.length >= 1) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                     && arguments != null && arguments.length >= 2) {
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1]));
                } else if ("removeObjectInstance".equals(name)
                      && arguments != null && arguments.length == 3) {
                   removals.add(new Removal((ObjectInstanceHandle) arguments[0],
@@ -202,7 +240,11 @@ final class AutomaticResignDirectiveDeleteObjectsTck {
       }
 
       private boolean hasDiscovery(ObjectInstanceHandle object) {
-         return discoveries.contains(object);
+         return discoveries.stream().anyMatch(discovery -> object.equals(discovery.object));
+      }
+
+      private List<Discovery> discoveries() {
+         return List.copyOf(discoveries);
       }
 
       private List<Removal> removals() {

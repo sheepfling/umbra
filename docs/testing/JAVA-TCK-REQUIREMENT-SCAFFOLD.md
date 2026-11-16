@@ -19,13 +19,13 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1281 |
+| Distinct stable requirement IDs | 1286 |
 | Scenarios with a C++ parity pointer | 890 |
 | Scenarios without a C++ parity pointer | 74 |
 | Default `run` scenarios | 668 |
 | Default `unsupported` scenarios | 296 |
-| Scenarios with explicit `requirement_mappings` | 713 |
-| Explicit mapping records | 2920 |
+| Scenarios with explicit `requirement_mappings` | 716 |
+| Explicit mapping records | 2935 |
 
 The separate `python tools/java_tck.py validate` check audits the catalog against the Requirements Lab Java API surface inventory and checks source purity. Run it after catalog/source changes; this scaffold generator does not replace that validation.
 
@@ -295,9 +295,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 - [`java-tck.automatic-resign-directive-lifecycle-boundaries`](#scenario-java-tck.automatic-resign-directive-lifecycle-boundaries) — Check automatic resign directive getter and setter lifecycle boundaries (`federation-management`; default `run`; C++ pointer `cpp-tck.automatic-resign-directive-lifecycle-boundaries`).
 - [`java-tck.automatic-resign-directive-standard-enumerator-values`](#scenario-java-tck.automatic-resign-directive-standard-enumerator-values) — Round-trip every standard ResignAction value through the automatic-resign directive (`federation-management`; default `run`; C++ pointer `cpp-tck.automatic-resign-directive-enum-values-contract`).
-- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
-- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
-- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 - [`java-tck.federate-automatic-resign-action-mim-attribute`](#scenario-java-tck.federate-automatic-resign-action-mim-attribute) — Observe direct and conditional HLAautomaticResignAction MOM values through the standard API (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mim-attribute`).
 - [`java-tck.federate-automatic-resign-action-mom-switch`](#scenario-java-tck.federate-automatic-resign-action-mom-switch) — Set the joined federate's Automatic Resign Action through standard HLAsetSwitches without changing neighboring switches (`federation-management`; default `run`; C++ pointer `cpp-tck.federate-automatic-resign-action-mom-switch`).
 
@@ -462,9 +459,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-connection-loss-callback`
 
-- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
-- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
-- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 - [`java-tck.connection-loss-cleanup`](#scenario-java-tck.connection-loss-cleanup) — Observe adapter-managed connection loss and verify survivor service (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-cleanup`).
 - [`java-tck.federate-lost-mom-report`](#scenario-java-tck.federate-lost-mom-report) — Receive the standard federate-lost MOM report after adapter-managed connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.federate-lost-mom-report`).
 
@@ -472,9 +466,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-connection-loss-cleanup`
 
-- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
-- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
-- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 - [`java-tck.connection-loss-cleanup`](#scenario-java-tck.connection-loss-cleanup) — Observe adapter-managed connection loss and verify survivor service (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-cleanup`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
@@ -1056,7 +1047,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.attribute-value-update-response`](#scenario-java-tck.attribute-value-update-response) — Reject a non-owner update, then answer an instance-scoped value request (`object-management`; default `run`; C++ pointer `cpp-tck.attribute-value-update-response`).
 - [`java-tck.auto-provide-disabled-discovery-only`](#scenario-java-tck.auto-provide-disabled-discovery-only) — Keep object discovery while suppressing Auto Provide solicitation when disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-discovery-only`).
 - [`java-tck.auto-provide-disabled-explicit-request`](#scenario-java-tck.auto-provide-disabled-explicit-request) — Use object-scoped and class-scoped explicit value requests while Auto Provide is disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-explicit-request`).
-- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
 - [`java-tck.automatic-resign-directive-lifecycle-boundaries`](#scenario-java-tck.automatic-resign-directive-lifecycle-boundaries) — Check automatic resign directive getter and setter lifecycle boundaries (`federation-management`; default `run`; C++ pointer `cpp-tck.automatic-resign-directive-lifecycle-boundaries`).
 - [`java-tck.automatic-resign-directive-standard-enumerator-values`](#scenario-java-tck.automatic-resign-directive-standard-enumerator-values) — Round-trip every standard ResignAction value through the automatic-resign directive (`federation-management`; default `run`; C++ pointer `cpp-tck.automatic-resign-directive-enum-values-contract`).
 - [`java-tck.callback-controls-attribute-relevance-advisories`](#scenario-java-tck.callback-controls-attribute-relevance-advisories) — Gate standard per-object attribute-relevance advisory callbacks with callback enable and disable services (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-attribute-relevance-advisories`).
@@ -1812,7 +1802,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 ### `cpp-1516.1-object-instance-deletion`
 
-- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
 - [`java-tck.callback-controls-object-removal`](#scenario-java-tck.callback-controls-object-removal) — Gate an ordinary object-removal callback with standard callback controls (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-object-removal`).
 - [`java-tck.local-delete-object-instance`](#scenario-java-tck.local-delete-object-instance) — Exercise local object deletion boundaries, ownership protection, rediscovery, and continued updates (`local-object-instance-deletion`; default `run`; C++ pointer `cpp-tck.local-delete-object-instance`).
 - [`java-tck.object-deletion-service-boundaries`](#scenario-java-tck.object-deletion-service-boundaries) — Exercise ordinary object-deletion service boundaries, removal metadata, and resignation cleanup (`object-management`; default `run`; C++ pointer `cpp-tck.object-deletion-service-boundaries`).
@@ -1863,9 +1852,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.auto-provide-disabled-explicit-request`](#scenario-java-tck.auto-provide-disabled-explicit-request) — Use object-scoped and class-scoped explicit value requests while Auto Provide is disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-explicit-request`).
 - [`java-tck.callback-controls-object-discovery`](#scenario-java-tck.callback-controls-object-discovery) — Gate an ordinary object-discovery callback with standard callback controls (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-object-discovery`).
 - [`java-tck.callback-controls-object-removal`](#scenario-java-tck.callback-controls-object-removal) — Gate an ordinary object-removal callback with standard callback controls (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-object-removal`).
-- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
-- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
-- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 - [`java-tck.divestiture-if-wanted-mixed-acquirers`](#scenario-java-tck.divestiture-if-wanted-mixed-acquirers) — Transfer two independently requested attributes to regular and If Available candidates (`ownership`; default `unsupported`; C++ pointer `cpp-tck.divestiture-if-wanted-mixed-acquirers`).
 - [`java-tck.federation-auto-provide-mom-switch`](#scenario-java-tck.federation-auto-provide-mom-switch) — Set federation-wide Auto Provide through the standard federation MOM interaction (`auto-provide`; default `run`; C++ pointer `cpp-tck.federation-auto-provide-mom-switch`).
 - [`java-tck.if-available-deleted-object`](#scenario-java-tck.if-available-deleted-object) — Remove a deleted object without delivering its queued If Available result (`ownership`; default `unsupported`; C++ pointer `cpp-tck.if-available-deleted-object`).
@@ -1906,7 +1892,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.auto-provide`](#scenario-java-tck.auto-provide) — Solicit published provider-owned attributes through the standard Auto Provide callback (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide`).
 - [`java-tck.auto-provide-disabled-discovery-only`](#scenario-java-tck.auto-provide-disabled-discovery-only) — Keep object discovery while suppressing Auto Provide solicitation when disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-discovery-only`).
 - [`java-tck.auto-provide-disabled-explicit-request`](#scenario-java-tck.auto-provide-disabled-explicit-request) — Use object-scoped and class-scoped explicit value requests while Auto Provide is disabled (`auto-provide`; default `run`; C++ pointer `cpp-tck.auto-provide-disabled-explicit-request`).
-- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
 - [`java-tck.callback-controls-attribute-relevance-advisories`](#scenario-java-tck.callback-controls-attribute-relevance-advisories) — Gate standard per-object attribute-relevance advisory callbacks with callback enable and disable services (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-attribute-relevance-advisories`).
 - [`java-tck.callback-controls-attribute-value-request`](#scenario-java-tck.callback-controls-attribute-value-request) — Gate ordinary instance-scoped attribute-value request callbacks while callbacks are disabled (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-attribute-value-request`).
 - [`java-tck.callback-controls-auto-provide`](#scenario-java-tck.callback-controls-auto-provide) — Gate the standard Auto Provide callback with callback enable and disable services (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-auto-provide`).
@@ -2019,9 +2004,6 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.callback-controls-ownership-unavailable`](#scenario-java-tck.callback-controls-ownership-unavailable) — Gate the standard ownership-unavailable callback with callback enable and disable services (`callback-controls`; default `run`; C++ pointer `cpp-tck.callback-controls-ownership-unavailable`).
 - [`java-tck.confirm-divestiture-from-callback`](#scenario-java-tck.confirm-divestiture-from-callback) — Confirm negotiated divestiture from inside the owner callback (`ownership-management`; default `run`; C++ pointer `cpp-tck.confirm-divestiture-from-callback`).
 - [`java-tck.confirm-divestiture-mixed-set-atomicity`](#scenario-java-tck.confirm-divestiture-mixed-set-atomicity) — Reject mixed requested and unrequested Confirm Divestiture sets atomically (`ownership-management`; default `run`; C++ pointer `cpp-tck.confirm-divestiture-mixed-set-atomicity`).
-- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
-- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
-- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 - [`java-tck.divestiture-if-wanted-mixed-acquirers`](#scenario-java-tck.divestiture-if-wanted-mixed-acquirers) — Transfer two independently requested attributes to regular and If Available candidates (`ownership`; default `unsupported`; C++ pointer `cpp-tck.divestiture-if-wanted-mixed-acquirers`).
 - [`java-tck.divestiture-if-wanted-return-set`](#scenario-java-tck.divestiture-if-wanted-return-set) — Return only transferred attributes from Divestiture If Wanted and require a new call for later acquisitions (`ownership`; default `unsupported`; C++ pointer `cpp-tck.divestiture-if-wanted-return-set`).
 - [`java-tck.federation-restore-work-item-ownership-assumption`](#scenario-java-tck.federation-restore-work-item-ownership-assumption) — Preserve pending object discovery and ownership-assumption callbacks across federation save and restore (`federation-restore-work-item-ownership-assumption`; default `run`; C++ pointer `cpp-tck.federation-restore-work-item-ownership-assumption`).
@@ -3800,6 +3782,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `req-connection-lost-service-behavior`
+
+- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
+- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
+- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
+- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `req-disconnect-service-terminates-connection`
 
 - [`java-tck.federation-membership`](#scenario-java-tck.federation-membership) — Complete federation execution create, join, query, resign, destroy, and disconnect lifecycle (`lifecycle`; default `run`; C++ source pointer not declared).
@@ -3811,6 +3802,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 - [`java-tck.federation-membership`](#scenario-java-tck.federation-membership) — Complete federation execution create, join, query, resign, destroy, and disconnect lifecycle (`lifecycle`; default `run`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-source-resignation-fanout`](#scenario-java-tck.timestamped-object-deletion-source-resignation-fanout) — Deliver queued timestamped object deletion to constrained recipients after producer resignation (`time`; default `unsupported`; C++ source pointer not declared).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `req-federate-connection-lost`
+
+- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
+- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
+- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
+- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -4007,6 +4007,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-04-federation-management-page-049-l46-13`
 
 - [`java-tck.federation-mom-fom-module-designator-list`](#scenario-java-tck.federation-mom-fom-module-designator-list) — Observe duplicate-content filtering and data-type-only FOM module effects in federation MOM (`federation-mom`; default `run`; C++ pointer `cpp-tck.federation-mom-fom-module-designator-list`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`
+
+- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
+- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
+- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
+- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -8252,6 +8261,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-10-support-services-page-274-l181-57`
+
+- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
+- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
+- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
+- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-10-support-services-page-274-l55-15`
 
 - [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
@@ -8261,6 +8279,15 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-10-support-services-page-274-l58-16`
 
 - [`java-tck.support-switch-setter-lifecycle-boundaries`](#scenario-java-tck.support-switch-setter-lifecycle-boundaries) — Check all writable standard support-switch setter lifecycle boundaries (`support-switches`; default `run`; C++ pointer `cpp-tck.support-switch-setter-lifecycle-boundaries`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
+### `requirement-candidate-content-clauses-10-support-services-page-275-l119-36`
+
+- [`java-tck.automatic-resign-directive-delete-objects`](#scenario-java-tck.automatic-resign-directive-delete-objects) — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal (`federation-management`; default `unsupported`; C++ pointer `cpp-tck.automatic-resign-directive-delete-objects`).
+- [`java-tck.connection-loss-automatic-cancel-pending-acquisition`](#scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition) — Cancel pending ownership acquisition after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-cancel-pending-acquisition`).
+- [`java-tck.connection-loss-automatic-delete-then-divest`](#scenario-java-tck.connection-loss-automatic-delete-then-divest) — Delete the lost member's object and release its retained attribute after connection loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-delete-then-divest`).
+- [`java-tck.connection-loss-automatic-unconditional-divestiture`](#scenario-java-tck.connection-loss-automatic-unconditional-divestiture) — Apply automatic unconditional divestiture after adapter-managed member loss (`connection`; default `unsupported`; C++ pointer `cpp-tck.connection-loss-automatic-unconditional-divestiture`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -10655,12 +10682,30 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-10-support-services-page-279-l70-20` → `hla-1516.1-2025:clause-10.50`
   - `requirement-candidate-content-clauses-10-support-services-page-280-l29-6` → `hla-1516.1-2025:clause-10.51`
   - `requirement-candidate-content-clauses-10-support-services-page-280-l32-7` → `hla-1516.1-2025:clause-10.51`
+- `java-tck.automatic-resign-directive-delete-objects`:
+  - `req-federate-connection-lost` → `hla-1516.1-2025:clause-4.1.1`
+  - `req-connection-lost-service-behavior` → `hla-1516.1-2025:clause-4.4`
+  - `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11` → `hla-1516.1-2025:clause-4.1.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l181-57` → `hla-1516.1-2025:clause-10.43.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` → `hla-1516.1-2025:clause-10.44.6`
+- `java-tck.connection-loss-automatic-unconditional-divestiture`:
+  - `req-federate-connection-lost` → `hla-1516.1-2025:clause-4.1.1`
+  - `req-connection-lost-service-behavior` → `hla-1516.1-2025:clause-4.4`
+  - `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11` → `hla-1516.1-2025:clause-4.1.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l181-57` → `hla-1516.1-2025:clause-10.43.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` → `hla-1516.1-2025:clause-10.44.6`
 - `java-tck.connection-loss-automatic-delete-then-divest`:
   - `req-federate-connection-lost` → `hla-1516.1-2025:clause-4.1.1`
   - `req-connection-lost-service-behavior` → `hla-1516.1-2025:clause-4.4`
-  - `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11` → `hla-1516.1-2025:clause-4`
-  - `requirement-candidate-content-clauses-10-support-services-page-274-l181-57` → `hla-1516.1-2025:clause-10.44`
-  - `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` → `hla-1516.1-2025:clause-10.45.3`
+  - `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11` → `hla-1516.1-2025:clause-4.1.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l181-57` → `hla-1516.1-2025:clause-10.43.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` → `hla-1516.1-2025:clause-10.44.6`
+- `java-tck.connection-loss-automatic-cancel-pending-acquisition`:
+  - `req-federate-connection-lost` → `hla-1516.1-2025:clause-4.1.1`
+  - `req-connection-lost-service-behavior` → `hla-1516.1-2025:clause-4.4`
+  - `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11` → `hla-1516.1-2025:clause-4.1.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-274-l181-57` → `hla-1516.1-2025:clause-10.43.6`
+  - `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` → `hla-1516.1-2025:clause-10.44.6`
 - `java-tck.resign-cancel-then-delete-then-divest-cross-object-effects`:
   - `cpp-1516.1-federation-create-join-resign-destroy` → `hla-1516.1-2025:clause-4.12`
   - `cpp-1516.1-object-management` → `hla-1516.1-2025:clause-5.2`
@@ -14153,9 +14198,9 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.callback-reentrancy"></a>`java-tck.callback-reentrancy` — Reject re-entry into callback-servicing methods from a federation-list callback | `org.hla.rti.tck.RtiTckMain#callbackReentrancy` | 6 | explicit API-only disposition | `cpp-tck.callback-reentrancy` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.connection-additional-settings-parse-failure"></a>`java-tck.connection-additional-settings-parse-failure` — Complete Connect when optional additional settings fail to parse | `org.hla.rti.tck.RtiTckMain#connectionAdditionalSettingsParseFailure` | 6 | `requirement-candidate-content-clauses-04-federation-management-page-051-l28-5` | `cpp-tck.connection-additional-settings-parse-failure` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.connection-default-configuration-fallback"></a>`java-tck.connection-default-configuration-fallback` — Use the implementation default for unnamed and unknown-name connections | `org.hla.rti.tck.RtiTckMain#connectionDefaultConfigurationFallback` | 9 | `requirement-candidate-content-clauses-04-federation-management-page-051-l18-3-default` | `cpp-tck.connection-default-configuration-fallback` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition"></a>`java-tck.connection-loss-automatic-cancel-pending-acquisition` — Cancel pending ownership acquisition after adapter-managed member loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticCancelPendingAcquisition` | 21 | `cpp-1516.1-connection-loss-callback`, `cpp-1516.1-connection-loss-cleanup`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management` | `cpp-tck.connection-loss-automatic-cancel-pending-acquisition` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.connection-loss-automatic-delete-then-divest"></a>`java-tck.connection-loss-automatic-delete-then-divest` — Delete the lost member's object and release its retained attribute after connection loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticDeleteThenDivest` | 25 | `cpp-1516.1-connection-loss-callback`, `cpp-1516.1-connection-loss-cleanup`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management` | `cpp-tck.connection-loss-automatic-delete-then-divest` | `unsupported` | not scenario-declared |
-| <a id="scenario-java-tck.connection-loss-automatic-unconditional-divestiture"></a>`java-tck.connection-loss-automatic-unconditional-divestiture` — Apply automatic unconditional divestiture after adapter-managed member loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticUnconditionalDivestiture` | 20 | `cpp-1516.1-connection-loss-callback`, `cpp-1516.1-connection-loss-cleanup`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-object-management`, `cpp-1516.1-ownership-management` | `cpp-tck.connection-loss-automatic-unconditional-divestiture` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.connection-loss-automatic-cancel-pending-acquisition"></a>`java-tck.connection-loss-automatic-cancel-pending-acquisition` — Cancel pending ownership acquisition after adapter-managed member loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticCancelPendingAcquisition` | 24 | `req-federate-connection-lost`, `req-connection-lost-service-behavior`, `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`, `requirement-candidate-content-clauses-10-support-services-page-274-l181-57`, `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` | `cpp-tck.connection-loss-automatic-cancel-pending-acquisition` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.connection-loss-automatic-delete-then-divest"></a>`java-tck.connection-loss-automatic-delete-then-divest` — Delete the lost member's object and release its retained attribute after connection loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticDeleteThenDivest` | 27 | `req-federate-connection-lost`, `req-connection-lost-service-behavior`, `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`, `requirement-candidate-content-clauses-10-support-services-page-274-l181-57`, `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` | `cpp-tck.connection-loss-automatic-delete-then-divest` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.connection-loss-automatic-unconditional-divestiture"></a>`java-tck.connection-loss-automatic-unconditional-divestiture` — Apply automatic unconditional divestiture after adapter-managed member loss | `org.hla.rti.tck.RtiTckMain#connectionLossAutomaticUnconditionalDivestiture` | 23 | `req-federate-connection-lost`, `req-connection-lost-service-behavior`, `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`, `requirement-candidate-content-clauses-10-support-services-page-274-l181-57`, `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` | `cpp-tck.connection-loss-automatic-unconditional-divestiture` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.connection-loss-cleanup"></a>`java-tck.connection-loss-cleanup` — Observe adapter-managed connection loss and verify survivor service | `org.hla.rti.tck.RtiTckMain#connectionLossCleanup` | 10 | `cpp-1516.1-connection-loss-callback`, `cpp-1516.1-connection-loss-cleanup` | `cpp-tck.connection-loss-cleanup` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.federate-lost-mom-report"></a>`java-tck.federate-lost-mom-report` — Receive the standard federate-lost MOM report after adapter-managed connection loss | `org.hla.rti.tck.RtiTckMain#federateLostMomReport` | 43 | `cpp-1516.1-connection-loss-callback`, `cpp-1516.2-mim-federate-lost-report`, `requirement-candidate-content-clauses-04-federation-management-page-050-l45-14`, `requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36` | `cpp-tck.federate-lost-mom-report` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.one-transport-connection-per-federate-session"></a>`java-tck.one-transport-connection-per-federate-session` — Use exactly one TCP transport connection for each Java federate session | `org.hla.rti.tck.TransportSessionCardinalityScenarioRegistry#oneTransportConnectionPerFederateSession` | 10 | `requirement-candidate-content-clauses-12-programming-language-mappings-page-412-l9-2`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-397-l114-37`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-397-l117-38`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-398-l87-28`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l29-9`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l53-17`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l62-20`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l59-19`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-404-l18-5`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-403-l49-16`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-405-l22-6`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-405-l28-8`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-406-l12-2`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-406-l30-8`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-406-l36-10`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l32-10`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l56-18`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l47-15`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l122-40`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l65-21`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l74-24`, `requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l86-28` | `cpp-tck.one-transport-connection-per-federate-session` | `unsupported` | pinned official IEEE 1516.1-2025 Java API JAR and provider JARs; adapter-supplied FOM and logical-time implementation name; current-process public-server-federate-idle-heartbeat fixture; loopback TCP observer and two federate sessions; HLA_EVOKED and HLA_IMMEDIATE callback models; bounded FED_INT_HEART, FED_TIMEOUT_HEART, and FED_TIMEOUT_RECONNECT settings |
@@ -14388,7 +14433,7 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 
 | Scenario sketch | Java entry point | API methods | Requirement IDs | C++ parity pointer | Default | Adapter inputs |
 | --- | --- | ---: | --- | --- | --- | --- |
-| <a id="scenario-java-tck.automatic-resign-directive-delete-objects"></a>`java-tck.automatic-resign-directive-delete-objects` — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal | `org.hla.rti.tck.RtiTckMain#automaticResignDirectiveDeleteObjects` | 19 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-object-instance-deletion` | `cpp-tck.automatic-resign-directive-delete-objects` | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.automatic-resign-directive-delete-objects"></a>`java-tck.automatic-resign-directive-delete-objects` — Apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal | `org.hla.rti.tck.RtiTckMain#automaticResignDirectiveDeleteObjects` | 24 | `req-federate-connection-lost`, `req-connection-lost-service-behavior`, `requirement-candidate-content-clauses-04-federation-management-page-050-l36-11`, `requirement-candidate-content-clauses-10-support-services-page-274-l181-57`, `requirement-candidate-content-clauses-10-support-services-page-275-l119-36` | `cpp-tck.automatic-resign-directive-delete-objects` | `unsupported` | IEEE 1516.1-2025 provider JAR and standard factory; adapter-supplied RtiConfiguration values and callback model; configured FOM, object class name, and attribute name; adapter-managed connection-loss process fixture and readiness/completion markers |
 | <a id="scenario-java-tck.automatic-resign-directive-lifecycle-boundaries"></a>`java-tck.automatic-resign-directive-lifecycle-boundaries` — Check automatic resign directive getter and setter lifecycle boundaries | `org.hla.rti.tck.RtiTckMain#automaticResignDirectiveLifecycleBoundaries` | 7 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-automatic-resign-directive-getter-lifecycle-boundary`, `cpp-1516.1-automatic-resign-directive-setter-lifecycle-boundary` | `cpp-tck.automatic-resign-directive-lifecycle-boundaries` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.automatic-resign-directive-standard-enumerator-values"></a>`java-tck.automatic-resign-directive-standard-enumerator-values` — Round-trip every standard ResignAction value through the automatic-resign directive | `org.hla.rti.tck.RtiTckMain#automaticResignDirectiveStandardEnumeratorValues` | 8 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-automatic-resign-directive`, `cpp-1516.1-automatic-resign-directive-standard-enumerator-values` | `cpp-tck.automatic-resign-directive-enum-values-contract` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.connect-before-federation-disconnect-after-resign"></a>`java-tck.connect-before-federation-disconnect-after-resign` — Require Connect before federation creation and Disconnect after resignation | `org.hla.rti.tck.RtiTckMain#connectBeforeFederationDisconnectAfterResign` | 6 | `java-1516.1-federation-create-join-resign-destroy` | `cpp-tck.connect-before-federation-disconnect-after-resign` | `run` | not scenario-declared |

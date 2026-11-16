@@ -14,6 +14,11 @@ import re
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
+if __package__:
+    from .java_tck_catalog import load_java_tck_catalog
+else:
+    from java_tck_catalog import load_java_tck_catalog
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "compliance" / "catalogs" / "java-tck-scenario-catalog.json"
 DEFAULT_BUNDLE = ROOT / ".compliance" / "corpus-bundle.json"
@@ -179,11 +184,11 @@ def load_json(path: Path) -> Any:
 
 
 def load_catalog(path: Path = CATALOG) -> JavaTckCatalog:
-    catalog = load_json(path)
+    catalog = load_java_tck_catalog(path)
     if not isinstance(catalog, dict):
         raise TypeError(f"Java TCK catalog must be an object: {path}")
     if (
-        catalog.get("schema_version") != 1
+        catalog.get("schema_version") not in {1, 2}
         or catalog.get("kind") != "portable-java-tck-catalog"
     ):
         raise ValueError(f"unsupported Java TCK catalog: {path}")

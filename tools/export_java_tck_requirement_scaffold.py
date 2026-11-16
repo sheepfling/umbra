@@ -9,6 +9,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import TypeAlias, TypedDict, cast
 
+if __package__:
+    from .java_tck_catalog import load_java_tck_catalog
+else:
+    from java_tck_catalog import load_java_tck_catalog
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "compliance" / "catalogs" / "java-tck-scenario-catalog.json"
 DEFAULT_OUTPUT = ROOT / "docs" / "testing" / "JAVA-TCK-REQUIREMENT-SCAFFOLD.md"
@@ -176,7 +181,7 @@ def _read_scenario(value: JsonValue) -> JavaTckScenario:
 
 
 def read_catalog(path: Path) -> JavaTckCatalog:
-    payload: object = json.loads(path.read_text(encoding="utf-8"))
+    payload: object = load_java_tck_catalog(path)
     if not isinstance(payload, dict):
         raise TypeError(f"Java TCK catalog must be an object: {path}")
     catalog_data = cast(JsonObject, payload)

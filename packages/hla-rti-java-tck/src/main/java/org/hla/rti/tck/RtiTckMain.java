@@ -1365,11 +1365,13 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.automatic-resign-directive-delete-objects",
             "apply DELETE_OBJECTS after adapter-managed connection loss and verify object removal",
             "federation-management",
-            "RtiConfiguration.createConfiguration;RtiConfiguration.withConfigurationName;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.evokeCallback;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.removeObjectInstance",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withConfigurationName;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RtiFactory.getRtiAmbassador;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.setAutomaticResignDirective;RTIambassador.getAutomaticResignDirective;RTIambassador.evokeMultipleCallbacks;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.connectionLost;FederateAmbassador.removeObjectInstance",
             new String[] {
-               "cpp-1516.1-federation-create-join-resign-destroy",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-instance-deletion"
+                "req-federate-connection-lost",
+                "req-connection-lost-service-behavior",
+                "requirement-candidate-content-clauses-04-federation-management-page-050-l36-11",
+                "requirement-candidate-content-clauses-10-support-services-page-274-l181-57",
+                "requirement-candidate-content-clauses-10-support-services-page-275-l119-36"
             }, false), RtiTckMain::automaticResignDirectiveDeleteObjects);
       run(new Scenario("java-tck.connection-loss-automatic-unconditional-divestiture",
             "automatically divest ownership after adapter-managed connection loss",
