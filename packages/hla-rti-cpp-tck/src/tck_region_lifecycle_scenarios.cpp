@@ -1,6 +1,9 @@
 #include "tck_main_scenarios.hpp"
 #include "tck_region_lifecycle_scenarios.hpp"
 
+#include <chrono>
+#include <thread>
+
 namespace hla_rti_cpp_tck::detail {
 
 
@@ -2138,6 +2141,19 @@ void scenarioDefaultRegionObjectRouting(
       options.memberFederateName + L"-default-region-mixed",
       options.federateType,
       federation);
+  auto settleCallbacks = [&] {
+    for (int pass = 0; pass != 512; ++pass) {
+      regional.pump();
+      mixed.pump();
+    }
+    auto const deadline = std::chrono::steady_clock::now() +
+        std::chrono::milliseconds(32);
+    while (std::chrono::steady_clock::now() < deadline) {
+      regional.pump();
+      mixed.pump();
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  };
 
   auto const publisherHandles = ddmHandles(publisher, options);
   auto const regionalHandles = ddmHandles(regional, options);
@@ -2202,6 +2218,42 @@ void scenarioDefaultRegionObjectRouting(
       firstDimensionUpperBound,
       secondDimensionUpperBound - 1UL,
       secondDimensionUpperBound);
+  verifyDdmRegion(
+      publisher,
+      publisherHandles,
+      sourceRegion,
+      0UL,
+      firstDimensionUpperBound - 1UL,
+      0UL,
+      secondDimensionUpperBound - 1UL,
+      "default-region source");
+  verifyDdmRegion(
+      regional,
+      regionalHandles,
+      regionalRegion,
+      0UL,
+      1UL,
+      0UL,
+      1UL,
+      "overlapping regional subscription");
+  verifyDdmRegion(
+      mixed,
+      mixedHandles,
+      mixedRegion,
+      firstDimensionUpperBound - 1UL,
+      firstDimensionUpperBound,
+      secondDimensionUpperBound - 1UL,
+      secondDimensionUpperBound,
+      "disjoint regional subscription");
+  verifyDdmRegion(
+      publisher,
+      publisherHandles,
+      mixedSourceRegion,
+      firstDimensionUpperBound - 1UL,
+      firstDimensionUpperBound,
+      secondDimensionUpperBound - 1UL,
+      secondDimensionUpperBound,
+      "matching explicit source");
 
   rti::AttributeHandleSetRegionHandleSetPairVector const sourcePair{{
       publisherAttributes,
@@ -2246,20 +2298,21 @@ void scenarioDefaultRegionObjectRouting(
       sourcePair);
   require(object.isValid(),
           "default-region object registration returned an invalid handle");
-  waitFor(
-      regional,
-      [&] { return regional.recorder().hasDiscovery(object); },
-      options,
-      "default-region overlapping object discovery");
   // The disjoint With Regions declaration must not alter the ordinary
   // default-region subscription established earlier by this federate.
   waitFor(
+      regional,
       mixed,
-      [&] { return mixed.recorder().hasDiscovery(object); },
+      [&] {
+        return regional.recorder().hasDiscovery(object) &&
+            mixed.recorder().hasDiscovery(object);
+      },
       options,
-      "ordinary object subscription after a disjoint regional declaration");
+      "default-region object discovery with a disjoint regional declaration");
+  settleCallbacks();
   require(
-      mixed.recorder().discoveryCount() == 1U,
+      regional.recorder().discoveryCount() == 1U &&
+          mixed.recorder().discoveryCount() == 1U,
       "ordinary subscription was not preserved independently of the regional declaration");
 
   // Removing the explicit declaration exposes the retained ordinary
@@ -2312,6 +2365,11 @@ void scenarioDefaultRegionObjectRouting(
       },
       options,
       "default-region ordinary attribute reflection");
+  settleCallbacks();
+  require(
+      regional.recorder().reflectionCount() == 1U &&
+          mixed.recorder().reflectionCount() == 1U,
+      "default-source update produced an unexpected callback count");
 
   auto const regionalDefault = regional.recorder().reflection();
   auto const mixedDefault = mixed.recorder().reflection();
@@ -2338,8 +2396,9 @@ void scenarioDefaultRegionObjectRouting(
           mixedDefault.regions->empty(),
       "mixed default-source reflection did not preserve value metadata");
 
-  // An explicit association replaces the default source for this attribute.
-  // Only the overlapping regional subscriber should receive this update.
+  // The explicit source is inside the default region, so both the overlapping
+  // regional route and the independent ordinary default-region route receive
+  // it. The disjoint regional declaration must not shadow that ordinary route.
   publisher.rtiAmbassador().associateRegionsForUpdates(object, sourcePair);
   std::vector<std::uint8_t> explicitValue{0xE0U, 0x02U};
   std::vector<std::uint8_t> explicitTag{0x44U, 0x32U};
@@ -2354,13 +2413,16 @@ void scenarioDefaultRegionObjectRouting(
       explicitUserTag);
   waitFor(
       regional,
-      [&] { return regional.recorder().reflectionCount() >= 2U; },
+      mixed,
+      [&] {
+        return regional.recorder().reflectionCount() >= 2U &&
+            mixed.recorder().reflectionCount() >= 2U;
+      },
       options,
-      "explicit-source regional attribute reflection");
-  for (int pass = 0; pass != 8; ++pass) {
-    mixed.pump();
-  }
+      "explicit-source regional and ordinary default-region reflection");
+  settleCallbacks();
   auto const regionalExplicit = regional.recorder().reflection();
+  auto const mixedExplicit = mixed.recorder().reflection();
   require(
       regionalExplicit.object == object &&
           regionalExplicit.values.size() == 1U &&
@@ -2374,8 +2436,19 @@ void scenarioDefaultRegionObjectRouting(
           regionalExplicit.regions->count(sourceRegion) == 1U,
       "explicit-source reflection did not preserve the source region designator");
   require(
-      mixed.recorder().reflectionCount() == 1U,
-      "disjoint explicit subscription received an explicit-source update");
+      mixedExplicit.object == object &&
+          mixedExplicit.values.size() == 1U &&
+          mixedExplicit.values.count(mixedHandles.attribute) == 1U &&
+          copyBytes(mixedExplicit.values.at(mixedHandles.attribute)) == explicitValue &&
+          mixedExplicit.tag == explicitTag &&
+          mixedExplicit.producer == publisher.federateHandle() &&
+          mixedExplicit.transportation.isValid() &&
+          mixedExplicit.regions.has_value() &&
+          mixedExplicit.regions->size() == 1U &&
+          mixedExplicit.regions->count(sourceRegion) == 1U &&
+          mixed.recorder().reflectionCount() == 2U &&
+          regional.recorder().reflectionCount() == 2U,
+      "a disjoint regional declaration interfered with the ordinary default-region route");
 
   // Removing the association restores default-source fanout and the
   // supplied-empty callback projection.
@@ -2396,10 +2469,11 @@ void scenarioDefaultRegionObjectRouting(
       mixed,
       [&] {
         return regional.recorder().reflectionCount() >= 3U &&
-            mixed.recorder().reflectionCount() >= 2U;
+            mixed.recorder().reflectionCount() >= 3U;
       },
       options,
       "restored default-region attribute reflection");
+  settleCallbacks();
   auto const regionalRestored = regional.recorder().reflection();
   auto const mixedRestored = mixed.recorder().reflection();
   require(
@@ -2416,12 +2490,18 @@ void scenarioDefaultRegionObjectRouting(
           mixedRestored.regions.has_value() &&
           mixedRestored.regions->empty(),
       "mixed restored default-source reflection was not projected correctly");
+  require(
+      mixed.recorder().reflectionCount() == 3U &&
+          regional.recorder().reflectionCount() == 3U,
+      "restored default-source update produced an unexpected callback count");
 
-  // The ordinary unsubscribe removes the implicit default-region declaration,
-  // while leaving the independent explicit regional declaration intact.
+  // An explicit source region within the default range is disjoint from the
+  // mixed federate's still-active regional declaration. After the ordinary
+  // unsubscribe, only the overlapping regional subscriber should receive it.
   mixed.rtiAmbassador().unsubscribeObjectClassAttributes(
       mixedHandles.objectClass,
       mixedAttributes);
+  publisher.rtiAmbassador().associateRegionsForUpdates(object, sourcePair);
   std::vector<std::uint8_t> unsubscribedDefaultValue{0xD0U, 0x04U};
   std::vector<std::uint8_t> unsubscribedDefaultTag{0x44U, 0x34U};
   rti::AttributeHandleValueMap unsubscribedDefaultValues;
@@ -2439,12 +2519,11 @@ void scenarioDefaultRegionObjectRouting(
       unsubscribedDefaultUserTag);
   waitFor(
       regional,
+      mixed,
       [&] { return regional.recorder().reflectionCount() >= 4U; },
       options,
-      "default-source update after ordinary unsubscribe");
-  for (int pass = 0; pass != 8; ++pass) {
-    mixed.pump();
-  }
+      "explicit-source update after ordinary unsubscribe");
+  settleCallbacks();
   auto const regionalAfterDefaultUnsubscribe = regional.recorder().reflection();
   require(
       regionalAfterDefaultUnsubscribe.object == object &&
@@ -2452,11 +2531,14 @@ void scenarioDefaultRegionObjectRouting(
               regionalHandles.attribute)) == unsubscribedDefaultValue &&
           regionalAfterDefaultUnsubscribe.tag == unsubscribedDefaultTag &&
           regionalAfterDefaultUnsubscribe.regions.has_value() &&
-          regionalAfterDefaultUnsubscribe.regions->empty(),
-      "default-source update was not delivered to the remaining regional subscriber");
+          regionalAfterDefaultUnsubscribe.regions->size() == 1U &&
+          regionalAfterDefaultUnsubscribe.regions->count(sourceRegion) == 1U,
+      "explicit-source update was not delivered to the remaining regional subscriber");
   require(
-      mixed.recorder().reflectionCount() == 2U,
+      mixed.recorder().reflectionCount() == 3U &&
+          regional.recorder().reflectionCount() == 4U,
       "ordinary unsubscribe retained the implicit default-region subscription");
+  publisher.rtiAmbassador().unassociateRegionsForUpdates(object, sourcePair);
 
   // A source region matching the still-subscribed explicit region remains
   // effective after the ordinary default-region subscription is removed.
@@ -2477,13 +2559,12 @@ void scenarioDefaultRegionObjectRouting(
       retainedRegionalValues,
       retainedRegionalUserTag);
   waitFor(
+      regional,
       mixed,
-      [&] { return mixed.recorder().reflectionCount() >= 3U; },
+      [&] { return mixed.recorder().reflectionCount() >= 4U; },
       options,
       "explicit regional update after ordinary unsubscribe");
-  for (int pass = 0; pass != 8; ++pass) {
-    regional.pump();
-  }
+  settleCallbacks();
   auto const mixedAfterDefaultUnsubscribe = mixed.recorder().reflection();
   require(
       mixedAfterDefaultUnsubscribe.object == object &&
@@ -2495,8 +2576,9 @@ void scenarioDefaultRegionObjectRouting(
           mixedAfterDefaultUnsubscribe.regions->count(mixedSourceRegion) == 1U,
       "ordinary unsubscribe removed the independent explicit regional subscription");
   require(
-      regional.recorder().reflectionCount() == 4U,
-      "disjoint regional subscriber received the explicit-source update");
+      regional.recorder().reflectionCount() == 4U &&
+          mixed.recorder().reflectionCount() == 4U,
+      "final default/regional routing delivered an extra or missing reflection");
   publisher.rtiAmbassador().unassociateRegionsForUpdates(object, mixedSourcePair);
 
   mixed.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(

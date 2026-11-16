@@ -3731,14 +3731,27 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getAttributeSetRegionSetPairListFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributesWithRegions",
         "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.updateAttributeValues(receive-order overload)",
         "RTIambassador.associateRegionsForUpdates",
         "RTIambassador.unassociateRegionsForUpdates",
@@ -3748,15 +3761,109 @@
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.reflectAttributeValues(receive order with region designators)"
+        "FederateAmbassador.reflectAttributeValues(receive order with region designators)",
+        "DimensionHandleSet.size/contains",
+        "RegionHandleSet.size/iterator",
+        "RangeBounds.lower/upper",
+        "DimensionHandle.equals",
+        "ObjectInstanceHandle.equals"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
         "cpp-1516.1-ddm-regional-object-update",
         "cpp-1516.1-ddm-region-designator-callback"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l89-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l83-26",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l98-31",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l58-19",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l82-27",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l94-31",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l126-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l17-5",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l107-35",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l57-16",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l63-18"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.5",
+        "hla-1516.1-2025:clause-9.1.1",
+        "hla-1516.1-2025:clause-9.1.3.2",
+        "hla-1516.1-2025:clause-9.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l17-4",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-unsubscribe-object",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l89-28",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l83-26",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l98-31",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l58-19",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l82-27",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-223-l94-31",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l126-39",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l14-4",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l17-5",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l107-35",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l57-16",
+          "standard_section": "hla-1516.1-2025:clause-9.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l63-18",
+          "standard_section": "hla-1516.1-2025:clause-9.8"
+        }
+      ],
       "contract_refs": [
+        "standard-default-region-object-routing-contract.json",
+        "standard-default-region-object-routing-requirements-contract.json",
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
         "attribute-value-update-with-regions-api-contract.json",
@@ -3765,10 +3872,20 @@
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json"
       ],
+      "mapping_note": "The direct mappings are the assertion-backed subset of cpp-tck.default-region-object-routing. For §9.1.1, the case queries each FDD dimension's upper bound U, verifies source and subscription region bounds at [0,1), [0,U-1), and [U-1,U), then confirms an unassociated update reaches subscribers at both boundary regions through the default source [0,U). For §9.1.5, it checks one discovery per member through that member's own object handle, and shows that a disjoint regional declaration does not suppress the independent ordinary route: the explicit [0,U-1) source reaches the ordinary subscriber even though its regional declaration is [U-1,U). This is the object-service half of the four-service default-region equivalence at p. 222 l. 83; the paired interaction TCK covers interactions. For §9.1.3.2 and §9.8, associating and removing source regions changes the callback metadata and recipients; after ordinary Unsubscribe Object Class Attributes, an explicit [0,U-1) source reaches the overlapping regional subscriber but not the disjoint [U-1,U) regional subscriber, and a subsequent [U-1,U) source still reaches that independent regional route. These are bounded positive/no-interference witnesses, not an enumeration of all subscription tuples. The default-source receive-order callbacks carry an empty region-designator set; explicit-source callbacks are checked by inspecting the callback region copy's dimensions and bounds rather than comparing opaque handles across ambassadors.",
       "java_test": "org.hla.rti.tck.RtiTckMain#defaultRegionObjectRouting",
       "parity": "cpp-tck.default-region-object-routing",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending."
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "ddm-tck.xml supplied through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value",
+        "TckDimensionX and TckDimensionY",
+        "provider endpoint and callback model"
+      ],
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Current-source Umbra JNI runs passed this scenario 1/1 under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. Java artifacts: out/java-tck/default-region-object-routing-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/default-region-object-routing-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
     },
     {
       "id": "java-tck.default-region-class-request-equivalence",
