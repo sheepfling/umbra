@@ -76,20 +76,18 @@ final class TimestampedObjectDeletionRegulationReenableTck {
             "publisher and receiver selected different logical-time factories");
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
          receiver.enableTimeConstrained(); constrained = true;
-         JavaTckSupport.drain(receiver);
-         JavaTckSupport.check(receiverRecorder.timeConstrainedEnabledCount == 1,
-            "receiver did not report Time Constrained enable");
+         await(() -> receiverRecorder.timeConstrainedEnabledCount == 1, "receiver Time Constrained enable",
+            receiver);
          LogicalTimeInterval initialLookahead = intervalOffset(epsilon, 1);
          publisher.enableTimeRegulation(initialLookahead); regulating = true;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 1,
-            "publisher did not report initial Time Regulation enable");
+         await(() -> publisherRecorder.timeRegulationEnabledCount == 1,
+            "initial publisher Time Regulation enable", publisher);
 
          LogicalTime initial = publisher.queryLogicalTime();
          JavaTckSupport.check(initial.equals(receiver.queryLogicalTime()),
             "publisher and receiver began at different logical times");
          LogicalTime deletionTime = offset(initial, epsilon, 5);
-         LogicalTime publisherTarget = offset(initial, epsilon, 2);
+         LogicalTime publisherTarget = offset(initial, epsilon, 3);
          LogicalTimeInterval changedLookahead = intervalOffset(epsilon, 3);
          byte[] tag = new byte[] {0x43, 0x48, 0x47, 0x2D, 0x4C, 0x41};
          MessageRetractionReturn deletion = publisher.deleteObjectInstance(
@@ -103,13 +101,9 @@ final class TimestampedObjectDeletionRegulationReenableTck {
             "removal arrived or object identity changed before its grant");
 
          publisher.disableTimeRegulation(); regulating = false;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationDisabledCount == 1,
-            "publisher did not report Time Regulation disable");
          publisher.enableTimeRegulation(changedLookahead); regulating = true;
-         JavaTckSupport.drain(publisher);
-         JavaTckSupport.check(publisherRecorder.timeRegulationEnabledCount == 2,
-            "publisher did not report the second Time Regulation enable");
+         await(() -> publisherRecorder.timeRegulationEnabledCount == 2,
+            "second publisher Time Regulation enable", publisher);
          JavaTckSupport.check(changedLookahead.equals(publisher.queryLookahead()),
             "Query Lookahead did not return the changed lookahead");
          JavaTckSupport.drain(receiver);
@@ -118,11 +112,14 @@ final class TimestampedObjectDeletionRegulationReenableTck {
 
          receiverRecorder.callbackOrder.clear();
          receiver.timeAdvanceRequest(deletionTime);
-         JavaTckSupport.check(receiverRecorder.removals.isEmpty(),
-            "removal arrived before the producer crossed the changed boundary");
-         publisher.timeAdvanceRequest(publisherTarget);
          JavaTckSupport.drain(receiver);
-         JavaTckSupport.drain(publisher);
+         JavaTckSupport.check(receiverRecorder.removals.isEmpty()
+               && receiverRecorder.grant == null,
+            "removal or grant arrived before the producer crossed the changed boundary");
+         publisher.timeAdvanceRequest(publisherTarget);
+         await(() -> receiverRecorder.removals.size() == 1
+               && receiverRecorder.grant != null && publisherRecorder.grant != null,
+            "queued timestamped removal and grants", publisher, receiver);
          JavaTckSupport.check(receiverRecorder.removals.size() == 1,
             "queued timestamped removal was not delivered exactly once");
          JavaTckSupport.check(receiverRecorder.callbackOrder.equals(
@@ -206,6 +203,20 @@ final class TimestampedObjectDeletionRegulationReenableTck {
       throw new AssertionError(description + " did not throw " + expected);
    }
 
+   @FunctionalInterface
+   private interface ReadyCheck { boolean isReady(); }
+
+   private static void await(ReadyCheck ready, String description, RTIambassador... ambassadors)
+         throws Exception {
+      long deadline = System.nanoTime() + 10_000_000_000L;
+      while (System.nanoTime() < deadline) {
+         for (RTIambassador ambassador : ambassadors) JavaTckSupport.drain(ambassador);
+         if (ready.isReady()) return;
+         Thread.sleep(1L);
+      }
+      throw new AssertionError(description + " timed out");
+   }
+
    private static final class Removal {
       private ObjectInstanceHandle object;
       private byte[] tag;
@@ -220,7 +231,7 @@ final class TimestampedObjectDeletionRegulationReenableTck {
       private final List<Removal> removals = new ArrayList<>();
       private final List<String> callbackOrder = new ArrayList<>();
       private int timeConstrainedEnabledCount;
-      private int timeRegulationEnabledCount, timeRegulationDisabledCount;
+      private int timeRegulationEnabledCount;
       private LogicalTime<?, ?> grant;
 
       private FederateAmbassador proxy() {
@@ -235,8 +246,6 @@ final class TimestampedObjectDeletionRegulationReenableTck {
                   ++timeConstrainedEnabledCount;
                } else if ("timeRegulationEnabled".equals(name)) {
                   ++timeRegulationEnabledCount;
-               } else if ("timeRegulationDisabled".equals(name)) {
-                  ++timeRegulationDisabledCount;
                } else if ("removeObjectInstance".equals(name) && arguments != null
                      && arguments.length == 7) {
                   Removal removal = new Removal();

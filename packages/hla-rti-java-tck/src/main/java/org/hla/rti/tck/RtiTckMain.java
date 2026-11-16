@@ -5146,11 +5146,23 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.timestamped-object-deletion-regulation-reenable",
             "preserve a queued timestamped removal across Time Regulation re-enable with changed lookahead",
             "time",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.deleteObjectInstance(time);RTIambassador.disableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.retract;RTIambassador.disableTimeConstrained;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeRegulationDisabled;FederateAmbassador.timeAdvanceGrant",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getTimeFactory;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.deleteObjectInstance(time);RTIambassador.disableTimeRegulation;RTIambassador.queryLookahead;RTIambassador.timeAdvanceRequest;RTIambassador.queryLogicalTime;RTIambassador.retract;RTIambassador.disableTimeConstrained;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance(time);FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant",
             new String[] {
                "java-1516.1-object-registration-discovery",
-               "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectDeletionRegulationReenable);
+               "java-1516.1-time-advance-and-grant",
+               "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+               "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+               "requirement-candidate-content-clauses-06-object-management-page-129-l159-46",
+               "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+               "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
+               "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
+               "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+               "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+               "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+               "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+               "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+               "requirement-candidate-content-clauses-08-time-management-page-194-l69-19"
+            }, true), RtiTckMain::timestampedObjectDeletionRegulationReenable);
       run(new Scenario("java-tck.timestamped-object-deletion-retraction-joined-owners",
             "retract timestamped object deletion after a former attribute owner resigns",
             "time",

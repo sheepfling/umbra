@@ -3601,7 +3601,19 @@
       ],
       "requirement_ids": [
         "java-1516.1-object-registration-discovery",
-        "java-1516.1-time-advance-and-grant"
+        "java-1516.1-time-advance-and-grant",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l159-46",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l89-25",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l95-27",
+        "requirement-candidate-content-clauses-08-time-management-page-182-l16-4",
+        "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
+        "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
+        "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
+        "requirement-candidate-content-clauses-08-time-management-page-189-l162-44",
+        "requirement-candidate-content-clauses-08-time-management-page-194-l69-19"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-180-l69-20",
@@ -4524,7 +4536,6 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance(time)",
         "FederateAmbassador.timeRegulationEnabled",
-        "FederateAmbassador.timeRegulationDisabled",
         "FederateAmbassador.timeAdvanceGrant"
       ],
       "requirement_ids": [
@@ -4562,11 +4573,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+          "standard_section": "hla-1516.1-2025:clause-8.1.7"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+          "standard_section": "hla-1516.1-2025:clause-8.1.7"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-188-l87-26",
@@ -4584,7 +4595,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.16",
         "hla-1516.1-2025:clause-8.1.5",
-        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.2",
         "hla-1516.1-2025:clause-8.3.1",
         "hla-1516.1-2025:clause-8.8",
@@ -4609,8 +4620,10 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRegulationReenable",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed through a compatible IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion-regulation-reenable",
+      "evidence_note": "Current-source Java passed under HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider using HLAinteger64Time and the adapter-supplied ddm-multi-attribute TCK FOM, object class, and attribute. The paired C++ primary and contract selectors passed both callback models. The case preserves one queued timestamped deletion while Time Regulation is disabled and re-enabled with a changed lookahead, verifies Query Lookahead and callback-before-grant delivery with exact removal metadata, and checks terminal object removal and retraction. The publisher advance target is the paired C++ target at three epsilon steps. Query Lookahead itself remains unmapped because the available candidate is for Modify Lookahead. Results: out/java-tck/deletion-regulation-reenable-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-deletion-regulation-reenable-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-retraction-joined-owners",

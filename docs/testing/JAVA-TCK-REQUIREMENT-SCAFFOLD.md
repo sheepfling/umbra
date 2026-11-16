@@ -19,11 +19,11 @@ Portable Java sources remain limited to JDK types and `hla.rti1516_2025` API typ
 | --- | ---: |
 | Scenario sketches | 964 |
 | Categories | 147 |
-| Distinct stable requirement IDs | 1294 |
-| Scenarios with a C++ parity pointer | 894 |
-| Scenarios without a C++ parity pointer | 70 |
-| Default `run` scenarios | 672 |
-| Default `unsupported` scenarios | 292 |
+| Distinct stable requirement IDs | 1295 |
+| Scenarios with a C++ parity pointer | 895 |
+| Scenarios without a C++ parity pointer | 69 |
+| Default `run` scenarios | 673 |
+| Default `unsupported` scenarios | 291 |
 | Scenarios with explicit `requirement_mappings` | 718 |
 | Explicit mapping records | 2943 |
 
@@ -3606,7 +3606,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-object-deletion-future-tara-arrival`](#scenario-java-tck.timestamped-object-deletion-future-tara-arrival) — Deliver a future timestamped object deletion before a pending TARA grant (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-tara-arrival`).
 - [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-mixed-advances`).
 - [`java-tck.timestamped-object-deletion-no-fanout`](#scenario-java-tck.timestamped-object-deletion-no-fanout) — Retract a timestamped object deletion without recipients and restore its object state (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-no-fanout`).
-- [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `unsupported`; C++ source pointer not declared).
+- [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-regulation-reenable`).
 - [`java-tck.timestamped-object-deletion-retraction`](#scenario-java-tck.timestamped-object-deletion-retraction) — Retract timestamped object removal before constrained delivery and reject terminal retraction (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion`).
 - [`java-tck.timestamped-object-deletion-retraction-joined-owners`](#scenario-java-tck.timestamped-object-deletion-retraction-joined-owners) — Retract timestamped object deletion after a former attribute owner resigns (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-source-resignation-fanout`](#scenario-java-tck.timestamped-object-deletion-source-resignation-fanout) — Deliver queued timestamped object deletion to constrained recipients after producer resignation (`time`; default `unsupported`; C++ source pointer not declared).
@@ -3727,7 +3727,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-object-deletion-future-tara-arrival`](#scenario-java-tck.timestamped-object-deletion-future-tara-arrival) — Deliver a future timestamped object deletion before a pending TARA grant (`timestamped-object-deletion-future-request-arrival`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-future-tara-arrival`).
 - [`java-tck.timestamped-object-deletion-mixed-advances`](#scenario-java-tck.timestamped-object-deletion-mixed-advances) — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-mixed-advances`).
 - [`java-tck.timestamped-object-deletion-no-fanout`](#scenario-java-tck.timestamped-object-deletion-no-fanout) — Retract a timestamped object deletion without recipients and restore its object state (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-no-fanout`).
-- [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `unsupported`; C++ source pointer not declared).
+- [`java-tck.timestamped-object-deletion-regulation-reenable`](#scenario-java-tck.timestamped-object-deletion-regulation-reenable) — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion-regulation-reenable`).
 - [`java-tck.timestamped-object-deletion-retraction`](#scenario-java-tck.timestamped-object-deletion-retraction) — Retract timestamped object removal before constrained delivery and reject terminal retraction (`time`; default `run`; C++ pointer `cpp-tck.timestamped-object-deletion`).
 - [`java-tck.timestamped-object-deletion-retraction-joined-owners`](#scenario-java-tck.timestamped-object-deletion-retraction-joined-owners) — Retract timestamped object deletion after a former attribute owner resigns (`time`; default `unsupported`; C++ source pointer not declared).
 - [`java-tck.timestamped-object-deletion-source-resignation-fanout`](#scenario-java-tck.timestamped-object-deletion-source-resignation-fanout) — Deliver queued timestamped object deletion to constrained recipients after producer resignation (`time`; default `unsupported`; C++ source pointer not declared).
@@ -5668,24 +5668,28 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 - [`java-tck.restore-mixed-tso-four-member`](#scenario-java-tck.restore-mixed-tso-four-member) — Restore saved mixed timestamped object and interaction traffic across four members (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-mixed-tso-four-member`).
 - [`java-tck.restore-pending-tso-nmra-delete`](#scenario-java-tck.restore-pending-tso-nmra-delete) — Restore queued timestamped object deletion at pending NMRA GALT equality (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-tso-nmra-delete`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-129-l138-39`
 
 - [`java-tck.restore-pending-tso-nmra-delete`](#scenario-java-tck.restore-pending-tso-nmra-delete) — Restore queued timestamped object deletion at pending NMRA GALT equality (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-tso-nmra-delete`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-129-l159-46`
 
 - [`java-tck.restore-pending-tso-nmra-delete`](#scenario-java-tck.restore-pending-tso-nmra-delete) — Restore queued timestamped object deletion at pending NMRA GALT equality (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-tso-nmra-delete`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
 ### `requirement-candidate-content-clauses-06-object-management-page-130-l8-1`
 
 - [`java-tck.restore-pending-tso-nmra-delete`](#scenario-java-tck.restore-pending-tso-nmra-delete) — Restore queued timestamped object deletion at pending NMRA GALT equality (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-tso-nmra-delete`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -5737,6 +5741,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timed-regional-attribute-ownership-confirmation-cancel-save-restore`](#scenario-java-tck.timed-regional-attribute-ownership-confirmation-cancel-save-restore) — Cancel a negotiated ownership transfer after confirmation is requested and timed regional state is restored (`timed-regional-attribute-ownership-confirmation-cancel-save-restore`; default `run`; C++ pointer `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-confirmation-cancel-after-restore`).
 - [`java-tck.timed-regional-attribute-ownership-pre-delivery-cancel-save-restore`](#scenario-java-tck.timed-regional-attribute-ownership-pre-delivery-cancel-save-restore) — Cancel negotiated divestiture before its confirmation callback after timed regional restore (`timed-regional-attribute-ownership-pre-delivery-cancel-save-restore`; default `run`; C++ pointer `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-pre-delivery-cancel-after-restore`).
 - [`java-tck.timed-regional-attribute-ownership-save-restore`](#scenario-java-tck.timed-regional-attribute-ownership-save-restore) — Continue a saved regular ownership candidate after timed regional attribute delivery (`timed-regional-attribute-ownership-save-restore`; default `run`; C++ pointer `cpp-tck.timed-live-tso-regional-attribute-update-multi-recipient-negotiated-regular-candidate-continuation-after-restore`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -5753,6 +5758,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 ### `requirement-candidate-content-clauses-06-object-management-page-131-l95-27`
 
 - [`java-tck.restore-mixed-tso-four-member`](#scenario-java-tck.restore-mixed-tso-four-member) — Restore saved mixed timestamped object and interaction traffic across four members (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-mixed-tso-four-member`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6588,6 +6594,12 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
+### `requirement-candidate-content-clauses-08-time-management-page-182-l16-4`
+
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
+
+**Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
+
 ### `requirement-candidate-content-clauses-08-time-management-page-182-l37-11`
 
 - [`java-tck.zero-lookahead-nmr-tso-equality-rejection`](#scenario-java-tck.zero-lookahead-nmr-tso-equality-rejection) — Reject a zero-lookahead TSO interaction at the NMR grant time (`time-management`; default `run`; C++ pointer `cpp-tck.zero-lookahead-nmr-tso-equality-rejection`).
@@ -6668,6 +6680,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timed-restore-regional-attribute-multi-recipient`](#scenario-java-tck.timed-restore-regional-attribute-multi-recipient) — Restore a timed explicit-source regional attribute update to two recipients (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.timed-restore-regional-attribute-multi-recipient`).
 - [`java-tck.timestamped-attribute-source-resignation`](#scenario-java-tck.timestamped-attribute-source-resignation) — Deliver a queued timestamped attribute update after source resignation (`time`; default `run`; C++ pointer `cpp-tck.timestamped-attribute-source-resignation`).
 - [`java-tck.timestamped-directed-interaction-subscription-kind`](#scenario-java-tck.timestamped-directed-interaction-subscription-kind) — Deliver timestamped directed interactions and require federation-unique retraction handles (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-subscription-kind`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6699,6 +6712,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-directed-interaction-source-resignation-fanout`](#scenario-java-tck.timestamped-directed-interaction-source-resignation-fanout) — Deliver one queued timestamped directed interaction independently to multiple recipients after producer resignation (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-source-resignation-fanout`).
 - [`java-tck.timestamped-directed-interaction-subscription-kind`](#scenario-java-tck.timestamped-directed-interaction-subscription-kind) — Deliver timestamped directed interactions and require federation-unique retraction handles (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-subscription-kind`).
 - [`java-tck.timestamped-interaction-mixed-advances`](#scenario-java-tck.timestamped-interaction-mixed-advances) — Deliver a timestamped interaction strictly before the TARA boundary through Flush Queue, TARA, and NMRA (`time`; default `run`; C++ pointer `cpp-tck.timestamped-interaction-mixed-advances`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6790,6 +6804,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.restore-mixed-pending-time-role-callbacks`](#scenario-java-tck.restore-mixed-pending-time-role-callbacks) — Restore pending regulation and constrained callbacks to their own federates (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-mixed-pending-time-role-callbacks`).
 - [`java-tck.restore-pending-time-regulation-callback`](#scenario-java-tck.restore-pending-time-regulation-callback) — Restore a gated pending time-regulation callback exactly once (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-time-regulation-callback`).
 - [`java-tck.time-role-pending-enable`](#scenario-java-tck.time-role-pending-enable) — Keep evoked time-role enable requests pending until their callbacks (`time-management`; default `run`; C++ pointer `cpp-tck.time-role-pending-enable`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6815,6 +6830,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.restore-mixed-pending-time-role-callbacks`](#scenario-java-tck.restore-mixed-pending-time-role-callbacks) — Restore pending regulation and constrained callbacks to their own federates (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-mixed-pending-time-role-callbacks`).
 - [`java-tck.restore-pending-time-regulation-callback`](#scenario-java-tck.restore-pending-time-regulation-callback) — Restore a gated pending time-regulation callback exactly once (`federation-save-restore`; default `run`; C++ pointer `cpp-tck.restore-pending-time-regulation-callback`).
 - [`java-tck.time-role-pending-enable`](#scenario-java-tck.time-role-pending-enable) — Keep evoked time-role enable requests pending until their callbacks (`time-management`; default `run`; C++ pointer `cpp-tck.time-role-pending-enable`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -6989,6 +7005,7 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
 - [`java-tck.timestamped-directed-interaction-immediate-source-resignation`](#scenario-java-tck.timestamped-directed-interaction-immediate-source-resignation) — Deliver an accepted timestamped directed interaction after immediate producer resignation (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-immediate-source-resignation`).
 - [`java-tck.timestamped-directed-interaction-source-resignation`](#scenario-java-tck.timestamped-directed-interaction-source-resignation) — Deliver a queued timestamped directed interaction after producer resignation (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-source-resignation`).
 - [`java-tck.timestamped-directed-interaction-source-resignation-fanout`](#scenario-java-tck.timestamped-directed-interaction-source-resignation-fanout) — Deliver one queued timestamped directed interaction independently to multiple recipients after producer resignation (`time`; default `run`; C++ pointer `cpp-tck.timestamped-directed-interaction-source-resignation-fanout`).
+- [`java-tck.timestamped-object-removal`](#scenario-java-tck.timestamped-object-removal) — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant (`time`; default `run`; C++ pointer `cpp-tck.object-removal-order-classification`).
 
 **Exact clause mapping:** verify/add only from an authoritative 1516.1-2025 source; this stable catalog ID is not itself a clause citation.
 
@@ -12282,8 +12299,8 @@ Every ID below is an ID already declared by the Java catalog. Linked scenario sk
   - `requirement-candidate-content-clauses-06-object-management-page-131-l89-25` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-06-object-management-page-131-l95-27` → `hla-1516.1-2025:clause-6.17`
   - `requirement-candidate-content-clauses-08-time-management-page-182-l16-4` → `hla-1516.1-2025:clause-8.1.5`
-  - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.5`
-  - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.6`
+  - `requirement-candidate-content-clauses-08-time-management-page-184-l91-26` → `hla-1516.1-2025:clause-8.1.7`
+  - `requirement-candidate-content-clauses-08-time-management-page-185-l17-5` → `hla-1516.1-2025:clause-8.1.7`
   - `requirement-candidate-content-clauses-08-time-management-page-188-l87-26` → `hla-1516.1-2025:clause-8.2`
   - `requirement-candidate-content-clauses-08-time-management-page-189-l162-44` → `hla-1516.1-2025:clause-8.3.1`
   - `requirement-candidate-content-clauses-08-time-management-page-194-l69-19` → `hla-1516.1-2025:clause-8.8`
@@ -15486,12 +15503,12 @@ The API-method list and adapter inputs are intentionally kept in the canonical c
 | <a id="scenario-java-tck.timestamped-local-delete-object"></a>`java-tck.timestamped-local-delete-object` — Suppress one recipient's queued timestamped object removal with local deletion | `org.hla.rti.tck.RtiTckMain#timestampedLocalDeleteObject` | 30 | `cpp-1516.1-federation-create-join-resign-destroy`, `cpp-1516.1-object-registration-discovery`, `cpp-1516.1-object-instance-deletion`, `cpp-1516.1-local-object-instance-deletion`, `cpp-1516.1-timestamped-object-deletion`, `cpp-1516.1-timestamped-object-removal`, `cpp-1516.1-object-deletion-retraction`, `cpp-1516.1-time-advance-request` | `cpp-tck.timestamped-local-delete-object` | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-mixed-advances"></a>`java-tck.timestamped-object-deletion-mixed-advances` — Deliver a timestamped object removal through Flush Queue, TARA, and NMRA before their grants | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionMixedAdvances` | 29 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-08-time-management-page-201-l7-1` | `cpp-tck.timestamped-object-deletion-mixed-advances` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-no-fanout"></a>`java-tck.timestamped-object-deletion-no-fanout` — Retract a timestamped object deletion without recipients and restore its object state | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionNoFanout` | 21 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | `cpp-tck.timestamped-object-deletion-no-fanout` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.timestamped-object-deletion-regulation-reenable"></a>`java-tck.timestamped-object-deletion-regulation-reenable` — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRegulationReenable` | 30 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
+| <a id="scenario-java-tck.timestamped-object-deletion-regulation-reenable"></a>`java-tck.timestamped-object-deletion-regulation-reenable` — Preserve queued timestamped object removal across changed-lookahead Time Regulation re-enable | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRegulationReenable` | 29 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | `cpp-tck.timestamped-object-deletion-regulation-reenable` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-retraction"></a>`java-tck.timestamped-object-deletion-retraction` — Retract timestamped object removal before constrained delivery and reject terminal retraction | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRetraction` | 32 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-06-object-management-page-131-l83-23`, `requirement-candidate-content-clauses-08-time-management-page-194-l45-11`, `requirement-candidate-content-clauses-08-time-management-page-210-l27-5`, `requirement-candidate-content-clauses-08-time-management-page-210-l36-8`, `requirement-candidate-content-clauses-08-time-management-page-210-l39-9` | `cpp-tck.timestamped-object-deletion` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-retraction-joined-owners"></a>`java-tck.timestamped-object-deletion-retraction-joined-owners` — Retract timestamped object deletion after a former attribute owner resigns | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRetractionJoinedOwners` | 36 | `java-1516.1-object-registration-discovery`, `java-1516.1-ownership-management`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-source-resignation-fanout"></a>`java-tck.timestamped-object-deletion-source-resignation-fanout` — Deliver queued timestamped object deletion to constrained recipients after producer resignation | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionSourceResignationFanout` | 28 | `req-federate-connect-before-rti-work`, `req-disconnect-service-terminates-connection`, `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | not declared | `unsupported` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-object-deletion-tombstone"></a>`java-tck.timestamped-object-deletion-tombstone` — Reuse a named object instance after its timestamped-deletion tombstone becomes terminal | `org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionTombstone` | 23 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | `cpp-tck.timestamped-object-deletion-tombstone` | `run` | not scenario-declared |
-| <a id="scenario-java-tck.timestamped-object-removal"></a>`java-tck.timestamped-object-removal` — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant | `org.hla.rti.tck.RtiTckMain#timestampedObjectRemoval` | 11 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant` | `cpp-tck.object-removal-order-classification` | `run` | not scenario-declared |
+| <a id="scenario-java-tck.timestamped-object-removal"></a>`java-tck.timestamped-object-removal` — Release receive-order removal by asynchronous delivery or time advance, then deliver timestamped removal before grant | `org.hla.rti.tck.RtiTckMain#timestampedObjectRemoval` | 11 | `java-1516.1-object-registration-discovery`, `java-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-06-object-management-page-129-l123-34`, `requirement-candidate-content-clauses-06-object-management-page-129-l138-39`, `requirement-candidate-content-clauses-06-object-management-page-129-l159-46`, `requirement-candidate-content-clauses-06-object-management-page-130-l8-1`, `requirement-candidate-content-clauses-06-object-management-page-131-l89-25`, `requirement-candidate-content-clauses-06-object-management-page-131-l95-27`, `requirement-candidate-content-clauses-08-time-management-page-182-l16-4`, `requirement-candidate-content-clauses-08-time-management-page-184-l91-26`, `requirement-candidate-content-clauses-08-time-management-page-185-l17-5`, `requirement-candidate-content-clauses-08-time-management-page-188-l87-26`, `requirement-candidate-content-clauses-08-time-management-page-189-l162-44`, `requirement-candidate-content-clauses-08-time-management-page-194-l69-19` | `cpp-tck.object-removal-order-classification` | `run` | not scenario-declared |
 | <a id="scenario-java-tck.timestamped-update-before-delete"></a>`java-tck.timestamped-update-before-delete` — Deliver a timestamped attribute update before a later timestamped object deletion | `org.hla.rti.tck.RtiTckMain#timestampedUpdateBeforeDelete` | 31 | `requirement-candidate-content-clauses-06-object-management-page-121-l150-45` | `cpp-tck.timestamped-update-before-delete` | `unsupported` | provider Java API JAR and service-loaded RtiFactory; attribute-fdd-preferred-order-tck.xml and provider-supported logical-time implementation; callback model selected by the adapter |
 | <a id="scenario-java-tck.unregulated-sender-timestamped-attribute-update"></a>`java-tck.unregulated-sender-timestamped-attribute-update` — Preserve a timestamped attribute update from a joined sender without Time Regulation | `org.hla.rti.tck.RtiTckMain#unregulatedSenderTimestampedAttributeUpdate` | 32 | `requirement-candidate-content-clauses-07-ownership-management-page-175-l110-34` | `cpp-tck.unregulated-sender-timestamped-attribute-update` | `run` | provider Java API JAR and service-loaded RtiFactory; adapter-supplied FOM containing the selected object class and attribute; provider-supported logical-time implementation; callback model selected by the adapter |
 | <a id="scenario-java-tck.unregulated-sender-timestamped-interaction"></a>`java-tck.unregulated-sender-timestamped-interaction` — Deliver a timestamp unchanged from a non-regulating sender after the constrained receiver advances | `org.hla.rti.tck.RtiTckMain#unregulatedSenderTimestampedInteraction` | 37 | `java-1516.1-interaction-declaration-and-delivery`, `java-1516.1-time-advance-and-grant`, `requirement-candidate-content-clauses-04-federation-management-page-065-l100-25`, `requirement-candidate-content-clauses-07-ownership-management-page-177-l53-16`, `requirement-candidate-content-clauses-08-time-management-page-182-l97-30` | `cpp-tck.unregulated-sender-timestamped-interaction` | `run` | provider Java API JAR and service-loaded RtiFactory; adapter-supplied FOM containing the selected interaction class and parameter; provider-supported logical-time implementation; callback model selected by the adapter |

@@ -3426,7 +3426,14 @@ a timestamped removal, disables and re-enables producer regulation with a
 changed lookahead, verifies Query Lookahead, and checks that removal metadata
 and callback-before-grant ordering survive until the constrained receiver's
 grant. It also verifies both logical-time queries and the terminal retraction
-exception. It remains unsupported by default pending Java-provider execution.
+exception, then confirms the removed object is no longer known. The publisher
+advances to the same three-epsilon target as the paired C++ scenario. Current
+Java runs passed under both HLA_EVOKED and HLA_IMMEDIATE against the local Umbra
+JNI provider; the paired C++ primary and contract selectors passed both callback
+models. Query Lookahead is exercised but remains unmapped because the available
+candidate is for Modify Lookahead. This scenario is enabled by default. The
+evidence is provider-local, not independent-provider interoperability or
+conformance.
 
 The default-run `java-tck.timestamped-interaction-cross-producer-order` scenario sends
 timestamp-five and timestamp-seven interactions from two regulating producers
