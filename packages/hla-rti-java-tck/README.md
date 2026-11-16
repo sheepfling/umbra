@@ -828,6 +828,20 @@ starts unowned, publication alone does not transfer it, and the joiner's tagged
 If Available acquisition notification establishes ownership. It is enabled for
 HLA_EVOKED; HLA_IMMEDIATE is recorded as unsupported because it cannot preserve
 the notification timing witness.
+The default `java-tck.unconditional-attribute-ownership-divestiture` case uses
+`fom-model-tck.xml` and five federates to exercise four typed attributes across
+a regular acquisition, an initially rejected and later retried If Available
+request, an invited publisher's assumption and acquisition, and an unpublished
+subscriber that receives no assumption. It checks exact callback objects,
+attribute sets, tags, and resulting ownership. Its direct mappings cover the
+selected witnesses in §§7.1.2.2, 7.1.5, and 7.2; a same-attribute pending
+candidate exclusion and the full acquisition matrix remain outside this case.
+The contract twin reuses the primary witness. Current-source JNI runs passed
+1/1 under each callback model; paired installed-package C++ primary/contract
+selectors passed 4/4 focused CTests and 4/4 direct executions. Results are under
+`out/java-tck/unconditional-attribute-ownership-divestiture-java-parity-20261116/`
+and `.build/cpp-tck-evidence-20261116/unconditional-attribute-ownership-divestiture-java-parity-20261116.{json,xml}`.
+
 The adapter-required `java-tck.unconditional-divestiture-assumption-coalescing`
 case uses the configured two-attribute FOM to check that unconditional
 divestiture produces exactly one full-set, correctly tagged assumption callback

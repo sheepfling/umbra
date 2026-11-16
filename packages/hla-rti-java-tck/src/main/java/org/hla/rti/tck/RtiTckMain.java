@@ -6051,12 +6051,12 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.unconditional-attribute-ownership-divestiture",
             "resolve regular acquisition, rejected and retried If Available acquisition, and a published candidate through one unconditional divestiture",
             "ownership",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.requestAttributeOwnershipAssumption",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.evokeCallback;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipUnavailable;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.requestAttributeOwnershipAssumption",
             new String[] {
                "cpp-1516.1-object-management",
                "cpp-1516.1-ownership-management",
                "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::unconditionalAttributeOwnershipDivestiture);
+            }, true), RtiTckMain::unconditionalAttributeOwnershipDivestiture);
       run(new Scenario("java-tck.unconditional-divestiture-assumption-coalescing",
             "deliver one full-set assumption callback to the eligible publisher only",
             "ownership",

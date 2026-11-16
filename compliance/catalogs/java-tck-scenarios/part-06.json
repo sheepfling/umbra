@@ -5425,6 +5425,7 @@
         "RTIambassador.attributeOwnershipAcquisition",
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.evokeCallback",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -5442,6 +5443,47 @@
         "cpp-1516.1-ownership-management",
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l74-23",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l105-33",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l114-35",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l135-42",
+        "requirement-candidate-content-clauses-07-ownership-management-page-154-l144-45"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.1.2.2",
+        "hla-1516.1-2025:clause-7.1.5",
+        "hla-1516.1-2025:clause-7.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l74-23",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l15-4",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l105-33",
+          "standard_section": "hla-1516.1-2025:clause-7.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l114-35",
+          "standard_section": "hla-1516.1-2025:clause-7.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l135-42",
+          "standard_section": "hla-1516.1-2025:clause-7.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-154-l144-45",
+          "standard_section": "hla-1516.1-2025:clause-7.2"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "Direct witness: p152-l74-23 covers regular and If Available acquisition requests from joined publishers; p153-l15-4 checks the regular acquisition notification's object, attributes, tag, and resulting ownership after divestiture; p154-l105-33 checks distinct request tags/attributes and isolates the regular requester, rejected If Available requester, invited publisher, and unpublished subscriber; p154-l114-35 checks the unconditional-divestiture service and resulting transfer callbacks; p154-l135-42 and p154-l144-45 check the eligible publisher's exact assumption set/tag and the unpublished subscriber's lack of an assumption. The case does not cover exclusion of an otherwise eligible candidate with a pending request for the same attribute; the C++ contract twin reuses this primary witness and is not independent coverage. This is not the complete acquisition-precondition or negotiation matrix, or conformance evidence.",
       "contract_refs": [
         "standard-ownership-management-contract.json",
         "standard-ownership-acquisition-if-available-contract.json",
@@ -5457,8 +5499,13 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#unconditionalAttributeOwnershipDivestiture",
       "parity": "cpp-tck.unconditional-attribute-ownership-divestiture",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter FOM with four distinct typed object attributes and provider support for standard ownership acquisition and unconditional divestiture; no implementation-specific API is used."
+      "default_status": "run",
+      "promotion": "promoted",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "evidence_note": "Focused current-source Umbra JNI runs passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE using fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject, Identity, IntegerValue, AsciiValue, and UnicodeValue. Paired installed-package C++ primary/contract selectors passed 4/4 focused CTests and 4/4 direct executions across both callback models using the same model FOM. Evidence: out/java-tck/unconditional-attribute-ownership-divestiture-java-parity-20261116/{evoked-model,immediate-model}.{json,xml}; .build/cpp-tck-evidence-20261116/unconditional-attribute-ownership-divestiture-java-parity-20261116.{json,xml}. Bounded Umbra evidence only; not independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.unconditional-divestiture-assumption-coalescing",
