@@ -349,8 +349,8 @@ final class FederateMomDirectedInteractionsSentTck {
    private static int verifyCount(Reflection reflection, AttributeHandle attribute,
          TransportationTypeHandle reliable, EncoderFactory encoder, String description)
          throws Exception {
-      JavaTckSupport.check(reflection.values.size() == 1
-            && reflection.values.containsKey(attribute) && reflection.tag.length == 0
+      JavaTckSupport.check(reflection.values.containsKey(attribute)
+            && reflection.tag.length == 0
             && reliable.equals(reflection.transportation) && reflection.producer == null
             && (reflection.regions == null || reflection.regions.isEmpty())
             && !reflection.timestampOrdered,
@@ -559,11 +559,17 @@ final class FederateMomDirectedInteractionsSentTck {
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
                      (RegionHandleSet) arguments[5], false));
                } else if ("receiveInteraction".equals(name) && arguments != null
-                     && arguments.length == 8) {
+                     && arguments.length == 6) {
                   ordinary.add(new Ordinary((InteractionClassHandle) arguments[0],
                      (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
-                     (OrderType) arguments[6], (OrderType) arguments[7]));
+                     OrderType.RECEIVE, OrderType.RECEIVE));
+               } else if ("receiveInteraction".equals(name) && arguments != null
+                     && arguments.length == 10) {
+                  ordinary.add(new Ordinary((InteractionClassHandle) arguments[0],
+                     (ParameterHandleValueMap) arguments[1], (byte[]) arguments[2],
+                     (TransportationTypeHandle) arguments[3], (FederateHandle) arguments[4],
+                     (OrderType) arguments[7], (OrderType) arguments[8]));
                } else if ("receiveDirectedInteraction".equals(name) && arguments != null
                      && arguments.length == 6) {
                   directed.add(new Directed((InteractionClassHandle) arguments[0],

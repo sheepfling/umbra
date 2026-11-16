@@ -144,6 +144,32 @@ passed under both callback models, and the paired C++ primary passed focused CTe
 `out/mgw/cpp-tck-mom-directed-interactions-received-java-parity-20261115.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
+The default-run
+`java-tck.federate-mom-directed-interactions-sent-mim-attribute` case checks the
+zero counters, verifies an ordinary send increments only `HLAinteractionsSent`,
+then checks that three directed sends raise the total and directed counters by four
+and three. Two further directed sends raise both by two more, with matching direct
+and periodic values after reporting is disabled. It maps the two standard MIM
+entries through one direct requirement pair in IEEE 1516.1-2025 §11.4.1; DDM
+accounting is outside this no-region case. Java passed under both callback models,
+and the paired C++ primary passed focused CTest 2/2 and direct runs in both models.
+Results are in
+`out/java-tck/federate-mom-directed-interactions-sent-java-parity-20261115/` and
+`out/mgw/cpp-tck-mom-directed-interactions-sent-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
+The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
+sent-count reports after one ordinary and two directed reliable sends, then changes
+transportation to best effort and makes another ordinary send. It checks that only
+the directed sends appear in the reliable count, that the best-effort and idle-federate
+buckets are empty, and that each report carries the expected MIM metadata. Its direct
+mapping is the public MOM request/report surface in IEEE 1516.1-2025 §11.4.1; detailed
+bucket accounting is scenario evidence, with the candidate refinement recorded in
+RL-114. Java and the paired C++ primary passed both callback models. Results are in
+`out/java-tck/federate-mom-directed-interactions-sent-counts-java-parity-20261115/`
+and `out/mgw/cpp-tck-mom-directed-interactions-sent-counts-java-parity-20261115.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and conformance
+are not claimed.
 The
 `java-tck.federation-mom-service-actor-identity` case sends a failing
 `HLAchangeAttributeOrderType` request from a federate that does not own the

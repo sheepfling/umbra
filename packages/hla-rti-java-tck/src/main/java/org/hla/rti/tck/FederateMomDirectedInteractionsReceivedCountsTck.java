@@ -37,6 +37,8 @@ final class FederateMomDirectedInteractionsReceivedCountsTck {
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestDirectedInteractionsReceived";
    private static final String REPORT_CLASS =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionsReceived";
+   private static final String SENT_REPORT_CLASS =
+      "HLAinteractionRoot.HLAmanager.HLAfederate.HLAreport.HLAreportDirectedInteractionsSent";
    private static final long TIMEOUT_NANOS = 15_000_000_000L;
 
    private FederateMomDirectedInteractionsReceivedCountsTck() { }
@@ -296,15 +298,22 @@ final class FederateMomDirectedInteractionsReceivedCountsTck {
          sender.createFederationExecutionWithMIM(federation, new String[] {fom}, mim,
             timeImplementation);
          created = true;
-         FederateHandle senderFederate = sender.joinFederationExecution(
+         FederateHandle senderJoinHandle = sender.joinFederationExecution(
             "mom-directed-sent-counts-sender", "java-tck", federation);
          senderJoined = true;
          FederateHandle requesterFederate = requester.joinFederationExecution(
             "mom-directed-sent-counts-requester", "java-tck", federation);
          requesterJoined = true;
-         FederateHandle idleFederate = idle.joinFederationExecution(
+         FederateHandle idleJoinHandle = idle.joinFederationExecution(
             "mom-directed-sent-counts-idle", "java-tck", federation);
          idleJoined = true;
+         FederateHandle senderFederate = requester.getFederateHandle(
+            "mom-directed-sent-counts-sender");
+         FederateHandle idleFederate = requester.getFederateHandle(
+            "mom-directed-sent-counts-idle");
+         JavaTckSupport.check(senderJoinHandle.equals(senderFederate)
+               && idleJoinHandle.equals(idleFederate),
+            "federate handles returned by join did not match requester lookups");
 
          senderObjectClass = sender.getObjectClassHandle(objectClassName);
          senderAttribute = sender.getAttributeHandle(senderObjectClass, attributeName);
@@ -359,7 +368,7 @@ final class FederateMomDirectedInteractionsReceivedCountsTck {
             "directed sent-count transportation change did not confirm best effort");
          sendApplication(sender, senderInteraction, senderParameter, (byte) 0x84);
 
-         reportClass = requester.getInteractionClassHandle(REPORT_CLASS);
+         reportClass = requester.getInteractionClassHandle(SENT_REPORT_CLASS);
          InteractionClassHandle requestClass = requester.getInteractionClassHandle(
             "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
                + "HLArequestDirectedInteractionsSent");
@@ -370,7 +379,8 @@ final class FederateMomDirectedInteractionsReceivedCountsTck {
             "HLAinteractionCounts");
          TransportationTypeHandle reportReliable =
             requester.getTransportationTypeHandle("HLAreliable");
-         JavaTckSupport.check(REPORT_CLASS.equals(requester.getInteractionClassName(reportClass))
+         JavaTckSupport.check(SENT_REPORT_CLASS.equals(
+                  requester.getInteractionClassName(reportClass))
                && "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest."
                   .concat("HLArequestDirectedInteractionsSent")
                   .equals(requester.getInteractionClassName(requestClass))
