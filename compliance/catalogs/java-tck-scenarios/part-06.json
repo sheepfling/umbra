@@ -4652,6 +4652,7 @@
         "RTIambassador.timeAdvanceRequest",
         "RTIambassador.retract",
         "RTIambassador.queryAttributeOwnership",
+        "RTIambassador.queryLogicalTime",
         "RTIambassador.disableTimeConstrained",
         "RTIambassador.disableTimeRegulation",
         "RTIambassador.unsubscribeObjectClassAttributes",
@@ -4692,8 +4693,11 @@
         "request-retraction-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#timestampedObjectDeletionRetractionJoinedOwners",
-      "default_status": "unsupported",
-      "exclusion": "Provider, compatible multi-attribute FOM, logical-time implementation, endpoint, and callback model are adapter-supplied. Remains unsupported by default until executed through a compatible IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.timestamped-object-deletion-retraction-joined-owners",
+      "mapping_note": "The paired C++ primary and contract catalog rows select no direct requirement-candidate-to-section mappings; this Java mirror makes no direct IEEE 1516.1-2025 clause claim. It preserves the joined-owner timestamped deletion and retraction observations asserted by the paired scenario.",
+      "evidence_note": "Default-enabled Java passed under HLA_EVOKED and HLA_IMMEDIATE against the local Umbra JNI provider with HLAinteger64Time and the adapter-supplied ddm-multi-attribute FOM/class/attributes. The paired C++ primary and contract selectors passed both callback models (4/4 direct runs). Java checks grant completion without exact post-retraction grant-time assertions, matching the C++ case. Results: out/java-tck/deletion-joined-owners-20261116/promoted-{evoked,immediate}/{results.json,junit.xml}; out/mgw/cpp-tck-deletion-joined-owners-parity-20261116/{results.json,junit.xml}. This is provider-local evidence, not independent-provider interoperability or conformance.",
+      "default_status": "run",
+      "promotion": "promoted"
     },
     {
       "id": "java-tck.timestamped-object-deletion-source-resignation-fanout",

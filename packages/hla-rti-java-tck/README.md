@@ -3409,8 +3409,13 @@ remains unowned, the constrained member receives no stale deletion or
 retraction callback, and both time advances complete. The adapter supplies a
 multi-attribute FOM plus `hla.rti.tck.multiAttributeObjectClass`,
 `hla.rti.tck.multiAttributeFirst`, and `hla.rti.tck.multiAttributeSecond`
-properties when its names differ from the TCK defaults. It remains unsupported
-by default pending execution against a Java provider.
+properties when its names differ from the TCK defaults. It is enabled by
+default. It checks grant completion but does not assert exact post-retraction
+grant times, matching the paired C++ scenario. The evidence is provider-local,
+not independent-provider interoperability or conformance. Focused local JNI
+runs passed under both callback models with the adapter-supplied multi-attribute
+FOM and `HLAinteger64Time`; paired C++ primary and contract runs passed both
+callback models.
 
 The `java-tck.timestamped-object-deletion-source-resignation-fanout` scenario
 queues one timestamped deletion for two constrained recipients using different

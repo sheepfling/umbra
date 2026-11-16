@@ -5171,7 +5171,7 @@ public final class RtiTckMain {
                "java-1516.1-object-registration-discovery",
                "java-1516.1-ownership-management",
                "java-1516.1-time-advance-and-grant"
-            }, false), RtiTckMain::timestampedObjectDeletionRetractionJoinedOwners);
+            }, true), RtiTckMain::timestampedObjectDeletionRetractionJoinedOwners);
       run(new Scenario("java-tck.timestamped-object-deletion-source-resignation-fanout",
             "deliver a queued timestamped object deletion independently to two constrained recipients after producer resignation",
             "time",
