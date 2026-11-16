@@ -202,6 +202,16 @@ Java passed both callback models. Results are in
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-tso-length-periodic` case queues one
+timestamped interaction and verifies direct and periodic `HLATSOlength` values of
+one before the target grant, then zero after delivery. It checks that the timestamped
+receive callback precedes the target grant. It maps only the standard MIM
+`HLATSOlength` definition to IEEE 1516.1-2025 §11.4.1; queue accounting and delivery
+ordering remain scenario evidence. Java passed both callback models. Results are in
+`out/java-tck/federate-mom-tso-length-periodic-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-directed-interactions-sent-counts` case requests
 sent-count reports after one ordinary and two directed reliable sends, then changes
 transportation to best effort and makes another ordinary send. It checks that only

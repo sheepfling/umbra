@@ -108,10 +108,15 @@ final class FederateMomTsoLengthPeriodicTck {
          ParameterHandle publisherParameter = publisher.getParameterHandle(
             publisherInteraction, parameterName);
          ParameterHandle targetParameter = target.getParameterHandle(targetInteraction, parameterName);
-         JavaTckSupport.check(publisherInteraction.equals(targetInteraction)
-               && publisherInteraction != null && publisherParameter != null
-               && targetParameter != null,
-            "adapter-supplied timestamped interaction or parameter lookup failed");
+         JavaTckSupport.check(publisherInteraction != null && publisherParameter != null
+               && targetInteraction != null && targetParameter != null
+               && interactionName.equals(publisher.getInteractionClassName(publisherInteraction))
+               && parameterName.equals(publisher.getParameterName(publisherInteraction,
+                  publisherParameter))
+               && interactionName.equals(target.getInteractionClassName(targetInteraction))
+               && parameterName.equals(target.getParameterName(targetInteraction,
+                  targetParameter)),
+            "timestamped interaction lookup did not round-trip for both members");
          publisher.publishInteractionClass(publisherInteraction);
          publishedInteraction = true;
          publisher.changeInteractionOrderType(publisherInteraction, OrderType.TIMESTAMP);
