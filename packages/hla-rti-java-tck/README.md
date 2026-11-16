@@ -229,6 +229,18 @@ CTest 1/1 in HLA_EVOKED. Results are in
 local-provider evidence only; independent-provider behavior and conformance are not
 claimed.
 
+The default-run `java-tck.federate-mom-deletable-object-report` case requests
+`HLAreportObjectInstancesThatCanBeDeleted` for an owner with live objects in two
+application classes. It decodes one count per class, then verifies the report omits
+the class whose object was deleted while retaining the other class at count one. It
+maps only the Table 7 P report leaf to IEEE 1516.1-2025 §11.4.1; RL-110 records the
+generic candidate refinement gap. Java passed both callback models; the paired
+53-assertion HLA_EVOKED C++ case and HLA_IMMEDIATE companion passed focused CTest
+2/2. Results are in
+`out/java-tck/federate-mom-deletable-object-report-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

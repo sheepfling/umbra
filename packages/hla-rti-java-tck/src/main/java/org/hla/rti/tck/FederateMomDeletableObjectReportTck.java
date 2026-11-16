@@ -1,5 +1,7 @@
 package org.hla.rti.tck;
 
+import hla.rti1516_2025.AttributeHandle;
+import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
@@ -27,7 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 
-/** Verifies class-scoped HLArequestObjectsToDelete reports using the standard encoder API. */
+/** Verifies class-scoped HLArequestObjectInstancesThatCanBeDeleted reports. */
 final class FederateMomDeletableObjectReportTck {
    private static final String REQUEST_CLASS =
       "HLAinteractionRoot.HLAmanager.HLAfederate.HLArequest.HLArequestObjectInstancesThatCanBeDeleted";
@@ -38,7 +40,8 @@ final class FederateMomDeletableObjectReportTck {
    private FederateMomDeletableObjectReportTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String objectClassName, String attributeName, CallbackModel callbackModel)
+         String objectClassName, String attributeName, String secondObjectClassName,
+         String secondAttributeName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador requester = factory.getRtiAmbassador();
       RTIambassador owner = factory.getRtiAmbassador();
@@ -49,8 +52,8 @@ final class FederateMomDeletableObjectReportTck {
       boolean requesterConnected = false, ownerConnected = false, created = false;
       boolean requesterJoined = false, ownerJoined = false, subscribed = false, published = false;
       InteractionClassHandle requestClass = null, reportClass = null;
-      ObjectClassHandle ownerObjectClass = null;
-      hla.rti1516_2025.AttributeHandleSet ownerAttributes = null;
+      ObjectClassHandle ownerObjectClass = null, ownerSecondObjectClass = null;
+      AttributeHandleSet ownerAttributes = null, ownerSecondAttributes = null;
       try {
          requester.connect(requesterRecorder.proxy(), callbackModel);
          requesterConnected = true;
@@ -82,35 +85,48 @@ final class FederateMomDeletableObjectReportTck {
             "mom-deletable-owner", "java-tck", federation);
          ownerJoined = true;
          ownerObjectClass = owner.getObjectClassHandle(objectClassName);
-         hla.rti1516_2025.AttributeHandle ownerAttribute =
-            owner.getAttributeHandle(ownerObjectClass, attributeName);
-         JavaTckSupport.check(objectClassName.equals(owner.getObjectClassName(ownerObjectClass))
-               && attributeName.equals(owner.getAttributeName(ownerObjectClass, ownerAttribute)),
-            "adapter-supplied object class or attribute lookup did not round-trip");
+         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerObjectClass, attributeName);
+         ownerSecondObjectClass = owner.getObjectClassHandle(secondObjectClassName);
+         AttributeHandle ownerSecondAttribute = owner.getAttributeHandle(ownerSecondObjectClass,
+            secondAttributeName);
+         JavaTckSupport.check(!objectClassName.equals(secondObjectClassName)
+               && objectClassName.equals(owner.getObjectClassName(ownerObjectClass))
+               && attributeName.equals(owner.getAttributeName(ownerObjectClass, ownerAttribute))
+               && secondObjectClassName.equals(owner.getObjectClassName(ownerSecondObjectClass))
+               && secondAttributeName.equals(owner.getAttributeName(ownerSecondObjectClass,
+                  ownerSecondAttribute)),
+            "adapter-supplied object classes or attributes did not round-trip distinctly");
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
+         ownerSecondAttributes = JavaTckSupport.attributeSet(owner, ownerSecondAttribute);
          owner.publishObjectClassAttributes(ownerObjectClass, ownerAttributes);
+         owner.publishObjectClassAttributes(ownerSecondObjectClass, ownerSecondAttributes);
          published = true;
 
          ObjectInstanceHandle firstObject = owner.registerObjectInstance(ownerObjectClass);
-         ObjectInstanceHandle secondObject = owner.registerObjectInstance(ownerObjectClass);
+         ObjectInstanceHandle secondObject = owner.registerObjectInstance(ownerSecondObjectClass);
          JavaTckSupport.check(firstObject != null && secondObject != null
                && !firstObject.equals(secondObject),
             "deletable-object registrations returned invalid or duplicate handles");
-         requestCount(requester, requesterRecorder, callbackModel, requestClass, requestFederate,
-            reportClass, reportCounts, reliable, ownerFederate, ownerObjectClass,
-            encoder, 2, "report with two live objects");
+         Map<String, Integer> counts = requestCount(requester, requesterRecorder, callbackModel,
+            requestClass, requestFederate, reportClass, reportCounts, reliable, ownerFederate,
+            encoder, "report with two live classes");
+         JavaTckSupport.check(counts.size() == 2
+               && Integer.valueOf(1).equals(counts.get(objectClassName))
+               && Integer.valueOf(1).equals(counts.get(secondObjectClassName)),
+            "deletable-object report did not contain one live count for each registered class");
          owner.deleteObjectInstance(firstObject, new byte[0]);
-         requestCount(requester, requesterRecorder, callbackModel, requestClass, requestFederate,
-            reportClass, reportCounts, reliable, ownerFederate, ownerObjectClass,
-            encoder, 1, "report after one deletion");
-         owner.deleteObjectInstance(secondObject, new byte[0]);
-         requestCount(requester, requesterRecorder, callbackModel, requestClass, requestFederate,
-            reportClass, reportCounts, reliable, ownerFederate, ownerObjectClass,
-            encoder, 0, "report after all deletions");
+         counts = requestCount(requester, requesterRecorder, callbackModel, requestClass,
+            requestFederate, reportClass, reportCounts, reliable, ownerFederate, encoder,
+            "report after deleting the first class's object");
+         JavaTckSupport.check(counts.size() == 1
+               && Integer.valueOf(1).equals(counts.get(secondObjectClassName))
+               && !counts.containsKey(objectClassName),
+            "deletable-object report did not remove the deleted class and retain the live class");
 
          requester.unsubscribeInteractionClass(reportClass);
          subscribed = false;
          owner.unpublishObjectClassAttributes(ownerObjectClass, ownerAttributes);
+         owner.unpublishObjectClassAttributes(ownerSecondObjectClass, ownerSecondAttributes);
          published = false;
          requester.resignFederationExecution(ResignAction.NO_ACTION);
          requesterJoined = false;
@@ -125,6 +141,10 @@ final class FederateMomDeletableObjectReportTck {
          if (published && ownerJoined && ownerObjectClass != null && ownerAttributes != null) try {
             owner.unpublishObjectClassAttributes(ownerObjectClass, ownerAttributes);
          } catch (Exception ignored) { }
+         if (published && ownerJoined && ownerSecondObjectClass != null
+               && ownerSecondAttributes != null) try {
+            owner.unpublishObjectClassAttributes(ownerSecondObjectClass, ownerSecondAttributes);
+         } catch (Exception ignored) { }
          if (requesterJoined) resign(requester);
          if (ownerJoined) resign(owner);
          if (created) try { owner.destroyFederationExecution(federation); }
@@ -134,30 +154,38 @@ final class FederateMomDeletableObjectReportTck {
       }
    }
 
-   private static void requestCount(RTIambassador requester, Recorder recorder,
+   private static Map<String, Integer> requestCount(RTIambassador requester, Recorder recorder,
          CallbackModel model, InteractionClassHandle requestClass, ParameterHandle requestFederate,
          InteractionClassHandle reportClass, ParameterHandle reportCounts,
-         TransportationTypeHandle reliable, FederateHandle target, ObjectClassHandle expectedClass,
-         EncoderFactory encoder, int expected, String description) throws Exception {
+         TransportationTypeHandle reliable, FederateHandle target, EncoderFactory encoder,
+         String description) throws Exception {
       int first = recorder.interactions.size();
       ParameterHandleValueMap parameters = requester.getParameterHandleValueMapFactory().create(1);
       parameters.put(requestFederate, encode(target));
       requester.sendInteraction(requestClass, parameters, new byte[0]);
+      if (model == CallbackModel.HLA_IMMEDIATE) {
+         JavaTckSupport.check(recorder.interactions.size() == first + 1,
+            description + " did not arrive before Send Interaction returned in HLA_IMMEDIATE");
+      } else {
+         JavaTckSupport.check(recorder.interactions.size() == first,
+            description + " crossed the callback boundary before Evoke Callback");
+      }
       await(requester, model,
          () -> findReport(recorder, first, reportClass, reportCounts) != null, description);
       Interaction report = findReport(recorder, first, reportClass, reportCounts);
+      JavaTckSupport.check(recorder.interactions.size() == first + 1,
+         description + " did not produce exactly one report callback");
       JavaTckSupport.check(report != null && report.parameters.size() == 1
             && report.parameters.containsKey(reportCounts)
             && reliable.equals(report.transportation) && report.tag.length == 0
             && report.producer == null && report.regionsEmpty,
          description + " returned a missing report or non-standard callback metadata");
-      JavaTckSupport.check(decodeObjectClassCount(encoder, requester.getObjectClassHandleFactory(),
-            report.parameters.get(reportCounts), expectedClass) == expected,
-         description + " returned the wrong class-specific object count");
+      return decodeObjectClassCounts(encoder, requester.getObjectClassHandleFactory(), requester,
+         report.parameters.get(reportCounts));
    }
 
-   private static int decodeObjectClassCount(EncoderFactory encoder,
-         ObjectClassHandleFactory classFactory, byte[] encoded, ObjectClassHandle expectedClass)
+   private static Map<String, Integer> decodeObjectClassCounts(EncoderFactory encoder,
+         ObjectClassHandleFactory classFactory, RTIambassador decoder, byte[] encoded)
          throws Exception {
       HLAvariableArray<HLAoctet> handlePrototype = encoder.createHLAvariableArray(
          index -> encoder.createHLAoctet(), encoder.createHLAoctet());
@@ -173,14 +201,18 @@ final class FederateMomDeletableObjectReportTck {
             return record;
          }, recordPrototype);
       records.decode(encoded);
+      Map<String, Integer> counts = new LinkedHashMap<>();
       for (HLAfixedRecord record : records) {
          @SuppressWarnings("unchecked")
          HLAvariableArray<HLAoctet> handle = (HLAvariableArray<HLAoctet>) record.get(0);
          HLAinteger32BE count = (HLAinteger32BE) record.get(1);
          ObjectClassHandle decodedClass = classFactory.decode(handle.toByteArray(), 0);
-         if (expectedClass.equals(decodedClass)) return count.getValue();
+         String decodedClassName = decoder.getObjectClassName(decodedClass);
+         JavaTckSupport.check(!counts.containsKey(decodedClassName),
+            "deletable-object report repeated an object-class count record");
+         counts.put(decodedClassName, count.getValue());
       }
-      return 0;
+      return counts;
    }
 
    private static Interaction findReport(Recorder recorder, int first,

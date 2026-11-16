@@ -65639,10 +65639,12 @@
     },
     {
       "id": "java-tck.federate-mom-deletable-object-report",
-      "category": "object-management",
-      "title": "Request class-specific HLAobjectInstancesThatCanBeDeleted reports and decode the standard object-class/count records",
+      "category": "joined-federate-mom-object-statistics",
+      "title": "Request HLAreportObjectInstancesThatCanBeDeleted and verify live counts for two object classes plus removal of a deleted class",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
@@ -65657,30 +65659,44 @@
         "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.deleteObjectInstance(receive-order)",
         "RTIambassador.getParameterHandleValueMapFactory",
-        "RTIambassador.sendInteraction",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
+        "RTIambassador.sendInteraction(receive-order)",
         "RTIambassador.getObjectClassHandleFactory",
         "ObjectClassHandleFactory.decode",
         "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "FederateHandle.encodedLength",
+        "FederateHandle.encode",
         "FederateAmbassador.receiveInteraction",
+        "EncoderFactory.createHLAvariableArray",
+        "HLAvariableArray.decode",
+        "HLAvariableArray.toByteArray",
+        "EncoderFactory.createHLAfixedRecord",
+        "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
+        "EncoderFactory.createHLAoctet",
+        "HLAoctet.toByteArray",
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.getValue",
         "HLAvariableArray",
         "HLAfixedRecord",
         "HLAoctet",
         "HLAinteger32BE"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-ownership-management"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -65695,12 +65711,32 @@
         "receive-order-interaction-requirements-contract.json",
         "subscribe-interaction-class-api-contract.json",
         "subscribe-interaction-class-requirements-contract.json",
-        "joined-federate-mom-public-requirements-contract.json"
+        "joined-federate-mom-public-requirements-contract.json",
+        "standard-joined-federate-mom-object-instances-that-can-be-deleted-report-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDeletableObjectReport",
       "parity": "cpp-tck.joined-federate-mom-object-instances-that-can-be-deleted-report",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The paired C++ Catch2 plan selects the two MOM candidates and maps them directly to IEEE 1516.1-2025 §11.4.1 for the HLAreportObjectInstancesThatCanBeDeleted Table 7 P leaf. RL-110 records that the generic candidate cannot express request/report correlation, live ownership counts by object class, nested HLAobjectClassBasedCounts encoding, or the RTI producer route. Those details remain bounded scenario assertions; provider-independent behavior and conformance are not claimed.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models use two adapter-supplied application object classes and attributes. The first report contains one live object count for each class; after deleting the first class object, the next report contains only the second class at count one. The test checks reliable transportation, an empty tag, absent producer, no regions, and HLA_EVOKED versus HLA_IMMEDIATE delivery timing.",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using RestaurantFOMmodule-2025.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.Employee.Server/Efficiency, and HLAobjectRoot.Food.Drink.Soda/Flavor. Results/JUnit: out/java-tck/federate-mom-deletable-object-report-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. The paired 53-assertion C++ HLA_EVOKED case and its HLA_IMMEDIATE companion passed focused CTest 2/2. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-updated-object-report",

@@ -508,6 +508,9 @@ public final class RtiTckMain {
       "hla.rti.tck.additionalSettings";
    private static final String OBJECT_CLASS_PROPERTY = "hla.rti.tck.objectClass";
    private static final String ATTRIBUTE_PROPERTY = "hla.rti.tck.attribute";
+   private static final String SECOND_OBJECT_CLASS_PROPERTY = "hla.rti.tck.secondObjectClass";
+   private static final String SECOND_OBJECT_CLASS_ATTRIBUTE_PROPERTY =
+      "hla.rti.tck.secondObjectClassAttribute";
    private static final String OBJECT_CLASS_SECOND_ATTRIBUTE_PROPERTY =
       "hla.rti.tck.objectClassSecondAttribute";
    private static final String OBJECT_CLASS_THIRD_ATTRIBUTE_PROPERTY =
@@ -7458,16 +7461,13 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
             }, true), RtiTckMain::federateMomDeletableObjectCount);
       run(new Scenario("java-tck.federate-mom-deletable-object-report",
-            "request class-specific HLAobjectInstancesThatCanBeDeleted reports and decode the standard object-class/count records",
-            "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance(receive-order);RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAvariableArray;HLAfixedRecord;HLAoctet;HLAinteger32BE",
+            "request HLAreportObjectInstancesThatCanBeDeleted for owner-scoped class counts and reflect class removal after deletion",
+            "joined-federate-mom-object-statistics",
+            "RtiFactory.getRtiAmbassador;RtiFactory.getEncoderFactory;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance(receive-order);RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.sendInteraction(receive-order);RTIambassador.getObjectClassHandleFactory;ObjectClassHandleFactory.decode;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateHandle.encodedLength;FederateHandle.encode;FederateAmbassador.receiveInteraction;EncoderFactory.createHLAvariableArray;HLAvariableArray.decode;HLAvariableArray.toByteArray;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;HLAfixedRecord.get;EncoderFactory.createHLAoctet;HLAoctet.toByteArray;EncoderFactory.createHLAinteger32BE;HLAinteger32BE.getValue;HLAvariableArray;HLAfixedRecord;HLAoctet;HLAinteger32BE",
             new String[] {
-               "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-object-instance-deletion",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-ownership-management"
-            }, false), RtiTckMain::federateMomDeletableObjectReport);
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l111-36"
+            }, true), RtiTckMain::federateMomDeletableObjectReport);
       run(new Scenario("java-tck.federate-mom-updated-object-report",
             "request class-scoped HLAobjectInstancesUpdated counts and ensure repeated updates to one object count once",
             "object-management",
@@ -12501,7 +12501,8 @@ public final class RtiTckMain {
 
    private static void federateMomDeletableObjectReport() throws Exception {
       FederateMomDeletableObjectReportTck.run(factory(), requireFom(), requireMim(),
-         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+         timeImplementation(), objectClassName(), attributeName(), secondObjectClassName(),
+         secondObjectClassAttributeName(), callbackModel());
    }
 
    private static void federateMomUpdatedObjectReport() throws Exception {
@@ -16046,6 +16047,15 @@ public final class RtiTckMain {
    static String objectClassName() {
       return System.getProperty(OBJECT_CLASS_PROPERTY,
          "HLAobjectRoot.Employee.Server");
+   }
+
+   private static String secondObjectClassName() {
+      return System.getProperty(SECOND_OBJECT_CLASS_PROPERTY,
+         "HLAobjectRoot.Food.Drink.Soda");
+   }
+
+   private static String secondObjectClassAttributeName() {
+      return System.getProperty(SECOND_OBJECT_CLASS_ATTRIBUTE_PROPERTY, "Flavor");
    }
 
    private static String objectClassLookupExtensionObjectClassName() {
