@@ -7451,17 +7451,12 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, false), RtiTckMain::federateMomReportServiceFile);
       run(new Scenario("java-tck.federate-mom-deletable-object-count",
-            "request and periodically report HLAobjectInstancesThatCanBeDeleted as objects are registered and deleted",
-            "object-management",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance(receive-order);RTIambassador.requestAttributeValueUpdate;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reflectAttributeValues;HLAinteger32BE",
+            "request and periodically report HLAobjectInstancesThatCanBeDeleted as live application objects are registered and deleted",
+            "joined-federate-mom-object-statistics",
+            "RtiFactory.getRtiAmbassador;RtiFactory.getEncoderFactory;RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getKnownObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getAttributeHandleSetFactory;AttributeHandleSetFactory.create;AttributeHandleSet.add;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeObjectClassAttributes;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.publishObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.deleteObjectInstance(receive-order);RTIambassador.requestAttributeValueUpdate;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getParameterHandleValueMapFactory;ParameterHandleValueMapFactory.create;ParameterHandleValueMap.put;RTIambassador.sendInteraction(HLAsetTiming);RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateHandle.encodedLength;FederateHandle.encode;FederateAmbassador.reflectAttributeValues;EncoderFactory.createHLAinteger32BE;HLAinteger32BE.decode;HLAinteger32BE.getValue;HLAinteger32BE.toByteArray",
             new String[] {
-               "cpp-1516.1-mom-service-reporting",
-               "cpp-1516.1-explicit-mim-composition",
-               "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-instance-deletion",
-               "cpp-1516.1-attribute-value-update-request",
-               "cpp-1516.1-federation-create-join-resign-destroy"
-            }, false), RtiTckMain::federateMomDeletableObjectCount);
+               "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
+            }, true), RtiTckMain::federateMomDeletableObjectCount);
       run(new Scenario("java-tck.federate-mom-deletable-object-report",
             "request class-specific HLAobjectInstancesThatCanBeDeleted reports and decode the standard object-class/count records",
             "object-management",

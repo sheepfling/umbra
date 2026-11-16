@@ -218,6 +218,17 @@ Results are in
 This is local-provider evidence only; independent-provider behavior and conformance
 are not claimed.
 
+The default-run `java-tck.federate-mom-deletable-object-count` case requests
+`HLAobjectInstancesThatCanBeDeleted` directly before registration, after one and two
+application object registrations, through a periodic `HLAsetTiming` reflection, and
+after each deletion. It maps only the standard MIM definition to IEEE 1516.1-2025
+§11.4.1; count transitions and callback metadata remain scenario evidence. Java
+passed both callback models; the paired 55-assertion C++ Catch2 case passed focused
+CTest 1/1 in HLA_EVOKED. Results are in
+`out/java-tck/federate-mom-deletable-object-count-java-parity-20261115/`. This is
+local-provider evidence only; independent-provider behavior and conformance are not
+claimed.
+
 The default-run `java-tck.federate-mom-ro-length-periodic` case checks a zero
 `HLAROlength` baseline, a positive direct value while three receive-order interactions
 are queued, a positive periodic value while another interaction is queued, and zero

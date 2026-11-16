@@ -85,10 +85,12 @@ final class FederateMomDeletableObjectCountTck {
             "HLAfederateHandle");
          AttributeHandle ownerDeletableCountAttribute = owner.getAttributeHandle(ownerMomClass,
             "HLAobjectInstancesThatCanBeDeleted");
-         JavaTckSupport.check(momClass.equals(ownerMomClass)
-               && federateAttribute.equals(ownerFederateAttribute)
-               && deletableCountAttribute.equals(ownerDeletableCountAttribute),
-            "joined federates received different standard MOM handles");
+         JavaTckSupport.check(MOM_CLASS.equals(owner.getObjectClassName(ownerMomClass))
+               && "HLAfederateHandle".equals(owner.getAttributeName(ownerMomClass,
+                  ownerFederateAttribute))
+               && "HLAobjectInstancesThatCanBeDeleted".equals(owner.getAttributeName(
+                  ownerMomClass, ownerDeletableCountAttribute)),
+            "owner's standard MOM object or attribute handles did not round-trip");
 
          byte[] encodedOwner = encode(ownerFederate);
          await(observer, callbackModel,

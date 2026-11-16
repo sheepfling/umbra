@@ -65552,10 +65552,12 @@
     },
     {
       "id": "java-tck.federate-mom-deletable-object-count",
-      "category": "object-management",
+      "category": "joined-federate-mom-object-statistics",
       "title": "Request and periodically report HLAobjectInstancesThatCanBeDeleted as objects are registered and deleted",
       "api_methods": [
-        "RTIambassador.connect",
+        "RtiFactory.getRtiAmbassador",
+        "RtiFactory.getEncoderFactory",
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -65563,6 +65565,9 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.getTransportationTypeHandle",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.subscribeObjectClassAttributes",
@@ -65576,21 +65581,24 @@
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteraction(HLAsetTiming)",
         "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "FederateHandle.encodedLength",
+        "FederateHandle.encode",
         "FederateAmbassador.reflectAttributeValues",
-        "HLAinteger32BE"
+        "EncoderFactory.createHLAinteger32BE",
+        "HLAinteger32BE.decode",
+        "HLAinteger32BE.getValue",
+        "HLAinteger32BE.toByteArray"
       ],
       "requirement_ids": [
-        "cpp-1516.1-mom-service-reporting",
-        "cpp-1516.1-explicit-mim-composition",
-        "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-attribute-value-update-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57"
       ],
       "contract_refs": [
         "explicit-mim-api-contract.json",
@@ -65606,12 +65614,28 @@
         "publish-object-class-attributes-api-contract.json",
         "publish-object-class-attributes-requirements-contract.json",
         "joined-federate-mom-public-requirements-contract.json",
+        "mom-service-reporting-requirements-contract.json",
         "standard-joined-federate-mom-deletable-object-count-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#federateMomDeletableObjectCount",
       "parity": "cpp-tck.joined-federate-mom-deletable-object-count",
-      "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM, standard MIM, object class and attribute, callback model, and installed IEEE 1516.1-2025 Java provider; provider runtime verification remains pending."
+      "default_status": "run",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-290-l174-57",
+          "standard_section": "hla-1516.1-2025:clause-11.4.1"
+        }
+      ],
+      "mapping_note": "The paired C++ Catch2 plan selects the MOM candidate and maps it directly to IEEE 1516.1-2025 §11.4.1 through the standard MIM definition of HLAobjectInstancesThatCanBeDeleted. Direct and HLAsetTiming-periodic values are checked against that definition; registration/deletion transitions and callback metadata remain bounded scenario assertions. Provider-independent behavior and conformance are not claimed.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "callback_model_scope_note": "Both callback models verify the owner federate count at zero before application registration, one and two after registering two application objects, two through an HLAsetTiming periodic reflection, then one and zero after deleting each object. The reflection metadata is checked for reliable transportation, an empty tag, no producer, and no regions. This case uses one application object class and does not cover other transportation types or remote-provider behavior.",
+      "evidence_note": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider and pinned official Java API using p0-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value. Results/JUnit: out/java-tck/federate-mom-deletable-object-count-java-parity-20261115/{evoked,immediate}/{results.json,junit.xml}. The paired 55-assertion C++ Catch2 case passed focused CTest 1/1 under HLA_EVOKED. Evidence is local-provider only; independent-provider behavior and conformance are not claimed."
     },
     {
       "id": "java-tck.federate-mom-deletable-object-report",
