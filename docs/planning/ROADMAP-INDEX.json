@@ -38012,7 +38012,41 @@
         "mapping_and_validation": "Pinned requirement queries confirm both candidates map to §8.1.7. Focused C++ evidence validation, Java catalog validation, and parity audit passed with no findings; no Requirements Lab resynchronization.",
         "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ TCK; it does not establish independent-provider behavior, interoperability, or conformance."
       },
-      "next_action": "Next exact pair: cpp-tck.object-class-attribute-value-update-request-baseline and java-tck.object-class-attribute-value-update-request-baseline. Review the page-137-l40-8 candidate and existing Requirements Lab issue RL-078. The Java case already checks the user-supplied request tag on each provideAttributeValueUpdate callback, while the C++ row maps that candidate to §6.22 under the structural-owner override and the Java row currently excludes it. Compare the pinned source and issue record, decide whether the Java direct mapping is justified, and update only the mapping/note if supported. Do not resynchronize the Requirements Lab. Run the Java case and paired C++ primary/contract under both callback models.",
+      "latest_verified_java_object_class_request_tag_mapping_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Mapped the already-asserted request-tag relay candidate to its direct source clause §6.22 under the documented RL-078 structural-owner override. The candidate ID and exported Lab owner §6.23 remain unchanged; Java compares exact tag bytes on each matching child-instance callback.",
+        "scenario_ids": [
+          "java-tck.object-class-attribute-value-update-request-baseline",
+          "cpp-tck.object-class-attribute-value-update-request-baseline",
+          "cpp-tck.object-class-attribute-value-update-request-baseline-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectClassAttributeValueUpdateRequestBaselineTck.java; compliance/catalogs/java-tck-scenarios/part-01.json; docs/testing/REQUIREMENTS-LAB-OBSERVATIONS.md (RL-078)",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-06-object-management-page-137-l40-8 -> IEEE 1516.1-2025 §6.22 under RL-078 source-owner override; exported structural owner remains §6.23"
+        ],
+        "evidence": "Java passed 1/1 in HLA_EVOKED and HLA_IMMEDIATE against the local JNI provider; artifacts .build/java-tck-20261117/object-class-attribute-value-request-rl078-{evoked,immediate}.{json,xml}. Installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both models; artifacts .build/cpp-tck-evidence-20261117/object-class-request-tag-rl078-paired.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed for 966 scenarios and 268 API surfaces; parity audit reports 0 unpaired and 10 explicit not-applicable cases. RL-078 was reused without Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ TCK; no independent-provider, interoperability, or conformance result is established."
+      },
+      "latest_verified_java_federate_selected_update_thresholds_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Added the Java detailed-rule-7 mapping to IEEE 1516-2025 §6.2 for the existing bounded public object-attribute update/reflection assertions. Added the requirement ID to the Java scenario registry and enabled the scenario by default to match its catalog status.",
+        "scenario_ids": [
+          "java-tck.federate-selected-update-thresholds",
+          "cpp-tck.federate-selected-update-thresholds",
+          "cpp-tck.federate-selected-update-thresholds-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateSelectedUpdateThresholdsTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/FederateUpdateThresholdsScenarioRegistry.java; compliance/catalogs/java-tck-scenarios/part-10.json; packages/hla-rti-cpp-tck/src/tck_federate_update_threshold_scenarios.cpp",
+        "direct_mappings": [
+          "summary-rule-9 -> IEEE 1516-2025 §4",
+          "detailed-rule-9 -> IEEE 1516.1-2025 §6.4",
+          "detailed-rule-7 -> IEEE 1516-2025 §6.2"
+        ],
+        "evidence": "Java passed 1/1 in HLA_EVOKED and HLA_IMMEDIATE under the default profile; artifacts .build/java-tck-20261117/federate-selected-update-thresholds-{evoked,immediate}.{json,xml}. Installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both models; artifacts .build/cpp-tck-evidence-20261117/federate-selected-update-thresholds-parity.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed for 966 scenarios and 268 API surfaces; parity audit reports 0 unpaired and 10 explicit not-applicable cases. C++ evidence is local installed-package execution only.",
+        "boundary": "The scenario verifies one fixture-declared object attribute and application-selected send thresholds. It does not establish complete object-model capability, interaction capability, or conformance."
+      },
+      "next_action": "Next exact pair: cpp-tck.named-registration and java-tck.named-registration. Compare the 17 direct mappings and assertions in the C++ primary with the four direct Java mappings and assertions. Add only supported Java-visible behavior and canonical mappings, preserving language-specific API differences. Run the focused Java scenario and paired C++ primary/contract under both callback models. Keep the Java catalog split; do not resynchronize the Requirements Lab.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

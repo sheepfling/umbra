@@ -10,7 +10,7 @@ final class FederateUpdateThresholdsScenarioRegistry {
             "Deliver updates selected by two federates with different thresholds",
             "object-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.updateAttributeValues;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues",
-            new String[] {"summary-rule-9", "detailed-rule-9"}, false),
+            new String[] {"summary-rule-9", "detailed-rule-9", "detailed-rule-7"}, true),
          FederateUpdateThresholdsScenarioRegistry::federateSelectedUpdateThresholds);
    }
 

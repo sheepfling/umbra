@@ -1918,11 +1918,13 @@
       ],
       "requirement_ids": [
         "summary-rule-9",
-        "detailed-rule-9"
+        "detailed-rule-9",
+        "detailed-rule-7"
       ],
       "standard_sections": [
         "hla-1516-2025:clause-4",
-        "hla-1516.1-2025:clause-6.4"
+        "hla-1516.1-2025:clause-6.4",
+        "hla-1516-2025:clause-6.2"
       ],
       "requirement_mappings": [
         {
@@ -1934,9 +1936,14 @@
           "requirement_id": "detailed-rule-9",
           "standard_section": "hla-1516.1-2025:clause-6.4",
           "note": "Same bounded threshold-selected update witness as Summary Rule 9. It checks delivery through Update Attribute Values only, not application threshold logic or SOM conformance."
+        },
+        {
+          "requirement_id": "detailed-rule-7",
+          "standard_section": "hla-1516-2025:clause-6.2",
+          "note": "Both publishers use the public Update Attribute Values service for one fixture-declared object attribute, and the receiver verifies the exact five reflections with object and producer identity. This is a bounded object-update/reflection witness; it does not establish every object attribute or interaction capability."
         }
       ],
-      "mapping_note": "Across samples 1–6, one publisher sends values 2, 4, and 6 using an application threshold of 2; the other sends 3 and 6 using a threshold of 3. The receiver checks exact payload values, threshold/sample tags, object identity, producer identity, and the absence of regional metadata. The application test code selects when to call Update Attribute Values. The RTI does not derive or enforce either threshold.",
+      "mapping_note": "Across samples 1–6, one publisher sends values 2, 4, and 6 using an application threshold of 2; the other sends 3 and 6 using a threshold of 3. The receiver checks exact payload values, threshold/sample tags, object identity, producer identity, and the absence of regional metadata. This is a bounded direct witness to detailed-rule-7 at IEEE 1516-2025 §6.2 for object attribute updating and reflection through the public API. The application test code selects when to call Update Attribute Values; the RTI does not derive or enforce either threshold. The Java case passed 1/1 under each callback model after promotion to the default profile; results are .build/java-tck-20261117/federate-selected-update-thresholds-{evoked,immediate}.json. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both models; results are .build/cpp-tck-evidence-20261117/federate-selected-update-thresholds-parity.{json,xml}. Local evidence only; no independent-provider or conformance claim.",
       "callback_models": [
         "evoked",
         "immediate"
