@@ -37427,7 +37427,18 @@
         "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit passed with no findings. The shared roadmap check continues to report the unrelated C++ handoff query mismatch; no Requirements Lab resynchronization was performed.",
         "boundary": "Local JNI and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
       },
-      "next_action": "Next exact case: compare the existing Java mirror java-tck.custom-transportation-timestamped-directed-delivery with cpp-tck.custom-transportation-timestamped-directed-delivery. Verify the typed interaction and parameter, directed recipient selection, timestamped payload and callback metadata, custom transportation identity, and delivery before the receiver grant under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
+      "latest_verified_custom_transportation_timestamped_directed_delivery_java_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Verified and completed the existing Java mirror for custom-transportation timestamped directed delivery. The Java directed subscription now uses the universal API method matching the C++ universally=true call, registration discovery waiting is null-safe, and immediate callback records use thread-safe collections and visible callback state.",
+        "scenario_ids": [
+          "java-tck.custom-transportation-timestamped-directed-delivery",
+          "cpp-tck.custom-transportation-timestamped-directed-delivery"
+        ],
+        "evidence": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject/IntegerValue, HLAinteractionRoot.TckTypedInteraction/IntegerParameter, and TckBestEffort. Assertions cover target discovery, timestamped payload/tag/time/order, producer and transportation identity, retraction, and delivery before the receiver grant. Results/JUnit: .build/java-tck-20261117/timestamped-directed-delivery-{evoked,immediate}.{json,xml}.",
+        "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit passed with no findings. The shared roadmap check still reports the unrelated C++ handoff query mismatch; no Requirements Lab resynchronization was performed.",
+        "boundary": "Local JNI and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
+      },
+      "next_action": "Next exact case: compare java-tck.custom-transportation-timestamped-regional-attribute-delivery with cpp-tck.custom-transportation-timestamped-regional-attribute-delivery. Verify source-region and timestamped value/tag/time/order metadata, custom transportation identity, retraction behavior, and delivery and grant boundaries under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
       "latest_verified_custom_transportation_timestamped_interaction_java_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Verified the existing Java mirror for the C++ timestamped custom-transportation interaction case. The Java witness checks standard timestamped delivery metadata and now records immediate callbacks through thread-safe state.",

@@ -825,7 +825,7 @@
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.publishObjectClassDirectedInteractions",
-        "RTIambassador.subscribeObjectClassDirectedInteractions",
+        "RTIambassador.subscribeObjectClassDirectedInteractionsUniversally",
         "RTIambassador.changeInteractionOrderType",
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getTimeFactory",
@@ -886,7 +886,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationTimestampedDirectedDelivery",
       "parity": "cpp-tck.custom-transportation-timestamped-directed-delivery",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rich FOM declaring custom transportation on the directed interaction, an installed IEEE 1516.1-2025 provider, and a logical-time implementation. Configure the FOM, typed object/attribute/interaction/parameter names, provider, and callback model through the adapter; configure transportation with hla.rti.tck.customTransportationType. Provider runtime verification remains pending."
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTypedObject/IntegerValue, HLAinteractionRoot.TckTypedInteraction/IntegerParameter, and TckBestEffort. The Java subscription now uses subscribeObjectClassDirectedInteractionsUniversally to match C++ universally=true; discovery waiting is null-safe and immediate callback state is thread-safe. Assertions cover target discovery, timestamped payload/tag/time/order, producer and transportation identity, retraction, and delivery before the receiver grant. Results/JUnit: .build/java-tck-20261117/timestamped-directed-delivery-{evoked,immediate}.{json,xml}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
+      "exclusion": "Requires an adapter-supplied rich FOM declaring custom transportation on the typed interaction and its directedInteraction relation to the target object class, an installed IEEE 1516.1-2025 provider, and a matching logical-time implementation. Configure the FOM with hla.rti.tck.fom; target class/attribute with hla.rti.tck.typedObjectClass and hla.rti.tck.typedIntegerAttribute; interaction/parameter with hla.rti.tck.typedInteractionClass and hla.rti.tck.typedIntegerParameter; and transportation with hla.rti.tck.customTransportationType. Provider runtime verification remains pending."
     },
     {
       "id": "java-tck.custom-transportation-timestamped-regional-attribute-delivery",

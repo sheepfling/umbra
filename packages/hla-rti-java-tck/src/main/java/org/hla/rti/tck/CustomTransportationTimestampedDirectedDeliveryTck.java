@@ -20,10 +20,10 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Timestamped directed delivery retaining an adapter-declared custom FOM transport. */
 final class CustomTransportationTimestampedDirectedDeliveryTck {
@@ -103,13 +103,15 @@ final class CustomTransportationTimestampedDirectedDeliveryTck {
             JavaTckSupport.interactionSet(producer, producerInteraction));
          publishedDirected = true;
          producer.changeInteractionOrderType(producerInteraction, OrderType.TIMESTAMP);
-         receiver.subscribeObjectClassDirectedInteractions(receiverClass,
+         receiver.subscribeObjectClassDirectedInteractionsUniversally(receiverClass,
             JavaTckSupport.interactionSet(receiver, receiverInteraction));
          subscribedDirected = true;
 
          ObjectInstanceHandle target = producer.registerObjectInstance(producerClass);
+         JavaTckSupport.check(target != null,
+            "timestamped directed registration returned no object handle");
          await(producer, receiver, callbackModel,
-            () -> receiverEvents.discovered.equals(target), "directed target discovery");
+            () -> target.equals(receiverEvents.discovered), "directed target discovery");
 
          LogicalTimeFactory<?, ?> timeFactory = producer.getTimeFactory();
          LogicalTimeInterval epsilon = (LogicalTimeInterval) timeFactory.makeEpsilon();
@@ -246,12 +248,12 @@ final class CustomTransportationTimestampedDirectedDeliveryTck {
    }
 
    private static final class Recorder {
-      private ObjectInstanceHandle discovered;
-      private boolean regulationEnabled;
-      private boolean constrainedEnabled;
-      private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<Delivery> deliveries = new ArrayList<>();
+      private volatile ObjectInstanceHandle discovered;
+      private volatile boolean regulationEnabled;
+      private volatile boolean constrainedEnabled;
+      private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<Delivery> deliveries = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
