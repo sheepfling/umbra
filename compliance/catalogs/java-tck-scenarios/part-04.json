@@ -3991,12 +3991,20 @@
       "title": "Filter regional Request Attribute Value Update solicitations by source-region scope",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM)",
+        "RTIambassador.joinFederationExecution(federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
         "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getAttributeSetRegionSetPairListFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
@@ -4009,13 +4017,41 @@
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
-        "FederateAmbassador.provideAttributeValueUpdate"
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.provideAttributeValueUpdate",
+        "AttributeRegionAssociation",
+        "AttributeHandleSet.clone/equals",
+        "DimensionHandleSet.add",
+        "RegionHandleSet.add",
+        "AttributeSetRegionSetPairList.add",
+        "RangeBounds"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
         "cpp-1516.1-ddm-regional-value-request",
         "cpp-1516.1-ddm-range-validation"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-217-l62-20",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l38-12"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l62-20",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "Direct witness for deleting uncommitted and committed region specifications used by the regional request scenario."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l38-12",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "Direct witness that Request Attribute Value Update With Regions rejects an uncommitted region and accepts the committed request region for successful regional requests."
+        }
+      ],
+      "mapping_note": "The two direct mappings are retained from cpp-tck.regional-attribute-value-request-filtering and map to IEEE 1516.1-2025 §9.1.1. They cover the assertion-backed region deletion and use of a committed region in the regional request service; the other filtering, callback, and callback-model assertions remain bounded supplemental behavior without additional direct clause claims.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
@@ -4024,9 +4060,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalAttributeValueRequestFiltering",
       "parity": "cpp-tck.regional-attribute-value-request-filtering",
-      "parity_scope_note": "Java mirrors the C++ regional Request Attribute Value Update filtering sequence: it reports RegionNotCreatedByThisFederate for a foreign region, InvalidRegionContext for an unrelated dimension, and InvalidRegion for an uncommitted request region; an empty region set produces no provideAttributeValueUpdate callback; a disjoint request selects only the default-region object; and overlap selects both regional and default objects while preserving requested attributes and tag. Under HLA_EVOKED it re-evaluates a queued request after the request region moves and suppresses the now-disjoint regional object; under HLA_IMMEDIATE it delivers before the move and does not replay after the region commit. Existing direct requirement mappings remain on the C++ row.",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional DDM FOM, object/attribute names, two object dimensions, an unrelated dimension name, and installed IEEE 1516.1-2025 Java provider. Focused runtime passed against local Umbra JNI under both callback models; other providers remain unverified."
+      "parity_scope_note": "Java mirrors the C++ regional Request Attribute Value Update filtering sequence: it reports RegionNotCreatedByThisFederate for a foreign region, InvalidRegionContext for an unrelated dimension, and InvalidRegion for an uncommitted request region; an empty region set produces no provideAttributeValueUpdate callback; a disjoint request selects only the default-region object; and overlap selects both regional and default objects while preserving requested attributes and tag. Under HLA_EVOKED it re-evaluates a queued request after the request region moves and suppresses the now-disjoint regional object; under HLA_IMMEDIATE it delivers before the move and does not replay after the region commit. The two direct requirement mappings below are sourced from the C++ primary.",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API and provider JARs",
+        "ddm-tck.xml supplied through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value",
+        "TckDimensionX and TckDimensionY",
+        "TckUnrelatedDimension",
+        "provider endpoint and callback model"
+      ],
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied dimensional DDM FOM, object/attribute/two-dimension names, unrelated dimension name, and installed IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted",
+      "evidence_note": "Built against the pinned IEEE 1516.1-2025 Java API with the current-source Umbra JNI provider. The promoted Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE; the installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models. Results: out/java-tck/regional-attribute-value-request-filtering-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml} and out/cpp-tck-evidence-20261116/regional-attribute-value-request-filtering-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
     },
     {
       "id": "java-tck.regional-attribute-value-update-response-recheck",

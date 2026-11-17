@@ -5441,6 +5441,25 @@ and 8/8 direct runs. Their direct mapping remains limited to the exercised
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
 
+The default-run `java-tck.regional-attribute-value-request-filtering` case
+checks regional Request Attribute Value Update failures for a foreign,
+unrelated-dimension, or uncommitted region; suppression for an empty region
+set; default-region selection when the explicit request region is disjoint;
+and both regional and default objects when it overlaps. It preserves the
+requested attributes and tag. Under HLA_EVOKED it re-evaluates queued work
+after the request region moves; under HLA_IMMEDIATE it delivers before the
+move and does not replay. The two direct mappings are limited to IEEE
+1516.1-2025 §9.1.1 and cover committed-region use and deletion. Java passed
+under both callback models with `ddm-tck.xml`, HLAobjectRoot.TckObject,
+Value, TckDimensionX, TckDimensionY, and TckUnrelatedDimension. The paired C++
+primary/contract selectors passed 4/4 focused CTests and 4/4 direct runs.
+Results are in
+`out/java-tck/regional-attribute-value-request-filtering-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml}`
+and
+`out/cpp-tck-evidence-20261116/regional-attribute-value-request-filtering-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
+
 The default-run `java-tck.object-class-abstraction-subscription` case verifies
 that a derived registration is discovered through a base-class subscription
 with the subscriber's class view, and that the inherited `Identity` value is

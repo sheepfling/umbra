@@ -65,21 +65,37 @@ final class RegionalAttributeValueRequestFilteringTck {
          requesterAttribute = requester.getAttributeHandle(requesterClass, attributeName);
          DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
          DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
+         DimensionHandle ownerUnrelated = owner.getDimensionHandle(unrelatedDimensionName);
          DimensionHandle requesterFirst = requester.getDimensionHandle(firstDimensionName);
          DimensionHandle requesterSecond = requester.getDimensionHandle(secondDimensionName);
          DimensionHandle unrelatedDimension = requester.getDimensionHandle(unrelatedDimensionName);
-         JavaTckSupport.check(ownerClass.equals(requesterClass)
-               && ownerAttribute.equals(requesterAttribute)
-               && ownerFirst.equals(requesterFirst) && ownerSecond.equals(requesterSecond),
-            "adapter DDM FOM returned inconsistent class, attribute, or dimension handles");
-         java.util.Set<DimensionHandle> available =
+         java.util.Set<DimensionHandle> ownerAvailable =
+            owner.getAvailableDimensionsForObjectClass(ownerClass);
+         java.util.Set<DimensionHandle> requesterAvailable =
             requester.getAvailableDimensionsForObjectClass(requesterClass);
-         JavaTckSupport.check(available.contains(requesterFirst)
-               && available.contains(requesterSecond)
-               && !available.contains(unrelatedDimension)
+         JavaTckSupport.check(objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(requester.getAttributeName(requesterClass, requesterAttribute))
+               && firstDimensionName.equals(owner.getDimensionName(ownerFirst))
+               && firstDimensionName.equals(requester.getDimensionName(requesterFirst))
+               && secondDimensionName.equals(owner.getDimensionName(ownerSecond))
+               && secondDimensionName.equals(requester.getDimensionName(requesterSecond))
+               && unrelatedDimensionName.equals(owner.getDimensionName(ownerUnrelated))
+               && unrelatedDimensionName.equals(requester.getDimensionName(unrelatedDimension))
+               && ownerAvailable.contains(ownerFirst) && ownerAvailable.contains(ownerSecond)
+               && !ownerAvailable.contains(ownerUnrelated)
+               && requesterAvailable.contains(requesterFirst)
+               && requesterAvailable.contains(requesterSecond)
+               && !requesterAvailable.contains(unrelatedDimension)
+               && !ownerFirst.equals(ownerSecond) && !ownerFirst.equals(ownerUnrelated)
+               && !ownerSecond.equals(ownerUnrelated)
                && !requesterFirst.equals(requesterSecond)
                && !requesterFirst.equals(unrelatedDimension)
                && !requesterSecond.equals(unrelatedDimension)
+               && owner.getDimensionUpperBound(ownerFirst) >= 3
+               && owner.getDimensionUpperBound(ownerSecond) >= 3
+               && owner.getDimensionUpperBound(ownerUnrelated) >= 1
                && requester.getDimensionUpperBound(requesterFirst) >= 3
                && requester.getDimensionUpperBound(requesterSecond) >= 3
                && requester.getDimensionUpperBound(unrelatedDimension) >= 1,
