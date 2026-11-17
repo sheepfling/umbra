@@ -965,6 +965,11 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
       options,
       ownerHandles,
       "regional attribute-value response recheck");
+  verifyDdmClassDimensions(
+      requester,
+      options,
+      requesterHandles,
+      "regional attribute-value response requester");
 
   rti::AttributeHandleSet const ownerAttributes{ownerHandles.attribute};
   rti::AttributeHandleSet const requesterAttributes{requesterHandles.attribute};
@@ -1007,11 +1012,29 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
   require(
       object.isValid(),
       "regional attribute-value response registration returned an invalid object handle");
+  auto const objectName = owner.rtiAmbassador().getObjectInstanceName(object);
+  require(
+      !objectName.empty() &&
+          owner.rtiAmbassador().getObjectInstanceHandle(objectName) == object,
+      "regional attribute-value response registration did not preserve its object name");
   waitFor(
       requester,
-      [&] { return requester.recorder().hasDiscovery(object); },
+      [&] { return requester.recorder().discoveryCount() >= 1U; },
       options,
       "regional attribute-value response discovery");
+  require(
+      requester.recorder().discoveryCount() == 1U,
+      "regional attribute-value response produced duplicate discovery callbacks");
+  auto const requesterObject =
+      requester.rtiAmbassador().getObjectInstanceHandle(objectName);
+  require(
+      requester.recorder().hasDiscovery(requesterObject) &&
+          requester.rtiAmbassador().getKnownObjectClassHandle(requesterObject) ==
+              requesterHandles.objectClass &&
+          requester.rtiAmbassador().getObjectInstanceName(requesterObject) == objectName &&
+          requester.rtiAmbassador().getObjectInstanceHandle(objectName) == requesterObject,
+      "regional attribute-value response discovery changed its member-local object identity");
+  auto const ownerName = owner.rtiAmbassador().getFederateName(owner.federateHandle());
 
   std::vector<std::uint8_t> const requestTagBytes{0x52U, 0x45U, 0x51U};
   std::vector<std::uint8_t> const responseValueBytes{0x5AU, 0x25U, 0x07U};
@@ -1105,7 +1128,7 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
       "regional attribute-value response restoration reflection");
   auto const reflection = requester.recorder().reflection();
   require(
-      reflection.object == object &&
+      reflection.object == requesterObject &&
           reflection.values.size() == 1U &&
           reflection.values.count(requesterHandles.attribute) == 1U &&
           copyBytes(reflection.values.at(requesterHandles.attribute)) ==
@@ -1115,7 +1138,7 @@ void scenarioRegionalAttributeValueUpdateResponseRecheck(
   require(
       reflection.transportation ==
               requester.rtiAmbassador().getTransportationTypeHandle(L"HLAreliable") &&
-          reflection.producer == owner.federateHandle(),
+          requester.rtiAmbassador().getFederateName(reflection.producer) == ownerName,
       "regional attribute-value response restoration returned the wrong delivery metadata");
 
   requester.rtiAmbassador().unsubscribeObjectClassAttributesWithRegions(

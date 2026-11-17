@@ -60,6 +60,9 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
          FederateHandle producingFederate = owner.joinFederationExecution(
             "java-tck-regional-response-owner", federation);
          ownerJoined = true;
+         String producingFederateName = owner.getFederateName(producingFederate);
+         JavaTckSupport.check(producingFederateName != null && !producingFederateName.isEmpty(),
+            "producing federate handle did not resolve to a name");
          requester.joinFederationExecution("java-tck-regional-response-requester", federation);
          requesterJoined = true;
 
@@ -71,12 +74,15 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
          DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
          DimensionHandle requesterFirst = requester.getDimensionHandle(firstDimensionName);
          DimensionHandle requesterSecond = requester.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(ownerClass.equals(requesterClass)
-               && ownerAttribute.equals(requesterAttribute)
-               && ownerFirst.equals(requesterFirst) && ownerSecond.equals(requesterSecond),
-            "adapter DDM FOM returned inconsistent object, attribute, or dimension handles");
-         checkDimensions(owner, ownerClass, ownerFirst, ownerSecond);
-         checkDimensions(requester, requesterClass, requesterFirst, requesterSecond);
+         JavaTckSupport.check(objectClassName.equals(owner.getObjectClassName(ownerClass))
+               && objectClassName.equals(requester.getObjectClassName(requesterClass))
+               && attributeName.equals(owner.getAttributeName(ownerClass, ownerAttribute))
+               && attributeName.equals(requester.getAttributeName(requesterClass, requesterAttribute)),
+            "adapter DDM FOM returned inconsistent object-class or attribute names");
+         checkDimensions(owner, ownerClass, ownerFirst, ownerSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(requester, requesterClass, requesterFirst, requesterSecond,
+            firstDimensionName, secondDimensionName);
 
          ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
          requesterAttributes = JavaTckSupport.attributeSet(requester, requesterAttribute);
@@ -95,10 +101,26 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
          associated = true;
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "regional attribute-value response registration returned an invalid object handle");
-         ObjectInstanceHandle registeredObject = object;
+         String objectName = owner.getObjectInstanceName(object);
+         JavaTckSupport.check(objectName != null && !objectName.isEmpty()
+               && object.equals(owner.getObjectInstanceHandle(objectName)),
+            "regional response registration did not preserve its object name");
          await(owner, requester, callbackModel,
-            () -> requesterCallbacks.discoveries.contains(registeredObject),
+            () -> requesterCallbacks.discoveries.size() >= 1,
             "regional response object discovery");
+         JavaTckSupport.check(requesterCallbacks.discoveries.size() == 1,
+            "regional response registration produced duplicate discovery callbacks");
+         ObjectInstanceHandle requesterObject = requester.getObjectInstanceHandle(objectName);
+         Discovery discovery = null;
+         for (Discovery candidate : requesterCallbacks.discoveries) {
+            if (objectName.equals(candidate.name)) { discovery = candidate; break; }
+         }
+         JavaTckSupport.check(discovery != null && discovery.object.equals(requesterObject)
+               && discovery.objectClass.equals(requesterClass)
+               && requester.getKnownObjectClassHandle(requesterObject).equals(requesterClass)
+               && objectName.equals(requester.getObjectInstanceName(requesterObject))
+               && requesterObject.equals(requester.getObjectInstanceHandle(objectName)),
+            "regional response discovery changed its member-local object identity");
 
          request(owner, requester, requesterClass, requesterPair, callbackModel,
             ownerCallbacks, "initial regional value request");
@@ -128,8 +150,8 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
          await(owner, requester, callbackModel,
             () -> requesterCallbacks.reflections.size() == 1,
             "restored-overlap attribute reflection");
-         assertReflection(requester, requesterCallbacks.reflections.get(0), object,
-            requesterAttribute, producingFederate, RESPONSE_VALUE, RESPONSE_TAG);
+         assertReflection(requester, requesterCallbacks.reflections.get(0), requesterObject,
+            requesterAttribute, producingFederateName, RESPONSE_VALUE, RESPONSE_TAG);
 
          requester.unsubscribeObjectClassAttributesWithRegions(requesterClass, requesterPair);
          subscribed = false;
@@ -187,10 +209,14 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
    }
 
    private static void checkDimensions(RTIambassador ambassador, ObjectClassHandle objectClass,
-         DimensionHandle first, DimensionHandle second) throws Exception {
+         DimensionHandle first, DimensionHandle second, String firstName, String secondName)
+         throws Exception {
       java.util.Set<DimensionHandle> dimensions =
          ambassador.getAvailableDimensionsForObjectClass(objectClass);
       JavaTckSupport.check(dimensions.contains(first) && dimensions.contains(second)
+            && !first.equals(second)
+            && firstName.equals(ambassador.getDimensionName(first))
+            && secondName.equals(ambassador.getDimensionName(second))
             && ambassador.getDimensionUpperBound(first) >= 3
             && ambassador.getDimensionUpperBound(second) >= 3,
          "adapter FOM object class does not expose the required DDM dimensions and bounds");
@@ -233,11 +259,12 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
    }
 
    private static void assertReflection(RTIambassador requester, Reflection reflection,
-         ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
+         ObjectInstanceHandle object, AttributeHandle attribute, String producerName,
          byte[] value, byte[] tag) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
-            && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
+            && Arrays.equals(tag, reflection.tag)
+            && producerName.equals(requester.getFederateName(reflection.producer)),
          "restored regional response returned the wrong object, value, tag, or producer");
       TransportationTypeHandle reliable = requester.getTransportationTypeHandle("HLAreliable");
       JavaTckSupport.check(reliable.equals(reflection.transportation),
@@ -304,8 +331,14 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
       private int regionCount;
    }
 
+   private static final class Discovery {
+      private ObjectInstanceHandle object;
+      private ObjectClassHandle objectClass;
+      private String name;
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<ProvidedUpdate> provided = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
 
@@ -314,8 +347,13 @@ final class RegionalAttributeValueUpdateResponseRecheckTck {
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && arguments != null) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+               if ("discoverObjectInstance".equals(name) && arguments != null
+                     && arguments.length >= 3) {
+                  Discovery discovery = new Discovery();
+                  discovery.object = (ObjectInstanceHandle) arguments[0];
+                  discovery.objectClass = (ObjectClassHandle) arguments[1];
+                  discovery.name = (String) arguments[2];
+                  discoveries.add(discovery);
                } else if ("provideAttributeValueUpdate".equals(name) && arguments != null
                      && arguments.length == 3) {
                   provided.add(new ProvidedUpdate((ObjectInstanceHandle) arguments[0],

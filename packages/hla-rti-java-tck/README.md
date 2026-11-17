@@ -4991,15 +4991,20 @@ attribute names, and two object dimensions, it requires the unrelated dimension
 name through `hla.rti.tck.ddmUnrelatedDimension`; provider runtime remains
 unverified.
 
-The opt-in `java-tck.regional-attribute-value-update-response-recheck` case
+The default `java-tck.regional-attribute-value-update-response-recheck` case
 requests an attribute update while source and requester regions overlap, then
 moves the requester from `[0,1)` to `[1,2)`. These semi-open ranges touch but do
 not overlap, so the response is suppressed. After overlap is restored, the
 fresh response preserves the value, tag, producer, reliable transportation,
 and one source-region designator.
 The DDM FOM, object/attribute names, and two dimensions remain adapter-supplied.
-Focused Umbra JNI runs passed under both callback models; behavior on other
-providers remains unverified.
+The page-216 l66-19 fragment maps collectively to IEEE 1516.1-2025 §9.1.1 under
+RL-381; RL-380 tracks the page-level Clause 8/Clause 9 mismatch. Focused Umbra
+JNI runs passed under both callback models, and the installed-package C++
+primary/contract passed under both callback models. Results are in
+`out/java-tck/regional-attribute-value-update-response-recheck-java-parity-20261116/`
+and `out/cpp-tck-evidence-20261116/`. Behavior on other providers remains
+unverified; these runs do not establish conformance.
 
 The opt-in `java-tck.ddm-unsubscribe-preserves-other-class-subscription` case
 registers one ordinary and one regional object class before subscription, then

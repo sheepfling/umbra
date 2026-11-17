@@ -4080,12 +4080,22 @@
       "title": "Recheck regional attribute-value response eligibility at reflection delivery",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
-        "RTIambassador.joinFederationExecution",
+        "RTIambassador.createFederationExecution(FOM)",
+        "RTIambassador.joinFederationExecution(federateType,federationName)",
         "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeName",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
         "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getAttributeSetRegionSetPairListFactory",
+        "RTIambassador.getFederateName",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
@@ -4093,6 +4103,9 @@
         "RTIambassador.subscribeObjectClassAttributesWithRegions",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.requestAttributeValueUpdateWithRegions",
         "RTIambassador.updateAttributeValues(receive-order overload)",
         "RTIambassador.getTransportationTypeHandle",
@@ -4101,10 +4114,22 @@
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.NO_ACTION",
+        "ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "RTIambassador.evokeCallback",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.provideAttributeValueUpdate",
-        "FederateAmbassador.reflectAttributeValues(receive order with region designators)"
+        "FederateAmbassador.reflectAttributeValues(receive order with region designators)",
+        "AttributeRegionAssociation",
+        "AttributeHandleSet.clone/equals",
+        "DimensionHandleSet.add",
+        "RegionHandleSet.add/size",
+        "AttributeSetRegionSetPairList.add",
+        "AttributeHandleValueMap.clone/put/size/get",
+        "ObjectInstanceHandle.encodedLength/equals",
+        "RangeBounds"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-value-request",
@@ -4112,6 +4137,20 @@
         "cpp-1516.1-ddm-region-designator-callback",
         "cpp-1516.1-attribute-value-update-response"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l66-19"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "The source [0,1) and requester [1,2) touch at one endpoint; after committing the requester boundary move, the response is not reflected. This is the same collective §9.1.1 interpretation recorded on the C++ primary."
+        }
+      ],
+      "mapping_note": "The direct mapping is retained from cpp-tck.regional-attribute-value-update-response-recheck: page 216 line 66 fragment to IEEE 1516.1-2025 §9.1.1, as a collectively interpreted range definition under RL-381. RL-380 records the page-level Clause 8/Clause 9 mismatch. The focused assertion verifies that touching semi-open ranges do not overlap and that an already-requested attribute response is not reflected after the committed boundary move; this is not full DDM conformance.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "object-attribute-region-requirements-contract.json",
@@ -4125,8 +4164,18 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalAttributeValueUpdateResponseRecheck",
       "parity": "cpp-tck.regional-attribute-value-update-response-recheck",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/dimension names, and installed IEEE 1516.1-2025 Java provider. Focused runtime passed against local Umbra JNI under both callback models; other providers remain unverified."
+      "parity_scope_note": "Java mirrors the C++ request/response sequence: it captures the provider callback metadata, commits the requester range from [0,1) to [1,2) before responding and verifies no reflection, then restores overlap and checks the response value, tag, reliable transport, producer federate name, and one region designator. Class, attribute, dimension, object, and producer identity resolve through member-local names rather than opaque cross-member handle comparisons. The single direct mapping below is sourced from the C++ primary.",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API and provider JARs",
+        "ddm-tck.xml supplied through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value",
+        "TckDimensionX and TckDimensionY",
+        "provider endpoint and callback model"
+      ],
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider.",
+      "promotion": "promoted",
+      "evidence_note": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider and pinned IEEE 1516.1-2025 Java API. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct executions across both callback models. Java results: out/java-tck/regional-attribute-value-update-response-recheck-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml}. C++ results: out/cpp-tck-evidence-20261116/regional-attribute-value-update-response-recheck-java-parity-20261116.{json,xml}. Local-provider evidence only; no independent-provider or conformance claim."
     },
     {
       "id": "java-tck.custom-transportation-timestamped-regional-interaction-delivery",
