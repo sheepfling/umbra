@@ -5266,14 +5266,19 @@ are checked for payload, tag, producer, transportation, and source-region
 metadata. Its DDM FOM, interaction, parameter, dimensions, and callback model
 are adapter supplied; provider runtime remains unverified.
 
-The opt-in `java-tck.default-region-interaction-routing` case contrasts three
-delivery paths: an explicit regional send reaches an overlapping regional
-subscription but not a disjoint regional declaration; removing that disjoint
-declaration restores delivery through the receiver's ordinary subscription;
-and an ordinary send reaches both regional subscribers with empty source-region
-metadata. The adapter supplies a dimensional interaction FOM, interaction,
-parameter, two dimensions, and callback model; provider runtime remains
-unverified.
+The opt-in `java-tck.default-region-interaction-routing` case checks explicit
+regional delivery to an overlapping receiver while an ordinary subscription
+still routes around a disjoint regional declaration, then checks delivery after
+that declaration is removed. An ordinary send reaches both regional-only and
+mixed receivers with present but empty source-region metadata. The case also
+checks sender no-loopback before and after sender subscriptions, queries the
+callback-scoped source-region copy through the receiving ambassador, and
+verifies that disabling region-designator callbacks for one receiver omits only
+its region set; re-enabling restores it. Focused local Umbra JNI runs passed
+under both callback models with `ddm-tck.xml`; results are in
+`.build/java-tck-20261117/default-region-interaction-routing-{evoked,immediate}.{json,xml}`.
+The adapter supplies the interaction FOM, interaction, parameter, two
+dimensions, and callback model, so default execution remains disabled.
 
 The opt-in `java-tck.zero-dimensional-regional-interaction` case checks both
 branches of the paired C++ scenario. With an excluded-dimension interaction

@@ -2420,20 +2420,30 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.publishInteractionClass",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "DimensionHandleSetFactory.create",
+        "DimensionHandleSet.add",
         "RTIambassador.createRegion",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.getRegionHandleSetFactory",
+        "RegionHandleSetFactory.create",
+        "RegionHandleSet.add",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
-        "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendInteraction",
         "RTIambassador.sendInteractionWithRegions",
         "RTIambassador.getTransportationTypeName",
@@ -2449,19 +2459,151 @@
         "cpp-1516.1-ddm-default-region-interaction-region-metadata",
         "cpp-1516.1-ddm-regional-interaction-subscription",
         "cpp-1516.1-ddm-regional-interaction-delivery",
-        "cpp-1516.1-ddm-regional-interaction-filtering"
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l129-40",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l135-42",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l74-24",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l83-27",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l26-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l80-26",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l113-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l66-20",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l125-40",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l130-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l118-35"
       ],
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
         "convey-region-designator-callback-requirements-contract.json",
         "receive-order-interaction-api-contract.json",
-        "receive-order-interaction-requirements-contract.json"
+        "receive-order-interaction-requirements-contract.json",
+        "default-region-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#defaultRegionInteractionRouting",
       "parity": "cpp-tck.default-region-interaction-routing",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with an interaction class, parameter, two dimensions, and an installed Java 2025 provider; runtime verification remains pending."
+      "exclusion": "Default execution remains disabled because this case requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM, interaction and parameter names, two dimension names, and callback model. The focused local Umbra JNI runs passed with those inputs; this does not establish independent-provider behavior or conformance.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded Java RtiFactory",
+        "Adapter-supplied dimensional interaction FOM with the configured interaction, parameter, and two dimensions",
+        "Interaction, parameter, dimension names, and callback model via hla.rti.tck.interactionClass, hla.rti.tck.parameter, hla.rti.tck.dimension, hla.rti.tck.ddmSecondDimension, and hla.rti.tck.callbackModel"
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l129-40",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l135-42",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l74-24",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l83-27",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l26-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l80-26",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l113-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l66-20",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l125-40",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l130-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l118-35"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.1",
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.5",
+        "hla-1516.1-2025:clause-9.1.7",
+        "hla-1516.1-2025:clause-9.1.6",
+        "hla-1516.1-2025:clause-6.13",
+        "hla-1516.1-2025:clause-11.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l129-40",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l135-42",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l74-24",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l83-27",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l26-8",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l80-26",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l113-37",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l66-20",
+          "standard_section": "hla-1516.1-2025:clause-9.1.7",
+          "note": "With Convey Region Designator Sets enabled, the ordinary Send Interaction path asserts that Receive Interaction carries a present but empty region set for default-region delivery. This case does not claim the behavior for other empty-region circumstances."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44",
+          "standard_section": "hla-1516.1-2025:clause-9.1.6",
+          "note": "This scenario witnesses only the Send Interaction special case: ordinary sends are delivered to regional and mixed subscribers and the conveyed source-region set is empty. The Register Object Instance and Request Attribute Value Update portions are mapped to the companion scenarios. Together these are bounded direct witnesses for all three named service families, not exhaustive evidence for every possible use or a conformance claim."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l125-40",
+          "standard_section": "hla-1516.1-2025:clause-9.1.6",
+          "note": "This scenario directly exercises one of the three Clause 6 object-management services under DDM: an ordinary Send Interaction reaches regional and mixed subscribers while the regional path is also checked through With Regions sends. The other service families are separately mapped to registration and attribute-request scenarios. This is bounded per-service evidence, not exhaustive coverage of every use or a conformance claim."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l130-39",
+          "standard_section": "hla-1516.1-2025:clause-6.13",
+          "note": "The scenario asserts no sender Receive Interaction callback for Send Interaction With Regions while the sender has no subscriptions, then for a With Regions send and an ordinary send after the sender adds both a matching ordinary subscription and an overlapping regional subscription. This is a bounded witness for no sender loopback in these two subscription states, not exhaustive proof of every possible subscription arrangement."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4",
+          "standard_section": "hla-1516.1-2025:clause-9.1.7",
+          "note": "The same regional Send Interaction With Regions is delivered to one receiver with Convey Region Designator Sets disabled and a second receiver with it enabled: the disabled receiver has no optional sent-region argument while the enabled receiver has one. Re-enabling restores the argument for a later callback. This is one receive-order interaction path, not exhaustive evidence for both callback services or every transport/order."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l118-35",
+          "standard_section": "hla-1516.1-2025:clause-6.13",
+          "note": "With the switch enabled, the regional receiver obtains one sent-region designator copy for Send Interaction With Regions; the callback hook queries its dimension set and exact bounds during Receive Interaction. The added off/on sequence covers omission and re-enable, while the original enabled callback establishes copy content."
+        },
+        {
+          "requirement_id": "requirement-source-refinement-mom-convey-region-designators",
+          "standard_section": "hla-1516.1-2025:clause-11.6",
+          "note": "The joined regional receiver sets the switch false and verifies its getter, observes omission of the optional sent-region argument while a separate enabled receiver still gets it, then re-enables the switch and observes the sent region on a fresh callback. The Lab source refinement is cross-cutting; this mapping is limited to that tested Receive Interaction effect."
+        }
+      ],
+      "mapping_note": "Direct §9.1.1 mapping for page-216-l135-42: an ordinary Send Interaction is sent without a region argument, and the conveyed callback source-region set is explicitly asserted present and empty at both the regional-only and mixed receivers. This is bounded evidence for the default-region realization having no region specification; it does not prove the distinct no-reference API-surface statement at page-216-l135-42-no-reference. Direct §9.1.1 p. 217 l. 74 evidence: during Receive Interaction, the regional receiver queries Get Range Bounds on the callback-scoped source-region copy, exercising a region realization. Paired with cpp-tck.regional-interaction-routing, which queries a committed region specification, this covers both named designator varieties without treating the separate pending-template behavior as a specification. §9.1.3.3 page-220-l143-46 is exercised by ordinary Send Interaction reaching a receiver with a regional-only subscription and an empty source-region designator set. §9.1.5 page-222-l23-6-subscribe-interaction is exercised by ordinary Subscribe Interaction Class remaining an independent default-region route while a disjoint explicit regional subscription exists. §9.1.5 page-224-l80-26 is directly witnessed by the regional receiver asserting that the callback's interaction class equals the class handle resolved for, and passed to, Send Interaction With Regions. Page-224-l113-37 is directly witnessed by the callback's exact parameter-handle set and payload bytes matching the map passed to that send. Page-224-l92-30 is directly witnessed when a mixed receiver has both ordinary and regional subscriptions and one default-region send increases its callback count by exactly one. The regional receiver queries the callback-scoped source-region copy's dimensions and bounds through the public API during the callback. The new switch-effect assertions prove per-federate omission while disabled, isolation across recipients, and restoration after re-enable. Public-API development evidence only; not conformance evidence.",
+      "evidence_note": "Compiled all Java TCK sources against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. The case checks ordinary delivery beside a disjoint regional declaration, callback-scoped source-region dimensions and bounds through the receiving ambassador, no sender loopback before and after sender subscriptions, empty region metadata from ordinary Send Interaction, and per-federate switch omission/isolation/re-enable. Results/JUnit: .build/java-tck-20261117/default-region-interaction-routing-{evoked,immediate}.{json,xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.default-region-interaction-unsubscribe-isolation",
@@ -2827,7 +2969,12 @@
         "object class, attribute, interaction, parameter, and dimension names supplied by the adapter",
         "callback model selected by the adapter"
       ],
-      "exclusion": "Default execution remains disabled because this scenario requires an adapter-supplied DDM FOM and class, member, and dimension names. With those inputs, the Java mirror covers the paired C++ handle and dimension checks, no-time void signature, and receive-order delivery. Timestamped regional send is outside both cases. Local Umbra JNI execution is not independent-provider or conformance evidence."
+      "exclusion": "Default execution remains disabled because this scenario requires an adapter-supplied DDM FOM and class, member, and dimension names. With those inputs, the Java mirror covers the paired C++ handle and dimension checks, no-time void signature, and receive-order delivery. Timestamped regional send is outside both cases. Local Umbra JNI execution is not independent-provider or conformance evidence.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider, ddm-tck.xml, and adapter-supplied object, attribute, interaction, parameter, and dimension names. Both runs check the paired C++ handle/name and available-dimension assertions, the no-time void sendInteractionWithRegions signature, and one overlapping receive-order delivery. Results/JUnit: .build/java-tck-20261117/regional-send-no-retraction-{evoked,immediate}.{json,xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.inherited-interaction-class-delivery",
