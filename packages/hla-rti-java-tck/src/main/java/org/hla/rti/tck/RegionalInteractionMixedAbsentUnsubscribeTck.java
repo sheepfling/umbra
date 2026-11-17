@@ -1,11 +1,13 @@
 package org.hla.rti.tck;
 
+import hla.rti1516_2025.AttributeHandle;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
+import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
@@ -16,6 +18,7 @@ import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -26,7 +29,8 @@ final class RegionalInteractionMixedAbsentUnsubscribeTck {
 
    private RegionalInteractionMixedAbsentUnsubscribeTck() { }
 
-   static void run(RtiFactory factory, String fom, String interactionName, String parameterName,
+   static void run(RtiFactory factory, String fom, String objectClassName,
+         String attributeName, String interactionName, String parameterName,
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -50,9 +54,19 @@ final class RegionalInteractionMixedAbsentUnsubscribeTck {
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-mixed-absent-publisher", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-mixed-absent-subscriber", federation);
+         FederateHandle member = subscriber.joinFederationExecution(
+            "java-tck-mixed-absent-subscriber", federation);
          subscriberJoined = true;
+         JavaTckSupport.check(producer != null && producer.encodedLength() > 0
+               && member != null && member.encodedLength() > 0,
+            "mixed absent-region fixture returned an invalid federate handle");
 
+         ObjectClassHandle publisherObjectClass = publisher.getObjectClassHandle(objectClassName);
+         ObjectClassHandle subscriberObjectClass = subscriber.getObjectClassHandle(objectClassName);
+         AttributeHandle publisherAttribute =
+            publisher.getAttributeHandle(publisherObjectClass, attributeName);
+         AttributeHandle subscriberAttribute =
+            subscriber.getAttributeHandle(subscriberObjectClass, attributeName);
          publisherInteraction = publisher.getInteractionClassHandle(interactionName);
          subscriberInteraction = subscriber.getInteractionClassHandle(interactionName);
          ParameterHandle publisherParameter =
@@ -63,13 +77,34 @@ final class RegionalInteractionMixedAbsentUnsubscribeTck {
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
          DimensionHandle subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(publisherInteraction.equals(subscriberInteraction)
+         JavaTckSupport.check(publisherObjectClass != null
+               && publisherObjectClass.encodedLength() > 0
+               && subscriberObjectClass != null && subscriberObjectClass.encodedLength() > 0
+               && publisherAttribute != null && publisherAttribute.encodedLength() > 0
+               && subscriberAttribute != null && subscriberAttribute.encodedLength() > 0
+               && publisherInteraction != null && publisherInteraction.encodedLength() > 0
+               && subscriberInteraction != null && subscriberInteraction.encodedLength() > 0
+               && publisherParameter != null && publisherParameter.encodedLength() > 0
+               && subscriberParameter != null && subscriberParameter.encodedLength() > 0
+               && publisherFirst != null && publisherFirst.encodedLength() > 0
+               && publisherSecond != null && publisherSecond.encodedLength() > 0
+               && subscriberFirst != null && subscriberFirst.encodedLength() > 0
+               && subscriberSecond != null && subscriberSecond.encodedLength() > 0
+               && publisherInteraction.equals(subscriberInteraction)
                && publisherParameter.equals(subscriberParameter)
                && publisherFirst.equals(subscriberFirst)
-               && publisherSecond.equals(subscriberSecond),
+               && publisherSecond.equals(subscriberSecond)
+               && !publisherFirst.equals(publisherSecond),
             "adapter DDM FOM returned inconsistent interaction, parameter, or dimension handles");
-         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond);
-         checkDimensions(subscriber, subscriberInteraction, subscriberFirst, subscriberSecond);
+         Set<DimensionHandle> objectDimensions =
+            publisher.getAvailableDimensionsForObjectClass(publisherObjectClass);
+         JavaTckSupport.check(objectDimensions.contains(publisherFirst)
+               && objectDimensions.contains(publisherSecond),
+            "adapter object class omitted an adapter-supplied DDM dimension");
+         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(subscriber, subscriberInteraction, subscriberFirst, subscriberSecond,
+            firstDimensionName, secondDimensionName);
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
@@ -158,11 +193,14 @@ final class RegionalInteractionMixedAbsentUnsubscribeTck {
    }
 
    private static void checkDimensions(RTIambassador ambassador,
-         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second)
+         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second,
+         String firstName, String secondName)
          throws Exception {
-      java.util.Set<DimensionHandle> dimensions =
+      Set<DimensionHandle> dimensions =
          ambassador.getAvailableDimensionsForInteractionClass(interaction);
       JavaTckSupport.check(dimensions.contains(first) && dimensions.contains(second)
+            && firstName.equals(ambassador.getDimensionName(first))
+            && secondName.equals(ambassador.getDimensionName(second))
             && ambassador.getDimensionUpperBound(first) >= 7
             && ambassador.getDimensionUpperBound(second) >= 7,
          "adapter interaction class does not expose the configured DDM dimensions and bounds");
@@ -174,6 +212,8 @@ final class RegionalInteractionMixedAbsentUnsubscribeTck {
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle region = ambassador.createRegion(dimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "mixed absent-region fixture returned an invalid region handle");
       ambassador.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(lower, upper));
       ambassador.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(lower, upper));
       RegionHandleSet regions = regionSet(ambassador, region);

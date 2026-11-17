@@ -1161,13 +1161,24 @@
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "FederateHandle.encodedLength",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getDimensionHandle",
+        "ObjectClassHandle.encodedLength",
+        "AttributeHandle.encodedLength",
+        "InteractionClassHandle.encodedLength",
+        "ParameterHandle.encodedLength",
+        "DimensionHandle.encodedLength",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.createRegion",
+        "RegionHandle.encodedLength",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.getRegionHandleSetFactory",
@@ -1200,7 +1211,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The Java witness establishes an active regional route, mixes that active region with a committed absent region in Unsubscribe Interaction Class With Regions, and checks delivery continues. It then unsubscribes the active region alone and checks delivery stops. This is bounded to the §9.11 absent-member no-change condition and makes no broader exception-precedence or DDM conformance claim.",
+      "mapping_note": "The Java witness establishes an active regional route, mixes that active region with a committed absent region in Unsubscribe Interaction Class With Regions, and checks delivery continues. It then unsubscribes the active region alone and checks delivery stops. Federate, declaration, dimension, and region handle validity plus dimension-name and object-class-dimension checks are supplemental fixture assertions. This is bounded to the §9.11 absent-member no-change condition and makes no broader exception-precedence or DDM conformance claim.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -1216,11 +1227,12 @@
       "adapter_inputs": [
         "pinned official IEEE 1516.1-2025 Java API JAR and provider JARs",
         "adapter-supplied dimensional DDM FOM with TckInteraction, Payload, TckDimensionX, and TckDimensionY",
+        "object class and attribute names via hla.rti.tck.ddmObjectClass and hla.rti.tck.ddmAttribute",
         "HLA_EVOKED and HLA_IMMEDIATE callback models"
       ],
       "exclusion": "Default-disabled; focused execution requires --run-unverified and the adapter-supplied dimensional DDM FOM.",
       "promotion": "promoted",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused 2026-11-16 runs against the matched Nov. 13 Umbra JNI package (out/jnimix/umbra-rti-jni.jar and its colocated umbra_rti_jni.dll) passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results and JUnit: out/java-tck/regional-interaction-mixed-absent-unsubscribe-java-parity-20261116/old-provider-{evoked,immediate}-{results.json,junit.xml}. A separate attempt pairing the Nov. 14 Java bridge JAR with older native DLL artifacts timed out after the mixed unsubscribe under both models; that mismatched package is not counted as Java source behavior evidence. The scenario remains default-disabled because it requires adapter-supplied dimensional DDM inputs. This is local-provider evidence only, not independent-provider interoperability or conformance."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI from .build/jni-language-api-transparency-current-20261117, packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/mixed-absent-handle-parity-{evoked,immediate}.{json,xml}; traceability export: .build/java-tck-20261117/mixed-absent-handle-parity-traceability.json. The 35-method Java API inventory matches the scenario registration. Java catalog validation passed with 966 scenarios and no findings. Paired C++ direct results for the primary and contract passed 4/4 callback-model executions; results/JUnit: .build/cpp-tck-evidence-20261116/regional-interaction-mixed-absent-unsubscribe-pair.{json,xml}; focused validation was valid with no findings. The scenario remains unsupported/default-disabled and requires --run-unverified with adapter-supplied DDM inputs. Local-provider behavior only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-interaction-source-region-snapshot",

@@ -37718,7 +37718,30 @@
         "boundary": "Evidence is bounded to local Umbra JNI and the installed MinGW package. It does not establish independent-provider behavior, interoperability, or conformance.",
         "next": "Next exact pair: cpp-tck.regional-interaction-mixed-absent-unsubscribe and java-tck.regional-interaction-mixed-absent-unsubscribe. Compare the Java request containing one active and one committed absent region, delivery after that mixed request, and delivery suppression after unsubscribing the active region alone. Add only missing portable Java API and behavior parity checks; preserve the direct §9.11 mapping, default_status=unsupported, promotion=promoted, and the adapter-input default-disabled disposition. Run focused Java and paired C++ evidence under HLA_EVOKED and HLA_IMMEDIATE with the current matching local JNI package, ddm-tck.xml, and --run-unverified; validate the focused results and catalog."
       },
-      "next_action": "Next exact pair: cpp-tck.regional-interaction-mixed-absent-unsubscribe and java-tck.regional-interaction-mixed-absent-unsubscribe. Compare the Java request containing one active and one committed absent region, delivery after that mixed request, and delivery suppression after unsubscribing the active region alone. Add only missing portable Java API and behavior parity checks; preserve the direct §9.11 mapping, default_status=unsupported, promotion=promoted, and the adapter-input default-disabled disposition. Run focused Java and paired C++ evidence under HLA_EVOKED and HLA_IMMEDIATE with the current matching local JNI package, ddm-tck.xml, and --run-unverified; validate the focused results and catalog.",
+      "latest_verified_java_regional_interaction_mixed_absent_unsubscribe_handle_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Compared java-tck.regional-interaction-mixed-absent-unsubscribe with the paired C++ case. Java now validates both returned FederateHandles, the object class, attribute, interaction, parameter, dimension, and region handles; it also checks configured dimension names and object-class dimensions. The mixed active/absent unsubscribe still preserves delivery, and a later active-only unsubscribe removes the route.",
+        "scenario_ids": [
+          "cpp-tck.regional-interaction-mixed-absent-unsubscribe",
+          "java-tck.regional-interaction-mixed-absent-unsubscribe"
+        ],
+        "sources": [
+          "packages/hla-rti-cpp-tck/src/tck_regional_interaction_mixed_absent_unsubscribe.cpp",
+          "packages/hla-rti-cpp-tck/src/main.cpp",
+          "packages/hla-rti-cpp-tck/src/tck_harness.hpp",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalInteractionMixedAbsentUnsubscribeTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalInteractionMixedAbsentUnsubscribeScenarioRegistry.java",
+          "compliance/catalogs/java-tck-scenarios/part-07.json"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-238-l187-56 -> IEEE 1516.1-2025 §9.11"
+        ],
+        "evidence": "Java compiled against the pinned official IEEE 1516.1-2025 API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI from .build/jni-language-api-transparency-current-20261117, ddm-tck.xml, and the configured object, attribute, interaction, parameter, and X/Y dimensions. Results/JUnit: .build/java-tck-20261117/mixed-absent-handle-parity-{evoked,immediate}.{json,xml}; traceability export: .build/java-tck-20261117/mixed-absent-handle-parity-traceability.json. Paired C++ direct results for primary and contract passed 4/4 callback-model executions; results/JUnit: .build/cpp-tck-evidence-20261116/regional-interaction-mixed-absent-unsubscribe-pair.{json,xml}; focused validation was valid with no findings.",
+        "mapping_and_validation": "The existing direct requirement mapping to IEEE 1516.1-2025 §9.11, selected requirement ID, unsupported/default-disabled status, and promoted disposition are unchanged. The 35-method Java API inventory matches the scenario registration. Java catalog validation passed with 966 scenarios and no findings; both focused result artifacts and the traceability export passed validation. No Requirements Lab resynchronization or C++ plan change.",
+        "boundary": "Java evidence is bounded to local Umbra JNI and the paired C++ evidence to the installed package. No independent-provider interoperability or conformance claim.",
+        "next": "Next exact pair: cpp-tck.regional-interaction-routing and java-tck.regional-interaction-routing. Compare full-range/default and explicit routing across the interaction dimensions, region realization queries, the retained Create Region dimension set, the designator convey switch, and disjoint/unsubscribed delivery suppression. Add only missing portable Java API and behavior assertions; preserve the existing direct mappings and unsupported/default-disabled disposition. Run both callback models with the adapter-supplied DDM FOM using --run-unverified, then validate the focused results and catalog."
+      },
+      "next_action": "Next exact pair: cpp-tck.regional-interaction-routing and java-tck.regional-interaction-routing. Compare full-range/default and explicit routing across the interaction dimensions, region realization queries, the retained Create Region dimension set, the designator convey switch, and disjoint/unsubscribed delivery suppression. Add only missing portable Java API and behavior assertions; preserve the existing direct mappings and unsupported/default-disabled disposition. Run both callback models with the adapter-supplied DDM FOM using --run-unverified, then validate the focused results and catalog.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

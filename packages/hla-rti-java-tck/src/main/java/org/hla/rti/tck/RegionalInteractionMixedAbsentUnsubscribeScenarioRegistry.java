@@ -13,11 +13,19 @@ final class RegionalInteractionMixedAbsentUnsubscribeScenarioRegistry {
             "Preserve the full interaction subscription set when unsubscription mixes an active and absent region",
             "regional-interaction-management",
             "RTIambassador.connect;RTIambassador.createFederationExecution;"
-               + "RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;"
+               + "RTIambassador.joinFederationExecution;FederateHandle.encodedLength;"
+               + "RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;"
+               + "RTIambassador.getInteractionClassHandle;"
                + "RTIambassador.getParameterHandle;RTIambassador.getDimensionHandle;"
+               + "ObjectClassHandle.encodedLength;AttributeHandle.encodedLength;"
+               + "InteractionClassHandle.encodedLength;ParameterHandle.encodedLength;"
+               + "DimensionHandle.encodedLength;"
+               + "RTIambassador.getAvailableDimensionsForObjectClass;"
                + "RTIambassador.getAvailableDimensionsForInteractionClass;"
-               + "RTIambassador.getDimensionUpperBound;RTIambassador.publishInteractionClass;"
-               + "RTIambassador.createRegion;RTIambassador.setRangeBounds;"
+               + "RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;"
+               + "RTIambassador.publishInteractionClass;"
+               + "RTIambassador.createRegion;RegionHandle.encodedLength;"
+               + "RTIambassador.setRangeBounds;"
                + "RTIambassador.commitRegionModifications;"
                + "RTIambassador.getRegionHandleSetFactory;"
                + "RTIambassador.subscribeInteractionClassWithRegions;"
@@ -35,6 +43,8 @@ final class RegionalInteractionMixedAbsentUnsubscribeScenarioRegistry {
    static void run() throws Exception {
       RegionalInteractionMixedAbsentUnsubscribeTck.run(RtiTckMain.factory(),
          RtiTckMain.requireAdapterFile("hla.rti.tck.ddmFom"),
+         RtiTckMain.requireAdapterValue("hla.rti.tck.ddmObjectClass"),
+         RtiTckMain.requireAdapterValue("hla.rti.tck.ddmAttribute"),
          RtiTckMain.requireAdapterValue("hla.rti.tck.interactionClass"),
          RtiTckMain.requireAdapterValue("hla.rti.tck.parameter"),
          RtiTckMain.requireAdapterValue("hla.rti.tck.dimension"),
