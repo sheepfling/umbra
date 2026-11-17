@@ -1164,10 +1164,12 @@ bool EmbeddedFederationRegistry::canPurgeDeletedObjectInstance(
 
 bool EmbeddedFederationRegistry::canPurgeOrphanObjectInstance(
     Federation::ObjectInstance const& objectInstance) noexcept {
+  // An active ownership-assumption search can preserve future discovery only
+  // while the object is still known by a current federate. It must not keep
+  // the instance alive after the last known federate locally forgets it.
   return !objectInstance.deleteAccepted &&
          objectInstance.attributeOwnersByHandle.empty() &&
          objectInstance.knownObjectClassHandlesByFederate.empty() &&
-         objectInstance.ownershipAssumptionRecipientsByAttribute.empty() &&
          objectInstance.pendingDiscoveryFederates.empty() &&
          objectInstance.pendingRemovalFederates.empty() &&
          !objectInstance.pendingTimestampedDeletionMessageId.has_value() &&

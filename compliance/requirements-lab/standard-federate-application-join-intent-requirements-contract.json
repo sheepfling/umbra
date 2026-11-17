@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This traceability record links a bounded sample C++ federate application to IEEE 1516.1-2025 §4.11. The application records its intended federation execution name, passes that exact name to Join Federation Execution, and public observers verify that the joined name-to-handle mapping is present in the selected execution and absent from a decoy execution. This tests the sample application's explicit selection and the public membership result; it does not claim that the RTI observes subjective caller intent.",
+  "requirements": [
+    {
+      "id": "test-join-invocation-identifies-specified-federation",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-intent",
+      "clause_id": "clause-4.11",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federation_join_intent.cpp",
+      "source_symbol": "scenarioJoinFederationIntent",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_join_intent.cpp::scenarioJoinFederationIntent"
+      ]
+    }
+  ]
+}

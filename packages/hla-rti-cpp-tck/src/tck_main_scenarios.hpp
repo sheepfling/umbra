@@ -541,6 +541,8 @@ void scenarioAttributeScopeAdvisoriesContract(Options const&, rti::CallbackModel
 void scenarioAttributeScopeOwnershipAcquisitionException(
     Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestBaseline(Options const&, rti::CallbackModel);
+void scenarioFederationVisibleObjectStateCompleteness(
+    Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestBaselineContract(Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestMultiRequester(Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestMultiRequesterContract(Options const&, rti::CallbackModel);
@@ -920,6 +922,11 @@ void scenarioFederateApplicationMultipleExecutions(
 void scenarioFederateApplicationMultipleExecutionsContract(
     Options const&, rti::CallbackModel);
 void scenarioFederateSaveInitiationEligibility(
+    Options const&, rti::CallbackModel);
+void scenarioFederateSaveIdentity(Options const&, rti::CallbackModel);
+void scenarioJoinFederationIntent(Options const&, rti::CallbackModel);
+void scenarioReliableTransportOneCopyDelivery(Options const&, rti::CallbackModel);
+void scenarioUnsupportedFomTransportationFallback(
     Options const&, rti::CallbackModel);
 void scenarioFederateSaveInitiationTimeConstrainedEligibility(
     Options const&, rti::CallbackModel);

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This source/test traceability record links a bounded C++ TCK fixture witness to the immutable IEEE 1516.1-2025 §1.4.1 requirement ID. It checks that both attributes declared by this fixture FOM are updated and reflected with their exact values. It cannot determine whether an arbitrary federation application has additional private state that should have been modeled, so it is not a universal oracle or proof of conformance.",
+  "requirements": [
+    {
+      "id": "umbra-federation-visible-object-state-two-attribute-fixture-witness",
+      "requirements_lab_requirement_id": "requirement-source-refinement-object-state-completeness",
+      "clause_id": "clause-1.4.1",
+      "source": "packages/hla-rti-cpp-tck/src/tck_attribute_value_update_request_response.cpp",
+      "source_symbol": "scenarioFederationVisibleObjectStateCompleteness",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_attribute_value_update_request_response.cpp::scenarioFederationVisibleObjectStateCompleteness"
+      ]
+    }
+  ]
+}

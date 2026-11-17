@@ -9,6 +9,100 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void scenarioFederationVisibleObjectStateCompleteness(
+    Options const& options,
+    rti::CallbackModel model) {
+  require(
+      !options.multiAttributeFom.empty(),
+      "Federation-visible object-state witness requires the two-attribute FOM");
+  Session owner(options, model, "visible-state-owner");
+  Session observer(options, model, "visible-state-observer");
+  auto const federation = federationName(
+      options,
+      "federation-visible-object-state-completeness");
+  connectAndJoin(owner, observer, options, federation, options.multiAttributeFom);
+
+  auto const ownerClass = owner.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const observerClass = observer.rtiAmbassador().getObjectClassHandle(
+      options.multiAttributeObjectClassName);
+  auto const ownerFirst = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeFirstName);
+  auto const ownerSecond = owner.rtiAmbassador().getAttributeHandle(
+      ownerClass,
+      options.multiAttributeSecondName);
+  auto const observerFirst = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.multiAttributeFirstName);
+  auto const observerSecond = observer.rtiAmbassador().getAttributeHandle(
+      observerClass,
+      options.multiAttributeSecondName);
+  require(
+      ownerClass.isValid() && observerClass.isValid() && ownerFirst.isValid() &&
+          ownerSecond.isValid() && observerFirst.isValid() &&
+          observerSecond.isValid(),
+      "Federation-visible object-state witness resolved an invalid FOM handle");
+
+  rti::AttributeHandleSet const ownerAttributes{ownerFirst, ownerSecond};
+  rti::AttributeHandleSet const observerAttributes{
+      observerFirst,
+      observerSecond,
+  };
+  owner.rtiAmbassador().publishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.rtiAmbassador().subscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes,
+      true,
+      L"");
+
+  auto const object = owner.rtiAmbassador().registerObjectInstance(ownerClass);
+  require(
+      object.isValid(),
+      "Federation-visible object-state witness registered an invalid instance");
+  waitFor(
+      observer,
+      [&] { return observer.recorder().hasDiscovery(object); },
+      options,
+      "federation-visible object-state discovery");
+
+  std::vector<std::uint8_t> const firstValue{0x53U, 0x54U, 0x41U, 0x54U, 0x45U};
+  std::vector<std::uint8_t> const secondValue{0x4DU, 0x4FU, 0x44U, 0x45U, 0x4CU};
+  rti::AttributeHandleValueMap const sharedState{
+      {ownerFirst, rti::VariableLengthData(firstValue.data(), firstValue.size())},
+      {ownerSecond, rti::VariableLengthData(secondValue.data(), secondValue.size())},
+  };
+  std::vector<std::uint8_t> const tagBytes{0x53U, 0x54U, 0x41U};
+  rti::VariableLengthData const tag(tagBytes.data(), tagBytes.size());
+  observer.recorder().clearReflection();
+  owner.rtiAmbassador().updateAttributeValues(object, sharedState, tag);
+  waitFor(
+      observer,
+      [&] { return observer.recorder().reflection().present; },
+      options,
+      "federation-visible object-state reflection");
+
+  auto const reflection = observer.recorder().reflection();
+  require(
+      reflection.object == object && reflection.values.size() == 2U &&
+          reflection.values.count(observerFirst) == 1U &&
+          reflection.values.count(observerSecond) == 1U &&
+          copyBytes(reflection.values.at(observerFirst)) == firstValue &&
+          copyBytes(reflection.values.at(observerSecond)) == secondValue &&
+          reflection.tag == tagBytes,
+      "The federation-visible state witness did not reflect the complete declared attribute set");
+
+  observer.rtiAmbassador().unsubscribeObjectClassAttributes(
+      observerClass,
+      observerAttributes);
+  owner.rtiAmbassador().unpublishObjectClassAttributes(ownerClass, ownerAttributes);
+  observer.resign(rti::DELETE_OBJECTS);
+  owner.resign(rti::DELETE_OBJECTS);
+  owner.rtiAmbassador().destroyFederationExecution(federation);
+  observer.disconnect();
+  owner.disconnect();
+}
+
 void scenarioAttributeValueUpdateRequestBaseline(
     Options const& options,
     rti::CallbackModel model) {

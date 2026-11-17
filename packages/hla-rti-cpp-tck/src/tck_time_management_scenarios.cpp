@@ -7,6 +7,8 @@ namespace hla_rti_cpp_tck::detail {
 
 void scenarioNmrUndefinedGaltNrgMatrix(
     Options const&, rti::CallbackModel);
+void runNmrRequestBelowGaltImmediateGrantProcess(
+    Options const&, rti::CallbackModel);
 
 void scenarioAlternateTimeAdvances(Options const& options, rti::CallbackModel model) {
   Session publisher(options, model, "owner");
@@ -2092,6 +2094,10 @@ void scenarioNmrEmptyMessageSetGrantTimeContract(
 void scenarioNmrRequestBelowGaltImmediateGrant(
     Options const& options,
     rti::CallbackModel model) {
+  if (!options.nmrProcessRole.empty()) {
+    runNmrRequestBelowGaltImmediateGrantProcess(options, model);
+    return;
+  }
   require(
       !options.logicalTimeImplementationName.empty(),
       "NMR below-GALT test requires an adapter-supplied logical-time implementation");

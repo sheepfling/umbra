@@ -6,8 +6,20 @@ namespace {
 std::filesystem::path const& requiredFom(Options const& options,
                                          std::string const& key) {
   auto const found = options.scenarioFoms.find(key);
-  require(found != options.scenarioFoms.end(),
-          "Time representation requires an adapter-supplied FOM module");
+  if (found == options.scenarioFoms.end()) {
+    auto message = "Time representation requires adapter-supplied FOM module '" +
+                   key + "'";
+    if (!options.scenarioFoms.empty()) {
+      message += "; available bindings:";
+      for (auto const& [name, path] : options.scenarioFoms) {
+        static_cast<void>(path);
+        message += " " + name;
+      }
+    } else {
+      message += "; no scenario FOM bindings were supplied";
+    }
+    require(false, message);
+  }
   return found->second;
 }
 

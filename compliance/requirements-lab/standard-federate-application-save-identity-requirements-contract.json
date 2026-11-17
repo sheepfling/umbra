@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-private-and-public-traceability-not-conformance-evidence",
+  "notes": "This traceability record links a bounded test federate application to IEEE 1516.1-2025 §§4.1.2 and 4.11. The C++ TCK scenario stores four sample application-state records for two distinct federate-type categories and two save labels, keyed by the exact federation save label received in Initiate Federate Save, the federate type supplied to Join Federation Execution, and the FederateHandle returned from Join. It requests restore, selects the matching saved state for each category, and completes the public restore lifecycle. This demonstrates only the sample application's use of those identity fields; it is not an RTI-provider storage test, an oracle for arbitrary applications, or general conformance evidence.",
+  "requirements": [
+    {
+      "id": "test-federate-uses-save-label-type-and-join-designator",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l15-4",
+      "clause_id": "clause-4.1.2",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federate_save_identity.cpp",
+      "source_symbol": "scenarioFederateSaveIdentity",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_save_identity.cpp::scenarioFederateSaveIdentity"
+      ]
+    },
+    {
+      "id": "test-federate-type-distinguishes-save-restore-categories",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-type",
+      "clause_id": "clause-4.11",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federate_save_identity.cpp",
+      "source_symbol": "scenarioFederateSaveIdentity",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_save_identity.cpp::scenarioFederateSaveIdentity"
+      ]
+    }
+  ]
+}

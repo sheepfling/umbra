@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-tck-witness-not-conformance-evidence",
+  "notes": "The C++ TCK witness covers the reliable one-copy branch of §6.1.11 in a bounded receive-order interaction scenario. It asserts that each of three distinct HLAreliable sends is observed exactly once. Best-effort loss is permitted, not required; no transport fault injection, independent-provider behavior, or overall conformance is claimed.",
+  "requirements": [
+    {
+      "id": "cpp-tck-reliable-transport-one-copy-delivery",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l19-4",
+      "clause_id": "clause-6.1.11",
+      "source": "packages/hla-rti-cpp-tck/src/tck_reliable_transport_one_copy.cpp",
+      "source_symbol": "scenarioReliableTransportOneCopyDelivery",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_reliable_transport_one_copy.cpp::scenarioReliableTransportOneCopyDelivery"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 #include "tck_timestamped_interaction_scheduling_scenarios.hpp"
+#include "tck_fqr_process_scenarios.hpp"
 #include "tck_main_scenarios.hpp"
 
 namespace hla_rti_cpp_tck::detail {
@@ -461,6 +462,10 @@ void scenarioTimestampedInteractionSourceResignationFanout(
 void scenarioTimestampedInteractionFlushQueueFutureInput(
     Options const& options,
     rti::CallbackModel model) {
+  if (!options.nmrProcessRole.empty()) {
+    runFqrQueuedTsoProcesses(options, model);
+    return;
+  }
   require(
       !options.logicalTimeImplementationName.empty(),
       "Timestamped interaction Flush Queue future-input test requires an adapter-supplied logical-time implementation");

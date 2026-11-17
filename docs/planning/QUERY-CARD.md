@@ -21,7 +21,9 @@ Use `resume` once, then `ready`, `case <handle>`, and `matrix <handle>` for the 
 | Which plan rows need a mapping or explicit disposition? | `python tools/query_rti_work.py unmapped --summary --compact --limit 5` |
 | What is the direct requirement crosswalk? | `python tools/query_rti_work.py matrix <case-or-lane> --group-by requirement --summary --compact --limit 5` |
 | What is the subsection crosswalk? | `python tools/query_rti_work.py matrix <case-or-lane> --group-by section --summary --compact --limit 5` |
-| What 2025 requirements are mapped, by section, across Catch2 and the C++ TCK? | `python tools/export_2025_requirement_coverage.py` |
+| What are the 2025 requirement mapping totals for C++ and Java, by requirement and section? | `python tools/export_2025_requirement_coverage.py` |
+| Which promoted C++ TCK scenarios lack saved passing evidence for a subsection? | `python tools/query_cpp_tck_evidence.py --results <results-file-or-directory> --section hla-1516.1-2025:clause-8.6` |
+| Which mapped C++ TCK subsection is the smallest remaining evidence slice? | `python tools/query_cpp_tck_evidence.py --results <current-evidence-directory> --next-sections --limit 10` |
 | Which plan heading discusses a topic? | `python tools/query_rti_work.py plan <topic> --summary --compact` |
 | I know a topic, not its identifier | `python tools/query_rti_work.py search <terms> --summary --compact --limit 5` |
 | Did my lane's mappings drift? | `python tools/query_rti_work.py check --lane <tag> --summary --compact` |
@@ -31,10 +33,22 @@ Replace placeholders and quote multi-word titles. `roadmap` finds families; `ite
 
 The parallel-lane query defaults to active work; use `--state ready` to find unclaimed lanes or `--state all` for completed history too.
 
-The 2025 export reads the pinned corpus, Catch2 plan, and C++ TCK catalog without
-syncing the Lab; it writes requirement and section CSVs under `out/reports/`.
-Mappings and TCK promotion are traceability metadata, not test-run or conformance
-results.
+The 2025 export reads the pinned IEEE 1516.1/1516.2-2025 corpus, Catch2 plan,
+C++ TCK catalog, and Java TCK catalog/contracts without syncing the Lab; it
+writes row-per-requirement, by-section, and by-document CSVs under
+`out/reports/`. It reports C++ Catch2/TCK and Java TCK mapping totals side by
+side. Mappings and catalog status are traceability metadata, not test-run or
+conformance results.
+
+`query_cpp_tck_evidence.py` compares saved result records with each catalog
+scenario's declared callback models. Its passing witnesses are local execution
+evidence only, not independent-provider interoperability or conformance.
+Pass every relevant saved-evidence directory with another `--results`; the
+ranked subsection view considers promoted `cpp-tck.*` scenarios with canonical
+IEEE 1516.1-2025 or IEEE 1516.2-2025 section identifiers. Other identifiers are
+listed separately instead of being treated as current-standard coverage.
+Catalog scenarios with an explicit adapter blocker are shown separately and do
+not become runnable gaps until that adapter is available.
 
 For a source-verified Lab attribution defect, preserve its requirement ID and
 record both clauses in `known-issues.json`; cite that issue in the mapping

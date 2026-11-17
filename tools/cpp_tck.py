@@ -120,6 +120,7 @@ LOCAL_TCK_HEADERS = {
     "tck_factory_identity.hpp",
     "tck_timestamped_interaction_boundary_scenarios.hpp",
     "tck_flush_queue_nonlimiting_galt_scenarios.hpp",
+    "tck_fqr_process_scenarios.hpp",
     "tck_joined_federate_mom_state_save_restore.hpp",
     "tck_joined_federate_mom_galt_lits_periodic.hpp",
     "tck_joined_federate_mom_tso_length_periodic.hpp",

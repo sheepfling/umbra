@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract pins a bounded C++ TCK witness to the official 1516.1-2025 sendInteraction and receiveInteraction surfaces. The test uses distinct receive-order message tags and verifies one callback per send with the standard HLAreliable identity. It does not inject transport failure or claim an arbitrary-fault guarantee.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-send-and-receive-interaction-reliable-witness",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::sendInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData) and FederateAmbassador::receiveInteraction(InteractionClassHandle, ParameterHandleValueMap, VariableLengthData, TransportationTypeHandle, FederateHandle)",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador::sendInteraction; FederateAmbassador::receiveInteraction",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_reliable_transport_one_copy.cpp::scenarioReliableTransportOneCopyDelivery"
+      ]
+    }
+  ]
+}

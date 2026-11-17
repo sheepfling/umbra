@@ -290,6 +290,45 @@ class ScenarioFomDefaultsTests(unittest.TestCase):
             Path(bindings["attribute-fdd-preferred-order-default"]).name,
         )
 
+    def test_directed_interaction_subscription_accumulation_has_default_fom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            arguments = build_parser().parse_args(
+                ["--package-prefix", temporary_directory]
+            )
+            inputs = resolve_inputs(arguments)
+
+        bindings = dict(binding.split("=", 1) for binding in inputs["scenario_foms"])
+        self.assertEqual(
+            "directed-interaction-subscription-accumulation-tck.xml",
+            Path(bindings["directed-interaction-subscription-accumulation"]).name,
+        )
+
+    def test_timestamped_update_before_delete_has_default_fom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            arguments = build_parser().parse_args(
+                ["--package-prefix", temporary_directory]
+            )
+            inputs = resolve_inputs(arguments)
+
+        bindings = dict(binding.split("=", 1) for binding in inputs["scenario_foms"])
+        self.assertEqual(
+            "attribute-fdd-preferred-order-tck.xml",
+            Path(bindings["timestamped-update-before-delete"]).name,
+        )
+
+    def test_transport_order_has_default_transportation_fom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            arguments = build_parser().parse_args(
+                ["--package-prefix", temporary_directory]
+            )
+            inputs = resolve_inputs(arguments)
+
+        bindings = dict(binding.split("=", 1) for binding in inputs["scenario_foms"])
+        self.assertEqual(
+            "transport-default-best-effort-tck.xml",
+            Path(bindings["transport-order-fdd-default"]).name,
+        )
+
     def test_fqr_undefined_galt_cases_have_default_foms(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             arguments = build_parser().parse_args(
@@ -487,6 +526,14 @@ class ScenarioFomDefaultsTests(unittest.TestCase):
             (
                 "delay-subscription-evaluation",
                 "delay-subscription-evaluation-tck.xml",
+            ),
+            (
+                "directed-interaction-subscription-accumulation",
+                "directed-interaction-subscription-accumulation-tck.xml",
+            ),
+            (
+                "transport-order-fdd-default",
+                "transport-default-best-effort-tck.xml",
             ),
             ("nmr-undefined-galt-nrg-disabled", "p0-tck.xml"),
             ("nmr-undefined-galt-nrg-enabled", "nrg-interaction-tck.xml"),

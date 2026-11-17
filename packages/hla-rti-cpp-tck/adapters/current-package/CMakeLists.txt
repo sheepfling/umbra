@@ -162,6 +162,7 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FOMS
   "official-restaurant-example=${_repository_root}/third_party/ieee1516.2-2025/resources/examples/RestaurantFOMmodule-2025.xml"
   "default-logical-time=${_repository_root}/packages/hla-rti-cpp-tck/fom/default-logical-time-tck.xml"
   "time-representation-valid=${_repository_root}/packages/hla-rti-cpp-tck/fom/time-representation-valid-tck.xml"
+  "time-representation-valid-float64=${_repository_root}/packages/hla-rti-cpp-tck/fom/time-representation-float64-tck.xml"
   "delay-subscription-evaluation=${_repository_root}/packages/hla-rti-cpp-tck/fom/delay-subscription-evaluation-tck.xml"
   "support-switch-getter-lifecycle=${_repository_root}/packages/hla-rti-cpp-tck/fom/support-switch-getter-lifecycle-tck.xml"
   "service-usage-first=${_repository_root}/packages/hla-rti-cpp-tck/fom/service-usage-first-tck.xml"
@@ -799,6 +800,9 @@ set(HLA_RTI_TCK_ADAPTER_ADDITIONAL_SETTINGS ""
   CACHE STRING "Optional standard RtiConfiguration settings supplied by this adapter")
 set(HLA_RTI_TCK_ADAPTER_SETTINGS_PARSE_FAILURE_INPUT "fomEdition=202x"
   CACHE STRING "Provider-specific settings text known to fail parsing")
+set(HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS
+  "unsupportedTransportationTypes=${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION},${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"
+  CACHE STRING "Adapter-specific additional settings that make the custom transport FOM types unavailable")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER ""
   CACHE FILEPATH "Optional marker written after the adapter observes connection loss")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED OFF
@@ -953,6 +957,11 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   string(JSON _tck_entry GET "${_tck_catalog_json}" scenarios
     ${_tck_scenario_index})
   string(JSON _tck_scenario GET "${_tck_entry}" id)
+  if(_tck_scenario STREQUAL
+       "cpp-tck.unsupported-fom-transportation-fallback" AND
+     NOT HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS)
+    continue()
+  endif()
   if(_tck_scenario STREQUAL "cpp-tck.websocket-transport-support" AND
      NOT HLA_RTI_TCK_ADAPTER_RTI_ADDRESS MATCHES "^ws://")
     continue()
@@ -1207,6 +1216,9 @@ set(HLA_RTI_TCK_TEST_COMMON_ARGUMENTS "${_tck_common_arguments}" CACHE STRING
 set(HLA_RTI_TCK_TEST_SETTINGS_PARSE_FAILURE_INPUT
   "${HLA_RTI_TCK_ADAPTER_SETTINGS_PARSE_FAILURE_INPUT}" CACHE STRING
   "Adapter-provided malformed settings value for the focused Connect TCK" FORCE)
+set(HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS
+  "${HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS}" CACHE STRING
+  "Adapter-provided unavailable-transport setup for the focused fallback TCK" FORCE)
 set(HLA_RTI_TCK_TEST_TIMEOUT_SECONDS 120 CACHE STRING
   "CTest timeout for each portable TCK scenario" FORCE)
 

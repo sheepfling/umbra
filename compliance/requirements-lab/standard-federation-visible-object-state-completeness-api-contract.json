@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This contract records the official C++ API used by a bounded fixture witness for IEEE 1516.1-2025 §1.4.1. Two federates publish and subscribe to the two attributes declared by the supplied multi-attribute FOM; the producer updates both values and the observer checks the reflected handles and bytes. The API cannot inspect application-private state, so the scenario does not establish universal FOM completeness or conformance.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federation-visible-object-state-completeness-witness",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador object publication, subscription, registration, and Update Attribute Values services with FederateAmbassador discovery and Reflect Attribute Values callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador object-attribute declaration/update and FederateAmbassador discovery/reflection declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_attribute_value_update_request_response.cpp::scenarioFederationVisibleObjectStateCompleteness"
+      ]
+    }
+  ]
+}

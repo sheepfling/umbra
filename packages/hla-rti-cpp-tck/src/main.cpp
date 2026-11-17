@@ -21707,6 +21707,11 @@ std::vector<std::string> allScenarioIds() {
       "cpp-tck.federate-save-initiation-time-constrained-eligibility",
       "java-tck.declaration-management",
       "java-tck.object-management",
+      "cpp-tck.federation-visible-object-state-completeness",
+      "cpp-tck.federate-application-save-identity",
+      "cpp-tck.federate-application-join-intent",
+      "cpp-tck.reliable-transport-one-copy-delivery",
+      "cpp-tck.unsupported-fom-transportation-fallback",
       "cpp-tck.attribute-value-update-request-baseline",
       "cpp-tck.attribute-value-update-request-baseline-contract",
       "cpp-tck.object-class-attribute-value-update-request-baseline",
@@ -22596,8 +22601,8 @@ void printHelp() {
       "                                Adapter already controls the loss lifecycle\n"
       "  --message-history-session-purge-trigger-marker FILE\n"
       "                                Ask the adapter to drop the member transport\n"
-      "  --nmr-process-role requester|publisher\n"
-      "                                Run one NMR cohort federate in this process\n"
+      "  --nmr-process-role requester|publisher|second-publisher\n"
+      "                                Run one time-management federate in this process\n"
       "  --nmr-process-coordination-directory DIR\n"
       "                                Adapter rendezvous directory for process roles\n"
       "  --connection-loss-marker FILE Write callback completion marker for an adapter\n"

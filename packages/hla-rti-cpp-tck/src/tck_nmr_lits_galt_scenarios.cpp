@@ -1295,7 +1295,175 @@ void runNmraNoTsoRegulatorProcess(
   writeNmrProcessMarker(directory, "regulator-resigned.marker");
 }
 
+void runNmrBelowGaltRequesterProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  Session requester(options, model, "owner");
+  requester.connect();
+  auto const federation = federationName(options, "nmr-request-below-galt-grant");
+  requester.rtiAmbassador().createFederationExecution(
+      federation, options.fom.wstring(), options.logicalTimeImplementationName);
+  writeNmrProcessMarker(directory, "federation-created.marker");
+  requester.join(options.ownerFederateName, options.federateType, federation);
+
+  auto requesterTime = makeTimeContext(requester);
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "process-separated NMR requester Time Constrained callback");
+  waitForNmrProcessMarker(directory, "regulator-ready.marker", options);
+
+  auto const galt = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      5U);
+  auto const belowGaltTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      3U);
+  auto const raisedGalt = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr && requester.rtiAmbassador().queryGALT(*observedGalt),
+      "process-separated NMR requester could not query GALT");
+  requireTimeEquals(*observedGalt, *galt, "process-separated initial NMR GALT");
+
+  requester.rtiAmbassador().nextMessageRequest(*belowGaltTime);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "process-separated NMR grant strictly below GALT");
+  require(
+      requester.recorder().timeAdvanceGrants().front().encoded ==
+              encodeTime(*belowGaltTime) &&
+          requester.recorder().timedInteractions().empty(),
+      "process-separated NMR below GALT did not grant at its request without a TSO");
+  requester.rtiAmbassador().nextMessageRequest(*galt);
+  auto const quietDuration = std::chrono::milliseconds(
+      std::max(1, std::min(options.timeoutMilliseconds, 50)));
+  auto const equalGaltDeadline = Clock::now() + quietDuration;
+  while (Clock::now() < equalGaltDeadline) {
+    requester.pump();
+    require(
+        requester.recorder().timeAdvanceGrants().size() == 1U &&
+            requester.recorder().timedInteractions().empty(),
+        "process-separated NMR at GALT equality granted before regulator advance");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto currentTime = requesterTime.factory->makeInitial();
+  require(
+      currentTime != nullptr,
+      "process-separated NMR could not allocate a logical-time query value");
+  requester.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(
+      *currentTime,
+      *belowGaltTime,
+      "process-separated NMR equality request changed time before regulator advance");
+  require(
+      requester.rtiAmbassador().queryGALT(*observedGalt),
+      "process-separated NMR equality request lost GALT");
+  requireTimeEquals(*observedGalt, *galt, "process-separated pending NMR GALT");
+  writeNmrProcessMarker(directory, "requester-equality-pending.marker");
+
+  waitForNmrProcessMarker(directory, "regulator-advanced.marker", options);
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 2U; },
+      options,
+      "process-separated NMR grant after regulator raises GALT");
+  auto const grants = requester.recorder().timeAdvanceGrants();
+  require(
+      grants.back().encoded == encodeTime(*galt) &&
+          grants.size() == 2U &&
+          requester.recorder().timedInteractions().empty(),
+      "process-separated NMR equality request granted at the wrong time");
+  requester.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(*currentTime, *galt, "process-separated released NMR time");
+  require(
+      requester.rtiAmbassador().queryGALT(*observedGalt),
+      "process-separated released NMR request lost GALT");
+  requireTimeEquals(*observedGalt, *raisedGalt, "process-separated raised NMR GALT");
+  writeNmrProcessMarker(directory, "requester-completed.marker");
+
+  waitForNmrProcessMarker(directory, "regulator-resigned.marker", options);
+  requester.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+}
+
+void runNmrBelowGaltRegulatorProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    std::filesystem::path const& directory) {
+  waitForNmrProcessMarker(directory, "federation-created.marker", options);
+  Session regulator(options, model, "member");
+  regulator.connect();
+  auto const federation = federationName(options, "nmr-request-below-galt-grant");
+  regulator.join(options.memberFederateName, options.federateType, federation);
+
+  auto regulatorTime = makeTimeContext(regulator);
+  auto const galt = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      5U);
+  auto lookahead = regulatorTime.factory->makeZero();
+  require(lookahead != nullptr, "process-separated NMR regulator lacks lookahead");
+  lookahead->setToDifference(*galt, *regulatorTime.initial);
+  regulator.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "process-separated NMR regulator Time Regulation callback");
+  writeNmrProcessMarker(directory, "regulator-ready.marker");
+  waitForNmrProcessMarker(directory, "requester-equality-pending.marker", options);
+  require(
+      regulator.recorder().timeAdvanceGrants().empty(),
+      "process-separated NMR regulator advanced before the equality request was checked");
+
+  regulator.rtiAmbassador().timeAdvanceRequest(*galt);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "process-separated NMR regulator advance");
+  require(
+      regulator.recorder().timeAdvanceGrants().front().encoded == encodeTime(*galt),
+      "process-separated NMR regulator reached the wrong time");
+  writeNmrProcessMarker(directory, "regulator-advanced.marker");
+  waitForNmrProcessMarker(directory, "requester-completed.marker", options);
+  regulator.resign(rti::NO_ACTION);
+  regulator.disconnect();
+  writeNmrProcessMarker(directory, "regulator-resigned.marker");
+}
+
 }  // namespace
+
+void runNmrRequestBelowGaltImmediateGrantProcess(
+    Options const& options,
+    rti::CallbackModel model) {
+  auto const directory = nextNmrProcessRunDirectory(options);
+  if (options.nmrProcessRole == "requester") {
+    runNmrBelowGaltRequesterProcess(options, model, directory);
+    return;
+  }
+  if (options.nmrProcessRole == "publisher") {
+    runNmrBelowGaltRegulatorProcess(options, model, directory);
+    return;
+  }
+  throw std::runtime_error("NMR process role must be requester or publisher");
+}
 
 void scenarioNmraNoTsoWaitsForGalt(
     Options const& options,

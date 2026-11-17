@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export the pinned 2025 requirement-to-test mappings as a row-per-requirement CSV.
+"""Export IEEE 1516.1/1516.2-2025 requirement-to-test mappings as CSV.
 
 This is a traceability export. Catch2 plan status and TCK catalog promotion are
 reported separately; neither column is a claim that a test currently passes or
@@ -15,12 +15,17 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-import query_rti_work as rtiq
+if __package__:
+    from . import java_tck, query_rti_work as rtiq
+else:
+    import java_tck
+    import query_rti_work as rtiq
 
 DISCLAIMER = (
     "Traceability only: mappings and catalog status are not current test-run results "
     "or proof of implementation compliance."
 )
+TARGET_DOCUMENT_IDS = frozenset({"hla-1516.1-2025", "hla-1516.2-2025"})
 
 
 def section_sort_key(section: str) -> tuple[tuple[int, int | str], ...]:
@@ -42,6 +47,53 @@ def joined(values: set[str] | list[str]) -> str:
     return " | ".join(sorted(value for value in values if value))
 
 
+def java_requirement_ids_for_scenario(
+    scenario: dict[str, Any],
+    known_lab_requirement_ids: set[str],
+    linked_lab_requirement_ids: set[str],
+) -> set[str]:
+    """Mirror java_tck.export's stable-ID to pinned-Lab requirement join."""
+    if scenario.get("mapping_classification") == (
+        "api-contract-only-not-normative-conformance"
+    ):
+        return set()
+
+    stable_ids = scenario.get("requirement_ids")
+    if not isinstance(stable_ids, list):
+        return set()
+
+    requirement_ids: set[str] = set()
+    for stable_id in stable_ids:
+        if not isinstance(stable_id, str):
+            continue
+        if stable_id in known_lab_requirement_ids:
+            requirement_ids.add(stable_id)
+        else:
+            requirement_ids.update(linked_lab_requirement_ids)
+    return requirement_ids
+
+
+def aggregate_section_stats_by_document(
+    section_stats: dict[str, Counter[str]],
+) -> dict[str, Counter[str]]:
+    document_stats: dict[str, Counter[str]] = defaultdict(Counter)
+    for section, stats in section_stats.items():
+        document_id = section.split(":", 1)[0]
+        for metric, count in stats.items():
+            document_stats[document_id][metric] += count
+    return document_stats
+
+
+def target_standard_requirements(
+    requirements: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    return {
+        requirement_id: requirement
+        for requirement_id, requirement in requirements.items()
+        if requirement.get("document_id") in TARGET_DOCUMENT_IDS
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -56,11 +108,13 @@ def main() -> int:
     args = parser.parse_args()
 
     bundle = rtiq.load_json(rtiq.DEFAULT_BUNDLE)
-    requirements = rtiq.load_standard_requirements(
+    loaded_requirements = rtiq.load_standard_requirements(
         bundle, rtiq.DEFAULT_CONTRACT_DIRECTORY
     )
+    requirements = target_standard_requirements(loaded_requirements)
     plan = rtiq.load_json(rtiq.DEFAULT_PLAN)
     catalog = rtiq.load_json(rtiq.DEFAULT_CPP_TCK_CATALOG)
+    java_catalog = java_tck.load_catalog()
 
     catch2: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for test in object_rows(plan.get("tests")):
@@ -84,6 +138,40 @@ def main() -> int:
                         "id": scenario_id,
                         "title": str(scenario.get("title") or ""),
                         "promotion": promotion,
+                    }
+                )
+
+    java_tck_mappings: dict[str, list[dict[str, str]]] = defaultdict(list)
+    java_known_lab_requirement_ids = java_tck.lab_requirement_ids(
+        java_tck.DEFAULT_BUNDLE
+    )
+    java_contract_requirement_cache: dict[tuple[str, ...], set[str]] = {}
+    for scenario in object_rows(java_catalog.get("scenarios")):
+        contract_refs_value = scenario.get("contract_refs")
+        contract_refs = (
+            tuple(ref for ref in contract_refs_value if isinstance(ref, str))
+            if isinstance(contract_refs_value, list)
+            else ()
+        )
+        if contract_refs not in java_contract_requirement_cache:
+            java_contract_requirement_cache[contract_refs] = {
+                record["requirements_lab_requirement_id"]
+                for record in java_tck.contract_requirements(list(contract_refs))
+                if isinstance(record.get("requirements_lab_requirement_id"), str)
+            }
+        linked_lab_ids = java_contract_requirement_cache[contract_refs]
+        scenario_id = scenario.get("id")
+        if not isinstance(scenario_id, str) or not scenario_id.startswith("java-tck."):
+            continue
+        for requirement_id in java_requirement_ids_for_scenario(
+            scenario, java_known_lab_requirement_ids, linked_lab_ids
+        ):
+            if requirement_id in requirements:
+                java_tck_mappings[requirement_id].append(
+                    {
+                        "id": scenario_id,
+                        "title": str(scenario.get("title") or ""),
+                        "status": str(scenario.get("default_status") or "unspecified"),
                     }
                 )
 
@@ -111,9 +199,14 @@ def main() -> int:
         "cpp_tck_scenario_ids",
         "cpp_tck_scenario_titles",
         "cpp_tck_catalog_promotions",
+        "java_tck_catalog_mapping_status",
+        "java_tck_scenario_ids",
+        "java_tck_scenario_titles",
+        "java_tck_catalog_statuses",
         "tck_requirement_disposition",
         "tck_disposition_owner",
         "direct_test_mapping_status",
+        "any_language_test_mapping_status",
         "evidence_boundary",
         "source_path",
         "source_start_line",
@@ -124,7 +217,11 @@ def main() -> int:
     section_stats: dict[str, Counter[str]] = defaultdict(Counter)
     catch2_mapped = 0
     tck_mapped = 0
-    direct_mapped = 0
+    cpp_mapped = 0
+    java_mapped = 0
+    any_language_mapped = 0
+    cpp_mapped_requirement_ids: set[str] = set()
+    java_mapped_requirement_ids: set[str] = set()
     with args.output.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
@@ -143,16 +240,27 @@ def main() -> int:
             section_counts[section] += 1
             catch_rows = catch2.get(requirement_id, [])
             tck_rows = tck.get(requirement_id, [])
+            java_rows = java_tck_mappings.get(requirement_id, [])
             disposition = dispositions.get(requirement_id, {})
             catch2_mapped += bool(catch_rows)
             tck_mapped += bool(tck_rows)
-            direct_mapped += bool(catch_rows or tck_rows)
+            if catch_rows or tck_rows:
+                cpp_mapped += 1
+                cpp_mapped_requirement_ids.add(requirement_id)
+            if java_rows:
+                java_mapped += 1
+                java_mapped_requirement_ids.add(requirement_id)
+            any_language_mapped += bool(catch_rows or tck_rows or java_rows)
             section_stats[section]["requirements"] += 1
             section_stats[section]["catch2_mapped"] += bool(catch_rows)
             section_stats[section]["tck_mapped"] += bool(tck_rows)
             section_stats[section]["either_mapped"] += bool(catch_rows or tck_rows)
+            section_stats[section]["java_tck_mapped"] += bool(java_rows)
+            section_stats[section]["any_language_mapped"] += bool(
+                catch_rows or tck_rows or java_rows
+            )
             section_stats[section]["disposition_only"] += bool(
-                disposition and not catch_rows and not tck_rows
+                disposition and not catch_rows and not tck_rows and not java_rows
             )
 
             source = requirement.get("source")
@@ -168,6 +276,7 @@ def main() -> int:
                 tck_status = "mapped-mixed-promotions"
             else:
                 tck_status = "mapped-other-catalog-status"
+            java_statuses = {row["status"] for row in java_rows}
 
             writer.writerow(
                 {
@@ -202,10 +311,23 @@ def main() -> int:
                         {row["title"] for row in tck_rows}
                     ),
                     "cpp_tck_catalog_promotions": joined(promotions),
+                    "java_tck_catalog_mapping_status": (
+                        "mapped" if java_rows else "unmapped"
+                    ),
+                    "java_tck_scenario_ids": joined(
+                        {row["id"] for row in java_rows}
+                    ),
+                    "java_tck_scenario_titles": joined(
+                        {row["title"] for row in java_rows}
+                    ),
+                    "java_tck_catalog_statuses": joined(java_statuses),
                     "tck_requirement_disposition": disposition.get("status", ""),
                     "tck_disposition_owner": disposition.get("owner_role", ""),
                     "direct_test_mapping_status": (
                         "mapped" if catch_rows or tck_rows else "unmapped"
+                    ),
+                    "any_language_test_mapping_status": (
+                        "mapped" if catch_rows or tck_rows or java_rows else "unmapped"
                     ),
                     "evidence_boundary": DISCLAIMER,
                     "source_path": source.get("path", ""),
@@ -225,6 +347,10 @@ def main() -> int:
             "cpp_tck_mapping_percent",
             "mapped_by_either_count",
             "mapped_by_either_percent",
+            "java_tck_mapped_count",
+            "java_tck_mapping_percent",
+            "mapped_by_any_language_count",
+            "mapped_by_any_language_percent",
             "unmapped_count",
             "disposition_only_count",
         ]
@@ -247,18 +373,101 @@ def main() -> int:
                     "cpp_tck_mapping_percent": f"{100 * stats['tck_mapped'] / count:.2f}",
                     "mapped_by_either_count": stats["either_mapped"],
                     "mapped_by_either_percent": f"{100 * stats['either_mapped'] / count:.2f}",
-                    "unmapped_count": count - stats["either_mapped"],
+                    "java_tck_mapped_count": stats["java_tck_mapped"],
+                    "java_tck_mapping_percent": f"{100 * stats['java_tck_mapped'] / count:.2f}",
+                    "mapped_by_any_language_count": stats["any_language_mapped"],
+                    "mapped_by_any_language_percent": f"{100 * stats['any_language_mapped'] / count:.2f}",
+                    "unmapped_count": count - stats["any_language_mapped"],
+                    "disposition_only_count": stats["disposition_only"],
+                }
+            )
+
+    document_summary_path = args.output.with_name(f"{args.output.stem}-by-document.csv")
+    document_stats = aggregate_section_stats_by_document(section_stats)
+    with document_summary_path.open("w", encoding="utf-8-sig", newline="") as stream:
+        fields = [
+            "document_id",
+            "requirement_count",
+            "catch2_mapped_count",
+            "catch2_mapping_percent",
+            "cpp_tck_mapped_count",
+            "cpp_tck_mapping_percent",
+            "cpp_mapped_by_either_count",
+            "cpp_mapping_percent",
+            "java_tck_mapped_count",
+            "java_tck_mapping_percent",
+            "mapped_by_any_language_count",
+            "mapped_by_any_language_percent",
+            "unmapped_count",
+            "disposition_only_count",
+        ]
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        for document_id, stats in sorted(document_stats.items()):
+            count = stats["requirements"]
+            writer.writerow(
+                {
+                    "document_id": document_id,
+                    "requirement_count": count,
+                    "catch2_mapped_count": stats["catch2_mapped"],
+                    "catch2_mapping_percent": f"{100 * stats['catch2_mapped'] / count:.2f}",
+                    "cpp_tck_mapped_count": stats["tck_mapped"],
+                    "cpp_tck_mapping_percent": f"{100 * stats['tck_mapped'] / count:.2f}",
+                    "cpp_mapped_by_either_count": stats["either_mapped"],
+                    "cpp_mapping_percent": f"{100 * stats['either_mapped'] / count:.2f}",
+                    "java_tck_mapped_count": stats["java_tck_mapped"],
+                    "java_tck_mapping_percent": f"{100 * stats['java_tck_mapped'] / count:.2f}",
+                    "mapped_by_any_language_count": stats["any_language_mapped"],
+                    "mapped_by_any_language_percent": f"{100 * stats['any_language_mapped'] / count:.2f}",
+                    "unmapped_count": count - stats["any_language_mapped"],
                     "disposition_only_count": stats["disposition_only"],
                 }
             )
 
     print(f"CSV: {args.output}")
     print(f"Section summary CSV: {summary_path}")
+    print(f"Document summary CSV: {document_summary_path}")
     print(f"Requirements: {len(requirements)}")
+    print(
+        f"Target documents: {', '.join(sorted(TARGET_DOCUMENT_IDS))}; "
+        f"other pinned 2025 bundle rows excluded from totals: "
+        f"{len(loaded_requirements) - len(requirements)}"
+    )
     print(f"Sections: {len(section_counts)} (see section summary CSV)")
-    print(f"Catch2-mapped requirements: {catch2_mapped}")
-    print(f"Portable C++ TCK-mapped requirements: {tck_mapped}")
-    print(f"Mapped by either test inventory: {direct_mapped}")
+    print(
+        f"C++ Catch2-mapped requirements: {catch2_mapped} "
+        f"({100 * catch2_mapped / len(requirements):.1f}%)"
+    )
+    print(
+        f"Portable C++ TCK-mapped requirements: {tck_mapped} "
+        f"({100 * tck_mapped / len(requirements):.1f}%)"
+    )
+    print(
+        f"C++ mapped by Catch2 or portable TCK: {cpp_mapped} "
+        f"({100 * cpp_mapped / len(requirements):.1f}%)"
+    )
+    print(
+        f"Portable Java TCK-mapped requirements: {java_mapped} "
+        f"({100 * java_mapped / len(requirements):.1f}%)"
+    )
+    print(
+        f"Mapped by both C++ and Java inventories: "
+        f"{len(cpp_mapped_requirement_ids & java_mapped_requirement_ids)}"
+    )
+    print(
+        f"Mapped by either language inventory: {any_language_mapped} "
+        f"({100 * any_language_mapped / len(requirements):.1f}%)"
+    )
+    for document_id, stats in sorted(document_stats.items()):
+        count = stats["requirements"]
+        print(
+            f"{document_id}: {count} requirements; C++ "
+            f"{stats['either_mapped']} ({100 * stats['either_mapped'] / count:.1f}%); "
+            f"Java {stats['java_tck_mapped']} "
+            f"({100 * stats['java_tck_mapped'] / count:.1f}%); either language "
+            f"{stats['any_language_mapped']} "
+            f"({100 * stats['any_language_mapped'] / count:.1f}%)"
+        )
     print(DISCLAIMER)
     return 0
 

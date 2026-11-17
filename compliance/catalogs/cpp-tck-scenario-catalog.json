@@ -1145,28 +1145,12 @@
       "evidence_boundary": "No direct public C++ TCK mapping or test pass is claimed for this protocol-message requirement. This disposition does not establish the RTI's protocol behavior, implementation validation, conformance, or a waiver of Umbra's obligation; retain it for internal protocol-level verification."
     },
     {
-      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4-disconnect",
-      "standard_section": "hla-1516.1-2025:clause-4.1",
-      "status": "external-responsibility",
-      "owner_role": "federate application",
-      "rationale": "IEEE 1516.1-2025 §4.1 p. 38 l. 21 places this duty on the federate application: once it has no further intent to join or create federation executions, it shall call Disconnect. Whether that condition applies depends on application intent and lifecycle policy, not a separate RTI output. A public TCK cannot establish that arbitrary federate applications follow this intent-dependent sequence. Tests of RTIambassador.disconnect validate the RTI service itself, not this caller-side duty.",
-      "evidence_boundary": "Ownership disposition only. This is not direct C++ TCK coverage, a test pass, implementation validation, or conformance evidence. It does not waive RTI obligations for the Disconnect service or other observable connection-lifecycle behavior; those remain independently testable."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l15-4",
-      "standard_section": "hla-1516.1-2025:clause-4.1.2",
-      "status": "external-responsibility",
-      "owner_role": "federate application",
-      "rationale": "IEEE 1516.1-2025 §4.1.2 p. 44 l. 15 assigns this behavior to a joined federate application after it receives Initiate Federate Save and persists its own state. The RTI provides the save label and federate designator through the public save lifecycle, but it does not own the application's saved-state store or choose how federate type/designator identify that application's persisted data. A public RTI TCK can assert the RTI-provided callback values, but cannot establish that arbitrary federate applications use those values to distinguish their own saved information.",
-      "evidence_boundary": "No direct C++ TCK mapping or test pass is claimed. This ownership disposition is not RTI implementation validation, conformance evidence, or a waiver of the RTI's separate save/restore service obligations. Revisit with a federate-application conformance harness, not a public RTI API assertion."
-    },
-    {
       "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
       "standard_section": "hla-1516.1-2025:clause-4.1.1",
-      "status": "requirements-lab-extraction-defect",
-      "owner_role": "Requirements Lab semantic extraction",
-      "rationale": "RL-373 records that the pinned requirement candidate for §4.1.1 p. 40 l. 33-53 begins mid-sentence, ends mid-phrase, and merges distinct federation-lifecycle obligations. It is not a reliable standalone TCK assertion until the Requirements Lab restores and classifies the complete passage. Separately, the official C++ API has no standard operation to force another joined federate out of the joined state; ordinary Resign, Disconnect, or connection-loss scenarios are not equivalent triggers and must not be mapped to this broad candidate.",
-      "evidence_boundary": "Direct portable C++ TCK coverage remains 0/1. This disposition records the known Requirements Lab extraction defect and test-boundary context only; it is not a test pass, implementation validation, waiver, or conformance evidence. Forced-resignation behavior remains an RTI implementation obligation and must be evaluated with appropriately scoped internal evidence until the Lab repairs the candidate or a standard public trigger is available."
+      "status": "no-public-cpp-api-trigger",
+      "owner_role": "IEEE-1516.1-2025-C++-TCK-boundary",
+      "rationale": "The Requirements Lab backflow accepted for RL-373 (2026-10-26, revision de86ea1f0688f6fe22dbd74b823812ff5d2ebc54) now exposes this as a complete standalone §4.1.1 sentence at p. 40 l. 43-53; the former truncation/merge complaint is resolved and is not repeated here. The remaining rule requires an RTI-forced transition from Joined and a Federate Resigned notification. The official public C++ API has no standard service that triggers that RTI-originated removal. Ordinary Resign is explicitly excluded by the rule, and Connection Lost is a distinct event; neither is a valid substitute oracle.",
+      "evidence_boundary": "No direct portable C++ TCK mapping or test pass is claimed because the public API provides no standard trigger for this RTI-originated transition. This does not waive Umbra's implementation obligation; private forced-resignation seams remain internal evidence only. RL-373 remains recorded as resolved-in-lab; no new or recurring Requirements Lab defect was observed."
     },
     {
       "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-288-l24-7",
@@ -1449,22 +1433,6 @@
       "evidence_boundary": "No direct portable C++ TCK mapping is claimed: p402-l20-6 remains 0% direct TCK coverage, not a test pass, implementation validation, or conformance evidence. The provider-specific scenarios cpp-tck.federate-reconnect-timeout, cpp-tck.federate-heartbeat-timeout-recovery, and cpp-tck.federate-idle-heartbeat-preserves-session are Umbra-only runtime evidence for behavior under local settings. They do not verify all three Table 32 settings or their standard defaults. Keep the grouped requirement unmapped because the standard C++ binding leaves additionalSettings syntax implementation-defined; promotion of a behavior-specific case does not validate that provider syntax."
     },
     {
-      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-intent",
-      "standard_section": "hla-1516.1-2025:clause-4.11",
-      "status": "external-responsibility",
-      "owner_role": "federate application (intent source)",
-      "rationale": "IEEE 1516.1-2025 §4.11 p. 57 l. 33 defines invocation of Join Federation Execution as the federate application's expression of intent to participate. The public call itself is the standardized signal; the RTI has no separate intent payload, query, callback, or observable state that distinguishes the caller's subjective purpose. The RTI's successful and failed Join outcomes remain independently testable and are not waived by this classification.",
-      "evidence_boundary": "This disposition is not a direct TCK mapping, test pass, implementation validation, or conformance claim. It covers only caller intent, not Join Federation Execution membership semantics, handle results, or error behavior."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-type",
-      "standard_section": "hla-1516.1-2025:clause-4.11",
-      "status": "external-responsibility",
-      "owner_role": "federate application (saved-state owner)",
-      "rationale": "IEEE 1516.1-2025 §4.11 p. 57 l. 38 says the federate type distinguishes categories for save and restore. The pinned save text at pp. 44 and 67 directs the joined federate itself to use its federate type, together with the save label and federate designator, to distinguish its saved information. The official RTI API exposes no separate category-dependent save selector or result; this classifies only the application-owned saved-state identity, not the RTI's save/restore service obligations.",
-      "evidence_boundary": "This disposition is not a direct TCK mapping, test pass, implementation validation, or conformance claim. It does not waive RTI requirements for save/restore coordination, persistence, callbacks, or correct handling of the federate type supplied at Join."
-    },
-    {
       "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l135-42-no-reference",
       "standard_section": "hla-1516.1-2025:clause-9.1.1",
       "status": "no-public-cpp-api-trigger",
@@ -1479,14 +1447,6 @@
       "owner_role": "federation-application",
       "rationale": "IEEE 1516.1-2025 §9.1.4 p. 221 l. 86 assigns normalization of federation data for DDM to the federation. The pinned RTI API exposes dimension-upper-bound and region range get/set services, not a transform for arbitrary application data. Umbra's setRangeBounds validates caller-supplied range bounds and preserves them; that adjacent range behavior is not evidence that the RTI normalizes federation data.",
       "evidence_boundary": "Ownership disposition only. This does not count as a direct C++ TCK mapping, test pass, implementation validation, or conformance evidence."
-    },
-    {
-      "requirement_id": "requirement-source-refinement-object-state-completeness",
-      "standard_section": "hla-1516.1-2025:clause-1.4.1",
-      "status": "external-responsibility",
-      "owner_role": "FOM/object-model designer",
-      "rationale": "IEEE 1516.1-2025 §1.4.1 p. 17 l. 51 says the FOM's object-class attributes define federation-visible instance state and that extra state a federate associates without communicating is outside the FOM's purview. The official C++ API exposes declared attribute values through update, request, and reflection services, but it cannot inspect application-private state or decide which such state belongs in a FOM. A public TCK can verify declared-value behavior, but cannot falsify the presence of hidden application state; mapping an ordinary reflection test to this source-level modeling principle would overstate its oracle.",
-      "evidence_boundary": "Ownership disposition only. This does not count as direct C++ TCK coverage, a test pass, implementation validation, or conformance evidence, and it does not waive independently testable RTI obligations for declared attribute values. Revisit only if the Lab identifies a public normative outcome that can distinguish compliance with the FOM-completeness principle."
     },
     {
       "requirement_id": "requirement-candidate-table-5-p296-r012",
@@ -1847,30 +1807,6 @@
       "owner_role": "IEEE-1516.1-2025-C++-binding",
       "rationale": "IEEE 1516.1-2025 §12.13.4.6 p. 408 l. 41 restricts CTRL_NEW_SESSION_STATUS, CTRL_HEARTBEAT_RESPONSE, and CTRL_SESSION_TERMINATED to RTI origin. The official C++ API exposes no control-message type, raw transport read/write operation, or callback that identifies these wire messages. connect() results and FederateAmbassador callbacks report public service/session outcomes, not the identity or direction of a private protocol frame. The existing provider-specific heartbeat-recovery TCK coordinates adapter-side suppression/resumption and checks later public service success; it does not observe these message types. Mapping such an outcome to the message-origin rule would be indirect; inspecting Umbra-private frames is not portable public-API TCK evidence.",
       "evidence_boundary": "No direct public C++ TCK mapping or coverage claim is made. This binding-applicability disposition is not a test pass, implementation validation, or conformance evidence; it does not waive the RTI's protocol-level obligation to originate these control messages. Revisit if the official binding exposes a standard-backed message-origin observation surface."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l19-4",
-      "standard_section": "hla-1516.1-2025:clause-6.1.11",
-      "status": "no-public-cpp-api-trigger",
-      "owner_role": "IEEE-1516.1-2025-C++-TCK-boundary",
-      "rationale": "IEEE 1516.1-2025 §6.1.11 p. 111 l. 19 defines reliable transport as guaranteeing delivery of one copy and best effort as allowing transport loss. The public C++ API can select transportation and send/observe data, but it provides no standard operation to inject deterministic loss or observe transport acknowledgements. A normal no-loss send/receive cannot distinguish the guarantee. The existing current-process adapter fixture injects federate connection loss for lifecycle outcomes; it does not selectively drop a service-data frame or its acknowledgement. A portable scenario needs a deterministic adapter-managed loss fixture that is not currently part of the TCK adapter contract.",
-      "evidence_boundary": "No direct TCK mapping, test pass, implementation validation, or conformance claim is made for this requirement. This is only a scoped public-TCK testability disposition; it does not waive Umbra's RTI obligation. Internal evidence remains separate: Catch2 case umbra-private-process-transport-resume-replay-after-reconnect exercises loopback connection loss, retained event replay, sequence fencing, and subsequent service traffic, but selects no normative mapping and does not prove HLAreliable versus HLAbestEffort behavior. Revisit the TCK disposition when an adapter-managed deterministic data-frame/ack-loss fixture is available; any future TCK must assert exactly one standard callback for reliable transport and must not require best-effort loss."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
-      "standard_section": "hla-1516.1-2025:clause-6.1.11",
-      "status": "no-public-cpp-api-trigger",
-      "owner_role": "IEEE-1516.1-2025-C++-TCK-boundary",
-      "rationale": "IEEE 1516.1-2025 §6.1.11 p. 111 l. 49 requires fallback to the corresponding standard transportation type when a FOM transportation type is unavailable. The public C++ API can query and observe the effective type but has no standard capability query or configuration operation to establish that a chosen FOM type is unavailable for a given provider. An arbitrary custom transportation name may be supported by one RTI and unsupported by another, so a portable TCK cannot require fallback for a name whose availability is provider-dependent.",
-      "evidence_boundary": "No direct portable C++ TCK mapping or coverage claim is made for p. 111 l. 49; this is a testability disposition, not a test pass, implementation validation, or conformance evidence, and it does not waive the RTI obligation. Internal implementation evidence remains separate: Catch2 case umbra-cpp-unsupported-custom-transportation-fallback uses an Umbra-only test-profile setting to make two FOM types unavailable, then checks fallback via the official query/report and delivery APIs. Revisit portable TCK coverage if a standard capability oracle or adapter-neutral way to establish the precondition becomes available."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l18-5",
-      "standard_section": "hla-1516.1-2025:clause-6.1.11",
-      "status": "no-public-cpp-api-trigger",
-      "owner_role": "IEEE-1516.1-2025-C++-TCK-boundary",
-      "rationale": "IEEE 1516.1-2025 §6.1.11 p. 112 l. 18 requires an unavailable FOM transportation type to fall back and identifies Query/Report Attribute Transportation Type, with corresponding interaction services, as the public observation path. The API exposes those queries but no standard capability query or configuration operation to establish that a chosen FOM type is unavailable for a given provider. An arbitrary custom transportation name may be supported by one RTI and unsupported by another, so a portable TCK cannot require fallback for a provider-dependent name.",
-      "evidence_boundary": "No direct portable C++ TCK mapping or coverage claim is made for p. 112 l. 18; this is a testability disposition, not a test pass, implementation validation, or conformance evidence, and it does not waive the RTI obligation. Internal implementation evidence remains separate: Catch2 case umbra-cpp-unsupported-custom-transportation-fallback uses an Umbra-only test-profile setting to establish the unavailable-type condition and checks both attribute and interaction query/report paths. Revisit portable TCK coverage if a standard capability oracle or adapter-neutral way to establish the precondition becomes available."
     },
     {
       "requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-408-l164-54",
@@ -2740,6 +2676,7 @@
       "cpp_test": "src/tck_language_api_transparency.cpp#scenarioLanguageApiTransparency",
       "runner_id": "cpp-tck.language-api-transparency",
       "parity": "not-applicable: this is a mixed-language integration case; the Java peer is part of the same cross-language observation, not a standalone mirrored scenario",
+      "execution_blocker": "Requires an adapter-managed Java IEEE 1516.1-2025 federate to create the shared execution and participate in the receive-order interaction. The current-package C++ runner supplies only the C++ ambassador; no Java provider peer is available in this workspace.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -4000,22 +3937,29 @@
       ],
       "requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4-disconnect",
         "req-federate-connect-before-rti-work",
         "req-federate-disconnect-after-resign"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
+        "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4-disconnect",
         "req-federate-connect-before-rti-work",
         "req-federate-disconnect-after-resign"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4",
+        "hla-1516.1-2025:clause-4.1",
         "hla-1516.1-2025:clause-4.1.1"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4",
           "standard_section": "hla-1516.1-2025:clause-4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-038-l21-4-disconnect",
+          "standard_section": "hla-1516.1-2025:clause-4.1"
         },
         {
           "requirement_id": "req-federate-connect-before-rti-work",
@@ -4026,7 +3970,7 @@
           "standard_section": "hla-1516.1-2025:clause-4.1.1"
         }
       ],
-      "mapping_note": "The official C++ API scenario directly checks Create is rejected before Connect, then the federate joins, resigns, and disconnects; a post-Disconnect Create is rejected. These exact observations map req-federate-connect-before-rti-work and req-federate-disconnect-after-resign to §4.1.1; the existing broader federation-lifecycle candidate remains mapped only to §4. No Java provider-runtime or conformance claim is made.",
+      "mapping_note": "The official C++ API scenario directly checks Create is rejected before Connect, then joins, resigns, and calls Disconnect; a post-Disconnect Create is rejected. The explicit §4.1 p. 38 l. 21 requirement row maps to the application-lifecycle witness (the federate's no-further-join/create path ends in Disconnect). The separate helper requirements req-federate-connect-before-rti-work and req-federate-disconnect-after-resign remain mapped to §4.1.1. This demonstrates the sequence in this TCK federate, not arbitrary caller intent or universal application compliance.",
       "contract_refs": [
         "standard-federation-lifecycle-contract.json",
         "standard-connection-callback-contract.json"
@@ -4035,6 +3979,7 @@
       "runner_id": "cpp-tck.connect-before-federation-disconnect-after-resign",
       "parity": "java-tck.connect-before-federation-disconnect-after-resign",
       "default_status": "adapter-required",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed this scenario under HLA_EVOKED and HLA_IMMEDIATE (2/2 focused CTests and 2/2 direct calls, zero skips). Results: .build/cpp-tck-evidence-20261116/disconnect-after-resign.json and .xml. The §4.1.1 lifecycle sequence is exercised by this TCK federate; no claim is made about arbitrary application intent or universal conformance.",
       "promotion": "promoted"
     },
     {
@@ -6421,6 +6366,7 @@
       ],
       "cpp_test": "src/tck_data_encoding.cpp#scenarioFixedRecordAlignment",
       "runner_id": "cpp-tck.fixed-record-alignment",
+      "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/fixed-record-alignment.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.encoder-round-trip",
       "parity_scope_note": "This C++-first focused byte-layout scenario narrows the broader Java encoder round-trip area. No equivalent Java execution or Java-specific behavior is claimed.",
       "default_status": "run",
@@ -8699,6 +8645,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomContentReportsPortable",
       "runner_id": "cpp-tck.federation-mom-content-reports",
+      "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner and promoted-result validator valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/federation-mom-content-reports.json and .xml. CTest was not run. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.federation-mom-content-reports",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -8777,6 +8724,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioFederationMomContentReportsContractPortable",
       "runner_id": "cpp-tck.federation-mom-content-reports-contract",
+      "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner and promoted-result validator valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/federation-mom-content-reports-contract.json and .xml. CTest was not run. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.federation-mom-content-reports",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -15029,6 +14977,7 @@
         "immediate"
       ],
       "callback_model_scope_note": "Directly asserts only that Evoke Callback has no effect in HLA_IMMEDIATE; evoked callback behavior is covered by separate scenarios.",
+      "evidence_note": "Verified 2026-11-16 with the installed MinGW C++ TCK package: the HLA_IMMEDIATE execution passed (1/1, zero skips). This was a focused direct run using the existing build/package; CTest was not run. Saved result/JUnit: .build/cpp-tck-evidence-20261116/evoke-callback-immediate-no-effect.{json,xml}. Local-provider execution evidence only; not independent-provider interoperability or conformance.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -16807,6 +16756,7 @@
       ],
       "cpp_test": "src/tck_object_management_scenarios.cpp#scenarioLocalDeleteObjectInstanceNameLookupBoundaryPortable",
       "runner_id": "cpp-tck.local-delete-object-instance-name-lookup-boundary",
+      "evidence_note": "After fixing orphan cleanup, fresh MinGW installed-package execution on 2026-11-16 passed both callback models (2/2 CTests and 2/2 direct calls, zero skips); focused Catch2 regression passed 1/1 and promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/local-delete-object-instance-name-lookup-boundary-pair-fixed.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.local-delete-object-instance-name-lookup-boundary",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -16858,6 +16808,7 @@
       ],
       "cpp_test": "src/tck_object_management_scenarios.cpp#scenarioLocalDeleteObjectInstanceNameLookupBoundaryContractPortable",
       "runner_id": "cpp-tck.local-delete-object-instance-name-lookup-boundary-contract",
+      "evidence_note": "After fixing orphan cleanup, fresh MinGW installed-package execution on 2026-11-16 passed both callback models (2/2 CTests and 2/2 direct calls, zero skips); focused Catch2 regression passed 1/1 and promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/local-delete-object-instance-name-lookup-boundary-pair-fixed.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.local-delete-object-instance-name-lookup-boundary",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -19293,6 +19244,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioInteractionTransportationQueryValidInputsAfterResignationPortable",
       "runner_id": "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/interaction-transportation-query-valid-inputs-after-resignation-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.interaction-transportation-query-valid-inputs-after-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -19346,6 +19298,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioInteractionTransportationQueryValidInputsAfterResignationContractPortable",
       "runner_id": "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/interaction-transportation-query-valid-inputs-after-resignation-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.interaction-transportation-query-valid-inputs-after-resignation",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -20351,6 +20304,52 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federation-visible-object-state-completeness",
+      "category": "object-management",
+      "focus_lane": "fom-federation-visible-state-completeness",
+      "title": "Reflect the complete declared attribute set defining this fixture's federation-visible object state",
+      "api_methods": [
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
+      ],
+      "requirement_ids": [
+        "requirement-source-refinement-object-state-completeness"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-source-refinement-object-state-completeness"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-1.4.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-source-refinement-object-state-completeness",
+          "standard_section": "hla-1516.1-2025:clause-1.4.1"
+        }
+      ],
+      "mapping_note": "Bounded fixture witness only: the two-attribute FOM scenario updates both declared values and requires the observer's reflection to contain exactly those two handles with their exact values. It illustrates federation-visible state for this fixture; the public API cannot detect arbitrary application-private state, so this is not a universal oracle for every FOM or federate application and does not assert complete conformance to §1.4.1.",
+      "contract_refs": [
+        "standard-federation-visible-object-state-completeness-api-contract.json",
+        "standard-federation-visible-object-state-completeness-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_attribute_value_update_request_response.cpp#scenarioFederationVisibleObjectStateCompleteness",
+      "runner_id": "cpp-tck.federation-visible-object-state-completeness",
+      "parity": "not-applicable: bounded C++ fixture witness for an FOM design principle; no Java API parity or universal completeness claim",
+      "default_status": "adapter-required",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed this focused scenario under HLA_EVOKED and HLA_IMMEDIATE (2/2 focused CTests and 2/2 direct calls, zero skips). Results: .build/cpp-tck-evidence-20261116/federation-visible-object-state-completeness.json and .xml. Bounded fixture witness only; it cannot detect arbitrary application-private state and is not universal §1.4.1 conformance evidence.",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.attribute-value-update-request-baseline",
       "category": "object-management",
       "title": "Solicit current owners through the object-instance Request Attribute Value Update overload",
@@ -20431,6 +20430,7 @@
       ],
       "cpp_test": "src/tck_attribute_value_update_request_response.cpp#scenarioAttributeValueUpdateRequestBaseline",
       "runner_id": "cpp-tck.attribute-value-update-request-baseline",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/attribute-value-update-request-baseline-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.attribute-value-update-request-baseline",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -20504,6 +20504,7 @@
       ],
       "cpp_test": "src/tck_attribute_value_update_request_response.cpp#scenarioAttributeValueUpdateRequestBaselineContract",
       "runner_id": "cpp-tck.attribute-value-update-request-baseline-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/attribute-value-update-request-baseline-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.attribute-value-update-request-baseline",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -28809,7 +28810,7 @@
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
-    {
+            {
       "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "category": "ordinary-resign-delete-objects-multi-recipient-fifo",
       "title": "Deliver resign-time ordinary object removals to two active subscribers in producer order",
@@ -28886,7 +28887,7 @@
       "promotion": "promoted",
       "evidence_note": "The installed-package C++ primary and contract passed 4/4 direct executions across HLA_EVOKED and HLA_IMMEDIATE. Evidence: out/cpp-tck-evidence-20261117/resign-delete-objects-multi-recipient-fifo.{json,xml}. The reused build had no matching CTest registrations; this is direct-run local-provider evidence only, not conformance evidence."
     },
-    {
+            {
       "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "category": "ordinary-resign-delete-objects-multi-recipient-fifo",
       "title": "Portable standard adapter-backed resign-time object-removal fan-out contract",
@@ -30826,7 +30827,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.7"
         }
       ],
-      "mapping_note": "Direct mappings: §8.12 covers three timestamped interactions queued before FQR: one at the inclusive request boundary 10 and two at 11 and 12 beyond it; §8.12.3 page-201-l7-1 covers their Receive Interaction route, with all three ordered callbacks observed before Flush Queue Grant. A fourth interaction at 13 is retracted before FQR and is absent from this grant's callback sequence; this is supplemental retraction evidence, not a new direct mapping. Page-201-l28-8 covers the post-FQG send floor: the FQR recipient rejects a TSO timestamp at the optimistic grant time and accepts one at optimistic time plus its actual lookahead. §8.13 covers OLT=min(request 10, delivered timestamps 10, 11, and 12)=10; §8.1.5 covers the same send-floor assertion. RL-349 locally crosswalks the page-202 OLT result from exported §8.13.3 to the §8.13 service result; RL-350 crosswalks the page-182 post-FQG floor from broad Clause 8 to §8.1.5. After retracting the receiver's post-grant send probe, a second FQR(20) emits only a grant, with no replay of the three earlier interactions; Query Logical Time matches that grant. All four initial sends and the first retraction precede FQR(10); no later transport arrivals or callback-start cutoff are claimed. This case contributes the FQR member of the aggregate page-185-l14-4 coverage; the TAR, TARA, FQR, NMR, and NMRA service-specific pairs together exercise the all-services 'received' definition, while this row alone does not cover every service. This is experimental TCK evidence, not provider conformance.",
+      "mapping_note": "Direct mappings: §8.12 covers three timestamped interactions queued before FQR: one at the inclusive request boundary 10 and two at 11 and 12 beyond it; §8.12.3 page-201-l7-1 covers their Receive Interaction route, with all three ordered callbacks observed before Flush Queue Grant. A fourth interaction at 13 is retracted before FQR and is absent from this grant's callback sequence; this is supplemental retraction evidence, not a new direct mapping. Page-201-l28-8 covers the post-FQG send floor: the FQR recipient rejects a TSO timestamp at the optimistic grant time and accepts one at optimistic time plus its actual lookahead. §8.13 covers OLT=min(request 10, delivered timestamps 10, 11, and 12)=10; §8.1.5 covers the same send-floor assertion. RL-349 locally crosswalks the page-202 OLT result from exported §8.13.3 to the §8.13 service result; RL-350 crosswalks the page-182 post-FQG floor from broad Clause 8 to §8.1.5. After retracting the receiver's post-grant send probe, a second FQR(20) emits only a grant, with no replay of the three earlier interactions; Query Logical Time matches that grant. All four initial sends and the first retraction precede FQR(10); no later transport arrivals or callback-start cutoff are claimed. The same prequeued-message behavior also passes through two independent TCP client processes and the authoritative coordinator in both callback models; this adds process-boundary evidence, not a new mapping. This case contributes the FQR member of the aggregate page-185-l14-4 coverage; the TAR, TARA, FQR, NMR, and NMRA service-specific pairs together exercise the all-services 'received' definition, while this row alone does not cover every service. This is experimental TCK evidence, not provider conformance.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -30929,7 +30930,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.7"
         }
       ],
-      "mapping_note": "Contract twin of the same §8.12 and §8.12.3 public-API witness: interactions at request boundary 10 and future times 11 and 12 are delivered in timestamp order before Flush Queue Grant. A fourth interaction at 13 is retracted before FQR and absent from this grant's callback sequence; retraction is supplemental evidence, not a new direct mapping. §8.13 covers OLT=min(request 10, delivered timestamps 10, 11, and 12)=10. Page-201-l28-8 and §8.1.5 cover rejecting a post-FQG send at optimistic time and accepting one at optimistic time plus lookahead. After the receiver retracts that send probe, FQR(20) emits only a grant and Query Logical Time matches it; no earlier interaction replays. RL-349 and RL-350 retain the local §8.13 and §8.1.5 crosswalks. No later transport arrivals or callback-start cutoff are claimed. This is experimental TCK evidence, not provider conformance.",
+      "mapping_note": "Contract twin of the same §8.12 and §8.12.3 public-API witness: interactions at request boundary 10 and future times 11 and 12 are delivered in timestamp order before Flush Queue Grant. A fourth interaction at 13 is retracted before FQR and absent from this grant's callback sequence; retraction is supplemental evidence, not a new direct mapping. §8.13 covers OLT=min(request 10, delivered timestamps 10, 11, and 12)=10. Page-201-l28-8 and §8.1.5 cover rejecting a post-FQG send at optimistic time and accepting one at optimistic time plus lookahead. After the receiver retracts that send probe, FQR(20) emits only a grant and Query Logical Time matches it; no earlier interaction replays. RL-349 and RL-350 retain the local §8.13 and §8.1.5 crosswalks. The same prequeued-message behavior also passes through two independent TCP client processes and the authoritative coordinator in both callback models; this adds process-boundary evidence, not a new mapping. No later transport arrivals or callback-start cutoff are claimed. This is experimental TCK evidence, not provider conformance.",
       "contract_refs": [
         "standard-timestamped-interaction-flush-queue-future-input-contract.json"
       ],
@@ -42546,7 +42547,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "For page 197 l104 / §8.10, with the regulator at its initial time and GALT at 5, NMR(3) grants exactly at 3 without a regulator advance. For §8.1.6's strict less-than-GALT rule, the same case requests NMR(5) at GALT equality and confirms it remains pending with no time change while the regulator is stationary; after the regulator advances to 5 and GALT rises to 10, the requester grants at 5. This is a bounded no-message two-federate witness; concurrent future-message arrivals, NMRA, other federate counts, and provider conformance are not inferred.",
+      "mapping_note": "For page 197 l104 / §8.10, with the regulator at its initial time and GALT at 5, NMR(3) grants exactly at 3 without a regulator advance. For §8.1.6's strict less-than-GALT rule, the same case requests NMR(5) at GALT equality and confirms it remains pending with no time change while the regulator is stationary; after the regulator advances to 5 and GALT rises to 10, the requester grants at 5. The case passes both the in-process public TCK path and the current-process adapter with requester/regulator in separate processes through one authoritative coordinator (primary/contract × HLA_EVOKED/HLA_IMMEDIATE, focused CTest 4/4). This is a bounded no-message two-federate witness; concurrent future-message arrivals, NMRA, other federate counts, and provider conformance are not inferred.",
       "contract_refs": [
         "standard-next-message-request-contract.json"
       ],
@@ -42587,7 +42588,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "For the page-197 l104 / §8.10 branch, defined GALT 5 and NMR(3) produce one grant at 3 without regulator advance. For §8.1.6's strict less-than-GALT rule, NMR(5) at GALT equality remains pending without a grant or time change while the regulator is stationary; after the regulator advances to 5 and GALT rises to 10, the requester grants at 5. This is a bounded no-message two-federate witness; concurrent future-message arrivals, NMRA, other federate counts, and provider conformance are not inferred.",
+      "mapping_note": "For the page-197 l104 / §8.10 branch, defined GALT 5 and NMR(3) produce one grant at 3 without regulator advance. For §8.1.6's strict less-than-GALT rule, NMR(5) at GALT equality remains pending without a grant or time change while the regulator is stationary; after the regulator advances to 5 and GALT rises to 10, the requester grants at 5. The contract twin also passes the current-process adapter with requester/regulator in separate processes through one authoritative coordinator (primary/contract × HLA_EVOKED/HLA_IMMEDIATE, focused CTest 4/4). This is a bounded no-message two-federate witness; concurrent future-message arrivals, NMRA, other federate counts, and provider conformance are not inferred.",
       "contract_refs": [
         "standard-next-message-request-contract.json"
       ],
@@ -43965,7 +43966,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "No TSO is sent. With GALT undefined, the NRG-enabled requester grants at TARA(10) without regulator advancement. Under the NRG-disabled FOM it remains at initial logical time until two regulators resume with distinct lookaheads: advancing the primary to 11 alone must leave TARA pending and GALT at the second regulator's lower bound; advancing the second regulator then clears the request and permits the grant at 10. Focused MinGW direct execution passed 4/4 primary/contract × HLA_EVOKED/HLA_IMMEDIATE cases in the installed-package run and 4/4 through the authoritative process endpoint. This remains bounded evidence for the existing §8.9 and §8.1.6 mappings; it asserts no GALT formula, other advance services, full clause coverage, interoperability, or provider conformance.",
+      "mapping_note": "No TSO is sent. With GALT undefined, the NRG-enabled requester grants at TARA(10) without regulator advancement. Under the NRG-disabled FOM it remains at initial logical time until two regulators resume with distinct lookaheads: advancing the primary to 11 alone leaves TARA pending while the second regulator still holds GALT below the request; advancing the second regulator then permits the grant at 10. The pair passes both the in-process public TCK path and the current-process adapter with requester and two regulators in separate client processes through one authoritative coordinator (primary/contract × HLA_EVOKED/HLA_IMMEDIATE, focused CTest 4/4). Assertions use only the observed below-request and above-request bounds, not a prescribed GALT formula. This remains bounded evidence for the existing §8.9 and §8.1.6 mappings, not other advance services, full clause coverage, interoperability, or provider conformance.",
       "contract_refs": [
         "time-advance-request-available-api-contract.json",
         "time-advance-request-available-requirements-contract.json",
@@ -44013,7 +44014,7 @@
           "standard_section": "hla-1516.1-2025:clause-8.1.6"
         }
       ],
-      "mapping_note": "The contract twin reuses the primary no-TSO TARA scenario and is not independent coverage. NRG enabled grants at 10 while GALT remains undefined and without regulator advancement; NRG disabled waits after only the primary regulator advances because the second regulator still defines lower GALT, then grants at 10 after the second advances. Focused MinGW direct execution passed 4/4 primary/contract × HLA_EVOKED/HLA_IMMEDIATE cases in the installed-package run and 4/4 through the authoritative process endpoint. Scope remains the selected §8.9 and §8.1.6 behavior only, with no GALT-formula, complete-clause, interoperability, or provider-conformance claim.",
+      "mapping_note": "The contract twin reuses the primary no-TSO TARA scenario and is not independent coverage. NRG enabled grants at 10 while GALT remains undefined and without regulator advancement; NRG disabled waits after only the primary regulator advances because the second regulator still leaves GALT below the request, then grants at 10 after the second advances. The primary/contract × HLA_EVOKED/HLA_IMMEDIATE group passes through the current-process adapter with requester and both regulators in separate client processes on one authoritative coordinator (focused CTest 4/4). Scope remains the selected §8.9 and §8.1.6 outcomes; no GALT formula, complete-clause, interoperability, or provider-conformance claim is made.",
       "contract_refs": [
         "time-advance-request-available-requirements-contract.json",
         "non-regulated-grant-switch-requirements-contract.json"
@@ -52092,6 +52093,7 @@
       ],
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioPrivilegeToDeleteTransfer",
       "runner_id": "cpp-tck.privilege-to-delete-transfer",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Evidence: .build/cpp-tck-evidence-20261116/privilege-to-delete-transfer-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.privilege-to-delete-transfer",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -52149,6 +52151,7 @@
       ],
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioPrivilegeToDeleteTransferContract",
       "runner_id": "cpp-tck.privilege-to-delete-transfer-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Evidence: .build/cpp-tck-evidence-20261116/privilege-to-delete-transfer-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.privilege-to-delete-transfer",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -54122,6 +54125,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioModifyLookahead",
       "runner_id": "cpp-tck.modify-lookahead",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/modify-lookahead-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.modify-lookahead-contract",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -54207,6 +54211,7 @@
       "mapping_note": "Contract twin of the primary scenario. The §8.15.3 mapping covers its two-grant pending-lookahead formula; §8.20.4 covers the Modify Lookahead behavior and §8.21.5 covers Query Lookahead's actual values. Query/modify precondition and invalid-input exception probes are supplemental; callback delivery and cleanup are not separately mapped. This is experimental test evidence, not provider conformance.",
       "cpp_test": "src/portable_tck.cpp#scenarioModifyLookaheadContract",
       "runner_id": "cpp-tck.modify-lookahead-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/modify-lookahead-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.modify-lookahead",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -54426,6 +54431,121 @@
       "runner_id": "cpp-tck.transportation-type-change-contract",
       "parity": "cpp-tck.transportation-type-change",
       "default_status": "adapter-required",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.reliable-transport-one-copy-delivery",
+      "category": "transportation-semantics",
+      "focus_lane": "reliable-transport-one-copy-delivery",
+      "title": "Deliver each receive-order interaction exactly once using HLAreliable",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.sendInteraction",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.receiveInteraction"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l19-4"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l19-4"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l19-4",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11",
+          "note": "The sender submits three distinct receive-order interactions on the standard HLAreliable type. The joined receiver must observe exactly one callback for each unique tag, with the expected producer and HLAreliable identity. This is a bounded no-loss witness for the reliable one-copy branch; it does not inject transport failure or require HLAbestEffort to lose data."
+        }
+      ],
+      "mapping_note": "Focused public-API witness for the reliable one-copy branch of §6.1.11. Best-effort loss is permitted, not required; the scenario does not treat successful best-effort delivery as a failure or claim reliability under arbitrary transport faults.",
+      "contract_refs": [
+        "reliable-transport-one-copy-api-contract.json",
+        "reliable-transport-one-copy-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_reliable_transport_one_copy.cpp#scenarioReliableTransportOneCopyDelivery",
+      "runner_id": "cpp-tck.reliable-transport-one-copy-delivery",
+      "parity": "not-applicable: bounded reliable transport behavior witness",
+      "default_status": "adapter-required",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed 2/2 focused CTests and 2/2 direct runs under HLA_EVOKED and HLA_IMMEDIATE. The receiver observed exactly one callback for each of three distinct receive-order sends and each callback reported HLAreliable. Results/JUnit: .build/cpp-tck-evidence-20261116/reliable-transport-one-copy-delivery.json and .xml. Bounded local-provider evidence only; no loss was injected, best-effort loss is not required, and no independent-provider or conformance claim is made.",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.unsupported-fom-transportation-fallback",
+      "category": "transportation-semantics",
+      "focus_lane": "unsupported-fom-transportation-fallback",
+      "title": "Fall back from unavailable FOM transport types by reliability",
+      "api_methods": [
+        "RTIambassador.connect with RtiConfiguration",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l18-5"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l18-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11",
+          "note": "An adapter-supplied additional-settings precondition makes the FOM's custom best-effort transportation unavailable. The official C++ Query/Report API must report HLAbestEffort as the effective type."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l18-5",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11",
+          "note": "With the same adapter-established unavailability precondition, the official C++ attribute and interaction query/report and change/confirmation surfaces must map an unavailable reliable custom type to HLAreliable."
+        }
+      ],
+      "mapping_note": "The current-package adapter supplies an implementation-specific additional-settings value solely to establish the conditional unavailable-type precondition; the TCK source does not encode its syntax. All behavior assertions use the official C++ API and require SETTINGS_APPLIED before testing. The scenario checks best-effort fallback for FOM-declared defaults and reliable fallback for unsupported requested types across both attribute and interaction query/report paths. This is adapter-required local-provider evidence, not a claim that every RTI lacks support for arbitrary custom transport names, and not independent-provider conformance evidence.",
+      "contract_refs": [
+        "unsupported-fom-transportation-fallback-api-contract.json",
+        "unsupported-fom-transportation-fallback-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_unsupported_fom_transportation_fallback.cpp#scenarioUnsupportedFomTransportationFallback",
+      "runner_id": "cpp-tck.unsupported-fom-transportation-fallback",
+      "parity": "not-applicable: adapter-established conditional behavior",
+      "default_status": "adapter-required",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "promotion": "promoted"
     },
     {
@@ -55135,6 +55255,7 @@
       ],
       "cpp_test": "src/tck_region_lifecycle_scenarios.cpp#scenarioRegionLifecycle",
       "runner_id": "cpp-tck.region-lifecycle",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls across the primary/contract pair, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/region-lifecycle-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.region-lifecycle",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -55217,6 +55338,7 @@
       ],
       "cpp_test": "src/tck_region_lifecycle_scenarios.cpp#scenarioRegionLifecycleContract",
       "runner_id": "cpp-tck.region-lifecycle-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls across the primary/contract pair, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/region-lifecycle-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.region-lifecycle",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -60926,6 +61048,7 @@
       ],
       "cpp_test": "src/tck_declaration_management_scenarios.cpp#scenarioStartRegistrationAdvisorySwitchGating",
       "runner_id": "cpp-tck.start-registration-advisory-switch-gating",
+      "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner and promoted-result validator valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/start-registration-advisory-switch-gating.json and .xml. CTest was not run. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.start-registration-advisory-switch-gating",
       "parity_scope_note": "The Java mirror now includes the C++ no-replay check: after Start Registration is suppressed while the publisher switch is disabled, it re-enables the switch with the same regional subscription active and requires no replayed Start. It also checks disabled-switch Start/Stop suppression and exactly one Start/Stop after fresh enabled transitions. The §10.1.2.1 no-replay witness is paired; superclass and multi-attribute behavior, independent-provider interoperability, and conformance remain outside scope.",
       "default_status": "adapter-required",
@@ -62539,6 +62662,7 @@
       ],
       "cpp_test": "src/tck_regional_interaction_mixed_absent_unsubscribe.cpp#scenarioRegionalInteractionMixedAbsentUnsubscribeSet",
       "runner_id": "cpp-tck.regional-interaction-mixed-absent-unsubscribe",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls across the primary/contract pair, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/regional-interaction-mixed-absent-unsubscribe-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.regional-interaction-mixed-absent-unsubscribe",
       "parity_scope_note": "The Java mirror checks initial delivery through active region R, delivery after a mixed {R, A} unsubscribe where A is committed but absent, and suppression after a later unsubscribe of R alone. The pairing is limited to the §9.11 absent-member no-change behavior and does not claim unrelated DDM exception or conformance coverage.",
       "default_status": "adapter-required",
@@ -62578,6 +62702,7 @@
       ],
       "cpp_test": "src/tck_regional_interaction_mixed_absent_unsubscribe.cpp#scenarioRegionalInteractionMixedAbsentUnsubscribeSetContract",
       "runner_id": "cpp-tck.regional-interaction-mixed-absent-unsubscribe-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls across the primary/contract pair, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/regional-interaction-mixed-absent-unsubscribe-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.regional-interaction-mixed-absent-unsubscribe",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -64113,6 +64238,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioSynchronizationPointExplicitSetLateJoin",
       "runner_id": "cpp-tck.synchronization-point-explicit-set-late-join",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/synchronization-point-explicit-set-late-join-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.synchronization-explicit-set-late-join",
       "default_status": "run",
       "promotion": "promoted"
@@ -64169,6 +64295,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioSynchronizationPointExplicitSetLateJoinContract",
       "runner_id": "cpp-tck.synchronization-point-explicit-set-late-join-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Results: .build/cpp-tck-evidence-20261116/synchronization-point-explicit-set-late-join-pair.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "cpp-tck.synchronization-point-explicit-set-late-join",
       "default_status": "run",
       "promotion": "promoted"
@@ -66157,6 +66284,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAsynchronousDeliveryTimeAdvancingRo",
       "runner_id": "cpp-tck.asynchronous-delivery-time-advancing-ro",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the async receive-order pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Evidence: .build/cpp-tck-evidence-20261116/asynchronous-receive-order-delivery-pair.json and .xml. This is receive-order delivery only; no asynchronous TSO or future transport-arrival claim.",
       "parity": "java-tck.asynchronous-delivery-time-advancing-ro",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -66211,6 +66339,7 @@
       ],
       "cpp_test": "src/main.cpp#scenarioAsynchronousDeliveryDisabledTimeAdvancingRo",
       "runner_id": "cpp-tck.asynchronous-delivery-disabled-time-advancing-ro",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2 focused CTests and 2/2 direct calls, zero skips); promoted-result validation is clean. Evidence: .build/cpp-tck-evidence-20261116/asynchronous-delivery-disabled-time-advancing-ro.json and .xml. This covers receive-order callback eligibility during Time Advancing only.",
       "parity": "java-tck.asynchronous-delivery-disabled-time-advancing-ro",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -66259,6 +66388,7 @@
       ],
       "cpp_test": "src/tck_receive_order_callback_cancellation.cpp#scenarioAsynchronousAttributeDelivery",
       "runner_id": "cpp-tck.asynchronous-attribute-delivery",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the async receive-order pair under HLA_EVOKED and HLA_IMMEDIATE (4/4 focused CTests and 4/4 direct calls, zero skips); promoted-result validation is clean. Evidence: .build/cpp-tck-evidence-20261116/asynchronous-receive-order-delivery-pair.json and .xml. This is receive-order delivery only; no asynchronous TSO or future transport-arrival claim.",
       "parity": "java-tck.asynchronous-delivery",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -69372,6 +69502,110 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-application-save-identity",
+      "category": "federation-save-restore",
+      "focus_lane": "federate-application-save-identity",
+      "title": "Use the save label, federate type, and Join result to distinguish sample state across save and restore",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.requestFederationSave",
+        "RTIambassador.federateSaveBegun",
+        "RTIambassador.federateSaveComplete",
+        "RTIambassador.requestFederationRestore",
+        "RTIambassador.federateRestoreComplete",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.initiateFederateSave",
+        "FederateAmbassador.federationSaved",
+        "FederateAmbassador.requestFederationRestoreSucceeded",
+        "FederateAmbassador.requestFederationRestoreFailed",
+        "FederateAmbassador.federationRestoreBegun",
+        "FederateAmbassador.initiateFederateRestore",
+        "FederateAmbassador.federationRestored",
+        "FederateAmbassador.federationNotRestored"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-044-l15-4",
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-type"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-044-l15-4",
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-type"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.2",
+        "hla-1516.1-2025:clause-4.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-044-l15-4",
+          "standard_section": "hla-1516.1-2025:clause-4.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-type",
+          "standard_section": "hla-1516.1-2025:clause-4.11",
+          "note": "The sample federate applications use distinct category strings passed to Join Federation Execution and key their save records by that type, the save label, and the saved Join handle. During a real Federation Restore, each application uses its own category plus the restore label and saved Join handle to select its matching record before completing restore. This is bounded application-side evidence, not an RTI requirement to store application state."
+        }
+      ],
+      "mapping_note": "Bounded federate-application witness for §§4.1.2 and 4.11: two sample federates join with distinct category types, then each stores state under the exact save label received in Initiate Federate Save, its Join-supplied type, and its Join-returned FederateHandle. The TCK requests a real restore, selects each sample application's matching state using the same identity tuple, and completes the standard restore lifecycle. This demonstrates only the sample applications' use of the fields; it does not prove arbitrary applications use them or test provider-specific saved-state storage.",
+      "contract_refs": [
+        "standard-federate-application-save-identity-api-contract.json",
+        "standard-federate-application-save-identity-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_federate_save_identity.cpp#scenarioFederateSaveIdentity",
+      "runner_id": "cpp-tck.federate-application-save-identity",
+      "parity": "not-applicable: bounded C++ sample federate-application save-identity witness; no Java application-state parity or provider-format claim",
+      "default_status": "adapter-required",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed this focused scenario under HLA_EVOKED and HLA_IMMEDIATE (2/2 focused CTests and 2/2 direct runs, zero skips). The case joins two distinct federate-type categories, saves two labels, requests a real restore of the second label, verifies each restore callback and the category/label/Join-handle state lookup, then completes restore. Results/JUnit: .build/cpp-tck-evidence-20261116/federate-application-save-identity-type-restore.json and .xml. This is bounded sample-application behavior, not arbitrary-application, provider-storage, interoperability, or conformance evidence.",
+      "promotion": "promoted"
+    },
+    {
+      "id": "cpp-tck.federate-application-join-intent",
+      "category": "federation-management",
+      "focus_lane": "federate-application-join-intent",
+      "title": "Select the intended federation in the Join Federation Execution call",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-intent"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-intent"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-057-l32-5-intent",
+          "standard_section": "hla-1516.1-2025:clause-4.11",
+          "note": "The sample application records one intended federation name, passes that exact name to Join Federation Execution, and public observers verify the joined federate is present in that execution and absent from a decoy execution. The RTI does not report subjective intent; evidence is limited to the application's explicit selection and resulting membership."
+        }
+      ],
+      "mapping_note": "Bounded public-API sample-application witness for §4.11: the application chooses a target federation, passes it in the official Join call, and observers query target and decoy executions to verify only the specified execution contains the joined member. This does not claim an RTI-visible subjective-intent state or general conformance.",
+      "contract_refs": [
+        "standard-federate-application-join-intent-api-contract.json",
+        "standard-federate-application-join-intent-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_federation_join_intent.cpp#scenarioJoinFederationIntent",
+      "runner_id": "cpp-tck.federate-application-join-intent",
+      "parity": "not-applicable: bounded C++ sample federate-application intent witness; no Java provider or subjective-intent claim",
+      "default_status": "adapter-required",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed 2/2 focused CTests and 2/2 direct runs under HLA_EVOKED and HLA_IMMEDIATE. The sample app chooses an explicit target name; public observers found the member in that execution and received NameNotFound when querying the decoy execution. Results/JUnit: .build/cpp-tck-evidence-20261116/federate-application-join-intent.json and .xml. This bounds the claim to the application's explicit selection and actual membership; the RTI has no subjective-intent observable. No interoperability or conformance claim.",
+      "promotion": "promoted"
+    },
+    {
       "id": "cpp-tck.restore-federate-type-count-mismatch",
       "category": "federation-save-restore",
       "title": "Reject restore when federate-type membership counts differ from the saved federation",
@@ -69501,7 +69735,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.21.1",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69516,7 +69749,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l22-5",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
@@ -69581,7 +69814,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.21.1",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69596,7 +69828,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l22-5",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l142-36",
@@ -69666,7 +69898,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69681,11 +69912,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -69748,7 +69979,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69763,11 +69993,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -69835,7 +70065,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69850,11 +70079,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -69918,7 +70147,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -69933,11 +70161,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70004,7 +70232,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -70019,11 +70246,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70086,7 +70313,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -70101,11 +70327,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70172,7 +70398,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -70187,11 +70412,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70254,7 +70479,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.23"
       ],
@@ -70269,11 +70493,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70340,7 +70564,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70350,11 +70573,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70410,7 +70633,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70420,11 +70642,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70487,7 +70709,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70497,11 +70718,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70557,7 +70778,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70567,11 +70787,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70637,7 +70857,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70647,11 +70866,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70710,7 +70929,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70720,11 +70938,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70794,7 +71012,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70804,11 +71021,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70872,7 +71089,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70882,11 +71098,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -70956,7 +71172,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -70966,11 +71181,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71030,7 +71245,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71040,11 +71254,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71105,7 +71319,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71115,7 +71328,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71169,7 +71382,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71179,7 +71391,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71530,7 +71742,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71540,7 +71751,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71595,7 +71806,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71605,7 +71815,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71668,7 +71878,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71678,11 +71887,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71738,7 +71947,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71748,11 +71956,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71815,7 +72023,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71829,11 +72036,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71890,7 +72097,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71904,11 +72110,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -71972,7 +72178,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -71986,11 +72191,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -72048,7 +72253,6 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-4.12",
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -72062,11 +72266,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -78443,7 +78647,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.27",
         "hla-1516.1-2025:clause-4.29",
@@ -78463,11 +78666,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -78604,7 +78807,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.19",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20",
         "hla-1516.1-2025:clause-4.27",
         "hla-1516.1-2025:clause-4.29",
@@ -78624,11 +78826,11 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l10-1",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -79711,7 +79913,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.7",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -79721,7 +79922,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -79764,7 +79965,6 @@
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-8.1.7",
-        "hla-1516.1-2025:clause-4.19.6",
         "hla-1516.1-2025:clause-4.20"
       ],
       "requirement_mappings": [
@@ -79774,7 +79974,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-066-l16-3",
-          "standard_section": "hla-1516.1-2025:clause-4.19.6"
+          "standard_section": "hla-1516.1-2025:clause-4.19"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-067-l37-8",
@@ -81227,8 +81427,23 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-query-galt-lits",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-287-l105-34",
+          "standard_section": "hla-1516.1-2025:clause-11.2",
+          "note": "This contract scenario runs the same HLAsetTiming periodic-report route and requires two distinct HLAGALT/HLALITS reflections without another value request. The mapping is limited to these selected periodic values."
+        }
+      ],
+      "mapping_note": "Direct §11.2 p. 287 l. 105 witness for periodic reporting of HLAGALT and HLALITS under HLAsetTiming; this companion does not claim every Table 8 value, all HLAadjust controls, or conformance.",
       "contract_refs": [
         "standard-joined-federate-mom-galt-lits-contract.json"
       ],
@@ -81388,8 +81603,23 @@
         "cpp-1516.1-interaction-parameter-delivery",
         "cpp-1516.1-timestamped-interaction-delivery",
         "cpp-1516.1-time-advance-request",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-287-l108-35"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-287-l108-35"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-287-l108-35",
+          "standard_section": "hla-1516.1-2025:clause-11.2",
+          "note": "The contract companion exercises the same queued timestamped-interaction path and checks HLATSOlength while the TSO message remains pending. This is limited to the selected joined-federate queue-length value, not all Table 8 metrics or other queued-message classes."
+        }
+      ],
+      "mapping_note": "Direct §11.2 p. 287 l. 108 witness for the selected HLATSOlength value while a timestamped interaction is queued; no broader metrics or conformance are claimed.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -81466,8 +81696,23 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-287-l105-34",
+          "standard_section": "hla-1516.1-2025:clause-11.2",
+          "note": "The C++ scenario sends HLAsetTiming for the receiver with HLAreportPeriod=1 and requires periodic HLAROlength reflections while a receive-order interaction is pending. This witnesses periodic reporting for this selected MOM value only; it does not cover all Table 8 metrics or HLAadjust controls."
+        }
+      ],
+      "mapping_note": "Direct §11.2 p. 287 l. 105 witness for periodic reporting of HLAROlength in response to HLAsetTiming. The test checks the selected value while receive-order interactions are queued; other periodic metrics, cadence combinations, interoperability, and conformance are not claimed.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -81520,8 +81765,23 @@
         "cpp-1516.1-explicit-mim-composition",
         "cpp-1516.1-attribute-value-update-request",
         "cpp-1516.1-interaction-parameter-delivery",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-10-support-services-page-287-l105-34"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-11.2"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-287-l105-34",
+          "standard_section": "hla-1516.1-2025:clause-11.2",
+          "note": "The contract scenario exercises the same HLAsetTiming reporting behavior as the primary case and checks HLAROlength periodically while receive-order traffic is pending. The mapping is limited to periodic reporting of this selected attribute."
+        }
+      ],
+      "mapping_note": "Direct §11.2 p. 287 l. 105 witness for periodic reporting of HLAROlength in response to HLAsetTiming. This contract case does not establish all Table 8 metric behavior or conformance.",
       "contract_refs": [
         "explicit-mim-api-contract.json",
         "explicit-mim-requirements-contract.json",
@@ -88346,6 +88606,7 @@
       ],
       "cpp_test": "src/tck_fom_module_scenarios.cpp#scenarioFomTransportationHandleStability",
       "runner_id": "cpp-tck.fom-transportation-handle-stability",
+      "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner and promoted-result validator valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/fom-transportation-handle-stability.json and .xml. CTest was not run. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.fom-transportation-handle-stability",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -88757,7 +89018,7 @@
       ],
       "mapping_note": "This focused scenario resolves and round-trips the P0 class-scoped attribute handle/name pair, publishes and actively subscribes to that attribute, reserves and registers a named instance, and verifies Get Known Object Class Handle, Get Object Instance Name, and Get Object Instance Handle through both the registering owner immediately after registration and the observer after discovery. The owner-side assertions supplement the same direct mappings; no new requirement row or broader unknown-object lifecycle claim is added.",
       "parity_scope_note": "The Java twin covers the class/attribute handle agreement and discovered-object lookups. This C++ case additionally round-trips the class-scoped attribute handle with Get Attribute Name; the separate java-tck.attribute-name-lookup scenario provides Java clause 10.10 coverage.",
-      "evidence_note": "Current-source MinGW/Ninja installed-package run passed 2/2 focused CTests and 2/2 direct executions across HLA_EVOKED/HLA_IMMEDIATE with zero skips after adding owner-side known-class, instance-name, and instance-handle lookups immediately after registration; the existing observer-side checks still pass after discovery. The runner image is 68,465,185 bytes with 0 DWARF. Results: .build/cpp-tck-known-object-owner-lookup-20261113/results.json and results.xml. Focused promoted-result validation is clean. No independent-provider or conformance claim. Build-quality snapshot 20261113T180927.165586Z-e6321e84 is partial and reports repository-wide quality failures, not a focused TCK failure.",
+      "evidence_note": "Historical current-source MinGW/Ninja run on 2026-11-13 passed 2/2 CTests and 2/2 direct executions; evidence: .build/cpp-tck-parameter-lookup-member-base-20261113/results.json and results.xml. Latest replay on 2026-11-16 with the rich TCK model FOM also passed 2/2 focused CTests and 2/2 direct executions under HLA_EVOKED and HLA_IMMEDIATE, zero skips; runner and promoted-result validator valid=true. Latest evidence: .build/cpp-tck-evidence-20261116/parameter-lookup-lifecycle.json and .xml. Local-provider evidence only; no interoperability or conformance claim.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "attribute-name-lookup-api-contract.json",
@@ -90195,6 +90456,7 @@
       ],
       "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReference",
       "runner_id": "cpp-tck.fom-data-type-forward-reference",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair (4/4 focused CTests and 4/4 direct calls across HLA_EVOKED/HLA_IMMEDIATE, zero skips); promoted-result validation is clean. Consumer-only reference rejection and consumer-plus-provider composition both passed. Evidence: .build/cpp-tck-evidence-20261116/fom-data-type-forward-reference-pair.json and .xml. No general FOM merge or conformance claim.",
       "parity": "java-tck.fom-data-type-forward-reference",
       "default_status": "adapter-required",
       "promotion": "promoted"
@@ -90246,6 +90508,7 @@
       ],
       "cpp_test": "src/tck_fom_data_type_merge.cpp#scenarioFomDataTypeForwardReferenceContract",
       "runner_id": "cpp-tck.fom-data-type-forward-reference-contract",
+      "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed the primary and contract pair (4/4 focused CTests and 4/4 direct calls across HLA_EVOKED/HLA_IMMEDIATE, zero skips); promoted-result validation is clean. Consumer-only reference rejection and consumer-plus-provider composition both passed. Evidence: .build/cpp-tck-evidence-20261116/fom-data-type-forward-reference-pair.json and .xml. No general FOM merge or conformance claim.",
       "parity": "cpp-tck.fom-data-type-forward-reference",
       "default_status": "adapter-required",
       "promotion": "promoted"

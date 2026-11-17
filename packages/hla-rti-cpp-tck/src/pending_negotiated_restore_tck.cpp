@@ -392,7 +392,9 @@ void waitFor(
 std::wstring makeFederationName() {
   static std::atomic_uint64_t counter{0U};
   auto const tick = std::chrono::steady_clock::now().time_since_epoch().count();
-  return L"cpp-tck-pending-negotiated-restore-" + std::to_wstring(tick) + L"-" +
+  // The report directory nests this name, and each report filename repeats it.
+  // Keep the resulting Windows filesystem path below the legacy MAX_PATH limit.
+  return L"pnr-" + std::to_wstring(tick) + L"-" +
       std::to_wstring(++counter);
 }
 

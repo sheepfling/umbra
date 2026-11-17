@@ -1008,6 +1008,12 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                     "packages/hla-rti-cpp-tck/fom/delay-subscription-evaluation-tck.xml"
                 )
             ),
+            "transport-order-fdd-default="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/transport-default-best-effort-tck.xml"
+                )
+            ),
             "fqr-undefined-galt-nrg-disabled="
             + str(default_path("packages/hla-rti-cpp-tck/fom/p0-tck.xml")),
             "fqr-undefined-galt-nrg-enabled="
@@ -1161,6 +1167,18 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                 )
             ),
             "attribute-fdd-preferred-order-default="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"
+                )
+            ),
+            "directed-interaction-subscription-accumulation="
+            + str(
+                default_path(
+                    "packages/hla-rti-cpp-tck/fom/directed-interaction-subscription-accumulation-tck.xml"
+                )
+            ),
+            "timestamped-update-before-delete="
             + str(
                 default_path(
                     "packages/hla-rti-cpp-tck/fom/attribute-fdd-preferred-order-tck.xml"

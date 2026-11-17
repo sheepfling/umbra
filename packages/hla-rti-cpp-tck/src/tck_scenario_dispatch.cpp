@@ -1525,6 +1525,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.attribute-value-update-request-baseline") {
     return scenarioAttributeValueUpdateRequestBaseline;
   }
+  if (id == "cpp-tck.federation-visible-object-state-completeness") {
+    return scenarioFederationVisibleObjectStateCompleteness;
+  }
   if (id == "cpp-tck.attribute-value-update-request-baseline-contract") {
     return scenarioAttributeValueUpdateRequestBaselineContract;
   }
@@ -3085,6 +3088,18 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   }
   if (id == "cpp-tck.federation-save-timestamp-eligibility") {
     return scenarioFederateSaveTimestampEligibility;
+  }
+  if (id == "cpp-tck.federate-application-save-identity") {
+    return scenarioFederateSaveIdentity;
+  }
+  if (id == "cpp-tck.federate-application-join-intent") {
+    return scenarioJoinFederationIntent;
+  }
+  if (id == "cpp-tck.reliable-transport-one-copy-delivery") {
+    return scenarioReliableTransportOneCopyDelivery;
+  }
+  if (id == "cpp-tck.unsupported-fom-transportation-fallback") {
+    return scenarioUnsupportedFomTransportationFallback;
   }
   if (id == "cpp-tck.federation-save-timestamp-eligibility-contract") {
     return scenarioFederateSaveTimestampEligibilityContract;

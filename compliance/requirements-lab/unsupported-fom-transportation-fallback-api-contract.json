@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The scenario uses the official C++ RtiConfiguration, transportation query/request services, and FederateAmbassador report/confirmation callbacks. The adapter supplies an implementation-specific additional-settings value only to establish that two custom FOM transportation types are unavailable. That setting syntax is not standardized and is not asserted as normative behavior.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-configured-unavailable-transport-fallback",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::connect(FederateAmbassador&, CallbackModel, RtiConfiguration), queryAttributeTransportationType, requestAttributeTransportationTypeChange, queryInteractionTransportationType, requestInteractionTransportationTypeChange, and the corresponding report/confirmation callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RtiConfiguration::withAdditionalSettings; RTIambassador transportation services; FederateAmbassador transportation callbacks",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_unsupported_fom_transportation_fallback.cpp::scenarioUnsupportedFomTransportationFallback"
+      ]
+    }
+  ]
+}

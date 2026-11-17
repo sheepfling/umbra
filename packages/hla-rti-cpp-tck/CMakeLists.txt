@@ -23,6 +23,8 @@ set(HLA_RTI_TCK_TEST_COMMON_ARGUMENTS "" CACHE STRING
   "Semicolon-separated adapter arguments shared by each CTest scenario")
 set(HLA_RTI_TCK_TEST_SETTINGS_PARSE_FAILURE_INPUT "" CACHE STRING
   "Adapter-provided settings text known to fail parsing for the focused Connect TCK")
+set(HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS "" CACHE STRING
+  "Adapter-provided settings that make the fallback scenario's custom transports unavailable")
 set(HLA_RTI_TCK_TEST_TIMEOUT_SECONDS 0 CACHE STRING
   "CTest timeout for each portable TCK scenario, or 0 for no CTest timeout")
 set(HLA_RTI_TCK_NMR_PROCESS_FIXTURE "" CACHE FILEPATH
@@ -61,6 +63,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_multi_attribute_delivery_scenarios.cpp
   src/tck_attribute_subscription_mode_exclusivity.cpp
   src/tck_interaction_multi_recipient_fanout.cpp
+  src/tck_fqr_process_scenarios.cpp
   src/tck_timestamped_interaction_scheduling_scenarios.cpp
   src/tck_flush_queue_nonlimiting_galt_scenarios.cpp
   src/tck_nrg_regulator_resignation.cpp
@@ -129,6 +132,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_directed_interaction_no_applicable_subscription.cpp
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp
+  src/tck_federate_save_identity.cpp
+  src/tck_federation_join_intent.cpp
   src/tck_inherited_derived_delivery_scenarios.cpp
   src/tck_callback_controls_object_ownership.cpp
   src/tck_callback_controls_time_transport.cpp
@@ -156,6 +161,8 @@ add_executable(hla_rti_cpp_tck
   src/tck_timestamped_attribute_pending_tara.cpp
   src/tck_timestamped_attribute_tara_router.cpp
   src/tck_portable_member_control_scenarios.cpp
+  src/tck_reliable_transport_one_copy.cpp
+  src/tck_unsupported_fom_transportation_fallback.cpp
   src/tck_transport_order_type_change.cpp
   src/tck_transport_order_scenarios.cpp
   src/tck_portable_mom_interaction_counts.cpp
@@ -598,7 +605,13 @@ if(BUILD_TESTING)
             _tck_scenario STREQUAL "cpp-tck.timestamped-object-deletion-future-tara-arrival-contract" OR
             _tck_scenario STREQUAL "cpp-tck.nmra-future-tso-arrival-pending-request" OR
             _tck_scenario STREQUAL "cpp-tck.nmra-no-tso-waits-for-galt" OR
-            _tck_scenario STREQUAL "cpp-tck.nmra-no-tso-waits-for-galt-contract"))
+            _tck_scenario STREQUAL "cpp-tck.nmra-no-tso-waits-for-galt-contract" OR
+            _tck_scenario STREQUAL "cpp-tck.nmr-request-below-galt-immediate-grant" OR
+            _tck_scenario STREQUAL "cpp-tck.nmr-request-below-galt-immediate-grant-contract" OR
+            _tck_scenario STREQUAL "cpp-tck.tara-no-tso-undefined-galt-nrg" OR
+            _tck_scenario STREQUAL "cpp-tck.tara-no-tso-undefined-galt-nrg-contract" OR
+            _tck_scenario STREQUAL "cpp-tck.timestamped-interaction-flush-queue-future-input" OR
+            _tck_scenario STREQUAL "cpp-tck.timestamped-interaction-flush-queue-future-input-contract"))
           find_package(Python3 COMPONENTS Interpreter REQUIRED)
           set(_tck_process_adapter TRUE)
           add_test(
@@ -756,6 +769,26 @@ if(BUILD_TESTING)
               --junit
                 "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.junit.xml"
           )
+        elseif(_tck_scenario STREQUAL
+               "cpp-tck.unsupported-fom-transportation-fallback")
+          if(NOT HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS)
+            message(FATAL_ERROR
+              "The transportation-fallback TCK requires adapter-provided unsupported-transport settings")
+          endif()
+          file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tck-results")
+          add_test(
+            NAME "${_tck_test_name}"
+            COMMAND hla_rti_cpp_tck
+              --common-arguments-file "${_tck_common_arguments_file}"
+              --scenario "${_tck_scenario}"
+              --callback-model "${_tck_callback_model}"
+              --additional-settings
+                "${HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS}"
+              --results
+                "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.json"
+              --junit
+                "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.junit.xml"
+          )
         else()
           file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tck-results")
           add_test(
@@ -776,6 +809,24 @@ if(BUILD_TESTING)
            "cpp-tck.nmra-future-tso-arrival-pending-request")
           list(APPEND _tck_test_labels
             "process-time-advance-nmra-future-arrival-pending-request")
+        endif()
+        if(_tck_scenario STREQUAL
+             "cpp-tck.nmr-request-below-galt-immediate-grant" OR
+           _tck_scenario STREQUAL
+             "cpp-tck.nmr-request-below-galt-immediate-grant-contract")
+          list(APPEND _tck_test_labels nmr-cross-federate-grant)
+        endif()
+        if(_tck_scenario STREQUAL
+             "cpp-tck.tara-no-tso-undefined-galt-nrg" OR
+           _tck_scenario STREQUAL
+             "cpp-tck.tara-no-tso-undefined-galt-nrg-contract")
+          list(APPEND _tck_test_labels tara-no-tso-cross-federate-grant)
+        endif()
+        if(_tck_scenario STREQUAL
+             "cpp-tck.timestamped-interaction-flush-queue-future-input" OR
+           _tck_scenario STREQUAL
+             "cpp-tck.timestamped-interaction-flush-queue-future-input-contract")
+          list(APPEND _tck_test_labels fqr-cross-federate-delivery)
         endif()
         if(_tck_process_adapter)
           list(APPEND _tck_test_labels process-adapter)

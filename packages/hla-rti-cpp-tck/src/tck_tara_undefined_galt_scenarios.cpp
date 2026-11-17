@@ -1,8 +1,12 @@
 #include "tck_main_scenarios.hpp"
+#include "tck_nmr_process_coordination.hpp"
 
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -435,6 +439,263 @@ void runNoTsoUndefinedGaltTaraMatrix(
   runNoTsoUndefinedGaltTara(enabledOptions, model, true);
 }
 
+void requireNoTaraProcessGrant(
+    Session& requester,
+    Options const& options,
+    std::string const& context) {
+  auto const observationMilliseconds =
+      std::max(1, std::min(options.timeoutMilliseconds, 250));
+  auto const quietDeadline = Clock::now() +
+      std::chrono::milliseconds(observationMilliseconds);
+  while (Clock::now() < quietDeadline) {
+    requester.pump();
+    require(
+        requester.recorder().timeAdvanceGrants().empty() &&
+            requester.recorder().timedInteractions().empty(),
+        context);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+}
+
+void runNoTsoTaraRequesterProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    bool expectedNrgEnabled,
+    std::filesystem::path const& directory) {
+  auto const switchName = expectedNrgEnabled ? "enabled" : "disabled";
+  auto const fom = options.fom;
+  Session requester(options, model, "owner");
+  requester.connect();
+  auto const federation = federationName(
+      options,
+      std::string("tara-no-tso-undefined-galt-") + switchName);
+  requester.rtiAmbassador().createFederationExecution(
+      federation, fom.wstring(), options.logicalTimeImplementationName);
+  writeNmrProcessMarker(directory, "federation-created.marker");
+  requester.join(options.ownerFederateName, options.federateType, federation);
+
+  auto requesterTime = makeTimeContext(requester);
+  require(
+      requester.rtiAmbassador().getNonRegulatedGrantSwitch() ==
+          expectedNrgEnabled,
+      "process-separated TARA requester has the wrong NRG switch");
+  requester.rtiAmbassador().enableTimeConstrained();
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeConstrainedEnabled().size() == 1U; },
+      options,
+      "process-separated TARA requester Time Constrained callback");
+  waitForNmrProcessMarker(directory, "regulator-one-ready.marker", options);
+  waitForNmrProcessMarker(directory, "regulator-two-ready.marker", options);
+
+  auto const requestTime = timeAfter(
+      *requesterTime.factory,
+      *requesterTime.initial,
+      *requesterTime.epsilon,
+      10U);
+  auto observedGalt = requesterTime.factory->makeInitial();
+  require(
+      observedGalt != nullptr &&
+          !requester.rtiAmbassador().queryGALT(*observedGalt),
+      "process-separated no-TSO TARA started with a defined GALT");
+  requester.rtiAmbassador().timeAdvanceRequestAvailable(*requestTime);
+
+  if (!expectedNrgEnabled) {
+    requireNoTaraProcessGrant(
+        requester,
+        options,
+        "process-separated TARA granted with NRG disabled and GALT undefined");
+    auto currentTime = requesterTime.factory->makeInitial();
+    require(currentTime != nullptr, "process-separated TARA lacks a time query value");
+    requester.rtiAmbassador().queryLogicalTime(*currentTime);
+    requireTimeEquals(
+        *currentTime,
+        *requesterTime.initial,
+        "process-separated TARA advanced before either regulator resumed");
+    writeNmrProcessMarker(directory, "requester-pending.marker");
+    waitForNmrProcessMarker(directory, "regulator-one-resumed.marker", options);
+    waitForNmrProcessMarker(directory, "regulator-two-resumed.marker", options);
+    writeNmrProcessMarker(directory, "advance-primary.marker");
+    waitForNmrProcessMarker(directory, "regulator-one-advanced.marker", options);
+
+    requireNoTaraProcessGrant(
+        requester,
+        options,
+        "process-separated TARA granted while the second regulator remained behind");
+    requester.rtiAmbassador().queryLogicalTime(*currentTime);
+    requireTimeEquals(
+        *currentTime,
+        *requesterTime.initial,
+        "process-separated TARA advanced while one regulator remained behind");
+    require(
+        requester.rtiAmbassador().queryGALT(*observedGalt) &&
+            *observedGalt < *requestTime,
+        "process-separated TARA lost its below-request bound after one regulator advanced");
+    writeNmrProcessMarker(directory, "advance-second.marker");
+    waitForNmrProcessMarker(directory, "regulator-two-advanced.marker", options);
+  }
+
+  waitFor(
+      requester,
+      [&] { return requester.recorder().timeAdvanceGrants().size() == 1U; },
+      options,
+      "process-separated TARA grant at the requested time");
+  auto const grants = requester.recorder().timeAdvanceGrants();
+  require(
+      grants.front().encoded == encodeTime(*requestTime) &&
+          requester.recorder().timedInteractions().empty() &&
+          requester.recorder().callbackOrder() == std::vector<std::string>{"grant"},
+      "process-separated no-TSO TARA did not produce one request-time grant");
+  auto currentTime = requesterTime.factory->makeInitial();
+  require(currentTime != nullptr, "process-separated TARA lacks a final time query value");
+  requester.rtiAmbassador().queryLogicalTime(*currentTime);
+  requireTimeEquals(*currentTime, *requestTime, "process-separated TARA final time");
+  if (expectedNrgEnabled) {
+    require(
+        !requester.rtiAmbassador().queryGALT(*observedGalt),
+        "process-separated NRG-enabled TARA unexpectedly defined GALT");
+  } else {
+    require(
+        requester.rtiAmbassador().queryGALT(*observedGalt) &&
+            *observedGalt > *requestTime,
+        "process-separated TARA granted before both regulators cleared the request");
+  }
+  writeNmrProcessMarker(directory, "requester-completed.marker");
+  waitForNmrProcessMarker(directory, "regulator-one-resigned.marker", options);
+  waitForNmrProcessMarker(directory, "regulator-two-resigned.marker", options);
+  requester.rtiAmbassador().disableTimeConstrained();
+  requester.resign(rti::NO_ACTION);
+  requester.rtiAmbassador().destroyFederationExecution(federation);
+  requester.disconnect();
+}
+
+void runNoTsoTaraRegulatorProcess(
+    Options const& options,
+    rti::CallbackModel model,
+    bool expectedNrgEnabled,
+    bool secondRegulator,
+    std::filesystem::path const& directory) {
+  auto const switchName = expectedNrgEnabled ? "enabled" : "disabled";
+  waitForNmrProcessMarker(directory, "federation-created.marker", options);
+  Session regulator(options, model, "member");
+  regulator.connect();
+  auto const federation = federationName(
+      options,
+      std::string("tara-no-tso-undefined-galt-") + switchName);
+  regulator.join(options.memberFederateName, options.federateType, federation);
+  auto regulatorTime = makeTimeContext(regulator);
+  require(
+      regulator.rtiAmbassador().getNonRegulatedGrantSwitch() ==
+          expectedNrgEnabled,
+      "process-separated TARA regulator has the wrong NRG switch");
+
+  auto const initialLookaheadUnits = secondRegulator ? 1U : 2U;
+  auto const initialGalt = timeAfter(
+      *regulatorTime.factory,
+      *regulatorTime.initial,
+      *regulatorTime.epsilon,
+      initialLookaheadUnits);
+  auto lookahead = regulatorTime.factory->makeZero();
+  require(lookahead != nullptr, "process-separated TARA regulator lacks lookahead");
+  lookahead->setToDifference(*initialGalt, *regulatorTime.initial);
+  regulator.rtiAmbassador().enableTimeRegulation(*lookahead);
+  waitFor(
+      regulator,
+      [&] { return regulator.recorder().timeRegulationEnabled().size() == 1U; },
+      options,
+      "process-separated TARA regulator Time Regulation callback");
+  regulator.rtiAmbassador().disableTimeRegulation();
+  auto const disablePumpDeadline = Clock::now() + std::chrono::milliseconds(50);
+  while (Clock::now() < disablePumpDeadline) {
+    regulator.pump();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  auto const readyMarker = secondRegulator
+      ? "regulator-two-ready.marker"
+      : "regulator-one-ready.marker";
+  writeNmrProcessMarker(directory, readyMarker);
+
+  if (!expectedNrgEnabled) {
+    waitForNmrProcessMarker(directory, "requester-pending.marker", options);
+    regulator.rtiAmbassador().enableTimeRegulation(*lookahead);
+    waitFor(
+        regulator,
+        [&] { return regulator.recorder().timeRegulationEnabled().size() == 2U; },
+        options,
+        "process-separated TARA regulator resumed Time Regulation callback");
+    auto const resumedMarker = secondRegulator
+        ? "regulator-two-resumed.marker"
+        : "regulator-one-resumed.marker";
+    writeNmrProcessMarker(directory, resumedMarker);
+    waitForNmrProcessMarker(
+        directory,
+        secondRegulator ? "advance-second.marker" : "advance-primary.marker",
+        options);
+    auto const target = timeAfter(
+        *regulatorTime.factory,
+        *regulatorTime.initial,
+        *regulatorTime.epsilon,
+        11U);
+    regulator.rtiAmbassador().timeAdvanceRequest(*target);
+    waitFor(
+        regulator,
+        [&] { return regulator.recorder().timeAdvanceGrants().size() == 1U; },
+        options,
+        "process-separated TARA regulator advance");
+    require(
+        regulator.recorder().timeAdvanceGrants().front().encoded == encodeTime(*target),
+        "process-separated TARA regulator reached the wrong time");
+    auto const advancedMarker = secondRegulator
+        ? "regulator-two-advanced.marker"
+        : "regulator-one-advanced.marker";
+    writeNmrProcessMarker(directory, advancedMarker);
+  }
+
+  waitForNmrProcessMarker(directory, "requester-completed.marker", options);
+  require(
+      regulator.recorder().timeAdvanceGrants().size() ==
+          (expectedNrgEnabled ? 0U : 1U),
+      "process-separated TARA regulator made an unexpected number of advances");
+  regulator.resign(rti::NO_ACTION);
+  regulator.disconnect();
+  auto const resignedMarker = secondRegulator
+      ? "regulator-two-resigned.marker"
+      : "regulator-one-resigned.marker";
+  writeNmrProcessMarker(directory, resignedMarker);
+}
+
+void runNoTsoUndefinedGaltTaraProcesses(
+    Options const& options,
+    rti::CallbackModel model) {
+  auto const disabledFom = options.scenarioFoms.find("tara-undefined-galt-nrg-disabled");
+  auto const enabledFom = options.scenarioFoms.find("tara-undefined-galt-nrg-enabled");
+  require(
+      disabledFom != options.scenarioFoms.end() && !disabledFom->second.empty() &&
+          enabledFom != options.scenarioFoms.end() && !enabledFom->second.empty(),
+      "process-separated no-TSO TARA requires both NRG adapter FOMs");
+  auto const runDirectory = nextNmrProcessRunDirectory(options);
+  for (bool const expectedNrgEnabled : {false, true}) {
+    auto variantOptions = options;
+    auto const switchName = expectedNrgEnabled ? "enabled" : "disabled";
+    variantOptions.fom = expectedNrgEnabled ? enabledFom->second : disabledFom->second;
+    auto const directory = runDirectory / switchName;
+    std::filesystem::create_directories(directory);
+    if (options.nmrProcessRole == "requester") {
+      runNoTsoTaraRequesterProcess(
+          variantOptions, model, expectedNrgEnabled, directory);
+    } else if (options.nmrProcessRole == "publisher") {
+      runNoTsoTaraRegulatorProcess(
+          variantOptions, model, expectedNrgEnabled, false, directory);
+    } else if (options.nmrProcessRole == "second-publisher") {
+      runNoTsoTaraRegulatorProcess(
+          variantOptions, model, expectedNrgEnabled, true, directory);
+    } else {
+      throw std::runtime_error(
+          "TARA process role must be requester, publisher, or second-publisher");
+    }
+  }
+}
+
 }  // namespace
 
 void scenarioTaraUndefinedGaltNrg(
@@ -452,6 +713,10 @@ void scenarioTaraUndefinedGaltNrgContract(
 void scenarioTaraNoTsoUndefinedGaltNrg(
     Options const& options,
     rti::CallbackModel model) {
+  if (!options.nmrProcessRole.empty()) {
+    runNoTsoUndefinedGaltTaraProcesses(options, model);
+    return;
+  }
   runNoTsoUndefinedGaltTaraMatrix(options, model);
 }
 

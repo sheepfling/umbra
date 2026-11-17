@@ -4,6 +4,8 @@
 
 namespace hla_rti_cpp_tck::detail {
 
+void scenarioFederationVisibleObjectStateCompleteness(
+    Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestBaseline(Options const&, rti::CallbackModel);
 void scenarioAttributeValueUpdateRequestBaselineContract(Options const&, rti::CallbackModel);
 void scenarioObjectClassAttributeValueUpdateRequestBaseline(

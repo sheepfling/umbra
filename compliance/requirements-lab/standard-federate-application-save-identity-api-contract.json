@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This reference documents a bounded C++ TCK federate-application witness for IEEE 1516.1-2025 §§4.1.2 and 4.11. The sample application joins two distinct federate-type categories, receives Initiate Federate Save, and uses the callback's save label, the type passed to Join Federation Execution, and the FederateHandle retained from the Join result as a composite key for its own records. It then requests the standard restore, selects each category's state with the same identity tuple, and completes the restore lifecycle. It does not claim that arbitrary applications use these values or prescribe provider save formats.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-application-save-identity",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Join Federation Execution and federation save/restore services with FederateAmbassador save and restore initiation/completion callbacks",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador join/save declarations and FederateAmbassador save lifecycle declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_save_identity.cpp::scenarioFederateSaveIdentity"
+      ]
+    }
+  ]
+}

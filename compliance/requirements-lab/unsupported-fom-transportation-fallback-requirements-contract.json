@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-adapter-preconditioned-tck-witness-not-conformance-evidence",
+  "notes": "The scenario verifies the §6.1.11 fallback result through public C++ query/report and change/confirmation services after an adapter has established the standard's conditional unavailable-transport precondition. It tests a custom best-effort FOM default falling back to HLAbestEffort and an unavailable custom reliable requested type falling back to HLAreliable. The adapter-specific setting is only a fixture control; it is not a requirement or portability claim.",
+  "requirements": [
+    {
+      "id": "cpp-tck-unavailable-fom-transport-fallback-defaults",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+      "clause_id": "clause-6.1.11",
+      "source": "packages/hla-rti-cpp-tck/src/tck_unsupported_fom_transportation_fallback.cpp",
+      "source_symbol": "scenarioUnsupportedFomTransportationFallback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_unsupported_fom_transportation_fallback.cpp::scenarioUnsupportedFomTransportationFallback"
+      ]
+    },
+    {
+      "id": "cpp-tck-unavailable-fom-transport-query-report",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l18-5",
+      "clause_id": "clause-6.1.11",
+      "source": "packages/hla-rti-cpp-tck/src/tck_unsupported_fom_transportation_fallback.cpp",
+      "source_symbol": "scenarioUnsupportedFomTransportationFallback",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_unsupported_fom_transportation_fallback.cpp::scenarioUnsupportedFomTransportationFallback"
+      ]
+    }
+  ]
+}

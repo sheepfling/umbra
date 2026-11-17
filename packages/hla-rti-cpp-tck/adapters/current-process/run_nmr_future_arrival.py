@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run public NMR/NMRA/TARA C++ TCK cases through separate TCP clients."""
+"""Run public time-management C++ TCK cases through separate TCP clients."""
 
 from __future__ import annotations
 
@@ -43,6 +43,10 @@ DEFAULT_MIM = (
     / "resources"
     / "mim"
     / "HLAstandardMIM-2025.xml"
+)
+DEFAULT_TARA_NRG_DISABLED_FOM = ROOT / "packages" / "hla-rti-cpp-tck" / "fom" / "p0-tck.xml"
+DEFAULT_TARA_NRG_ENABLED_FOM = (
+    ROOT / "packages" / "hla-rti-cpp-tck" / "fom" / "nrg-interaction-tck.xml"
 )
 SERVER_MODE = "public-server-nmr-cross-listener"
 COMPLETE_MARKER = "nmr-cross-listener-complete.ok"
@@ -96,6 +100,18 @@ SCENARIO_GROUPS = (
         "cpp-tck.nmra-no-tso-waits-for-galt",
         "cpp-tck.nmra-no-tso-waits-for-galt-contract",
     ),
+    (
+        "cpp-tck.nmr-request-below-galt-immediate-grant",
+        "cpp-tck.nmr-request-below-galt-immediate-grant-contract",
+    ),
+    (
+        "cpp-tck.tara-no-tso-undefined-galt-nrg",
+        "cpp-tck.tara-no-tso-undefined-galt-nrg-contract",
+    ),
+    (
+        "cpp-tck.timestamped-interaction-flush-queue-future-input",
+        "cpp-tck.timestamped-interaction-flush-queue-future-input-contract",
+    ),
 )
 SCENARIOS = tuple(scenario for group in SCENARIO_GROUPS for scenario in group)
 
@@ -103,7 +119,7 @@ SCENARIOS = tuple(scenario for group in SCENARIO_GROUPS for scenario in group)
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run official C++ NMR/NMRA/TARA scenarios against separate publisher "
+            "Run official C++ time-management scenarios against separate publisher "
             "and requester processes sharing one authoritative coordinator"
         )
     )
@@ -171,6 +187,8 @@ def run() -> int:
         (arguments.provider_bin, "provider runtime directory"),
         (arguments.fom_path, "restaurant FOM"),
         (arguments.mim_fom, "standard MIM"),
+        (DEFAULT_TARA_NRG_DISABLED_FOM, "TARA NRG-disabled FOM"),
+        (DEFAULT_TARA_NRG_ENABLED_FOM, "TARA NRG-enabled FOM"),
     ):
         if not path.exists():
             raise FileNotFoundError(f"The {label} does not exist: {path}")
@@ -347,46 +365,69 @@ def run() -> int:
                     )
                 for scenario in scenario_group:
                     command.extend(("--scenario", scenario))
+                is_tara_no_tso = any(
+                    scenario.startswith("cpp-tck.tara-no-tso-undefined-galt-nrg")
+                    for scenario in scenario_group
+                )
+                if is_tara_no_tso:
+                    command.extend(
+                        (
+                            "--scenario-fom",
+                            f"tara-undefined-galt-nrg-disabled={DEFAULT_TARA_NRG_DISABLED_FOM}",
+                            "--scenario-fom",
+                            f"tara-undefined-galt-nrg-enabled={DEFAULT_TARA_NRG_ENABLED_FOM}",
+                        )
+                    )
                 requester_command = [*command, "--nmr-process-role", "requester"]
                 requester_command.extend(
                     ("--results", str(group_results), "--junit", str(group_junit))
                 )
                 publisher_command = [*command, "--nmr-process-role", "publisher"]
-                requester = subprocess.Popen(
-                    requester_command,
-                    cwd=ROOT,
-                    env=environment,
-                )
-                publisher = subprocess.Popen(
-                    publisher_command,
-                    cwd=ROOT,
-                    env=environment,
-                )
+                role_commands = [
+                    ("requester", requester_command),
+                    ("publisher", publisher_command),
+                ]
+                if is_tara_no_tso:
+                    second_publisher_command = [
+                        *command,
+                        "--nmr-process-role",
+                        "second-publisher",
+                        "--member-name",
+                        "process-tso-cross-service-second-regulator",
+                    ]
+                    role_commands.append(("second publisher", second_publisher_command))
+                processes = [
+                    (
+                        role,
+                        subprocess.Popen(command, cwd=ROOT, env=environment),
+                    )
+                    for role, command in role_commands
+                ]
                 deadline = time.monotonic() + arguments.scenario_timeout_s
                 try:
                     while time.monotonic() < deadline:
-                        requester_status = requester.poll()
-                        publisher_status = publisher.poll()
-                        if requester_status not in (None, 0):
+                        statuses = [(role, process.poll()) for role, process in processes]
+                        failed = [
+                            (role, status)
+                            for role, status in statuses
+                            if status not in (None, 0)
+                        ]
+                        if failed:
+                            role, status = failed[0]
                             raise RuntimeError(
-                                "The NMR requester TCK process failed with exit code "
-                                f"{requester_status}"
+                                f"The TARA/NMR {role} TCK process failed with exit code "
+                                f"{status}"
                             )
-                        if publisher_status not in (None, 0):
-                            raise RuntimeError(
-                                "The NMR publisher TCK process failed with exit code "
-                                f"{publisher_status}"
-                            )
-                        if requester_status == 0 and publisher_status == 0:
+                        if all(status == 0 for _, status in statuses):
                             break
                         time.sleep(0.05)
                     else:
                         raise TimeoutError(
-                            "The independent NMR requester/publisher TCK processes "
+                            "The independent time-management TCK client processes "
                             f"did not finish within {arguments.scenario_timeout_s:g} seconds"
                         )
                 finally:
-                    for process in (requester, publisher):
+                    for _, process in processes:
                         if process.poll() is None:
                             process.terminate()
                             try:

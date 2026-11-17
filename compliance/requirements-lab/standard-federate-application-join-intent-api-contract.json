@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "This reference selects the official C++ Join Federation Execution and federation membership lookup methods used by a sample federate application to join its explicitly selected execution and verify that the same federate is absent from a decoy execution.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-federate-application-join-intent",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador Join Federation Execution, Get Federate Handle, and Get Federate Name",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "IEEE 1516.1 RTIambassador federation-management declarations",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federation_join_intent.cpp::scenarioJoinFederationIntent"
+      ]
+    }
+  ]
+}

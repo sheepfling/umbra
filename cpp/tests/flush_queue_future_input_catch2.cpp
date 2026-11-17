@@ -411,13 +411,14 @@ TEST_CASE(
       rti1516_2025::HLAinteger64Interval(5)));
   drainCallbacks(*publisher);
 
-  // FQR requires flushing the TSO messages queued at invocation; it does not
-  // require waiting for later arrivals. This case records Umbra's optional
-  // policy of admitting a later message before the HLA_EVOKED callback begins.
-  // Once timestamp 9 is delivered in response to FQR, the grant and OLT
-  // formulas in IEEE 1516.1-2025 §§8.12, 8.13, and E.8.1.1 include it. Timestamp
-  // 12 is retracted before callback entry and therefore is not in the delivered
-  // set.
+  // IEEE 1516.1-2025 §§8.12 and 8.13 require delivery of queued TSO messages
+  // and define grant/OLT results for messages delivered in response, but do
+  // not specify whether an arrival after FQR submission and before callback
+  // dispatch joins that flush. This case records Umbra's policy of admitting
+  // timestamp 9 before the HLA_EVOKED callback begins. Once delivered in
+  // response to FQR, the grant and OLT formulas in §§8.12, 8.13, and E.8.1.1
+  // include it. Timestamp 12 is retracted before callback entry and therefore
+  // is not in the delivered set.
   REQUIRE_NOTHROW(receiver->flushQueueRequest(
       rti1516_2025::HLAinteger64Time(10)));
   REQUIRE(receiverReports.timestampedInteractionReports.empty());
