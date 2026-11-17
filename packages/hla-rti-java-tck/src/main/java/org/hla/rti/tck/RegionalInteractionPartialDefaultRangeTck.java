@@ -43,31 +43,39 @@ final class RegionalInteractionPartialDefaultRangeTck {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador overlapping = factory.getRtiAmbassador();
       RTIambassador disjoint = factory.getRtiAmbassador();
+      RTIambassador boundary = factory.getRtiAmbassador();
       Recorder publisherCallbacks = new Recorder();
       Recorder overlappingCallbacks = new Recorder();
       Recorder disjointCallbacks = new Recorder();
-      RTIambassador[] ambassadors = {publisher, overlapping, disjoint};
-      Recorder[] recorders = {publisherCallbacks, overlappingCallbacks, disjointCallbacks};
-      boolean[] connected = new boolean[3];
-      boolean[] joined = new boolean[3];
+      Recorder boundaryCallbacks = new Recorder();
+      RTIambassador[] ambassadors = {publisher, overlapping, disjoint, boundary};
+      Recorder[] recorders = {
+         publisherCallbacks, overlappingCallbacks, disjointCallbacks, boundaryCallbacks};
+      boolean[] connected = new boolean[4];
+      boolean[] joined = new boolean[4];
       boolean created = false;
       boolean published = false;
       boolean overlappingSubscribed = false;
       boolean disjointSubscribed = false;
+      boolean boundarySubscribed = false;
       String federation = "java-tck-regional-interaction-partial-default-range-" + UUID.randomUUID();
       FederateHandle publisherFederate = null;
       InteractionClassHandle publisherInteraction = null;
       InteractionClassHandle overlappingInteraction = null;
       InteractionClassHandle disjointInteraction = null;
+      InteractionClassHandle boundaryInteraction = null;
       ParameterHandle publisherParameter = null;
       ParameterHandle overlappingParameter = null;
       ParameterHandle disjointParameter = null;
+      ParameterHandle boundaryParameter = null;
       RegionHandle sourceRegion = null;
       RegionHandle overlappingRegion = null;
       RegionHandle disjointRegion = null;
+      RegionHandle boundaryRegion = null;
       RegionHandleSet sourceRegions = null;
       RegionHandleSet overlappingRegions = null;
       RegionHandleSet disjointRegions = null;
+      RegionHandleSet boundaryRegions = null;
       try {
          JavaTckSupport.check(fom != null && !fom.isEmpty(),
             "adapter-supplied restricted default-range FOM is required");
@@ -84,56 +92,70 @@ final class RegionalInteractionPartialDefaultRangeTck {
          joined[1] = true;
          disjoint.joinFederationExecution("partial-region-interaction-disjoint", federation);
          joined[2] = true;
+         boundary.joinFederationExecution("partial-region-interaction-boundary", federation);
+         joined[3] = true;
          JavaTckSupport.check(publisherFederate != null && publisherFederate.encodedLength() > 0,
             "interaction publisher join returned an invalid federate handle");
 
          publisherInteraction = publisher.getInteractionClassHandle(INTERACTION);
          overlappingInteraction = overlapping.getInteractionClassHandle(INTERACTION);
          disjointInteraction = disjoint.getInteractionClassHandle(INTERACTION);
+         boundaryInteraction = boundary.getInteractionClassHandle(INTERACTION);
          publisherParameter = publisher.getParameterHandle(publisherInteraction, PARAMETER);
          overlappingParameter = overlapping.getParameterHandle(overlappingInteraction, PARAMETER);
          disjointParameter = disjoint.getParameterHandle(disjointInteraction, PARAMETER);
+         boundaryParameter = boundary.getParameterHandle(boundaryInteraction, PARAMETER);
          DimensionHandle publisherX = publisher.getDimensionHandle(X_DIMENSION);
          DimensionHandle publisherY = publisher.getDimensionHandle(Y_DIMENSION);
          DimensionHandle overlappingX = overlapping.getDimensionHandle(X_DIMENSION);
          DimensionHandle overlappingY = overlapping.getDimensionHandle(Y_DIMENSION);
          DimensionHandle disjointX = disjoint.getDimensionHandle(X_DIMENSION);
          DimensionHandle disjointY = disjoint.getDimensionHandle(Y_DIMENSION);
+         DimensionHandle boundaryX = boundary.getDimensionHandle(X_DIMENSION);
+         DimensionHandle boundaryY = boundary.getDimensionHandle(Y_DIMENSION);
          JavaTckSupport.check(publisherInteraction != null && publisherInteraction.encodedLength() > 0
                && publisherInteraction.equals(overlappingInteraction)
                && publisherInteraction.equals(disjointInteraction)
+               && publisherInteraction.equals(boundaryInteraction)
                && publisherParameter != null && publisherParameter.encodedLength() > 0
                && publisherParameter.equals(overlappingParameter)
                && publisherParameter.equals(disjointParameter)
+               && publisherParameter.equals(boundaryParameter)
                && publisherX != null && publisherX.encodedLength() > 0
                && publisherY != null && publisherY.encodedLength() > 0
                && publisherX.equals(overlappingX) && publisherY.equals(overlappingY)
-               && publisherX.equals(disjointX) && publisherY.equals(disjointY),
+               && publisherX.equals(disjointX) && publisherY.equals(disjointY)
+               && publisherX.equals(boundaryX) && publisherY.equals(boundaryY),
             "members resolved inconsistent FDD interaction, parameter, or dimension handles");
          checkAvailableDimensions(publisher, publisherInteraction, publisherX, publisherY);
          checkAvailableDimensions(overlapping, overlappingInteraction, overlappingX, overlappingY);
          checkAvailableDimensions(disjoint, disjointInteraction, disjointX, disjointY);
+         checkAvailableDimensions(boundary, boundaryInteraction, boundaryX, boundaryY);
          JavaTckSupport.check(publisher.getDimensionUpperBound(publisherX) == 10L
                && publisher.getDimensionUpperBound(publisherY) == 10L,
             "restricted default-range FOM did not retain the declared dimension bounds");
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
-         sourceRegion = createRegion(publisher, publisherX, null, 1, 4, 0, 0);
+         sourceRegion = createRegion(publisher, publisherX, null, 1, 4, false, 0, 0);
          DimensionHandleSet sourceDimensions = publisher.getDimensionHandleSet(sourceRegion);
          JavaTckSupport.check(sourceDimensions.size() == 1 && sourceDimensions.contains(publisherX)
                && !sourceDimensions.contains(publisherY),
             "non-empty source region did not remain dimensioned by X only");
          overlappingRegion = createRegion(overlapping, overlappingX, overlappingY,
-            2, 3, 1, 4);
-         disjointRegion = createRegion(disjoint, disjointX, disjointY, 2, 3, 6, 9);
+            2, 3, false, 0, 5);
+         disjointRegion = createRegion(disjoint, disjointX, disjointY, 2, 3, true, 6, 9);
+         boundaryRegion = createRegion(boundary, boundaryX, boundaryY, 2, 3, true, 5, 7);
          sourceRegions = regionSet(publisher, sourceRegion);
          overlappingRegions = regionSet(overlapping, overlappingRegion);
          disjointRegions = regionSet(disjoint, disjointRegion);
+         boundaryRegions = regionSet(boundary, boundaryRegion);
          overlapping.subscribeInteractionClassWithRegions(overlappingInteraction, overlappingRegions);
          overlappingSubscribed = true;
          disjoint.subscribeInteractionClassWithRegions(disjointInteraction, disjointRegions);
          disjointSubscribed = true;
+         boundary.subscribeInteractionClassWithRegions(boundaryInteraction, boundaryRegions);
+         boundarySubscribed = true;
 
          ParameterHandleValueMap parameters = publisher.getParameterHandleValueMapFactory().create(1);
          byte[] payload = new byte[] {0x4d, 0x21};
@@ -144,7 +166,7 @@ final class RegionalInteractionPartialDefaultRangeTck {
          await(callbackModel, overlapping,
             () -> overlappingCallbacks.interactions.size() >= 1,
             "delivery within the omitted Y dimension's FDD default range");
-         settle(callbackModel, overlapping, disjoint);
+         settle(callbackModel, overlapping, disjoint, boundary);
 
          JavaTckSupport.check(overlappingCallbacks.interactions.size() == 1,
             "overlapping interaction receiver did not receive exactly one callback");
@@ -157,6 +179,8 @@ final class RegionalInteractionPartialDefaultRangeTck {
             "interaction did not preserve class, payload, tag, or producer metadata");
          JavaTckSupport.check(disjointCallbacks.interactions.isEmpty(),
             "interaction escaped the omitted Y dimension's FDD default [0,5) range");
+         JavaTckSupport.check(boundaryCallbacks.interactions.isEmpty(),
+            "interaction reached a Y region beginning at the FDD default's exclusive upper bound");
       } finally {
          if (overlappingSubscribed && joined[1]) {
             try { overlapping.unsubscribeInteractionClassWithRegions(
@@ -166,6 +190,11 @@ final class RegionalInteractionPartialDefaultRangeTck {
          if (disjointSubscribed && joined[2]) {
             try { disjoint.unsubscribeInteractionClassWithRegions(
                disjointInteraction, disjointRegions); }
+            catch (Exception ignored) { }
+         }
+         if (boundarySubscribed && joined[3]) {
+            try { boundary.unsubscribeInteractionClassWithRegions(
+               boundaryInteraction, boundaryRegions); }
             catch (Exception ignored) { }
          }
          if (published && joined[0] && publisherInteraction != null) {
@@ -184,6 +213,11 @@ final class RegionalInteractionPartialDefaultRangeTck {
             try { disjoint.deleteRegion(disjointRegion); }
             catch (Exception ignored) { }
          }
+         if (boundaryRegion != null && joined[3]) {
+            try { boundary.deleteRegion(boundaryRegion); }
+            catch (Exception ignored) { }
+         }
+         if (joined[3]) resign(boundary);
          if (joined[2]) resign(disjoint);
          if (joined[1]) resign(overlapping);
          if (joined[0]) resign(publisher);
@@ -210,15 +244,30 @@ final class RegionalInteractionPartialDefaultRangeTck {
 
    private static RegionHandle createRegion(RTIambassador ambassador,
          DimensionHandle x, DimensionHandle y, long xLower, long xUpper,
-         long yLower, long yUpper) throws Exception {
+         boolean setYBounds, long yLower, long yUpper) throws Exception {
       DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
       dimensions.add(x);
       if (y != null) dimensions.add(y);
       RegionHandle region = ambassador.createRegion(dimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "createRegion returned an invalid interaction region handle");
       ambassador.setRangeBounds(region, x, new RangeBounds(xLower, xUpper));
-      if (y != null) ambassador.setRangeBounds(region, y, new RangeBounds(yLower, yUpper));
+      if (y != null) {
+         if (setYBounds) ambassador.setRangeBounds(region, y, new RangeBounds(yLower, yUpper));
+         RangeBounds pendingY = ambassador.getRangeBounds(region, y);
+         JavaTckSupport.check(pendingY != null && pendingY.lower == yLower
+               && pendingY.upper == yUpper,
+            setYBounds ? "explicit interaction-region Y bounds did not round-trip before commit"
+               : "RTI did not supply the interaction dimension's [0,5) FDD default before commit");
+      }
       RegionHandleSet regions = regionSet(ambassador, region);
       ambassador.commitRegionModifications(regions);
+      if (y != null) {
+         RangeBounds committedY = ambassador.getRangeBounds(region, y);
+         JavaTckSupport.check(committedY != null && committedY.lower == yLower
+               && committedY.upper == yUpper,
+            "interaction-region Y range changed at commit");
+      }
       return region;
    }
 
@@ -239,13 +288,12 @@ final class RegionalInteractionPartialDefaultRangeTck {
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
-   private static void settle(CallbackModel callbackModel,
-         RTIambassador first, RTIambassador second) throws Exception {
+   private static void settle(CallbackModel callbackModel, RTIambassador... ambassadors)
+         throws Exception {
       long deadline = System.nanoTime() + 250_000_000L;
       while (System.nanoTime() < deadline) {
          if (callbackModel == CallbackModel.HLA_EVOKED) {
-            first.evokeCallback(0.0);
-            second.evokeCallback(0.0);
+            for (RTIambassador ambassador : ambassadors) ambassador.evokeCallback(0.0);
          } else {
             Thread.yield();
          }
