@@ -4309,7 +4309,7 @@
     {
       "id": "java-tck.connection-loss-cleanup",
       "category": "connection",
-      "title": "Observe adapter-managed connection loss and verify survivor service",
+      "title": "Observe adapter-managed connection loss and verify survivor cleanup and service",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -4317,18 +4317,82 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.listFederationExecutionMembers",
+        "RTIambassador.listFederationExecutions",
+        "RTIambassador.registerFederationSynchronizationPoint",
+        "RTIambassador.synchronizationPointAchieved",
         "RTIambassador.sendInteraction",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.disconnect",
-        "FederateAmbassador.connectionLost"
+        "FederateAmbassador.connectionLost",
+        "FederateAmbassador.synchronizationPointRegistrationSucceeded",
+        "FederateAmbassador.synchronizationPointRegistrationFailed",
+        "FederateAmbassador.announceSynchronizationPoint",
+        "FederateAmbassador.federationSynchronized"
       ],
       "requirement_ids": [
         "cpp-1516.1-connection-loss-callback",
-        "cpp-1516.1-connection-loss-cleanup"
+        "cpp-1516.1-connection-loss-cleanup",
+        "requirement-candidate-content-clauses-04-federation-management-page-049-l145-46",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l42-13",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
+        "requirement-candidate-table-5-p300-r001",
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "req-federate-resigned-callback-behavior"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-049-l145-46",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l42-13",
+        "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
+        "requirement-candidate-table-5-p300-r001",
+        "req-federate-connection-lost",
+        "req-connection-lost-service-behavior",
+        "req-federate-resigned-callback-behavior"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.13",
+        "hla-1516.1-2025:clause-4.1.6",
+        "hla-1516.1-2025:clause-4.4",
+        "hla-1516.1-2025:clause-11.5.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l42-13",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6"
+        },
+        {
+          "requirement_id": "req-federate-connection-lost",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-049-l145-46",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
+          "standard_section": "hla-1516.1-2025:clause-4.1.6"
+        },
+        {
+          "requirement_id": "req-connection-lost-service-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.4"
+        },
+        {
+          "requirement_id": "req-federate-resigned-callback-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.13",
+          "note": "The Java scenario confirms the lost federate is absent from the survivor's member roster after Connection Lost. It witnesses the §4.13 resignation implication without treating Connection Lost as a Federate Resigned callback."
+        },
+        {
+          "requirement_id": "requirement-candidate-table-5-p300-r001",
+          "standard_section": "hla-1516.1-2025:clause-11.5.1"
+        }
+      ],
+      "mapping_note": "The Java adapter-managed process-loss scenario asserts the public connectionLost callback, NotConnected from the disconnected ambassador's listFederationExecutions, survivor membership cleanup, and continued survivor interaction service. After loss it registers, announces, achieves, and completes a synchronization point; it checks the registration result, exact announcement label and tag, and an empty failed-to-synchronize set. This witnesses one bounded synchronized-operation path continuing as if the lost federate had resigned, without claiming exhaustive fault-detection criteria or every synchronized-operation family. The active-save phase checks the surviving federate's HLAreportServiceFile and matching federationNotSaved reason for RTI_DETECTED_FAILURE_DURING_SAVE. The adapter owns fault injection and provider-specific setup; this is standard Java API evidence, not provider conformance evidence.",
       "contract_refs": [
         "connection-lost-api-contract.json",
         "connection-lost-requirements-contract.json",
+        "forced-federate-resignation-requirements-contract.json",
         "federate-lost-report-api-contract.json",
         "federate-lost-report-requirements-contract.json"
       ],

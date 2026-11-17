@@ -1332,14 +1332,17 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.connection-loss-cleanup",
             "report RTI-detected connection loss during save and keep the survivor usable",
             "connection",
-            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.evokeMultipleCallbacks;RTIambassador.listFederationExecutionMembers;RTIambassador.listFederationExecutions;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.connectionLost;FederateAmbassador.initiateFederateSave;FederateAmbassador.federationNotSaved;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.reportFederationExecutionMembers;RtiFactory.getEncoderFactory;EncoderFactory.createHLAunicodeString;HLAunicodeString.decode",
+            "RtiConfiguration.createConfiguration;RtiConfiguration.withRtiAddress;RtiConfiguration.withAdditionalSettings;RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getAttributeHandle;RTIambassador.subscribeObjectClassAttributes;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.requestFederationSave;RTIambassador.federateSaveBegun;RTIambassador.evokeMultipleCallbacks;RTIambassador.listFederationExecutionMembers;RTIambassador.listFederationExecutions;RTIambassador.registerFederationSynchronizationPoint;RTIambassador.synchronizationPointAchieved;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteraction;RTIambassador.resignFederationExecution;RTIambassador.disconnect;FederateAmbassador.connectionLost;FederateAmbassador.initiateFederateSave;FederateAmbassador.federationNotSaved;FederateAmbassador.discoverObjectInstance;FederateAmbassador.reflectAttributeValues;FederateAmbassador.reportFederationExecutionMembers;FederateAmbassador.synchronizationPointRegistrationSucceeded;FederateAmbassador.synchronizationPointRegistrationFailed;FederateAmbassador.announceSynchronizationPoint;FederateAmbassador.federationSynchronized;RtiFactory.getEncoderFactory;EncoderFactory.createHLAunicodeString;HLAunicodeString.decode",
             new String[] {
                "cpp-1516.1-connection-loss-callback",
                "cpp-1516.1-connection-loss-cleanup",
                "requirement-candidate-content-clauses-04-federation-management-page-049-l145-46",
+               "requirement-candidate-content-clauses-04-federation-management-page-050-l42-13",
+               "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
                "requirement-candidate-table-5-p300-r001",
                "req-federate-connection-lost",
-               "req-connection-lost-service-behavior"
+               "req-connection-lost-service-behavior",
+               "req-federate-resigned-callback-behavior"
             }, false), RtiTckMain::connectionLossCleanup);
       run(new Scenario("java-tck.federate-reconnect-timeout",
             "observe public connection loss after the provider-specific reconnect window expires",

@@ -5,6 +5,7 @@ import hla.rti1516_2025.AttributeHandleSet;
 import hla.rti1516_2025.AttributeHandleValueMap;
 import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.FederateHandleSet;
 import hla.rti1516_2025.FederationExecutionMemberInformation;
 import hla.rti1516_2025.FederationExecutionMemberInformationSet;
 import hla.rti1516_2025.InteractionClassHandle;
@@ -21,6 +22,7 @@ import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +152,25 @@ final class ConnectionLossCleanupTck {
             "membership cleanup after connection loss");
          JavaTckSupport.expectFailure(lost::listFederationExecutions, "NotConnected",
             "listing federation executions after connection loss");
+
+         String synchronizationLabel = "connection-loss-survivor-synchronization";
+         byte[] synchronizationTag = {0x4c, 0x4f, 0x53};
+         survivor.registerFederationSynchronizationPoint(synchronizationLabel,
+            synchronizationTag);
+         await(callbackModel, timeoutMillis, new RTIambassador[] {survivor},
+            () -> synchronizationLabel.equals(survivorRecorder.synchronizationRegistrationLabel)
+               && synchronizationLabel.equals(survivorRecorder.synchronizationAnnouncementLabel),
+            "survivor synchronization registration and announcement after connection loss");
+         JavaTckSupport.check(!synchronizationLabel.equals(
+               survivorRecorder.synchronizationRegistrationFailureLabel)
+               && Arrays.equals(synchronizationTag, survivorRecorder.synchronizationTag),
+            "survivor synchronization registration failed or its announcement tag changed");
+         survivor.synchronizationPointAchieved(synchronizationLabel);
+         await(callbackModel, timeoutMillis, new RTIambassador[] {survivor},
+            () -> synchronizationLabel.equals(survivorRecorder.federationSynchronizedLabel),
+            "survivor federation synchronization after connection loss");
+         JavaTckSupport.check(survivorRecorder.failedToSynchronizeEmpty,
+            "federation synchronization did not complete as if the lost federate had resigned");
 
          InteractionClassHandle interactionClass =
             survivor.getInteractionClassHandle(interactionClassName);
@@ -293,6 +314,12 @@ final class ConnectionLossCleanupTck {
       private final Map<ObjectInstanceHandle, ObjectClassHandle> discoveredObjects =
          new ConcurrentHashMap<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private volatile String synchronizationRegistrationLabel;
+      private volatile String synchronizationRegistrationFailureLabel;
+      private volatile String synchronizationAnnouncementLabel;
+      private volatile byte[] synchronizationTag;
+      private volatile String federationSynchronizedLabel;
+      private volatile boolean failedToSynchronizeEmpty;
 
       private Map<AttributeHandle, byte[]> valuesForObject(ObjectInstanceHandle object) {
          Map<AttributeHandle, byte[]> values = new HashMap<>();
@@ -353,6 +380,22 @@ final class ConnectionLossCleanupTck {
                      && arguments[1] instanceof FederationExecutionMemberInformationSet) {
                   memberReports.add(new MemberReport((String) arguments[0],
                      ((FederationExecutionMemberInformationSet) arguments[1]).clone()));
+               } else if ("synchronizationPointRegistrationSucceeded".equals(name)
+                     && arguments != null && arguments.length == 1) {
+                  synchronizationRegistrationLabel = (String) arguments[0];
+               } else if ("synchronizationPointRegistrationFailed".equals(name)
+                     && arguments != null && arguments.length == 2) {
+                  synchronizationRegistrationFailureLabel = (String) arguments[0];
+               } else if ("announceSynchronizationPoint".equals(name)
+                     && arguments != null && arguments.length == 2
+                     && arguments[1] instanceof byte[]) {
+                  synchronizationAnnouncementLabel = (String) arguments[0];
+                  synchronizationTag = ((byte[]) arguments[1]).clone();
+               } else if ("federationSynchronized".equals(name)
+                     && arguments != null && arguments.length == 2
+                     && arguments[1] instanceof FederateHandleSet) {
+                  federationSynchronizedLabel = (String) arguments[0];
+                  failedToSynchronizeEmpty = ((FederateHandleSet) arguments[1]).isEmpty();
                }
                return objectMethod(proxy, name, arguments);
             });
