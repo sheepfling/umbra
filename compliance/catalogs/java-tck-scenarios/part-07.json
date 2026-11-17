@@ -1435,6 +1435,7 @@
         "RTIambassador.commitRegionModifications",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "TransportationTypeHandle.encodedLength",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
@@ -1460,7 +1461,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalInteractionRegionValidation",
       "parity": "cpp-tck.regional-interaction-region-validation",
-      "parity_scope_note": "Parity covers rejection of a send set containing both a valid interaction-context region and an unavailable-dimension region, with no partial callback and a valid follow-up send; and rejection of an invalid single-region subscription with no declaration retained, checked by no delivery before a valid regional subscription and one valid follow-up callback. The subscription path uses only the invalid region; mixed-set subscription atomicity is not asserted by this C++/Java pair.",
+      "parity_scope_note": "Parity covers rejection of a send set containing both a valid interaction-context region and an unavailable-dimension region, with no partial callback and a valid follow-up send; and rejection of an invalid single-region subscription with no declaration retained, checked by no delivery before a valid regional subscription and one valid follow-up callback. The subscription path uses only the invalid region; mixed-set subscription atomicity is not asserted by this C++/Java pair. It also checks positive encoded length for the callback TransportationTypeHandle before resolving its standard transportation name.",
       "default_status": "run",
       "promotion": "promoted",
       "adapter_inputs": [
@@ -1470,7 +1471,7 @@
         "two available interaction dimension names and one unrelated dimension name via hla.rti.tck.ddmUnrelatedDimension",
         "callback model selected by the adapter"
       ],
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. The default-enabled Java scenario passed under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Java results/JUnit: out/java-tck/regional-interaction-region-validation-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ primary passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-interaction-region-validation-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim.",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. The callback TransportationTypeHandle must have a positive encoded length before its standard transportation name is resolved. Results/JUnit: .build/java-tck-20261117/region-validation-transport-handle-parity-{evoked,immediate}.{json,xml}; traceability: .build/java-tck-20261117/region-validation-transport-handle-parity-traceability.json. The paired promoted C++ primary passed under both callback models; .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-interaction-region-validation-java-parity-20261116.json validates with no findings. The C++ requirement tags are repository provenance only; this case has no direct normative mapping. Local-provider evidence does not establish independent-provider interoperability or conformance.",
       "exclusion": "Requires the adapter-supplied dimensional DDM FOM, interaction class, parameter, two available dimensions, and unrelated dimension."
     },
     {

@@ -134,6 +134,7 @@ final class RegionalInteractionRegionValidationTck {
          "valid interaction after region-context rejection changed class, payload, tag, or producer");
       TransportationTypeHandle transportation = interaction.transportation;
       JavaTckSupport.check(transportation != null
+            && transportation.encodedLength() > 0
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "valid interaction returned an unresolvable transportation type");
       JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1,
