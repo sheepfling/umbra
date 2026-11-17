@@ -5262,6 +5262,26 @@ both callback models; results/JUnit are in
 `.build/java-tck-20261117/regional-subscription-triple-isolation-{evoked,immediate}.{json,xml}`.
 The case stays opt-in because it requires the adapter FOM and names.
 
+The opt-in `java-tck.associate-regions-for-updates-replaces-default-region`
+case first registers an object without an explicit update association and
+confirms its default source reaches both overlapping and disjoint regional
+subscribers with empty source-region sets. After associating one explicit
+source region, only the overlapping subscriber receives the next update, with
+one source-region designator. Its direct mapping is limited to §9.6 p. 230
+l. 148-151. Focused local Umbra JNI runs passed under both callback models;
+results/JUnit are in
+`.build/java-tck-20261117/associate-regions-replaces-default-region-{evoked,immediate}.{json,xml}`.
+The case remains opt-in because it requires an adapter DDM FOM and names.
+
+The opt-in `java-tck.register-object-instance-with-regions-atomicity` case
+registers once with a committed source region, confirms the overlapping
+regional subscriber discovers the object, and services callbacks to confirm
+the disjoint subscriber never discovers it. Its direct mapping is limited to
+§9.5 p. 228 l. 167-169. Focused local Umbra JNI runs passed under both callback
+models; results/JUnit are in
+`.build/java-tck-20261117/register-object-instance-with-regions-atomicity-{evoked,immediate}.{json,xml}`.
+The case remains opt-in because it requires an adapter DDM FOM and names.
+
 The opt-in `java-tck.regional-interaction-partial-default-range` case uses the
 adapter restricted default-range FOM. It sends an interaction through a
 non-empty X-only source region and verifies the omitted Y dimension receives
