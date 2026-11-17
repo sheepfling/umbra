@@ -5666,18 +5666,25 @@
         "requirement-candidate-content-clauses-08-time-management-page-213-l79-21"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-08-time-management-page-213-l79-21"
+        "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
+        "requirement-candidate-sections-semantic-clause-4b-page-050-l70-7"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.25"
+        "hla-1516.1-2025:clause-8.25",
+        "hla-1516.2-2025:clause-4"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-213-l79-21",
           "standard_section": "hla-1516.1-2025:clause-8.25"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-050-l70-7",
+          "standard_section": "hla-1516.2-2025:clause-4",
+          "note": "The P0 FOM declares TckObject.Value with Order=Receive. The Java test issues a time-stamped update and checks that the timestamped reflection reports sentOrder=RECEIVE and receivedOrder=RECEIVE with no retraction handle. This is selected FOM order-field evidence; the runtime TIMESTAMP default change is a positive control, not FDD-declared TIMESTAMP coverage."
         }
       ],
-      "mapping_note": "Direct public-API witness for requirement-candidate-content-clauses-08-time-management-page-213-l79-21 -> §8.25: P0 declares TckObject.Value with FDD order RECEIVE. The initial federate's timestamped-update callback reports RECEIVE and no retraction before changing its class default to TIMESTAMP; as a positive control, a later instance reports TIMESTAMP. A federate joining after that change still sends its new instance in RECEIVE order with no retraction. This covers the FDD initialization rule and federate-local isolation for this one FDD attribute; it does not claim all FDD declarations or conformance. The focused case passed HLA_EVOKED and HLA_IMMEDIATE on the current Umbra JNI provider with p0-tck.xml and HLAinteger64Time; independent-provider behavior is unverified.",
+      "mapping_note": "Direct public-API witness for requirement-candidate-content-clauses-08-time-management-page-213-l79-21 -> §8.25: P0 declares TckObject.Value with FDD order RECEIVE. The initial federate's timestamped-update callback reports RECEIVE and no retraction before changing its class default to TIMESTAMP; as a positive control, a later instance reports TIMESTAMP. A federate joining after that change still sends its new instance in RECEIVE order with no retraction. This covers the FDD initialization rule and federate-local isolation for this one FDD attribute; it does not claim all FDD declarations or conformance. For requirement-candidate-sections-semantic-clause-4b-page-050-l70-7 -> IEEE 1516.2-2025 §4, the Java test uses P0's FDD-declared Order=Receive and verifies sentOrder=RECEIVE, receivedOrder=RECEIVE, and no retraction on the timestamped update. The runtime TIMESTAMP change is only a positive control. The focused case passed HLA_EVOKED and HLA_IMMEDIATE on the current Umbra JNI provider with p0-tck-without-switches.xml and HLAinteger64Time; independent-provider behavior is unverified.",
       "contract_refs": [
         "standard-order-type-fdd-default-initialization-requirements-contract.json"
       ],
