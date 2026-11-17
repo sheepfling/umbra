@@ -4713,15 +4713,16 @@ public final class RtiTckMain {
                "cpp-1516.1-attribute-value-update-response"
             }, true), RtiTckMain::regionalAttributeValueUpdateResponseRecheck);
       run(new Scenario("java-tck.regional-object-update",
-            "register a named regional object, verify overlap-filtered discovery and reflection, and reassociate its source region",
+            "exercise regional registration and updates, class requests across inheritance, empty-region requests, and timestamped responses",
             "regional-object-update",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.publishObjectClassAttributes;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.subscribeObjectClassAttributesWithRegions;RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstanceWithRegions(named);RTIambassador.updateAttributeValues(receive order);RTIambassador.requestAttributeValueUpdateWithRegions;RTIambassador.associateRegionsForUpdates;RTIambassador.unassociateRegionsForUpdates;RTIambassador.unsubscribeObjectClassAttributesWithRegions;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.reflectAttributeValues(receive order with region designators)",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution(FOM, logical time implementation);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getDimensionUpperBound;RTIambassador.getDimensionHandleSet;RTIambassador.getRangeBounds;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeHandleValueMapFactory;RTIambassador.getDimensionHandleSetFactory;RTIambassador.getRegionHandleSetFactory;RTIambassador.getAttributeSetRegionSetPairListFactory;RTIambassador.getTimeFactory;LogicalTimeFactory.makeInitial/makeEpsilon;LogicalTime.add;RTIambassador.enableTimeConstrained;RTIambassador.enableTimeRegulation;RTIambassador.timeAdvanceRequest;RTIambassador.isAttributeOwnedByFederate;RTIambassador.publishObjectClassAttributes;RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP);RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.getConveyRegionDesignatorSetsSwitch;RTIambassador.subscribeObjectClassAttributesWithRegions;RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstanceWithRegions(named);RTIambassador.updateAttributeValues(receive-order and timestamped);RTIambassador.requestAttributeValueUpdate;RTIambassador.requestAttributeValueUpdateWithRegions;RTIambassador.associateRegionsForUpdates;RTIambassador.unassociateRegionsForUpdates;RTIambassador.unsubscribeObjectClassAttributesWithRegions;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteRegion;RTIambassador.evokeCallback;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;AttributeRegionAssociation;AttributeSetRegionSetPairList.add;RegionHandleSet.add/size;DimensionHandleSet.add;AttributeHandleValueMapFactory.create/put;MessageRetractionReturn.retractionHandleIsValid;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.discoverObjectInstance;FederateAmbassador.provideAttributeValueUpdate;FederateAmbassador.timeConstrainedEnabled;FederateAmbassador.timeRegulationEnabled;FederateAmbassador.timeAdvanceGrant;FederateAmbassador.reflectAttributeValues(receive-order with region designators and timestamped)",
             new String[] {
                "cpp-1516.1-ddm-regional-object-registration",
                "cpp-1516.1-ddm-regional-object-update",
                "cpp-1516.1-ddm-regional-value-request",
-               "cpp-1516.1-ddm-region-designator-callback"
-            }, false), RtiTckMain::regionalObjectUpdate);
+               "cpp-1516.1-ddm-region-designator-callback",
+               "cpp-1516.1-ddm-default-region-attribute-update"
+            }, true), RtiTckMain::regionalObjectUpdate);
       run(new Scenario("java-tck.regional-multi-attribute-update",
             "filter independently region-associated attributes and verify cross-product region associations",
             "regional-object-management",
@@ -11405,9 +11406,15 @@ public final class RtiTckMain {
    }
 
    private static void regionalObjectUpdate() throws Exception {
-      RegionalObjectUpdateTck.run(factory(), requireAdapterFile(DDM_FOM_PROPERTY),
+      String fom = requireAdapterFile(DDM_FOM_PROPERTY);
+      String firstDimension = requireAdapterValue(DIMENSION_PROPERTY);
+      String secondDimension = requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY);
+      RegionalObjectUpdateTck.run(factory(), fom,
          requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY), requireAdapterValue(DDM_ATTRIBUTE_PROPERTY),
-         requireAdapterValue(DIMENSION_PROPERTY), requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY),
+         firstDimension, secondDimension, callbackModel());
+      RegionalClassRequestUpdateAcrossHierarchyTck.run(factory(), fom, timeImplementation(),
+         firstDimension, secondDimension, callbackModel());
+      RegionalEmptyRequestRegionTck.run(factory(), fom, firstDimension, secondDimension,
          callbackModel());
    }
 

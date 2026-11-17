@@ -4991,6 +4991,44 @@ attribute names, and two object dimensions, it requires the unrelated dimension
 name through `hla.rti.tck.ddmUnrelatedDimension`; provider runtime remains
 unverified.
 
+The default-run `java-tck.regional-object-update` case registers a named object
+with an explicit source region and checks overlapping discovery and reflection,
+the regional provide/update response, and source-region callback metadata. It
+rejects deleted region handles for subscription and update association, verifies
+that empty association sets do not create default routing, checks additive and
+repeated source associations and selective removal, then removes the final
+explicit association and verifies default-region delivery with an empty source
+designator set. A later update is suppressed after the receiver unsubscribes.
+
+The same scenario now runs the C++ helper cases in sequence. The hierarchy case
+requests `Name` at `TckKnownClassObject` and verifies provider callbacks and
+receive-order responses for two base objects and one derived object in
+overlapping regions. It excludes a fourth object in a disjoint region and an
+object owned by the requester. Its timestamped subcase requests a regional
+update, queues a timestamped response, confirms there is no early reflection,
+then advances both federates and checks the response time, orders, producer,
+value, and tag. The empty-request case sends an empty regional pair followed by
+an ordinary class request and verifies that only the ordinary request produces
+a callback with its own tag. Java has no portable default-invalid `RegionHandle`
+value, so this case uses a deleted API-created region handle to verify
+`InvalidRegion`; it does not claim the exact C++ sentinel representation.
+
+Supply `ddm-tck.xml` through `hla.rti.tck.ddmFom`, `HLAobjectRoot.TckObject` and
+`Value` through the adapter object/attribute properties, `TckDimensionX` and
+`TckDimensionY` through `hla.rti.tck.dimension` and
+`hla.rti.tck.ddmSecondDimension`, and `HLAinteger64Time` through the logical-time
+setting. The known-class hierarchy and `Name` attribute are also supplied by
+`ddm-tck.xml`. Direct mappings are limited to the exercised paths at IEEE
+1516.1-2025 §§6.1.2, 9.1.1, 9.2, 9.5, 9.6, 9.6.3, 9.7, 9.7.3, 9.7.4, 9.9,
+9.13, and 9.13.3; the `cpp-1516.1-*` IDs remain provenance only. The Java case
+passed under both callback models against local Umbra JNI. The rebuilt C++
+primary and contract passed 4/4 direct executions across both callback models;
+these adapter-backed scenarios have no matching CTest entries in the focused
+build. Results/JUnit are in
+`out/java-tck/regional-object-update-java-parity-20261116/{hla_evoked-full,hla_immediate-full}/`
+and `.build/cpp-tck-regional-object-update-java-parity-20261116-built.{json,xml}`.
+Other providers remain unverified; these runs do not establish conformance.
+
 The default `java-tck.regional-attribute-value-update-response-recheck` case
 requests an attribute update while source and requester regions overlap, then
 moves the requester from `[0,1)` to `[1,2)`. These semi-open ranges touch but do

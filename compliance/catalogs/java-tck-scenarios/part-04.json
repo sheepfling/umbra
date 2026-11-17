@@ -2317,42 +2317,98 @@
     {
       "id": "java-tck.regional-object-update",
       "category": "regional-object-management",
-      "title": "Register, discover, request, update, reassociate, and filter regional object attributes",
+      "title": "Register and route regional attributes, request across class hierarchies, and verify timestamped responses",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(FOM)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getAttributeSetRegionSetPairListFactory",
+        "RTIambassador.getTimeFactory",
+        "LogicalTimeFactory.makeInitial/makeEpsilon",
+        "LogicalTime.add",
         "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.changeDefaultAttributeOrderType(TIMESTAMP)",
+        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
+        "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeObjectClassAttributesWithRegions",
         "RTIambassador.reserveObjectInstanceName",
         "RTIambassador.registerObjectInstanceWithRegions(named overload)",
         "RTIambassador.updateAttributeValues(receive-order overload)",
+        "RTIambassador.updateAttributeValues(timestamped overload)",
+        "RTIambassador.requestAttributeValueUpdate",
         "RTIambassador.requestAttributeValueUpdateWithRegions",
         "RTIambassador.associateRegionsForUpdates",
         "RTIambassador.unassociateRegionsForUpdates",
         "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.deleteRegion",
+        "RTIambassador.evokeCallback",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.objectInstanceNameReservationSucceeded",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.provideAttributeValueUpdate",
-        "FederateAmbassador.reflectAttributeValues(receive order with region designators)"
+        "FederateAmbassador.timeConstrainedEnabled",
+        "FederateAmbassador.timeRegulationEnabled",
+        "FederateAmbassador.timeAdvanceGrant",
+        "FederateAmbassador.reflectAttributeValues(receive order with region designators)",
+        "FederateAmbassador.reflectAttributeValues(timestamped)",
+        "AttributeRegionAssociation",
+        "AttributeSetRegionSetPairList.add",
+        "RegionHandleSet.add/size",
+        "DimensionHandleSet.add",
+        "AttributeHandleValueMapFactory.create/put",
+        "ObjectInstanceHandle.encodedLength/equals"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
         "cpp-1516.1-ddm-regional-object-update",
         "cpp-1516.1-ddm-regional-value-request",
-        "cpp-1516.1-ddm-region-designator-callback"
+        "cpp-1516.1-ddm-region-designator-callback",
+        "cpp-1516.1-ddm-default-region-attribute-update",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l38-12",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l158-43",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l164-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l124-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l160-49",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l166-51",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l19-3",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l22-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l25-5",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l31-7",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l121-34",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l151-43",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l88-26",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l91-27",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l109-33",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l118-36",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l136-42",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l145-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-242-l78-22"
       ],
       "contract_refs": [
         "object-attribute-region-api-contract.json",
@@ -2363,12 +2419,212 @@
         "object-instance-named-registration-api-contract.json",
         "object-instance-named-registration-requirements-contract.json",
         "receive-order-attribute-update-api-contract.json",
-        "receive-order-attribute-update-requirements-contract.json"
+        "receive-order-attribute-update-requirements-contract.json",
+        "object-class-attribute-value-update-request-api-contract.json",
+        "object-class-attribute-value-update-request-requirements-contract.json",
+        "standard-regional-attribute-value-request-filtering-contract.json",
+        "timestamped-attribute-update-api-contract.json",
+        "time-role-api-contract.json",
+        "time-advance-api-contract.json",
+        "default-region-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalObjectUpdate",
       "parity": "cpp-tck.regional-object-update",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider; runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires adapter-supplied ddm-tck.xml with HLAobjectRoot.TckObject/Value and HLAobjectRoot.TckKnownClassObject plus its derived class/Name, TckDimensionX/Y, and HLAinteger64Time. The Java invalid-region assertion uses a deleted API-created region handle because the Java API has no portable default-invalid RegionHandle value. Local Umbra JNI passed both callback models; other providers remain unverified.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+        "requirement-candidate-content-clauses-08-time-management-page-217-l38-12",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l158-43",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l164-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l124-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l160-49",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l166-51",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l19-3",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l22-4",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l25-5",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l31-7",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l121-34",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l151-43",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l88-26",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l91-27",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l109-33",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l118-36",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l136-42",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l145-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-242-l78-22"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-9.1.1",
+        "hla-1516.1-2025:clause-9.2",
+        "hla-1516.1-2025:clause-9.5",
+        "hla-1516.1-2025:clause-9.6",
+        "hla-1516.1-2025:clause-9.6.3",
+        "hla-1516.1-2025:clause-9.7",
+        "hla-1516.1-2025:clause-9.7.3",
+        "hla-1516.1-2025:clause-9.7.4",
+        "hla-1516.1-2025:clause-9.9",
+        "hla-1516.1-2025:clause-9.13",
+        "hla-1516.1-2025:clause-9.13.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+          "standard_section": "hla-1516.1-2025:clause-6.1.2",
+          "note": "The region-qualified registration leads to discovery at the overlapping subscriber; a disjoint subscriber receives neither discovery nor reflection. Scope is limited to this attribute-scope DDM path."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+          "standard_section": "hla-1516.1-2025:clause-6.1.2",
+          "note": "The region-qualified registration leads to discovery at the overlapping subscriber; a disjoint subscriber receives neither discovery nor reflection. Scope is limited to this attribute-scope DDM path."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-217-l38-12",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "The scenario sets and commits each region's configured ranges before using the region in registration, update association, subscription, and the regional value request."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l39-9",
+          "standard_section": "hla-1516.1-2025:clause-9.2",
+          "note": "The configured two object dimensions are validated and used to create the regional designators exercised by registration, update association, subscription, and request services."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l158-43",
+          "standard_section": "hla-1516.1-2025:clause-9.5",
+          "note": "The named Register Object Instance With Regions path is followed by an ownership query for the published attribute and overlap/disjoint discovery checks; scope is limited to that registered attribute."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-228-l164-45",
+          "standard_section": "hla-1516.1-2025:clause-9.5",
+          "note": "The named Register Object Instance With Regions path is followed by an ownership query for the published attribute and overlap/disjoint discovery checks; scope is limited to that registered attribute."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l124-37",
+          "standard_section": "hla-1516.1-2025:clause-9.6",
+          "note": "The scenario checks an object-instance attribute association, adding a second region while preserving the first, repeated association behavior, and the empty-set no-op."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l157-48",
+          "standard_section": "hla-1516.1-2025:clause-9.6",
+          "note": "The scenario checks an object-instance attribute association, adding a second region while preserving the first, repeated association behavior, and the empty-set no-op."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l160-49",
+          "standard_section": "hla-1516.1-2025:clause-9.6",
+          "note": "The scenario checks an object-instance attribute association, adding a second region while preserving the first, repeated association behavior, and the empty-set no-op."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-230-l166-51",
+          "standard_section": "hla-1516.1-2025:clause-9.6",
+          "note": "The scenario checks an object-instance attribute association, adding a second region while preserving the first, repeated association behavior, and the empty-set no-op."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-231-l100-28",
+          "standard_section": "hla-1516.1-2025:clause-9.6.3",
+          "note": "A deleted region handle supplied to Associate Regions For Updates must raise InvalidRegion; the live association is then shown to remain effective."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l13-1",
+          "standard_section": "hla-1516.1-2025:clause-9.7",
+          "note": "The scenario removes a selected association, repeats removal without disturbing another association, passes an empty region set, and checks delivery through the association that remains."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l19-3",
+          "standard_section": "hla-1516.1-2025:clause-9.7",
+          "note": "The scenario removes a selected association, repeats removal without disturbing another association, passes an empty region set, and checks delivery through the association that remains."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l22-4",
+          "standard_section": "hla-1516.1-2025:clause-9.7",
+          "note": "The scenario removes a selected association, repeats removal without disturbing another association, passes an empty region set, and checks delivery through the association that remains."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l25-5",
+          "standard_section": "hla-1516.1-2025:clause-9.7",
+          "note": "The scenario removes a selected association, repeats removal without disturbing another association, passes an empty region set, and checks delivery through the association that remains."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l31-7",
+          "standard_section": "hla-1516.1-2025:clause-9.7",
+          "note": "The scenario removes a selected association, repeats removal without disturbing another association, passes an empty region set, and checks delivery through the association that remains."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l121-34",
+          "standard_section": "hla-1516.1-2025:clause-9.7.3",
+          "note": "A deleted region handle supplied to Subscribe Object Class Attributes With Regions must raise InvalidRegion."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-232-l151-43",
+          "standard_section": "hla-1516.1-2025:clause-9.7.4",
+          "note": "Removing the final explicit update association restores default-region delivery, and the reflection callback exposes an empty source-region designator set."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-235-l100-28",
+          "standard_section": "hla-1516.1-2025:clause-9.9",
+          "note": "After the receiver unsubscribes from the regional class/attribute/region tuple, a later matching update is not reflected."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l88-26",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "A regional value request produces the expected provider callback object, attribute set, and tag; the provider's receive-order response is reflected with its value and tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l91-27",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "A regional request at TckKnownClassObject solicits two base instances and one TckKnownClassDerivedObject instance. The provider callback and receive-order response are verified once for each expected object and its Name attribute."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l100-30",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "The same request reaches the three objects whose update regions overlap the request region and produces no provider callback or reflection for a fourth base-class object in a disjoint region."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l109-33",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "After a regional request provider callback, the owner responds with timestamped Update Attribute Values. The requester receives no early reflection, advances to the response time, then verifies the reflected timestamp, TIMESTAMP orders, producer, value, and tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l118-36",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "The requester also owns a matching region-associated Name attribute. Its regional request does not generate a Provide Attribute Value Update callback for that requester-owned instance."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l136-42",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "The case sends a regional request with an empty region set, then an ordinary class request. The owner receives exactly one callback with only the ordinary request tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-241-l145-45",
+          "standard_section": "hla-1516.1-2025:clause-9.13",
+          "note": "The nonempty regional request's user tag is checked on each callback for the two base instances and one derived instance."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-242-l78-22",
+          "standard_section": "hla-1516.1-2025:clause-9.13.3",
+          "note": "A nonempty regional request containing a region handle whose region was deleted must raise InvalidRegion. Java uses a standard API-created stale handle because the Java API has no portable default-constructed invalid RegionHandle value; the C++ default-invalid representation is not claimed."
+        }
+      ],
+      "mapping_note": "The Java case directly covers the selected API paths at IEEE 1516.1-2025 §§6.1.2, 9.1.1, 9.2, 9.5, 9.6, 9.6.3, 9.7, 9.7.3, 9.7.4, 9.9, 9.13, and 9.13.3, as listed individually in requirement_mappings. The direct claims are limited to the exercised regional registration/discovery, region creation and use, attribute ownership, association/unassociation, stale-region rejection, default-region fallback, regional unsubscription, base/derived class requests, empty-region request behavior, and receive-order/timestamped request responses. The cpp-1516.1 IDs remain scenario provenance only; no conformance claim is made.",
+      "parity_scope_note": "Matches cpp-tck.regional-object-update, whose scenario invokes the hierarchy-wide regional request and empty-region helpers; the hierarchy helper also invokes the timestamped response helper. The Java case now covers those behaviors with two base objects and one derived object in overlapping regions, excludes a disjoint object and the requester's own object, preserves request tags, distinguishes an empty regional pair from an ordinary request, and verifies a timestamped response after time advance. The Java TSO helper sets the Name attribute's default order to TIMESTAMP before sending the timestamped response. For the invalid-region assertion Java passes a deleted API-created region handle; it does not claim the C++ default-constructed invalid-handle representation.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API and provider JAR",
+        "packages/hla-rti-cpp-tck/fom/ddm-tck.xml through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value through the adapter DDM object and attribute properties",
+        "HLAobjectRoot.TckKnownClassObject, its TckKnownClassDerivedObject subclass, and Name from ddm-tck.xml",
+        "TckDimensionX and TckDimensionY through hla.rti.tck.dimension and hla.rti.tck.ddmSecondDimension",
+        "HLAinteger64Time through the adapter logical-time implementation setting",
+        "Callback model supplied by the adapter"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Java sources built against the pinned IEEE 1516.1-2025 API. java-tck.regional-object-update passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI; results/JUnit are in out/java-tck/regional-object-update-java-parity-20261116/{hla_evoked-full,hla_immediate-full}/{results.json,junit.xml}. The C++ primary and contract each passed under both callback models after rebuilding hla_rti_cpp_tck; direct results/JUnit are .build/cpp-tck-regional-object-update-java-parity-20261116-built.{json,xml}. No matching CTest entries are registered for these adapter-backed scenarios. Local-provider/package evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-multi-attribute-update",

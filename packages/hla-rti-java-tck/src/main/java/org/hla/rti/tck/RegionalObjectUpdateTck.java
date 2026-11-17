@@ -12,6 +12,7 @@ import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
@@ -71,7 +72,10 @@ final class RegionalObjectUpdateTck {
       AttributeSetRegionSetPairList overlapPair = null, disjointPair = null;
       RegionHandle sourceRegion = null, reassociatedRegion = null;
       RegionHandle overlapRegion = null, disjointRegion = null;
+      RegionHandle staleSourceRegion = null, staleSubscriptionRegion = null;
       ObjectInstanceHandle object = null;
+      AttributeSetRegionSetPairList staleSourcePair = null, emptySourcePair = null;
+      AttributeSetRegionSetPairList staleSubscriptionPair = null;
       try {
          owner.connect(ownerCallbacks.proxy(), callbackModel);
          ownerConnected = true;
@@ -111,6 +115,8 @@ final class RegionalObjectUpdateTck {
                && ownerFirst.equals(overlapFirst) && ownerFirst.equals(disjointFirst)
                && ownerSecond.equals(overlapSecond) && ownerSecond.equals(disjointSecond),
             "adapter DDM FOM returned inconsistent regional object handles");
+         overlapCallbacks.configureRegionInspection(overlap, overlapFirst, overlapSecond);
+         disjointCallbacks.configureRegionInspection(disjoint, disjointFirst, disjointSecond);
          if (expectedTransportationName != null) {
             JavaTckSupport.check(expectedTransportationName.equals(
                   owner.getTransportationTypeName(expectedOwnerTransportation))
@@ -133,8 +139,14 @@ final class RegionalObjectUpdateTck {
          sourceCreated = true;
          reassociatedRegion = createRegion(owner, ownerFirst, ownerSecond, 7, 9);
          reassociatedCreated = true;
+         staleSourceRegion = createRegion(owner, ownerFirst, ownerSecond, 1, 5);
+         staleSourcePair = association(owner, ownerAttributes, staleSourceRegion);
+         owner.deleteRegion(staleSourceRegion);
          overlapRegion = createRegion(overlap, overlapFirst, overlapSecond, 2, 6);
          overlapRegionCreated = true;
+         staleSubscriptionRegion = createRegion(overlap, overlapFirst, overlapSecond, 2, 6);
+         staleSubscriptionPair = association(overlap, overlapAttributes, staleSubscriptionRegion);
+         overlap.deleteRegion(staleSubscriptionRegion);
          disjointRegion = createRegion(disjoint, disjointFirst, disjointSecond, 7, 9);
          disjointRegionCreated = true;
          sourcePair = association(owner, ownerAttributes, sourceRegion);
@@ -147,6 +159,10 @@ final class RegionalObjectUpdateTck {
          JavaTckSupport.check(overlap.getConveyRegionDesignatorSetsSwitch()
                && disjoint.getConveyRegionDesignatorSetsSwitch(),
             "receivers did not enable region-designator callbacks");
+         AttributeSetRegionSetPairList invalidSubscriptionPair = staleSubscriptionPair;
+         JavaTckSupport.expectFailure(() -> overlap.subscribeObjectClassAttributesWithRegions(
+               overlapClass, invalidSubscriptionPair), "InvalidRegion",
+            "regional subscription using a deleted region designator");
          overlap.subscribeObjectClassAttributesWithRegions(overlapClass, overlapPair);
          overlapSubscribed = true;
          disjoint.subscribeObjectClassAttributesWithRegions(disjointClass, disjointPair);
@@ -159,12 +175,19 @@ final class RegionalObjectUpdateTck {
          object = owner.registerObjectInstanceWithRegions(ownerClass, sourcePair, objectName);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "named regional registration returned an invalid handle");
+         JavaTckSupport.check(owner.isAttributeOwnedByFederate(object, ownerAttribute),
+            "named regional registration did not assign the published attribute to its owner");
          ObjectInstanceHandle registered = object;
          await(overlap, callbackModel, () -> overlapCallbacks.discoveries.contains(registered),
             "overlap-only discovery");
+         AttributeSetRegionSetPairList invalidSourcePair = staleSourcePair;
+         JavaTckSupport.expectFailure(() -> owner.associateRegionsForUpdates(registered, invalidSourcePair),
+            "InvalidRegion", "update association using a deleted region designator");
+         emptySourcePair = associationWithEmptyRegions(owner, ownerAttributes);
+         owner.associateRegionsForUpdates(object, emptySourcePair);
          pumpSeveral(disjoint, callbackModel);
          JavaTckSupport.check(!disjointCallbacks.discoveries.contains(object),
-            "disjoint subscription discovered the named regional object");
+            "empty source region set added a default association visible to the disjoint subscriber");
 
          AttributeHandleValueMap firstValues = owner.getAttributeHandleValueMapFactory().create(1);
          firstValues.put(ownerAttribute, FIRST_VALUE.clone());
@@ -173,7 +196,8 @@ final class RegionalObjectUpdateTck {
             "overlapping regional reflection");
          Reflection first = overlapCallbacks.reflections.get(0);
          assertReflection(first, object, overlapAttribute, producer, FIRST_VALUE, FIRST_TAG,
-            sourceRegion, expectedTransportationName, overlap, "initial regional reflection");
+            overlapFirst, overlapSecond, 1, 5, expectedTransportationName, overlap,
+            "initial regional reflection");
          pumpSeveral(disjoint, callbackModel);
          JavaTckSupport.check(disjointCallbacks.reflections.isEmpty(),
             "disjoint subscription received the initial update");
@@ -193,33 +217,93 @@ final class RegionalObjectUpdateTck {
          await(overlap, callbackModel, () -> overlapCallbacks.reflections.size() >= 2,
             "requested regional value reflection");
          assertReflection(overlapCallbacks.reflections.get(1), object, overlapAttribute,
-            producer, RESPONSE_VALUE, RESPONSE_TAG, sourceRegion, expectedTransportationName,
-            overlap, "requested regional reflection");
+            producer, RESPONSE_VALUE, RESPONSE_TAG, overlapFirst, overlapSecond, 1, 5,
+            expectedTransportationName, overlap, "requested regional reflection");
 
+         // Adding a second source region is additive, and repeating that
+         // association must not create a duplicate that survives one removal.
          owner.associateRegionsForUpdates(object, reassociatedPair);
-         owner.unassociateRegionsForUpdates(object, sourcePair);
+         owner.associateRegionsForUpdates(object, reassociatedPair);
          await(disjoint, callbackModel, () -> disjointCallbacks.discoveries.contains(registered),
-            "disjoint discovery after source reassociation");
+            "disjoint discovery after adding a second source region");
          overlapCallbacks.reflections.clear();
          disjointCallbacks.reflections.clear();
-         AttributeHandleValueMap movedValues = owner.getAttributeHandleValueMapFactory().create(1);
-         byte[] movedValue = new byte[] {0x77, (byte) 0x88};
-         movedValues.put(ownerAttribute, movedValue);
-         owner.updateAttributeValues(object, movedValues, RESPONSE_TAG.clone());
+         AttributeHandleValueMap additiveValues = owner.getAttributeHandleValueMapFactory().create(1);
+         byte[] additiveValue = new byte[] {0x66, (byte) 0x99};
+         byte[] additiveTag = new byte[] {0x52, 0x39};
+         additiveValues.put(ownerAttribute, additiveValue);
+         owner.updateAttributeValues(object, additiveValues, additiveTag);
+         await(overlap, callbackModel, () -> !overlapCallbacks.reflections.isEmpty(),
+            "update through the original source region after adding another region");
          await(disjoint, callbackModel, () -> !disjointCallbacks.reflections.isEmpty(),
-            "reassociated regional reflection");
+            "update through the newly added source region");
+         assertReflectionPayload(overlapCallbacks.reflections.get(0), object, overlapAttribute,
+            producer, additiveValue, additiveTag, expectedTransportationName, overlap,
+            "additive overlap reflection");
+         assertReflectionPayload(disjointCallbacks.reflections.get(0), object, disjointAttribute,
+            producer, additiveValue, additiveTag, expectedTransportationName, disjoint,
+            "additive disjoint reflection");
+
+         owner.unassociateRegionsForUpdates(object, sourcePair);
+         owner.unassociateRegionsForUpdates(object, sourcePair);
+         owner.unassociateRegionsForUpdates(object, emptySourcePair);
+         overlapCallbacks.reflections.clear();
+         disjointCallbacks.reflections.clear();
+         byte[] associatedValue = new byte[] {0x77, (byte) 0x88};
+         AttributeHandleValueMap associatedValues = owner.getAttributeHandleValueMapFactory().create(1);
+         associatedValues.put(ownerAttribute, associatedValue);
+         owner.updateAttributeValues(object, associatedValues, RESPONSE_TAG.clone());
+         await(disjoint, callbackModel, () -> !disjointCallbacks.reflections.isEmpty(),
+            "reflection through the remaining source region");
          assertReflection(disjointCallbacks.reflections.get(0), object, disjointAttribute,
-            producer, movedValue, RESPONSE_TAG, reassociatedRegion, expectedTransportationName,
-            disjoint, "reassociated reflection");
+            producer, associatedValue, RESPONSE_TAG, disjointFirst, disjointSecond, 7, 9,
+            expectedTransportationName, disjoint, "remaining regional reflection");
          pumpSeveral(overlap, callbackModel);
          JavaTckSupport.check(overlapCallbacks.reflections.isEmpty(),
-            "old overlapping subscription received an update after reassociation");
+            "overlap receiver received an update after removing the original source region");
 
          owner.unassociateRegionsForUpdates(object, reassociatedPair);
-         sourcePair = null;
          reassociatedPair = null;
+         overlapCallbacks.reflections.clear();
+         disjointCallbacks.reflections.clear();
+         byte[] defaultValue = new byte[] {(byte) 0x91, (byte) 0x92, (byte) 0x93};
+         byte[] defaultTag = new byte[] {0x52, 0x44};
+         AttributeHandleValueMap defaultValues = owner.getAttributeHandleValueMapFactory().create(1);
+         defaultValues.put(ownerAttribute, defaultValue);
+         owner.updateAttributeValues(object, defaultValues, defaultTag);
+         await(overlap, callbackModel, () -> !overlapCallbacks.reflections.isEmpty(),
+            "default-region reflection after removing the final explicit association");
+         Reflection defaultReflection = overlapCallbacks.reflections.get(0);
+         JavaTckSupport.check(object.equals(defaultReflection.object)
+               && defaultReflection.values.size() == 1
+               && Arrays.equals(defaultValue, defaultReflection.values.get(overlapAttribute))
+               && Arrays.equals(defaultTag, defaultReflection.tag)
+               && producer.equals(defaultReflection.producer)
+               && defaultReflection.regionsPresent && defaultReflection.regionCount == 0,
+            "removing the final update-region association did not restore default-region delivery with an empty callback region set");
+         JavaTckSupport.check(defaultReflection.transportation != null,
+            "default-region reflection returned an invalid transportation handle");
+         if (expectedTransportationName != null) {
+            JavaTckSupport.check(expectedTransportationName.equals(
+                  overlap.getTransportationTypeName(defaultReflection.transportation)),
+               "default-region reflection changed the adapter-declared custom transportation type");
+         }
+
          overlap.unsubscribeObjectClassAttributesWithRegions(overlapClass, overlapPair);
          overlapSubscribed = false;
+         overlapCallbacks.reflections.clear();
+         owner.associateRegionsForUpdates(object, sourcePair);
+         byte[] unsubscribedValue = new byte[] {(byte) 0xA1, (byte) 0xB2, (byte) 0xC3};
+         AttributeHandleValueMap unsubscribedValues =
+            owner.getAttributeHandleValueMapFactory().create(1);
+         unsubscribedValues.put(ownerAttribute, unsubscribedValue);
+         owner.updateAttributeValues(object, unsubscribedValues, RESPONSE_TAG.clone());
+         pumpSeveral(overlap, callbackModel);
+         JavaTckSupport.check(overlapCallbacks.reflections.isEmpty(),
+            "receiver got an update after its regional attribute subscription was removed");
+         owner.unassociateRegionsForUpdates(object, sourcePair);
+         sourcePair = null;
+
          disjoint.unsubscribeObjectClassAttributesWithRegions(disjointClass, disjointPair);
          disjointSubscribed = false;
          owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
@@ -252,10 +336,14 @@ final class RegionalObjectUpdateTck {
             owner.unpublishObjectClassAttributes(ownerClass, ownerAttributes);
          } catch (Exception ignored) { }
          if (ownerJoined) {
+            deleteRegion(owner, staleSourceRegion);
             deleteRegion(owner, reassociatedRegion, reassociatedCreated);
             deleteRegion(owner, sourceRegion, sourceCreated);
          }
-         if (overlapJoined) deleteRegion(overlap, overlapRegion, overlapRegionCreated);
+         if (overlapJoined) {
+            deleteRegion(overlap, staleSubscriptionRegion);
+            deleteRegion(overlap, overlapRegion, overlapRegionCreated);
+         }
          if (disjointJoined) deleteRegion(disjoint, disjointRegion, disjointRegionCreated);
          if (ownerJoined) try {
             owner.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -305,9 +393,35 @@ final class RegionalObjectUpdateTck {
       return pairs;
    }
 
+   private static AttributeSetRegionSetPairList associationWithEmptyRegions(
+         RTIambassador ambassador, AttributeHandleSet attributes) throws Exception {
+      RegionHandleSet regions = ambassador.getRegionHandleSetFactory().create();
+      AttributeSetRegionSetPairList pairs =
+         ambassador.getAttributeSetRegionSetPairListFactory().create(1);
+      pairs.add(new AttributeRegionAssociation(attributes, regions));
+      return pairs;
+   }
+
    private static void assertReflection(Reflection reflection,
          ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
-         byte[] value, byte[] tag, RegionHandle sourceRegion, String expectedTransportationName,
+         byte[] value, byte[] tag, DimensionHandle firstDimension,
+         DimensionHandle secondDimension, long lower, long upper,
+         String expectedTransportationName, RTIambassador receiver, String description)
+         throws Exception {
+      assertReflectionPayload(reflection, object, attribute, producer, value, tag,
+         expectedTransportationName, receiver, description);
+      JavaTckSupport.check(reflection.regionsPresent && reflection.regionCount == 1,
+         description + " omitted its single source-region designator");
+      JavaTckSupport.check(reflection.regionInspectionFailure == null
+            && reflection.regionDimensionsMatch
+            && reflection.firstLower == lower && reflection.firstUpper == upper
+            && reflection.secondLower == lower && reflection.secondUpper == upper,
+         description + " changed the source-region dimensions or bounds");
+   }
+
+   private static void assertReflectionPayload(Reflection reflection,
+         ObjectInstanceHandle object, AttributeHandle attribute, FederateHandle producer,
+         byte[] value, byte[] tag, String expectedTransportationName,
          RTIambassador receiver, String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
@@ -320,9 +434,6 @@ final class RegionalObjectUpdateTck {
                receiver.getTransportationTypeName(reflection.transportation)),
             description + " changed the adapter-declared custom transportation type");
       }
-      JavaTckSupport.check(reflection.regions != null && reflection.regions.size() == 1
-            && reflection.regions.contains(sourceRegion),
-         description + " omitted the source-region designator");
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
@@ -367,7 +478,11 @@ final class RegionalObjectUpdateTck {
       private byte[] tag;
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
-      private RegionHandleSet regions;
+      private boolean regionsPresent;
+      private int regionCount;
+      private boolean regionDimensionsMatch;
+      private long firstLower, firstUpper, secondLower, secondUpper;
+      private Throwable regionInspectionFailure;
    }
 
    private static final class Recorder {
@@ -375,6 +490,16 @@ final class RegionalObjectUpdateTck {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<ProvidedUpdate> provided = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private RTIambassador regionInspector;
+      private DimensionHandle firstDimension, secondDimension;
+
+      private void configureRegionInspection(RTIambassador receiver,
+            DimensionHandle first, DimensionHandle second) {
+         regionInspector = receiver;
+         firstDimension = first;
+         secondDimension = second;
+      }
+
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
@@ -396,7 +521,29 @@ final class RegionalObjectUpdateTck {
                   reflection.tag = ((byte[]) args[2]).clone();
                   reflection.transportation = (TransportationTypeHandle) args[3];
                   reflection.producer = (FederateHandle) args[4];
-                  reflection.regions = (RegionHandleSet) args[5];
+                  RegionHandleSet regions = (RegionHandleSet) args[5];
+                  reflection.regionsPresent = regions != null;
+                  reflection.regionCount = regions == null ? -1 : regions.size();
+                  if (regions != null && regions.size() == 1 && regionInspector != null) {
+                     try {
+                        RegionHandle callbackRegion = regions.iterator().next();
+                        DimensionHandleSet dimensions =
+                           regionInspector.getDimensionHandleSet(callbackRegion);
+                        RangeBounds first = regionInspector.getRangeBounds(
+                           callbackRegion, firstDimension);
+                        RangeBounds second = regionInspector.getRangeBounds(
+                           callbackRegion, secondDimension);
+                        reflection.regionDimensionsMatch = dimensions.size() == 2
+                           && dimensions.contains(firstDimension)
+                           && dimensions.contains(secondDimension);
+                        reflection.firstLower = first.lower;
+                        reflection.firstUpper = first.upper;
+                        reflection.secondLower = second.lower;
+                        reflection.secondUpper = second.upper;
+                     } catch (Throwable error) {
+                        reflection.regionInspectionFailure = error;
+                     }
+                  }
                   reflections.add(reflection);
                }
                if (method.getDeclaringClass() == Object.class) {
