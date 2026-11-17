@@ -478,6 +478,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationTimestampedAttribute",
       "parity": "cpp-tck.custom-transportation-timestamped-attribute-delivery",
       "default_status": "unsupported",
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTransportRegionalObject/RegionalValue, and TckBestEffort. The evoked discovery wait now drains the publisher and both receiver sessions together, matching the C++ runner. Assertions cover timestamped value/tag/time/order, retraction callbacks and grant relation, plus the adapter-declared transportation identity. Results/JUnit: .build/java-tck-20261117/timestamped-attribute-{evoked,immediate}.{json,xml}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
       "exclusion": "Requires an adapter-supplied rich FOM declaring the custom-transportation object attribute, logical-time implementation, object/attribute/transportation names, and Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider. Configure object class and attribute with hla.rti.tck.customTransportationObjectClass and hla.rti.tck.customTransportationAttribute."
     },
     {

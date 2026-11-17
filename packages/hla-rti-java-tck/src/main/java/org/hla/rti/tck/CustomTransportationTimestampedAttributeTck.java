@@ -109,14 +109,14 @@ final class CustomTransportationTimestampedAttributeTck {
          ObjectInstanceHandle object = publisher.registerObjectInstance(publisherClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "custom timestamped attribute registration returned an invalid object handle");
-         awaitBoth(publisher, immediate, callbackModel,
-            () -> immediateCallbacks.discoveries.contains(object),
-            "immediate receiver object discovery");
-         awaitBoth(publisher, constrained, callbackModel,
-            () -> constrainedCallbacks.discoveries.contains(object),
-            "constrained receiver object discovery");
+         awaitThree(publisher, immediate, constrained, callbackModel,
+            () -> !immediateCallbacks.discoveries.isEmpty()
+               && !constrainedCallbacks.discoveries.isEmpty(),
+            "timestamped attribute receiver object discovery");
          JavaTckSupport.check(immediateCallbacks.discoveries.size() == 1
                && constrainedCallbacks.discoveries.size() == 1
+               && object.equals(immediateCallbacks.discoveries.get(0).object)
+               && object.equals(constrainedCallbacks.discoveries.get(0).object)
                && immediateClass.equals(immediateCallbacks.discoveries.get(0).objectClass)
                && constrainedClass.equals(constrainedCallbacks.discoveries.get(0).objectClass),
             "custom timestamped attribute discovery returned incorrect object metadata");
@@ -310,6 +310,22 @@ final class CustomTransportationTimestampedAttributeTck {
          if (model == CallbackModel.HLA_EVOKED) {
             JavaTckSupport.drain(first);
             if (second != null) JavaTckSupport.drain(second);
+         } else {
+            Thread.yield();
+         }
+      }
+      JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
+   }
+
+   private static void awaitThree(RTIambassador first, RTIambassador second,
+         RTIambassador third, CallbackModel model, BooleanSupplier condition,
+         String description) throws Exception {
+      long deadline = System.nanoTime() + CALLBACK_TIMEOUT_NANOS;
+      while (System.nanoTime() < deadline && !condition.getAsBoolean()) {
+         if (model == CallbackModel.HLA_EVOKED) {
+            JavaTckSupport.drain(first);
+            JavaTckSupport.drain(second);
+            JavaTckSupport.drain(third);
          } else {
             Thread.yield();
          }
