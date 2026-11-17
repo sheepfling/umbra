@@ -5282,6 +5282,40 @@ models; results/JUnit are in
 `.build/java-tck-20261117/register-object-instance-with-regions-atomicity-{evoked,immediate}.{json,xml}`.
 The case remains opt-in because it requires an adapter DDM FOM and names.
 
+The opt-in `java-tck.register-object-instance-with-regions-omitted-attributes-default-region`
+case publishes two attributes, associates a source region only with the first
+in the region-qualified registration, and subscribes to the omitted second
+attribute through a disjoint region. It confirms discovery and one update with
+the expected value, tag, and producer, exercising the default-region path for
+that omitted attribute. Its direct mapping is limited to §9.5 p. 228
+l. 176-178. Focused local Umbra JNI runs passed under both callback models;
+results/JUnit are in
+`.build/java-tck-20261117/register-object-instance-with-regions-omitted-attribute-default-region-{evoked,immediate}.{json,xml}`.
+The case remains opt-in because it requires an adapter multi-attribute DDM FOM
+and names.
+
+The opt-in `java-tck.register-object-instance-with-regions-empty-region-set-default-region`
+case pairs the published attribute with an empty region set during
+region-qualified registration. A disjoint regional subscriber still receives
+one discovery and one update with the expected value, tag, and producer,
+exercising the empty-set default-region path. Its direct mapping is limited to
+§9.5 p. 229 l. 11. Focused local Umbra JNI runs passed under both callback
+models; results/JUnit are in
+`.build/java-tck-20261117/register-object-instance-with-regions-empty-region-set-default-region-{evoked,immediate}.{json,xml}`.
+The case remains opt-in because it requires an adapter multi-attribute DDM FOM
+and names.
+
+The opt-in `java-tck.register-object-instance-with-regions-invalid-region` case
+creates and deletes a one-dimensional region, then supplies its stale handle to
+`Register Object Instance With Regions` and requires `InvalidRegion`. The Java
+API has no portable default-invalid `RegionHandle` value, so this case covers
+the deleted-handle form. Its direct mapping is limited to §9.5.3 p. 229
+l. 146. Focused local Umbra JNI runs passed under both callback models;
+results/JUnit are in
+`.build/java-tck-20261117/register-object-instance-with-regions-invalid-region-{evoked,immediate}.{json,xml}`.
+The case remains opt-in because it requires an adapter multi-attribute DDM FOM
+and names.
+
 The opt-in `java-tck.regional-interaction-partial-default-range` case uses the
 adapter restricted default-range FOM. It sends an interaction through a
 non-empty X-only source region and verifies the omitted Y dimension receives
