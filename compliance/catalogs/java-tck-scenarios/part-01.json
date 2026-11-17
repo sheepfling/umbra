@@ -5581,6 +5581,7 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectInstanceHandle",
+        "ObjectInstanceHandle.equals",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -5591,21 +5592,91 @@
         "FederateAmbassador.discoverObjectInstance"
       ],
       "requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l173-56",
+        "requirement-candidate-content-clauses-05-declaration-management-page-086-l6-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-086-l12-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l34-7",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l37-8",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l43-10",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l43-10-equality",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l97-27",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l100-28",
+        "requirement-candidate-content-clauses-11-management-object-model-page-353-l102-33"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25"
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
+        "requirement-candidate-content-clauses-05-declaration-management-page-085-l173-56",
+        "requirement-candidate-content-clauses-05-declaration-management-page-086-l6-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-086-l12-3",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l34-7",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l37-8",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l43-10",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l43-10-equality",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l97-27",
+        "requirement-candidate-content-clauses-06-object-management-page-119-l100-28",
+        "requirement-candidate-content-clauses-11-management-object-model-page-353-l102-33"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.8"
+        "hla-1516.1-2025:clause-5.1.5",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.8",
+        "hla-1516.1-2025:clause-6.9",
+        "hla-1516.1-2025:clause-12.2"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l84-25",
           "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-085-l173-56",
+          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-086-l6-1",
+          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-086-l12-3",
+          "standard_section": "hla-1516.1-2025:clause-5.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l34-7",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l37-8",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l43-10",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l43-10-equality",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l94-26",
+          "standard_section": "hla-1516.1-2025:clause-6.9"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l97-27",
+          "standard_section": "hla-1516.1-2025:clause-6.9"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l100-28",
+          "standard_section": "hla-1516.1-2025:clause-6.9"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-11-management-object-model-page-353-l102-33",
+          "standard_section": "hla-1516.1-2025:clause-12.2"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the count/presence assertions showing each of two registered objects is discovered exactly once by each of two active subscribers (§5.8). Publisher loopback suppression, object lookup round-trips, fixture setup, and teardown remain supplemental and are not mapped here; callback ordering is not asserted. The Java source compiles against the official API and passed the focused JNI gate in both HLA_EVOKED and HLA_IMMEDIATE with adapter-supplied names. This is not independent-provider or conformance evidence.",
+      "mapping_note": "Direct mappings follow the paired C++ scenario one-for-one where the Java assertions witness the same behavior. For §5.1.5 p085-l173-56, the adapter P0 TckObject fixture supplies Value, Name, and PayRate; each of the publisher and two subscribers resolves those three configured attributes, checks that their handles are distinct, and publishes or subscribes the complete set. The publisher checks both registered instances with getKnownObjectClassHandle (p086-l6-1), and each subscriber receives exactly one discovery for each instance with the expected class (p086-l12-3). For §6.8 p118-l34-7, p118-l37-8, and p118-l43-10, both subscribers resolve the registered names to handles equal to the publisher-returned handles, and each discovery event preserves the publisher handle, object name, class, and producer. ObjectInstanceHandle.equals provides the Java handle-identity assertion for the paired equality leaf. Direct §6.9 mappings cover exactly two discoveries per subscriber, distinct registered handles, and name-to-handle identity at both subscribers. The §12.2 p353-l102-33 witness uses the two subscriber callback recorders plus those name-to-handle lookups to confirm each returned handle is known at both receiving members. The existing §5.8 mapping remains the bounded count/presence witness. This is limited to the configured P0 fixture; it does not claim exhaustive arbitrary-FDD enumeration or conformance. Callback ordering is not asserted; setup, teardown, and publisher loopback suppression remain supplemental.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5621,7 +5692,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#objectRegistrationMultiRecipient",
       "default_status": "run",
-      "promotion": "promoted"
+      "promotion": "promoted",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 focused runs under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider, using p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and the Value, Name, and PayRate attributes. Java results/JUnit: .build/java-tck-20261117/object-registration-multi-recipient-focused-{evoked,immediate}.{json,xml}. The paired C++ primary and contract selectors passed all four focused CTests and both direct scenarios under both callback models. C++ results/JUnit: .build/cpp-tck-java-parity-named-registration/object-registration-multi-recipient.{json,xml}. This provider-local evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.object-registration-service-boundaries",
