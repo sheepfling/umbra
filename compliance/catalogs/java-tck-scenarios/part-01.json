@@ -5463,13 +5463,13 @@
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         }
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.1.3"
+        "hla-1516.1-2025:clause-5.1.2"
       ],
-      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mapping: the registrant remains at the registered derived class, while base- and derived-view subscribers retain the class first discovered after their subscription views change. Each ambassador resolves its own object handle to the same object name; no opaque handle is compared across ambassadors. Java also round-trips each member's own object handle from the common name as a supplementary identity check. Provider, endpoint, FOM, names, and callback model are adapter inputs; source imports only the official Java API and JDK.",
+      "mapping_note": "The selected page 83 line 8 requirement is ‘Every object instance shall have one federation-wide registered class that cannot change’ and the pinned source maps it to IEEE 1516.1-2025 §5.1.2. Java registers one derived-class object; base- and derived-view subscribers retain the classes shown in their initial discoveries as subscriptions change, and the registrant's known class remains the registered derived class before and after the base subscriber adds a derived-class subscription. Each member resolves its own object handle to the common name and round-trips that name to its own handle; opaque handles are not compared across members. This covers registered-class identity across the tested subscription changes, without a save/restore, process-transport, or membership claim. Provider, endpoint, FOM, names, and callback model are adapter inputs; source imports only the official Java API and JDK.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5496,7 +5496,7 @@
       ],
       "promotion": "promoted",
       "exclusion": "Requires the adapter-supplied known-class hierarchy FOM and class/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
-      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: out/java-tck/registered-object-class-immutability-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract selectors for this case and per-federate-discovered-class passed 8/8 focused CTests and 8/8 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/object-class-view-java-parity-20261116.{json,xml}. The direct mapping remains the selected §5.1.3 registered-class requirement. Local-provider evidence does not establish independent-provider behavior or conformance."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: .build/java-tck-20261117/registered-object-class-immutability-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/registered-object-class-immutability.{json,xml}. The page-83 line-8 direct mapping is §5.1.2 according to the pinned source. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.discovered-class-stability-after-specific-subscription",

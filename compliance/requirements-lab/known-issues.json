@@ -5667,6 +5667,36 @@
         "RL-440"
       ],
       "detected": "2026-11-12"
+    },
+    {
+      "id": "RL-450",
+      "status": "open",
+      "kind": "traceability-source-section-mismatch",
+      "title": "Page-83 registered-class evidence note cites §5.1.3 while the pinned candidate maps to §5.1.2",
+      "affected_requirement_ids": [
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2"
+      ],
+      "exported_clause": "5.1.2",
+      "normative_clause": "5.1.2",
+      "document_id": "hla-1516.1-2025",
+      "sources": [
+        {
+          "path": "content/clauses/05-declaration-management-page-083.tex",
+          "lines": "8",
+          "page": 83
+        },
+        {
+          "path": "compliance/requirements-lab/catch2-test-plan.json",
+          "lines": "umbra-cpp-registered-object-class-immutability requirement and API-surface evidence",
+          "page": 83
+        }
+      ],
+      "symptom": "The exact requirement query maps the page-83 line-8 candidate ‘Every object instance shall have one federation-wide registered class that cannot change’ to §5.1.2, and the promoted C++ TCK row uses that direct mapping. The same Catch2 case card's Requirements-Lab API-surface note describes the immutable registered-class rule as §5.1.3.",
+      "impact": "The conflicting section citation can shift Java and other TCK traceability away from the pinned candidate's direct §5.1.2 mapping.",
+      "workaround": "Use the exact pinned requirement query and C++ TCK direct mapping for this candidate. Preserve the stable requirement ID and do not resynchronize or rewrite the Requirements Lab data; ask the Lab to reconcile the conflicting API-surface note.",
+      "reproduction": "Run `python tools/query_rti_work.py requirement requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2 --verbose --limit 3`; compare the requirement source and clause mapping with the API-surface note for `umbra-cpp-registered-object-class-immutability`.",
+      "verification": "The pinned query reports source content/clauses/05-declaration-management-page-083.tex:8, clause 5.1.2, and the exact requirement statement. The paired C++ TCK primary and contract both map the same requirement ID to §5.1.2; the API-surface note says §5.1.3. The Java scenario's direct mapping was corrected to §5.1.2. No Requirements Lab resynchronization or requirement-ID rewrite was performed.",
+      "detected": "2026-11-17"
     }
   ]
 }

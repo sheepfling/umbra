@@ -38577,6 +38577,23 @@
         "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicit not-applicable cases. Focused C++ result validation passed. The Java row maps only the five selected §5.1.2 requirements; paired C++ late-subscription §5.8 and update/reflection §6.1.1 witnesses remain unmapped because the Java scenario does not exercise them. No Requirements Lab resynchronization.",
         "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ provider. It does not establish independent-provider behavior, interoperability, or conformance.",
         "next": "Next exact pair: cpp-tck.registered-object-class-immutability and java-tck.registered-object-class-immutability. Verify the shared page-83 requirement candidate against the pinned source and compare the Java case’s registered, discovered, and known class assertions. Its Java mapping currently says §5.1.3 while the C++ row says §5.1.2. Correct only the direct mapping supported by the Java assertions, preserve receiver-local handle claims, and run both callback models with the paired C++ selectors."
+      },
+      "latest_verified_java_registered_object_class_immutability_mapping_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Corrected the Java registered-object-class-immutability direct mapping from §5.1.3 to the pinned page-83 line-8 requirement mapping in §5.1.2. The existing Java assertions cover the registered derived class before and after the tested base-view subscription change.",
+        "scenario_ids": [
+          "java-tck.registered-object-class-immutability",
+          "cpp-tck.registered-object-class-immutability",
+          "cpp-tck.registered-object-class-immutability-contract"
+        ],
+        "sources": "compliance/catalogs/java-tck-scenarios/part-01.json; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/PerFederateDiscoveredClassTck.java; compliance/requirements-lab/known-issues.json (RL-450)",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l8-2 -> IEEE 1516.1-2025 §5.1.2"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and known-class-advisory-tck.xml. Results/JUnit: .build/java-tck-20261117/registered-object-class-immutability-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct runs across both callback models; results: .build/cpp-tck-java-parity-named-registration/registered-object-class-immutability.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicit not-applicable cases. Focused C++ result validation passed. The pinned requirement query reports the page-83 line-8 source and §5.1.2; RL-450 records the conflicting Requirements-Lab API-surface note that says §5.1.3. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ provider. It does not establish independent-provider behavior, interoperability, or conformance.",
+        "next": "Next exact pair: cpp-tck.discovered-class-stability-after-specific-subscription and java-tck.discovered-class-stability-after-specific-subscription. Verify the shared page-83 line-35 requirement against the pinned source and compare the existing Java assertions for no new discovery or class change after adding the more-specific subscription. The C++ row maps it to §5.1.2 while Java currently maps it to §5.1.3. Correct only the clause supported by the candidate and Java behavior, preserve receiver-local handle assertions, and run both callback models with the paired C++ selectors."
       }
     }
   ],
