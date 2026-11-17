@@ -87,21 +87,28 @@ final class RegionalBoundariesTck {
                && interactionDimensions.contains(ownerSecond)
                && !objectDimensions.contains(ownerUnrelated)
                && !interactionDimensions.contains(ownerUnrelated)
+               && firstDimensionName.equals(owner.getDimensionName(ownerFirst))
+               && secondDimensionName.equals(owner.getDimensionName(ownerSecond))
                && owner.getDimensionUpperBound(ownerFirst) >= 6
                && owner.getDimensionUpperBound(ownerSecond) >= 6
                && owner.getDimensionUpperBound(ownerUnrelated) >= 5,
-            "adapter DDM FOM must separate two class dimensions from the unrelated dimension");
+            "adapter DDM FOM dimensions must match their names and class availability");
 
          DimensionHandleSet noDimensions = owner.getDimensionHandleSetFactory().create();
          RegionHandle zeroDimensionalRegion = owner.createRegion(noDimensions);
-         JavaTckSupport.check(owner.getDimensionHandleSet(zeroDimensionalRegion).isEmpty(),
+         JavaTckSupport.check(zeroDimensionalRegion != null
+               && zeroDimensionalRegion.encodedLength() > 0
+               && owner.getDimensionHandleSet(zeroDimensionalRegion).isEmpty(),
             "zero-dimensional region unexpectedly contained dimensions");
          owner.commitRegionModifications(regionSet(owner, zeroDimensionalRegion));
          owner.deleteRegion(zeroDimensionalRegion);
 
-         uncommittedRegion = owner.createRegion(dimensionSet(owner, ownerFirst, ownerSecond));
+         uncommittedRegion = owner.createRegion(
+            dimensionSet(owner, ownerFirst, ownerSecond, ownerUnrelated));
+         JavaTckSupport.check(uncommittedRegion != null && uncommittedRegion.encodedLength() > 0,
+            "incomplete region creation returned an invalid handle");
          RegionHandle incompleteRegion = uncommittedRegion;
-         JavaTckSupport.expectFailure(() -> owner.getRangeBounds(incompleteRegion, ownerFirst),
+         JavaTckSupport.expectFailure(() -> owner.getRangeBounds(incompleteRegion, ownerUnrelated),
             "InvalidRegion", "reading a range from an uncommitted region");
          JavaTckSupport.expectFailure(() -> owner.commitRegionModifications(
                regionSet(owner, incompleteRegion)),
@@ -110,9 +117,13 @@ final class RegionalBoundariesTck {
             new hla.rti1516_2025.RangeBounds(1, 5));
          owner.setRangeBounds(uncommittedRegion, ownerSecond,
             new hla.rti1516_2025.RangeBounds(1, 5));
+         owner.setRangeBounds(uncommittedRegion, ownerUnrelated,
+            new hla.rti1516_2025.RangeBounds(1, 5));
          owner.commitRegionModifications(regionSet(owner, uncommittedRegion));
 
          wrongContextRegion = owner.createRegion(dimensionSet(owner, ownerUnrelated));
+         JavaTckSupport.check(wrongContextRegion != null && wrongContextRegion.encodedLength() > 0,
+            "incompatible-context region creation returned an invalid handle");
          owner.setRangeBounds(wrongContextRegion, ownerUnrelated,
             new hla.rti1516_2025.RangeBounds(1, 5));
          owner.commitRegionModifications(regionSet(owner, wrongContextRegion));
@@ -221,6 +232,8 @@ final class RegionalBoundariesTck {
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle first,
          DimensionHandle second, long lower, long upper) throws Exception {
       RegionHandle region = ambassador.createRegion(dimensionSet(ambassador, first, second));
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "regional boundary region creation returned an invalid handle");
       ambassador.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(lower, upper));
       ambassador.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(lower, upper));
       ambassador.commitRegionModifications(regionSet(ambassador, region));

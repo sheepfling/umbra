@@ -1587,6 +1587,7 @@
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getAvailableDimensionsForObjectClass",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.createRegion",
         "RTIambassador.commitRegionModifications",
@@ -1594,6 +1595,7 @@
         "RTIambassador.setRangeBounds",
         "RTIambassador.getRangeBounds",
         "RTIambassador.getDimensionHandleSet",
+        "RegionHandle.encodedLength",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.registerObjectInstanceWithRegions",
         "RTIambassador.publishInteractionClass",
@@ -1611,8 +1613,31 @@
       "requirement_ids": [
         "cpp-1516.1-ddm-invalid-region-context",
         "cpp-1516.1-ddm-foreign-region-boundary",
-        "cpp-1516.1-ddm-region-in-use-boundary"
+        "cpp-1516.1-ddm-region-in-use-boundary",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l140-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l140-45",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l140-45",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3",
+          "note": "The interaction send is rejected when its region specifies a dimension unavailable to the interaction class. The direct claim is limited to this send-region dimension-subset boundary."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use",
+          "standard_section": "hla-1516.1-2025:clause-9.4",
+          "note": "Delete Region is rejected with RegionInUseForUpdateOrSubscription while the region is used by a passive interaction subscription and while it is used by an object update association. The paired regional-unpublish-region-release case covers class-attribute subscription use."
+        }
+      ],
+      "mapping_note": "This Java public-API scenario directly verifies the source-backed §9.1.3.3 send-region dimension-subset boundary and §9.4 rejection of Delete Region while a region is used by a passive interaction subscription or object update association. The paired regional-unpublish-region-release case covers class-attribute subscription use. RL-361 records that the §9.1.3.3 candidate sentence is split across source fragments; this mapping uses the complete pinned sentence and does not claim the separate default-region behavior. The incomplete-range, foreign-region, and object-registration context checks remain supplemental assertions without direct normative mappings. Bounded TCK evidence only; no conformance claim.",
       "contract_refs": [
         "region-lifecycle-api-contract.json",
         "region-lifecycle-requirements-contract.json",
@@ -1625,8 +1650,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalBoundaries",
       "parity": "cpp-tck.regional-boundaries",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with object and interaction classes, an attribute, a parameter, two class dimensions and a distinct unrelated dimension, plus an installed Java 2025 provider; runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires the adapter-supplied packages/hla-rti-cpp-tck/fom/ddm-tck.xml with HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX, TckDimensionY, and TckUnrelatedDimension. The focused local-provider runs passed; behavior on other providers remains unverified.",
+      "parity_scope_note": "Mirrors cpp-tck.regional-boundaries: zero-dimensional region lifecycle, missing range rejection, incompatible object-registration and interaction-send contexts, foreign-region deletion and commit rejection, and region-in-use deletion for passive interaction subscriptions and object update associations. Java also checks adapter dimension-name round trips and class-dimension separation. The Java API provides no portable default-invalid RegionHandle representation, so the case relies on valid API-created handles.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API and installed Java provider",
+        "packages/hla-rti-cpp-tck/fom/ddm-tck.xml through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value through the DDM object and attribute adapter properties",
+        "HLAinteractionRoot.TckInteraction and Payload through the interaction and parameter adapter properties",
+        "TckDimensionX, TckDimensionY, and TckUnrelatedDimension through the dimension adapter properties",
+        "Callback model supplied by the adapter"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "The Java sources built against the pinned IEEE 1516.1-2025 Java API. java-tck.regional-boundaries passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI; Java results/JUnit are out/java-tck/regional-boundaries-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ direct scenario passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-boundaries-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-object-attribute-dimension-subset",

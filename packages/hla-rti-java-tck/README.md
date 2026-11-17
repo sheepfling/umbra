@@ -5160,14 +5160,22 @@ region containing one adapter dimension and verifies both `getRangeBounds` and
 name, logical-time implementation, and callback model are adapter supplied;
 provider runtime remains unverified.
 
-The opt-in `java-tck.regional-boundaries` case verifies zero-dimensional region
-lifecycle; rejects reads/commits of incomplete regions; rejects object
-registration and interaction sends using an unrelated dimension; rejects
-foreign-region deletion/commit; and checks that passive subscriptions and
-registered-object update associations keep regions in use until unsubscribed or
-the object is deleted. The DDM FOM, object/interaction classes, attribute,
-parameter, two class dimensions, unrelated dimension, and callback model are
-adapter supplied; provider runtime remains unverified.
+The default `java-tck.regional-boundaries` case verifies zero-dimensional
+region lifecycle; rejects reads/commits of an incomplete three-dimension
+region; rejects object registration and interaction sends using an unrelated
+dimension; rejects foreign-region deletion/commit; and checks that passive
+subscriptions and registered-object update associations keep regions in use
+until unsubscribed or the object is deleted. Direct mappings are limited to
+§§9.1.3.3 and 9.4; the incomplete-range, foreign-region, and object-registration
+context checks remain supplemental. The adapter supplies `ddm-tck.xml`,
+HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload,
+TckDimensionX, TckDimensionY, TckUnrelatedDimension, and callback model.
+Focused Java runs passed under both callback models against local Umbra JNI;
+the paired C++ direct scenario passed both models using the existing installed
+package adapter executable. Java results/JUnit are in
+`out/java-tck/regional-boundaries-java-parity-20261116/`; C++ results/JUnit are
+in `.build/cpp-tck-regional-request-java-parity-20261116-ninja/`. Other
+providers remain unverified; these runs do not establish conformance.
 
 The opt-in `java-tck.regional-object-attribute-dimension-inheritance` case uses
 the adapter-supplied multi-attribute FOM configured with
