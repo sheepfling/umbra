@@ -3109,8 +3109,9 @@
         "adapter multi-attribute DDM FOM with a two-dimensional object class and two attributes",
         "object-class, first-attribute, second-attribute, dimension names, and provider callback model"
       ],
-      "exclusion": "Default-disabled; focused execution requires --run-unverified with an adapter-supplied multi-attribute DDM FOM, object-class and attribute names, two dimension names, endpoint, and callback model.",
-      "promotion": "promoted"
+      "exclusion": "Default execution remains disabled because this case requires --run-unverified with an adapter-supplied multi-attribute DDM FOM, object-class and attribute names, two dimension names, and callback model. Focused local Umbra JNI runs passed with those inputs; independent-provider behavior and conformance remain unverified.",
+      "promotion": "promoted",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and ddm-multi-attribute-tck.xml, HLAobjectRoot.TckMultiAttributeObject, FirstValue/SecondValue, and TckDimensionX/TckDimensionY. The Java mirror checks InvalidRegion for subscription and unsubscription using a deleted standard region handle, repeated region subscription and empty-set unsubscription, one two-attribute callback at the matching receiver, per-attribute filtering at a second receiver, additive region subscription, and selective/repeated unsubscription that preserves the other class-region-attribute triples. Results/JUnit: .build/java-tck-20261117/regional-subscription-triple-isolation-{evoked,immediate}.{json,xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-three-dimensional-overlap",

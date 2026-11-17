@@ -5249,6 +5249,19 @@ that a Y-only receiver gets neither discovery nor reflection when an X-only
 source region is registered. Its direct mapping is limited to this §9.1.2
 realization behavior.
 
+The opt-in `java-tck.regional-subscription-triple-isolation` case uses the
+adapter multi-attribute DDM FOM to keep subscriptions independent by class,
+region, and attribute. It checks a two-attribute passel at a matching receiver,
+per-attribute filtering at a second receiver, repeated and additive regional
+subscriptions, empty-region-set unsubscription, and selective/repeated
+unsubscription while the other region/attribute triples remain active. Invalid
+subscribe and unsubscribe calls use a deleted standard region handle, since
+the Java API has no default-invalid `RegionHandle` value. The exact 11 direct
+mappings match the paired C++ case. Focused local Umbra JNI runs passed under
+both callback models; results/JUnit are in
+`.build/java-tck-20261117/regional-subscription-triple-isolation-{evoked,immediate}.{json,xml}`.
+The case stays opt-in because it requires the adapter FOM and names.
+
 The opt-in `java-tck.regional-interaction-partial-default-range` case uses the
 adapter restricted default-range FOM. It sends an interaction through a
 non-empty X-only source region and verifies the omitted Y dimension receives
