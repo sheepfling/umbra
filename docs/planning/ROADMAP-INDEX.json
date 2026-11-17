@@ -37938,7 +37938,81 @@
         "mapping_and_validation": "The Java row now has the same 27 direct requirement-to-section pairs as the paired C++ row. Java catalog validation passed for 966 scenario IDs and 268 API surfaces; the C++/Java parity audit reports zero unpaired scenarios and 10 explicit not-applicable dispositions; focused C++ result validation passed.",
         "boundary": "Evidence is limited to the configured typed FOM and local Umbra JNI/installed-package providers. No DDM regions, arbitrary-FDD coverage, independent-provider behavior, or conformance are established."
       },
-      "next_action": "Next exact pair: cpp-tck.per-federate-discovered-class and java-tck.per-federate-discovered-class. Reconcile the five shared page-83 requirement IDs because the Java row maps them to §5.1.3 while the C++ row maps them to §5.1.2, and assess the C++ §5.8/§6.1.1 pairs against the Java receiver-local discovery and reflection assertions. Keep cross-member handle equality claims bounded. Run the focused Java case and paired C++ primary/contract under both callback models.",
+      "latest_verified_java_local_delete_orphan_cleanup_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Expanded java-tck.local-delete-object-instance-name-lookup-boundary with both §6.1.6 orphan object cleanup paths from the paired C++ case: last-local-delete after unconditional attribute divestiture/unpublication, and owner resignation with UNCONDITIONALLY_DIVEST_ATTRIBUTES. Retained local get-name ObjectInstanceNotKnown checks and each federate resolves its own handle through the shared object name.",
+        "scenario_ids": [
+          "java-tck.local-delete-object-instance-name-lookup-boundary",
+          "cpp-tck.local-delete-object-instance-name-lookup-boundary",
+          "cpp-tck.local-delete-object-instance-name-lookup-boundary-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/LocalDeleteObjectInstanceNameLookupBoundaryTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/catalogs/java-tck-scenarios/part-01.json",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-06-object-management-page-108-l146-43 -> IEEE 1516.1-2025 §6.1.6",
+          "cpp-1516.1-local-object-instance-deletion -> IEEE 1516.1-2025 §6.18.1",
+          "cpp-1516.1-object-instance-name-lifecycle -> IEEE 1516.1-2025 §10.8"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the local current-source Umbra JNI provider with known-class-advisory-tck.xml and HLAinteger64Time. Artifacts: .build/java-tck-20261117/local-delete-orphan-cleanup-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; artifacts: .build/cpp-tck-java-parity-named-registration/local-delete-object-instance-name-lookup-boundary.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicitly not applicable cases. Focused C++ evidence validation passed with no findings. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ TCK run; it does not establish independent-provider behavior, interoperability, or conformance."
+      },
+      "latest_verified_java_object_registration_service_boundaries_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Added the second joined federate's generated object-name registration to Java and verifies three nonempty RTI-generated names are pairwise distinct and resolve through each registering federate's own handle. Added reserve-success, release, and named-registration failure with ObjectInstanceNameNotReserved. Corrected direct mappings to §1.4.1, §6.1.1, §6.4, and §6.8.",
+        "scenario_ids": [
+          "java-tck.object-registration-service-boundaries",
+          "cpp-tck.object-registration-service-boundaries",
+          "cpp-tck.object-registration-service-boundaries-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectRegistrationServiceBoundariesTck.java; compliance/catalogs/java-tck-scenarios/part-01.json",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-01-overview-page-018-l18-2 -> IEEE 1516.1-2025 §1.4.1",
+          "requirement-candidate-content-clauses-01-overview-page-018-l18-2-unique -> IEEE 1516.1-2025 §1.4.1",
+          "requirement-candidate-content-clauses-01-overview-page-018-l18-2-generated -> IEEE 1516.1-2025 §1.4.1",
+          "page-107-l39/l45/l51 candidates -> IEEE 1516.1-2025 §6.1.1",
+          "requirement-candidate-content-clauses-06-object-management-page-114-l110-26 -> IEEE 1516.1-2025 §6.4",
+          "requirement-candidate-content-clauses-06-object-management-page-118-l67-18 -> IEEE 1516.1-2025 §6.8"
+        ],
+        "evidence": "Java passed 1/1 under each callback model with known-class-advisory-tck.xml, the derived known-class object and Efficiency; artifacts .build/java-tck-20261117/object-registration-generated-name-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both models; artifacts .build/cpp-tck-java-parity-named-registration/object-registration-generated-name.{json,xml}.",
+        "mapping_and_validation": "Pinned requirement queries confirm the candidate-to-clause mappings. Java catalog validation and focused C++ result validation passed; parity audit reports 0 unpaired and 10 explicitly not applicable scenarios. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ TCK; it does not establish independent-provider behavior, interoperability, or conformance."
+      },
+      "latest_verified_java_object_name_reservation_lifecycle_mapping_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Aligned direct Java mappings with existing reservation lifecycle assertions: included the single-name result callback candidate in §6.2, the held-name peer exclusion candidate in §6.3, and mapped post-release reuse to §6.4. Removed page-114-l110-26 from this scenario because it does not invoke named registration; that assertion is covered by java-tck.object-registration-service-boundaries.",
+        "scenario_ids": [
+          "java-tck.object-name-reservation-lifecycle",
+          "cpp-tck.object-name-reservation-lifecycle",
+          "cpp-tck.object-name-reservation-lifecycle-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectNameReservationLifecycleTck.java; compliance/catalogs/java-tck-scenarios/part-08.json",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-06-object-management-page-113-l24-4-result -> IEEE 1516.1-2025 §6.2",
+          "requirement-candidate-content-clauses-06-object-management-page-113-l165-44 -> IEEE 1516.1-2025 §6.3",
+          "requirement-candidate-content-clauses-06-object-management-page-114-l119-29 -> IEEE 1516.1-2025 §6.4"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with p0-tck.xml and HLAinteger64Time; artifacts .build/java-tck-20261117/object-name-reservation-lifecycle-mapping-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs; artifacts .build/cpp-tck-java-parity-named-registration/object-name-reservation-lifecycle-mapping.{json,xml}.",
+        "mapping_and_validation": "Pinned queries confirm §§6.2, 6.3, and 6.4. Java catalog validation and focused C++ result validation passed; no Requirements Lab resynchronization.",
+        "boundary": "Local JNI and installed-package evidence only; no independent-provider or conformance claim."
+      },
+      "latest_verified_java_object_class_timestamped_provider_response_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Runtime-verified the existing Java timestamped object-class request response scenario and corrected both page-184 and page-185 candidate mappings from §§8.1.5/8.1.6 to the pinned IEEE 1516.1-2025 §8.1.7.",
+        "scenario_ids": [
+          "java-tck.object-class-timestamped-provider-response",
+          "cpp-tck.object-class-timestamped-provider-response",
+          "cpp-tck.object-class-timestamped-provider-response-contract"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectClassTimestampedProviderResponseTck.java; compliance/catalogs/java-tck-scenarios/part-01.json",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-08-time-management-page-184-l91-26 -> IEEE 1516.1-2025 §8.1.7",
+          "requirement-candidate-content-clauses-08-time-management-page-185-l17-5 -> IEEE 1516.1-2025 §8.1.7"
+        ],
+        "evidence": "Java passed 1/1 in both callback models with auto-provide-tck.xml and HLAinteger64Time; artifacts .build/java-tck-20261117/object-class-timestamped-response-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs; artifacts .build/cpp-tck-java-parity-named-registration/object-class-timestamped-provider-response.{json,xml}.",
+        "mapping_and_validation": "Pinned requirement queries confirm both candidates map to §8.1.7. Focused C++ evidence validation, Java catalog validation, and parity audit passed with no findings; no Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ TCK; it does not establish independent-provider behavior, interoperability, or conformance."
+      },
+      "next_action": "Next exact pair: cpp-tck.object-class-attribute-value-update-request-baseline and java-tck.object-class-attribute-value-update-request-baseline. Review the page-137-l40-8 candidate and existing Requirements Lab issue RL-078. The Java case already checks the user-supplied request tag on each provideAttributeValueUpdate callback, while the C++ row maps that candidate to §6.22 under the structural-owner override and the Java row currently excludes it. Compare the pinned source and issue record, decide whether the Java direct mapping is justified, and update only the mapping/note if supported. Do not resynchronize the Requirements Lab. Run the Java case and paired C++ primary/contract under both callback models.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

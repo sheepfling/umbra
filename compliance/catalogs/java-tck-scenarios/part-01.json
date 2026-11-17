@@ -1116,25 +1116,34 @@
     {
       "id": "java-tck.local-delete-object-instance-name-lookup-boundary",
       "category": "object-management",
-      "title": "Check handle-to-name lookup after a federate locally forgets a discovered object",
+      "title": "Check handle-to-name lookup and orphan cleanup after local forgetting",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
-        "RTIambassador.registerObjectInstance",
+        "RTIambassador.reserveObjectInstanceName",
+        "RTIambassador.registerObjectInstance(named)",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.localDeleteObjectInstance",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
         "RTIambassador.deleteObjectInstance",
+        "RTIambassador.releaseObjectInstanceName",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "FederateAmbassador.discoverObjectInstance"
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded",
+        "FederateAmbassador.objectInstanceNameReservationFailed"
       ],
       "requirement_ids": [
         "cpp-1516.1-object-instance-name-lifecycle",
@@ -1143,6 +1152,7 @@
         "cpp-1516.1-federation-create-join-resign-destroy"
       ],
       "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.6",
         "hla-1516.1-2025:clause-6.18.1",
         "hla-1516.1-2025:clause-10.8"
       ],
@@ -1154,9 +1164,14 @@
         {
           "requirement_id": "cpp-1516.1-object-instance-name-lifecycle",
           "standard_section": "hla-1516.1-2025:clause-10.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-108-l146-43",
+          "standard_section": "hla-1516.1-2025:clause-6.1.6"
         }
       ],
-      "mapping_note": "Direct mappings match the C++ API-header trace: Local Delete Object Instance -> §6.18.1; Get Object Instance Name -> §10.8, including ObjectInstanceNotKnown for a handle no longer known by the invoking federate. The publisher's retained lookup is the positive control. Source uses only the official Java API and JDK; the recorded provider run is provider-specific evidence, not a universal conformance claim.",
+      "mapping_note": "Direct mappings cover Local Delete Object Instance -> §6.18.1, Get Object Instance Name -> §10.8, and the selected page-108 orphan-deletion requirement -> §6.1.6. The Java scenario creates two named objects. For the first, the member locally forgets it, the owner divests the ordinary and HLAprivilegeToDeleteObject attributes, unpublishes them, then locally forgets its last-known instance; the member can then reserve and release the former name. For the second, the member locally forgets the object and the owner resigns with UNCONDITIONALLY_DIVEST_ATTRIBUTES; the member can reserve and release that former name as well. The case checks ObjectInstanceNotKnown for local lookups and verifies each member's own handle through the common object name; opaque handles are not compared across members. These are two public orphan-cleanup paths, not an exhaustive provider or persistence claim. Source uses only the official Java API and JDK.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject, and Efficiency. Results/JUnit: .build/java-tck-20261117/local-delete-orphan-cleanup-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/local-delete-object-instance-name-lookup-boundary.{json,xml}. The selected page-108 requirement maps to §6.1.6; existing mappings cover §6.18.1 and §10.8. Local provider evidence does not establish independent-provider behavior or conformance.",
       "contract_refs": [
         "local-delete-object-name-lookup-boundary-api-contract.json",
         "local-delete-object-name-lookup-boundary-requirements-contract.json"
@@ -4981,8 +4996,7 @@
       "standard_sections": [
         "hla-1516.1-2025:clause-6.21",
         "hla-1516.1-2025:clause-6.22",
-        "hla-1516.1-2025:clause-8.1.5",
-        "hla-1516.1-2025:clause-8.1.6",
+        "hla-1516.1-2025:clause-8.1.7",
         "hla-1516.1-2025:clause-8.22.3"
       ],
       "requirement_mappings": [
@@ -5016,21 +5030,22 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-184-l91-26",
-          "standard_section": "hla-1516.1-2025:clause-8.1.5"
+          "standard_section": "hla-1516.1-2025:clause-8.1.7"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-185-l17-5",
-          "standard_section": "hla-1516.1-2025:clause-8.1.6"
+          "standard_section": "hla-1516.1-2025:clause-8.1.7"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-210-l21-3",
           "standard_section": "hla-1516.1-2025:clause-8.22.3"
         }
       ],
-      "mapping_note": "Java parity uses only the official API and adapter-supplied Auto Provide FOM. API-only compilation is required; Java provider runtime is not yet verified. No provider-internal scheduling claim.",
+      "mapping_note": "Direct mappings cover the class-designator request services in §§6.21-6.22, the timestamped provider response and its reflection/grant ordering in §8.1.7, and the delivered-message retraction boundary in §8.22.3. The page-184-l91-26 and page-185-l17-5 candidates map to §8.1.7 in the pinned source; this Java row now uses that canonical subsection. The Java scenario enables time constrained and time regulation, responds to the class-level request from the provider callback with a timestamped update, verifies no reflection before advance, then checks value, tag, producer, timestamp, order, transportation, retraction metadata, reflect-before-grant ordering, and rejection of retraction after delivery. The adapter supplies the Auto Provide FOM and logical-time implementation. Provider-internal scheduling and universal conformance are not claimed.",
       "contract_refs": [
         "standard-object-class-timestamped-provider-response-contract.json"
       ],
+      "evidence_note": "The Java case passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned Java API, auto-provide-tck.xml, HLAinteger64Time, HLAobjectRoot.TckAutoProvideObject, and ProviderAValue. Results/JUnit: .build/java-tck-20261117/object-class-timestamped-response-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/object-class-timestamped-provider-response.{json,xml}. Pinned requirement queries confirm page-184-l91-26 and page-185-l17-5 map to §8.1.7. Focused C++ evidence validation, Java catalog validation, and parity audit passed with no findings; audit found 0 unpaired and 10 explicitly not applicable cases. Local-provider evidence does not establish independent-provider behavior or conformance.",
       "java_test": "org.hla.rti.tck.RtiTckMain#objectClassTimestampedProviderResponse",
       "default_status": "unsupported",
       "exclusion": "Requires an adapter-supplied Auto Provide FOM and IEEE 1516.1-2025 Java provider; provider-runtime result remains unverified."
@@ -5728,14 +5743,19 @@
         "RTIambassador.disconnect",
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.removeObjectInstance",
-        "FederateAmbassador.reflectAttributeValues"
+        "FederateAmbassador.reflectAttributeValues",
+        "FederateAmbassador.objectInstanceNameReservationSucceeded"
       ],
       "requirement_ids": [
         "cpp-1516.1-object-registration-discovery",
         "cpp-1516.1-object-registration-negative-boundaries",
         "cpp-1516.1-object-instance-name-lifecycle",
         "cpp-1516.1-local-object-instance-deletion",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-01-overview-page-018-l18-2",
+        "requirement-candidate-content-clauses-01-overview-page-018-l18-2-unique",
+        "requirement-candidate-content-clauses-01-overview-page-018-l18-2-generated",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-107-l39-9",
@@ -5748,29 +5768,47 @@
         "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
         "requirement-candidate-content-clauses-06-object-management-page-120-l110-31",
         "requirement-candidate-content-clauses-06-object-management-page-132-l140-38",
-        "requirement-candidate-content-clauses-06-object-management-page-132-l146-40"
+        "requirement-candidate-content-clauses-06-object-management-page-132-l146-40",
+        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-1.4.1",
+        "hla-1516.1-2025:clause-6.1.1",
+        "hla-1516.1-2025:clause-6.4",
         "hla-1516.1-2025:clause-6.5.3",
         "hla-1516.1-2025:clause-6.8",
-        "hla-1516.1-2025:clause-6.8.4",
         "hla-1516.1-2025:clause-6.9",
         "hla-1516.1-2025:clause-6.10",
         "hla-1516.1-2025:clause-6.18"
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l18-2",
+          "standard_section": "hla-1516.1-2025:clause-1.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l18-2-unique",
+          "standard_section": "hla-1516.1-2025:clause-1.4.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-01-overview-page-018-l18-2-generated",
+          "standard_section": "hla-1516.1-2025:clause-1.4.1"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l39-9",
-          "standard_section": "hla-1516.1-2025:clause-6.1.2"
+          "standard_section": "hla-1516.1-2025:clause-6.1.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l45-11",
-          "standard_section": "hla-1516.1-2025:clause-6.1.2"
+          "standard_section": "hla-1516.1-2025:clause-6.1.1"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l51-13",
-          "standard_section": "hla-1516.1-2025:clause-6.1.2"
+          "standard_section": "hla-1516.1-2025:clause-6.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
+          "standard_section": "hla-1516.1-2025:clause-6.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
@@ -5782,7 +5820,7 @@
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l67-18",
-          "standard_section": "hla-1516.1-2025:clause-6.8.4"
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-119-l103-29",
@@ -5805,7 +5843,8 @@
           "standard_section": "hla-1516.1-2025:clause-6.18"
         }
       ],
-      "mapping_note": "Direct mappings shared with the C++ scenario: object-management page-107-l39-9, page-107-l45-11, and page-107-l51-13 -> §6.1.2 for active-subscriber discovery identity; page-115-l101-27 -> §6.5.3 for the object-name reservation service boundary; page-118-l28-5 -> §6.8 for successful unnamed registration and page-118-l67-18 -> §6.8.4 for the returned handle's postcondition; page-119-l103-29 -> §6.9 for object-name and known-class lookup; page-132-l140-38 and page-132-l146-40 -> §6.18 for recipient-local deletion and lookup cleanup. Java adds direct page-120-l83-22 and page-120-l110-31 -> §6.10 for the ordinary update/reflection after re-subscription. Pre-connect/pre-join reservation exception precedence, unreserved named registration, owner-local-delete denial, and pending-acquisition local-delete denial remain internal boundary assertions without separate normative mappings. Fabricated invalid-class and unknown-object handles are not used. Object and class handles are checked only within each ambassador; producer identity is resolved by its standard federate name. The official-API Java case passed focused JNI gates in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings cover the RTI-generated object-designator requirements on page 18 -> §1.4.1, the selected page-107 active object-discovery requirements -> §6.1.1, release of a successfully reserved name before named registration -> §6.4, the selected object-name reservation service -> §6.5.3, unnamed registration and its returned-handle postcondition -> §6.8, object-name/known-class lookup -> §6.9, ordinary update/reflection -> §6.10, and local deletion/lookup cleanup -> §6.18. The Java case checks three nonempty generated designators from two joined federates, that all three are pairwise distinct, and that each registering federate resolves its own handle through its generated name; it does not compare opaque handles across federates. It also reserves and releases a name, waits for reservation success, and verifies named registration with that released name fails with ObjectInstanceNameNotReserved. Discovery identity, producer name, known class and handle lookup, an update/reflection after local rediscovery, and the existing service-boundary failures remain covered. The page-107 candidates map to §6.1.1, page-114-l110-26 maps to §6.4, and page-118-l67-18 maps to §6.8 according to the pinned source. Java does not fabricate invalid handles or claim the C++-only fabricated-handle checks. Source imports only the official Java API and JDK.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject.TckKnownClassDerivedObject, and Efficiency. Results/JUnit: .build/java-tck-20261117/object-registration-generated-name-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/object-registration-generated-name.{json,xml}. Focused C++ result validation and Java catalog validation passed with no findings; parity audit found 0 unpaired and 10 explicitly not applicable cases. Pinned queries confirm page-18 designator rules -> §1.4.1, page-107 candidates -> §6.1.1, released-name registration failure -> §6.4, and page-118-l67-18 -> §6.8. Local-provider evidence does not establish independent-provider behavior or conformance.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",

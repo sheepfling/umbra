@@ -95,6 +95,16 @@ final class ObjectRegistrationServiceBoundariesTck {
          JavaTckSupport.expectFailure(() -> joinedOwner.registerObjectInstance(
             registeredClass, unreservedName),
             "ObjectInstanceNameNotReserved", "registering with an unreserved object name");
+         String releasedName = federation + "-released-before-registration";
+         owner.reserveObjectInstanceName(releasedName);
+         await(owner, callbackModel,
+            () -> ownerCallbacks.reservationSuccesses.contains(releasedName),
+            "reservation before released-name registration");
+         owner.releaseObjectInstanceName(releasedName);
+         JavaTckSupport.expectFailure(() -> joinedOwner.registerObjectInstance(
+            registeredClass, releasedName),
+            "ObjectInstanceNameNotReserved",
+            "registering with a name whose successful reservation was released");
          ObjectInstanceHandle object = owner.registerObjectInstance(ownerClass);
          JavaTckSupport.check(object != null && object.encodedLength() > 0,
             "ordinary object registration returned an invalid handle");
@@ -148,6 +158,19 @@ final class ObjectRegistrationServiceBoundariesTck {
             "second discovery returned the wrong object identity");
 
          member.publishObjectClassAttributes(memberClass, memberAttributes);
+         ObjectInstanceHandle memberGeneratedObject =
+            member.registerObjectInstance(memberClass);
+         JavaTckSupport.check(memberGeneratedObject != null
+               && memberGeneratedObject.encodedLength() > 0,
+            "second federate's ordinary object registration returned an invalid handle");
+         String memberGeneratedName = member.getObjectInstanceName(memberGeneratedObject);
+         JavaTckSupport.check(memberGeneratedName != null && !memberGeneratedName.isEmpty()
+               && !memberGeneratedName.equals(objectName)
+               && !memberGeneratedName.equals(secondObjectName),
+            "RTI-generated object instance names were not unique across joined federates");
+         JavaTckSupport.check(memberGeneratedObject.equals(
+               member.getObjectInstanceHandle(memberGeneratedName)),
+            "second federate's generated object name did not round-trip");
          member.attributeOwnershipAcquisition(memberObject, memberAttributes, new byte[] {0x51, 0x18});
          JavaTckSupport.expectFailure(() -> joinedMember.localDeleteObjectInstance(memberObject),
             "OwnershipAcquisitionPending", "locally deleting while ownership acquisition is pending");
@@ -241,7 +264,8 @@ final class ObjectRegistrationServiceBoundariesTck {
             catch (Exception ignored) { }
          }
          if (memberJoined) {
-            try { member.resignFederationExecution(ResignAction.NO_ACTION); }
+            try { member.resignFederationExecution(
+               ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST); }
             catch (Exception ignored) { }
          }
          if (freshMemberJoined) {
@@ -320,6 +344,7 @@ final class ObjectRegistrationServiceBoundariesTck {
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<ObjectInstanceHandle> removals = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<String> reservationSuccesses = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -341,6 +366,11 @@ final class ObjectRegistrationServiceBoundariesTck {
                   reflections.add(new Reflection((ObjectInstanceHandle) arguments[0],
                      (AttributeHandleValueMap) arguments[1], (byte[]) arguments[2],
                      (FederateHandle) arguments[4]));
+               }
+               if ("objectInstanceNameReservationSucceeded".equals(name)
+                     && arguments != null && arguments.length == 1
+                     && arguments[0] instanceof String) {
+                  reservationSuccesses.add((String) arguments[0]);
                }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(name)) return "Java TCK registration-boundary callbacks";

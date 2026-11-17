@@ -2336,32 +2336,34 @@
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
-        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
         "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
         "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
         "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
         "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
         "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
         "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
-        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l24-4-result",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l165-44"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-06-object-management-page-113-l21-3",
         "requirement-candidate-content-clauses-06-object-management-page-113-l24-4",
         "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
-        "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
         "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
         "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
         "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
         "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
         "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
         "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
-        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10"
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l24-4-result",
+        "requirement-candidate-content-clauses-06-object-management-page-113-l165-44"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-6.2",
         "hla-1516.1-2025:clause-6.3",
-        "hla-1516.1-2025:clause-6.4.3",
+        "hla-1516.1-2025:clause-6.4",
         "hla-1516.1-2025:clause-6.5.3",
         "hla-1516.1-2025:clause-6.7.5"
       ],
@@ -2375,16 +2377,22 @@
           "standard_section": "hla-1516.1-2025:clause-6.2"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l24-4-result",
+          "standard_section": "hla-1516.1-2025:clause-6.2",
+          "note": "The Java scenario waits for both successful and failed single-name reservation outcome callbacks."
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l153-40",
           "standard_section": "hla-1516.1-2025:clause-6.3"
         },
         {
-          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l110-26",
-          "standard_section": "hla-1516.1-2025:clause-6.4.3"
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-113-l165-44",
+          "standard_section": "hla-1516.1-2025:clause-6.3",
+          "note": "While the owner holds the name reservation, a second joined federate receives the reservation-failed callback."
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-114-l119-29",
-          "standard_section": "hla-1516.1-2025:clause-6.4.3"
+          "standard_section": "hla-1516.1-2025:clause-6.4"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
@@ -2411,7 +2419,8 @@
           "standard_section": "hla-1516.1-2025:clause-6.7.5"
         }
       ],
-      "mapping_note": "Direct mappings from the pinned object-instance-name reservation contract cover single-name validation, unique ownership, and callbacks (§§6.2–6.3), release and reuse (§6.4.3), multiple-name validation and split success/failure callbacks (§6.5.3), and owned/atomic multiple release (§6.7.5). Resignation cleanup, membership errors, and evoked callback timing are supplemental here. The Java source uses only official IEEE 1516.1-2025 APIs and adapter-supplied FOM, logical time, provider, endpoint, and callback model. Focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings cover single-name validation and the result callbacks -> §6.2, held-name exclusion for a second joined federate -> §6.3, reuse by a second federate after release -> §6.4, multiple-name validation and split success/failure outcomes -> §6.5.3, and owned/atomic multiple release -> §6.7.5. The Java scenario waits for the owner success callback, confirms a peer receives failure while the owner holds the name, releases it, and confirms the peer then receives success. Page-113-l24-4-result maps to §6.2, page-113-l165-44 maps to §6.3, and page-114-l119-29 maps to §6.4 according to the pinned source. The page-114-l110-26 named-registration-after-release rule is not mapped here because this scenario does not invoke named registration; java-tck.object-registration-service-boundaries covers it. Resignation cleanup, membership errors, and evoked callback timing remain supplemental. Java source uses only official IEEE 1516.1-2025 APIs and adapter inputs.",
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, p0-tck.xml, and HLAinteger64Time. Results/JUnit: .build/java-tck-20261117/object-name-reservation-lifecycle-mapping-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/object-name-reservation-lifecycle-mapping.{json,xml}. Focused C++ evidence validation and Java catalog validation passed with no findings; parity audit found 0 unpaired and 10 explicitly not applicable cases. Pinned candidates map the single-name result to §6.2, held-name exclusion to §6.3, and reuse after release to §6.4. The unsupported named-registration-after-release candidate is mapped by java-tck.object-registration-service-boundaries instead. Local-provider evidence does not establish independent-provider behavior or conformance.",
       "contract_refs": [
         "object-instance-name-reservation-api-contract.json",
         "object-instance-name-reservation-requirements-contract.json",

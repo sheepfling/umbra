@@ -743,8 +743,8 @@ public final class RtiTckMain {
                "cpp-1516.1-object-registration-negative-boundaries"
             }, true), RtiTckMain::localDeleteObjectInstance);
       run(new Scenario("java-tck.local-delete-object-instance-name-lookup-boundary",
-            "handle-to-name lookup after local object forgetting", "object-management",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.localDeleteObjectInstance;RTIambassador.deleteObjectInstance;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance",
+            "local forgetting and orphan object cleanup", "object-management",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.reserveObjectInstanceName;RTIambassador.registerObjectInstance(named);RTIambassador.getObjectInstanceName;RTIambassador.localDeleteObjectInstance;RTIambassador.isAttributeOwnedByFederate;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.deleteObjectInstance;RTIambassador.releaseObjectInstanceName;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;ResignAction.UNCONDITIONALLY_DIVEST_ATTRIBUTES;ResignAction.NO_ACTION;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.objectInstanceNameReservationSucceeded;FederateAmbassador.objectInstanceNameReservationFailed",
             new String[] {
                "cpp-1516.1-object-instance-name-lifecycle",
                "cpp-1516.1-local-object-instance-deletion",
@@ -9498,102 +9498,8 @@ public final class RtiTckMain {
    }
 
    private static void localDeleteObjectInstanceNameLookupBoundary() throws Exception {
-      RTIambassador owner = factory().getRtiAmbassador();
-      RTIambassador member = factory().getRtiAmbassador();
-      CallbackRecorder ownerRecorder = new CallbackRecorder();
-      CallbackRecorder memberRecorder = new CallbackRecorder();
-      String federation = "java-tck-local-del-name-" + UUID.randomUUID();
-      CallbackModel model = callbackModel();
-      boolean ownerConnected = false;
-      boolean memberConnected = false;
-      boolean created = false;
-      boolean ownerJoined = false;
-      boolean memberJoined = false;
-      boolean ownerPublished = false;
-      boolean memberSubscribed = false;
-      ObjectInstanceHandle object = null;
-      AttributeHandleSet ownerAttributes = null;
-      AttributeHandleSet memberAttributes = null;
-      try {
-         check(owner.connect(ownerRecorder.proxy(), model) != null,
-            "owner connect returned no ConfigurationResult");
-         ownerConnected = true;
-         check(member.connect(memberRecorder.proxy(), model) != null,
-            "member connect returned no ConfigurationResult");
-         memberConnected = true;
-         owner.createFederationExecution(federation, requireFom(), timeImplementation());
-         created = true;
-         owner.joinFederationExecution("local-delete-owner", "tck-type", federation);
-         ownerJoined = true;
-         member.joinFederationExecution("local-delete-member", "tck-type", federation);
-         memberJoined = true;
-
-         ObjectClassHandle ownerClass = owner.getObjectClassHandle(objectClassName());
-         AttributeHandle ownerAttribute = owner.getAttributeHandle(ownerClass, attributeName());
-         ownerAttributes = JavaTckSupport.attributeSet(owner, ownerAttribute);
-         owner.publishObjectClassAttributes(ownerClass, ownerAttributes);
-         ownerPublished = true;
-         ObjectClassHandle memberClass = member.getObjectClassHandle(objectClassName());
-         AttributeHandle memberAttribute = member.getAttributeHandle(memberClass, attributeName());
-         memberAttributes = JavaTckSupport.attributeSet(member, memberAttribute);
-         member.subscribeObjectClassAttributes(memberClass, memberAttributes);
-         memberSubscribed = true;
-
-         memberRecorder.discoveredObject = null;
-         object = owner.registerObjectInstance(ownerClass);
-         check(object != null, "unnamed object registration returned no handle");
-         String objectName = owner.getObjectInstanceName(object);
-         check(objectName != null && !objectName.isEmpty(),
-            "registered object had no instance name");
-         awaitDiscovery(member, memberRecorder, model, object);
-         check(object.equals(memberRecorder.discoveredObject),
-            "member discovery reported the wrong object");
-         check(objectName.equals(member.getObjectInstanceName(memberRecorder.discoveredObject)),
-            "discovered object name did not resolve before local deletion");
-
-         member.localDeleteObjectInstance(memberRecorder.discoveredObject);
-         expectException(() -> member.getObjectInstanceName(memberRecorder.discoveredObject),
-            "ObjectInstanceNotKnown", "locally forgotten object still resolved by handle");
-         check(objectName.equals(owner.getObjectInstanceName(object)),
-            "local forgetting changed the publishing federate's object identity");
-         owner.deleteObjectInstance(object, new byte[0]);
-         object = null;
-      } finally {
-         if (object != null && ownerJoined) {
-            try { owner.deleteObjectInstance(object, new byte[0]); }
-            catch (Exception ignored) { }
-         }
-         if (memberSubscribed && memberAttributes != null) {
-            try { member.unsubscribeObjectClassAttributes(
-               member.getObjectClassHandle(objectClassName()), memberAttributes); }
-            catch (Exception ignored) { }
-         }
-         if (ownerPublished && ownerAttributes != null) {
-            try { owner.unpublishObjectClassAttributes(
-               owner.getObjectClassHandle(objectClassName()), ownerAttributes); }
-            catch (Exception ignored) { }
-         }
-         if (memberJoined) {
-            try { member.resignFederationExecution(ResignAction.NO_ACTION); }
-            catch (Exception ignored) { }
-         }
-         if (ownerJoined) {
-            try { owner.resignFederationExecution(ResignAction.NO_ACTION); }
-            catch (Exception ignored) { }
-         }
-         if (created) {
-            try { owner.destroyFederationExecution(federation); }
-            catch (Exception ignored) { }
-         }
-         if (memberConnected) {
-            try { member.disconnect(); }
-            catch (Exception ignored) { }
-         }
-         if (ownerConnected) {
-            try { owner.disconnect(); }
-            catch (Exception ignored) { }
-         }
-      }
+      LocalDeleteObjectInstanceNameLookupBoundaryTck.run(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
    private static void awaitDiscovery(RTIambassador ambassador, CallbackRecorder recorder,
