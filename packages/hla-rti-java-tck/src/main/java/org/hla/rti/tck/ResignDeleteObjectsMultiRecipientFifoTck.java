@@ -49,6 +49,14 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
          joined[1] = true;
          ambassadors[2].joinFederationExecution("java-tck-resign-second", federation);
          joined[2] = true;
+         String producerName = ambassadors[0].getFederateName(producer);
+         FederateHandle[] localProducers = new FederateHandle[ambassadors.length];
+         for (int i = 1; i < ambassadors.length; ++i) {
+            localProducers[i] = ambassadors[i].getFederateHandle(producerName);
+            JavaTckSupport.check(producerName.equals(
+                  ambassadors[i].getFederateName(localProducers[i])),
+               "subscriber did not resolve the producer federate by name");
+         }
 
          for (int i = 0; i < ambassadors.length; ++i) {
             classes[i] = ambassadors[i].getObjectClassHandle(objectClassName);
@@ -70,10 +78,30 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
          ObjectInstanceHandle second = ambassadors[0].registerObjectInstance(classes[0]);
          JavaTckSupport.check(first != null && second != null && !first.equals(second),
             "resign fan-out registration returned null or duplicate handles");
+         String firstName = ambassadors[0].getObjectInstanceName(first);
+         String secondName = ambassadors[0].getObjectInstanceName(second);
+         JavaTckSupport.check(firstName != null && !firstName.isEmpty()
+               && secondName != null && !secondName.isEmpty() && !firstName.equals(secondName),
+            "resign fan-out registration returned null or duplicate names");
          for (int i = 1; i < ambassadors.length; ++i) {
             final int recipient = i;
-            await(ambassadors[i], () -> callbacks[recipient].discoveries().containsAll(
-               List.of(first, second)), "subscriber did not discover both objects");
+            await(ambassadors[i], () -> callbacks[recipient].hasDiscoveryNames(
+               firstName, secondName), "subscriber did not discover both objects");
+         }
+         ObjectInstanceHandle[][] localObjects = new ObjectInstanceHandle[ambassadors.length][2];
+         for (int i = 1; i < ambassadors.length; ++i) {
+            localObjects[i][0] = ambassadors[i].getObjectInstanceHandle(firstName);
+            localObjects[i][1] = ambassadors[i].getObjectInstanceHandle(secondName);
+            JavaTckSupport.check(localObjects[i][0] != null && localObjects[i][1] != null
+                  && !localObjects[i][0].equals(localObjects[i][1])
+                  && firstName.equals(ambassadors[i].getObjectInstanceName(localObjects[i][0]))
+                  && secondName.equals(ambassadors[i].getObjectInstanceName(localObjects[i][1]))
+                  && classes[i].equals(ambassadors[i].getKnownObjectClassHandle(localObjects[i][0]))
+                  && classes[i].equals(ambassadors[i].getKnownObjectClassHandle(localObjects[i][1])),
+               "subscriber did not resolve both objects to its local handles and class");
+            assertDiscoveries(callbacks[i].discoveries(), firstName, localObjects[i][0],
+               secondName, localObjects[i][1], classes[i], i == 1 ? "first subscriber" :
+                  "second subscriber");
          }
          for (Recorder recorder : callbacks) recorder.clearRemovals();
 
@@ -85,8 +113,10 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
             "second subscriber did not receive both resign-time removals");
          JavaTckSupport.check(callbacks[0].removals().isEmpty(),
             "resign-time object removal looped back to its owner");
-         assertRemovals(callbacks[1].removals(), first, second, producer, "first subscriber");
-         assertRemovals(callbacks[2].removals(), first, second, producer, "second subscriber");
+         assertRemovals(callbacks[1].removals(), localObjects[1][0], localObjects[1][1],
+            localProducers[1], "first subscriber");
+         assertRemovals(callbacks[2].removals(), localObjects[2][0], localObjects[2][1],
+            localProducers[2], "second subscriber");
 
          for (int i = 1; i < ambassadors.length; ++i) {
             ambassadors[i].unsubscribeObjectClassAttributes(classes[i],
@@ -146,6 +176,25 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
          recipient + " received resign-time removals out of order or with incorrect metadata");
    }
 
+   private static void assertDiscoveries(List<Discovery> discoveries, String firstName,
+         ObjectInstanceHandle first, String secondName, ObjectInstanceHandle second,
+         ObjectClassHandle objectClass, String recipient) {
+      Discovery firstDiscovery = findDiscovery(discoveries, firstName);
+      Discovery secondDiscovery = findDiscovery(discoveries, secondName);
+      JavaTckSupport.check(discoveries.size() == 2 && firstDiscovery != null
+            && first.equals(firstDiscovery.object) && objectClass.equals(firstDiscovery.objectClass)
+            && secondDiscovery != null && second.equals(secondDiscovery.object)
+            && objectClass.equals(secondDiscovery.objectClass),
+         recipient + " discovery callbacks did not preserve its local object identities");
+   }
+
+   private static Discovery findDiscovery(List<Discovery> discoveries, String name) {
+      for (Discovery discovery : discoveries) {
+         if (name.equals(discovery.name)) return discovery;
+      }
+      return null;
+   }
+
    private static void await(RTIambassador ambassador, BooleanSupplier condition,
          String failure) throws Exception {
       long deadline = System.nanoTime() + 10_000_000_000L;
@@ -167,8 +216,19 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
       }
    }
 
+   private static final class Discovery {
+      private final ObjectInstanceHandle object;
+      private final ObjectClassHandle objectClass;
+      private final String name;
+      private Discovery(ObjectInstanceHandle object, ObjectClassHandle objectClass, String name) {
+         this.object = object;
+         this.objectClass = objectClass;
+         this.name = name;
+      }
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Removal> removals = new CopyOnWriteArrayList<>();
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -176,7 +236,8 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
             (proxy, method, arguments) -> {
                String name = method.getName();
                if ("discoverObjectInstance".equals(name)) {
-                  discoveries.add((ObjectInstanceHandle) arguments[0]);
+                  discoveries.add(new Discovery((ObjectInstanceHandle) arguments[0],
+                     (ObjectClassHandle) arguments[1], (String) arguments[2]));
                } else if ("removeObjectInstance".equals(name) && arguments != null
                      && arguments.length == 3) {
                   removals.add(new Removal((ObjectInstanceHandle) arguments[0],
@@ -192,7 +253,10 @@ final class ResignDeleteObjectsMultiRecipientFifoTck {
                return null;
             });
       }
-      private List<ObjectInstanceHandle> discoveries() { return List.copyOf(discoveries); }
+      private List<Discovery> discoveries() { return List.copyOf(discoveries); }
+      private boolean hasDiscoveryNames(String first, String second) {
+         return findDiscovery(discoveries, first) != null && findDiscovery(discoveries, second) != null;
+       }
       private List<Removal> removals() { return List.copyOf(removals); }
       private void clearRemovals() { removals.clear(); }
    }

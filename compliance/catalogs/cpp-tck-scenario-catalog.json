@@ -28830,8 +28830,42 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-object-management",
         "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-deletion"
+        "cpp-1516.1-object-instance-deletion",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.17"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+          "standard_section": "hla-1516.1-2025:clause-4.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        }
+      ],
+      "mapping_note": "Direct mappings cover Delete Objects resignation cleanup (page-058-l112-33 -> §4.12), removal delivery to other known federates (page-129-l138-39 -> §6.16), and producing-federate identity plus suppression of invoker loopback (page-131-l101-29/l110-32 -> §6.17). Registration-order FIFO and the empty default resignation tag are supplemental; the standard mapping does not establish cross-object callback order, and no user-supplied removal tag is sent.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-api-contract.json",
@@ -28849,7 +28883,8 @@
       "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "parity": "java-tck.resign-delete-objects-multi-recipient-fifo",
       "default_status": "adapter-required",
-      "promotion": "promoted"
+      "promotion": "promoted",
+      "evidence_note": "The installed-package C++ primary and contract passed 4/4 direct executions across HLA_EVOKED and HLA_IMMEDIATE. Evidence: out/cpp-tck-evidence-20261117/resign-delete-objects-multi-recipient-fifo.{json,xml}. The reused build had no matching CTest registrations; this is direct-run local-provider evidence only, not conformance evidence."
     },
     {
       "id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
@@ -28872,8 +28907,42 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-object-management",
         "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-deletion"
+        "cpp-1516.1-object-instance-deletion",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.17"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+          "standard_section": "hla-1516.1-2025:clause-4.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        }
+      ],
+      "mapping_note": "The contract twin delegates these direct Delete Objects resignation and removal-callback checks to cpp-tck.resign-delete-objects-multi-recipient-fifo. Registration-order FIFO and the empty default resignation tag remain supplemental; no standard callback-order or user-supplied-tag claim is made.",
       "contract_refs": [
         "standard-resign-delete-objects-multi-recipient-fifo-contract.json"
       ],
@@ -28881,7 +28950,8 @@
       "runner_id": "cpp-tck.resign-delete-objects-multi-recipient-fifo-contract",
       "parity": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
       "default_status": "adapter-required",
-      "promotion": "promoted"
+      "promotion": "promoted",
+      "evidence_note": "The C++ contract twin passed direct installed-package runs in HLA_EVOKED and HLA_IMMEDIATE as part of the 4/4 pair evidence. Results: out/cpp-tck-evidence-20261117/resign-delete-objects-multi-recipient-fifo.{json,xml}. No matching CTest registrations were present in the reused build; no conformance claim."
     },
     {
       "id": "cpp-tck.unregulated-sender-timestamped-interaction",

@@ -535,11 +535,16 @@
       "api_methods": [
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.getFederateName",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.destroyFederationExecution",
@@ -552,8 +557,42 @@
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-object-management",
         "cpp-1516.1-object-registration-discovery",
-        "cpp-1516.1-object-instance-deletion"
+        "cpp-1516.1-object-instance-deletion",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.17"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+          "standard_section": "hla-1516.1-2025:clause-4.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l110-32",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        }
+      ],
+      "mapping_note": "Direct mappings cover Delete Objects resignation cleanup (page-058-l112-33 -> §4.12), removal delivery to other known federates (page-129-l138-39 -> §6.16), and producing-federate identity plus suppression of invoker loopback (page-131-l101-29/l110-32 -> §6.17). Each Java recipient resolves the object names and producer name through its own ambassador before comparing callbacks. Registration-order FIFO and the empty default resignation tag are supplemental; the standard mapping does not establish cross-object callback order, and no user-supplied removal tag is sent.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-api-contract.json",
@@ -569,7 +608,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#resignDeleteObjectsMultiRecipientFifo",
       "parity": "cpp-tck.resign-delete-objects-multi-recipient-fifo",
-      "default_status": "run"
+      "default_status": "run",
+      "evidence_note": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 API JAR and Umbra JNI provider, using p0-tck-without-switches.xml configured as HLAobjectRoot.TckObject/Value. Results: out/java-tck/resign-delete-objects-multi-recipient-fifo-java-parity-20261117/{hla-evoked,hla-immediate}-results.json. The paired C++ primary/contract direct run passed 4/4 across both callback models; results: out/cpp-tck-evidence-20261117/resign-delete-objects-multi-recipient-fifo.{json,xml}. This is local-provider evidence only; no independent-provider behavior, interoperability, or conformance is claimed."
     },
     {
       "id": "java-tck.resign-delete-objects-then-divest-cross-object-effects",

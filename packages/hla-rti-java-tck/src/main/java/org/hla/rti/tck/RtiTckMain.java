@@ -1873,12 +1873,16 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.resign-delete-objects-multi-recipient-fifo",
             "deliver resign-time object removals to two active subscribers in producer order",
             "object-management",
-            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
+            "RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.getObjectInstanceName;RTIambassador.getObjectInstanceHandle;RTIambassador.getKnownObjectClassHandle;RTIambassador.resignFederationExecution;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;RTIambassador.evokeCallback;FederateAmbassador.discoverObjectInstance;FederateAmbassador.removeObjectInstance",
             new String[] {
                "cpp-1516.1-federation-create-join-resign-destroy",
                "cpp-1516.1-object-management",
                "cpp-1516.1-object-registration-discovery",
-               "cpp-1516.1-object-instance-deletion"
+               "cpp-1516.1-object-instance-deletion",
+               "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+               "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+               "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+               "requirement-candidate-content-clauses-06-object-management-page-131-l110-32"
             }, true), RtiTckMain::resignDeleteObjectsMultiRecipientFifo);
       run(new Scenario("java-tck.resign-delete-objects-then-divest-cross-object-effects",
             "delete the departing federate's object and divest an attribute on a retained object",
