@@ -1239,8 +1239,23 @@
         "cpp-1516.1-ddm-regional-interaction-subscription",
         "cpp-1516.1-ddm-regional-interaction-delivery",
         "cpp-1516.1-ddm-regional-interaction-filtering",
-        "cpp-1516.1-ddm-range-validation"
+        "cpp-1516.1-ddm-range-validation",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l20-6"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l20-6"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.3"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l20-6",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        }
+      ],
+      "mapping_note": "Direct §9.1.3.3 evidence comes from the subscription path only: Subscribe Interaction Class With Regions rejects a committed region whose dimension is unavailable to the interaction class with InvalidRegionContext; a subsequent valid regional subscription and send confirm no partial subscription was retained. The analogous invalid-send assertion and the handle, fixture, and delivery metadata checks are supplemental. The cpp-1516.1 identifiers are repository-internal provenance only.",
+      "parity_scope_note": "Parity covers atomic rejection of a mixed valid/unavailable region set during regional interaction sends and subscriptions, no partial delivery or subscription after rejection, and valid follow-up delivery with one source-region designator and expected callback metadata.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -1266,6 +1281,10 @@
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
+        "InteractionClassHandle.encodedLength",
+        "ParameterHandle.encodedLength",
+        "DimensionHandle.encodedLength",
+        "RegionHandle.encodedLength",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
         "RTIambassador.subscribeInteractionClassWithRegions",
@@ -1300,8 +1319,17 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalInteractionRegionValidation",
       "parity": "cpp-tck.regional-interaction-region-validation",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with the configured interaction class, parameter, two interaction dimensions, and an unrelated dimension named by hla.rti.tck.ddmUnrelatedDimension, plus an installed Java 2025 provider; runtime verification remains pending."
+      "default_status": "run",
+      "promotion": "promoted",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied dimensional DDM FOM via hla.rti.tck.ddmFom",
+        "interaction class and parameter names",
+        "two available interaction dimension names and one unrelated dimension name via hla.rti.tck.ddmUnrelatedDimension",
+        "callback model selected by the adapter"
+      ],
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. The default-enabled Java scenario passed under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Java results/JUnit: out/java-tck/regional-interaction-region-validation-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ primary passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-interaction-region-validation-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim.",
+      "exclusion": "Requires the adapter-supplied dimensional DDM FOM, interaction class, parameter, two available dimensions, and unrelated dimension."
     },
     {
       "id": "java-tck.regional-unpublish-region-release",

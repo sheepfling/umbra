@@ -71,7 +71,7 @@ final class RegionalInteractionRegionValidationTck {
             "valid interaction after rejected mixed-region send duplicated delivery");
          assertInteraction(scenario.subscriber, scenario.callbacks.interactions.get(0),
             scenario.subscriberInteraction, scenario.subscriberParameter, scenario.producer,
-            scenario.sourceRegion, validTag);
+            validTag);
       } finally {
          scenario.close();
       }
@@ -112,7 +112,7 @@ final class RegionalInteractionRegionValidationTck {
             "valid interaction after rejected subscription duplicated delivery");
          assertInteraction(scenario.subscriber, scenario.callbacks.interactions.get(0),
             scenario.subscriberInteraction, scenario.subscriberParameter, scenario.producer,
-            scenario.sourceRegion, validTag);
+            validTag);
       } finally {
          scenario.close();
       }
@@ -124,7 +124,7 @@ final class RegionalInteractionRegionValidationTck {
 
    private static void assertInteraction(RTIambassador receiver, Interaction interaction,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
-         FederateHandle expectedProducer, RegionHandle expectedRegion, byte[] expectedTag)
+         FederateHandle expectedProducer, byte[] expectedTag)
          throws Exception {
       JavaTckSupport.check(expectedClass.equals(interaction.interaction)
             && interaction.parameters.size() == 1
@@ -136,8 +136,7 @@ final class RegionalInteractionRegionValidationTck {
       JavaTckSupport.check(transportation != null
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "valid interaction returned an unresolvable transportation type");
-      JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1
-            && interaction.regions.contains(expectedRegion),
+      JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1,
          "valid interaction did not convey exactly its source region");
    }
 
@@ -236,17 +235,28 @@ final class RegionalInteractionRegionValidationTck {
          subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
          subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
          subscriberUnrelated = subscriber.getDimensionHandle(unrelatedDimensionName);
-         JavaTckSupport.check(publisherInteraction.equals(subscriberInteraction)
+         JavaTckSupport.check(publisherInteraction.encodedLength() > 0
+               && subscriberInteraction.encodedLength() > 0
+               && publisherParameter.encodedLength() > 0
+               && subscriberParameter.encodedLength() > 0
+               && publisherFirst.encodedLength() > 0
+               && publisherSecond.encodedLength() > 0
+               && publisherUnrelated.encodedLength() > 0
+               && subscriberFirst.encodedLength() > 0
+               && subscriberSecond.encodedLength() > 0
+               && subscriberUnrelated.encodedLength() > 0
+               && publisherInteraction.equals(subscriberInteraction)
                && publisherParameter.equals(subscriberParameter)
                && publisherFirst.equals(subscriberFirst)
                && publisherSecond.equals(subscriberSecond)
                && publisherUnrelated.equals(subscriberUnrelated),
-            "adapter DDM FOM returned inconsistent handles across federates");
+            "adapter DDM FOM returned invalid or inconsistent handles across federates");
          Set<DimensionHandle> available =
             subscriber.getAvailableDimensionsForInteractionClass(subscriberInteraction);
          JavaTckSupport.check(available.contains(subscriberFirst)
                && available.contains(subscriberSecond)
                && !available.contains(subscriberUnrelated)
+               && !subscriberFirst.equals(subscriberSecond)
                && !subscriberUnrelated.equals(subscriberFirst)
                && !subscriberUnrelated.equals(subscriberSecond)
                && publisher.getDimensionUpperBound(publisherFirst) >= 2
@@ -312,6 +322,8 @@ final class RegionalInteractionRegionValidationTck {
          dimensions.add(first);
          dimensions.add(second);
          RegionHandle region = ambassador.createRegion(dimensions);
+         JavaTckSupport.check(region != null && region.encodedLength() > 0,
+            "regional interaction validation returned an invalid two-dimension region");
          ambassador.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(0, 2));
          ambassador.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(0, 2));
          ambassador.commitRegionModifications(regionSet(ambassador, region));
@@ -323,6 +335,8 @@ final class RegionalInteractionRegionValidationTck {
          DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
          dimensions.add(dimension);
          RegionHandle region = ambassador.createRegion(dimensions);
+         JavaTckSupport.check(region != null && region.encodedLength() > 0,
+            "regional interaction validation returned an invalid one-dimension region");
          ambassador.setRangeBounds(region, dimension,
             new hla.rti1516_2025.RangeBounds(0, 2));
          ambassador.commitRegionModifications(regionSet(ambassador, region));

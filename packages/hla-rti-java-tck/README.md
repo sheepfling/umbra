@@ -5117,14 +5117,25 @@ region rejection. Its DDM FOM, interaction and parameter names, two interaction
 dimensions, and unrelated dimension are adapter supplied; the latter uses
 `hla.rti.tck.ddmUnrelatedDimension`. Provider runtime remains unverified.
 
-The opt-in `java-tck.regional-interaction-region-validation` case verifies
+The default-run `java-tck.regional-interaction-region-validation` case verifies
 atomic rejection when a regional interaction send or subscription includes a
 region on a dimension unavailable to the interaction class. It proves rejected
 operations leave no partial delivery/declaration and that a valid region set
-still delivers the expected payload and source-region metadata afterward. The
-FOM and interaction, parameter, two valid dimensions, and unrelated dimension
-are adapter supplied; the unrelated dimension uses
-`hla.rti.tck.ddmUnrelatedDimension`. Provider runtime remains unverified.
+still delivers the expected payload, one source-region designator, and callback
+metadata afterward. Its
+only direct mapping is the invalid regional subscription requirement in IEEE
+1516.1-2025 §9.1.3.3; invalid-send, handle-validity, fixture, and delivery
+metadata checks are supplemental. The FOM and interaction, parameter, two valid
+dimensions, and unrelated dimension are adapter supplied; the unrelated
+dimension uses `hla.rti.tck.ddmUnrelatedDimension`. Java passed under both
+callback models with `ddm-tck.xml`, HLAinteractionRoot.TckInteraction/Payload,
+TckDimensionX/TckDimensionY, and TckUnrelatedDimension. The paired C++ primary
+passed under both callback models using the existing installed-package adapter
+executable; no CTest entry is registered for this scenario. Results are in
+`out/java-tck/regional-interaction-region-validation-java-parity-20261116/` and
+`.build/cpp-tck-regional-request-java-parity-20261116-ninja/`. This is local
+provider/package evidence only; independent-provider behavior and conformance
+are not claimed.
 
 The default `java-tck.regional-unpublish-region-release` case checks both
 region-use paths from the C++ scenario. A region associated with a registered
