@@ -841,6 +841,8 @@ final class RegionalObjectAttributeDimensionInheritanceTck {
       DimensionHandleSet regionDimensions = ambassador.getDimensionHandleSetFactory().create();
       for (DimensionHandle dimension : dimensions) regionDimensions.add(dimension);
       RegionHandle region = ambassador.createRegion(regionDimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         description + " region creation returned an invalid handle");
       createdRegions.add(region);
       for (int index = 0; index < dimensions.length; ++index) {
          ambassador.setRangeBounds(region, dimensions[index],
