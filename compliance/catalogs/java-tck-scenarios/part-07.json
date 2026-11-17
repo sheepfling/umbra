@@ -1228,9 +1228,13 @@
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
+        "FederateHandle.encodedLength",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
         "RTIambassador.getParameterHandle",
+        "ParameterHandle.encodedLength",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
         "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
@@ -1239,6 +1243,7 @@
         "DimensionHandleSetFactory.create",
         "DimensionHandleSet.add",
         "RTIambassador.createRegion",
+        "RegionHandle.encodedLength",
         "RTIambassador.setRangeBounds",
         "RTIambassador.getRegionHandleSetFactory",
         "RegionHandleSetFactory.create",
@@ -1293,8 +1298,8 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The paired C++ case selects the same direct mapping: the switch-enabled receiver obtains a region set containing the source region passed to Send Interaction With Regions. The Java mirror verifies one callback designator whose receiver-local dimension names and bounds equal the source-region snapshot at send time, even when evoked callback servicing follows a committed source-region change; subsequent disjoint-send suppression and restored delivery are bounded checks, not general claims about other service families.",
-      "parity_scope_note": "Mirrors cpp-tck.regional-interaction-source-region-snapshot: sends while source and subscriber regions overlap, mutates the source before evoked callback servicing and verifies the callback retains the original source-region dimensions/ranges, suppresses a later send while disjoint, then restores overlap and verifies delivery resumes. Callback designators are compared through receiver-local dimension names and bounds rather than cross-federate RegionHandle equality.",
+      "mapping_note": "The paired C++ case selects the same direct mapping: the switch-enabled receiver obtains a region set containing the source region passed to Send Interaction With Regions. The Java mirror verifies one callback designator whose receiver-local dimension names and bounds equal the source-region snapshot at send time, even when evoked callback servicing follows a committed source-region change; subsequent disjoint-send suppression and restored delivery are bounded checks, not general claims about other service families. Federate, interaction, parameter, dimension, and region handle validity checks are supplemental fixture assertions.",
+      "parity_scope_note": "Mirrors cpp-tck.regional-interaction-source-region-snapshot: validates returned federate, interaction, parameter, dimension, and created-region handles; checks the configured dimension names; sends while source and subscriber regions overlap; mutates the source before evoked callback servicing and verifies the callback retains the original source-region dimensions/ranges; suppresses a later send while disjoint; then restores overlap and verifies delivery resumes. Callback designators are compared through receiver-local dimension names and bounds rather than cross-federate RegionHandle equality.",
       "adapter_inputs": [
         "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
         "adapter-supplied dimensional interaction FOM through hla.rti.tck.ddmFom",
@@ -1304,7 +1309,7 @@
         "evoked",
         "immediate"
       ],
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with Umbra JNI C++ RTI 2025.jni-smoke using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/source-region-snapshot-{evoked,immediate}.{json,xml}. The local-provider runs validate this adapter-backed sequence only; they do not establish independent-provider interoperability or conformance."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/source-region-snapshot-handle-parity-{evoked,immediate}.{json,xml}; traceability export: .build/java-tck-20261117/source-region-snapshot-handle-parity-traceability.json. Paired C++ direct runs passed under both callback models against the installed package; results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/regional-interaction-source-region-snapshot-handle-parity.{json,xml}; focused validation was valid with no findings. This adapter-backed local-provider evidence does not establish independent-provider interoperability or conformance."
     },
     {
       "id": "java-tck.regional-interaction-subscription-filtering",

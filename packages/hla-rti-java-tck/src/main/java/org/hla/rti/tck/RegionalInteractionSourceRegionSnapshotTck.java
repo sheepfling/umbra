@@ -57,6 +57,8 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          FederateHandle producingFederate = publisher.joinFederationExecution(
             "java-tck-regional-snapshot-publisher", federation);
          publisherJoined = true;
+         JavaTckSupport.check(producingFederate != null && producingFederate.encodedLength() > 0,
+            "source-snapshot publisher join returned an invalid federate handle");
          subscriber.joinFederationExecution("java-tck-regional-snapshot-subscriber", federation);
          subscriberJoined = true;
          subscriberCallbacks.inspectRegionDesignatorsWith(subscriber);
@@ -71,12 +73,23 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
          DimensionHandle subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(publisherInteraction.equals(subscriberInteraction)
+         JavaTckSupport.check(publisherInteraction != null && publisherInteraction.encodedLength() > 0
+               && subscriberInteraction != null && subscriberInteraction.encodedLength() > 0
+               && publisherParameter != null && publisherParameter.encodedLength() > 0
+               && subscriberParameter != null && subscriberParameter.encodedLength() > 0
+               && publisherFirst != null && publisherFirst.encodedLength() > 0
+               && publisherSecond != null && publisherSecond.encodedLength() > 0
+               && subscriberFirst != null && subscriberFirst.encodedLength() > 0
+               && subscriberSecond != null && subscriberSecond.encodedLength() > 0
+               && !publisherFirst.equals(publisherSecond)
+               && publisherInteraction.equals(subscriberInteraction)
                && publisherParameter.equals(subscriberParameter)
                && publisherFirst.equals(subscriberFirst) && publisherSecond.equals(subscriberSecond),
             "adapter DDM FOM returned inconsistent interaction, parameter, or dimension handles");
-         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond);
-         checkDimensions(subscriber, subscriberInteraction, subscriberFirst, subscriberSecond);
+         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(subscriber, subscriberInteraction, subscriberFirst, subscriberSecond,
+            firstDimensionName, secondDimensionName);
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
@@ -167,14 +180,17 @@ final class RegionalInteractionSourceRegionSnapshotTck {
    }
 
    private static void checkDimensions(RTIambassador ambassador,
-         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second)
+         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second,
+         String firstName, String secondName)
          throws Exception {
       Set<DimensionHandle> available =
          ambassador.getAvailableDimensionsForInteractionClass(interaction);
       JavaTckSupport.check(available.contains(first) && available.contains(second)
+            && firstName.equals(ambassador.getDimensionName(first))
+            && secondName.equals(ambassador.getDimensionName(second))
             && ambassador.getDimensionUpperBound(first) >= 6
             && ambassador.getDimensionUpperBound(second) >= 6,
-         "adapter interaction FOM does not provide dimensions/bounds required for source snapshot");
+         "adapter interaction FOM does not provide the named dimensions/bounds required for source snapshot");
    }
 
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle first,
@@ -183,6 +199,8 @@ final class RegionalInteractionSourceRegionSnapshotTck {
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle region = ambassador.createRegion(dimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "source-snapshot fixture returned an invalid region handle");
       ambassador.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(lower, upper));
       ambassador.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(lower, upper));
       RegionHandleSet regions = regionSet(ambassador, region);
@@ -201,6 +219,8 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          RTIambassador ambassador, RegionHandleSet regions) throws Exception {
       List<RegionDesignatorSnapshot> result = new ArrayList<>();
       for (RegionHandle region : regions) {
+         JavaTckSupport.check(region != null && region.encodedLength() > 0,
+            "interaction callback returned an invalid source-region handle");
          Set<String> dimensions = new HashSet<>();
          Map<String, RangeSnapshot> ranges = new HashMap<>();
          for (DimensionHandle dimension : ambassador.getDimensionHandleSet(region)) {
