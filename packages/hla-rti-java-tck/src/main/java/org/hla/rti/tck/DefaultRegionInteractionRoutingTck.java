@@ -88,6 +88,21 @@ final class DefaultRegionInteractionRoutingTck {
          DimensionHandle regionalSecond = regional.getDimensionHandle(secondDimensionName);
          DimensionHandle mixedFirst = mixed.getDimensionHandle(firstDimensionName);
          DimensionHandle mixedSecond = mixed.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(publisherInteraction != null && publisherInteraction.encodedLength() > 0
+               && regionalInteraction != null && regionalInteraction.encodedLength() > 0
+               && mixedInteraction != null && mixedInteraction.encodedLength() > 0
+               && publisherParameter != null && publisherParameter.encodedLength() > 0
+               && regionalParameter != null && regionalParameter.encodedLength() > 0
+               && mixedParameter != null && mixedParameter.encodedLength() > 0
+               && publisherFirst != null && publisherFirst.encodedLength() > 0
+               && publisherSecond != null && publisherSecond.encodedLength() > 0
+               && regionalFirst != null && regionalFirst.encodedLength() > 0
+               && regionalSecond != null && regionalSecond.encodedLength() > 0
+               && mixedFirst != null && mixedFirst.encodedLength() > 0
+               && mixedSecond != null && mixedSecond.encodedLength() > 0
+               && !publisherFirst.equals(publisherSecond)
+               && !regionalFirst.equals(regionalSecond) && !mixedFirst.equals(mixedSecond),
+            "adapter interaction and dimension lookups returned invalid or duplicate handles");
          JavaTckSupport.check(publisherInteraction.equals(regionalInteraction)
                && publisherInteraction.equals(mixedInteraction)
                && publisherParameter.equals(regionalParameter)
@@ -95,9 +110,21 @@ final class DefaultRegionInteractionRoutingTck {
                && publisherFirst.equals(regionalFirst) && publisherSecond.equals(regionalSecond)
                && publisherFirst.equals(mixedFirst) && publisherSecond.equals(mixedSecond),
             "adapter DDM FOM handles changed across default-region interaction federates");
-         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond);
-         checkDimensions(regional, regionalInteraction, regionalFirst, regionalSecond);
-         checkDimensions(mixed, mixedInteraction, mixedFirst, mixedSecond);
+         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(regional, regionalInteraction, regionalFirst, regionalSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(mixed, mixedInteraction, mixedFirst, mixedSecond,
+            firstDimensionName, secondDimensionName);
+         JavaTckSupport.check(publisher.getDimensionUpperBound(publisherFirst)
+               == regional.getDimensionUpperBound(regionalFirst)
+               && publisher.getDimensionUpperBound(publisherFirst)
+                  == mixed.getDimensionUpperBound(mixedFirst)
+               && publisher.getDimensionUpperBound(publisherSecond)
+                  == regional.getDimensionUpperBound(regionalSecond)
+               && publisher.getDimensionUpperBound(publisherSecond)
+                  == mixed.getDimensionUpperBound(mixedSecond),
+            "default-region interaction members reported inconsistent dimension bounds");
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
@@ -357,6 +384,21 @@ final class DefaultRegionInteractionRoutingTck {
          DimensionHandle regionalSecond = regional.getDimensionHandle(secondDimensionName);
          DimensionHandle mixedFirst = mixed.getDimensionHandle(firstDimensionName);
          DimensionHandle mixedSecond = mixed.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(publisherInteraction != null && publisherInteraction.encodedLength() > 0
+               && regionalInteraction != null && regionalInteraction.encodedLength() > 0
+               && mixedInteraction != null && mixedInteraction.encodedLength() > 0
+               && publisherParameter != null && publisherParameter.encodedLength() > 0
+               && regionalParameter != null && regionalParameter.encodedLength() > 0
+               && mixedParameter != null && mixedParameter.encodedLength() > 0
+               && publisherFirst != null && publisherFirst.encodedLength() > 0
+               && publisherSecond != null && publisherSecond.encodedLength() > 0
+               && regionalFirst != null && regionalFirst.encodedLength() > 0
+               && regionalSecond != null && regionalSecond.encodedLength() > 0
+               && mixedFirst != null && mixedFirst.encodedLength() > 0
+               && mixedSecond != null && mixedSecond.encodedLength() > 0
+               && !publisherFirst.equals(publisherSecond)
+               && !regionalFirst.equals(regionalSecond) && !mixedFirst.equals(mixedSecond),
+            "adapter interaction and dimension lookups returned invalid or duplicate handles");
          JavaTckSupport.check(publisherInteraction.equals(regionalInteraction)
                && publisherInteraction.equals(mixedInteraction)
                && publisherParameter.equals(regionalParameter)
@@ -364,9 +406,21 @@ final class DefaultRegionInteractionRoutingTck {
                && publisherFirst.equals(regionalFirst) && publisherSecond.equals(regionalSecond)
                && publisherFirst.equals(mixedFirst) && publisherSecond.equals(mixedSecond),
             "adapter DDM FOM handles changed across interaction unsubscribe-isolation federates");
-         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond);
-         checkDimensions(regional, regionalInteraction, regionalFirst, regionalSecond);
-         checkDimensions(mixed, mixedInteraction, mixedFirst, mixedSecond);
+         checkDimensions(publisher, publisherInteraction, publisherFirst, publisherSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(regional, regionalInteraction, regionalFirst, regionalSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(mixed, mixedInteraction, mixedFirst, mixedSecond,
+            firstDimensionName, secondDimensionName);
+         JavaTckSupport.check(publisher.getDimensionUpperBound(publisherFirst)
+               == regional.getDimensionUpperBound(regionalFirst)
+               && publisher.getDimensionUpperBound(publisherFirst)
+                  == mixed.getDimensionUpperBound(mixedFirst)
+               && publisher.getDimensionUpperBound(publisherSecond)
+                  == regional.getDimensionUpperBound(regionalSecond)
+               && publisher.getDimensionUpperBound(publisherSecond)
+                  == mixed.getDimensionUpperBound(mixedSecond),
+            "default-region interaction members reported inconsistent dimension bounds");
 
          publisher.publishInteractionClass(publisherInteraction);
          published = true;
@@ -504,13 +558,15 @@ final class DefaultRegionInteractionRoutingTck {
    }
 
    private static void checkDimensions(RTIambassador ambassador,
-         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second)
-         throws Exception {
+         InteractionClassHandle interaction, DimensionHandle first, DimensionHandle second,
+         String firstName, String secondName) throws Exception {
       DimensionHandleSet available = ambassador.getAvailableDimensionsForInteractionClass(interaction);
       JavaTckSupport.check(available.contains(first) && available.contains(second)
-            && ambassador.getDimensionUpperBound(first) >= 3
-            && ambassador.getDimensionUpperBound(second) >= 3,
-         "adapter interaction class must expose both dimensions and sufficient range");
+            && firstName.equals(ambassador.getDimensionName(first))
+            && secondName.equals(ambassador.getDimensionName(second))
+            && ambassador.getDimensionUpperBound(first) >= 4
+            && ambassador.getDimensionUpperBound(second) >= 4,
+         "adapter interaction class must expose the named dimensions with sufficient range");
    }
 
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle first,

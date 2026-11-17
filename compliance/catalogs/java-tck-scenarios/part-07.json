@@ -1520,8 +1520,15 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "ObjectClassHandle.encodedLength",
         "RTIambassador.getAttributeHandle",
+        "AttributeHandle.encodedLength",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
+        "RTIambassador.getParameterHandle",
+        "ParameterHandle.encodedLength",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
         "RTIambassador.getAttributeHandleSetFactory",
         "AttributeHandleSetFactory.create",
         "AttributeHandleSet.add",
@@ -1565,9 +1572,17 @@
         "region-lifecycle-api-contract.json",
         "region-lifecycle-requirements-contract.json"
       ],
+      "evidence_note": "The Java setup now mirrors the shared C++ DDM handle preconditions: object-class, attribute, interaction-class, parameter, and dimension handles must be valid; the configured dimensions must be distinct; and owner/member lookups must agree. Focused current-source Umbra JNI runs and the paired C++ TCK runs passed under both HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Java results/JUnit: .build/java-tck-20261117/region-lifecycle-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/region-lifecycle-parity-20261117.{json,xml}. The Java and C++ runs used separate provider packages/builds; local evidence only, with no conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#regionLifecycle",
       "parity": "cpp-tck.region-lifecycle",
       "default_status": "unsupported",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied dimensional DDM FOM",
+        "object class, attribute, interaction class, parameter, and two dimension names",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
       "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with object and interaction classes, an attribute, a parameter, two dimensions, and an installed Java 2025 provider. Focused runtime passed against local Umbra JNI under both callback models; other providers remain unverified. Membership-boundary calls use valid handles produced through the standard API by a joined owner federate because Java has no portable default-invalid handle representation. The Java RTIambassador also omits the C++ decodeRegionHandle service; both C++-only surfaces are explicitly not represented here."
     },
     {
@@ -2453,8 +2468,12 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
         "RTIambassador.getParameterHandle",
+        "ParameterHandle.encodedLength",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
         "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
@@ -2638,7 +2657,7 @@
         }
       ],
       "mapping_note": "Direct §9.1.1 mapping for page-216-l135-42: an ordinary Send Interaction is sent without a region argument, and the conveyed callback source-region set is explicitly asserted present and empty at both the regional-only and mixed receivers. This is bounded evidence for the default-region realization having no region specification; it does not prove the distinct no-reference API-surface statement at page-216-l135-42-no-reference. Direct §9.1.1 p. 217 l. 74 evidence: during Receive Interaction, the regional receiver queries Get Range Bounds on the callback-scoped source-region copy, exercising a region realization. Paired with cpp-tck.regional-interaction-routing, which queries a committed region specification, this covers both named designator varieties without treating the separate pending-template behavior as a specification. §9.1.3.3 page-220-l143-46 is exercised by ordinary Send Interaction reaching a receiver with a regional-only subscription and an empty source-region designator set. §9.1.5 page-222-l23-6-subscribe-interaction is exercised by ordinary Subscribe Interaction Class remaining an independent default-region route while a disjoint explicit regional subscription exists. §9.1.5 page-224-l80-26 is directly witnessed by the regional receiver asserting that the callback's interaction class equals the class handle resolved for, and passed to, Send Interaction With Regions. Page-224-l113-37 is directly witnessed by the callback's exact parameter-handle set and payload bytes matching the map passed to that send. Page-224-l92-30 is directly witnessed when a mixed receiver has both ordinary and regional subscriptions and one default-region send increases its callback count by exactly one. The regional receiver queries the callback-scoped source-region copy's dimensions and bounds through the public API during the callback. The new switch-effect assertions prove per-federate omission while disabled, isolation across recipients, and restoration after re-enable. Public-API development evidence only; not conformance evidence.",
-      "evidence_note": "Compiled all Java TCK sources against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. The case checks ordinary delivery beside a disjoint regional declaration, callback-scoped source-region dimensions and bounds through the receiving ambassador, no sender loopback before and after sender subscriptions, empty region metadata from ordinary Send Interaction, and per-federate switch omission/isolation/re-enable. Results/JUnit: .build/java-tck-20261117/default-region-interaction-routing-{evoked,immediate}.{json,xml}. Local-provider evidence only; no independent-provider interoperability or conformance claim."
+      "evidence_note": "Compiled all Java TCK sources against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. The case checks ordinary delivery beside a disjoint regional declaration, callback-scoped source-region dimensions and bounds through the receiving ambassador, no sender loopback before and after sender subscriptions, empty region metadata from ordinary Send Interaction, and per-federate switch omission/isolation/re-enable. Setup also validates positive encoded handle lengths, distinct dimensions, cross-federate handle and upper-bound agreement, dimension availability/name round trips, and upper bounds of at least four. Paired C++ direct runs passed under both callback models. Java results/JUnit: .build/java-tck-20261117/default-region-interaction-routing-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/default-region-interaction-routing-parity-20261117.{json,xml}. The Java and C++ runs used separate provider package builds; local evidence only, with no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.default-region-interaction-unsubscribe-isolation",
@@ -2649,8 +2668,13 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
         "RTIambassador.getParameterHandle",
+        "ParameterHandle.encodedLength",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.publishInteractionClass",
@@ -2743,6 +2767,7 @@
         "interaction class, parameter, two dimension names, provider endpoint, and callback model"
       ],
       "exclusion": "Default-disabled; focused execution requires --run-unverified with an adapter-supplied dimensional DDM FOM, interaction and parameter names, two dimension names, endpoint, and callback model.",
+      "evidence_note": "The Java setup now checks positive encoded lengths for the interaction, parameter, and dimension handles; distinct configured dimensions; interaction dimension membership/name round trips; and equal dimension bounds across the publisher and receivers, with each bound at least four. Focused Java and paired C++ direct runs passed under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAinteger64Time, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Java results/JUnit: .build/java-tck-20261117/default-region-interaction-unsubscribe-isolation-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/default-region-interaction-unsubscribe-isolation-parity-20261117.{json,xml}. Java and C++ used separate provider package builds; this is local-provider evidence only, not independent-provider interoperability or conformance evidence.",
       "promotion": "promoted"
     },
     {

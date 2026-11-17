@@ -11,6 +11,7 @@ import hla.rti1516_2025.FederateAmbassador;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
@@ -62,13 +63,30 @@ final class RegionLifecycleTck {
             owner.getInteractionClassHandle(interactionClassName);
          InteractionClassHandle memberInteraction =
             member.getInteractionClassHandle(interactionClassName);
+         ParameterHandle ownerParameter = owner.getParameterHandle(ownerInteraction, parameterName);
+         ParameterHandle memberParameter = member.getParameterHandle(memberInteraction, parameterName);
          DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
          DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
          DimensionHandle memberFirst = member.getDimensionHandle(firstDimensionName);
          DimensionHandle memberSecond = member.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(ownerObjectClass != null && ownerObjectClass.encodedLength() > 0
+               && memberObjectClass != null && memberObjectClass.encodedLength() > 0
+               && ownerAttribute != null && ownerAttribute.encodedLength() > 0
+               && memberAttribute != null && memberAttribute.encodedLength() > 0
+               && ownerInteraction != null && ownerInteraction.encodedLength() > 0
+               && memberInteraction != null && memberInteraction.encodedLength() > 0
+               && ownerParameter != null && ownerParameter.encodedLength() > 0
+               && memberParameter != null && memberParameter.encodedLength() > 0
+               && ownerFirst != null && ownerFirst.encodedLength() > 0
+               && ownerSecond != null && ownerSecond.encodedLength() > 0
+               && memberFirst != null && memberFirst.encodedLength() > 0
+               && memberSecond != null && memberSecond.encodedLength() > 0
+               && !ownerFirst.equals(ownerSecond) && !memberFirst.equals(memberSecond),
+            "adapter DDM lookups returned invalid or duplicate handles");
          JavaTckSupport.check(ownerObjectClass.equals(memberObjectClass)
                && ownerAttribute.equals(memberAttribute)
                && ownerInteraction.equals(memberInteraction)
+               && ownerParameter.equals(memberParameter)
                && ownerFirst.equals(memberFirst) && ownerSecond.equals(memberSecond),
             "adapter FOM handles changed across region-lifecycle federates");
          JavaTckSupport.check(firstDimensionName.equals(owner.getDimensionName(ownerFirst))

@@ -37572,7 +37572,31 @@
         "boundary": "Local provider evidence only; no independent-provider, interoperability, or conformance claim. The scenarios remain opt-in for provider profiles that have not supplied their own verification.",
         "next": "Next exact pair: cpp-tck.region-lifecycle and java-tck.region-lifecycle. Compare the shared DDM handle and class-dimension preconditions, valid region membership failures, range get/set/commit behavior, and cleanup. Keep the C++ decodeRegionHandle service and invalid default-handle surface explicitly dispositioned because the Java API has no direct equivalents; add only missing portable assertions, then verify both callback models."
       },
-      "next_action": "Next exact pair: cpp-tck.region-lifecycle and java-tck.region-lifecycle. Compare the shared DDM handle and class-dimension preconditions, valid region membership failures, range get/set/commit behavior, and cleanup. Keep the C++ decodeRegionHandle service and invalid default-handle surface explicitly dispositioned because the Java API has no direct equivalents; add only missing portable assertions, then verify both callback models.",
+      "latest_verified_java_ddm_setup_assertion_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Completed setup-assertion parity in java-tck.region-lifecycle, java-tck.default-region-interaction-routing, and java-tck.default-region-interaction-unsubscribe-isolation. The lifecycle setup validates positive encoded lengths for object, attribute, interaction, parameter, and dimension handles, distinct dimensions, and owner/member identity. Both default-region interaction scenarios validate positive encoded handle lengths, distinct dimensions, dimension membership and name round trips, required upper bounds, and consistent handles/bounds across their federates.",
+        "scenario_ids": [
+          "java-tck.region-lifecycle",
+          "cpp-tck.region-lifecycle",
+          "java-tck.default-region-interaction-routing",
+          "cpp-tck.default-region-interaction-routing",
+          "java-tck.default-region-interaction-unsubscribe-isolation",
+          "cpp-tck.default-region-interaction-unsubscribe-isolation"
+        ],
+        "sources": [
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionLifecycleTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DefaultRegionInteractionRoutingTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+          "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp",
+          "packages/hla-rti-cpp-tck/src/main.cpp",
+          "packages/hla-rti-cpp-tck/src/tck_default_region_interaction_declaration_services.cpp"
+        ],
+        "evidence": "Java focused runs passed 1/1 for each scenario under HLA_EVOKED and HLA_IMMEDIATE with the pinned IEEE 1516.1-2025 Java API and current-source Umbra JNI provider using ddm-tck.xml and HLAinteger64Time. The paired C++ direct cases passed under both callback models against the installed Umbra package. Java and C++ used separate provider packages/builds. Java and C++ JSON/JUnit artifacts are recorded under .build/java-tck-20261117 and .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw.",
+        "mapping_and_validation": "No normative requirement IDs, canonical section mappings, or dispositions changed. Java catalog validation is valid=true for 966 scenarios with no findings. Focused C++ evidence validation is valid=true for both default-region interaction cases. Direct Java and C++ runs passed both callback models.",
+        "boundary": "Local-provider evidence only; no independent-provider interoperability or conformance claim. Adapter-specific DDM FOM and provider inputs remain required, so default-disabled status is unchanged.",
+        "next": "Next exact pair: cpp-tck.regional-boundaries and java-tck.regional-boundaries. Compare shared DDM handle, dimension, and failure-path assertions against the standard Java API, preserve any C++-only invalid-handle limitations, and run the focused pair under both callback models. Keep requirement mappings and default dispositions unchanged unless the source and pinned clause support a specific correction."
+      },
+      "next_action": "Next exact pair: cpp-tck.regional-boundaries and java-tck.regional-boundaries. Compare shared DDM handle, dimension, and failure-path assertions against the standard Java API, preserve any C++-only invalid-handle limitations, and run the focused pair under both callback models. Keep requirement mappings and default dispositions unchanged unless the source and pinned clause support a specific correction.",
       "latest_verified_java_passive_regional_interaction_transition_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared java-tck.passive-regional-interaction-transition with the paired C++ TCK case. Java now snapshots conveyed source-region metadata through each receiving federate's RTIambassador and verifies the two dimensions and [1,5] bounds, while preserving the active-to-passive transition, retained passive delivery under another active route, last-active-route suppression, empty-set no-op, and reactivation sequence.",
