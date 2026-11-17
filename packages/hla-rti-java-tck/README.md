@@ -2424,12 +2424,16 @@ discovery after a more-specific subscription is added. Each passed five focused
 current-source Umbra JNI runs under both callback models; this is local-provider
 evidence only.
 
-The default-run `java-tck.named-registration` case checks single and multiple
-name reservations, release and reuse, owner-only consumption, named discovery,
-and name/handle round-trips using only the standard API. It also tests
-supplemental post-consumption and unnamed-registration collision boundaries
-without assuming a provider-generated prefix. Focused installed-provider
-evoked and immediate runs passed; independent-provider conformance is not claimed.
+The default-run `java-tck.named-registration` case checks empty and illegal
+multiple-name reservation requests, callback separation for single and multiple
+reservations, atomic multiple-name release, cross-federate reuse, reservation
+ownership, named discovery, and name/handle round-trips using only the standard
+API. It checks that an unreserved named registration fails before the same name
+is reserved and registered, and that two unnamed registrations receive
+distinct names associated with their handles. Supplemental post-consumption and
+reserved-name collision checks do not assume a provider-generated prefix.
+Focused installed-provider evoked and immediate runs passed;
+independent-provider conformance is not claimed.
 
 The default-run `java-tck.ordinary-multi-attribute-subscription-projection` scenario
 uses an adapter-supplied multi-attribute FOM and attribute names. It verifies a

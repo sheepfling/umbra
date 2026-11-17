@@ -2104,6 +2104,7 @@
         "FederateAmbassador.objectInstanceNameReservationSucceeded",
         "FederateAmbassador.objectInstanceNameReservationFailed",
         "FederateAmbassador.multipleObjectInstanceNameReservationSucceeded",
+        "FederateAmbassador.multipleObjectInstanceNameReservationFailed",
         "FederateAmbassador.discoverObjectInstance"
       ],
       "requirement_ids": [
@@ -2115,14 +2116,31 @@
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-05-declaration-management-page-081-l17-3",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+        "requirement-candidate-content-clauses-06-object-management-page-115-l110-30-no-single-name-callback",
+        "requirement-candidate-content-clauses-06-object-management-page-116-l84-21",
+        "requirement-candidate-content-clauses-06-object-management-page-116-l96-25",
         "requirement-candidate-content-clauses-06-object-management-page-116-l99-26",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l36-6",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+        "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
         "requirement-candidate-content-clauses-06-object-management-page-118-l58-15",
-        "requirement-candidate-content-clauses-06-object-management-page-118-l64-17"
+        "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l23-6",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l26-7",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l29-8",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l32-9"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-5.1",
-        "hla-1516.1-2025:clause-6.6.4",
-        "hla-1516.1-2025:clause-6.8"
+        "hla-1516.1-2025:clause-6.5",
+        "hla-1516.1-2025:clause-6.6",
+        "hla-1516.1-2025:clause-6.7",
+        "hla-1516.1-2025:clause-6.8",
+        "hla-1516.1-2025:clause-9.5"
       ],
       "requirement_mappings": [
         {
@@ -2130,8 +2148,48 @@
           "standard_section": "hla-1516.1-2025:clause-5.1"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l101-27",
+          "standard_section": "hla-1516.1-2025:clause-6.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l104-28",
+          "standard_section": "hla-1516.1-2025:clause-6.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l107-29",
+          "standard_section": "hla-1516.1-2025:clause-6.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l110-30",
+          "standard_section": "hla-1516.1-2025:clause-6.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-115-l110-30-no-single-name-callback",
+          "standard_section": "hla-1516.1-2025:clause-6.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-116-l84-21",
+          "standard_section": "hla-1516.1-2025:clause-6.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-116-l96-25",
+          "standard_section": "hla-1516.1-2025:clause-6.6"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-116-l99-26",
-          "standard_section": "hla-1516.1-2025:clause-6.6.4"
+          "standard_section": "hla-1516.1-2025:clause-6.6"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l36-6",
+          "standard_section": "hla-1516.1-2025:clause-6.7"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l45-9",
+          "standard_section": "hla-1516.1-2025:clause-6.7"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-117-l48-10",
+          "standard_section": "hla-1516.1-2025:clause-6.7"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l58-15",
@@ -2140,9 +2198,25 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l64-17",
           "standard_section": "hla-1516.1-2025:clause-6.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l23-6",
+          "standard_section": "hla-1516.1-2025:clause-9.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l26-7",
+          "standard_section": "hla-1516.1-2025:clause-9.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l29-8",
+          "standard_section": "hla-1516.1-2025:clause-9.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l32-9",
+          "standard_section": "hla-1516.1-2025:clause-9.5"
         }
       ],
-      "mapping_note": "Installed-provider adapter evidence only, not independent-provider conformance. The direct §5.1 mapping covers a reserved named registration attempt while object-class attributes are unpublished raising ObjectClassNotPublished, followed by publication and successful registration with the same reservation. The direct §6.6.4 mapping covers the reservation-success callback without pre-registration discovery. For §6.8, page-118-l58-15 is witnessed by a second published federate failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner succeeds; page-118-l64-17 is witnessed by name/handle lookup and the subscriber's exact named discovery. After success, owner release fails with ObjectInstanceNameNotReserved and another published federate's registration fails with ObjectInstanceNameInUse; these post-success consumption/in-use checks remain supplemental rather than newly mapped. The unnamed-registration collision check remains supplemental pending an exact pinned mapping; no provider-specific generated-name prefix is asserted.",
+      "mapping_note": "Installed-provider adapter evidence only, not independent-provider conformance. Direct §5.1 coverage reserves a named instance, checks that registration raises ObjectClassNotPublished while its class attributes are unpublished, then registers the same reservation after publication. Direct §6.5 coverage checks an empty set (NameSetWasEmpty), a reserved HLA prefix (IllegalName), and a mixed set with one illegal name (IllegalName) while a valid member of that rejected set remains reservable by another federate. A successful multiple-name reservation returns exactly the requested set through the multiple-name success callback and emits no single-name callback. Direct §6.6 coverage checks that the owner registers only after its successful reservation and that another federate cannot reserve the same held name; the reservation operation also causes no object-discovery callback. Separate callback-family assertions check that single-name operations do not emit multiple-name callbacks. Direct §6.7 coverage checks that a multiple-name release containing an unreserved name fails atomically because another federate still receives a failure for every held name; after a valid release, another federate reserves a released name. For §6.8, page-118-l58-15 is witnessed by another publisher failing to register the owner's reserved name with ObjectInstanceNameNotReserved before the owner registers it; page-118-l64-17 is witnessed by owner/member name-to-handle lookups and exact named discovery. Direct §9.5 coverage checks an unreserved named-registration failure followed by reservation and successful registration with that same name, then two unnamed registrations with unique generated names that coadunate with their handles at the owner and discovering member. Post-success release failure, ObjectInstanceNameInUse, single-name repeated release, and the reserved-name versus unnamed-registration collision remain supplemental. No provider-generated name format is asserted.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -2159,7 +2233,7 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#namedRegistration",
       "parity": "cpp-tck.named-registration",
       "default_status": "run",
-      "evidence_note": "Focused current-source JNI runs passed under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-03 with p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value (out/java-tck/named-registration-20261103/{hla_evoked,hla_immediate}.results.json and .junit.xml). The port preserves the direct named-registration gate: a reserved name fails with ObjectClassNotPublished before class publication, then the same reservation succeeds after publication. The matching C++ primary and contract previously passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/named-registration-verified-20261016.json. Local JNI evidence is not independent-provider or conformance evidence."
+      "evidence_note": "Focused current-source JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-17 with p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value (.build/java-tck-20261117/named-registration-{evoked,immediate}.{json,xml}). The expanded run covers the matched unreserved-then-reserved registration, multiple-name validation and atomic release, callback separation, named discovery, and two distinct unnamed registrations. The paired C++ primary and contract passed 4/4 in both callback models on the installed Umbra package (.build/cpp-tck-java-parity-named-registration/named-registration.{json,xml}). Java JNI and installed-package C++ evidence are not independent-provider or conformance evidence."
     },
     {
       "id": "java-tck.final-federate-resignation-cleanup",

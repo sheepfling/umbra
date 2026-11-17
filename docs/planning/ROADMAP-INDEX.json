@@ -37878,7 +37878,45 @@
         "mapping_and_validation": "All nine Java direct requirement-to-section pairs exactly match the paired C++ primary mapping. The 26-method API inventory matches RtiTckMain; the catalog loads 966 unique Java scenario IDs; the parity audit reports zero unpaired C++ IDs; both focused result rows pass.",
         "boundary": "Provider evidence is bounded to the local Umbra JNI provider and adapter FOM. No independent-provider interoperability or conformance claim."
       },
-      "next_action": "Next exact pair: cpp-tck.named-registration and java-tck.named-registration. Compare the 17 direct mappings and behavior in the paired C++ primary with the four current Java mappings and assertions; add only supported Java-binding behavior and mappings, preserve language-specific C++ service differences as supplemental, and verify the focused Java case with its adapter FOM under both callback models.",
+      "latest_verified_java_named_registration_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Expanded java-tck.named-registration to cover the paired C++ primary’s standard single and multiple name reservation, contention, atomic release, named registration, and two unnamed-registration identity checks.",
+        "scenario_ids": [
+          "cpp-tck.named-registration",
+          "cpp-tck.named-registration-contract",
+          "java-tck.named-registration"
+        ],
+        "sources": [
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/NamedRegistrationTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+          "compliance/catalogs/java-tck-scenarios/part-08.json",
+          "packages/hla-rti-java-tck/README.md"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-05-declaration-management-page-081-l17-3 -> IEEE 1516.1-2025 §5.1",
+          "requirement-candidate-content-clauses-06-object-management-page-115-l101-27 -> IEEE 1516.1-2025 §6.5",
+          "requirement-candidate-content-clauses-06-object-management-page-115-l104-28 -> IEEE 1516.1-2025 §6.5",
+          "requirement-candidate-content-clauses-06-object-management-page-115-l107-29 -> IEEE 1516.1-2025 §6.5",
+          "requirement-candidate-content-clauses-06-object-management-page-115-l110-30 -> IEEE 1516.1-2025 §6.5",
+          "requirement-candidate-content-clauses-06-object-management-page-115-l110-30-no-single-name-callback -> IEEE 1516.1-2025 §6.5",
+          "requirement-candidate-content-clauses-06-object-management-page-116-l84-21 -> IEEE 1516.1-2025 §6.6",
+          "requirement-candidate-content-clauses-06-object-management-page-116-l96-25 -> IEEE 1516.1-2025 §6.6",
+          "requirement-candidate-content-clauses-06-object-management-page-116-l99-26 -> IEEE 1516.1-2025 §6.6",
+          "requirement-candidate-content-clauses-06-object-management-page-117-l36-6 -> IEEE 1516.1-2025 §6.7",
+          "requirement-candidate-content-clauses-06-object-management-page-117-l45-9 -> IEEE 1516.1-2025 §6.7",
+          "requirement-candidate-content-clauses-06-object-management-page-117-l48-10 -> IEEE 1516.1-2025 §6.7",
+          "requirement-candidate-content-clauses-06-object-management-page-118-l58-15 -> IEEE 1516.1-2025 §6.8",
+          "requirement-candidate-content-clauses-06-object-management-page-118-l64-17 -> IEEE 1516.1-2025 §6.8",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l23-6 -> IEEE 1516.1-2025 §9.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l26-7 -> IEEE 1516.1-2025 §9.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l29-8 -> IEEE 1516.1-2025 §9.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-229-l32-9 -> IEEE 1516.1-2025 §9.5"
+        ],
+        "evidence": "Built against the pinned Java API. Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, and Value; results/JUnit: .build/java-tck-20261117/named-registration-{evoked,immediate}.{json,xml}. The paired C++ primary and contract passed 4/4 in both callback models against the installed Umbra package; results/JUnit: .build/cpp-tck-java-parity-named-registration/named-registration.{json,xml}.",
+        "mapping_and_validation": "All 17 direct requirement-to-section pairs from the C++ primary now match the Java row exactly; the Java row retains its separate direct §5.1 mapping. Java catalog validation passed with 966 scenario IDs and 268 API surfaces; the scenario API-method inventory matches RtiTckMain; the C++/Java parity audit reports zero unpaired C++ IDs and 10 explicit not-applicable dispositions.",
+        "boundary": "Evidence is limited to local Umbra JNI and the installed Umbra C++ package with adapter-supplied FOM inputs. No independent-provider interoperability or conformance claim."
+      },
+      "next_action": "Next exact pair: cpp-tck.object-registration-discovery-multi-recipient and java-tck.object-registration-discovery-multi-recipient. Compare the 12 C++ direct mappings with the current Java mappings and assertions; verify the two-object, two-subscriber discovery and identity behavior against the paired source; add only assertion-backed IEEE 1516.1-2025 mappings; then run the focused Java and C++ primary/contract under both callback models with the adapter FOM.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

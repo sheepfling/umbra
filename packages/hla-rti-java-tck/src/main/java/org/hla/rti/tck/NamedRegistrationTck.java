@@ -60,17 +60,46 @@ final class NamedRegistrationTck {
          JavaTckSupport.expectFailure(() -> owner.reserveObjectInstanceName(""), "IllegalName",
             "reserving an empty object instance name");
 
+         JavaTckSupport.expectFailure(() -> owner.reserveMultipleObjectInstanceNames(Set.of()),
+            "NameSetWasEmpty", "reserving an empty object instance name set");
+         JavaTckSupport.expectFailure(() -> owner.reserveMultipleObjectInstanceNames(
+            Set.of("HLA.ReservedByTheRTI")), "IllegalName",
+            "reserving a name with the reserved HLA prefix");
+         String validNameInRejectedSet = federation + "-valid-in-rejected-set";
+         JavaTckSupport.expectFailure(() -> owner.reserveMultipleObjectInstanceNames(
+            Set.of(validNameInRejectedSet, "HLA.Invalid")), "IllegalName",
+            "rejecting a multiple-name reservation containing an illegal name");
+         memberCallbacks.clear();
+         member.reserveObjectInstanceName(validNameInRejectedSet);
+         await(member, callbackModel,
+            () -> memberCallbacks.singleSucceeded.contains(validNameInRejectedSet),
+            "valid name remains available after an illegal multiple-name reservation");
+         checkNoMultipleReservationOutcome(memberCallbacks,
+            "single-name reservation after an illegal multiple-name request");
+         member.releaseObjectInstanceName(validNameInRejectedSet);
+
          String releasedName = federation + "-released-name";
          owner.reserveObjectInstanceName(releasedName);
          await(owner, callbackModel,
             () -> ownerCallbacks.singleSucceeded.contains(releasedName),
             "single object-name reservation");
+         checkNoMultipleReservationOutcome(ownerCallbacks, "single-name reservation");
          owner.releaseObjectInstanceName(releasedName);
+         memberCallbacks.clear();
+         member.reserveObjectInstanceName(releasedName);
+         await(member, callbackModel,
+            () -> memberCallbacks.singleSucceeded.contains(releasedName),
+            "a released object name is available to another joined federate");
+         checkNoMultipleReservationOutcome(memberCallbacks,
+            "single-name reservation of a name released by another federate");
+         member.releaseObjectInstanceName(releasedName);
          ownerCallbacks.clear();
          owner.reserveObjectInstanceName(releasedName);
          await(owner, callbackModel,
             () -> ownerCallbacks.singleSucceeded.contains(releasedName),
             "reuse of a released object name");
+         checkNoMultipleReservationOutcome(ownerCallbacks,
+            "single-name reuse of a released object name");
          owner.releaseObjectInstanceName(releasedName);
          JavaTckSupport.expectFailure(() -> owner.releaseObjectInstanceName(releasedName),
             "ObjectInstanceNameNotReserved", "second release of an object name");
@@ -83,24 +112,65 @@ final class NamedRegistrationTck {
          await(owner, callbackModel,
             () -> ownerCallbacks.multipleSucceeded.contains(batchNames),
             "multiple object-name reservation");
+         JavaTckSupport.check(ownerCallbacks.multipleSucceeded.size() == 1
+               && ownerCallbacks.multipleFailed.isEmpty()
+               && ownerCallbacks.singleSucceeded.isEmpty()
+               && ownerCallbacks.singleFailed.isEmpty(),
+            "multiple-name reservation used an incorrect reservation callback");
+         String unreservedReleaseName = federation + "-not-reserved-for-release";
+         Set<String> invalidReleaseNames = new LinkedHashSet<>();
+         invalidReleaseNames.add(batchNames.iterator().next());
+         invalidReleaseNames.add(unreservedReleaseName);
+         JavaTckSupport.expectFailure(
+            () -> owner.releaseMultipleObjectInstanceNames(invalidReleaseNames),
+            "ObjectInstanceNameNotReserved",
+            "releasing a multiple-name set containing an unreserved name");
+         for (String batchName : batchNames) {
+            memberCallbacks.clear();
+            member.reserveObjectInstanceName(batchName);
+            await(member, callbackModel, () -> memberCallbacks.singleFailed.contains(batchName),
+               "failed multiple-name release retains every reserved name");
+            checkNoMultipleReservationOutcome(memberCallbacks,
+               "single-name contention against a name retained by failed multiple release");
+         }
          owner.releaseMultipleObjectInstanceNames(batchNames);
-         ownerCallbacks.clear();
+         memberCallbacks.clear();
          String reusableBatchName = batchNames.iterator().next();
+         member.reserveObjectInstanceName(reusableBatchName);
+         await(member, callbackModel,
+            () -> memberCallbacks.singleSucceeded.contains(reusableBatchName),
+            "a name released from a multiple-name set is available to another joined federate");
+         checkNoMultipleReservationOutcome(memberCallbacks,
+            "single-name reservation after multiple-name release");
+         member.releaseObjectInstanceName(reusableBatchName);
+         ownerCallbacks.clear();
          owner.reserveObjectInstanceName(reusableBatchName);
          await(owner, callbackModel,
             () -> ownerCallbacks.singleSucceeded.contains(reusableBatchName),
             "reuse of a released multiple reservation");
+         checkNoMultipleReservationOutcome(ownerCallbacks,
+            "single-name reuse after multiple-name release");
          owner.releaseObjectInstanceName(reusableBatchName);
 
          String objectName = federation + "-named-object";
+         JavaTckSupport.expectFailure(() -> owner.registerObjectInstance(ownerClass, objectName),
+            "ObjectInstanceNameNotReserved",
+            "named registration with an unreserved object name");
          ownerCallbacks.clear();
          memberCallbacks.discoveries.clear();
          owner.reserveObjectInstanceName(objectName);
          await(owner, callbackModel, () -> ownerCallbacks.singleSucceeded.contains(objectName),
             "named object reservation");
+         checkNoMultipleReservationOutcome(ownerCallbacks, "named object reservation");
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(member);
          JavaTckSupport.check(memberCallbacks.discoveries.isEmpty(),
             "Reserve Object Instance Name caused an object-discovery callback");
+         memberCallbacks.clear();
+         member.reserveObjectInstanceName(objectName);
+         await(member, callbackModel, () -> memberCallbacks.singleFailed.contains(objectName),
+            "another federate cannot successfully reserve a name held by the owner");
+         checkNoMultipleReservationOutcome(memberCallbacks,
+            "single-name contention against the owner's reservation");
          member.publishObjectClassAttributes(memberClass, memberAttributes);
          JavaTckSupport.expectFailure(
             () -> member.registerObjectInstance(memberClass, objectName),
@@ -155,18 +225,33 @@ final class NamedRegistrationTck {
          String generatedName = owner.getObjectInstanceName(generatedObject);
          JavaTckSupport.check(!reservedAgainstGeneration.equals(generatedName),
             "unnamed registration consumed another reserved object name");
-         await(member, callbackModel, () -> !memberCallbacks.discoveries.isEmpty(),
-            "unnamed object discovery after name reservation");
-         JavaTckSupport.check(memberCallbacks.discoveries.size() == 1
-               && generatedObject.equals(memberCallbacks.discoveries.get(0).object)
-               && generatedName.equals(memberCallbacks.discoveries.get(0).name),
-            "unnamed discovery did not preserve its generated name and handle");
+         ObjectInstanceHandle secondGeneratedObject = owner.registerObjectInstance(ownerClass);
+         JavaTckSupport.check(secondGeneratedObject != null
+               && secondGeneratedObject.encodedLength() > 0
+               && !generatedObject.equals(secondGeneratedObject),
+            "second unnamed registration returned an invalid or duplicate object handle");
+         String secondGeneratedName = owner.getObjectInstanceName(secondGeneratedObject);
+         JavaTckSupport.check(generatedName != null && !generatedName.isEmpty()
+               && secondGeneratedName != null && !secondGeneratedName.isEmpty()
+               && !generatedName.equals(secondGeneratedName)
+               && generatedObject.equals(owner.getObjectInstanceHandle(generatedName))
+               && secondGeneratedObject.equals(owner.getObjectInstanceHandle(secondGeneratedName)),
+            "unnamed registration names were not unique and associated with their handles");
+         await(member, callbackModel, () -> memberCallbacks.discoveries.size() >= 2,
+            "unnamed object discoveries after name reservation");
+         JavaTckSupport.check(memberCallbacks.discoveries.size() == 2,
+            "unnamed registration did not produce exactly two discovery callbacks");
+         Discovery firstGeneratedDiscovery = findDiscovery(memberCallbacks, generatedObject);
+         Discovery secondGeneratedDiscovery = findDiscovery(memberCallbacks, secondGeneratedObject);
+         JavaTckSupport.check(firstGeneratedDiscovery != null && secondGeneratedDiscovery != null
+               && generatedName.equals(firstGeneratedDiscovery.name)
+               && secondGeneratedName.equals(secondGeneratedDiscovery.name)
+               && memberClass.equals(firstGeneratedDiscovery.objectClass)
+               && memberClass.equals(secondGeneratedDiscovery.objectClass)
+               && generatedObject.equals(member.getObjectInstanceHandle(generatedName))
+               && secondGeneratedObject.equals(member.getObjectInstanceHandle(secondGeneratedName)),
+            "unnamed discoveries did not preserve each generated name and handle");
          owner.releaseObjectInstanceName(reservedAgainstGeneration);
-
-         String unreservedName = federation + "-unreserved-name";
-         JavaTckSupport.expectFailure(() -> owner.registerObjectInstance(ownerClass,
-            unreservedName), "ObjectInstanceNameNotReserved",
-            "named registration with an unreserved object name");
 
          memberCallbacks.clear();
          member.reserveObjectInstanceName(objectName);
@@ -204,6 +289,18 @@ final class NamedRegistrationTck {
       JavaTckSupport.check(condition.getAsBoolean(), "timed out waiting for " + description);
    }
 
+   private static void checkNoMultipleReservationOutcome(Recorder recorder, String description) {
+      JavaTckSupport.check(!recorder.hasMultipleReservationOutcome(),
+         description + " used a multiple-name reservation callback");
+   }
+
+   private static Discovery findDiscovery(Recorder recorder, ObjectInstanceHandle object) {
+      for (Discovery discovery : recorder.discoveries) {
+         if (object.equals(discovery.object)) return discovery;
+      }
+      return null;
+   }
+
    private static final class Discovery {
       private final ObjectInstanceHandle object;
       private final ObjectClassHandle objectClass;
@@ -220,12 +317,18 @@ final class NamedRegistrationTck {
       private final List<String> singleSucceeded = new CopyOnWriteArrayList<>();
       private final List<String> singleFailed = new CopyOnWriteArrayList<>();
       private final List<Set<String>> multipleSucceeded = new CopyOnWriteArrayList<>();
+      private final List<Set<String>> multipleFailed = new CopyOnWriteArrayList<>();
       private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
 
       private void clear() {
          singleSucceeded.clear();
          singleFailed.clear();
          multipleSucceeded.clear();
+         multipleFailed.clear();
+      }
+
+      private boolean hasMultipleReservationOutcome() {
+         return !multipleSucceeded.isEmpty() || !multipleFailed.isEmpty();
       }
 
       private FederateAmbassador proxy() {
@@ -240,6 +343,8 @@ final class NamedRegistrationTck {
                      singleFailed.add((String) arguments[0]);
                   } else if ("multipleObjectInstanceNameReservationSucceeded".equals(name)) {
                      multipleSucceeded.add(copyNames(arguments[0]));
+                  } else if ("multipleObjectInstanceNameReservationFailed".equals(name)) {
+                     multipleFailed.add(copyNames(arguments[0]));
                   }
                }
                if ("discoverObjectInstance".equals(name) && arguments != null
