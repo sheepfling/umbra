@@ -34,14 +34,20 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          String baseClassName,
          String derivedClassName, String identityAttributeName,
          String derivedAttributeName, String unrelatedClassName,
-         String unrelatedAttributeName, CallbackModel callbackModel) throws Exception {
+         String unrelatedAttributeName, String unrelatedBestEffortAttributeName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador[] rti = new RTIambassador[FEDERATE_COUNT];
       Recorder[] recorders = new Recorder[FEDERATE_COUNT];
       boolean[] connected = new boolean[FEDERATE_COUNT];
       boolean[] joined = new boolean[FEDERATE_COUNT];
       boolean[] subscribed = new boolean[FEDERATE_COUNT];
       boolean published = false;
+      boolean rateReliablePublished = false;
+      boolean rateBestEffortPublished = false;
       boolean federationCreated = false;
+      ObjectClassHandle publisherRateClass = null;
+      AttributeHandle publisherRateReliable = null;
+      AttributeHandle publisherRateBestEffort = null;
       String federation = "java-tck-object-registration-discovery-" + UUID.randomUUID();
       String[] roles = {"publisher", "exact", "base", "cancelled", "late", "unrelated"};
       try {
@@ -70,6 +76,18 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          ObjectClassHandle[] baseClasses = new ObjectClassHandle[FEDERATE_COUNT];
          AttributeHandle[] identityAttributes = new AttributeHandle[FEDERATE_COUNT];
          AttributeHandle[] derivedAttributes = new AttributeHandle[FEDERATE_COUNT];
+         publisherRateClass = rti[PUBLISHER].getObjectClassHandle(unrelatedClassName);
+         publisherRateReliable = rti[PUBLISHER].getAttributeHandle(
+            publisherRateClass, unrelatedAttributeName);
+         publisherRateBestEffort = rti[PUBLISHER].getAttributeHandle(
+            publisherRateClass, unrelatedBestEffortAttributeName);
+         JavaTckSupport.check(unrelatedClassName.equals(
+                  rti[PUBLISHER].getObjectClassName(publisherRateClass))
+               && unrelatedAttributeName.equals(
+                  rti[PUBLISHER].getAttributeName(publisherRateClass, publisherRateReliable))
+               && unrelatedBestEffortAttributeName.equals(
+                  rti[PUBLISHER].getAttributeName(publisherRateClass, publisherRateBestEffort)),
+            "publisher did not resolve the rate-object FOM attributes");
          for (int i = 0; i < FEDERATE_COUNT; ++i) {
             derivedClasses[i] = rti[i].getObjectClassHandle(derivedClassName);
             baseClasses[i] = rti[i].getObjectClassHandle(baseClassName);
@@ -291,6 +309,68 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          }
          JavaTckSupport.check(recorders[EXACT].discoveries.size() == 1,
             "repeating an active object subscription generated duplicate discovery");
+
+         rti[PUBLISHER].publishObjectClassAttributes(
+            publisherRateClass, JavaTckSupport.attributeSet(rti[PUBLISHER], publisherRateReliable));
+         rateReliablePublished = true;
+         ObjectInstanceHandle partialRateObject =
+            rti[PUBLISHER].registerObjectInstance(publisherRateClass);
+         JavaTckSupport.check(partialRateObject != null && partialRateObject.encodedLength() > 0
+               && rti[PUBLISHER].isAttributeOwnedByFederate(
+                  partialRateObject, publisherRateReliable)
+               && !rti[PUBLISHER].isAttributeOwnedByFederate(
+                  partialRateObject, publisherRateBestEffort),
+            "partial publication did not limit the first rate-object instance ownership");
+         String partialRateObjectName = rti[PUBLISHER].getObjectInstanceName(partialRateObject);
+         await(rti[UNRELATED], callbackModel,
+            () -> recorders[UNRELATED].discoveries.size() == 1,
+            "discovery of the reliable-only rate object");
+         assertDiscovery(rti[UNRELATED], recorders[UNRELATED], partialRateObjectName,
+            unrelatedClass, publisherName, "reliable-only rate-object discovery");
+         recorders[UNRELATED].discoveries.clear();
+
+         rti[PUBLISHER].publishObjectClassAttributes(
+            publisherRateClass,
+            JavaTckSupport.attributeSet(rti[PUBLISHER], publisherRateBestEffort));
+         rateBestEffortPublished = true;
+         ObjectInstanceHandle additionallyPublishedRateObject =
+            rti[PUBLISHER].registerObjectInstance(publisherRateClass);
+         JavaTckSupport.check(additionallyPublishedRateObject != null
+               && additionallyPublishedRateObject.encodedLength() > 0
+               && rti[PUBLISHER].isAttributeOwnedByFederate(
+                  additionallyPublishedRateObject, publisherRateReliable)
+               && rti[PUBLISHER].isAttributeOwnedByFederate(
+                  additionallyPublishedRateObject, publisherRateBestEffort),
+            "a later publication did not add the attribute to a new rate-object instance");
+         String additionallyPublishedRateObjectName =
+            rti[PUBLISHER].getObjectInstanceName(additionallyPublishedRateObject);
+         await(rti[UNRELATED], callbackModel,
+            () -> recorders[UNRELATED].discoveries.size() == 1,
+            "discovery of the rate object registered after adding an attribute publication");
+         assertDiscovery(rti[UNRELATED], recorders[UNRELATED],
+            additionallyPublishedRateObjectName, unrelatedClass, publisherName,
+            "rate-object discovery after adding an attribute publication");
+
+         rti[PUBLISHER].unpublishObjectClassAttributes(
+            publisherRateClass,
+            JavaTckSupport.attributeSet(rti[PUBLISHER], publisherRateBestEffort));
+         rateBestEffortPublished = false;
+         JavaTckSupport.check(
+            rti[PUBLISHER].isAttributeOwnedByFederate(
+               additionallyPublishedRateObject, publisherRateReliable)
+               && !rti[PUBLISHER].isAttributeOwnedByFederate(
+                  additionallyPublishedRateObject, publisherRateBestEffort),
+            "unpublishing one rate attribute changed ownership of a different attribute");
+         AttributeHandleValueMap unpublishedRateValues =
+            rti[PUBLISHER].getAttributeHandleValueMapFactory().create(1);
+         unpublishedRateValues.put(publisherRateBestEffort, new byte[] {0x71});
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].updateAttributeValues(
+               additionallyPublishedRateObject, unpublishedRateValues, new byte[0]),
+            "AttributeNotOwned",
+            "updating an instance attribute after unpublishing its class attribute");
+         JavaTckSupport.check(recorders[UNRELATED].reflections.isEmpty(),
+            "an update rejected after attribute unpublication produced a reflection");
       } finally {
          if (rti[PUBLISHER] != null && joined[PUBLISHER] && published) {
             try {
@@ -303,6 +383,15 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
                      rti[PUBLISHER].getAttributeHandle(
                         rti[PUBLISHER].getObjectClassHandle(derivedClassName),
                         derivedAttributeName)));
+            } catch (Exception ignored) { }
+         }
+         if (rti[PUBLISHER] != null && joined[PUBLISHER] && rateReliablePublished) {
+            try {
+               AttributeHandleSet remaining = rateBestEffortPublished
+                  ? JavaTckSupport.attributeSet(
+                     rti[PUBLISHER], publisherRateReliable, publisherRateBestEffort)
+                  : JavaTckSupport.attributeSet(rti[PUBLISHER], publisherRateReliable);
+               rti[PUBLISHER].unpublishObjectClassAttributes(publisherRateClass, remaining);
             } catch (Exception ignored) { }
          }
          for (int i = 0; i < rti.length; ++i) {

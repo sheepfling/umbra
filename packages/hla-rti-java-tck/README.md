@@ -2284,15 +2284,21 @@ exact/base/late discovery, and callback-time unsubscribe. It also rejects a
 derived-only value request through the known
 base class and an update by a non-owner, and confirms the rejected update
 produces no reflection. Exact, base, and late subscribers then receive only
-their subscribed attributes. It uses only the standard IEEE 1516.1-2025 Java
-API; the adapter supplies its provider, `fom-model-tck.xml`, endpoint, logical
-time, callback model, and typed class/attribute names. It compares object and
-class handles only within each federate. Fourteen direct mapping pairs now
-cover bounded witnesses in §§5.1, 5.1.1–5.1.3, 5.2, 5.8, 6.1.2, and 6.8;
+their subscribed attributes. A separate `TckRateObject` path registers an
+instance with only `ReliableValue` published, verifies that the instance does
+not own `BestEffortValue`, then registers another instance after publishing
+both attributes. Unpublishing `BestEffortValue` removes only that instance
+attribute’s ownership and makes a later update fail with `AttributeNotOwned`.
+It uses only the standard IEEE 1516.1-2025 Java API; the adapter supplies its
+provider, `fom-model-tck.xml`, endpoint, logical time, callback model, typed
+class/attribute names, and the reliable/best-effort rate attributes. It
+compares object and class handles only within each federate. Seventeen direct
+mapping pairs now cover bounded witnesses in §§5.1, 5.1.1–5.1.3, 5.2, 5.2.4,
+5.8, 6.1.2, and 6.8;
 callback timing/cancellation, duplicate subscriptions, unrelated-class
 filtering, producer metadata, and cleanup remain supplemental. Focused local
 JNI runs passed 1/1 under both callback models; results/JUnit are in
-`.build/java-tck-20261117/object-registration-discovery-additional-parity-`
+`.build/java-tck-20261117/object-registration-discovery-rate-publication-parity-`
 `{evoked,immediate}.{json,xml}`. Independent-provider conformance remains
 unverified.
 

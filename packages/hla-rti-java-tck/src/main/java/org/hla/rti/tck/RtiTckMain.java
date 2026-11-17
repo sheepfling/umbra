@@ -15808,6 +15808,7 @@ public final class RtiTckMain {
           typedObjectClassName(), typedDerivedObjectClassName(),
           typedIdentityAttributeName(), typedDerivedAttributeName(),
           registrationUnrelatedObjectClassName(), registrationUnrelatedObjectAttributeName(),
+          registrationUnrelatedObjectBestEffortAttributeName(),
           callbackModel());
     }
 
@@ -16501,6 +16502,11 @@ public final class RtiTckMain {
    private static String registrationUnrelatedObjectAttributeName() {
       return System.getProperty("hla.rti.tck.registrationUnrelatedObjectAttribute",
          "ReliableValue");
+   }
+
+   private static String registrationUnrelatedObjectBestEffortAttributeName() {
+      return System.getProperty("hla.rti.tck.registrationUnrelatedObjectBestEffortAttribute",
+         "BestEffortValue");
    }
 
    private static String typedInteractionClassName() {
