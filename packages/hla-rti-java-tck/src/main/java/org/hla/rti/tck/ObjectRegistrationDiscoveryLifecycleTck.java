@@ -110,6 +110,12 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             () -> rti[PUBLISHER].registerObjectInstance(derivedClasses[PUBLISHER]),
             "ObjectClassNotPublished",
             "registering the derived object class before publication");
+         rti[PUBLISHER].publishObjectClassAttributes(
+            derivedClasses[PUBLISHER], JavaTckSupport.attributeSet(rti[PUBLISHER]));
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].registerObjectInstance(derivedClasses[PUBLISHER]),
+            "ObjectClassNotPublished",
+            "registering the derived object class after publishing an empty attribute set");
 
          AttributeHandleSet publisherAttributes = JavaTckSupport.attributeSet(
             rti[PUBLISHER], identityAttributes[PUBLISHER], derivedAttributes[PUBLISHER]);
@@ -150,6 +156,14 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
 
          ObjectInstanceHandle object = rti[PUBLISHER].registerObjectInstance(
             derivedClasses[PUBLISHER]);
+         JavaTckSupport.check(object != null && object.encodedLength() > 0,
+            "object registration returned an invalid handle");
+         JavaTckSupport.check(
+            rti[PUBLISHER].isAttributeOwnedByFederate(
+               object, identityAttributes[PUBLISHER])
+               && rti[PUBLISHER].isAttributeOwnedByFederate(
+                  object, derivedAttributes[PUBLISHER]),
+            "registration did not make the publisher owner of every published class attribute");
          String objectName = rti[PUBLISHER].getObjectInstanceName(object);
          JavaTckSupport.check(object != null && objectName != null && !objectName.isEmpty()
                && object.equals(rti[PUBLISHER].getObjectInstanceHandle(objectName))
@@ -204,6 +218,27 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
          }
          assertDiscovery(rti[LATE], recorders[LATE], objectName,
             derivedClasses[LATE], publisherName, "late exact-class discovery");
+         ObjectInstanceHandle baseObject = rti[BASE].getObjectInstanceHandle(objectName);
+         JavaTckSupport.expectFailure(
+            () -> rti[BASE].requestAttributeValueUpdate(
+               baseObject,
+               JavaTckSupport.attributeSet(rti[BASE], derivedAttributes[BASE]),
+               new byte[0]),
+            "AttributeNotDefined",
+            "requesting a derived-only attribute for an object known through its base class");
+
+         ObjectInstanceHandle exactObject = rti[EXACT].getObjectInstanceHandle(objectName);
+         AttributeHandleValueMap unownedValues =
+            rti[EXACT].getAttributeHandleValueMapFactory().create(1);
+         unownedValues.put(derivedAttributes[EXACT], new byte[] {0x61});
+         JavaTckSupport.expectFailure(
+            () -> rti[EXACT].updateAttributeValues(exactObject, unownedValues, new byte[0]),
+            "AttributeNotOwned",
+            "updating an instance attribute from a federate that does not own it");
+         JavaTckSupport.check(recorders[EXACT].reflections.isEmpty()
+               && recorders[BASE].reflections.isEmpty()
+               && recorders[LATE].reflections.isEmpty(),
+            "a rejected non-owner update produced an attribute reflection");
 
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             for (int pass = 0; pass < 8; ++pass) JavaTckSupport.drain(rti[UNRELATED]);

@@ -2872,6 +2872,7 @@
       "category": "object-management",
       "title": "Exercise hierarchy-aware object discovery and callback-time subscription eligibility",
       "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
@@ -2879,35 +2880,129 @@
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
         "RTIambassador.getFederateName",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "RTIambassador.getAttributeHandleSetFactory",
+        "RTIambassador.updateAttributeValues",
+        "RTIambassador.requestAttributeValueUpdate(instance)",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.subscribeObjectClassAttributes",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.registerObjectInstance",
+        "ObjectInstanceHandle.encodedLength",
+        "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getObjectInstanceName",
-        "RTIambassador.evokeCallback",
+        "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
-        "FederateAmbassador.discoverObjectInstance"
+        "RTIambassador.evokeCallback",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues"
       ],
       "requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16"
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l98-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l113-34",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l185-58",
+        "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3-association"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16"
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l98-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l113-34",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l185-58",
+        "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1",
+        "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6",
+        "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23",
+        "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+        "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+        "requirement-candidate-content-clauses-06-object-management-page-118-l22-3-association"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.8"
+        "hla-1516.1-2025:clause-5.1",
+        "hla-1516.1-2025:clause-5.1.1",
+        "hla-1516.1-2025:clause-5.1.2",
+        "hla-1516.1-2025:clause-5.1.3",
+        "hla-1516.1-2025:clause-5.2",
+        "hla-1516.1-2025:clause-5.8",
+        "hla-1516.1-2025:clause-6.1.2",
+        "hla-1516.1-2025:clause-6.8"
       ],
       "requirement_mappings": [
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12",
+          "standard_section": "hla-1516.1-2025:clause-5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l98-29",
+          "standard_section": "hla-1516.1-2025:clause-5.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l113-34",
+          "standard_section": "hla-1516.1-2025:clause-5.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l185-58",
+          "standard_section": "hla-1516.1-2025:clause-5.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1",
+          "standard_section": "hla-1516.1-2025:clause-5.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6",
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35",
+          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10",
+          "standard_section": "hla-1516.1-2025:clause-5.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15",
+          "standard_section": "hla-1516.1-2025:clause-5.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23",
+          "standard_section": "hla-1516.1-2025:clause-5.2"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
           "standard_section": "hla-1516.1-2025:clause-5.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
+          "standard_section": "hla-1516.1-2025:clause-6.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
+          "standard_section": "hla-1516.1-2025:clause-6.1.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-118-l22-3-association",
+          "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Direct mapping is limited to the late member's active subscription discovering an already-registered object (§5.8, page-096-l57-16). Hierarchy selection, callback-queue cancellation/timing, valid-class registration before publication, lookup identity, and duplicate-subscription behavior are supplemental assertions and are not mapped here. Fabricated invalid-class handles were removed; each federate validates its own class/attribute names and discovered object handle, and producer identity is resolved by standard federate name. The adapter supplies the typed FOM and logical-time implementation. Official-API Java compilation and focused installed JNI runs passed in HLA_EVOKED and HLA_IMMEDIATE; independent-provider conformance is not claimed.",
+      "mapping_note": "Direct mappings are limited to assertion-backed portions of the paired C++ witness. The Java case checks registration eligibility for one typed FDD class before publication and after an empty publication, followed by successful nonempty publication and registration (§5.1 page 81 line 44; §5.2 page 90 line 82); after registration it checks ownership of both published attributes (§5.2 page 90 line 58) and that Get Known Object Class Handle returns the registered class (§6.8 page 118 line 22). It checks NameNotFound for one absent FDD class and for a derived-only attribute looked up on its superclass, plus AttributeNotDefined when that derived-only attribute is published or subscribed through the superclass and when it is requested for an object known through the base class (§5.1.1 pages 81–82). Exact-class, base-class, and late-subscription discovery callbacks report the expected object and known class; the base subscriber observes its superclass view (§5.1.2 page 83; §5.1.3 page 84), and an active late subscription discovers an already-registered object (§5.8 page 96). A non-owner update is rejected with AttributeNotOwned and produces no reflection (§5.2 page 90); an ordinary update reflects exactly each exact/base/late receiver’s subscribed attribute (§6.1.2 page 107). These are bounded witnesses for this adapter FOM, not exhaustive class, attribute, or service coverage. Callback timing/cancellation, duplicate-subscription handling, unrelated-class suppression, producer metadata, and cleanup remain supplemental.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with fom-model-tck.xml and the typed object hierarchy. Results/JUnit: .build/java-tck-20261117/object-registration-discovery-additional-parity-{evoked,immediate}.{json,xml}. Provider evidence is local only; independent-provider interoperability and conformance are not established.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",

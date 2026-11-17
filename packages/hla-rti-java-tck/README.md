@@ -2277,14 +2277,24 @@ installed-provider evoked and immediate runs. This establishes API-level
 parity on one provider, not independent-provider conformance.
 
 The default `java-tck.object-registration-discovery-lifecycle` scenario checks
-typed base/derived-class lookup, inherited attribute identity, publication,
-unnamed registration, exact and base-class discovery, evoked callback timing,
-unsubscribe cancellation, and late subscription. It uses only the standard
-IEEE 1516.1-2025 Java API; the adapter supplies its provider, FOM, endpoint,
-logical time, callback model, and typed class/attribute names. It compares
-object and class handles only within each federate, without fabricated invalid
-handles. Focused installed JNI execution passed in both callback modes;
-independent-provider conformance remains unverified.
+typed base/derived-class lookup, inherited attribute identity, registration
+before and after empty publication, ownership of the published attributes,
+unnamed registration with a positive encoded-length object handle,
+exact/base/late discovery, and callback-time unsubscribe. It also rejects a
+derived-only value request through the known
+base class and an update by a non-owner, and confirms the rejected update
+produces no reflection. Exact, base, and late subscribers then receive only
+their subscribed attributes. It uses only the standard IEEE 1516.1-2025 Java
+API; the adapter supplies its provider, `fom-model-tck.xml`, endpoint, logical
+time, callback model, and typed class/attribute names. It compares object and
+class handles only within each federate. Fourteen direct mapping pairs now
+cover bounded witnesses in §§5.1, 5.1.1–5.1.3, 5.2, 5.8, 6.1.2, and 6.8;
+callback timing/cancellation, duplicate subscriptions, unrelated-class
+filtering, producer metadata, and cleanup remain supplemental. Focused local
+JNI runs passed 1/1 under both callback models; results/JUnit are in
+`.build/java-tck-20261117/object-registration-discovery-additional-parity-`
+`{evoked,immediate}.{json,xml}`. Independent-provider conformance remains
+unverified.
 
 The default `java-tck.overlapping-object-class-subscriptions-single-discovery`
 scenario registers a derived-class object while one federate actively subscribes

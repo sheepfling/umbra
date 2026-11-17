@@ -37757,7 +37757,35 @@
         "mapping_and_validation": "The two Java direct requirement-to-section pairs exactly match the paired C++ catalog row and remain limited to IEEE 1516.1-2025 §9.1.3.1. Java catalog loading validates 966 unique scenario IDs; the 966-ID parity audit reports zero unpaired C++ IDs; the scenario API inventory includes TransportationTypeHandle.encodedLength. The scenario remains unsupported by default because the adapter must supply both FOMs.",
         "boundary": "Local Umbra JNI and installed-package C++ evidence only, with explicit adapter-supplied FOMs. This does not establish independent-provider behavior, interoperability, or conformance."
       },
-      "next_action": "Next exact pair: cpp-tck.object-registration-discovery-lifecycle and java-tck.object-registration-discovery-lifecycle. Compare the primary C++ case’s 27 direct mappings and observable assertions against Java’s existing narrower §5.8 late-active-subscription discovery mapping. Add only missing Java API assertions and direct mapping pairs supported by those assertions; keep hierarchy choices, pre-publication handle validity, duplicate subscriptions, and callback timing/cancellation supplemental unless the specific Java assertions directly establish a normative requirement. Preserve the existing parity scope, then validate the Java catalog and the focused paired C++ and Java evidence.",
+      "latest_verified_java_object_registration_discovery_direct_mapping_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Expanded java-tck.object-registration-discovery-lifecycle to check empty publication leaves the typed class unregistrable, the registered object handle has positive encoded length, the publisher owns each published attribute, a derived-only attribute request through a base-known object raises AttributeNotDefined, and a non-owner update raises AttributeNotOwned without reflection. Existing exact/base/late discovery and subscribed-attribute reflection assertions now have direct mappings where they match the paired C++ witness.",
+        "scenario_ids": [
+          "java-tck.object-registration-discovery-lifecycle",
+          "cpp-tck.object-registration-discovery-lifecycle"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/ObjectRegistrationDiscoveryLifecycleTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/catalogs/java-tck-scenarios/part-02.json; packages/hla-rti-java-tck/README.md",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12 -> IEEE 1516.1-2025 §5.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-081-l98-29 -> IEEE 1516.1-2025 §5.1.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-081-l113-34 -> IEEE 1516.1-2025 §5.1.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-081-l185-58 -> IEEE 1516.1-2025 §5.1.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1 -> IEEE 1516.1-2025 §5.1.1",
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6 -> IEEE 1516.1-2025 §5.1.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35 -> IEEE 1516.1-2025 §5.1.3",
+          "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10 -> IEEE 1516.1-2025 §5.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15 -> IEEE 1516.1-2025 §5.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23 -> IEEE 1516.1-2025 §5.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16 -> IEEE 1516.1-2025 §5.8",
+          "requirement-candidate-content-clauses-06-object-management-page-107-l135-40 -> IEEE 1516.1-2025 §6.1.2",
+          "requirement-candidate-content-clauses-06-object-management-page-107-l141-42 -> IEEE 1516.1-2025 §6.1.2",
+          "requirement-candidate-content-clauses-06-object-management-page-118-l22-3-association -> IEEE 1516.1-2025 §6.8"
+        ],
+        "evidence": "The Java TCK built against the pinned IEEE 1516.1-2025 API. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using packages/hla-rti-cpp-tck/fom/fom-model-tck.xml. Results/JUnit: .build/java-tck-20261117/object-registration-discovery-additional-parity-{evoked,immediate}.{json,xml}.",
+        "mapping_and_validation": "The 14 Java direct requirement-to-section pairs are an assertion-backed subset of the paired C++ catalog mapping; no internal provenance IDs were promoted to normative mappings. The catalog loads 966 unique Java scenario IDs; the parity audit reports zero unpaired C++ IDs; the 28-method Java inventory exactly matches the RtiTckMain scenario registration; both focused result rows pass.",
+        "boundary": "Provider behavior is bounded to the local Umbra JNI provider and the adapter-supplied typed FOM. No independent-provider interoperability or conformance claim."
+      },
+      "next_action": "Next exact pair: cpp-tck.object-registration-discovery-lifecycle and java-tck.object-registration-discovery-lifecycle. Port the remaining standard-observable TckRateObject branch: reliable-only publication permits registration, instance ownership follows the published subset, adding the best-effort attribute affects later instances, and withdrawing it removes only that ownership and rejects a later update. Add the specific direct §5.2 and §5.2.4 pairs only where the Java assertions match the C++ evidence. Keep the other lifecycle choices supplemental, then run both callback models with fom-model-tck.xml and validate the Java catalog and focused results.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",
