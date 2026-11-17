@@ -2621,6 +2621,22 @@ int runPublicServer(
       throw std::runtime_error(
           "The forced-resignation fixture lost a later public Resign.");
     }
+    auto acknowledgeTermination = [](
+        ProcessTransportSession& session,
+        ProcessTransportServiceDispatcher::Handler const& handler,
+        char const* role) {
+      bool terminateSessionReceived = false;
+      while (ProcessTransportServiceDispatcher::serveOne(
+          session, handler, &terminateSessionReceived)) {
+      }
+      if (!terminateSessionReceived || !session.sendCloseAcknowledgement()) {
+        throw std::runtime_error(
+            std::string("The forced-resignation fixture could not complete the ") +
+            role + " Disconnect handshake.");
+      }
+    };
+    acknowledgeTermination(*receiver, receiverHandler, "target");
+    acknowledgeTermination(*sender, senderHandler, "survivor");
     service.detach(*sender);
     service.detach(*receiver);
     sender->connection()->close();

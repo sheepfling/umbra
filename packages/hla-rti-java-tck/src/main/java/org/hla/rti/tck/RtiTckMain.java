@@ -2265,6 +2265,7 @@ public final class RtiTckMain {
             }, true), RtiTckMain::handleEncodingMimDataTypes);
       FomAndHandleLookupScenarioRegistry.register();
       FederateUpdateThresholdsScenarioRegistry.register();
+      FederateResignedForcedDepartureScenarioRegistry.register();
       TransportPublicNewSessionInteropScenarioRegistry.register();
       TransportSessionCardinalityScenarioRegistry.register();
       InvalidTransportSessionMetadataScenarioRegistry.register();
@@ -2704,7 +2705,7 @@ public final class RtiTckMain {
              new String[] {
                 "java-1516.1-interaction-declaration-and-delivery",
                 "java-1516.1-interaction-parameter-delivery"
-             }, false), RtiTckMain::receiveOrderInteraction);
+              }, true), RtiTckMain::receiveOrderInteraction);
        run(new Scenario("java-tck.reliable-transport-one-copy-delivery",
              "deliver each receive-order interaction exactly once using HLAreliable",
              "transportation-delivery",

@@ -1129,28 +1129,12 @@
       "evidence_boundary": "No direct C++ TCK mapping or pass is claimed for Java encoding helpers. This is not evidence of Java encoder/decoder behavior, not a waiver of the standard, and not validation or conformance; a Java TCK lane must verify the Java surface."
     },
     {
-      "requirement_id": "req-federate-resigned-callback-behavior",
-      "standard_section": "hla-1516.1-2025:clause-4.13",
-      "status": "no-public-cpp-api-trigger",
-      "owner_role": "IEEE-1516.1-2025-C++-binding",
-      "rationale": "IEEE 1516.1-2025 §4.13 defines Federate Resigned as an RTI-originated removal callback. The official C++ FederateAmbassador declares federateResigned(reason), but RTIambassador exposes only a federate-initiated Resign Federation Execution service and no standard operation that causes RTI-originated removal. The existing embedded Catch2 case uses private forceEmbeddedFederateResignationForTesting to exercise that RTI path and separately proves self-resignation does not emit this callback; Connection Lost is a distinct event. That private seam is not a portable C++ TCK trigger.",
-      "evidence_boundary": "No direct portable C++ TCK mapping or test pass is claimed. The private Catch2 seam is Umbra development-profile evidence only; it does not establish independent-provider behavior or conformance. This disposition is not a waiver of Umbra's §4.13 implementation obligation. Revisit direct TCK coverage only if a portable, standards-compatible RTI-originated resignation fixture becomes available."
-    },
-    {
       "requirement_id": "requirement-candidate-content-clauses-12-programming-language-mappings-page-399-l41-13",
       "standard_section": "hla-1516.1-2025:clause-12.13.4.3",
       "status": "no-public-cpp-api-trigger",
       "owner_role": "IEEE-1516.1-2025-C++-binding",
       "rationale": "IEEE 1516.1-2025 §12.13.4.3 requires an RTI federate-protocol Resume Status message. The official C++ API does not expose this message type, its serialized bytes, or a transport-level receive oracle. Public federation-management calls cannot directly assert this protocol response; validating it requires a separate internal protocol or interoperability test, not a portable public-API TCK case.",
       "evidence_boundary": "No direct public C++ TCK mapping or test pass is claimed for this protocol-message requirement. This disposition does not establish the RTI's protocol behavior, implementation validation, conformance, or a waiver of Umbra's obligation; retain it for internal protocol-level verification."
-    },
-    {
-      "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
-      "standard_section": "hla-1516.1-2025:clause-4.1.1",
-      "status": "no-public-cpp-api-trigger",
-      "owner_role": "IEEE-1516.1-2025-C++-TCK-boundary",
-      "rationale": "The Requirements Lab backflow accepted for RL-373 (2026-10-26, revision de86ea1f0688f6fe22dbd74b823812ff5d2ebc54) now exposes this as a complete standalone §4.1.1 sentence at p. 40 l. 43-53; the former truncation/merge complaint is resolved and is not repeated here. The remaining rule requires an RTI-forced transition from Joined and a Federate Resigned notification. The official public C++ API has no standard service that triggers that RTI-originated removal. Ordinary Resign is explicitly excluded by the rule, and Connection Lost is a distinct event; neither is a valid substitute oracle.",
-      "evidence_boundary": "No direct portable C++ TCK mapping or test pass is claimed because the public API provides no standard trigger for this RTI-originated transition. This does not waive Umbra's implementation obligation; private forced-resignation seams remain internal evidence only. RL-373 remains recorded as resolved-in-lab; no new or recurring Requirements Lab defect was observed."
     },
     {
       "requirement_id": "requirement-candidate-content-clauses-10-support-services-page-288-l24-7",
@@ -54549,6 +54533,60 @@
       "promotion": "promoted"
     },
     {
+      "id": "cpp-tck.federate-resigned-forced-departure",
+      "category": "federation-management",
+      "focus_lane": "federate-resigned-forced-departure",
+      "title": "Notify a connected federate removed by the RTI and permit a new membership",
+      "api_methods": [
+        "RTIambassador.connect",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.federateResigned"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+        "req-federate-resigned-callback-behavior"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+        "req-federate-resigned-callback-behavior"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.13"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1",
+          "note": "The adapter fixture forces the target out while its public C++ connection remains alive. The TCK requires one Federate Resigned callback with a non-empty reason, checks that membership lookup now reports FederateNotExecutionMember, and verifies the same ambassador can join again."
+        },
+        {
+          "requirement_id": "req-federate-resigned-callback-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.13",
+          "note": "This bounded RTI-forced removal witnesses the RTI-originated Federate Resigned callback while the same C++ connection remains usable; the scenario also verifies that ordinary federate-initiated resignation does not add another Federate Resigned callback. The distinct Connection Lost implication is witnessed by cpp-tck.connection-loss-cleanup, not by conflating Connection Lost with Federate Resigned."
+        }
+      ],
+      "mapping_note": "A current-process adapter fixture supplies the implementation-specific forced-removal trigger; it is setup only. Every normative observation is made by the C++ TCK through the official API. For §4.1.1 this case directly checks callback, state, and rejoin behavior; for §4.13 it covers one RTI-forced removal cause plus the self-resignation exclusion. The separate connection-loss-cleanup scenario witnesses the §4.13 Connection Lost implication by checking the lost federate is absent from the survivor's member roster. Connection Lost is not treated as a Federate Resigned callback; these bounded cases do not cover every implementation-specific removal cause or establish independent-provider conformance.",
+      "contract_refs": [
+        "forced-federate-resignation-api-contract.json",
+        "forced-federate-resignation-requirements-contract.json"
+      ],
+      "cpp_test": "src/tck_federate_resigned_forced_departure.cpp#scenarioFederateResignedForcedDeparture",
+      "runner_id": "cpp-tck.federate-resigned-forced-departure",
+      "parity": "java-tck.federate-resigned-forced-departure",
+      "default_status": "adapter-required",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "Fresh installed-package MinGW run on 2026-11-17 passed focused CTest 2/2 and direct adapter runs for both this scenario and cpp-tck.connection-loss-cleanup across HLA_EVOKED and HLA_IMMEDIATE (2/2 each). The forced-removal test additionally drains evoked callbacks after the subsequent self-resign and confirms the Federate Resigned count did not increase. The fixture supplies the RTI-forced-removal trigger; all normative observations use the official C++ API. Evidence: .build/cpp-tck-evidence-20261117/federate-resigned-compound-4.13.json and .junit.xml. Bounded to this local provider/fixtures; not independent-provider interoperability or conformance."
+    },
+    {
       "id": "cpp-tck.order-type-change",
       "category": "order-type-change",
       "title": "Exercise prospective attribute-order defaults, per-object overrides, receive-order interaction control, and timestamped delivery",
@@ -98462,7 +98500,8 @@
         "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
         "requirement-candidate-table-5-p300-r001",
         "req-federate-connection-lost",
-        "req-connection-lost-service-behavior"
+        "req-connection-lost-service-behavior",
+        "req-federate-resigned-callback-behavior"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-04-federation-management-page-049-l145-46",
@@ -98470,10 +98509,12 @@
         "requirement-candidate-content-clauses-04-federation-management-page-050-l51-16",
         "req-federate-connection-lost",
         "req-connection-lost-service-behavior",
-        "requirement-candidate-table-5-p300-r001"
+        "requirement-candidate-table-5-p300-r001",
+        "req-federate-resigned-callback-behavior"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.13",
         "hla-1516.1-2025:clause-4.1.6",
         "hla-1516.1-2025:clause-4.4",
         "hla-1516.1-2025:clause-11.5.1"
@@ -98500,14 +98541,20 @@
           "standard_section": "hla-1516.1-2025:clause-4.4"
         },
         {
+          "requirement_id": "req-federate-resigned-callback-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.13",
+          "note": "The separate Connection Lost branch observes the public callback and then confirms the lost federate is absent from the survivor's member roster. This directly witnesses the §4.13 implication that Connection Lost means the federate has resigned, without treating Connection Lost as the Federate Resigned callback."
+        },
+        {
           "requirement_id": "requirement-candidate-table-5-p300-r001",
           "standard_section": "hla-1516.1-2025:clause-11.5.1"
         }
       ],
-      "mapping_note": "The adapter-managed process-loss scenario asserts one concrete §4.1.6 fault witness: an unexpected process transport loss prevents a joined federate from continuing, and the public connectionLost callback is delivered. After that callback, listFederationExecutions on the affected federate is asserted to throw NotConnected, directly witnessing page-050-l51-16 -> §4.1.6; the adapter owns fault injection. After loss, the surviving member registers, announces, achieves, and completes a federation synchronization point with an empty failed-to-synchronize set, directly witnessing that a federation-wide synchronized operation continues as if the lost federate had resigned. This is one bounded operation witness, not an exhaustive proof of every synchronized-operation family or fault-detection criterion. The scenario separately checks survivor membership cleanup and continued survivor interaction service under §4.4. Its active-save phase follows IEEE 1516.1-2025 §4.23: an RTI-detected connection fault at a federate that received Initiate Federate Save produces type-48 RTI_DETECTED_FAILURE_DURING_SAVE in the surviving federate's advertised HLAreportServiceFile and the matching federationNotSaved callback. This selects the complete SaveFailureReason parent row p300-r001; detached p300-r002-r005 continuations remain unmapped under RL-404. Voluntary resignation is separately asserted under the same parent row. This is a public C++ API TCK scenario with adapter-owned transport fault injection, not provider validation or conformance evidence. The broader page-40 clause-4 candidate remains unmapped under RL-373 because it combines and truncates distinct obligations.",
+      "mapping_note": "The adapter-managed process-loss scenario asserts one concrete §4.1.6 fault witness: an unexpected process transport loss prevents a joined federate from continuing, and the public connectionLost callback is delivered. After that callback, listFederationExecutions on the affected federate is asserted to throw NotConnected, directly witnessing page-050-l51-16 -> §4.1.6; the adapter owns fault injection. After loss, the surviving member registers, announces, achieves, and completes a federation synchronization point with an empty failed-to-synchronize set, directly witnessing that a federation-wide synchronized operation continues as if the lost federate had resigned. This also witnesses the distinct §4.13 implication that Connection Lost means the federate has resigned: the survivor's public member roster excludes that federate. It does not claim Connection Lost is a Federate Resigned callback. This is one bounded operation witness, not an exhaustive proof of every synchronized-operation family or fault-detection criterion. The scenario separately checks survivor membership cleanup and continued survivor interaction service under §4.4. Its active-save phase follows IEEE 1516.1-2025 §4.23: an RTI-detected connection fault at a federate that received Initiate Federate Save produces type-48 RTI_DETECTED_FAILURE_DURING_SAVE in the surviving federate's advertised HLAreportServiceFile and the matching federationNotSaved callback. This selects the complete SaveFailureReason parent row p300-r001; detached p300-r002-r005 continuations remain unmapped under RL-404. Voluntary resignation is separately asserted under the same parent row. This is a public C++ API TCK scenario with adapter-owned transport fault injection, not provider validation or conformance evidence. The broader page-40 clause-4 candidate remains unmapped under RL-373 because it combines and truncates distinct obligations.",
       "contract_refs": [
         "connection-lost-api-contract.json",
         "connection-lost-requirements-contract.json",
+        "forced-federate-resignation-requirements-contract.json",
         "federate-lost-report-api-contract.json",
         "federate-lost-report-requirements-contract.json",
         "standard-connection-loss-cleanup-contract.json"
@@ -98516,7 +98563,8 @@
       "runner_id": "cpp-tck.connection-loss-cleanup",
       "parity": "java-tck.connection-loss-cleanup",
       "default_status": "adapter-required",
-      "promotion": "promoted"
+      "promotion": "promoted",
+      "evidence_note": "Fresh installed-package direct adapter runs on 2026-11-17 passed under HLA_EVOKED and HLA_IMMEDIATE as part of the bounded §4.13 callback-behavior evidence pair. The survivor's public member roster omits the federate after Connection Lost; this witnesses the resignation implication without claiming Connection Lost is a Federate Resigned callback. Result: .build/cpp-tck-evidence-20261117/federate-resigned-compound-4.13.json. Local-provider evidence only, not interoperability or conformance."
     },
     {
       "id": "cpp-tck.connection-loss-cleanup-contract",

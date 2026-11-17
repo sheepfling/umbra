@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "requirements-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-adapter-preconditioned-tck-witness-not-conformance-evidence",
+  "notes": "Two adapter-managed public C++ TCK scenarios exercise distinct branches of the pinned §4.13 requirement. The forced-removal case checks one nonempty Federate Resigned callback while the connection remains usable, membership removal, rejoin, and no additional callback after the federate later resigns itself. The separate connection-loss case checks the public Connection Lost callback and that the survivor's federation-member list excludes the lost federate. Connection Lost is not treated as the Federate Resigned callback. These are bounded local-provider witnesses, not exhaustive coverage of every forced-removal cause or independent-provider conformance.",
+  "requirements": [
+    {
+      "id": "cpp-tck-forced-federate-removal-notification",
+      "requirements_lab_requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+      "clause_id": "clause-4.1.1",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federate_resigned_forced_departure.cpp",
+      "source_symbol": "scenarioFederateResignedForcedDeparture",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_resigned_forced_departure.cpp::scenarioFederateResignedForcedDeparture"
+      ]
+    },
+    {
+      "id": "cpp-tck-federate-resigned-callback-behavior",
+      "requirements_lab_requirement_id": "req-federate-resigned-callback-behavior",
+      "clause_id": "clause-4.13",
+      "source": "packages/hla-rti-cpp-tck/src/tck_federate_resigned_forced_departure.cpp",
+      "source_symbol": "scenarioFederateResignedForcedDeparture",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_resigned_forced_departure.cpp::scenarioFederateResignedForcedDeparture",
+        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp::scenarioConnectionLoss"
+      ]
+    }
+  ]
+}

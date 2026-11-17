@@ -3092,6 +3092,9 @@ ScenarioFunction scenarioFunction(std::string const& id) {
   if (id == "cpp-tck.federate-application-save-identity") {
     return scenarioFederateSaveIdentity;
   }
+  if (id == "cpp-tck.federate-resigned-forced-departure") {
+    return scenarioFederateResignedForcedDeparture;
+  }
   if (id == "cpp-tck.federate-application-join-intent") {
     return scenarioJoinFederationIntent;
   }

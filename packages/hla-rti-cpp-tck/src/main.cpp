@@ -21709,6 +21709,7 @@ std::vector<std::string> allScenarioIds() {
       "java-tck.object-management",
       "cpp-tck.federation-visible-object-state-completeness",
       "cpp-tck.federate-application-save-identity",
+      "cpp-tck.federate-resigned-forced-departure",
       "cpp-tck.federate-application-join-intent",
       "cpp-tck.reliable-transport-one-copy-delivery",
       "cpp-tck.unsupported-fom-transportation-fallback",
@@ -22605,6 +22606,8 @@ void printHelp() {
       "                                Run one time-management federate in this process\n"
       "  --nmr-process-coordination-directory DIR\n"
       "                                Adapter rendezvous directory for process roles\n"
+      "  --federate-resignation-coordination-directory DIR\n"
+      "                                Adapter rendezvous directory for forced Federate Resigned\n"
       "  --connection-loss-marker FILE Write callback completion marker for an adapter\n"
       "  --connection-loss-outage-marker FILE\n"
       "                                Wait for the adapter's confirmed outage boundary\n"
@@ -22819,6 +22822,9 @@ Options parseOptions(int argc, char** argv) {
     } else if (argument == "--nmr-process-coordination-directory") {
       requireValue(index, argc, argv, argument);
       options.nmrProcessCoordinationDirectory = argv[++index];
+    } else if (argument == "--federate-resignation-coordination-directory") {
+      requireValue(index, argc, argv, argument);
+      options.federateResignationCoordinationDirectory = argv[++index];
     } else if (argument == "--federation-prefix") {
       requireValue(index, argc, argv, argument);
       options.federationPrefix = argv[++index];

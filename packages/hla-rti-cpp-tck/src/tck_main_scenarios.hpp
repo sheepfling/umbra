@@ -924,6 +924,7 @@ void scenarioFederateApplicationMultipleExecutionsContract(
 void scenarioFederateSaveInitiationEligibility(
     Options const&, rti::CallbackModel);
 void scenarioFederateSaveIdentity(Options const&, rti::CallbackModel);
+void scenarioFederateResignedForcedDeparture(Options const&, rti::CallbackModel);
 void scenarioJoinFederationIntent(Options const&, rti::CallbackModel);
 void scenarioReliableTransportOneCopyDelivery(Options const&, rti::CallbackModel);
 void scenarioUnsupportedFomTransportationFallback(

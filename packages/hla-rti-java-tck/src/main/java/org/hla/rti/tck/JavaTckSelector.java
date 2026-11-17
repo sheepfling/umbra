@@ -45,6 +45,9 @@ final class JavaTckSelector {
       if ("java-tck.federate-selected-update-thresholds".equals(scenarioId)) {
          return "org.hla.rti.tck.FederateUpdateThresholdsScenarioRegistry#federateSelectedUpdateThresholds";
       }
+      if ("java-tck.federate-resigned-forced-departure".equals(scenarioId)) {
+         return "org.hla.rti.tck.FederateResignedForcedDepartureScenarioRegistry#federateResignedForcedDeparture";
+      }
       if ("java-tck.transport-public-new-session-interoperability".equals(scenarioId)) {
          return "org.hla.rti.tck.TransportPublicNewSessionInteropScenarioRegistry#transportPublicNewSessionInteroperability";
       }

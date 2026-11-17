@@ -29,7 +29,64 @@
       ],
       "requirement_ids": [
         "java-1516.1-interaction-declaration-and-delivery",
-        "java-1516.1-interaction-parameter-delivery"
+        "java-1516.1-interaction-parameter-delivery",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l88-25",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l127-38",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l136-41"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
+        "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l88-25",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l127-38",
+        "requirement-candidate-content-clauses-06-object-management-page-125-l136-41"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.12",
+        "hla-1516.1-2025:clause-6.13"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l41-12",
+          "standard_section": "hla-1516.1-2025:clause-6.12",
+          "note": "Two ordinary Send Interaction calls each produce one callback at the subscribed receiver, with the expected class, parameter, payload, producer, and send order. This is a bounded receive-order witness."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l47-14",
+          "standard_section": "hla-1516.1-2025:clause-6.12",
+          "note": "The publisher receives no callback for either ordinary Send Interaction. This is bounded evidence for the sender exclusion exercised by this two-federate case."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-124-l53-16",
+          "standard_section": "hla-1516.1-2025:clause-6.12",
+          "note": "The receiver compares each callback tag byte-for-byte with its distinct user-supplied send tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l88-25",
+          "standard_section": "hla-1516.1-2025:clause-6.13",
+          "note": "The callback transportation handle resolves through the receiver's RTIambassador to HLAreliable under the adapter FOM selected for this case."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l127-38",
+          "standard_section": "hla-1516.1-2025:clause-6.13",
+          "note": "The receiver verifies that both callback producer handles equal the publisher's federate handle."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-125-l136-41",
+          "standard_section": "hla-1516.1-2025:clause-6.13",
+          "note": "After two distinct sends, the receiver observes exactly two callbacks and checks each send's distinct value and tag; duplicate callbacks fail the exact-count assertion."
+        }
+      ],
+      "mapping_note": "Direct public-API mappings cover the bounded ordinary receive-order send/delivery, sender exclusion, user-tag preservation, transportation identity, producing-federate identity, and one callback per send assertions exercised here. The selected FOM must define the configured interaction and parameter with HLAreliable transportation and a time representation compatible with the provider. This is not exhaustive delivery or transport evidence and makes no conformance claim.",
+      "adapter_inputs": [
+        "Provider JAR and native library path",
+        "FOM containing the configured interaction class and parameter with HLAreliable transportation and a provider-compatible time representation",
+        "Callback model",
+        "Interaction class and parameter names via hla.rti.tck.interactionClass and hla.rti.tck.parameter"
       ],
       "contract_refs": [
         "receive-order-interaction-api-contract.json",
@@ -43,8 +100,9 @@
         "standard-receive-order-interaction-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#receiveOrderInteraction",
-      "default_status": "unsupported",
-      "exclusion": "Provider, FOM, endpoint, interaction/parameter names, and callback model are adapter-supplied. Remains unsupported by default until executed against an IEEE 1516.1-2025 Java provider."
+      "parity": "cpp-tck.receive-order-interaction",
+      "default_status": "run",
+      "evidence_note": "Focused Java TCK runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-17 against the current-source Umbra JNI provider and pinned IEEE 1516.1-2025 Java API. The adapter FOM preserved the portable model's interaction classes while selecting HLAfloat64Time to match this provider; HLAinteractionRoot.TckTypedInteraction.TckTypedDerivedInteraction and DerivedParameter selected the HLAreliable interaction. Results/JUnit: .build/java-tck-20261117/receive-order-interaction-conversion-focus-{evoked,immediate}.{json,xml}. The checks cover handle-name round trips, subscription delivery order, exact payloads/tags/producer, transportation identity, no callback before servicing in HLA_EVOKED, no sender loopback, and exact callback count. This is local-provider evidence only, with no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.reliable-transport-one-copy-delivery",

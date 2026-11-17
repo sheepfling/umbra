@@ -57,6 +57,7 @@ struct Options {
   bool messageHistoryRecoveryServerManaged = false;
   std::string nmrProcessRole;
   std::filesystem::path nmrProcessCoordinationDirectory;
+  std::filesystem::path federateResignationCoordinationDirectory;
   std::string federationPrefix = "cpp-tck";
   std::string configurationName;
   std::string ownerConfigurationName;

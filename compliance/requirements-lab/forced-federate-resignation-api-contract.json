@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "kind": "api-reference",
+  "document_id": "hla-1516.1-2025",
+  "status": "experimental-public-api-not-conformance-evidence",
+  "notes": "The adapter fixture creates an RTI-forced departure using a provider-specific test control. The C++ TCK observes only standard API behavior: Federate Resigned, membership state, and a later Join on the same ambassador. The trigger mechanism is not a standards claim.",
+  "api_surfaces": [
+    {
+      "id": "standard-cpp-forced-federate-removal-notification",
+      "owner": "IEEE 1516.1 C++ API",
+      "language": "cpp",
+      "signature": "RTIambassador::joinFederationExecution, RTIambassador::getFederateHandle, and FederateAmbassador::federateResigned",
+      "source": "third_party/ieee1516.1-2025/include/RTI",
+      "source_symbol": "RTIambassador federation-management services; FederateAmbassador::federateResigned",
+      "tests": [
+        "packages/hla-rti-cpp-tck/src/tck_federate_resigned_forced_departure.cpp::scenarioFederateResignedForcedDeparture"
+      ]
+    }
+  ]
+}

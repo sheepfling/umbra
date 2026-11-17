@@ -76,6 +76,9 @@ AUTHORIZER_RID_CONFIGURATION_SCENARIO = (
 AUTHORIZER_SINGLE_SERVICE_SCENARIO = (
     "cpp-tck.authorizer-single-service-per-rid-profile"
 )
+FEDERATE_RESIGNED_FORCED_DEPARTURE_SCENARIO = (
+    "cpp-tck.federate-resigned-forced-departure"
+)
 AUTHORIZER_CONNECT_DECISION_ADAPTER = (
     ROOT
     / "packages"
@@ -107,6 +110,14 @@ AUTHORIZER_RID_CONFIGURATION_ADAPTER = (
     / "adapters"
     / "current-process"
     / "run_authorizer_rid_configuration.py"
+)
+FEDERATE_RESIGNED_FORCED_DEPARTURE_ADAPTER = (
+    ROOT
+    / "packages"
+    / "hla-rti-cpp-tck"
+    / "adapters"
+    / "current-process"
+    / "run_federate_resigned_forced_departure.py"
 )
 FOM_ROOT = ROOT / "packages" / "hla-rti-cpp-tck" / "fom"
 DEFAULT_MIM = (
@@ -699,6 +710,14 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--federate-resignation-fixture",
+        default="",
+        help=(
+            "Process fixture for the adapter-required public Federate Resigned "
+            "TCK scenario"
+        ),
+    )
+    parser.add_argument(
         "--message-history-recovery-fixture",
         default="",
         help=(
@@ -797,6 +816,14 @@ def resolve_inputs(arguments: argparse.Namespace) -> ResolvedInputs:
                 arguments.connection_loss_fixture,
                 must_exist=True,
                 label="connection-loss fixture",
+            )
+        )
+    if arguments.federate_resignation_fixture:
+        arguments.federate_resignation_fixture = str(
+            resolve_path(
+                arguments.federate_resignation_fixture,
+                must_exist=True,
+                label="forced-resignation process fixture",
             )
         )
     if arguments.message_history_recovery_fixture:
@@ -2607,7 +2634,22 @@ def cmake_definitions(
         "HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER": arguments.connection_loss_marker,
     }
     definitions.update({key: value for key, value in optional.items() if value})
+    if arguments.federate_resignation_fixture:
+        runtime_directory = Path(inputs["package_prefix"]) / (
+            "bin" if os.name == "nt" else "lib"
+        )
+        if not runtime_directory.is_dir():
+            raise ValueError(
+                "forced-resignation TCK requires the selected package runtime "
+                f"directory: {runtime_directory}"
+            )
+        definitions["HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE"] = (
+            arguments.federate_resignation_fixture
+        )
+        definitions["HLA_RTI_TCK_ADAPTER_PROVIDER_BIN"] = str(runtime_directory)
     if arguments.connection_loss_fixture:
+        "-UHLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE",
+        "-UHLA_RTI_TCK_ADAPTER_PROVIDER_BIN",
         definitions["HLA_RTI_TCK_ADAPTER_EXCLUDED_SCENARIOS"] = ";".join(
             CONNECTION_LOSS_SCENARIOS
         )
@@ -3301,6 +3343,7 @@ PORTABLE_DISPATCH_EXACT_SCENARIOS = (
     "cpp-tck.malformed-inputs-contract",
     "java-tck.federation-membership",
     "cpp-tck.federation-lifecycle-contract",
+    FEDERATE_RESIGNED_FORCED_DEPARTURE_SCENARIO,
     "cpp-tck.unnamed-join-overload",
     "cpp-tck.unnamed-join-overload-contract",
     "cpp-tck.federation-list-services",
@@ -4868,6 +4911,27 @@ def run_portable_dispatch_direct(
                     str(AUTHORIZER_FEDERATION_DECISION_ADAPTER),
                     str(executable),
                     service_name,
+                    "--",
+                    *child_command_arguments,
+                ]
+            elif scenario["id"] == FEDERATE_RESIGNED_FORCED_DEPARTURE_SCENARIO:
+                if not arguments.federate_resignation_fixture:
+                    raise ValueError(
+                        "the forced Federate Resigned scenario requires "
+                        "--federate-resignation-fixture"
+                    )
+                provider_directory = Path(inputs["package_prefix"]) / (
+                    "bin" if os.name == "nt" else "lib"
+                )
+                command = [
+                    sys.executable,
+                    str(FEDERATE_RESIGNED_FORCED_DEPARTURE_ADAPTER),
+                    "--tck-executable",
+                    str(executable),
+                    "--process-fixture",
+                    arguments.federate_resignation_fixture,
+                    "--provider-bin",
+                    str(provider_directory),
                     "--",
                     *child_command_arguments,
                 ]

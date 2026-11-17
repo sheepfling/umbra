@@ -756,6 +756,68 @@
       "default_status": "run"
     },
     {
+      "id": "java-tck.federate-resigned-forced-departure",
+      "category": "federation-management",
+      "title": "Observe an RTI-forced Federate Resigned callback and rejoin through the Java API",
+      "api_methods": [
+        "RtiConfiguration.createConfiguration",
+        "RtiConfiguration.withRtiAddress",
+        "RTIambassador.connect(FederateAmbassador, CallbackModel, RtiConfiguration)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getFederateHandle",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.evokeMultipleCallbacks",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.federateResigned",
+        "FederateAmbassador.connectionLost"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+        "req-federate-resigned-callback-behavior"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+        "req-federate-resigned-callback-behavior"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.1.1",
+        "hla-1516.1-2025:clause-4.13"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-040-l33-8",
+          "standard_section": "hla-1516.1-2025:clause-4.1.1",
+          "note": "After the adapter forces the joined federate's resignation, its Java FederateAmbassador receives exactly one non-empty Federate Resigned reason. Membership lookup reports FederateNotExecutionMember, and the same RTIambassador can join again. The adapter trigger is setup only."
+        },
+        {
+          "requirement_id": "req-federate-resigned-callback-behavior",
+          "standard_section": "hla-1516.1-2025:clause-4.13",
+          "note": "The case observes one RTI-forced Federate Resigned callback and verifies that the subsequent federate-initiated resignation does not add another. It separately asserts that the forced-removal callback is not reported as Connection Lost; this covers one bounded removal cause."
+        }
+      ],
+      "mapping_note": "Direct Java API mappings cover one adapter-triggered forced resignation, the callback reason, membership removal, rejoin on the same ambassador, and no synthetic Federate Resigned callback after ordinary resignation. The current-process fixture supplies only the trigger. This bounded local witness does not cover other removal causes, independent providers, or overall conformance.",
+      "contract_refs": [
+        "forced-federate-resignation-requirements-contract.json",
+        "federate-resigned-api-contract.json",
+        "federate-resigned-requirements-contract.json",
+        "federation-execution-api-contract.json",
+        "resign-action-requirements-contract.json"
+      ],
+      "adapter_inputs": [
+        "Current-process forced-resignation fixture executable",
+        "Provider JAR, native library directory, and provider-compatible FOM/time representation",
+        "RTI address and coordination directory published by the process fixture",
+        "Callback model"
+      ],
+      "java_test": "org.hla.rti.tck.FederateResignedForcedDepartureScenarioRegistry#federateResignedForcedDeparture",
+      "parity": "cpp-tck.federate-resigned-forced-departure",
+      "default_status": "unsupported",
+      "exclusion": "Requires the current-process adapter fixture to trigger forced resignation. The Java public-API scenario is available through the dedicated adapter runner and remains outside generic provider runs.",
+      "evidence_note": "Focused Java adapter runs passed 1/1 in HLA_EVOKED and HLA_IMMEDIATE on 2026-11-17 using the current-source Umbra JNI provider, pinned IEEE 1516.1-2025 Java API, current-source process fixture, and a provider-compatible HLAfloat64Time FOM. Results/JUnit: .build/java-tck-20261117/federate-resigned-forced-departure-{evoked,immediate}.{json,xml}. The adapter uses --run-unverified because generic discovery does not start the required fixture. Assertions cover exactly one non-empty Federate Resigned reason, no Connection Lost callback, FederateNotExecutionMember after departure, rejoin through the same ambassador, and no synthetic callback after voluntary resignation. This is local-provider evidence only; it makes no independent-provider interoperability or conformance claim."
+    },
+    {
       "id": "java-tck.federate-application-multiple-executions",
       "category": "lifecycle",
       "focus_lane": "ambassador-concurrent-federation-executions",

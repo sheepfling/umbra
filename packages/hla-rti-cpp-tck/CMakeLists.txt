@@ -31,6 +31,10 @@ set(HLA_RTI_TCK_NMR_PROCESS_FIXTURE "" CACHE FILEPATH
   "Umbra process federation fixture used by process-separated NMR TCK adapters")
 set(HLA_RTI_TCK_NMR_PROVIDER_BIN "" CACHE PATH
   "Provider runtime directory used by process-separated NMR TCK adapters")
+set(HLA_RTI_TCK_FEDERATE_RESIGNATION_FIXTURE "" CACHE FILEPATH
+  "Umbra process-service fixture that triggers RTI-forced Federate Resigned")
+set(HLA_RTI_TCK_FEDERATE_RESIGNATION_PROVIDER_BIN "" CACHE PATH
+  "Provider runtime directory used by the forced-resignation TCK adapter")
 
 if(NOT HLA_RTI_TCK_API_INCLUDE_DIR)
   message(FATAL_ERROR
@@ -133,6 +137,7 @@ add_executable(hla_rti_cpp_tck
   src/tck_directed_interaction_subscription_accumulation.cpp
   src/tck_federation_lifecycle_scenarios.cpp
   src/tck_federate_save_identity.cpp
+  src/tck_federate_resigned_forced_departure.cpp
   src/tck_federation_join_intent.cpp
   src/tck_inherited_derived_delivery_scenarios.cpp
   src/tck_callback_controls_object_ownership.cpp
@@ -784,6 +789,32 @@ if(BUILD_TESTING)
               --callback-model "${_tck_callback_model}"
               --additional-settings
                 "${HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS}"
+              --results
+                "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.json"
+              --junit
+                "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.junit.xml"
+          )
+        elseif(_tck_scenario STREQUAL
+               "cpp-tck.federate-resigned-forced-departure")
+          if(NOT HLA_RTI_TCK_FEDERATE_RESIGNATION_FIXTURE OR
+             NOT HLA_RTI_TCK_FEDERATE_RESIGNATION_PROVIDER_BIN)
+            message(FATAL_ERROR
+              "The forced-resignation TCK requires an adapter process fixture and provider runtime directory")
+          endif()
+          find_package(Python3 COMPONENTS Interpreter REQUIRED)
+          set(_tck_process_adapter TRUE)
+          file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tck-results")
+          add_test(
+            NAME "${_tck_test_name}"
+            COMMAND "${Python3_EXECUTABLE}"
+              "${CMAKE_CURRENT_SOURCE_DIR}/adapters/current-process/run_federate_resigned_forced_departure.py"
+              --tck-executable "$<TARGET_FILE:hla_rti_cpp_tck>"
+              --process-fixture "${HLA_RTI_TCK_FEDERATE_RESIGNATION_FIXTURE}"
+              --provider-bin "${HLA_RTI_TCK_FEDERATE_RESIGNATION_PROVIDER_BIN}"
+              --
+              --common-arguments-file "${_tck_common_arguments_file}"
+              --scenario "${_tck_scenario}"
+              --callback-model "${_tck_callback_model}"
               --results
                 "${CMAKE_CURRENT_BINARY_DIR}/tck-results/${_tck_scenario_slug}-${_tck_callback_model}.json"
               --junit

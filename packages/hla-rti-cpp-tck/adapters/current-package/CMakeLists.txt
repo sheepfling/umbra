@@ -803,6 +803,10 @@ set(HLA_RTI_TCK_ADAPTER_SETTINGS_PARSE_FAILURE_INPUT "fomEdition=202x"
 set(HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS
   "unsupportedTransportationTypes=${HLA_RTI_TCK_ADAPTER_FOM_CUSTOM_TRANSPORTATION},${HLA_RTI_TCK_ADAPTER_FOM_ADDITIONAL_TRANSPORTATION}"
   CACHE STRING "Adapter-specific additional settings that make the custom transport FOM types unavailable")
+set(HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE ""
+  CACHE FILEPATH "Optional Umbra process-service fixture for forced resignation TCK")
+set(HLA_RTI_TCK_ADAPTER_PROVIDER_BIN ""
+  CACHE PATH "Provider runtime directory used by process fixtures")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_MARKER ""
   CACHE FILEPATH "Optional marker written after the adapter observes connection loss")
 set(HLA_RTI_TCK_ADAPTER_CONNECTION_LOSS_SERVER_MANAGED OFF
@@ -815,6 +819,18 @@ set(HLA_RTI_TCK_ADAPTER_SCENARIO_FILTER ""
 if(NOT EXISTS "${HLA_RTI_TCK_ADAPTER_FOM}" OR
    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_FOM}")
   message(FATAL_ERROR "Adapter FOM does not exist: ${HLA_RTI_TCK_ADAPTER_FOM}")
+endif()
+if(HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE AND
+   (NOT EXISTS "${HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE}" OR
+    IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE}"))
+  message(FATAL_ERROR
+    "Forced-resignation adapter fixture does not exist: ${HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE}")
+endif()
+if(HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE AND
+   (NOT HLA_RTI_TCK_ADAPTER_PROVIDER_BIN OR
+    NOT IS_DIRECTORY "${HLA_RTI_TCK_ADAPTER_PROVIDER_BIN}"))
+  message(FATAL_ERROR
+    "Forced-resignation adapter requires the provider runtime directory")
 endif()
 foreach(_schema_fom IN ITEMS
     HLA_RTI_TCK_ADAPTER_SCHEMA_VALID_FOM
@@ -960,6 +976,12 @@ foreach(_tck_scenario_index RANGE 0 ${_tck_last_scenario_index})
   if(_tck_scenario STREQUAL
        "cpp-tck.unsupported-fom-transportation-fallback" AND
      NOT HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS)
+    continue()
+  endif()
+  if(_tck_scenario STREQUAL
+       "cpp-tck.federate-resigned-forced-departure" AND
+     (NOT HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE OR
+      NOT HLA_RTI_TCK_ADAPTER_PROVIDER_BIN))
     continue()
   endif()
   if(_tck_scenario STREQUAL "cpp-tck.websocket-transport-support" AND
@@ -1219,6 +1241,12 @@ set(HLA_RTI_TCK_TEST_SETTINGS_PARSE_FAILURE_INPUT
 set(HLA_RTI_TCK_TEST_UNSUPPORTED_TRANSPORT_SETTINGS
   "${HLA_RTI_TCK_ADAPTER_UNSUPPORTED_TRANSPORT_SETTINGS}" CACHE STRING
   "Adapter-provided unavailable-transport setup for the focused fallback TCK" FORCE)
+set(HLA_RTI_TCK_FEDERATE_RESIGNATION_FIXTURE
+  "${HLA_RTI_TCK_ADAPTER_FEDERATE_RESIGNATION_FIXTURE}" CACHE FILEPATH
+  "Umbra process-service fixture for the forced-resignation TCK" FORCE)
+set(HLA_RTI_TCK_FEDERATE_RESIGNATION_PROVIDER_BIN
+  "${HLA_RTI_TCK_ADAPTER_PROVIDER_BIN}" CACHE PATH
+  "Provider runtime directory for the forced-resignation TCK" FORCE)
 set(HLA_RTI_TCK_TEST_TIMEOUT_SECONDS 120 CACHE STRING
   "CTest timeout for each portable TCK scenario" FORCE)
 
