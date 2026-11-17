@@ -37855,7 +37855,30 @@
         "mapping_and_validation": "The 25 Java direct requirement-to-section pairs match a subset of the paired C++ primary mapping; C++-local decomposition IDs remain supplemental. The catalog loads 966 unique Java scenario IDs; the parity audit reports zero unpaired C++ IDs; the 30-method API inventory matches RtiTckMain; both focused result rows pass.",
         "boundary": "Provider evidence is bounded to local Umbra JNI and the adapter-supplied typed FOM. No independent-provider interoperability or conformance claim."
       },
-      "next_action": "Next exact pair: cpp-tck.ownership-acquisition-if-available and java-tck.ownership-acquisition-if-available. Compare the primary C++ scenario `portable_tck.cpp#scenarioOwnershipAcquisitionIfAvailable` with Java assertions and its nine direct mappings; add only missing public-API-observable behavior, keep the Java mappings within the paired C++ mappings, and verify both callback models with the standard adapter configuration.",
+      "latest_verified_java_if_available_acquisition_pending_override_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Expanded java-tck.ownership-acquisition-if-available to mirror the C++ pending If Available flow: a regular request advances to Acquisition Pending, Release Denied yields one unavailable callback, Divestiture If Wanted transfers ownership, and cancellation confirms without stale callbacks or ownership transfer. The existing owned/unowned outcome checks and validation boundaries remain covered.",
+        "scenario_ids": [
+          "cpp-tck.ownership-acquisition-if-available",
+          "java-tck.ownership-acquisition-if-available"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/OwnershipAcquisitionIfAvailableTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/catalogs/java-tck-scenarios/part-06.json; packages/hla-rti-java-tck/README.md",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31 -> IEEE 1516.1-2025 §7.9",
+          "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43 -> IEEE 1516.1-2025 §7.9",
+          "requirement-candidate-content-clauses-07-ownership-management-page-152-l155-50 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-152-l137-44 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-152-l149-48 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-153-l45-14 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19 -> IEEE 1516.1-2025 §7.1.2.2",
+          "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19-pending -> IEEE 1516.1-2025 §7.1.2.2"
+        ],
+        "evidence": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider. The adapter FOM copy .build/java-tck-20261117/fom-model-float64-ownership-tck.xml matched the provider time type and included the TckRateObject and foreign-attribute fixtures. Results/JUnit: .build/java-tck-20261117/ownership-acquisition-if-available-override-parity-{evoked,immediate}.{json,xml}.",
+        "mapping_and_validation": "All nine Java direct requirement-to-section pairs exactly match the paired C++ primary mapping. The 26-method API inventory matches RtiTckMain; the catalog loads 966 unique Java scenario IDs; the parity audit reports zero unpaired C++ IDs; both focused result rows pass.",
+        "boundary": "Provider evidence is bounded to the local Umbra JNI provider and adapter FOM. No independent-provider interoperability or conformance claim."
+      },
+      "next_action": "Next exact pair: cpp-tck.named-registration and java-tck.named-registration. Compare the 17 direct mappings and behavior in the paired C++ primary with the four current Java mappings and assertions; add only supported Java-binding behavior and mappings, preserve language-specific C++ service differences as supplemental, and verify the focused Java case with its adapter FOM under both callback models.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

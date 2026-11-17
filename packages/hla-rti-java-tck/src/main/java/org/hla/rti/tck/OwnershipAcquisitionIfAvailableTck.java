@@ -11,6 +11,7 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -139,6 +140,27 @@ final class OwnershipAcquisitionIfAvailableTck {
          if (callbackModel == CallbackModel.HLA_EVOKED) {
             requester.attributeOwnershipAcquisitionIfAvailable(
                unavailableObject, requesterAttributes, unavailableTag);
+            JavaTckSupport.check(requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.isEmpty(),
+               "repeated pending If Available requests produced a terminal callback");
+            requester.attributeOwnershipAcquisition(
+               unavailableObject, requesterAttributes, unavailableTag);
+            await(owner, callbackModel,
+               () -> !ownerRecorder.releaseRequests.isEmpty(),
+               "If Available to regular acquisition release request");
+            checkEvent(ownerRecorder.releaseRequests.get(0), unavailableObject,
+               ownerAttributes, unavailableTag,
+               "regular acquisition release request after If Available");
+            JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1
+                  && requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.isEmpty()
+                  && owner.isAttributeOwnedByFederate(unavailableObject, ownerAttribute)
+                  && !requester.isAttributeOwnedByFederate(
+                     unavailableObject, requesterAttribute),
+               "regular acquisition did not remain pending after If Available");
+            ownerRecorder.clearOwnershipEvents();
+            owner.attributeOwnershipReleaseDenied(
+               unavailableObject, ownerAttributes, unavailableTag);
          }
          await(requester, callbackModel, () -> !requesterRecorder.unavailable.isEmpty(),
             "If Available unavailable callback");
@@ -156,6 +178,105 @@ final class OwnershipAcquisitionIfAvailableTck {
          if (callbackModel == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(owner);
          JavaTckSupport.check(ownerRecorder.releaseRequests.isEmpty(),
             "unavailable If Available request asked the owner to release its attribute");
+
+         if (callbackModel == CallbackModel.HLA_EVOKED) {
+            byte[] overrideIfAvailableTag = new byte[] {0x52, (byte) 0xa1};
+            byte[] overrideRegularTag = new byte[] {0x52, (byte) 0xa2};
+            byte[] overrideDivestitureTag = new byte[] {0x52, (byte) 0xa3};
+
+            ObjectInstanceHandle successfulOverrideObject = owner.registerObjectInstance(
+               ownerClass);
+            JavaTckSupport.check(successfulOverrideObject != null,
+               "successful override registration returned no object handle");
+            await(requester, callbackModel,
+               () -> requesterRecorder.discoveries.contains(successfulOverrideObject),
+               "successful override object discovery");
+            ownerRecorder.clearOwnershipEvents();
+            requesterRecorder.clearOwnershipEvents();
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               successfulOverrideObject, requesterAttributes, overrideIfAvailableTag);
+            requester.attributeOwnershipAcquisition(
+               successfulOverrideObject, requesterAttributes, overrideRegularTag);
+            await(owner, callbackModel,
+               () -> !ownerRecorder.releaseRequests.isEmpty(),
+               "successful override owner release request");
+            checkEvent(ownerRecorder.releaseRequests.get(0), successfulOverrideObject,
+               ownerAttributes, overrideRegularTag,
+               "successful override owner release request");
+            JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1
+                  && requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.isEmpty()
+                  && owner.isAttributeOwnedByFederate(successfulOverrideObject, ownerAttribute)
+                  && !requester.isAttributeOwnedByFederate(
+                     successfulOverrideObject, requesterAttribute),
+               "regular acquisition did not stay pending after overriding If Available");
+            AttributeHandleSet divested = owner.attributeOwnershipDivestitureIfWanted(
+               successfulOverrideObject, ownerAttributes, overrideDivestitureTag);
+            JavaTckSupport.check(new HashSet<>(ownerAttributes).equals(new HashSet<>(divested)),
+               "successful override divestiture returned the wrong attribute set");
+            await(requester, callbackModel,
+               () -> !requesterRecorder.acquisitions.isEmpty(),
+               "successful override acquisition notification");
+            JavaTckSupport.drain(requester);
+            checkEvent(requesterRecorder.acquisitions.get(0), successfulOverrideObject,
+               requesterAttributes, overrideDivestitureTag,
+               "successful override acquisition notification");
+            JavaTckSupport.check(requesterRecorder.acquisitions.size() == 1
+                  && requesterRecorder.unavailable.isEmpty()
+                  && !owner.isAttributeOwnedByFederate(
+                     successfulOverrideObject, ownerAttribute)
+                  && requester.isAttributeOwnedByFederate(
+                     successfulOverrideObject, requesterAttribute),
+               "successful override did not end in one acquisition notification");
+            requester.unconditionalAttributeOwnershipDivestiture(
+               successfulOverrideObject, requesterAttributes, new byte[0]);
+
+            ObjectInstanceHandle canceledOverrideObject = owner.registerObjectInstance(
+               ownerClass);
+            JavaTckSupport.check(canceledOverrideObject != null,
+               "canceled override registration returned no object handle");
+            await(requester, callbackModel,
+               () -> requesterRecorder.discoveries.contains(canceledOverrideObject),
+               "canceled override object discovery");
+            ownerRecorder.clearOwnershipEvents();
+            requesterRecorder.clearOwnershipEvents();
+            requester.attributeOwnershipAcquisitionIfAvailable(
+               canceledOverrideObject, requesterAttributes, overrideIfAvailableTag);
+            requester.attributeOwnershipAcquisition(
+               canceledOverrideObject, requesterAttributes, overrideRegularTag);
+            await(owner, callbackModel,
+               () -> !ownerRecorder.releaseRequests.isEmpty(),
+               "canceled override owner release request");
+            checkEvent(ownerRecorder.releaseRequests.get(0), canceledOverrideObject,
+               ownerAttributes, overrideRegularTag,
+               "canceled override owner release request");
+            JavaTckSupport.check(ownerRecorder.releaseRequests.size() == 1
+                  && requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.isEmpty()
+                  && owner.isAttributeOwnedByFederate(canceledOverrideObject, ownerAttribute)
+                  && !requester.isAttributeOwnedByFederate(
+                     canceledOverrideObject, requesterAttribute),
+               "regular acquisition was not pending before cancellation");
+            ownerRecorder.clearOwnershipEvents();
+            requester.cancelAttributeOwnershipAcquisition(
+               canceledOverrideObject, requesterAttributes);
+            await(requester, callbackModel,
+               () -> !requesterRecorder.cancellations.isEmpty(),
+               "canceled override confirmation");
+            JavaTckSupport.drain(owner);
+            OwnershipEvent cancellation = requesterRecorder.cancellations.get(0);
+            JavaTckSupport.check(requesterRecorder.cancellations.size() == 1
+                  && canceledOverrideObject.equals(cancellation.object)
+                  && requesterAttributes.equals(cancellation.attributes)
+                  && cancellation.tag == null
+                  && requesterRecorder.unavailable.isEmpty()
+                  && requesterRecorder.acquisitions.isEmpty()
+                  && owner.isAttributeOwnedByFederate(canceledOverrideObject, ownerAttribute)
+                  && !requester.isAttributeOwnedByFederate(
+                     canceledOverrideObject, requesterAttribute)
+                  && ownerRecorder.releaseRequests.isEmpty(),
+               "successful cancellation did not terminate the overridden acquisition");
+         }
 
          ownerRecorder.clearOwnershipEvents();
          requesterRecorder.clearOwnershipEvents();
@@ -319,6 +440,7 @@ final class OwnershipAcquisitionIfAvailableTck {
    private static final class Recorder {
       private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> acquisitions = new CopyOnWriteArrayList<>();
+      private final List<OwnershipEvent> cancellations = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> unavailable = new CopyOnWriteArrayList<>();
       private final List<OwnershipEvent> releaseRequests = new CopyOnWriteArrayList<>();
 
@@ -336,6 +458,10 @@ final class OwnershipAcquisitionIfAvailableTck {
                } else if ("attributeOwnershipUnavailable".equals(name)
                      && arguments != null && arguments.length == 3) {
                   unavailable.add(event(arguments));
+               } else if ("confirmAttributeOwnershipAcquisitionCancellation".equals(name)
+                     && arguments != null && arguments.length == 2) {
+                  cancellations.add(new OwnershipEvent((ObjectInstanceHandle) arguments[0],
+                     (AttributeHandleSet) arguments[1], null));
                } else if ("requestAttributeOwnershipRelease".equals(name)
                      && arguments != null && arguments.length == 3) {
                   releaseRequests.add(event(arguments));
@@ -353,6 +479,7 @@ final class OwnershipAcquisitionIfAvailableTck {
 
       private void clearOwnershipEvents() {
          acquisitions.clear();
+         cancellations.clear();
          unavailable.clear();
          releaseRequests.clear();
       }

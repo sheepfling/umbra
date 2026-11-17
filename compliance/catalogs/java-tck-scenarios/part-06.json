@@ -6229,7 +6229,7 @@
     {
       "id": "java-tck.ownership-acquisition-if-available",
       "category": "ownership",
-      "title": "Reject invalid If Available requests, report unavailable ownership, and acquire after unconditional divestiture",
+      "title": "Exercise If Available eligibility, regular-acquisition overrides, and terminal ownership outcomes",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -6241,6 +6241,10 @@
         "RTIambassador.registerObjectInstance",
         "RTIambassador.localDeleteObjectInstance",
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipReleaseDenied",
+        "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -6251,7 +6255,8 @@
         "FederateAmbassador.discoverObjectInstance",
         "FederateAmbassador.attributeOwnershipAcquisitionNotification",
         "FederateAmbassador.attributeOwnershipUnavailable",
-        "FederateAmbassador.requestAttributeOwnershipRelease"
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
       ],
       "requirement_ids": [
         "cpp-1516.1-object-management",
@@ -6262,7 +6267,12 @@
         "requirement-candidate-content-clauses-07-ownership-management-page-163-l111-31",
         "requirement-candidate-content-clauses-07-ownership-management-page-163-l147-43",
         "requirement-candidate-content-clauses-07-ownership-management-page-152-l155-50",
-        "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52"
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l137-44",
+        "requirement-candidate-content-clauses-07-ownership-management-page-152-l149-48",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l45-14",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19",
+        "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19-pending"
       ],
       "standard_sections": [
         "hla-1516.1-2025:clause-7.9",
@@ -6284,9 +6294,30 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l161-52",
           "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l137-44",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-152-l149-48",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l45-14",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-153-l60-19-pending",
+          "standard_section": "hla-1516.1-2025:clause-7.1.2.2"
         }
       ],
-      "mapping_note": "Pinned §7.9 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. Evoked mode tests identical and mixed pending repeats; immediate mode makes no pending-timing assertion. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. A standard local deletion yields a known-format handle unknown to the requester; a real attribute from an adapter-selectable foreign class tests AttributeNotDefined without a synthetic malformed handle. Java compiles against the official API-only JAR and passed focused JNI runs in both callback models with exact-one terminal callback checks (out/java-tck/ownership-acquisition-if-available-cardinality-*-jni-20261022.json). Its C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Negotiated-divestiture eligibility, independent-provider behavior, and conformance are not claimed.",
+      "mapping_note": "Pinned §7.9 page-163-l111-31 covers the request and page-163-l147-43 pending Willing to Acquire. Pinned §7.1.2.2 page-152-l155-50 and l161-52 cover nondivesting-owned unavailability without an owner release request versus successful acquisition of an unowned attribute. The Java case checks both outcomes, including the HLA_IMMEDIATE owned route, and maps p. 152 l. 149-48. In HLA_EVOKED mode, an If Available request remains without a terminal callback until a following regular acquisition causes the owner release request; after verifying the pending ownership state, Release Denied yields exactly one unavailable callback (§7.1.2.2 p. 152 l. 137-44; p. 153 l. 60-19). A separate successful override sends If Available and regular acquisition in sequence, verifies the regular request's release metadata and pending ownership, then transfers with Divestiture If Wanted and checks one acquisition notification (§7.1.2.2 p. 153 l. 45-14). The cancellation branch runs the same pending override, cancels the regular request, and checks the single confirmation callback, unchanged ownership, and no stale owner release request; together with the success and denied outcomes, this covers the selected three-terminal pending window (§7.1.2.2 p. 153 l. 60-19-pending). Identical and mixed If Available pending repeats remain EVOKED-only. Four handle/publication exceptions remain API-contract evidence without separate pinned Lab candidates. A standard local deletion yields a known-format handle unknown to the requester; a real attribute from an adapter-selectable foreign class tests AttributeNotDefined without a synthetic malformed handle. The C++ primary/contract passed four current-source direct runs and four focused installed-package CTests. Negotiated-divestiture eligibility, independent-provider behavior, and conformance are not claimed.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider. The adapter FOM copy .build/java-tck-20261117/fom-model-float64-ownership-tck.xml uses HLAfloat64Time to match this provider and supplies HLAobjectRoot.TckRateObject/ReliableValue/BestEffortValue plus HLAobjectRoot.TckTypedObject.Identity as the foreign attribute fixture. Results/JUnit: .build/java-tck-20261117/ownership-acquisition-if-available-override-parity-{evoked,immediate}.{json,xml}. Local-provider evidence only; independent-provider interoperability and conformance are not established.",
       "contract_refs": [
         "attribute-ownership-acquisition-if-available-api-contract.json",
         "attribute-ownership-acquisition-if-available-requirements-contract.json",

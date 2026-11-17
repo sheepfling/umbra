@@ -1208,6 +1208,16 @@ defaults are the standard MIM `HLAobjectRoot.HLAmanager.HLAfederate` class
 and `HLAfederateHandle` attribute. The ownership-query partition/cleanup case
 uses the same foreign-attribute settings for its undefined-attribute boundary
 and queries the real object handle after removal for its unknown-object boundary.
+The If Available case also covers the HLA_EVOKED pending transition when a
+regular acquisition follows, then checks the three terminal outcomes: release
+denial reports unavailable, Divestiture If Wanted transfers ownership, and
+cancellation confirms without changing ownership. The immediate model still
+checks owned-attribute unavailability and acquisition after unconditional
+divestiture. Nine direct mappings cover §§7.9 and 7.1.2.2. Focused local JNI
+runs passed in both callback models with the adapter FOM's logical-time type
+matched to the provider; evidence is in
+`.build/java-tck-20261117/ownership-acquisition-if-available-override-parity-`
+`{evoked,immediate}.{json,xml}`. This is local-provider evidence only.
 The ownership-query save/restore case uses the adapter's multi-attribute FOM,
 logical-time implementation, and callback model. It joins with explicit
 federate names so restored identity reports can be checked exactly.
