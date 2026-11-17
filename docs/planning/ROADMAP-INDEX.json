@@ -37383,7 +37383,18 @@
         "mapping_and_validation": "Mapped requirement-candidate-content-clauses-06-object-management-page-111-l19-4 directly to IEEE 1516.1-2025 §6.1.11, matching the C++ primary. Java catalog and both focused result validations passed with no findings; the C++/Java parity audit resolved all 965 Java IDs; the roadmap/test mapping check passed with one preexisting unlocated Catch2 case (actionable=0). No Requirements Lab resynchronization.",
         "boundary": "Evidence is bounded to the local Umbra JNI provider and installed MinGW package. It demonstrates the no-loss HLAreliable case only; it does not inject faults, claim best-effort loss, independent-provider behavior, interoperability, or conformance."
       },
-      "next_action": "Next exact case: verify and complete the existing Java mirror java-tck.custom-transportation-timestamped-interaction-delivery for cpp-tck.custom-transportation-timestamped-delivery. Compare the public timestamped send and callback assertions for payload, tag, time/order, retraction, custom transportation identity, and callback metadata against the C++ case; use the adapter rich FOM and its matching logical-time implementation. Preserve the existing mappings and verify both Java callback models without provider-internal assertions.",
+      "next_action": "Next exact case: verify and complete the existing Java mirror java-tck.custom-transportation-timestamped-attribute-delivery for cpp-tck.custom-transportation-timestamped-attribute-delivery. Compare public timestamped attribute update delivery for value/tag/time/order/retraction, custom transportation identity, callback metadata, and delivery relative to the receiver grant. Use the adapter rich FOM and matching logical-time implementation; preserve existing mappings and verify both callback models without provider-internal assertions.",
+      "latest_verified_custom_transportation_timestamped_interaction_java_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Verified the existing Java mirror for the C++ timestamped custom-transportation interaction case. The Java witness checks standard timestamped delivery metadata and now records immediate callbacks through thread-safe state.",
+        "scenario_ids": [
+          "java-tck.custom-transportation-timestamped-interaction-delivery",
+          "cpp-tck.custom-transportation-timestamped-delivery"
+        ],
+        "evidence": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAinteractionRoot.TckTypedInteraction/IntegerParameter, and TckBestEffort. Assertions cover payload, tag, time, sent/received order, producer handle, retraction handle, custom transportation name, and receiver delivery before its grant. Results/JUnit: out/java-tck/custom-transportation-timestamped-interaction-java-parity-20261117/{HLA_EVOKED,HLA_IMMEDIATE}-{results,junit}.",
+        "mapping_and_validation": "No requirement mappings changed. The scenario remains opt-in because its rich FOM and logical-time inputs are adapter-supplied. Java catalog/result validation and the existing C++/Java parity audit are the required checks for this slice; no Requirements Lab resynchronization.",
+        "boundary": "Local JNI and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
+      },
       "latest_verified_transportation_fallback_and_custom_delivery_java_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Added java-tck.unsupported-fom-transportation-fallback as a mirror of the promoted C++ conditional fallback case. Also repaired three existing ordinary custom-transport Java cases so federation creation passes the adapter-selected logical-time implementation required by the rich FOM, matching the C++ setup.",

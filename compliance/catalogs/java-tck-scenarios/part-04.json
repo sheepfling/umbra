@@ -571,7 +571,7 @@
       "title": "Deliver a timestamped ordinary interaction with the adapter-declared custom FOM transportation type",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(federationName,fomModule,logicalTimeImplementationName)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
@@ -622,7 +622,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationTimestampedInteractionDelivery",
       "parity": "cpp-tck.custom-transportation-timestamped-delivery",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied FOM declaring the custom transportation type on the configured interaction, a logical-time implementation, and an installed IEEE 1516.1-2025 provider. Configure FOM, interaction and parameter names with the adapter; configure transportation with hla.rti.tck.customTransportationType and logical time/callback model through the adapter. Provider runtime verification remains pending."
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAinteractionRoot.TckTypedInteraction/IntegerParameter, and TckBestEffort. The public callback assertions cover payload, tag, logical time, sent/received order, producer identity, retraction handle, transportation identity, and delivery before the receiver's time-advance grant. The immediate callback recorder uses thread-safe state. Results/JUnit: out/java-tck/custom-transportation-timestamped-interaction-java-parity-20261117/{HLA_EVOKED,HLA_IMMEDIATE}-{results,junit}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
+      "exclusion": "Requires an adapter-supplied FOM declaring the custom transportation type on the configured interaction, its matching logical-time implementation, and a Java IEEE 1516.1-2025 provider. Remains opt-in when the default adapter does not provide these inputs. Configure FOM, interaction and parameter names with the adapter; configure transportation with hla.rti.tck.customTransportationType and logical time/callback model through the adapter."
     },
     {
       "id": "java-tck.custom-transportation-timestamped-interaction-alternate-advances",

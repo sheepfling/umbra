@@ -16,9 +16,9 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.UUID;
 
 /** Timestamped interaction delivery using an adapter-declared custom transportation type. */
@@ -193,11 +193,11 @@ final class CustomTransportationTimestampedInteractionDeliveryTck {
    }
 
    private static final class Recorder {
-      private boolean regulationEnabled;
-      private boolean constrainedEnabled;
-      private final List<LogicalTime<?, ?>> grants = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<Delivery> deliveries = new ArrayList<>();
+      private volatile boolean regulationEnabled;
+      private volatile boolean constrainedEnabled;
+      private final List<LogicalTime<?, ?>> grants = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<Delivery> deliveries = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
