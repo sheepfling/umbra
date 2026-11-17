@@ -57,8 +57,12 @@ final class RegionalInteractionEmptySubscriptionSetsTck {
          FederateHandle producingFederate = publisher.joinFederationExecution(
             "java-tck-regional-empty-set-publisher", federation);
          publisherJoined = true;
-         subscriber.joinFederationExecution("java-tck-regional-empty-set-subscriber", federation);
+         FederateHandle subscribingFederate = subscriber.joinFederationExecution(
+            "java-tck-regional-empty-set-subscriber", federation);
          subscriberJoined = true;
+         JavaTckSupport.check(producingFederate != null && producingFederate.encodedLength() > 0
+               && subscribingFederate != null && subscribingFederate.encodedLength() > 0,
+            "regional interaction subscription-set join returned an invalid federate handle");
 
          publisherObjectClass = publisher.getObjectClassHandle(objectClassName);
          subscriberObjectClass = subscriber.getObjectClassHandle(objectClassName);
