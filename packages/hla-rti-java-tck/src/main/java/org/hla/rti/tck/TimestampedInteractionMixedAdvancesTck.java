@@ -22,6 +22,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Portable timestamped interaction delivery through alternate advances and time boundaries. */
 final class TimestampedInteractionMixedAdvancesTck {
@@ -621,25 +622,24 @@ final class TimestampedInteractionMixedAdvancesTck {
    }
 
    private static final class Recorder {
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private int timedInteractionCount;
-      private InteractionClassHandle interactionClass;
-      private ParameterHandleValueMap parameters;
-      private byte[] tag;
-      private TransportationTypeHandle transportation;
-      private FederateHandle producer;
-      private LogicalTime<?, ?> interactionTime;
-      private OrderType sentOrder;
-      private OrderType receivedOrder;
-      private MessageRetractionHandle retractionHandle;
-      private LogicalTime<?, ?> flushQueueGrantTime;
-      private LogicalTime<?, ?> flushQueueOptimisticTime;
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private final List<InteractionDelivery> timedInteractions = new ArrayList<>();
-
-      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new ArrayList<>();
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private volatile int timedInteractionCount;
+      private volatile InteractionClassHandle interactionClass;
+      private volatile ParameterHandleValueMap parameters;
+      private volatile byte[] tag;
+      private volatile TransportationTypeHandle transportation;
+      private volatile FederateHandle producer;
+      private volatile LogicalTime<?, ?> interactionTime;
+      private volatile OrderType sentOrder;
+      private volatile OrderType receivedOrder;
+      private volatile MessageRetractionHandle retractionHandle;
+      private volatile LogicalTime<?, ?> flushQueueGrantTime;
+      private volatile LogicalTime<?, ?> flushQueueOptimisticTime;
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private final List<InteractionDelivery> timedInteractions = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -653,7 +653,6 @@ final class TimestampedInteractionMixedAdvancesTck {
                   timeConstrainedEnabled = true;
                } else if ("receiveInteraction".equals(name)
                      && arguments != null && arguments.length == 10) {
-                  timedInteractionCount++;
                   interactionClass = (InteractionClassHandle) arguments[0];
                   parameters = ((ParameterHandleValueMap) arguments[1]).clone();
                   tag = ((byte[]) arguments[2]).clone();
@@ -669,6 +668,7 @@ final class TimestampedInteractionMixedAdvancesTck {
                      parameters, tag, transportation, producer, interactionTime,
                      sentOrder, receivedOrder, retractionHandle, regionsEmpty));
                   callbackOrder.add(name);
+                  timedInteractionCount++;
                } else if ("timeAdvanceGrant".equals(name)
                      && arguments != null && arguments.length == 1) {
                   timeAdvanceGrantTimes.add((LogicalTime<?, ?>) arguments[0]);
