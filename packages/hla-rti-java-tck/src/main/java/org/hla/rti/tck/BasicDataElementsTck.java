@@ -632,6 +632,33 @@ final class BasicDataElementsTck {
       expectFailure(() -> decodedAlignedRecord.decode(trailingRecord),
          "DecoderException", "HLAfixedRecord accepted trailing data");
 
+      HLAfixedRecord componentAlignedRecord = encoder.createHLAfixedRecord();
+      componentAlignedRecord.add(encoder.createHLAoctet((byte) 0xa5));
+      componentAlignedRecord.add(encoder.createHLAinteger16BE((short) 0x1234));
+      componentAlignedRecord.add(encoder.createHLAfloat64BE(-2.5));
+      componentAlignedRecord.add(encoder.createHLAoctet((byte) 0x5a));
+      byte[] expectedComponentAlignedRecord = new byte[] {
+         (byte) 0xa5, 0, 0x12, 0x34, 0, 0, 0, 0,
+         (byte) 0xc0, 0x04, 0, 0, 0, 0, 0, 0, 0x5a};
+      checkBytes(componentAlignedRecord.toByteArray(),
+         0xa5, 0, 0x12, 0x34, 0, 0, 0, 0,
+         0xc0, 0x04, 0, 0, 0, 0, 0, 0, 0x5a);
+      check(componentAlignedRecord.getOctetBoundary() == 8
+            && componentAlignedRecord.getEncodedLength() == expectedComponentAlignedRecord.length,
+         "HLAfixedRecord did not report the component-aligned encoding boundary and length");
+      HLAfixedRecord decodedComponentAlignedRecord = encoder.createHLAfixedRecord();
+      decodedComponentAlignedRecord.add(encoder.createHLAoctet());
+      decodedComponentAlignedRecord.add(encoder.createHLAinteger16BE());
+      decodedComponentAlignedRecord.add(encoder.createHLAfloat64BE());
+      decodedComponentAlignedRecord.add(encoder.createHLAoctet());
+      decodedComponentAlignedRecord.decode(expectedComponentAlignedRecord);
+      check(((HLAoctet) decodedComponentAlignedRecord.get(0)).getValue() == (byte) 0xa5
+            && ((HLAinteger16BE) decodedComponentAlignedRecord.get(1)).getValue()
+               == (short) 0x1234
+            && ((HLAfloat64BE) decodedComponentAlignedRecord.get(2)).getValue() == -2.5
+            && ((HLAoctet) decodedComponentAlignedRecord.get(3)).getValue() == (byte) 0x5a,
+         "component-aligned HLAfixedRecord did not preserve component order and values");
+
       HLAvariableArray<HLAfixedRecord> nestedRecords = encoder.createHLAvariableArray(index -> {
          HLAfixedRecord item = encoder.createHLAfixedRecord();
          item.add(encoder.createHLAinteger32BE());

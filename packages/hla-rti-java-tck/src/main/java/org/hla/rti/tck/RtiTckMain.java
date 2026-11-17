@@ -615,10 +615,13 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-11-management-object-model-page-380-l39-12"
             }, true), RtiTckMain::basicDataElementEncodeDecodeContract);
-      run(new Scenario("java-tck.encoder-round-trip", "standard composite data elements", "encoders",
-            "EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAbyte;EncoderFactory.createHLAoctet;EncoderFactory.createHLAASCIIstring;EncoderFactory.createHLAfloat32LE;EncoderFactory.createHLAfloat64BE;EncoderFactory.createHLAfixedArray;EncoderFactory.createHLAvariableArray;HLAvariableArray.addElement;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;EncoderFactory.createHLAvariantRecord;EncoderFactory.createHLAextendableVariantRecord;HLAextendableVariantRecord.setVariant;HLAextendableVariantRecord.setDiscriminant;DataElement.getOctetBoundary;DataElement.getEncodedLength;DataElement.decode;DataElement.toByteArray", new String[] {
+      run(new Scenario("java-tck.encoder-round-trip", "Round-trip composite HLA data elements and fixed-record alignment", "encoders",
+            "EncoderFactory.createHLAinteger32BE;EncoderFactory.createHLAinteger16BE;EncoderFactory.createHLAbyte;EncoderFactory.createHLAoctet;EncoderFactory.createHLAASCIIstring;EncoderFactory.createHLAfloat32LE;EncoderFactory.createHLAfloat64BE;EncoderFactory.createHLAfixedArray;EncoderFactory.createHLAvariableArray;HLAvariableArray.addElement;EncoderFactory.createHLAfixedRecord;HLAfixedRecord.add;HLAfixedRecord.get;EncoderFactory.createHLAvariantRecord;EncoderFactory.createHLAextendableVariantRecord;HLAextendableVariantRecord.setVariant;HLAextendableVariantRecord.setDiscriminant;DataElement.getOctetBoundary;DataElement.getEncodedLength;DataElement.decode;DataElement.toByteArray", new String[] {
                "java-1516.1-encoding-malformed-input",
-               "cpp-1516.2-composite-data-elements"
+               "cpp-1516.2-composite-data-elements",
+               "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+               "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+               "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2"
             }, true), RtiTckMain::encoderRoundTrip);
       run(new Scenario("java-tck.composite-data-element-bytewrapper-cursor",
             "composite data elements preserve shared ByteWrapper cursor boundaries", "encoders",

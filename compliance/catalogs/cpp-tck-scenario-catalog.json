@@ -6352,7 +6352,7 @@
       "runner_id": "cpp-tck.fixed-record-alignment",
       "evidence_note": "Fresh direct MinGW installed-package execution on 2026-11-16 passed under HLA_EVOKED and HLA_IMMEDIATE (2/2, zero skips); runner valid=true. Focused result evidence: .build/cpp-tck-evidence-20261116/fixed-record-alignment.json and .xml. Local-provider test evidence only; no interoperability or conformance claim.",
       "parity": "java-tck.encoder-round-trip",
-      "parity_scope_note": "This C++-first focused byte-layout scenario narrows the broader Java encoder round-trip area. No equivalent Java execution or Java-specific behavior is claimed.",
+      "parity_scope_note": "The Java primary java-tck.encoder-round-trip now checks this exact four-component HLAfixedRecord byte vector, including the internal padding, offset-zero start, terminal octet, and encoded length. It also decodes the vector and verifies component values; the mirror remains bounded to this tested field-type sequence and alignment layout.",
       "default_status": "run",
       "promotion": "promoted"
     },

@@ -273,9 +273,10 @@
     {
       "id": "java-tck.encoder-round-trip",
       "category": "encoders",
-      "title": "Round-trip standard composite HLA data-element encodings",
+      "title": "Round-trip composite HLA data elements and fixed-record alignment",
       "api_methods": [
         "EncoderFactory.createHLAinteger32BE",
+        "EncoderFactory.createHLAinteger16BE",
         "EncoderFactory.createHLAbyte",
         "EncoderFactory.createHLAoctet",
         "EncoderFactory.createHLAASCIIstring",
@@ -285,6 +286,7 @@
         "EncoderFactory.createHLAvariableArray",
         "EncoderFactory.createHLAfixedRecord",
         "HLAfixedRecord.add",
+        "HLAfixedRecord.get",
         "HLAvariableArray.addElement",
         "EncoderFactory.createHLAvariantRecord",
         "EncoderFactory.createHLAextendableVariantRecord",
@@ -299,6 +301,9 @@
         "java-1516.1-encoding-primitive-round-trip",
         "java-1516.1-encoding-malformed-input",
         "cpp-1516.2-composite-data-elements",
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2",
         "requirement-candidate-sections-semantic-clause-4c-page-081-l68-9",
         "requirement-candidate-sections-semantic-clause-4c-page-081-l76-11",
         "requirement-candidate-sections-semantic-clause-4c-page-082-l47-3",
@@ -315,6 +320,9 @@
         "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4"
       ],
       "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+        "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+        "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2",
         "requirement-candidate-sections-semantic-clause-4c-page-081-l68-9",
         "requirement-candidate-sections-semantic-clause-4c-page-081-l76-11",
         "requirement-candidate-sections-semantic-clause-4c-page-082-l47-3",
@@ -331,9 +339,25 @@
         "requirement-candidate-sections-semantic-clause-4c-page-085-l63-4"
       ],
       "standard_sections": [
-        "hla-1516.2-2025:clause-4"
+        "hla-1516.2-2025:clause-4",
+        "hla-1516.2-2025:clause-4.14.10"
       ],
       "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-080-l69-6",
+          "standard_section": "hla-1516.2-2025:clause-4.14.10",
+          "note": "The exact vector places the first HLAoctet at offset zero and preserves declaration order for all four components."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-080-l73-7",
+          "standard_section": "hla-1516.2-2025:clause-4.14.10",
+          "note": "The vector contains the required zero padding before the HLAinteger16BE and HLAfloat64BE fields for this tested sequence."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l36-2",
+          "standard_section": "hla-1516.2-2025:clause-4.14.10",
+          "note": "The final HLAoctet is the last encoded byte; the 17-octet length includes internal padding without trailing padding."
+        },
         {
           "requirement_id": "requirement-candidate-sections-semantic-clause-4c-page-081-l68-9",
           "standard_section": "hla-1516.2-2025:clause-4",
@@ -406,7 +430,7 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "The Java encoder round-trip checks a fixed array of two five-octet fixed records, variable-array count and element ordering, variable-array padding before an eight-octet element and between fixed records, focused HLAvariantRecord mapped and unmapped layouts, two HLAextendableVariantRecord vectors for pre-length and post-length padding, and rejection of one custom alternative with a 16-octet boundary. These direct mappings cover only the exact tested Clause 4 cases, not every composite layout or conformance.",
+      "mapping_note": "The Java encoder round-trip checks a fixed array of two five-octet fixed records, variable-array count and element ordering, variable-array padding before an eight-octet element and between fixed records, focused HLAvariantRecord mapped and unmapped layouts, two HLAextendableVariantRecord vectors for pre-length and post-length padding, and rejection of one custom alternative with a 16-octet boundary. It mirrors cpp-tck.fixed-record-alignment with the exact four-component HLAfixedRecord vector, checking offset-zero placement, component order, zero inter-field padding, and no trailing padding. The three selected fixed-record mappings target IEEE 1516.2 §4.14.10 for this specific sequence; decode-value checks are supplemental. These direct mappings cover only the exact tested composite cases, not every layout or conformance.",
       "contract_refs": [
         "basic-data-elements-requirements-contract.json",
         "basic-data-elements-helper-requirements-contract.json",
@@ -415,8 +439,8 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#encoderRoundTrip",
       "parity": "cpp-tck.variant-record-discriminant-padding",
-      "parity_scope_note": "This Java scenario verifies mapped and unmapped HLAvariantRecord cases, mirrors cpp-tck.extendable-variant-record-length-padding, cpp-tck.extendable-variant-record-alternative-padding, cpp-tck.extendable-variant-record-rejects-boundary-over-eight, cpp-tck.fixed-array-element-sequence, and all three listed variable-array cases. The over-limit pair supplies a Java TCK DataElement with boundary 16 to setVariant and requires EncoderException; each pairing remains limited to its exact tested API operation and data layout.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. The focused java-tck.encoder-round-trip run passed against the current-source JNI provider under HLA_EVOKED and HLA_IMMEDIATE. Exact Java vectors cover the two extendable-variant encodings, a fixed array of two five-octet HLAfixedRecord values (length 13), and three variable-array layouts (integer16 sequence length 8, float64 first-element alignment length 16, nested-record inter-element alignment length 17), plus mapped and unmapped HLAvariantRecord cases. It also mirrors cpp-tck.extendable-variant-record-rejects-boundary-over-eight using the existing Java TCK DataElement fixture with boundary 16; HLAextendableVariantRecord.setVariant throws EncoderException. Results and JUnit are under out/java-tck/extendable-variant-length-padding-20261113/current-{evoked,immediate}-{results.json,junit.xml} and out/java-tck/extendable-variant-boundary-rejection-20261113/current-{evoked,immediate}-{results.json,junit.xml}; previous variant-record results remain under out/java-tck/variant-record-discriminant-padding-20261113/. This is bounded local-provider evidence for these encoding cases, not independent-provider interoperability or conformance.",
+      "parity_scope_note": "This Java scenario verifies mapped and unmapped HLAvariantRecord cases, mirrors cpp-tck.extendable-variant-record-length-padding, cpp-tck.extendable-variant-record-alternative-padding, cpp-tck.extendable-variant-record-rejects-boundary-over-eight, cpp-tck.fixed-array-element-sequence, cpp-tck.fixed-record-alignment, and all three listed variable-array cases. The over-limit pair supplies a Java TCK DataElement with boundary 16 to setVariant and requires EncoderException; each pairing remains limited to its exact tested API operation and data layout.",
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. The focused java-tck.encoder-round-trip run passed against the current-source JNI provider under HLA_EVOKED and HLA_IMMEDIATE. Exact Java vectors cover the two extendable-variant encodings, a fixed array of two five-octet HLAfixedRecord values (length 13), and three variable-array layouts (integer16 sequence length 8, float64 first-element alignment length 16, nested-record inter-element alignment length 17), plus mapped and unmapped HLAvariantRecord cases. It also mirrors cpp-tck.extendable-variant-record-rejects-boundary-over-eight using the existing Java TCK DataElement fixture with boundary 16; HLAextendableVariantRecord.setVariant throws EncoderException. Results and JUnit are under out/java-tck/extendable-variant-length-padding-20261113/current-{evoked,immediate}-{results.json,junit.xml} and out/java-tck/extendable-variant-boundary-rejection-20261113/current-{evoked,immediate}-{results.json,junit.xml}; previous variant-record results remain under out/java-tck/variant-record-discriminant-padding-20261113/. This is bounded local-provider evidence for these encoding cases, not independent-provider interoperability or conformance. Current-source focused HLA_EVOKED and HLA_IMMEDIATE runs on 2026-11-17 passed against the Umbra JNI provider. The added exact record vector is a5 00 12 34 00 00 00 00 c0 04 00 00 00 00 00 00 5a (17 octets, boundary 8), with decoded component values checked. Results/JUnit: .build/java-tck-20261117/fixed-record-alignment{,-immediate}.{results.json,junit.xml}. This remains local-provider evidence and does not establish independent-provider interoperability or conformance.",
       "default_status": "run"
     },
     {
