@@ -37596,7 +37596,29 @@
         "boundary": "Local-provider evidence only; no independent-provider interoperability or conformance claim. Adapter-specific DDM FOM and provider inputs remain required, so default-disabled status is unchanged.",
         "next": "Next exact pair: cpp-tck.regional-boundaries and java-tck.regional-boundaries. Compare shared DDM handle, dimension, and failure-path assertions against the standard Java API, preserve any C++-only invalid-handle limitations, and run the focused pair under both callback models. Keep requirement mappings and default dispositions unchanged unless the source and pinned clause support a specific correction."
       },
-      "next_action": "Next exact pair: cpp-tck.regional-boundaries and java-tck.regional-boundaries. Compare shared DDM handle, dimension, and failure-path assertions against the standard Java API, preserve any C++-only invalid-handle limitations, and run the focused pair under both callback models. Keep requirement mappings and default dispositions unchanged unless the source and pinned clause support a specific correction.",
+      "latest_verified_java_regional_handle_preconditions_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Completed the next two focused Java DDM comparisons. Regional boundaries now checks positive encoded lengths and distinctness for its object, attribute, interaction, and dimension handles before running the existing membership, name, bound, and failure-path assertions. Regional object-attribute dimension subset now checks positive encoded lengths for its resolved handles and requires the two class dimensions and unrelated FOM dimension to be distinct before its existing availability, name, range, and InvalidRegionContext assertions.",
+        "scenario_ids": [
+          "java-tck.regional-boundaries",
+          "cpp-tck.regional-boundaries",
+          "java-tck.regional-object-attribute-dimension-subset",
+          "cpp-tck.regional-object-attribute-dimension-subset"
+        ],
+        "sources": [
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalBoundariesTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalObjectAttributeDimensionSubsetTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalDdmScenarioRegistry.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+          "packages/hla-rti-cpp-tck/src/main.cpp",
+          "packages/hla-rti-cpp-tck/src/tck_region_lifecycle_scenarios.cpp"
+        ],
+        "evidence": "Both Java scenarios passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider, compiled against the pinned IEEE 1516.1-2025 Java API, using ddm-tck.xml and HLAinteger64Time. Both paired C++ direct scenarios passed under both callback models against the installed package. Java and C++ used separate provider package builds. Java JSON/JUnit artifacts are under .build/java-tck-20261117; C++ JSON/JUnit artifacts are under .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw. CTest reports no registered tests for these direct-only scenarios.",
+        "mapping_and_validation": "Requirement IDs, direct IEEE 1516.1-2025 section mappings, and default statuses are unchanged. Java catalog validation is valid=true for 966 scenarios with no findings; the four-result Java traceability export passes; and focused C++ evidence validation is valid=true for both scenarios.",
+        "boundary": "Local-provider evidence only; no independent-provider interoperability or conformance claim. The cases still require adapter-supplied DDM FOM inputs.",
+        "next": "Next exact pair: cpp-tck.regional-object-attribute-dimension-inheritance and java-tck.regional-object-attribute-dimension-inheritance. Compare the inherited base/derived FDD dimension assertions and callback delivery, add only missing portable Java API checks, preserve the exact §9.1.2 mappings, and verify both callback models with the multi-attribute FOM."
+      },
+      "next_action": "Next exact pair: cpp-tck.regional-object-attribute-dimension-inheritance and java-tck.regional-object-attribute-dimension-inheritance. Compare the inherited base/derived FDD dimension assertions and callback delivery, add only missing portable Java API checks, preserve the exact §9.1.2 mappings, and verify both callback models with the multi-attribute FOM.",
       "latest_verified_java_passive_regional_interaction_transition_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared java-tck.passive-regional-interaction-transition with the paired C++ TCK case. Java now snapshots conveyed source-region metadata through each receiving federate's RTIambassador and verifies the two dimensions and [1,5] bounds, while preserving the active-to-passive transition, retained passive delivery under another active route, last-active-route suppression, empty-set no-op, and reactivation sequence.",

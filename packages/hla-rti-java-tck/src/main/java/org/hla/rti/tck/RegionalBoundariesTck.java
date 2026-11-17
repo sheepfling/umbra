@@ -71,6 +71,22 @@ final class RegionalBoundariesTck {
          DimensionHandle ownerUnrelated = owner.getDimensionHandle(unrelatedDimensionName);
          DimensionHandle foreignFirst = foreign.getDimensionHandle(firstDimensionName);
          DimensionHandle foreignSecond = foreign.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(ownerObjectClass != null && ownerObjectClass.encodedLength() > 0
+               && foreignObjectClass != null && foreignObjectClass.encodedLength() > 0
+               && ownerAttribute != null && ownerAttribute.encodedLength() > 0
+               && foreignAttribute != null && foreignAttribute.encodedLength() > 0
+               && ownerInteraction != null && ownerInteraction.encodedLength() > 0
+               && foreignInteraction != null && foreignInteraction.encodedLength() > 0
+               && ownerParameter != null && ownerParameter.encodedLength() > 0
+               && foreignParameter != null && foreignParameter.encodedLength() > 0
+               && ownerFirst != null && ownerFirst.encodedLength() > 0
+               && ownerSecond != null && ownerSecond.encodedLength() > 0
+               && ownerUnrelated != null && ownerUnrelated.encodedLength() > 0
+               && foreignFirst != null && foreignFirst.encodedLength() > 0
+               && foreignSecond != null && foreignSecond.encodedLength() > 0
+               && !ownerFirst.equals(ownerSecond) && !ownerFirst.equals(ownerUnrelated)
+               && !ownerSecond.equals(ownerUnrelated) && !foreignFirst.equals(foreignSecond),
+            "adapter DDM lookups returned invalid or duplicate handles");
          JavaTckSupport.check(ownerObjectClass.equals(foreignObjectClass)
                && ownerAttribute.equals(foreignAttribute)
                && ownerInteraction.equals(foreignInteraction)

@@ -63,6 +63,15 @@ final class RegionalObjectAttributeDimensionSubsetTck {
             owner.getInteractionClassHandle(interactionClassName);
          DimensionHandleSet interactionDimensions =
             owner.getAvailableDimensionsForInteractionClass(interactionClass);
+         JavaTckSupport.check(objectClass != null && objectClass.encodedLength() > 0
+               && attribute != null && attribute.encodedLength() > 0
+               && interactionClass != null && interactionClass.encodedLength() > 0
+               && first != null && first.encodedLength() > 0
+               && second != null && second.encodedLength() > 0
+               && unrelated != null && unrelated.encodedLength() > 0
+               && !first.equals(second) && !first.equals(unrelated)
+               && !second.equals(unrelated),
+            "adapter DDM lookups returned invalid or duplicate handles");
          JavaTckSupport.check(available.contains(first) && available.contains(second)
                && !available.contains(unrelated)
                && interactionDimensions.contains(first) && interactionDimensions.contains(second)

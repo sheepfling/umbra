@@ -1798,10 +1798,16 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "ObjectClassHandle.encodedLength",
         "RTIambassador.getAttributeHandle",
+        "AttributeHandle.encodedLength",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
         "RTIambassador.getParameterHandle",
+        "ParameterHandle.encodedLength",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
         "RTIambassador.getAvailableDimensionsForObjectClass",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionName",
@@ -1879,7 +1885,7 @@
         "Callback model supplied by the adapter"
       ],
       "promotion": "promoted",
-      "evidence_note": "The Java sources built against the pinned IEEE 1516.1-2025 Java API. java-tck.regional-boundaries passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI; Java results/JUnit are out/java-tck/regional-boundaries-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ direct scenario passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-boundaries-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim."
+      "evidence_note": "The Java setup now checks positive encoded lengths for the object-class, attribute, interaction-class, parameter, and dimension handles; configured dimensions are distinct; and class dimensions retain their available-dimension, name, and range checks. Focused Java and paired C++ direct runs passed under HLA_EVOKED and HLA_IMMEDIATE with ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Java results/JUnit: .build/java-tck-20261117/regional-boundaries-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/regional-boundaries-parity-20261117.{json,xml}. Java and C++ used separate provider package builds; local-provider evidence only, with no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-object-attribute-dimension-subset",
@@ -1890,9 +1896,14 @@
         "RTIambassador.createFederationExecution",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
+        "ObjectClassHandle.encodedLength",
         "RTIambassador.getAttributeHandle",
+        "AttributeHandle.encodedLength",
         "RTIambassador.getInteractionClassHandle",
+        "InteractionClassHandle.encodedLength",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
         "RTIambassador.getAvailableDimensionsForObjectClass",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionName",
@@ -1934,7 +1945,7 @@
         }
       ],
       "mapping_note": "The Requirements Lab export clips this object-attribute rule under the next heading; RL-360 records the source-backed correction to §9.1.3.2 Instance attribute relationships. This focused public-API case rejects registration and later region association when a committed region contains a dimension unavailable to the object class, then confirms registration succeeds with the available dimensions. The cpp-1516.1 identifier is repository-internal provenance only and has no normative mapping. It makes no broader claim about other region-context failures.",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 API JAR. The default-enabled focused Java scenario passed against the current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE with ddm-tck.xml, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Results/JUnit: out/java-tck/regional-object-attribute-dimension-subset-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ direct scenario passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-object-attribute-dimension-subset-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim.",
+      "evidence_note": "The Java setup now verifies positive encoded lengths for the object-class, attribute, interaction-class, and dimension handles, and requires the two class dimensions and unrelated FOM dimension to be distinct before the existing class-availability, name-round-trip, and range checks. The focused Java and paired C++ scenarios passed under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Java results/JUnit: .build/java-tck-20261117/regional-object-attribute-dimension-subset-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/regional-object-attribute-dimension-subset-parity-20261117.{json,xml}. Java and C++ used separate provider package builds. Requirement mappings and default status are unchanged; local-provider evidence only, with no independent-provider interoperability or conformance claim.",
       "contract_refs": [
         "region-object-attribute-dimension-subset-requirements-contract.json",
         "object-attribute-region-api-contract.json"
