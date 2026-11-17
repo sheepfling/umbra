@@ -4,12 +4,12 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
-import hla.rti1516_2025.RangeBounds;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 
@@ -18,7 +18,8 @@ final class RegionRangeDimensionValidationTck {
    private RegionRangeDimensionValidationTck() { }
 
    static void run(RtiFactory factory, String fom, String mim, String timeImplementation,
-         String dimensionName, CallbackModel callbackModel) throws Exception {
+         String dimensionName, String absentDimensionName, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador participant = factory.getRtiAmbassador();
       String federation = "java-tck-region-range-dimension-validation-" + UUID.randomUUID();
       boolean connected = false, created = false, joined = false;
@@ -34,9 +35,14 @@ final class RegionRangeDimensionValidationTck {
          joined = true;
 
          DimensionHandle dimension = participant.getDimensionHandle(dimensionName);
+         DimensionHandle absentDimension = participant.getDimensionHandle(absentDimensionName);
+         JavaTckSupport.check(dimension != null && dimension.encodedLength() > 0
+               && absentDimension != null && absentDimension.encodedLength() > 0
+               && !dimension.equals(absentDimension),
+            "adapter must provide distinct valid dimensions");
          long upperBound = participant.getDimensionUpperBound(dimension);
-         JavaTckSupport.check(dimension != null && upperBound > 0,
-            "adapter dimension must have a valid handle and positive upper bound");
+         JavaTckSupport.check(upperBound > 0,
+            "adapter region dimension must have a positive upper bound");
          DimensionHandleSet dimensions = participant.getDimensionHandleSetFactory().create();
          dimensions.add(dimension);
          region = participant.createRegion(dimensions);
@@ -45,8 +51,6 @@ final class RegionRangeDimensionValidationTck {
          regions.add(region);
          participant.commitRegionModifications(regions);
 
-         DimensionHandle absentDimension =
-            JavaTckSupport.invalidHandle(DimensionHandle.class);
          RegionHandle committedRegion = region;
          JavaTckSupport.expectFailure(() -> participant.getRangeBounds(
                committedRegion, absentDimension),

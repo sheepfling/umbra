@@ -32,9 +32,11 @@ final class RegionRangeValidationTck {
          joined = true;
 
          DimensionHandle dimension = participant.getDimensionHandle(dimensionName);
+         JavaTckSupport.check(dimension != null && dimension.encodedLength() > 0,
+            "adapter dimension lookup returned an invalid handle");
          long upperBound = participant.getDimensionUpperBound(dimension);
-         JavaTckSupport.check(dimension != null && upperBound > 0,
-            "adapter dimension must have a valid handle and positive upper bound");
+         JavaTckSupport.check(upperBound > 0,
+            "adapter dimension must have a positive upper bound");
 
          DimensionHandleSet dimensions = participant.getDimensionHandleSetFactory().create();
          dimensions.add(dimension);

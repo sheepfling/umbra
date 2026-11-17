@@ -6613,7 +6613,7 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.region-range-validation",
              "accept ranges ending at the dimension upper bound and reject equal or reversed bounds",
              "ddm-region-lifecycle",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionUpperBound;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getRangeBounds;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;DimensionHandle.encodedLength;RTIambassador.getDimensionUpperBound;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getRangeBounds;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
              new String[] {
                 "cpp-1516.1-ddm-region-lifecycle",
                 "cpp-1516.1-ddm-range-validation",
@@ -6622,7 +6622,7 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.region-range-dimension-validation",
              "reject range queries and changes for dimensions absent from a region",
              "ddm-region-lifecycle",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionUpperBound;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getRangeBounds;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;DimensionHandle.encodedLength;DimensionHandle.equals;RTIambassador.getDimensionUpperBound;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getRangeBounds;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
              new String[] {
                 "cpp-1516.1-ddm-region-lifecycle",
                 "cpp-1516.1-ddm-range-validation",
@@ -14335,7 +14335,8 @@ public final class RtiTckMain {
     private static void regionRangeDimensionValidation() throws Exception {
        RegionRangeDimensionValidationTck.run(factory(), requireAdapterFile(DDM_FOM_PROPERTY),
           requireAdapterFile(MIM_PROPERTY), timeImplementation(),
-          requireAdapterValue(DIMENSION_PROPERTY), callbackModel());
+          requireAdapterValue(DIMENSION_PROPERTY),
+          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
     }
 
     private static void regionalBoundaries() throws Exception {

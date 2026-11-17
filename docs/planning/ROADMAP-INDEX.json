@@ -37553,7 +37553,26 @@
         "boundary": "Local provider evidence only; no independent-provider, interoperability, or conformance claim.",
         "next": "Next exact pair: cpp-tck.region-range-dimension-validation and java-tck.region-range-dimension-validation. Verify that the Java case rejects both GetRangeBounds and SetRangeBounds for a dimension absent from the region with RegionDoesNotContainSpecifiedDimension, then run the focused Java and C++ cases under both callback models with matching FOM, MIM, dimension, and time inputs. Keep its default-disabled status unless current-provider evidence supports a status change, then continue the Java assertion-gap audit."
       },
-      "next_action": "Next exact pair: cpp-tck.region-range-dimension-validation and java-tck.region-range-dimension-validation. Verify that the Java case rejects both GetRangeBounds and SetRangeBounds for a dimension absent from the region with RegionDoesNotContainSpecifiedDimension, then run the focused Java and C++ cases under both callback models with matching FOM, MIM, dimension, and time inputs. Keep its default-disabled status unless current-provider evidence supports a status change, then continue the Java assertion-gap audit.",
+      "latest_verified_java_region_range_validation_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Completed the two Java region-range validation mirrors. The range-boundary case now checks the dimension handle before using it. The absent-region dimension case now uses a distinct valid FOM dimension rather than a synthetic default-invalid Java handle, and checks both GetRangeBounds and SetRangeBounds rejection.",
+        "scenario_ids": [
+          "java-tck.region-range-validation",
+          "cpp-tck.region-range-validation",
+          "java-tck.region-range-dimension-validation",
+          "cpp-tck.region-range-dimension-validation"
+        ],
+        "sources": [
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionRangeValidationTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionRangeDimensionValidationTck.java",
+          "packages/hla-rti-cpp-tck/src/tck_portable_region_service_reports.cpp"
+        ],
+        "evidence": "Java compiled against the pinned IEEE 1516.1-2025 API JAR. Both Java scenarios passed under HLA_EVOKED and HLA_IMMEDIATE on the current-source Umbra JNI provider using fom-model-tck.xml, HLAstandardMIM-2025.xml, and HLAinteger64Time. The range-dimension case used TckDimension for the region and valid TckDimensionX as the dimension absent from it. Both paired C++ scenarios passed under both callback models against the installed Umbra package. Java and C++ used separate provider packages/builds. Java catalog validation passed with 966 scenarios and no findings; requirement mappings did not change. JSON/JUnit outputs are in the focused .build result paths.",
+        "mapping_and_validation": "No requirement mappings changed. Focused Java and C++ direct runs passed 2/2 for each scenario. Java catalog validation passed with no findings.",
+        "boundary": "Local provider evidence only; no independent-provider, interoperability, or conformance claim. The scenarios remain opt-in for provider profiles that have not supplied their own verification.",
+        "next": "Next exact pair: cpp-tck.region-lifecycle and java-tck.region-lifecycle. Compare the shared DDM handle and class-dimension preconditions, valid region membership failures, range get/set/commit behavior, and cleanup. Keep the C++ decodeRegionHandle service and invalid default-handle surface explicitly dispositioned because the Java API has no direct equivalents; add only missing portable assertions, then verify both callback models."
+      },
+      "next_action": "Next exact pair: cpp-tck.region-lifecycle and java-tck.region-lifecycle. Compare the shared DDM handle and class-dimension preconditions, valid region membership failures, range get/set/commit behavior, and cleanup. Keep the C++ decodeRegionHandle service and invalid default-handle surface explicitly dispositioned because the Java API has no direct equivalents; add only missing portable assertions, then verify both callback models.",
       "latest_verified_java_passive_regional_interaction_transition_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared java-tck.passive-regional-interaction-transition with the paired C++ TCK case. Java now snapshots conveyed source-region metadata through each receiving federate's RTIambassador and verifies the two dimensions and [1,5] bounds, while preserving the active-to-passive transition, retained passive delivery under another active route, last-active-route suppression, empty-set no-op, and reactivation sequence.",

@@ -1579,6 +1579,7 @@
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
@@ -1600,10 +1601,18 @@
         "standard-region-range-validation-contract.json",
         "federation-execution-api-contract.json"
       ],
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused Java JNI runs using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and TckDimension passed under HLA_EVOKED and HLA_IMMEDIATE. The fixture checks the dimension handle before use, accepts a range ending at the upper bound, and rejects equal and reversed bounds with InvalidRangeBound. Focused C++ runs passed under both callback models against the installed Umbra package using the same FOM, MIM, dimension, and time inputs. Java results/JUnit: .build/java-tck-20261117/region-range-validation-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/region-range-validation-20261117.{json,xml}. The Java and C++ runs used separate provider packages/builds; local evidence only, with no conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#regionRangeValidation",
       "parity": "cpp-tck.region-range-validation",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM and standard MIM files, dimension name, logical-time implementation, and an installed Java 2025 provider; runtime verification remains pending."
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied model FOM and standard MIM",
+        "dimension name",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "Default-disabled because execution requires adapter-supplied model FOM and standard MIM files, a dimension name, a provider-supported logical-time implementation, and an installed Java 2025 provider. Umbra JNI evidence is recorded locally; provider profiles should opt in after their own runtime verification."
     },
     {
       "id": "java-tck.region-range-dimension-validation",
@@ -1614,6 +1623,8 @@
         "RTIambassador.createFederationExecutionWithMIM",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getDimensionHandle",
+        "DimensionHandle.encodedLength",
+        "DimensionHandle.equals",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
@@ -1635,10 +1646,18 @@
         "standard-region-range-dimension-validation-contract.json",
         "federation-execution-api-contract.json"
       ],
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused Umbra JNI runs using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, TckDimension, and the valid but region-absent TckDimensionX passed under HLA_EVOKED and HLA_IMMEDIATE. Both GetRangeBounds and SetRangeBounds raised RegionDoesNotContainSpecifiedDimension. The valid absent-region handle avoids synthesizing an invalid Java handle, for which the API has no portable default value. Focused C++ runs against the installed Umbra package passed under both callback models. Java results/JUnit: .build/java-tck-20261117/region-range-dimension-validation-parity-{evoked,immediate}.{json,xml}; C++ results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/region-range-dimension-validation-20261117.{json,xml}. The Java and C++ runs used separate provider packages/builds; local evidence only, with no conformance claim.",
       "java_test": "org.hla.rti.tck.RtiTckMain#regionRangeDimensionValidation",
       "parity": "cpp-tck.region-range-dimension-validation",
       "default_status": "unsupported",
-      "exclusion": "Requires adapter-supplied application FOM and standard MIM files, dimension name, logical-time implementation, and an installed Java 2025 provider; runtime verification remains pending."
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied model FOM and standard MIM",
+        "distinct region and absent-region dimension names",
+        "provider-supported logical-time implementation",
+        "callback model selected by the adapter"
+      ],
+      "exclusion": "Default-disabled until the adapter supplies a model FOM with two distinct dimensions, a standard MIM, both dimension names, a logical-time implementation, and a Java 2025 provider. Java uses a valid dimension handle absent from the created region because the standard Java API has no portable default-invalid DimensionHandle representation; provider profiles should opt in after their own runtime verification."
     },
     {
       "id": "java-tck.region-commit-complete-ranges",
