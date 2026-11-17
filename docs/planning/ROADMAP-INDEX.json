@@ -38211,6 +38211,38 @@
         "evidence": "Java focused runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the pinned IEEE 1516.1-2025 API JAR and Umbra JNI provider, p0-tck-without-switches.xml, and HLAinteger64Time. Results: out/java-tck/order-type-fdd-default-initialization-java-parity-20261117/{HLA_EVOKED,HLA_IMMEDIATE}-results.json. C++ primary/contract direct runs passed 4/4 across both callback models using p0-tck.xml and HLAinteger64Time; results: out/cpp-tck-evidence-20261117/order-type-fdd-default-initialization.{json,junit.xml}.",
         "mapping_and_validation": "The Java catalog/result validator, focused C++ catalog validator, and C++/Java parity audit passed. The C++ run reused the installed package and skipped CTest; no CTest result or provider rebuild is claimed. The direct 1516.2 mapping is limited to P0's selected FDD Order=Receive field and its observed sentOrder/retraction behavior.",
         "boundary": "Evidence is local to the Umbra JNI provider and installed C++ package; independent-provider behavior, interoperability, and overall conformance are unverified."
+      },
+      "latest_verified_java_regional_interaction_routing_handle_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Compared java-tck.regional-interaction-routing with its paired C++ TCK case. Java now validates joined FederateHandles, resolved object-class/attribute/interaction/parameter/dimension handles, all standard-path created RegionHandles, callback region-designator and transportation handles. The scenario continues to cover region-template lifecycle, retained Create Region dimension sets, full-range/default equivalence, region realization queries, convey-switch behavior, and disjoint/unsubscribed delivery suppression.",
+        "scenario_ids": [
+          "cpp-tck.regional-interaction-routing",
+          "java-tck.regional-interaction-routing"
+        ],
+        "sources": [
+          "packages/hla-rti-cpp-tck/src/main.cpp",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RegionalInteractionRoutingTck.java",
+          "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+          "compliance/catalogs/java-tck-scenarios/part-07.json"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-08-time-management-page-216-l144-45 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-08-time-management-page-217-l5-1 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-08-time-management-page-217-l74-24 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l12-1 -> IEEE 1516.1-2025 §9.1.3.1",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-218-l99-30 -> IEEE 1516.1-2025 §9.1.3.1",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l131-42 -> IEEE 1516.1-2025 §9.1.3.3",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l149-48 -> IEEE 1516.1-2025 §9.1.3.3",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l158-51 -> IEEE 1516.1-2025 §9.1.3.3",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4 -> IEEE 1516.1-2025 §9.1.7",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l45-13 -> IEEE 1516.1-2025 §9.1.7",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-239-l144-41 -> IEEE 1516.1-2025 §9.12",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-240-l9-1 -> IEEE 1516.1-2025 §9.12"
+        ],
+        "evidence": "Java compiled against the pinned IEEE 1516.1-2025 API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider and ddm-region-realization-default-range-tck.xml; results/JUnit: .build/java-tck-20261117/regional-routing-handle-parity-{evoked,immediate}.{json,xml}; traceability export: .build/java-tck-20261117/regional-routing-handle-parity-traceability.json. The paired C++ primary and contract result files under .build/cpp-tck-encoding-helper-base-dispatch-mingw-20261114/portable-tck/tck-results validated separately with no findings and contain passing evoked and immediate results.",
+        "mapping_and_validation": "Preserved the Java scenario requirement IDs, direct mappings, unsupported/default-disabled status, and the C++ promoted disposition. The 43-method Java registration and catalog inventories match exactly. Java catalog validation is valid for 966 scenarios with no findings; the focused traceability export records one pass for each callback model. Both paired C++ evidence documents validate against the current catalog with no findings. No Requirements Lab resynchronization or C++ source changes were made for this slice.",
+        "boundary": "Evidence uses the local Umbra JNI provider and an adapter-supplied restricted-default-range DDM FOM. The Java scenario remains default-disabled for provider-specific adapter inputs. Independent-provider behavior and overall conformance are not established.",
+        "next": "Next exact pair: cpp-tck.multi-region-interaction-routing and java-tck.multi-region-interaction-routing. Compare multi-region union delivery and de-duplication, source-region snapshots, disjoint/touching boundaries, and excluded-dimension no-route behavior. Add only missing portable Java API and behavior assertions; preserve direct mappings and unsupported/default-disabled disposition. Run both callback models with the adapter-supplied excluded-dimension DDM FOM using --run-unverified, then validate the focused results and catalog."
       }
     }
   ],

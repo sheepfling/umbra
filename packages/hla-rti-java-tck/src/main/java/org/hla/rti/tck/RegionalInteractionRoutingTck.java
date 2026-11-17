@@ -102,12 +102,18 @@ final class RegionalInteractionRoutingTck {
          FederateHandle producer = owner.joinFederationExecution(
             "java-tck-region-owner", federation);
          ownerJoined = true;
-         overlap.joinFederationExecution("java-tck-region-overlap", federation);
+         FederateHandle overlapFederate = overlap.joinFederationExecution(
+             "java-tck-region-overlap", federation);
          overlapJoined = true;
-         disjoint.joinFederationExecution("java-tck-region-disjoint", federation);
+         FederateHandle disjointFederate = disjoint.joinFederationExecution(
+             "java-tck-region-disjoint", federation);
          disjointJoined = true;
 
          if (verifyRestrictedDefaultRange) {
+             JavaTckSupport.check(producer != null && producer.encodedLength() > 0
+                   && overlapFederate != null && overlapFederate.encodedLength() > 0
+                   && disjointFederate != null && disjointFederate.encodedLength() > 0,
+                "regional interaction routing returned an invalid federate handle");
             verifyObjectClassDimensions(owner, overlap, disjoint, objectClassName,
                attributeName, firstDimensionName, secondDimensionName);
          }
@@ -131,8 +137,24 @@ final class RegionalInteractionRoutingTck {
                && ownerParameter.equals(overlapParameter)
                && ownerParameter.equals(disjointParameter)
                && ownerFirst.equals(overlapFirst) && ownerFirst.equals(disjointFirst)
-               && ownerSecond.equals(overlapSecond) && ownerSecond.equals(disjointSecond),
+               && ownerSecond.equals(overlapSecond) && ownerSecond.equals(disjointSecond)
+               && !ownerFirst.equals(ownerSecond),
             "adapter FOM returned inconsistent interaction, parameter, or dimension handles");
+          if (verifyRestrictedDefaultRange) {
+             JavaTckSupport.check(ownerInteraction != null && ownerInteraction.encodedLength() > 0
+                   && overlapInteraction != null && overlapInteraction.encodedLength() > 0
+                   && disjointInteraction != null && disjointInteraction.encodedLength() > 0
+                   && ownerParameter != null && ownerParameter.encodedLength() > 0
+                   && overlapParameter != null && overlapParameter.encodedLength() > 0
+                   && disjointParameter != null && disjointParameter.encodedLength() > 0
+                   && ownerFirst != null && ownerFirst.encodedLength() > 0
+                   && ownerSecond != null && ownerSecond.encodedLength() > 0
+                   && overlapFirst != null && overlapFirst.encodedLength() > 0
+                   && overlapSecond != null && overlapSecond.encodedLength() > 0
+                   && disjointFirst != null && disjointFirst.encodedLength() > 0
+                   && disjointSecond != null && disjointSecond.encodedLength() > 0,
+                "regional interaction routing returned an invalid interaction, parameter, or dimension handle");
+          }
          JavaTckSupport.check(owner.getAvailableDimensionsForInteractionClass(ownerInteraction)
                .contains(ownerFirst)
                && owner.getAvailableDimensionsForInteractionClass(ownerInteraction)
@@ -162,8 +184,8 @@ final class RegionalInteractionRoutingTck {
             verifyRegionTemplateLifecycle(owner, ownerInteraction, ownerParameter,
                ownerFirst, ownerSecond);
             verifySingleDimensionRegionSet(owner, ownerFirst, ownerSecond);
-            omittedDimensionSourceRegion = createRegion(owner, ownerFirst, 1, 5);
-            omittedDimensionReceiverRegion = createRegion(overlap, overlapSecond, 6, 9);
+            omittedDimensionSourceRegion = createRegion(owner, ownerFirst, 1, 5, true);
+            omittedDimensionReceiverRegion = createRegion(overlap, overlapSecond, 6, 9, true);
             omittedDimensionSourceRegions = regionSet(owner, omittedDimensionSourceRegion);
             omittedDimensionReceiverRegions = regionSet(overlap, omittedDimensionReceiverRegion);
             omittedDimensionSubscribed = true;
@@ -188,9 +210,12 @@ final class RegionalInteractionRoutingTck {
                ownerInteraction, overlapInteraction, ownerParameter, overlapParameter, producer,
                ownerFirst, ownerSecond, overlapFirst, overlapSecond, callbackModel);
          }
-         sourceRegion = createRegion(owner, ownerFirst, ownerSecond, 1, 5, 1, 5);
-         overlapRegion = createRegion(overlap, overlapFirst, overlapSecond, 2, 6, 2, 6);
-         disjointRegion = createRegion(disjoint, disjointFirst, disjointSecond, 7, 9, 7, 9);
+         sourceRegion = createRegion(owner, ownerFirst, ownerSecond, 1, 5, 1, 5,
+            verifyRestrictedDefaultRange);
+         overlapRegion = createRegion(overlap, overlapFirst, overlapSecond, 2, 6, 2, 6,
+            verifyRestrictedDefaultRange);
+         disjointRegion = createRegion(disjoint, disjointFirst, disjointSecond, 7, 9, 7, 9,
+            verifyRestrictedDefaultRange);
          sourceRegions = regionSet(owner, sourceRegion);
          overlapRegions = regionSet(overlap, overlapRegion);
          disjointRegions = regionSet(disjoint, disjointRegion);
@@ -296,6 +321,19 @@ final class RegionalInteractionRoutingTck {
       DimensionHandle overlapSecond = overlap.getDimensionHandle(secondDimensionName);
       DimensionHandle disjointFirst = disjoint.getDimensionHandle(firstDimensionName);
       DimensionHandle disjointSecond = disjoint.getDimensionHandle(secondDimensionName);
+      JavaTckSupport.check(ownerObject != null && ownerObject.encodedLength() > 0
+             && overlapObject != null && overlapObject.encodedLength() > 0
+             && disjointObject != null && disjointObject.encodedLength() > 0
+             && ownerAttribute != null && ownerAttribute.encodedLength() > 0
+             && overlapAttribute != null && overlapAttribute.encodedLength() > 0
+             && disjointAttribute != null && disjointAttribute.encodedLength() > 0
+             && ownerFirst != null && ownerFirst.encodedLength() > 0
+             && ownerSecond != null && ownerSecond.encodedLength() > 0
+             && overlapFirst != null && overlapFirst.encodedLength() > 0
+             && overlapSecond != null && overlapSecond.encodedLength() > 0
+             && disjointFirst != null && disjointFirst.encodedLength() > 0
+             && disjointSecond != null && disjointSecond.encodedLength() > 0,
+          "adapter FOM lookup returned an invalid object, attribute, or dimension handle");
       JavaTckSupport.check(ownerObject.equals(overlapObject)
             && ownerObject.equals(disjointObject)
             && ownerAttribute.equals(overlapAttribute)
@@ -330,6 +368,7 @@ final class RegionalInteractionRoutingTck {
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle template = owner.createRegion(dimensions);
+      checkRegionHandle(template, "region-template creation");
       RegionHandleSet regions = regionSet(owner, template);
       try {
          byte[] value = new byte[] {0x52};
@@ -359,6 +398,7 @@ final class RegionalInteractionRoutingTck {
       DimensionHandleSet dimensions = owner.getDimensionHandleSetFactory().create();
       dimensions.add(first);
       RegionHandle region = owner.createRegion(dimensions);
+      checkRegionHandle(region, "single-dimension region creation");
       try {
          owner.setRangeBounds(region, first, new RangeBounds(1, 5));
          owner.commitRegionModifications(regionSet(owner, region));
@@ -444,6 +484,7 @@ final class RegionalInteractionRoutingTck {
       DimensionHandleSet dimensions = overlap.getDimensionHandleSetFactory().create();
       dimensions.add(overlapFirst);
       RegionHandle receiverRegion = overlap.createRegion(dimensions);
+      checkRegionHandle(receiverRegion, "boundary-probe region creation");
       RegionHandleSet receiverRegions = regionSet(overlap, receiverRegion);
       boolean subscribed = false;
       long[][] bounds = {{0, 1}, {1, 2}, {4, 5}, {5, 6}};
@@ -497,11 +538,13 @@ final class RegionalInteractionRoutingTck {
       DimensionHandleSet receiverDimensions = overlap.getDimensionHandleSetFactory().create();
       receiverDimensions.add(overlapFirst);
       RegionHandle receiverRegion = overlap.createRegion(receiverDimensions);
+      checkRegionHandle(receiverRegion, "modified-subscription receiver region creation");
       RegionHandleSet receiverRegions = regionSet(overlap, receiverRegion);
       DimensionHandleSet sourceDimensions = owner.getDimensionHandleSetFactory().create();
       sourceDimensions.add(ownerFirst);
       sourceDimensions.add(ownerSecond);
       RegionHandle sourceRegion = owner.createRegion(sourceDimensions);
+      checkRegionHandle(sourceRegion, "modified-subscription source region creation");
       RegionHandleSet sourceRegions = regionSet(owner, sourceRegion);
       boolean subscribed = false;
       try {
@@ -576,7 +619,9 @@ final class RegionalInteractionRoutingTck {
          CallbackModel callbackModel) throws Exception {
       DimensionHandle ownerUnrelated = owner.getDimensionHandle("TckUnrelatedDimension");
       DimensionHandle overlapUnrelated = overlap.getDimensionHandle("TckUnrelatedDimension");
-      JavaTckSupport.check(ownerUnrelated.equals(overlapUnrelated)
+      JavaTckSupport.check(ownerUnrelated != null && ownerUnrelated.encodedLength() > 0
+            && overlapUnrelated != null && overlapUnrelated.encodedLength() > 0
+            && ownerUnrelated.equals(overlapUnrelated)
             && !ownerUnrelated.equals(ownerFirst) && !ownerUnrelated.equals(ownerSecond),
          "default-region equivalence FOM omitted or duplicated its unrelated dimension");
 
@@ -585,6 +630,7 @@ final class RegionalInteractionRoutingTck {
       allDimensions.add(ownerSecond);
       allDimensions.add(ownerUnrelated);
       RegionHandle sourceRegion = owner.createRegion(allDimensions);
+      checkRegionHandle(sourceRegion, "full-FDD source region creation");
       RegionHandleSet sourceRegions = regionSet(owner, sourceRegion);
       RegionHandle validSourceRegion = null;
       RegionHandleSet validSourceRegions = null;
@@ -628,6 +674,7 @@ final class RegionalInteractionRoutingTck {
             "the test FOM no longer isolates its unrelated third dimension");
 
          validSourceRegion = owner.createRegion(ownerInteractionDimensions);
+         checkRegionHandle(validSourceRegion, "full-range interaction source region creation");
          validSourceRegions = regionSet(owner, validSourceRegion);
          for (DimensionHandle dimension : ownerInteractionDimensions) {
             owner.setRangeBounds(validSourceRegion, dimension,
@@ -639,6 +686,7 @@ final class RegionalInteractionRoutingTck {
             "the valid interaction source region changed its Create Region dimension set");
 
          receiverRegion = overlap.createRegion(interactionDimensions);
+         checkRegionHandle(receiverRegion, "full-range receiver region creation");
          receiverRegions = regionSet(overlap, receiverRegion);
          for (DimensionHandle dimension : interactionDimensions) {
             overlap.setRangeBounds(receiverRegion, dimension,
@@ -744,11 +792,12 @@ final class RegionalInteractionRoutingTck {
 
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle first,
          DimensionHandle second, long firstLower, long firstUpper,
-         long secondLower, long secondUpper) throws Exception {
+         long secondLower, long secondUpper, boolean verifyHandle) throws Exception {
       DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle region = ambassador.createRegion(dimensions);
+      if (verifyHandle) checkRegionHandle(region, "regional interaction region creation");
       ambassador.setRangeBounds(region, first, new RangeBounds(firstLower, firstUpper));
       ambassador.setRangeBounds(region, second, new RangeBounds(secondLower, secondUpper));
       RegionHandleSet regions = regionSet(ambassador, region);
@@ -757,13 +806,19 @@ final class RegionalInteractionRoutingTck {
    }
 
    private static RegionHandle createRegion(RTIambassador ambassador, DimensionHandle dimension,
-         long lower, long upper) throws Exception {
+         long lower, long upper, boolean verifyHandle) throws Exception {
       DimensionHandleSet dimensions = ambassador.getDimensionHandleSetFactory().create();
       dimensions.add(dimension);
       RegionHandle region = ambassador.createRegion(dimensions);
+      if (verifyHandle) checkRegionHandle(region, "single-dimension routing region creation");
       ambassador.setRangeBounds(region, dimension, new RangeBounds(lower, upper));
       ambassador.commitRegionModifications(regionSet(ambassador, region));
       return region;
+   }
+
+   private static void checkRegionHandle(RegionHandle region, String description) {
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         description + " returned an invalid handle");
    }
 
    private static RegionHandleSet regionSet(RTIambassador ambassador, RegionHandle region)
@@ -784,13 +839,17 @@ final class RegionalInteractionRoutingTck {
       boolean matchingTag = Arrays.equals(expectedTag, actual.tag);
       boolean matchingProducer = expectedProducer.equals(actual.producer);
       boolean matchingRegions = actual.regions != null && actual.regions.size() == 1
+          && (expectedTransportationName != null
+             || actual.regions.iterator().next().encodedLength() > 0)
          && actual.regionDimensions != null && actual.regionDimensions.size() == 2
          && actual.regionDimensions.contains(expectedFirst)
          && actual.regionDimensions.contains(expectedSecond)
          && boundsMatch(actual.firstRegionBounds, 1, 5)
          && boundsMatch(actual.secondRegionBounds, 1, 5);
+      boolean matchingTransportation = actual.transportation != null
+          && (expectedTransportationName != null || actual.transportation.encodedLength() > 0);
       JavaTckSupport.check(matchingClass && matchingParameters && matchingTag
-            && matchingProducer && actual.transportation != null && matchingRegions,
+            && matchingProducer && matchingTransportation && matchingRegions,
          "regional interaction metadata mismatch: class=" + matchingClass
             + ", parameters=" + matchingParameters + ", tag=" + matchingTag
             + ", producer=" + matchingProducer + ", transportation="
