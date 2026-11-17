@@ -5376,29 +5376,29 @@
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l17-5",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l68-22",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l71-23",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         },
         {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-083-l77-25",
-          "standard_section": "hla-1516.1-2025:clause-5.1.3"
+          "standard_section": "hla-1516.1-2025:clause-5.1.2"
         }
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-5.1.3"
+        "hla-1516.1-2025:clause-5.1.2"
       ],
-      "mapping_note": "Exact parity to the C++ source case's direct §5.1.3 mappings: one registered derived-class object is discovered once in a base-view federate and once in a derived-view federate, with Get Known Object Class Handle matching each federate's discovered class; the registrant's Get Known Object Class Handle returns the registered derived class. Each ambassador resolves its own object handle to the common object name; opaque handles are not compared across ambassadors. As a supplementary object-identity check, Java also round-trips each member's own object handle from that common name. The mapped assertions directly cover the §5.1.3 discovery and known-class rules at page 083 lines 17, 68, 71, and 77, alongside the existing line-29 per-federate class-variation mapping. The adapter supplies the hierarchy FOM, class/attribute names, provider, endpoint, and callback model; source imports only the official Java API and JDK.",
+      "mapping_note": "Direct mappings cover the five selected IEEE 1516.1-2025 §5.1.2 requirements at page 83 lines 17, 29, 68, 71, and 77. The Java scenario registers one derived-class object; base and derived subscribers each receive exactly one discovery with the class view selected by their own subscription, and Get Known Object Class Handle returns that same per-federate class. The publisher resolves the registered class. Each member resolves its own discovered handle back to the shared object name and resolves that name to its own local handle; opaque handles are not compared across members. The paired C++ row also maps the late-subscription §5.8 witness and §6.1.1 update/reflection witnesses, which this Java scenario does not assert because it has no late subscription or attribute update. The C++ summary-rule-2 entry is nonnormative and is not mapped to a Java requirement. The adapter supplies the hierarchy FOM, class and attribute names, provider, endpoint, and callback model; the source imports only the official Java API and JDK.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "object-instance-registration-api-contract.json",
@@ -5425,7 +5425,7 @@
       ],
       "promotion": "promoted",
       "exclusion": "Requires the adapter-supplied known-class hierarchy FOM and class/attribute names, plus an installed IEEE 1516.1-2025 Java provider.",
-      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: out/java-tck/per-federate-discovered-class-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract selectors for this case and registered-object-class-immutability passed 8/8 focused CTests and 8/8 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/object-class-view-java-parity-20261116.{json,xml}. Direct mappings remain limited to the selected §5.1.3 requirements. Local-provider evidence does not establish independent-provider behavior or conformance."
+      "evidence_note": "Default-enabled Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with the pinned IEEE 1516.1-2025 API, known-class-advisory-tck.xml, HLAinteger64Time, HLAobjectRoot.TckKnownClassObject and its TckKnownClassDerivedObject subclass, Name, and Efficiency. Results/JUnit: .build/java-tck-20261117/per-federate-discovered-class-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: .build/cpp-tck-java-parity-named-registration/per-federate-discovered-class.{json,xml}. Direct mappings cover only the selected §5.1.2 requirements. The paired C++ §5.8 late-subscription and §6.1.1 update/reflection witnesses are not mapped because this Java case does not exercise those actions; summary-rule-2 is nonnormative. Local-provider evidence does not establish independent-provider behavior or conformance."
     },
     {
       "id": "java-tck.registered-object-class-immutability",

@@ -38556,6 +38556,27 @@
         "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and adapter ddm-tck.xml. Results/JUnit: .build/java-tck-20261117/default-region-interaction-transport-handle-parity-{evoked,immediate}.{json,xml}; traceability: .build/java-tck-20261117/default-region-interaction-transport-handle-parity-traceability.json. The paired promoted C++ primary reports both callback models passed and validates with no findings in .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/default-region-interaction-routing-parity-20261117.json.",
         "mapping_and_validation": "Preserved all existing direct requirement-to-2025-section mappings and the Java unsupported/default-disabled disposition. Java catalog validation is clean for 966 scenarios; the scenario inventory matches the Java result at 44 API methods; the paired C++ catalog validation is clean. No Requirements Lab resynchronization.",
         "boundary": "Evidence is local-provider and adapter-specific. It does not establish independent-provider behavior, interoperability, or conformance."
+      },
+      "latest_verified_java_per_federate_discovered_class_mapping_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Corrected the Java per-federate discovered-class scenario’s five direct requirement mappings from §5.1.3 to the paired C++ case’s §5.1.2. Kept the evidence scoped to receiver-local discovery and class-handle assertions.",
+        "scenario_ids": [
+          "java-tck.per-federate-discovered-class",
+          "cpp-tck.per-federate-discovered-class",
+          "cpp-tck.per-federate-discovered-class-contract"
+        ],
+        "sources": "compliance/catalogs/java-tck-scenarios/part-01.json; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l17-5 -> IEEE 1516.1-2025 §5.1.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l29-9 -> IEEE 1516.1-2025 §5.1.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l68-22 -> IEEE 1516.1-2025 §5.1.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l71-23 -> IEEE 1516.1-2025 §5.1.2",
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l77-25 -> IEEE 1516.1-2025 §5.1.2"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and known-class-advisory-tck.xml. Results/JUnit: .build/java-tck-20261117/per-federate-discovered-class-focused-{evoked,immediate}.{json,xml}. The installed-package C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct runs across both callback models; results: .build/cpp-tck-java-parity-named-registration/per-federate-discovered-class.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicit not-applicable cases. Focused C++ result validation passed. The Java row maps only the five selected §5.1.2 requirements; paired C++ late-subscription §5.8 and update/reflection §6.1.1 witnesses remain unmapped because the Java scenario does not exercise them. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ provider. It does not establish independent-provider behavior, interoperability, or conformance.",
+        "next": "Next exact pair: cpp-tck.registered-object-class-immutability and java-tck.registered-object-class-immutability. Verify the shared page-83 requirement candidate against the pinned source and compare the Java case’s registered, discovered, and known class assertions. Its Java mapping currently says §5.1.3 while the C++ row says §5.1.2. Correct only the direct mapping supported by the Java assertions, preserve receiver-local handle claims, and run both callback models with the paired C++ selectors."
       }
     }
   ],
