@@ -4274,11 +4274,13 @@
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getFederateName",
-        "RTIambassador.updateAttributeValues(receive-order overload)",
+        "RTIambassador.updateAttributeValues(receive order)",
         "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
+        "ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST",
+        "ResignAction.NO_ACTION",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
         "RTIambassador.evokeCallback",
@@ -4288,6 +4290,7 @@
         "DimensionHandleSet.contains",
         "ObjectInstanceHandle.encodedLength/equals",
         "AttributeHandleValueMap.clone/size/get",
+        "TransportationTypeHandle.encodedLength",
         "RegionHandleSet.isEmpty"
       ],
       "requirement_ids": [
@@ -4339,7 +4342,7 @@
       "default_status": "run",
       "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider.",
       "promotion": "promoted",
-      "evidence_note": "Built and run against the pinned IEEE 1516.1-2025 Java API with the current-source Umbra JNI provider. The promoted Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE; the installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models. Results: out/java-tck/default-region-registration-names-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml} and out/cpp-tck-evidence-20261116/default-region-registration-names-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
+      "evidence_note": "Built and run against the pinned IEEE 1516.1-2025 Java API with the current-source Umbra JNI provider. The promoted Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE, including a positive TransportationTypeHandle.encodedLength() check matching the C++ valid-handle assertion; the installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models. Latest Java results/JUnit: .build/java-tck-20261117/default-region-registration-names-{evoked,immediate}.{json,xml}. Earlier package and C++ results: out/java-tck/default-region-registration-names-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml} and out/cpp-tck-evidence-20261116/default-region-registration-names-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
     },
     {
       "id": "java-tck.default-region-object-routing",

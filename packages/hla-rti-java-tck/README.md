@@ -5824,7 +5824,11 @@ and known class per receiver-local handle, default-source reflection values,
 tags, producer name, and an empty region-designator set. Its two direct
 mappings are limited to IEEE 1516.1-2025 §9.1.6. Java passed under
 HLA_EVOKED and HLA_IMMEDIATE with `ddm-tck.xml`, HLAobjectRoot.TckObject,
-Value, TckDimensionX, and TckDimensionY. The installed-package C++
+Value, TckDimensionX, and TckDimensionY. The Java callback also verifies that
+the returned transportation handle has a positive encoded length, matching the
+C++ valid-handle assertion. Latest results/JUnit are in
+`.build/java-tck-20261117/default-region-registration-names-{evoked,immediate}.{json,xml}`.
+The installed-package C++
 primary/contract selectors passed 4/4 focused CTests and 4/4 direct runs.
 Results are in
 `out/java-tck/default-region-registration-names-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml}`

@@ -250,7 +250,8 @@ final class DefaultRegionRegistrationNamesTck {
             && Arrays.equals(tag, reflection.tag)
             && producerName.equals(receiver.getFederateName(reflection.producer)),
          description + " changed object, value, tag, or producer");
-      JavaTckSupport.check(reflection.transportation != null,
+      JavaTckSupport.check(reflection.transportation != null
+            && reflection.transportation.encodedLength() > 0,
          description + " returned an invalid transportation handle");
       JavaTckSupport.check(reflection.regions != null && reflection.regions.isEmpty(),
          description + " did not carry an explicitly empty default-source region set");
