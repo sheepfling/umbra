@@ -5093,13 +5093,24 @@ shared dimensions using the `hla.rti.tck.knownClass*`,
 with both callback models; the exception type is checked as Java API behavior,
 and behavior on other providers is unverified.
 
-The opt-in `java-tck.regional-interaction-empty-subscription-sets` case checks
-that an empty regional subscription creates no delivery route and that an empty
-regional unsubscription leaves an existing route intact. It also verifies
-ordinary delivery before and after a real regional unsubscription, including
-payload, producer, transport, tag, and source-region designator metadata. Its
-interaction class, parameter, two dimensions, and DDM FOM are adapter supplied;
-provider runtime remains unverified.
+The default-run `java-tck.regional-interaction-empty-subscription-sets` case
+checks that an empty regional subscription creates no delivery route, an empty
+regional unsubscription leaves an existing route intact, and unsubscribing a
+committed region absent from that route is a no-op. It also checks that
+unsubscribing a deleted region fails with `InvalidRegion` without disturbing the
+active route, then verifies that removing the active region suppresses later
+delivery. Callback checks cover payload, producer, transport, tag, and one
+receiver-local source-region designator copy with its dimensions and `[0,2)`
+bounds. Direct mappings are limited to the three §9.11 unsubscription outcomes
+and the deleted-region §9.11.3 exception outcome; empty-subscription filtering,
+fixture checks, handles, and callback metadata are supplemental. The pinned
+Java API, DDM FOM, object class, attribute, interaction, parameter, dimensions,
+and callback model are adapter supplied.
+
+The focused run passed under HLA_EVOKED and HLA_IMMEDIATE against current-source
+Umbra JNI using `ddm-tck.xml`; results and JUnit reports are in
+`out/java-tck/regional-interaction-empty-subscription-sets-java-parity-20261116/`.
+Independent Java providers have not been tested.
 
 The opt-in `java-tck.regional-interaction-source-region-snapshot` case queues
 an ordinary regional interaction, mutates its source region to in-range

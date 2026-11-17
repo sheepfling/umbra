@@ -6537,12 +6537,12 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.regional-interaction-empty-subscription-sets",
              "treat empty regional interaction subscription and unsubscription sets as no-ops",
              "regional-interaction-management",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionUpperBound;RTIambassador.publishInteractionClass;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.subscribeInteractionClassWithRegions;RTIambassador.sendInteractionWithRegions;RTIambassador.unsubscribeInteractionClassWithRegions;RTIambassador.deleteRegion;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;FederateAmbassador.receiveInteraction(receive order with region designators)",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;ObjectClassHandle.encodedLength;AttributeHandle.encodedLength;InteractionClassHandle.encodedLength;ParameterHandle.encodedLength;DimensionHandle.encodedLength;RTIambassador.publishInteractionClass;RTIambassador.getDimensionHandleSetFactory;RTIambassador.getRegionHandleSetFactory;RTIambassador.createRegion;RegionHandle.encodedLength;RTIambassador.setRangeBounds;RTIambassador.getRangeBounds;RTIambassador.getDimensionHandleSet;RTIambassador.commitRegionModifications;RTIambassador.setConveyRegionDesignatorSetsSwitch;RTIambassador.subscribeInteractionClassWithRegions;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.sendInteractionWithRegions;RTIambassador.getTransportationTypeName;RTIambassador.unsubscribeInteractionClassWithRegions;RTIambassador.deleteRegion;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction(receive order with region designators)",
              new String[] {
                 "cpp-1516.1-ddm-regional-interaction-subscription",
                 "cpp-1516.1-ddm-regional-interaction-delivery",
                 "cpp-1516.1-ddm-regional-interaction-filtering"
-             }, false), RtiTckMain::regionalInteractionEmptySubscriptionSets);
+             }, true), RtiTckMain::regionalInteractionEmptySubscriptionSets);
        run(new Scenario("java-tck.regional-interaction-source-region-snapshot",
              "preserve the send-time source region for queued ordinary regional interactions",
              "regional-interaction-management",
@@ -14243,7 +14243,8 @@ public final class RtiTckMain {
 
     private static void regionalInteractionEmptySubscriptionSets() throws Exception {
        RegionalInteractionEmptySubscriptionSetsTck.run(factory(),
-          requireAdapterFile(DDM_FOM_PROPERTY), requireAdapterValue(INTERACTION_CLASS_PROPERTY),
+          requireAdapterFile(DDM_FOM_PROPERTY), requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
+          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(INTERACTION_CLASS_PROPERTY),
           requireAdapterValue(PARAMETER_PROPERTY), requireAdapterValue(DIMENSION_PROPERTY),
           requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
     }
