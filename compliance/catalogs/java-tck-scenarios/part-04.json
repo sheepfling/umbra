@@ -4394,7 +4394,11 @@
         "RegionHandleSet.size/iterator",
         "RangeBounds.lower/upper",
         "DimensionHandle.equals",
-        "ObjectInstanceHandle.equals"
+        "ObjectInstanceHandle.equals",
+        "ResignAction.DELETE_OBJECTS",
+        "ResignAction.NO_ACTION",
+        "AttributeRegionAssociation",
+        "TransportationTypeHandle.encodedLength"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
@@ -4510,7 +4514,7 @@
       "default_status": "run",
       "exclusion": "Requires an adapter-supplied dimensional FOM, object/attribute/two-dimension names, and installed IEEE 1516.1-2025 Java provider.",
       "promotion": "promoted",
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Current-source Umbra JNI runs passed this scenario 1/1 under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. Java artifacts: out/java-tck/default-region-object-routing-java-parity-20261116/{evoked,immediate}/{results.json,junit.xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/default-region-object-routing-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Current-source Umbra JNI runs passed this scenario 1/1 under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. The reflection checks also confirm TransportationTypeHandle.encodedLength() is positive, matching the C++ transportation-validity assertion. Java artifacts: .build/java-tck-20261117/default-region-object-routing-transportation-{evoked,immediate}.{json,xml}. The installed-package C++ primary/contract passed 4/4 focused CTests and 4/4 direct runs across both callback models; evidence: out/cpp-tck-evidence-20261116/default-region-object-routing-java-parity-20261116.{json,xml}. This local-provider evidence does not establish independent-provider interoperability or overall conformance."
     },
     {
       "id": "java-tck.default-region-class-request-equivalence",

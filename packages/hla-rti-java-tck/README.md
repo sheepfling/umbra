@@ -5804,13 +5804,15 @@ default source region, explicit source associations, regional callback
 designators, and the independent ordinary and regional subscription routes.
 It queries dimension metadata and checks each callback source region through
 the receiving ambassador, without comparing opaque handles across members.
+Each reflection also checks that its transportation handle has a positive
+encoded length, matching the C++ validity assertion.
 Its 15 direct requirement mappings are limited to IEEE 1516.1-2025 §§9.1.1,
 9.1.3.2, 9.1.5, and 9.8; the full subscription-tuple matrix is not claimed.
 Java passed under HLA_EVOKED and HLA_IMMEDIATE with `ddm-tck.xml`,
 HLAobjectRoot.TckObject, Value, TckDimensionX, and TckDimensionY. The
 installed-package C++ primary/contract selectors passed 4/4 focused CTests
 and 4/4 direct runs. Results are in
-`out/java-tck/default-region-object-routing-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml}`
+`.build/java-tck-20261117/default-region-object-routing-transportation-{evoked,immediate}.{json,xml}`
 and
 `out/cpp-tck-evidence-20261116/default-region-object-routing-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and

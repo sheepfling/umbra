@@ -734,7 +734,8 @@ final class DefaultRegionObjectRoutingTck {
             && Arrays.equals(tag, reflection.tag)
             && producerName.equals(receiver.getFederateName(reflection.producer)),
          description + " changed object, attribute value, tag, or producer");
-      JavaTckSupport.check(reflection.transportation != null,
+      JavaTckSupport.check(reflection.transportation != null
+            && reflection.transportation.encodedLength() > 0,
          description + " returned an invalid transportation handle");
       JavaTckSupport.check(reflection.regionSetPresent
             && (sourceBounds == null ? reflection.regionCount == 0
