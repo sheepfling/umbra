@@ -19,7 +19,7 @@ import java.lang.reflect.Proxy;
 import java.util.Set;
 import java.util.UUID;
 
-/** Verifies that unpublishing releases an associated region's update-use dependency. */
+/** Verifies that unpublishing and unsubscribing release region-use dependencies. */
 final class RegionalUnpublishRegionReleaseTck {
    private RegionalUnpublishRegionReleaseTck() { }
 
@@ -29,7 +29,11 @@ final class RegionalUnpublishRegionReleaseTck {
       RTIambassador owner = factory.getRtiAmbassador();
       String federation = "java-tck-regional-unpublish-region-release-" + UUID.randomUUID();
       boolean connected = false, created = false, joined = false, published = false;
-      RegionHandle region = null;
+      boolean regionalSubscribed = false;
+      RegionHandle region = null, subscriptionRegion = null;
+      ObjectClassHandle objectClass = null;
+      AttributeHandleSet attributes = null;
+      AttributeSetRegionSetPairList subscriptionAssociation = null;
       try {
          owner.connect(noopFederateAmbassador(), callbackModel);
          connected = true;
@@ -38,18 +42,20 @@ final class RegionalUnpublishRegionReleaseTck {
          owner.joinFederationExecution("java-tck-regional-unpublish-owner", federation);
          joined = true;
 
-         ObjectClassHandle objectClass = owner.getObjectClassHandle(objectClassName);
+         objectClass = owner.getObjectClassHandle(objectClassName);
          AttributeHandle attribute = owner.getAttributeHandle(objectClass, attributeName);
          DimensionHandle firstDimension = owner.getDimensionHandle(firstDimensionName);
          DimensionHandle secondDimension = owner.getDimensionHandle(secondDimensionName);
          Set<DimensionHandle> available = owner.getAvailableDimensionsForObjectClass(objectClass);
          JavaTckSupport.check(available.contains(firstDimension)
                && available.contains(secondDimension)
+               && firstDimensionName.equals(owner.getDimensionName(firstDimension))
+               && secondDimensionName.equals(owner.getDimensionName(secondDimension))
                && owner.getDimensionUpperBound(firstDimension) >= 5
                && owner.getDimensionUpperBound(secondDimension) >= 5,
-            "adapter object class must expose the two configured DDM dimensions with adequate bounds");
+            "adapter object class dimensions must match their names and bounds");
 
-         AttributeHandleSet attributes = JavaTckSupport.attributeSet(owner, attribute);
+         attributes = JavaTckSupport.attributeSet(owner, attribute);
          owner.publishObjectClassAttributes(objectClass, attributes);
          published = true;
          region = createRegion(owner, firstDimension, secondDimension);
@@ -71,18 +77,37 @@ final class RegionalUnpublishRegionReleaseTck {
          JavaTckSupport.expectFailure(() -> owner.getDimensionHandleSet(registeredRegion),
             "InvalidRegion", "looking up dimensions after the region has been released");
 
+         subscriptionRegion = createRegion(owner, firstDimension, secondDimension);
+         subscriptionAssociation = association(owner, attributes, subscriptionRegion);
+         owner.subscribeObjectClassAttributesPassivelyWithRegions(
+            objectClass, subscriptionAssociation, "");
+         regionalSubscribed = true;
+         RegionHandle subscribedRegion = subscriptionRegion;
+         JavaTckSupport.expectFailure(() -> owner.deleteRegion(subscribedRegion),
+            "RegionInUseForUpdateOrSubscription",
+            "deleting a region used by a passive class-attribute subscription");
+         owner.unsubscribeObjectClassAttributesWithRegions(objectClass, subscriptionAssociation);
+         regionalSubscribed = false;
+         owner.deleteRegion(subscriptionRegion);
+         subscriptionRegion = null;
+         JavaTckSupport.expectFailure(() -> owner.getDimensionHandleSet(subscribedRegion),
+            "InvalidRegion", "looking up dimensions after the subscription releases the region");
+
          owner.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
          joined = false;
          owner.destroyFederationExecution(federation);
          created = false;
       } finally {
-         if (published && joined) try {
-            ObjectClassHandle objectClass = owner.getObjectClassHandle(objectClassName);
-            AttributeHandle attribute = owner.getAttributeHandle(objectClass, attributeName);
-            owner.unpublishObjectClassAttributes(
-               objectClass, JavaTckSupport.attributeSet(owner, attribute));
+         if (regionalSubscribed && joined && objectClass != null && subscriptionAssociation != null)
+            try {
+               owner.unsubscribeObjectClassAttributesWithRegions(objectClass, subscriptionAssociation);
+            } catch (Exception ignored) { }
+         if (published && joined && objectClass != null && attributes != null) try {
+            owner.unpublishObjectClassAttributes(objectClass, attributes);
          } catch (Exception ignored) { }
          if (region != null && joined) try { owner.deleteRegion(region); }
+            catch (Exception ignored) { }
+         if (subscriptionRegion != null && joined) try { owner.deleteRegion(subscriptionRegion); }
             catch (Exception ignored) { }
          if (joined) try {
             owner.resignFederationExecution(ResignAction.CANCEL_THEN_DELETE_THEN_DIVEST);
@@ -99,6 +124,8 @@ final class RegionalUnpublishRegionReleaseTck {
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle region = owner.createRegion(dimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "regional publication region creation returned an invalid handle");
       owner.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(1, 5));
       owner.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(1, 5));
       RegionHandleSet regions = owner.getRegionHandleSetFactory().create();

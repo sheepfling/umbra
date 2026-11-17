@@ -6573,13 +6573,13 @@ public final class RtiTckMain {
                 "cpp-1516.1-ddm-range-validation"
              }, false), RtiTckMain::regionalInteractionRegionValidation);
        run(new Scenario("java-tck.regional-unpublish-region-release",
-             "release a region's update-use dependency synchronously when its associated attribute is unpublished",
+             "reject region deletion while update association or class-attribute subscription uses it",
              "regional-publication",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getDimensionUpperBound;RTIambassador.publishObjectClassAttributes;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getRegionHandleSetFactory;RTIambassador.getAttributeSetRegionSetPairListFactory;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.deleteRegion;RTIambassador.unpublishObjectClassAttributes;RTIambassador.getDimensionHandleSet;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getDimensionUpperBound;RTIambassador.publishObjectClassAttributes;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.commitRegionModifications;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getRegionHandleSetFactory;RTIambassador.getAttributeSetRegionSetPairListFactory;RegionHandle.encodedLength;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.deleteRegion;RTIambassador.unpublishObjectClassAttributes;RTIambassador.getDimensionHandleSet;RTIambassador.subscribeObjectClassAttributesPassivelyWithRegions;RTIambassador.unsubscribeObjectClassAttributesWithRegions;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
              new String[] {
                 "cpp-1516.1-ddm-regional-object-registration",
                 "cpp-1516.1-ddm-region-lifecycle"
-             }, false), RtiTckMain::regionalUnpublishRegionRelease);
+             }, true), RtiTckMain::regionalUnpublishRegionRelease);
        run(new Scenario("java-tck.region-lifecycle",
              "enforce DDM region service membership boundaries and create, inspect, modify, commit, and delete standard regions",
              "data-distribution-management",

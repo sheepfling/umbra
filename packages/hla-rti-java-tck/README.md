@@ -5126,12 +5126,21 @@ FOM and interaction, parameter, two valid dimensions, and unrelated dimension
 are adapter supplied; the unrelated dimension uses
 `hla.rti.tck.ddmUnrelatedDimension`. Provider runtime remains unverified.
 
-The opt-in `java-tck.regional-unpublish-region-release` case associates a
-registered object's attribute with a region, verifies deletion is rejected
-while the region is in use, then unpublishes that attribute and confirms the
-region can be deleted immediately and its former handle is invalid. The DDM
-FOM, object class, attribute, and two dimensions are adapter supplied; provider
-runtime remains unverified.
+The default `java-tck.regional-unpublish-region-release` case checks both
+region-use paths from the C++ scenario. A region associated with a registered
+object's attribute cannot be deleted until the attribute is unpublished; it is
+then deleted immediately, and the stale handle is rejected. A second region
+used by a passive class-attribute subscription cannot be deleted until
+unsubscribe, then is deleted and its stale handle is rejected. Its direct
+mapping is limited to §9.4. The adapter supplies `ddm-tck.xml`,
+HLAobjectRoot.TckObject/Value, TckDimensionX, TckDimensionY, and callback model.
+Focused Java runs passed under both callback models against local Umbra JNI;
+the paired C++ direct scenario passed both models using the existing installed
+package adapter executable. Java results/JUnit are in
+`out/java-tck/regional-unpublish-region-release-java-parity-20261116/`; C++
+results/JUnit are in
+`.build/cpp-tck-regional-request-java-parity-20261116-ninja/`. Other providers
+remain unverified; these runs do not establish conformance.
 
 The opt-in `java-tck.region-lifecycle` case checks DDM services before connect
 and before join, timestamped regional-send boundaries, cross-federate dimension

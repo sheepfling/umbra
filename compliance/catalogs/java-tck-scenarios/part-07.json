@@ -1306,7 +1306,7 @@
     {
       "id": "java-tck.regional-unpublish-region-release",
       "category": "regional-publication",
-      "title": "Release a region's update-use dependency synchronously when its associated attribute is unpublished",
+      "title": "Reject region deletion while update association or class-attribute subscription uses it",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -1314,6 +1314,7 @@
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForObjectClass",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.publishObjectClassAttributes",
@@ -1323,26 +1324,54 @@
         "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getRegionHandleSetFactory",
         "RTIambassador.getAttributeSetRegionSetPairListFactory",
+        "RegionHandle.encodedLength",
         "RTIambassador.registerObjectInstanceWithRegions",
         "RTIambassador.deleteRegion",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.subscribeObjectClassAttributesPassivelyWithRegions",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
-        "cpp-1516.1-ddm-region-lifecycle"
+        "cpp-1516.1-ddm-region-lifecycle",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-227-l173-48-in-use",
+          "standard_section": "hla-1516.1-2025:clause-9.4",
+          "note": "Delete Region is rejected while the region is used by an object update association and while it is used by a passive class-attribute subscription. Unpublishing and unsubscribing each release the corresponding dependency so deletion succeeds immediately. The paired regional-boundaries case covers passive interaction-subscription use."
+        }
+      ],
+      "mapping_note": "This Java public-API scenario directly verifies the source-backed §9.4 region-in-use boundary for object update associations and class-attribute subscriptions, including synchronous release after unpublishing or unsubscribing. The paired regional-boundaries scenario covers passive interaction-subscription use. Stale-handle invalidation checks are supplemental; no other region-lifecycle clauses are claimed. Bounded TCK evidence only; no conformance claim.",
       "contract_refs": [
         "object-attribute-region-api-contract.json",
         "region-lifecycle-api-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalUnpublishRegionRelease",
       "parity": "cpp-tck.regional-unpublish-region-release",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with the configured object class, attribute, two dimensions, and an installed Java 2025 provider; runtime verification remains pending."
+      "default_status": "run",
+      "exclusion": "Requires the adapter-supplied packages/hla-rti-cpp-tck/fom/ddm-tck.xml with HLAobjectRoot.TckObject/Value, TckDimensionX, and TckDimensionY. The focused local-provider runs passed; behavior on other providers remains unverified.",
+      "parity_scope_note": "Mirrors cpp-tck.regional-unpublish-region-release by checking Delete Region rejection while the region is used by an object update association and by a passive class-attribute subscription, then confirming that unpublish or unsubscribe releases each dependency synchronously. Both formerly in-use handles are checked as invalid after deletion. The paired regional-boundaries case covers passive interaction-subscription use.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API and installed Java provider",
+        "packages/hla-rti-cpp-tck/fom/ddm-tck.xml through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value through the DDM object and attribute adapter properties",
+        "TckDimensionX and TckDimensionY through the dimension adapter properties",
+        "Callback model supplied by the adapter"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "The Java sources built against the pinned IEEE 1516.1-2025 Java API. java-tck.regional-unpublish-region-release passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against local Umbra JNI; Java results/JUnit are out/java-tck/regional-unpublish-region-release-java-parity-20261116/{hla_evoked,hla_immediate}-{results.json,junit.xml}. The paired C++ direct scenario passed 1/1 under each callback model using the existing installed-package TCK adapter executable; results/JUnit are .build/cpp-tck-regional-request-java-parity-20261116-ninja/regional-unpublish-region-release-java-parity-20261116.{json,junit.xml}. The C++ adapter build was reused and CTest was skipped for that direct run. Local-provider/package evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.region-lifecycle",
