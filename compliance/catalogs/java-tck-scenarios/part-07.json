@@ -1086,10 +1086,11 @@
         "RTIambassador.subscribeInteractionClassWithRegions",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendInteractionWithRegions",
+        "TransportationTypeHandle.encodedLength",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
-        "RTIambassador.unpublishInteractionClass",
         "RTIambassador.deleteRegion",
+        "RTIambassador.unpublishInteractionClass",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
@@ -1138,7 +1139,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "Direct mappings cover only the three regional-unsubscription outcomes in IEEE 1516.1-2025 §9.11 and the deleted-region InvalidRegion outcome in §9.11.3, matching the paired C++ primary. The empty regional-subscription no-delivery check, fixture validation, handle checks, callback metadata, and delivery assertions are supplemental. Repository-internal cpp-1516.1 identifiers are provenance only and have no normative mapping.",
-      "parity_scope_note": "Ports the paired C++ sequence for empty regional subscribe, active delivery, empty unsubscribe, unsubscribe of a committed absent region, deleted-region rejection with InvalidRegion, and active-region removal. It also checks both returned federate handles are valid. The callback check verifies one receiver-local region designator copy with the expected dimensions and [0,2) bounds; it does not compare publisher and receiver region handles.",
+      "parity_scope_note": "Ports the paired C++ sequence for empty regional subscribe, active delivery, empty unsubscribe, unsubscribe of a committed absent region, deleted-region rejection with InvalidRegion, and active-region removal. It also checks positive encoded lengths for both returned FederateHandles and the callback TransportationTypeHandle. The callback check verifies one receiver-local region designator copy with the expected dimensions and [0,2) bounds; it does not compare publisher and receiver region handles.",
       "adapter_inputs": [
         "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
         "adapter-supplied dimensional DDM FOM via hla.rti.tck.ddmFom, containing the configured object class, attribute, interaction, parameter, and two dimensions",
@@ -1161,7 +1162,7 @@
       "default_status": "run",
       "promotion": "promoted",
       "exclusion": "Requires the pinned IEEE 1516.1-2025 Java API and the adapter-supplied dimensional DDM FOM with the configured object class, attribute, interaction, parameter, and two dimensions.",
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI using ddm-tck.xml and the configured object, attribute, interaction, parameter, and X/Y dimensions. Results/JUnit: .build/java-tck-20261117/empty-subscription-handle-parity-{evoked,immediate}.{json,xml}; traceability export: .build/java-tck-20261117/empty-subscription-handle-parity-traceability.json. Paired C++ direct runs passed both callback models against the installed package; results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/regional-interaction-empty-subscription-sets-handle-parity.{json,xml}; focused validation was valid with no findings. Local-provider evidence only; no independent-provider or conformance claim."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with local Umbra JNI using ddm-tck.xml and the configured object, attribute, interaction, parameter, and X/Y dimensions. The callback assertion now also requires a positive TransportationTypeHandle encoded length before resolving its standard transportation name. Results/JUnit: .build/java-tck-20261117/empty-subscription-transport-handle-parity-{evoked,immediate}.{json,xml}; traceability: .build/java-tck-20261117/empty-subscription-transport-handle-parity-traceability.json. Paired C++ direct runs passed both callback models against the installed package; results/JUnit: .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/regional-interaction-empty-subscription-sets-handle-parity.{json,xml}; focused validation was valid with no findings. This adapter-backed local-provider evidence does not establish independent-provider interoperability or conformance."
     },
     {
       "id": "java-tck.regional-interaction-mixed-absent-unsubscribe",

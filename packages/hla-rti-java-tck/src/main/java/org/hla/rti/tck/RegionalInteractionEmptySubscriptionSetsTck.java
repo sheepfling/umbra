@@ -284,6 +284,7 @@ final class RegionalInteractionEmptySubscriptionSetsTck {
          "regional interaction changed its class, parameter, value, tag, or producer");
       TransportationTypeHandle transportation = interaction.transportation;
       JavaTckSupport.check(transportation != null
+            && transportation.encodedLength() > 0
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "regional interaction returned an unresolvable transportation type");
       JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1,
