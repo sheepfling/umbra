@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** Delivers the next timestamped interaction before completing Next Message Request. */
+/** Delivers an in-process late timestamped interaction before completing Next Message Request. */
 final class NextMessageRequestTck {
    private NextMessageRequestTck() { }
 
@@ -104,18 +104,18 @@ final class NextMessageRequestTck {
          ParameterHandleValueMap parameters =
             publisher.getParameterHandleValueMapFactory().create(1);
          parameters.put(publisherParameter, value);
-         MessageRetractionReturn sent =
-            publisher.sendInteraction(publisherInteraction, parameters, tag, messageTime);
-         JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
-               && sent.handle != null,
-            "timestamped Send Interaction returned no valid retraction handle");
-         MessageRetractionHandle retraction = sent.handle;
          JavaTckSupport.check(receiverRecorder.interactions.isEmpty(),
             "timestamped interaction arrived before Next Message Request");
 
          receiver.nextMessageRequest(requestBoundary);
          JavaTckSupport.check(receiverRecorder.timeAdvanceGrantTimes.isEmpty(),
             "Next Message Request completed before the regulator reached the queued message");
+         MessageRetractionReturn sent =
+            publisher.sendInteraction(publisherInteraction, parameters, tag, messageTime);
+         JavaTckSupport.check(sent != null && sent.retractionHandleIsValid
+               && sent.handle != null,
+            "timestamped Send Interaction returned no valid retraction handle");
+         MessageRetractionHandle retraction = sent.handle;
          publisher.timeAdvanceRequest(publisherTarget);
          awaitDelivery(callbackModel, publisher, receiver, publisherRecorder, receiverRecorder);
 

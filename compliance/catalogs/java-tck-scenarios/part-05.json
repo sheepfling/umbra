@@ -1623,14 +1623,17 @@
       ],
       "requirement_ids": [
         "cpp-1516.1-next-message-request",
-        "cpp-1516.1-next-message-request-delivery"
+        "cpp-1516.1-next-message-request-delivery",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l138-43"
       ],
       "selected_requirements_lab_requirement_ids": [
         "requirement-candidate-content-clauses-08-time-management-page-197-l20-3",
-        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13"
+        "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
+        "requirement-candidate-content-clauses-08-time-management-page-178-l138-43"
       ],
       "standard_sections": [
-        "hla-1516.1-2025:clause-8.10.2"
+        "hla-1516.1-2025:clause-8.10.2",
+        "hla-1516.1-2025:clause-8"
       ],
       "requirement_mappings": [
         {
@@ -1640,9 +1643,14 @@
         {
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-197-l50-13",
           "standard_section": "hla-1516.1-2025:clause-8.10.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-178-l138-43",
+          "standard_section": "hla-1516.1-2025:clause-8"
         }
       ],
-      "mapping_note": "Direct §8.10.2 Next Message Request witness: the receiver obtains the queued timestamped interaction with its official callback metadata before a grant at that message time, then the sender cannot retract the delivered interaction. The two Lab IDs and their subsection are pinned in next-message-request-requirements-contract.json. Focused installed-provider runs pass in both callback models using only official Java API types and adapter-supplied FOM, interaction names, and logical time; other request variants and independent-provider conformance remain separate.",
+      "mapping_note": "The Java case now issues Next Message Request before the publisher sends the timestamped interaction, then verifies the in-process late arrival is delivered before the grant with its official callback metadata. This directly witnesses the bounded late-arrival behavior mapped to requirement-candidate-content-clauses-08-time-management-page-178-l138-43 and §8. The case also directly witnesses §8.10.2: the interaction arrives at its timestamp, and the sender cannot retract it after delivery. The two §8.10.2 Lab IDs and their subsection are pinned in next-message-request-requirements-contract.json. This does not claim arbitrary transport delay, other request variants, or independent-provider conformance.",
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed with the current JNI provider under HLA_EVOKED and HLA_IMMEDIATE using p0-tck.xml and HLAinteger64Time. The receiver issues Next Message Request before the publisher sends the timestamped interaction; both runs pass the late-arrival, callback-order, delivery-metadata, grant-time, logical-time-query, and post-delivery retraction assertions. Results: .build/java-tck-20261117/next-message-request-{evoked,immediate}.results.json and matching JUnit files. Local-provider evidence only; no independent-provider or conformance claim.",
       "contract_refs": [
         "standard-next-message-request-contract.json",
         "next-message-request-api-contract.json",
