@@ -26,7 +26,6 @@ import hla.rti1516_2025.time.LogicalTime;
 import hla.rti1516_2025.time.LogicalTimeFactory;
 import hla.rti1516_2025.time.LogicalTimeInterval;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -156,12 +155,10 @@ final class CustomTransportationTimestampedRegionalAttributeTck {
          immediatePair = association(immediate, immediateAttributes, immediateRegions);
          constrainedPair = association(constrained, constrainedAttributes, constrainedRegions);
          disjointPair = association(disjoint, disjointAttributes, disjointRegions);
-         if (transportationName == null) {
-            immediateCallbacks.regionHook = regions -> checkCallbackRegion(
-               immediate, regions, immediateFirst, immediateSecond);
-            constrainedCallbacks.regionHook = regions -> checkCallbackRegion(
-               constrained, regions, constrainedFirst, constrainedSecond);
-         }
+         immediateCallbacks.regionHook = regions -> checkCallbackRegion(
+            immediate, regions, immediateFirst, immediateSecond);
+         constrainedCallbacks.regionHook = regions -> checkCallbackRegion(
+            constrained, regions, constrainedFirst, constrainedSecond);
          immediate.setConveyRegionDesignatorSetsSwitch(true);
          constrained.setConveyRegionDesignatorSetsSwitch(true);
          disjoint.setConveyRegionDesignatorSetsSwitch(true);
