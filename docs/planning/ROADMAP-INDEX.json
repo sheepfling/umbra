@@ -37741,7 +37741,7 @@
         "boundary": "Java evidence is bounded to local Umbra JNI and the paired C++ evidence to the installed package. No independent-provider interoperability or conformance claim.",
         "next": "Next exact pair: cpp-tck.regional-interaction-routing and java-tck.regional-interaction-routing. Compare full-range/default and explicit routing across the interaction dimensions, region realization queries, the retained Create Region dimension set, the designator convey switch, and disjoint/unsubscribed delivery suppression. Add only missing portable Java API and behavior assertions; preserve the existing direct mappings and unsupported/default-disabled disposition. Run both callback models with the adapter-supplied DDM FOM using --run-unverified, then validate the focused results and catalog."
       },
-      "next_action": "Next exact pair: cpp-tck.default-region-interaction-routing and java-tck.default-region-interaction-routing. Compare explicit and implicit default-region delivery across ordinary and With Regions sends and subscriptions, callback source-region presence/emptiness, and route cleanup. Add the missing positive encoded-length check for the callback TransportationTypeHandle; preserve existing direct mappings and the unsupported/default-disabled disposition. Run both callback models with adapter ddm-tck.xml and the configured interaction, parameter, and dimensions using --run-unverified, then validate focused results and catalog.",
+      "next_action": "Next exact pair: cpp-tck.zero-dimensional-regional-interaction and java-tck.zero-dimensional-regional-interaction. The Java case is already paired but default-disabled after local-provider failures at the restricted-default Y [1,4) delivery assertion; its API inventory also lacks the positive encoded-length check for the callback TransportationTypeHandle. Inspect the paired C++ case and focused artifacts, add that callback-handle check without changing the two direct §9.1.3.1 mappings or unsupported status, run both Java callback models with the restricted-default DDM FOM, and validate the paired C++ result, Java catalog, and focused evidence.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",
@@ -38328,6 +38328,37 @@
         "mapping_and_validation": "Preserved the repository-internal C++ requirement tags, added no normative mapping, and retained the Java run and C++ promoted dispositions. RtiTckMain and part-07.json reconcile on all 31 API methods. Java catalog validation reports 966 scenarios and no findings; traceability records one pass per callback model. Focused C++ primary evidence validation passed with no findings. No Requirements Lab resynchronization or C++ source change was made.",
         "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ primary using ddm-tck.xml and TckUnrelatedDimension. It does not establish independent-provider interoperability or conformance.",
         "next": "Next exact pair: cpp-tck.default-region-interaction-routing and java-tck.default-region-interaction-routing. Compare explicit and implicit default-region delivery across ordinary and With Regions sends and subscriptions, callback source-region presence/emptiness, and route cleanup. Add the missing positive encoded-length check for the callback TransportationTypeHandle; preserve existing direct mappings and the unsupported/default-disabled disposition. Run both callback models with adapter ddm-tck.xml and the configured interaction, parameter, and dimensions using --run-unverified, then validate focused results and catalog."
+      },
+      "latest_verified_java_default_region_interaction_routing_transport_handle_parity_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Completed the missing callback TransportationTypeHandle validity check for java-tck.default-region-interaction-routing. The callback handle must now have positive encoded length before its standard transportation name is resolved. The scenario continues to exercise ordinary delivery beside regional subscriptions, callback source-region metadata, sender loopback suppression, and switch omission/isolation/re-enable.",
+        "scenario_ids": [
+          "java-tck.default-region-interaction-routing",
+          "cpp-tck.default-region-interaction-routing"
+        ],
+        "sources": "packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/DefaultRegionInteractionRoutingTck.java; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/catalogs/java-tck-scenarios/part-07.json",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-08-time-management-page-216-l129-40 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-08-time-management-page-216-l135-42 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-08-time-management-page-217-l74-24 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-08-time-management-page-217-l83-27 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l26-8 -> IEEE 1516.1-2025 §9.1.3.3",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l143-46 -> IEEE 1516.1-2025 §9.1.3.3",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-222-l23-6-subscribe-interaction -> IEEE 1516.1-2025 §9.1.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l80-26 -> IEEE 1516.1-2025 §9.1.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l92-30 -> IEEE 1516.1-2025 §9.1.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l113-37 -> IEEE 1516.1-2025 §9.1.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l66-20 -> IEEE 1516.1-2025 §9.1.7",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l137-44 -> IEEE 1516.1-2025 §9.1.6",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l125-40 -> IEEE 1516.1-2025 §9.1.6",
+          "requirement-candidate-content-clauses-06-object-management-page-125-l130-39 -> IEEE 1516.1-2025 §6.13",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l18-4 -> IEEE 1516.1-2025 §9.1.7",
+          "requirement-candidate-content-clauses-06-object-management-page-125-l118-35 -> IEEE 1516.1-2025 §6.13",
+          "requirement-source-refinement-mom-convey-region-designators -> IEEE 1516.1-2025 §11.6"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and adapter ddm-tck.xml. Results/JUnit: .build/java-tck-20261117/default-region-interaction-transport-handle-parity-{evoked,immediate}.{json,xml}; traceability: .build/java-tck-20261117/default-region-interaction-transport-handle-parity-traceability.json. The paired promoted C++ primary reports both callback models passed and validates with no findings in .build/cpp-tck-allow-relaxed-ddm-read-only-20261117-mingw/default-region-interaction-routing-parity-20261117.json.",
+        "mapping_and_validation": "Preserved all existing direct requirement-to-2025-section mappings and the Java unsupported/default-disabled disposition. Java catalog validation is clean for 966 scenarios; the scenario inventory matches the Java result at 44 API methods; the paired C++ catalog validation is clean. No Requirements Lab resynchronization.",
+        "boundary": "Evidence is local-provider and adapter-specific. It does not establish independent-provider behavior, interoperability, or conformance."
       }
     }
   ],

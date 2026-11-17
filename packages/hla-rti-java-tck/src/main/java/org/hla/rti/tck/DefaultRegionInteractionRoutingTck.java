@@ -646,6 +646,7 @@ final class DefaultRegionInteractionRoutingTck {
             && expectedProducer.equals(interaction.producer),
          description + " changed class, parameter, payload, tag, or producer");
       JavaTckSupport.check(interaction.transportation != null
+            && interaction.transportation.encodedLength() > 0
             && !receiver.getTransportationTypeName(interaction.transportation).isEmpty(),
          description + " returned an unresolvable transportation type");
    }
