@@ -388,6 +388,7 @@ final class RegionalInteractionSubscriptionFilteringTck {
          "regional interaction filtering changed class, value, tag, or producer metadata");
       TransportationTypeHandle transportation = interaction.transportation;
       JavaTckSupport.check(transportation != null
+            && transportation.encodedLength() > 0
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "regional interaction filtering returned an unresolvable transportation type");
       if (expectRegions) {
