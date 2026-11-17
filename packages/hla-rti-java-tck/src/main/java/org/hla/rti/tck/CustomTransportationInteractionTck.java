@@ -25,7 +25,7 @@ final class CustomTransportationInteractionTck {
 
    private CustomTransportationInteractionTck() { }
 
-   static void run(RtiFactory factory, String fom, String interactionName,
+   static void run(RtiFactory factory, String fom, String timeImplementation, String interactionName,
          String parameterName, String transportationName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador producer = factory.getRtiAmbassador();
@@ -41,7 +41,7 @@ final class CustomTransportationInteractionTck {
          producerConnected = true;
          consumer.connect(consumerCallbacks.proxy(), callbackModel);
          consumerConnected = true;
-         producer.createFederationExecution(federation, fom);
+         producer.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producerHandle = producer.joinFederationExecution(
             "java-tck-custom-transport-producer", federation);

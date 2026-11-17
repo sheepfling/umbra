@@ -2710,6 +2710,14 @@ public final class RtiTckMain {
              new String[] {
                 "requirement-candidate-content-clauses-06-object-management-page-111-l19-4"
              }, true), RtiTckMain::reliableTransportOneCopyDelivery);
+       run(new Scenario("java-tck.unsupported-fom-transportation-fallback",
+             "fall back from unavailable FOM transportation types by reliability",
+             "transportation-semantics",
+             "RTIambassador.connect with RtiConfiguration;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.publishObjectClassAttributes;RTIambassador.publishInteractionClass;RTIambassador.registerObjectInstance;RTIambassador.queryAttributeTransportationType;RTIambassador.requestAttributeTransportationTypeChange;RTIambassador.queryInteractionTransportationType;RTIambassador.requestInteractionTransportationTypeChange;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.reportAttributeTransportationType;FederateAmbassador.confirmAttributeTransportationTypeChange;FederateAmbassador.reportInteractionTransportationType;FederateAmbassador.confirmInteractionTransportationTypeChange",
+             new String[] {
+                "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+                "requirement-candidate-content-clauses-06-object-management-page-112-l18-5"
+             }, false), RtiTckMain::unsupportedFomTransportationFallback);
        run(new Scenario("java-tck.interaction-order-classification",
              "classify receive-order and timestamp-order interactions at the same receiver",
              "interaction-order-classification",
@@ -15597,6 +15605,18 @@ public final class RtiTckMain {
          interactionClassName(), callbackModel());
    }
 
+   private static void unsupportedFomTransportationFallback() throws Exception {
+      String[] additionalFomModules = requireAdditionalFomModules();
+      String[] fomModules = new String[additionalFomModules.length + 1];
+      fomModules[0] = requireAdapterFile(MODEL_FOM_PROPERTY);
+      System.arraycopy(additionalFomModules, 0, fomModules, 1, additionalFomModules.length);
+      UnsupportedFomTransportationFallbackTck.run(factory(), fomModules,
+         customTransportationObjectClassName(), customTransportationAttributeName(),
+         interactionClassName(), System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"),
+         requireAdapterValue(FOM_ADDITIONAL_TRANSPORTATION_PROPERTY), timeImplementation(),
+         System.getProperty(ADDITIONAL_SETTINGS_PROPERTY, ""), callbackModel());
+   }
+
    private static void interactionOrderClassification() throws Exception {
       InteractionOrderClassificationTck.run(factory(), requireFom(), timeImplementation(),
          interactionClassName(), parameterName(), callbackModel());
@@ -15608,13 +15628,13 @@ public final class RtiTckMain {
    }
 
    private static void customTransportationInteraction() throws Exception {
-      CustomTransportationInteractionTck.run(factory(), requireFom(),
+      CustomTransportationInteractionTck.run(factory(), requireFom(), timeImplementation(),
          typedInteractionClassName(), typedIntegerParameterName(),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());
    }
 
    private static void customTransportationAttribute() throws Exception {
-      CustomTransportationAttributeTck.run(factory(), requireFom(),
+      CustomTransportationAttributeTck.run(factory(), requireFom(), timeImplementation(),
          customTransportationObjectClassName(), customTransportationAttributeName(),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());
    }
@@ -15694,7 +15714,7 @@ public final class RtiTckMain {
    }
 
    private static void customTransportationDirectedInteraction() throws Exception {
-      CustomTransportationDirectedInteractionTck.run(factory(), requireFom(),
+      CustomTransportationDirectedInteractionTck.run(factory(), requireFom(), timeImplementation(),
          typedObjectClassName(), typedIntegerAttributeName(), typedInteractionClassName(),
          typedIntegerParameterName(),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());

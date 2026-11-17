@@ -54540,7 +54540,7 @@
       ],
       "cpp_test": "src/tck_unsupported_fom_transportation_fallback.cpp#scenarioUnsupportedFomTransportationFallback",
       "runner_id": "cpp-tck.unsupported-fom-transportation-fallback",
-      "parity": "not-applicable: adapter-established conditional behavior",
+      "parity": "java-tck.unsupported-fom-transportation-fallback",
       "default_status": "adapter-required",
       "callback_models": [
         "evoked",

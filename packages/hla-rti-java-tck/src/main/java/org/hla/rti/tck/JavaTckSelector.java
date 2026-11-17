@@ -781,6 +781,8 @@ final class JavaTckSelector {
              method = "receiveOrderInteraction"; break;
           case "java-tck.reliable-transport-one-copy-delivery":
              method = "reliableTransportOneCopyDelivery"; break;
+          case "java-tck.unsupported-fom-transportation-fallback":
+             method = "unsupportedFomTransportationFallback"; break;
           case "java-tck.interaction-order-classification":
              method = "interactionOrderClassification"; break;
           case "java-tck.custom-transportation-interaction-delivery":

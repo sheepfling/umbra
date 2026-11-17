@@ -27,8 +27,8 @@ final class CustomTransportationDirectedInteractionTck {
 
    private CustomTransportationDirectedInteractionTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, String interactionName, String parameterName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String interactionName, String parameterName,
          String transportationName, CallbackModel callbackModel) throws Exception {
       RTIambassador producer = factory.getRtiAmbassador();
       RTIambassador targeted = factory.getRtiAmbassador();
@@ -55,7 +55,7 @@ final class CustomTransportationDirectedInteractionTck {
          connected[1] = true;
          universal.connect(universalCallbacks.proxy(), callbackModel);
          connected[2] = true;
-         producer.createFederationExecution(federation, fom);
+         producer.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producerHandle = producer.joinFederationExecution(
             "java-tck-custom-transport-directed-producer", federation);

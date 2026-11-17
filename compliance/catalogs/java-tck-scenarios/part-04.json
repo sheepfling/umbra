@@ -97,6 +97,68 @@
       "default_status": "run"
     },
     {
+      "id": "java-tck.unsupported-fom-transportation-fallback",
+      "category": "transportation-semantics",
+      "title": "Fall back from unavailable FOM transportation types by reliability",
+      "api_methods": [
+        "RTIambassador.connect with RtiConfiguration",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getTransportationTypeHandle",
+        "RTIambassador.getTransportationTypeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.queryAttributeTransportationType",
+        "RTIambassador.requestAttributeTransportationTypeChange",
+        "RTIambassador.queryInteractionTransportationType",
+        "RTIambassador.requestInteractionTransportationTypeChange",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.reportAttributeTransportationType",
+        "FederateAmbassador.confirmAttributeTransportationTypeChange",
+        "FederateAmbassador.reportInteractionTransportationType",
+        "FederateAmbassador.confirmInteractionTransportationTypeChange"
+      ],
+      "requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l18-5"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+        "requirement-candidate-content-clauses-06-object-management-page-112-l18-5"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-6.1.11"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-111-l49-14",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11",
+          "note": "With adapter-supplied additional settings establishing the unavailable custom best-effort FOM type, the Java API query/report callbacks for the attribute and interaction report HLAbestEffort."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-112-l18-5",
+          "standard_section": "hla-1516.1-2025:clause-6.1.11",
+          "note": "With the same setup precondition, Java attribute and interaction change/confirmation and query/report callbacks map unavailable custom reliable transportation to HLAreliable."
+        }
+      ],
+      "mapping_note": "The adapter supplies the provider configuration, rich model and extension FOM modules, and additional settings that establish the unavailable custom transportation precondition. The Java TCK checks the standard public query/report and change/confirmation behavior for both attributes and interactions: unavailable custom best-effort maps to HLAbestEffort, and unavailable custom reliable maps to HLAreliable. The adapter setting is setup only; the scenario does not claim that all RTIs lack support for arbitrary custom transportation names.",
+      "contract_refs": [
+        "unsupported-fom-transportation-fallback-api-contract.json",
+        "unsupported-fom-transportation-fallback-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#unsupportedFomTransportationFallback",
+      "parity": "cpp-tck.unsupported-fom-transportation-fallback",
+      "default_status": "unsupported",
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, fom-extension-tck.xml, HLAinteger64Time, and the adapter setting unsupportedTransportationTypes=TckBestEffort,TckAdditionalTransport. The public Java query/report and change/confirmation callbacks verified the HLAbestEffort and HLAreliable fallback results for both attributes and interactions. Results/JUnit: out/java-tck/unsupported-fom-transportation-fallback-java-parity-20261117/{HLA_EVOKED,HLA_IMMEDIATE}-{results,junit}. The focused C++ promoted evidence also validates cleanly. Local-provider and adapter-precondition evidence only; no independent-provider or conformance claim.",
+      "exclusion": "The provider, rich model and extension FOM modules, and additional settings that establish unavailable custom types are adapter-supplied. The case is disabled by default until run with that precondition; behavioral assertions use only the standard Java RTI API."
+    },
+    {
       "id": "java-tck.interaction-order-classification",
       "category": "interaction-order-classification",
       "title": "Classify receive-order and timestamp-order interactions at the same receiver",
@@ -242,7 +304,7 @@
       "title": "Deliver an ordinary interaction with the adapter-declared custom FOM transportation type",
       "api_methods": [
         "RTIambassador.connect",
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(federationName,fomModule,logicalTimeImplementationName)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
@@ -284,7 +346,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationInteraction",
       "parity": "cpp-tck.custom-transportation-interaction-delivery",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rich FOM containing the configured interaction, parameter, and custom transportation type; keep opt-in until executed against a Java IEEE 1516.1-2025 provider. Configure the type with hla.rti.tck.customTransportationType."
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAinteractionRoot.TckTypedInteraction/IntegerParameter, and TckBestEffort. The Java Create Federation Execution call now passes the adapter's selected logical-time implementation to match the FDD. Results/JUnit: out/java-tck/unsupported-fom-transportation-fallback-java-parity-20261117/custom-transport-HLA_{EVOKED,IMMEDIATE}-{results,junit}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
+      "exclusion": "Requires an adapter-supplied rich FOM containing the configured interaction, parameter, and custom transportation type, plus its matching logical-time implementation; remains opt-in when the default adapter does not provide these inputs. Configure the type with hla.rti.tck.customTransportationType."
     },
     {
       "id": "java-tck.custom-transportation-attribute-delivery",
@@ -292,7 +355,7 @@
       "title": "Deliver an ordinary attribute update with the adapter-declared custom FOM transportation type",
       "api_methods": [
         "RTIambassador.connect",
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(federationName,fomModule,logicalTimeImplementationName)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
@@ -339,7 +402,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationAttribute",
       "parity": "cpp-tck.custom-transportation-attribute-delivery",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rich FOM declaring the custom-transportation object attribute, object/attribute/transportation names, and a Java IEEE 1516.1-2025 provider; keep opt-in until executed against such a provider. Configure object class and attribute with hla.rti.tck.customTransportationObjectClass and hla.rti.tck.customTransportationAttribute."
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, HLAobjectRoot.TckTransportRegionalObject/RegionalValue, and TckBestEffort. The Java Create Federation Execution call now passes the adapter's selected logical-time implementation to match the FDD. Results/JUnit: out/java-tck/unsupported-fom-transportation-fallback-java-parity-20261117/custom-attribute-HLA_{EVOKED,IMMEDIATE}-{results,junit}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
+      "exclusion": "Requires an adapter-supplied rich FOM declaring the custom-transportation object attribute, object/attribute/transportation names, and matching logical-time implementation; remains opt-in when the default adapter does not provide these inputs. Configure object class and attribute with hla.rti.tck.customTransportationObjectClass and hla.rti.tck.customTransportationAttribute."
     },
     {
       "id": "java-tck.custom-transportation-timestamped-attribute-delivery",
@@ -4794,7 +4858,7 @@
       "title": "Deliver a directed interaction with the adapter-declared custom FOM transportation type to targeted and universal subscribers",
       "api_methods": [
         "RTIambassador.connect",
-        "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(federationName,fomModule,logicalTimeImplementationName)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
@@ -4858,7 +4922,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#customTransportationDirectedInteraction",
       "parity": "cpp-tck.custom-transportation-directed-interaction-delivery",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied rich FOM containing the configured object class, attribute, interaction, parameter, and custom transportation type; keep opt-in until executed against a Java IEEE 1516.1-2025 provider. Configure the type with hla.rti.tck.customTransportationType."
+      "evidence_note": "Passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider using fom-model-tck.xml, HLAinteger64Time, the typed object/interaction declarations, and TckBestEffort. The Java Create Federation Execution call now passes the adapter's selected logical-time implementation to match the FDD. Results/JUnit: out/java-tck/unsupported-fom-transportation-fallback-java-parity-20261117/custom-directed-HLA_{EVOKED,IMMEDIATE}-{results,junit}. Local provider and adapter-FOM evidence only; independent-provider behavior and conformance are not claimed.",
+      "exclusion": "Requires an adapter-supplied rich FOM containing the configured object class, attribute, interaction, parameter, and custom transportation type, plus its matching logical-time implementation; remains opt-in when the default adapter does not provide these inputs. Configure the type with hla.rti.tck.customTransportationType."
     },
     {
       "id": "java-tck.interaction-publication-send-transition",

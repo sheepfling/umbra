@@ -37383,7 +37383,28 @@
         "mapping_and_validation": "Mapped requirement-candidate-content-clauses-06-object-management-page-111-l19-4 directly to IEEE 1516.1-2025 §6.1.11, matching the C++ primary. Java catalog and both focused result validations passed with no findings; the C++/Java parity audit resolved all 965 Java IDs; the roadmap/test mapping check passed with one preexisting unlocated Catch2 case (actionable=0). No Requirements Lab resynchronization.",
         "boundary": "Evidence is bounded to the local Umbra JNI provider and installed MinGW package. It demonstrates the no-loss HLAreliable case only; it does not inject faults, claim best-effort loss, independent-provider behavior, interoperability, or conformance."
       },
-      "next_action": "Next exact case: add a Java mirror for cpp-tck.unsupported-fom-transportation-fallback. Keep the adapter-established unavailable FOM transportation types as setup, then witness the standard query/report and Change/Confirmation behavior that maps unavailable custom best-effort to HLAbestEffort and unavailable custom reliable to HLAreliable. Map only requirement-candidate-content-clauses-06-object-management-page-111-l49-14 and requirement-candidate-content-clauses-06-object-management-page-112-l18-5 to IEEE 1516.1-2025 §6.1.11. Verify both Java callback models without adding provider-internal assertions.",
+      "next_action": "Next exact case: verify and complete the existing Java mirror java-tck.custom-transportation-timestamped-interaction-delivery for cpp-tck.custom-transportation-timestamped-delivery. Compare the public timestamped send and callback assertions for payload, tag, time/order, retraction, custom transportation identity, and callback metadata against the C++ case; use the adapter rich FOM and its matching logical-time implementation. Preserve the existing mappings and verify both Java callback models without provider-internal assertions.",
+      "latest_verified_transportation_fallback_and_custom_delivery_java_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Added java-tck.unsupported-fom-transportation-fallback as a mirror of the promoted C++ conditional fallback case. Also repaired three existing ordinary custom-transport Java cases so federation creation passes the adapter-selected logical-time implementation required by the rich FOM, matching the C++ setup.",
+        "scenario_ids": [
+          "java-tck.unsupported-fom-transportation-fallback",
+          "cpp-tck.unsupported-fom-transportation-fallback",
+          "java-tck.custom-transportation-interaction-delivery",
+          "cpp-tck.custom-transportation-interaction-delivery",
+          "java-tck.custom-transportation-attribute-delivery",
+          "cpp-tck.custom-transportation-attribute-delivery",
+          "java-tck.custom-transportation-directed-interaction-delivery",
+          "cpp-tck.custom-transportation-directed-interaction-delivery"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-06-object-management-page-111-l49-14 -> IEEE 1516.1-2025 §6.1.11",
+          "requirement-candidate-content-clauses-06-object-management-page-112-l18-5 -> IEEE 1516.1-2025 §6.1.11"
+        ],
+        "evidence": "All four Java scenarios passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and Umbra JNI provider. The fallback used fom-model-tck.xml, fom-extension-tck.xml, HLAinteger64Time, and the adapter unavailable-transport settings; the three ordinary custom-transport cases used fom-model-tck.xml, HLAinteger64Time, and TckBestEffort. Results/JUnit are under out/java-tck/unsupported-fom-transportation-fallback-java-parity-20261117. The focused C++ fallback result validates cleanly with the current C++ evidence validator.",
+        "mapping_and_validation": "The Java catalog validates with 966 scenarios and no findings; all Java parity targets resolve. The focused C++ fallback evidence validator and query_rti_work mapping check passed. The three ordinary custom cases retain their adapter-required exclusions because the default adapter does not provide their rich FOM inputs. No Requirements Lab resynchronization was performed.",
+        "boundary": "The Java assertions use only the official public API. Runtime evidence is local to the Umbra JNI provider and adapter-supplied FOM/settings; independent-provider behavior, interoperability, and conformance are not claimed."
+      },
       "latest_verified_federate_mom_updates_sent_counts_2026_11_15": {
         "status": "verified-2026-11-15",
         "scope": "Promoted java-tck.federate-mom-updates-sent-counts and reconciled it with cpp-tck.joined-federate-mom-updates-sent-counts. The Java case requests HLAreportUpdatesSent after one reliable and two best-effort updates, checks the per-transport class counts, empty reports for a requester with no updates, nested decoding, and standard report metadata.",

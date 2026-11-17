@@ -25,7 +25,8 @@ final class CustomTransportationAttributeTck {
 
    private CustomTransportationAttributeTck() { }
 
-   static void run(RtiFactory factory, String fom, String objectClassName,
+   static void run(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName,
          String attributeName, String transportationName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -44,7 +45,7 @@ final class CustomTransportationAttributeTck {
          publisherConnected = true;
          subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
          subscriberConnected = true;
-         publisher.createFederationExecution(federation, fom);
+         publisher.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          FederateHandle producer = publisher.joinFederationExecution(
             "java-tck-custom-transport-attribute-publisher", federation);
