@@ -2182,14 +2182,40 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "FederateAmbassador.discoverObjectInstance",
-        "FederateAmbassador.reflectAttributeValues(receive order with region designators)"
+        "FederateAmbassador.reflectAttributeValues(receive order with region designators)",
+        "RTIambassador.getFederateName",
+        "RTIambassador.getObjectClassName",
+        "RTIambassador.getAttributeName",
+        "RTIambassador.getDimensionName",
+        "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getObjectInstanceName",
+        "RTIambassador.getObjectInstanceHandle",
+        "RTIambassador.getKnownObjectClassHandle",
+        "RTIambassador.getAttributeHandleValueMapFactory",
+        "DimensionHandleSet.add/clone",
+        "RegionHandleSet.add/size",
+        "AttributeSetRegionSetPairList.add",
+        "AttributeHandleValueMap.put/get/size/clone",
+        "ObjectInstanceHandle.encodedLength"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-object-registration",
         "cpp-1516.1-ddm-regional-object-update",
         "cpp-1516.1-ddm-region-designator-callback",
         "cpp-1516.1-attribute-update-reflect",
-        "cpp-1516.1-federation-create-join-resign-destroy"
+        "cpp-1516.1-federation-create-join-resign-destroy",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l65-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l77-25",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l86-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l113-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l42-11",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l72-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l122-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l152-49",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l158-51",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l162-43"
       ],
       "contract_refs": [
         "object-attribute-region-api-contract.json",
@@ -2199,13 +2225,94 @@
         "convey-region-designator-callback-requirements-contract.json",
         "receive-order-attribute-update-api-contract.json",
         "receive-order-attribute-update-requirements-contract.json",
-        "standard-regional-attribute-update-callback-ddm-recheck-contract.json"
+        "standard-regional-attribute-update-callback-ddm-recheck-contract.json",
+        "standard-regional-attribute-update-callback-ddm-recheck-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalAttributeUpdateCallbackDdmRecheck",
       "parity": "cpp-tck.regional-attribute-update-callback-ddm-recheck",
-      "parity_scope_note": "Java now mirrors the C++ regional callback DDM sequence: it rejects a regional subscription whose committed region uses a dimension unavailable to the object class; checks discovery and update callback eligibility through overlap, disjoint, and restored-overlap mutations; and inspects source-region designator copies during callback delivery. A separate active subscriber with an empty regional subscription receives neither discovery nor reflection after registration or any of the nine updates. Empty source association/unassociation pairs preserve the registered source route; removing the non-empty source region moves delivery to the default route for both disjoint receivers; a real receiver unsubscribe suppresses only that receiver; and empty regional Unsubscribe/Subscribe calls preserve the existing filter across overlap, disjoint, and restored-overlap controls. Existing direct requirement mappings remain on the C++ row.",
-      "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional DDM FOM and configured object, attribute, two object dimensions, and unrelated dimension names. Focused runtime passed against local Umbra JNI under both callback models; other providers remain unverified."
+      "parity_scope_note": "Java mirrors the promoted C++ callback DDM sequence: unavailable-dimension subscription rejection; overlap, disjoint, and restored-overlap callback routing; source-region designator checks; empty-subscriber suppression after registration and all nine updates; empty source-association no-ops; source-region unassociation; real receiver unsubscription; and empty regional Subscribe/Unsubscribe no-op controls. The direct section mappings match the assertion-backed C++ primary and remain bounded to the witnessed services. Both Java callback models passed against local Umbra JNI; other providers remain unverified.",
+      "default_status": "run",
+      "exclusion": "Requires an adapter-supplied dimensional DDM FOM and configured object, attribute, two object dimensions, and unrelated dimension names. Focused Java runtime passed under both callback models against local Umbra JNI; other providers remain unverified.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l65-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l77-25",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l86-28",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l113-37",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l42-11",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l72-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l122-39",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l152-49",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l158-51",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l162-43"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.2",
+        "hla-1516.1-2025:clause-9.3",
+        "hla-1516.1-2025:clause-9.8"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l65-21",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l77-25",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l86-28",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l92-30",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l95-31",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l113-37",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l42-11",
+          "standard_section": "hla-1516.1-2025:clause-9.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-233-l72-21",
+          "standard_section": "hla-1516.1-2025:clause-9.8"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l122-39",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l152-49",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l158-51",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.2"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-226-l162-43",
+          "standard_section": "hla-1516.1-2025:clause-9.3",
+          "note": "This scenario changes both bounds of an active subscriber region, commits the modified region, and verifies that subsequent attribute-update callbacks follow the new overlap state, including restored overlap as a positive control. This is observable evidence that the changed ranges reach RTI filtering on the regional attribute-update route only."
+        }
+      ],
+      "mapping_note": "Bounded direct §9.1.3.2 mapping: p. 220 l. 65-75 uses each receiver's non-default region as the argument to Subscribe Object Class Attributes With Regions and verifies that committed region overlap changes callback eligibility; this also witnesses l. 113-118, where the explicit regional subscription specifies which analogous instance-attribute reflections are accepted. The same observable overlap/disjoint callback controls directly witness §9.8 p. 233 l. 42-47: overlap of the relevant subscription and update region sets changes subsequent reflection delivery. L. 77-81 unsubscribes the exact (object class, region, attribute) triple, then verifies that a still-subscribed positive-control receiver gets the next default-source update while the unsubscribed receiver does not; l. 86-91 separately passes an empty region set to Unsubscribe and Subscribe, with positive, disjoint, and restored-overlap updates between calls proving neither call changes the existing subscription. For l. 72-74, a fresh third receiver has no other subscription and makes only an active regional Subscribe call with an empty region set; it receives neither discovery nor reflection for a source region explicitly checked to fit inside the default region, while the two non-empty regional receivers provide positive controls. The invalid TckUnrelatedDimension region is unavailable to TckObject and must cause InvalidRegionContext, while the later valid X/Y subscription and callback path is the positive control. This one test maps both source-derived l. 89-95 and l. 89-97 candidate formulations of the same subscription dimension-subset rule; they do not represent distinct behaviors. P. 219 l. 122-133 checks the Register Object Instance With Regions path by preserving the non-default source region's exact dimensions and bounds in callback metadata; l. 152-154 checks that after Unassociate Regions For Updates the old source region no longer controls delivery (receiver subscriptions are moved disjoint from it before the update); l. 158-163 separately checks empty region sets for Associate and Unassociate, with an intervening update after each call confirming the registered source association remains effective. The Associate Regions For Updates non-empty setup, other combinations, and conformance remain out of scope.",
+      "adapter_inputs": [
+        "Pinned IEEE 1516.1-2025 Java API and provider JARs",
+        "ddm-tck.xml through hla.rti.tck.ddmFom",
+        "HLAobjectRoot.TckObject and Value through hla.rti.tck.ddmObjectClass and hla.rti.tck.ddmAttribute",
+        "TckDimensionX, TckDimensionY, and TckUnrelatedDimension through hla.rti.tck.dimension, hla.rti.tck.ddmSecondDimension, and hla.rti.tck.ddmUnrelatedDimension",
+        "Provider endpoint and callback model"
+      ],
+      "promotion": "promoted",
+      "evidence_note": "The Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the pinned IEEE 1516.1-2025 Java API and current-source Umbra JNI provider. Results/JUnit: out/java-tck/regional-attribute-update-callback-ddm-recheck-20261116/{evoked,immediate}/{results.json,junit.xml}. A focused rerun of the existing portable C++ TCK executable passed the primary/contract pair 4/4 across both callback models against the installed MinGW package. Results/JUnit: .build/cpp-tck-evidence-20261116/regional-attribute-update-callback-ddm-recheck-java-parity-20261116.{json,xml}. The existing focused CTest record also passed 4/4 at out/mgw/tck-dse-ro-regional-20261016/regional-attribute-update-callback-ddm-recheck-verified-20261016.json. A fresh C++ adapter rebuild did not link because the current GCC 15 toolchain conflicts with the installed GCC 12 library; no fresh CTest matrix was produced. Local-provider evidence only; no independent-provider interoperability or conformance claim."
     },
     {
       "id": "java-tck.regional-object-update",

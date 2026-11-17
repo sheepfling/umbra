@@ -5006,6 +5006,34 @@ primary/contract passed under both callback models. Results are in
 and `out/cpp-tck-evidence-20261116/`. Behavior on other providers remains
 unverified; these runs do not establish conformance.
 
+The default `java-tck.regional-attribute-update-callback-ddm-recheck` case
+mirrors the C++ callback-time DDM scenario. It rejects a subscription region
+with a dimension unavailable to the object class, then checks overlap,
+disjoint, and restored-overlap delivery after committing receiver-region
+changes. The evoked path changes the region before servicing the queued
+reflection; the immediate path records delivery before the mutation. The case
+also checks source-region designator metadata, an empty subscriber with no
+discovery or reflection across registration and all nine updates, source-region
+unassociation, receiver unsubscription, and empty regional Subscribe and
+Unsubscribe controls. Supply `ddm-tck.xml` through
+`hla.rti.tck.ddmFom`, `HLAobjectRoot.TckObject` and `Value` through
+`hla.rti.tck.ddmObjectClass` and `hla.rti.tck.ddmAttribute`, and the X, Y, and
+unrelated dimensions through `hla.rti.tck.dimension`,
+`hla.rti.tck.ddmSecondDimension`, and
+`hla.rti.tck.ddmUnrelatedDimension`. The direct mappings follow the C++
+primary at IEEE 1516.1-2025 §§9.1.3.2, 9.3, and 9.8. Focused Java runs passed
+with both callback models against local Umbra JNI. A C++ direct rerun of the
+primary/contract pair passed 4/4 against the installed MinGW package, using the
+existing portable TCK executable; results are in
+`.build/cpp-tck-evidence-20261116/regional-attribute-update-callback-ddm-recheck-java-parity-20261116.{json,xml}`.
+The existing focused CTest record passed 4/4 at
+`out/mgw/tck-dse-ro-regional-20261016/regional-attribute-update-callback-ddm-recheck-verified-20261016.json`.
+A fresh C++ adapter rebuild could not link because the current GCC 15 toolchain
+conflicts with the installed GCC 12 package library, so it produced no fresh
+CTest matrix. Other providers remain unverified; these runs do not establish
+conformance. Java results are in
+`out/java-tck/regional-attribute-update-callback-ddm-recheck-20261116/`.
+
 The opt-in `java-tck.ddm-unsubscribe-preserves-other-class-subscription` case
 registers one ordinary and one regional object class before subscription, then
 checks their independent discovery and reflection paths as each final attribute
