@@ -44,11 +44,15 @@ final class ResignDeleteObjectsTck {
          memberConnected = true;
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
-         FederateHandle producer = owner.joinFederationExecution(
+         FederateHandle ownerProducer = owner.joinFederationExecution(
             "java-tck-resign-delete-owner", federation);
          ownerJoined = true;
+         String producerName = owner.getFederateName(ownerProducer);
          member.joinFederationExecution("java-tck-resign-delete-member", federation);
          memberJoined = true;
+         FederateHandle producer = member.getFederateHandle(producerName);
+         JavaTckSupport.check(producerName.equals(member.getFederateName(producer)),
+            "member did not resolve the producer federate by name");
 
          objectClass = owner.getObjectClassHandle(objectClassName);
          ObjectClassHandle memberClass = member.getObjectClassHandle(objectClassName);
@@ -73,7 +77,12 @@ final class ResignDeleteObjectsTck {
          await(member, () -> memberCallbacks.discoveries().size() == 1,
             "member did not discover the registered object");
          Discovery discovery = memberCallbacks.discoveries().get(0);
-         JavaTckSupport.check(object.equals(discovery.object)
+         ObjectInstanceHandle memberObject = member.getObjectInstanceHandle(name);
+         JavaTckSupport.check(memberObject != null
+               && name.equals(member.getObjectInstanceName(memberObject))
+               && memberClass.equals(member.getKnownObjectClassHandle(memberObject)),
+            "member did not resolve its local object identity by name");
+         JavaTckSupport.check(memberObject.equals(discovery.object)
                && memberClass.equals(discovery.objectClass)
                && name.equals(discovery.name),
             "discovery callback did not preserve object, class, and name");
@@ -87,9 +96,9 @@ final class ResignDeleteObjectsTck {
          await(member, () -> memberCallbacks.removals().size() == 1,
             "member did not receive resign-time object removal");
          Removal removal = memberCallbacks.removals().get(0);
-         JavaTckSupport.check(object.equals(removal.object) && removal.tag.length == 0
+         JavaTckSupport.check(memberObject.equals(removal.object) && removal.tag.length == 0
                && producer.equals(removal.producer),
-            "resign-time removal did not preserve object, empty tag, and producer");
+            "resign-time removal did not preserve local object, empty tag, and producer");
          expectFailure(() -> member.getObjectInstanceHandle(name), "ObjectInstanceNotKnown",
             "object-name lookup after resign-time deletion");
 

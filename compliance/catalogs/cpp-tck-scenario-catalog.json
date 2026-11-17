@@ -21245,8 +21245,61 @@
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-object-deletion-negative-boundaries"
+        "cpp-1516.1-object-deletion-negative-boundaries",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+          "standard_section": "hla-1516.1-2025:clause-4.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        }
+      ],
+      "mapping_note": "Direct mappings follow the paired C++ resign-action crosswalk: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-129-l123-34/l138-39/l144-41 and page-130-l8-1 -> §6.16 registration and object name/handle lookup, including the post-deletion unknown-name boundary; page-130-l167-50 -> §6.16.4 post-deletion object-instance boundary; page-131-l101-29 -> §6.17 Remove Object Instance notification. The Java mirror resolves the discovered object and producer through member-local name/handle lookups; it checks one removal callback, the empty resignation tag, and producer identity. The NO_ACTION/FederateOwnsAttributes rejection and callback metadata beyond the selected direct mappings are supplemental. No cross-ambassador opaque-handle equality is asserted. The primary assertion sequence owns these direct checks.",
       "contract_refs": [
         "federation-execution-api-contract.json",
         "resign-action-requirements-contract.json",
@@ -21279,8 +21332,61 @@
       "requirement_ids": [
         "cpp-1516.1-federation-create-join-resign-destroy",
         "cpp-1516.1-object-instance-deletion",
-        "cpp-1516.1-object-deletion-negative-boundaries"
+        "cpp-1516.1-object-deletion-negative-boundaries",
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+        "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+        "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+        "requirement-candidate-content-clauses-06-object-management-page-131-l101-29"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-4.12",
+        "hla-1516.1-2025:clause-6.16",
+        "hla-1516.1-2025:clause-6.16.4",
+        "hla-1516.1-2025:clause-6.17"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-04-federation-management-page-058-l112-33",
+          "standard_section": "hla-1516.1-2025:clause-4.12"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l123-34",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l138-39",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-129-l144-41",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l167-50",
+          "standard_section": "hla-1516.1-2025:clause-6.16.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-130-l8-1",
+          "standard_section": "hla-1516.1-2025:clause-6.16"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-06-object-management-page-131-l101-29",
+          "standard_section": "hla-1516.1-2025:clause-6.17"
+        }
+      ],
+      "mapping_note": "Direct mappings follow the paired C++ resign-action crosswalk: page-058-l112-33 -> §4.12 Delete Objects resignation cleanup; page-129-l123-34/l138-39/l144-41 and page-130-l8-1 -> §6.16 registration and object name/handle lookup, including the post-deletion unknown-name boundary; page-130-l167-50 -> §6.16.4 post-deletion object-instance boundary; page-131-l101-29 -> §6.17 Remove Object Instance notification. The Java mirror resolves the discovered object and producer through member-local name/handle lookups; it checks one removal callback, the empty resignation tag, and producer identity. The NO_ACTION/FederateOwnsAttributes rejection and callback metadata beyond the selected direct mappings are supplemental. No cross-ambassador opaque-handle equality is asserted. The contract twin delegates to the primary assertion sequence.",
       "contract_refs": [
         "standard-resign-delete-objects-contract.json"
       ],
