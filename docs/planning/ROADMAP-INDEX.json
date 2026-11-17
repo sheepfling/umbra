@@ -38594,6 +38594,23 @@
         "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicit not-applicable cases. Focused C++ result validation passed. The pinned requirement query reports the page-83 line-8 source and §5.1.2; RL-450 records the conflicting Requirements-Lab API-surface note that says §5.1.3. No Requirements Lab resynchronization.",
         "boundary": "Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ provider. It does not establish independent-provider behavior, interoperability, or conformance.",
         "next": "Next exact pair: cpp-tck.discovered-class-stability-after-specific-subscription and java-tck.discovered-class-stability-after-specific-subscription. Verify the shared page-83 line-35 requirement against the pinned source and compare the existing Java assertions for no new discovery or class change after adding the more-specific subscription. The C++ row maps it to §5.1.2 while Java currently maps it to §5.1.3. Correct only the clause supported by the candidate and Java behavior, preserve receiver-local handle assertions, and run both callback models with the paired C++ selectors."
+      },
+      "latest_verified_java_discovered_class_stability_mapping_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Corrected the Java discovered-class stability mapping for the page-83 line-35 requirement from §5.1.3 to pinned §5.1.2. The Java case asserts one base-class discovery remains unchanged after the member adds a more-specific subscription.",
+        "scenario_ids": [
+          "java-tck.discovered-class-stability-after-specific-subscription",
+          "cpp-tck.discovered-class-stability-after-specific-subscription",
+          "cpp-tck.discovered-class-stability-after-specific-subscription-contract"
+        ],
+        "sources": "compliance/catalogs/java-tck-scenarios/part-01.json; packages/hla-rti-java-tck/src/main/java/org/hla/rti/tck/RtiTckMain.java; compliance/requirements-lab/known-issues.json (RL-451)",
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-05-declaration-management-page-083-l35-11 -> IEEE 1516.1-2025 §5.1.2"
+        ],
+        "evidence": "Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider and known-class-advisory-tck.xml. Results/JUnit: .build/java-tck-20261117/discovered-class-stability-after-specific-subscription-focused-{evoked,immediate}.{json,xml}. Installed-package C++ primary and contract scenarios passed 4/4 focused CTests and 4/4 direct runs across both callback models; results: .build/cpp-tck-java-parity-named-registration/discovered-class-stability-after-specific-subscription.{json,xml}.",
+        "mapping_and_validation": "Java catalog validation passed with 966 scenarios and 268 API surfaces; parity audit found 0 unpaired and 10 explicit not-applicable cases. Focused C++ result validation passed. The pinned requirement query identifies content/clauses/05-declaration-management-page-083.tex:32 and §5.1.2; RL-451 records the conflicting API-surface note that says §5.1.3. No Requirements Lab resynchronization.",
+        "boundary": "The Java witness does not test the requirement exception after Local Delete. Evidence is limited to the adapter-backed local Umbra JNI provider and installed-package C++ provider; it does not establish independent-provider behavior, interoperability, or conformance.",
+        "next": "Next exact pair: cpp-tck.object-class-abstraction-subscription and java-tck.object-class-abstraction-subscription. Compare the four paired direct requirement mappings—IEEE 1516.2-2025 §4 and IEEE 1516.1-2025 §6.1.1—with Java’s class-view discovery and inherited-attribute reflection assertions. Add only missing standard-visible behavior or API inventory, keep receiver-local opaque handles bounded, and run both callback models for the Java case and paired C++ primary/contract."
       }
     }
   ],
