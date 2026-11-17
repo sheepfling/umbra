@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Portable timestamped attribute delivery through the three alternate advances. */
 final class TimestampedAttributeAlternateAdvancesTck {
@@ -463,15 +464,15 @@ final class TimestampedAttributeAlternateAdvancesTck {
    }
 
    private static final class Recorder {
-      private ObjectInstanceHandle discoveredObject;
-      private boolean timeRegulationEnabled;
-      private boolean timeConstrainedEnabled;
-      private final List<Reflection> reflections = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new ArrayList<>();
-      private LogicalTime<?, ?> flushQueueGrantTime;
-      private LogicalTime<?, ?> flushQueueOptimisticTime;
-      private final List<String> callbackOrder = new ArrayList<>();
+      private volatile ObjectInstanceHandle discoveredObject;
+      private volatile boolean timeRegulationEnabled;
+      private volatile boolean timeConstrainedEnabled;
+      private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> flushQueueGrantTime;
+      private volatile LogicalTime<?, ?> flushQueueOptimisticTime;
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
