@@ -99,6 +99,13 @@ final class ParameterLookupLifecycleTck {
                && derivedParameterName.equals(
                   member.getParameterName(memberDerived, memberDerivedParameter)),
             "inherited parameter handles or names did not retain cross-federate identity");
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterHandle(memberBase, derivedParameterName), "NameNotFound",
+            "looking up a derived parameter on its base interaction class through the member");
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterName(memberBase, memberDerivedParameter),
+            "InteractionParameterNotDefined",
+            "looking up a derived parameter handle on its base interaction class through the member");
 
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;

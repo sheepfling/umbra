@@ -93,6 +93,13 @@ final class AttributeLookupLifecycleTck {
                && derivedAttributeName.equals(
                   member.getAttributeName(memberDerived, memberDerivedAttribute)),
             "inherited attribute handles or names did not retain cross-federate identity");
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeHandle(memberBase, derivedAttributeName), "NameNotFound",
+            "looking up a derived attribute on its base object class through the member");
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeName(memberBase, memberDerivedAttribute),
+            "AttributeNotDefined",
+            "looking up a derived attribute handle on its base object class through the member");
 
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;
