@@ -279,7 +279,8 @@ final class ZeroDimensionalRegionalInteractionTck {
             && Arrays.equals(expectedTag, actual.tag)
             && expectedProducer.equals(actual.producer)
             && (actual.regions == null || actual.regions.isEmpty())
-            && actual.transportation != null,
+            && actual.transportation != null
+            && actual.transportation.encodedLength() > 0,
          description + " changed standard payload or callback metadata");
       JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
          description + " returned an unresolvable transportation type");
@@ -324,7 +325,8 @@ final class ZeroDimensionalRegionalInteractionTck {
             && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter))
             && Arrays.equals(expectedTag, actual.tag)
             && expectedProducer.equals(actual.producer)
-            && actual.transportation != null,
+            && actual.transportation != null
+            && actual.transportation.encodedLength() > 0,
          description + " changed standard payload or callback metadata");
       JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
          description + " returned an unresolvable transportation type");

@@ -2845,6 +2845,7 @@
         "RTIambassador.unsubscribeInteractionClassWithRegions",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendInteraction",
+        "TransportationTypeHandle.encodedLength",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.getDimensionHandleSetFactory",
         "RTIambassador.createRegion",
@@ -2906,8 +2907,8 @@
         "immediate"
       ],
       "default_status": "unsupported",
-      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs failed 1/1 under both HLA_EVOKED and HLA_IMMEDIATE with Umbra JNI C++ RTI 2025.jni-smoke. In both runs, the ordinary baseline, explicit zero-dimensional non-overlap, and restricted-default Y [6,9) no-delivery checks passed; the expected delivery to Y [1,4) timed out. Results/JUnit: .build/java-tck-20261117/zero-dimensional-{evoked,immediate}.{json,xml}. This local-provider result is not interoperability or conformance evidence.",
-      "exclusion": "Requires two adapter-supplied IEEE 1516.1-2025 interaction FOMs: an excluded-dimension fixture and a fixture with available Y default [0,5), plus an installed Java 2025 provider. The focused local-provider runs timed out on the expected Y [1,4) overlap delivery under both callback models, so the case remains default-disabled."
+      "evidence_note": "Compiled all Java TCK sources against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI provider when the excluded-dimension FOM and the separate restricted-default FOM were both supplied explicitly, together with HLAinteractionRoot.TckInteraction/Payload and TckDimensionX/TckDimensionY. The case checks the ordinary baseline, explicit zero-dimensional non-overlap, and empty-source routing that suppresses Y [6,9) and delivers exactly once to Y [1,4) under the available FOM default [0,5). Both callback paths require positive TransportationTypeHandle encoded length before resolving its transportation name. Java results/JUnit: .build/java-tck-20261117/zero-dimensional-transport-handle-parity-{evoked,immediate}.{json,xml}; traceability: .build/java-tck-20261117/zero-dimensional-transport-handle-parity-traceability.json. Paired promoted C++ primary and contract results passed both callback models and validate without findings in a focused evidence slice derived from .build/cpp-tck-section-9.1.3.1-20261113/results.json. This Java case remains opt-in because it requires two adapter-supplied FOMs and DDM names. Local provider evidence only; no independent-provider interoperability or conformance claim.",
+      "exclusion": "Requires two adapter-supplied IEEE 1516.1-2025 interaction FOMs: an excluded-dimension fixture and a fixture with available Y default [0,5), plus an installed Java 2025 provider. The focused local-provider pass used both FOMs and configured DDM names explicitly; keep the scenario default-disabled until an adapter supplies these inputs by default."
     },
     {
       "id": "java-tck.multi-region-interaction-routing",

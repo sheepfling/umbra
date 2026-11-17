@@ -5359,11 +5359,19 @@ parameter, dimensions, provider, and callback model are adapter supplied. Set
 `hla.rti.tck.zeroDimensionalDefaultRangeFom` to the restricted-default FOM.
 Its two direct mappings are limited to IEEE 1516.1-2025 §9.1.3.1; it does not
 generalize excluded-dimension or default-realization behavior beyond those
-fixtures. Focused local Umbra JNI runs under both callback models passed the
-non-overlap checks but timed out on the expected Y `[1,4)` delivery.
+fixtures. The callback checks also require a positive encoded length for each
+`TransportationTypeHandle` before resolving its name. Focused
+`--run-unverified` runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the
+local Umbra JNI provider when both FOM properties were supplied explicitly.
 Results/JUnit are in
-`.build/java-tck-20261117/zero-dimensional-{evoked,immediate}.{json,xml}`;
-independent-provider behavior remains unverified.
+`.build/java-tck-20261117/zero-dimensional-transport-handle-parity-{evoked,immediate}.{json,xml}`;
+the traceability export is
+`.build/java-tck-20261117/zero-dimensional-transport-handle-parity-traceability.json`.
+The paired promoted C++ primary and contract passed both callback models and
+validate without findings in the focused evidence slice derived from
+`.build/cpp-tck-section-9.1.3.1-20261113/results.json`. The Java case remains
+opt-in because its two FOMs and DDM names are adapter supplied; independent-
+provider behavior and conformance remain unverified.
 
 The opt-in `java-tck.multi-region-interaction-routing` case sends from two
 source regions to separate single-region subscribers, a combined subscriber,
