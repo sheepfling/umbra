@@ -254,6 +254,7 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          "regional interaction snapshot lost class, value, tag, or producer metadata");
       TransportationTypeHandle transportation = interaction.transportation;
       JavaTckSupport.check(transportation != null
+            && transportation.encodedLength() > 0
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "regional interaction snapshot returned an unresolvable transportation type");
       List<RegionDesignatorSnapshot> actualSourceRegions = interaction.regionDesignators;
