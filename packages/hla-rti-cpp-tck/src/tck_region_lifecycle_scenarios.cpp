@@ -2630,10 +2630,23 @@ void scenarioDefaultRegionRegistrationNames(
       options,
       publisherHandles,
       "default-region registration");
+  verifyDdmClassDimensions(
+      observer,
+      options,
+      observerHandles,
+      "default-region registration observer");
   require(
-      publisherHandles.objectClass == observerHandles.objectClass &&
-          publisherHandles.attribute == observerHandles.attribute,
-      "default-region registration members resolved different object handles");
+      publisher.rtiAmbassador().getObjectClassName(publisherHandles.objectClass) ==
+              options.objectClassName &&
+          observer.rtiAmbassador().getObjectClassName(observerHandles.objectClass) ==
+              options.objectClassName &&
+          publisher.rtiAmbassador().getAttributeName(
+              publisherHandles.objectClass,
+              publisherHandles.attribute) == options.attributeName &&
+          observer.rtiAmbassador().getAttributeName(
+              observerHandles.objectClass,
+              observerHandles.attribute) == options.attributeName,
+      "default-region registration members resolved different class or attribute names");
 
   rti::AttributeHandleSet const publisherAttributes{publisherHandles.attribute};
   rti::AttributeHandleSet const observerAttributes{observerHandles.attribute};
@@ -2691,6 +2704,8 @@ void scenarioDefaultRegionRegistrationNames(
 
   std::vector<std::wstring> names;
   names.reserve(objects.size());
+  auto const publisherName = publisher.rtiAmbassador().getFederateName(
+      publisher.federateHandle());
   for (auto const& object : objects) {
     auto const name = publisher.rtiAmbassador().getObjectInstanceName(object);
     require(
@@ -2708,12 +2723,18 @@ void scenarioDefaultRegionRegistrationNames(
   waitFor(
       observer,
       [&] {
-        return observer.recorder().discoveryCount() == objects.size();
+        return observer.recorder().discoveryCount() >= objects.size();
       },
       options,
       "default-region registration discovery");
+  require(
+      observer.recorder().discoveryCount() == objects.size(),
+      "default-region registration produced duplicate discovery callbacks");
+  std::vector<rti::ObjectInstanceHandle> observerObjects;
+  observerObjects.reserve(objects.size());
   for (std::size_t index = 0U; index != objects.size(); ++index) {
-    auto const object = objects.at(index);
+    auto const name = names.at(index);
+    auto const object = observer.rtiAmbassador().getObjectInstanceHandle(name);
     require(
         observer.recorder().hasDiscovery(object),
         "default-region registration omitted an object discovery callback");
@@ -2721,10 +2742,10 @@ void scenarioDefaultRegionRegistrationNames(
         observer.rtiAmbassador().getKnownObjectClassHandle(object) ==
             observerHandles.objectClass,
         "default-region discovery returned the wrong known object class");
-    require(
-        observer.rtiAmbassador().getObjectInstanceName(object) == names.at(index) &&
-            observer.rtiAmbassador().getObjectInstanceHandle(names.at(index)) == object,
+    require(observer.rtiAmbassador().getObjectInstanceName(object) == name &&
+                observer.rtiAmbassador().getObjectInstanceHandle(name) == object,
         "default-region discovery did not preserve generated object identity");
+    observerObjects.push_back(object);
   }
 
   std::vector<std::vector<std::uint8_t>> const values{
@@ -2761,7 +2782,7 @@ void scenarioDefaultRegionRegistrationNames(
     auto const found = std::find_if(
         reflections.begin(),
         reflections.end(),
-        [&](auto const& reflection) { return reflection.object == objects.at(index); });
+        [&](auto const& reflection) { return reflection.object == observerObjects.at(index); });
     require(
         found != reflections.end(),
         "default-region registration omitted a reflected object update");
@@ -2771,7 +2792,7 @@ void scenarioDefaultRegionRegistrationNames(
             copyBytes(found->values.at(observerHandles.attribute)) == values.at(index) &&
             found->tag == tags.at(index) &&
             found->transportation.isValid() &&
-            found->producer == publisher.federateHandle() &&
+            observer.rtiAmbassador().getFederateName(found->producer) == publisherName &&
             found->regions.has_value() &&
             found->regions->empty(),
         "default-region reflection did not preserve value metadata or empty region designator");

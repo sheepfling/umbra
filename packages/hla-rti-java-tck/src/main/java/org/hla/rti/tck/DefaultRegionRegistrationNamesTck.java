@@ -51,8 +51,12 @@ final class DefaultRegionRegistrationNamesTck {
          publisher.connect(noopFederateAmbassador(), callbackModel); publisherConnected = true;
          observer.connect(callbacks.proxy(), callbackModel); observerConnected = true;
          publisher.createFederationExecution(federation, fom); created = true;
-         FederateHandle producer = publisher.joinFederationExecution(
-            "default-registration-publisher", federation); publisherJoined = true;
+         String publisherType = "default-registration-publisher";
+         FederateHandle producer = publisher.joinFederationExecution(publisherType, federation);
+         publisherJoined = true;
+         String publisherName = publisher.getFederateName(producer);
+         JavaTckSupport.check(publisherName != null && !publisherName.isEmpty(),
+            "publisher federate handle did not resolve to a name");
          observer.joinFederationExecution("default-registration-observer", federation);
          observerJoined = true;
 
@@ -64,12 +68,15 @@ final class DefaultRegionRegistrationNamesTck {
          DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
          DimensionHandle observerFirst = observer.getDimensionHandle(firstDimensionName);
          DimensionHandle observerSecond = observer.getDimensionHandle(secondDimensionName);
-         JavaTckSupport.check(publisherClass.equals(observerClass)
-               && publisherAttribute.equals(observerAttribute)
-               && publisherFirst.equals(observerFirst) && publisherSecond.equals(observerSecond),
-            "adapter DDM FOM returned inconsistent registration handles");
-         checkDimensions(publisher, publisherClass, publisherFirst, publisherSecond);
-         checkDimensions(observer, observerClass, observerFirst, observerSecond);
+         JavaTckSupport.check(objectClassName.equals(publisher.getObjectClassName(publisherClass))
+               && objectClassName.equals(observer.getObjectClassName(observerClass))
+               && attributeName.equals(publisher.getAttributeName(publisherClass, publisherAttribute))
+               && attributeName.equals(observer.getAttributeName(observerClass, observerAttribute)),
+            "adapter DDM FOM returned inconsistent registration class or attribute names");
+         checkDimensions(publisher, publisherClass, publisherFirst, publisherSecond,
+            firstDimensionName, secondDimensionName);
+         checkDimensions(observer, observerClass, observerFirst, observerSecond,
+            firstDimensionName, secondDimensionName);
 
          publisherAttributes = JavaTckSupport.attributeSet(publisher, publisherAttribute);
          observerAttributes = JavaTckSupport.attributeSet(observer, observerAttribute);
@@ -116,13 +123,28 @@ final class DefaultRegionRegistrationNamesTck {
             () -> callbacks.discoveries.size() >= objects.size(), "default-region discoveries");
          JavaTckSupport.check(callbacks.discoveries.size() == objects.size(),
             "default-region registration produced duplicate discovery callbacks");
+         Set<String> discoveredNames = new HashSet<>();
+         for (Discovery discovery : callbacks.discoveries) {
+            JavaTckSupport.check(discovery.name != null && discoveredNames.add(discovery.name),
+               "default-region registration produced a missing or duplicate discovery name");
+         }
+         JavaTckSupport.check(discoveredNames.equals(uniqueNames),
+            "default-region discovery names did not match the registered objects");
+         List<ObjectInstanceHandle> observerObjects = new ArrayList<>();
          for (int index = 0; index < objects.size(); ++index) {
-            ObjectInstanceHandle object = objects.get(index);
-            JavaTckSupport.check(callbacks.discoveries.contains(object)
-                  && observer.getKnownObjectClassHandle(object).equals(observerClass)
-                  && names.get(index).equals(observer.getObjectInstanceName(object))
-                  && object.equals(observer.getObjectInstanceHandle(names.get(index))),
+            String name = names.get(index);
+            Discovery discovery = null;
+            for (Discovery candidate : callbacks.discoveries) {
+               if (name.equals(candidate.name)) { discovery = candidate; break; }
+            }
+            ObjectInstanceHandle observerObject = observer.getObjectInstanceHandle(name);
+            JavaTckSupport.check(discovery != null && discovery.object.equals(observerObject)
+                  && discovery.objectClass.equals(observerClass)
+                  && observer.getKnownObjectClassHandle(observerObject).equals(observerClass)
+                  && name.equals(observer.getObjectInstanceName(observerObject))
+                  && observerObject.equals(observer.getObjectInstanceHandle(name)),
                "default-region discovery changed object class or generated object identity");
+            observerObjects.add(observerObject);
          }
 
          byte[][] values = { {(byte) 0xa1, 0x01}, {(byte) 0xa1, 0x02}, {(byte) 0xa1, 0x03} };
@@ -139,11 +161,11 @@ final class DefaultRegionRegistrationNamesTck {
          for (int index = 0; index < objects.size(); ++index) {
             Reflection found = null;
             for (Reflection reflection : callbacks.reflections) {
-               if (objects.get(index).equals(reflection.object)) { found = reflection; break; }
+               if (observerObjects.get(index).equals(reflection.object)) { found = reflection; break; }
             }
             JavaTckSupport.check(found != null, "default-region registration omitted an object update");
-            assertReflection(found, objects.get(index), observerAttribute, producer, values[index],
-               tags[index], "default-region reflection " + index);
+            assertReflection(found, observer, observerObjects.get(index), observerAttribute,
+               publisherName, values[index], tags[index], "default-region reflection " + index);
          }
 
          observer.unsubscribeObjectClassAttributesWithRegions(observerClass, observerPair);
@@ -176,10 +198,13 @@ final class DefaultRegionRegistrationNamesTck {
    }
 
    private static void checkDimensions(RTIambassador ambassador, ObjectClassHandle objectClass,
-         DimensionHandle first, DimensionHandle second) throws Exception {
+         DimensionHandle first, DimensionHandle second, String firstName, String secondName)
+         throws Exception {
       DimensionHandleSet dimensions = ambassador.getAvailableDimensionsForObjectClass(objectClass);
       JavaTckSupport.check(dimensions.contains(first) && dimensions.contains(second)
-            && !first.equals(second) && ambassador.getDimensionUpperBound(first) >= 6
+            && !first.equals(second) && firstName.equals(ambassador.getDimensionName(first))
+            && secondName.equals(ambassador.getDimensionName(second))
+            && ambassador.getDimensionUpperBound(first) >= 6
             && ambassador.getDimensionUpperBound(second) >= 6,
          "adapter object class must expose two distinct DDM dimensions through range 6");
    }
@@ -217,12 +242,13 @@ final class DefaultRegionRegistrationNamesTck {
       return result;
    }
 
-   private static void assertReflection(Reflection reflection, ObjectInstanceHandle object,
-         AttributeHandle attribute, FederateHandle producer, byte[] value, byte[] tag,
-         String description) throws Exception {
+   private static void assertReflection(Reflection reflection, RTIambassador receiver,
+         ObjectInstanceHandle object, AttributeHandle attribute, String producerName,
+         byte[] value, byte[] tag, String description) throws Exception {
       JavaTckSupport.check(object.equals(reflection.object) && reflection.values.size() == 1
             && Arrays.equals(value, reflection.values.get(attribute))
-            && Arrays.equals(tag, reflection.tag) && producer.equals(reflection.producer),
+            && Arrays.equals(tag, reflection.tag)
+            && producerName.equals(receiver.getFederateName(reflection.producer)),
          description + " changed object, value, tag, or producer");
       JavaTckSupport.check(reflection.transportation != null,
          description + " returned an invalid transportation handle");
@@ -274,15 +300,25 @@ final class DefaultRegionRegistrationNamesTck {
       private RegionHandleSet regions;
    }
 
+   private static final class Discovery {
+      private ObjectInstanceHandle object;
+      private ObjectClassHandle objectClass;
+      private String name;
+   }
+
    private static final class Recorder {
-      private final List<ObjectInstanceHandle> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
       private final List<Reflection> reflections = new CopyOnWriteArrayList<>();
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(FederateAmbassador.class.getClassLoader(),
             new Class<?>[] {FederateAmbassador.class}, (proxy, method, args) -> {
                String name = method.getName();
-               if ("discoverObjectInstance".equals(name) && args != null) {
-                  discoveries.add((ObjectInstanceHandle) args[0]);
+               if ("discoverObjectInstance".equals(name) && args != null && args.length >= 3) {
+                  Discovery discovery = new Discovery();
+                  discovery.object = (ObjectInstanceHandle) args[0];
+                  discovery.objectClass = (ObjectClassHandle) args[1];
+                  discovery.name = (String) args[2];
+                  discoveries.add(discovery);
                } else if ("reflectAttributeValues".equals(name) && args != null && args.length == 6) {
                   Reflection reflection = new Reflection();
                   reflection.object = (ObjectInstanceHandle) args[0];

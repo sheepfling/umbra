@@ -5588,3 +5588,20 @@ and
 `out/cpp-tck-evidence-20261116/default-region-object-routing-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
+
+The default-run `java-tck.default-region-registration-names` case registers
+three objects through regional registration with an empty region set, regional
+registration with an empty pair list, and ordinary registration. It checks
+unique generated names and name/handle round trips on both members, discovery
+and known class per receiver-local handle, default-source reflection values,
+tags, producer name, and an empty region-designator set. Its two direct
+mappings are limited to IEEE 1516.1-2025 §9.1.6. Java passed under
+HLA_EVOKED and HLA_IMMEDIATE with `ddm-tck.xml`, HLAobjectRoot.TckObject,
+Value, TckDimensionX, and TckDimensionY. The installed-package C++
+primary/contract selectors passed 4/4 focused CTests and 4/4 direct runs.
+Results are in
+`out/java-tck/default-region-registration-names-java-parity-20261116/{evoked,immediate}/{results-promoted.json,junit-promoted.xml}`
+and
+`out/cpp-tck-evidence-20261116/default-region-registration-names-java-parity-20261116.{json,xml}`.
+This is local-provider evidence only; independent-provider behavior and
+conformance are not claimed.
