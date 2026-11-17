@@ -8,6 +8,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -22,15 +23,15 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** Confirms that an explicit zero-dimensional interaction region does not overlap default. */
+/** Checks zero-dimensional non-overlap and realization of an available FOM default. */
 final class ZeroDimensionalRegionalInteractionTck {
    private static final long TIMEOUT_NANOS = 10_000_000_000L;
 
    private ZeroDimensionalRegionalInteractionTck() { }
 
-   static void run(RtiFactory factory, String fom, String interactionName, String parameterName,
-         String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
-         throws Exception {
+   static void run(RtiFactory factory, String fom, String defaultRangeFom,
+         String interactionName, String parameterName, String firstDimensionName,
+         String secondDimensionName, CallbackModel callbackModel) throws Exception {
       RTIambassador publisher = factory.getRtiAmbassador();
       RTIambassador subscriber = factory.getRtiAmbassador();
       Recorder callbacks = new Recorder();
@@ -135,6 +136,120 @@ final class ZeroDimensionalRegionalInteractionTck {
          if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
          if (subscriberConnected) try { subscriber.disconnect(); } catch (Exception ignored) { }
       }
+
+      runDefaultRange(factory, defaultRangeFom, interactionName, parameterName,
+         firstDimensionName, secondDimensionName, callbackModel);
+   }
+
+   private static void runDefaultRange(RtiFactory factory, String fom, String interactionName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
+      RTIambassador publisher = factory.getRtiAmbassador();
+      RTIambassador subscriber = factory.getRtiAmbassador();
+      Recorder callbacks = new Recorder();
+      String federation = "java-tck-zero-dimensional-default-range-" + UUID.randomUUID();
+      boolean publisherConnected = false, subscriberConnected = false, created = false;
+      boolean publisherJoined = false, subscriberJoined = false, published = false, subscribed = false;
+      RegionHandle zeroRegion = null, receiverRegion = null;
+      InteractionClassHandle publisherInteraction = null, subscriberInteraction = null;
+      try {
+         publisher.connect(noopFederateAmbassador(), callbackModel);
+         publisherConnected = true;
+         subscriber.connect(callbacks.proxy(), callbackModel);
+         subscriberConnected = true;
+         publisher.createFederationExecution(federation, fom);
+         created = true;
+         FederateHandle producer = publisher.joinFederationExecution(
+            "java-tck-zero-dimensional-default-publisher", federation);
+         publisherJoined = true;
+         subscriber.joinFederationExecution("java-tck-zero-dimensional-default-subscriber", federation);
+         subscriberJoined = true;
+
+         publisherInteraction = publisher.getInteractionClassHandle(interactionName);
+         subscriberInteraction = subscriber.getInteractionClassHandle(interactionName);
+         ParameterHandle publisherParameter =
+            publisher.getParameterHandle(publisherInteraction, parameterName);
+         ParameterHandle subscriberParameter =
+            subscriber.getParameterHandle(subscriberInteraction, parameterName);
+         DimensionHandle publisherFirst = publisher.getDimensionHandle(firstDimensionName);
+         DimensionHandle publisherSecond = publisher.getDimensionHandle(secondDimensionName);
+         DimensionHandle subscriberFirst = subscriber.getDimensionHandle(firstDimensionName);
+         DimensionHandle subscriberSecond = subscriber.getDimensionHandle(secondDimensionName);
+         JavaTckSupport.check(publisherInteraction.equals(subscriberInteraction)
+               && publisherParameter.equals(subscriberParameter)
+               && publisherFirst.equals(subscriberFirst) && publisherSecond.equals(subscriberSecond),
+            "default-range interaction members resolved different declaration handles");
+         JavaTckSupport.check(publisher.getAvailableDimensionsForInteractionClass(
+                  publisherInteraction).contains(publisherFirst)
+               && publisher.getAvailableDimensionsForInteractionClass(
+                  publisherInteraction).contains(publisherSecond),
+            "default-range interaction FOM must expose both configured dimensions");
+
+         publisher.publishInteractionClass(publisherInteraction);
+         published = true;
+         zeroRegion = publisher.createRegion(publisher.getDimensionHandleSetFactory().create());
+         JavaTckSupport.check(zeroRegion != null
+               && publisher.getDimensionHandleSet(zeroRegion).isEmpty(),
+            "zero-dimensional default realization did not start with an empty region");
+         RegionHandleSet sourceRegions = publisher.getRegionHandleSetFactory().create();
+         sourceRegions.add(zeroRegion);
+         publisher.commitRegionModifications(sourceRegions);
+
+         DimensionHandleSet receiverDimensions = subscriber.getDimensionHandleSetFactory().create();
+         receiverDimensions.add(subscriberSecond);
+         receiverRegion = subscriber.createRegion(receiverDimensions);
+         RegionHandleSet receiverRegions = subscriber.getRegionHandleSetFactory().create();
+         receiverRegions.add(receiverRegion);
+         subscriber.setRangeBounds(receiverRegion, subscriberSecond, new RangeBounds(6, 9));
+         subscriber.commitRegionModifications(receiverRegions);
+         subscriber.subscribeInteractionClassWithRegions(subscriberInteraction, receiverRegions);
+         subscribed = true;
+
+         byte[] value = new byte[] {0x2a, 0x15};
+         sendWithRegion(publisher, publisherInteraction, publisherParameter, zeroRegion,
+            value, new byte[] {0x41});
+         requireNoInteractions(subscriber, callbackModel, callbacks,
+            "empty interaction region overlapped the available FOM default [0,5)");
+
+         subscriber.unsubscribeInteractionClassWithRegions(subscriberInteraction, receiverRegions);
+         subscribed = false;
+         subscriber.setRangeBounds(receiverRegion, subscriberSecond, new RangeBounds(1, 4));
+         subscriber.commitRegionModifications(receiverRegions);
+         subscriber.subscribeInteractionClassWithRegions(subscriberInteraction, receiverRegions);
+         subscribed = true;
+         sendWithRegion(publisher, publisherInteraction, publisherParameter, zeroRegion,
+            value, new byte[] {0x42});
+         await(subscriber, callbackModel, () -> callbacks.interactions.size() >= 1,
+            "empty interaction region overlapping its available FOM default range");
+         JavaTckSupport.check(callbacks.interactions.size() == 1,
+            "empty interaction region default-range send delivered a duplicate callback");
+         assertRegionalDelivery(subscriber, callbacks.interactions.get(0), subscriberInteraction,
+            subscriberParameter, producer, value, new byte[] {0x42},
+            "empty interaction region default-range delivery");
+      } finally {
+         if (subscribed && subscriberJoined && subscriberInteraction != null && receiverRegion != null) {
+            try {
+               RegionHandleSet regions = subscriber.getRegionHandleSetFactory().create();
+               regions.add(receiverRegion);
+               subscriber.unsubscribeInteractionClassWithRegions(subscriberInteraction, regions);
+            } catch (Exception ignored) { }
+         }
+         if (published && publisherJoined && publisherInteraction != null) try {
+            publisher.unpublishInteractionClass(publisherInteraction);
+         } catch (Exception ignored) { }
+         if (receiverRegion != null && subscriberJoined) try { subscriber.deleteRegion(receiverRegion); }
+            catch (Exception ignored) { }
+         if (zeroRegion != null && publisherJoined) try { publisher.deleteRegion(zeroRegion); }
+            catch (Exception ignored) { }
+         if (subscriberJoined) try { subscriber.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (publisherJoined) try { publisher.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         if (created) try { publisher.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         if (publisherConnected) try { publisher.disconnect(); } catch (Exception ignored) { }
+         if (subscriberConnected) try { subscriber.disconnect(); } catch (Exception ignored) { }
+      }
    }
 
    private static void send(RTIambassador publisher, InteractionClassHandle interaction,
@@ -163,7 +278,7 @@ final class ZeroDimensionalRegionalInteractionTck {
             && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter))
             && Arrays.equals(expectedTag, actual.tag)
             && expectedProducer.equals(actual.producer)
-            && actual.regions != null && actual.regions.isEmpty()
+            && (actual.regions == null || actual.regions.isEmpty())
             && actual.transportation != null,
          description + " changed standard payload or callback metadata");
       JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
@@ -184,9 +299,35 @@ final class ZeroDimensionalRegionalInteractionTck {
       for (int pass = 0; pass < 8; ++pass) pump(ambassador, model);
    }
 
+   private static void requireNoInteractions(RTIambassador ambassador, CallbackModel model,
+         Recorder callbacks, String description) throws Exception {
+      long deadline = System.nanoTime() + 250_000_000L;
+      while (System.nanoTime() < deadline) {
+         pump(ambassador, model);
+         Thread.sleep(1L);
+      }
+      JavaTckSupport.check(callbacks.interactions.isEmpty(), description);
+   }
+
    private static void pump(RTIambassador ambassador, CallbackModel model) throws Exception {
       if (model == CallbackModel.HLA_EVOKED) JavaTckSupport.drain(ambassador);
       else Thread.yield();
+   }
+
+   private static void assertRegionalDelivery(RTIambassador receiver, Interaction actual,
+         InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
+         FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
+         String description) throws Exception {
+      JavaTckSupport.check(actual.callbackArity == 6
+            && actual.interaction.equals(expectedClass)
+            && actual.parameters.size() == 1
+            && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter))
+            && Arrays.equals(expectedTag, actual.tag)
+            && expectedProducer.equals(actual.producer)
+            && actual.transportation != null,
+         description + " changed standard payload or callback metadata");
+      JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
+         description + " returned an unresolvable transportation type");
    }
 
    private static FederateAmbassador noopFederateAmbassador() {

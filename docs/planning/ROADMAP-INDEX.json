@@ -37482,7 +37482,54 @@
         "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit passed with no findings. No Requirements Lab resynchronization was made. The case remains default opt-in because it needs adapter-supplied FOM/runtime inputs.",
         "boundary": "Local provider and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
       },
-      "next_action": "Next exact case: compare java-tck.zero-dimensional-regional-interaction with cpp-tck.zero-dimensional-regional-interaction. Audit excluded-dimension non-overlap and FOM-default realization for empty interaction regions; preserve only the direct mappings already selected by the C++ pair and its fixture-specific limits.",
+      "latest_attempted_java_zero_dimensional_regional_interaction_2026_11_17": {
+          "status": "implemented-with-local-provider-gap",
+          "scope": "Ported both C++ branches of cpp-tck.zero-dimensional-regional-interaction: explicit zero-dimensional non-overlap under the excluded-dimension FOM, and empty-source routing against the restricted Y default [0,5).",
+          "scenario_ids": [
+            "java-tck.zero-dimensional-regional-interaction",
+            "cpp-tck.zero-dimensional-regional-interaction"
+          ],
+          "direct_mappings": [
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3 -> IEEE 1516.1-2025 §9.1.3.1",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7 -> IEEE 1516.1-2025 §9.1.3.1"
+          ],
+          "evidence": "Java build against the pinned official API succeeded. Focused --run-unverified runs failed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the local Umbra JNI 2025.jni-smoke provider: ordinary baseline, explicit zero-dimensional non-overlap, and Y [6,9) no-delivery passed; expected Y [1,4) default-overlap delivery timed out. Results: .build/java-tck-20261117/zero-dimensional-{evoked,immediate}.{json,xml}.",
+          "mapping_and_validation": "The Java direct mappings and selected requirement IDs match the paired C++ case exactly. Java catalog validation and the all-ID parity audit pass; zero-dimensional lane check reports the existing C++ plan mapping clean.",
+          "boundary": "Keep default-disabled. This local-provider timeout is not a conformance finding and does not establish a Java mirror defect or independent-provider behavior."
+        },
+      "latest_verified_java_multi_region_interaction_routing_2026_11_17": {
+          "status": "verified-2026-11-17",
+          "scope": "Ported cpp-tck.multi-region-interaction-routing: two-source union delivery, single- and multi-region subscriptions, receiver de-duplication, disjoint filtering, excluded-dimension no-route, and strict DDM equal-lower/touch/interior boundary checks. Callback region designators are captured through each receiver RTIambassador and compared by dimension names and ranges.",
+          "scenario_ids": [
+            "java-tck.multi-region-interaction-routing",
+            "cpp-tck.multi-region-interaction-routing"
+          ],
+          "direct_mappings": [
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l47-15 -> IEEE 1516.1-2025 §9.1.3.3",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l53-17 -> IEEE 1516.1-2025 §9.1.3.3",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l62-19 -> IEEE 1516.1-2025 §9.1.4",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l68-21 -> IEEE 1516.1-2025 §9.1.4",
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22 -> IEEE 1516.1-2025 §9.1.4"
+          ],
+          "evidence": "The pinned Java API build succeeded. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with ddm-region-realization-excluded-dimensions-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results: .build/java-tck-20261117/multi-region-{evoked,immediate}.{json,xml}.",
+          "mapping_and_validation": "Five Java requirement-to-section pairs match the paired C++ catalog exactly. Java catalog validation, all-ID parity audit, and the multi-region Catch2 lane check pass.",
+          "boundary": "Adapter-backed local-provider evidence only. The scenario remains default-disabled because it needs an adapter-supplied excluded-dimension DDM FOM; no independent-provider or conformance claim."
+        },
+      "latest_verified_java_regional_interaction_source_region_snapshot_2026_11_17": {
+          "status": "verified-2026-11-17",
+          "scope": "Aligned java-tck.regional-interaction-source-region-snapshot with the paired C++ send-time snapshot sequence. The Java callback designator is resolved through the receiver RTIambassador and checked by dimension names and bounds, avoiding cross-federate RegionHandle equality.",
+          "scenario_ids": [
+            "java-tck.regional-interaction-source-region-snapshot",
+            "cpp-tck.regional-interaction-source-region-snapshot"
+          ],
+          "direct_mappings": [
+            "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l57-17 -> IEEE 1516.1-2025 §9.1.7"
+          ],
+          "evidence": "Java build against the pinned official API succeeded. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results: .build/java-tck-20261117/source-region-snapshot-{evoked,immediate}.{json,xml}.",
+          "mapping_and_validation": "The direct Java mapping and 35 API-method entries match the paired C++ mapping and RtiTckMain registration. Java result/catalog validation and the all-ID parity audit pass. No C++ Catch2 evidence or plan row was added for this existing portable C++ TCK case.",
+          "boundary": "Local Umbra JNI and adapter-FOM evidence only; no independent-provider behavior, interoperability, or conformance claim. The scenario remains default-disabled because it requires adapter-supplied DDM inputs."
+        },
+      "next_action": "Next exact pair: cpp-tck.regional-send-no-retraction-designator and java-tck.regional-send-no-retraction-designator. Compare the Java public-API witness with the C++ no-time void Send Interaction With Regions overload, its one receive-order delivery, and the shared §9.12 mapping; run the focused Java callback-model slice with adapter DDM inputs, then update only missing assertions or evidence.",
       "latest_verified_java_passive_regional_interaction_transition_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared java-tck.passive-regional-interaction-transition with the paired C++ TCK case. Java now snapshots conveyed source-region metadata through each receiving federate's RTIambassador and verifies the two dimensions and [1,5] bounds, while preserving the active-to-passive transition, retained passive delivery under another active route, last-active-route suppression, empty-set no-op, and reactivation sequence.",

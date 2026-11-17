@@ -8,6 +8,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -15,11 +16,13 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -32,14 +35,15 @@ final class MultiRegionInteractionRoutingTck {
    private static final int SECOND = 2;
    private static final int COMBINED = 3;
    private static final int DISJOINT = 4;
+   private static final int NO_COMMON = 5;
 
    private MultiRegionInteractionRoutingTck() { }
 
    static void run(RtiFactory factory, String fom, String interactionName, String parameterName,
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
-      RTIambassador[] members = new RTIambassador[5];
-      Recorder[] recorders = new Recorder[5];
+      RTIambassador[] members = new RTIambassador[6];
+      Recorder[] recorders = new Recorder[6];
       for (int i = 0; i < members.length; ++i) {
          members[i] = factory.getRtiAmbassador();
          recorders[i] = new Recorder();
@@ -50,12 +54,14 @@ final class MultiRegionInteractionRoutingTck {
       boolean[] subscribed = new boolean[members.length];
       boolean created = false, published = false;
       RegionHandle[][] regions = new RegionHandle[members.length][];
+      RegionHandle noCommonSource = null;
       InteractionClassHandle[] interactions = new InteractionClassHandle[members.length];
       ParameterHandle[] parameters = new ParameterHandle[members.length];
       try {
          members[PUBLISHER].connect(noopFederateAmbassador(), callbackModel);
          connected[PUBLISHER] = true;
          for (int i = FIRST; i < members.length; ++i) {
+            recorders[i].inspectRegionDesignatorsWith(members[i]);
             members[i].connect(recorders[i].proxy(), callbackModel);
             connected[i] = true;
          }
@@ -86,9 +92,16 @@ final class MultiRegionInteractionRoutingTck {
          }
          for (int i = FIRST; i < members.length; ++i) {
             JavaTckSupport.check(interactions[PUBLISHER].equals(interactions[i])
-                  && parameters[PUBLISHER].equals(parameters[i]),
+                  && parameters[PUBLISHER].equals(parameters[i])
+                  && firstDimensions[PUBLISHER].equals(firstDimensions[i])
+                  && secondDimensions[PUBLISHER].equals(secondDimensions[i]),
                "multi-region federates resolved different interaction or parameter handles");
          }
+         JavaTckSupport.check(!firstDimensions[PUBLISHER].equals(secondDimensions[PUBLISHER]),
+            "multi-region interaction FOM resolved the two dimensions to one handle");
+         JavaTckSupport.check(!members[PUBLISHER].getAllowRelaxedDDMSwitch()
+               && !members[FIRST].getAllowRelaxedDDMSwitch(),
+            "strict multi-region boundary checks require Allow Relaxed DDM to be disabled");
          members[PUBLISHER].publishInteractionClass(interactions[PUBLISHER]);
          published = true;
 
@@ -113,7 +126,7 @@ final class MultiRegionInteractionRoutingTck {
                8, 9, 8, 9)
          };
 
-         for (int i = FIRST; i < members.length; ++i) {
+         for (int i = FIRST; i <= DISJOINT; ++i) {
             members[i].setConveyRegionDesignatorSetsSwitch(true);
             JavaTckSupport.check(members[i].getConveyRegionDesignatorSetsSwitch(),
                "multi-region receiver did not enable source-region designators");
@@ -125,46 +138,139 @@ final class MultiRegionInteractionRoutingTck {
          RegionHandleSet bothSources = regionSet(members[PUBLISHER], regions[PUBLISHER]);
          RegionHandleSet firstSource = regionSet(members[PUBLISHER], regions[PUBLISHER][0]);
          RegionHandleSet secondSource = regionSet(members[PUBLISHER], regions[PUBLISHER][1]);
+         List<RegionDesignatorSnapshot> bothSourceDesignators =
+            snapshotRegionDesignators(members[PUBLISHER], bothSources);
+         List<RegionDesignatorSnapshot> firstSourceDesignators =
+            snapshotRegionDesignators(members[PUBLISHER], firstSource);
+         List<RegionDesignatorSnapshot> secondSourceDesignators =
+            snapshotRegionDesignators(members[PUBLISHER], secondSource);
          byte[] bothValue = new byte[] {0x61, 0x62, 0x63};
          byte[] bothTag = new byte[] {0x49, 0x31};
          send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER],
             bothSources, bothValue, bothTag);
-         await(members, callbackModel, recorders, new int[] {0, 1, 1, 1, 0},
+         await(members, callbackModel, recorders, new int[] {0, 1, 1, 1, 0, 0},
             "multi-region interaction union delivery");
          assertDelivery(members[FIRST], recorders[FIRST].interactions.get(0), interactions[FIRST],
-            parameters[FIRST], producer, bothValue, bothTag, regions[PUBLISHER], "first route");
+            parameters[FIRST], producer, bothValue, bothTag, bothSourceDesignators, "first route");
          assertDelivery(members[SECOND], recorders[SECOND].interactions.get(0), interactions[SECOND],
-            parameters[SECOND], producer, bothValue, bothTag, regions[PUBLISHER], "second route");
+            parameters[SECOND], producer, bothValue, bothTag, bothSourceDesignators, "second route");
          assertDelivery(members[COMBINED], recorders[COMBINED].interactions.get(0),
             interactions[COMBINED], parameters[COMBINED], producer, bothValue, bothTag,
-            regions[PUBLISHER], "combined route without duplicate delivery");
+            bothSourceDesignators, "combined route without duplicate delivery");
 
          byte[] secondValue = new byte[] {0x71, 0x72};
          byte[] secondTag = new byte[] {0x49, 0x32};
          send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER],
             secondSource, secondValue, secondTag);
-         await(members, callbackModel, recorders, new int[] {0, 1, 2, 2, 0},
+         await(members, callbackModel, recorders, new int[] {0, 1, 2, 2, 0, 0},
             "second-source interaction delivery");
          assertDelivery(members[SECOND], recorders[SECOND].interactions.get(1), interactions[SECOND],
-            parameters[SECOND], producer, secondValue, secondTag, regions[PUBLISHER],
+            parameters[SECOND], producer, secondValue, secondTag, secondSourceDesignators,
             "second-source route");
          assertDelivery(members[COMBINED], recorders[COMBINED].interactions.get(1),
             interactions[COMBINED], parameters[COMBINED], producer, secondValue, secondTag,
-            regions[PUBLISHER], "combined second-source route");
+            secondSourceDesignators, "combined second-source route");
 
          byte[] firstValue = new byte[] {(byte) 0x81, (byte) 0x82};
          byte[] firstTag = new byte[] {0x49, 0x33};
          send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER],
             firstSource, firstValue, firstTag);
-         await(members, callbackModel, recorders, new int[] {0, 2, 2, 3, 0},
+         await(members, callbackModel, recorders, new int[] {0, 2, 2, 3, 0, 0},
             "first-source interaction delivery");
          assertDelivery(members[FIRST], recorders[FIRST].interactions.get(1), interactions[FIRST],
-            parameters[FIRST], producer, firstValue, firstTag, regions[PUBLISHER],
+            parameters[FIRST], producer, firstValue, firstTag, firstSourceDesignators,
             "first-source route");
          assertDelivery(members[COMBINED], recorders[COMBINED].interactions.get(2),
             interactions[COMBINED], parameters[COMBINED], producer, firstValue, firstTag,
-            regions[PUBLISHER], "combined first-source route");
+            firstSourceDesignators, "combined first-source route");
+
+         members[FIRST].setRangeBounds(regions[FIRST][0], firstDimensions[FIRST],
+            new RangeBounds(2, 4));
+         members[FIRST].commitRegionModifications(regionSet(members[FIRST], regions[FIRST]));
+         byte[] touchingValue = new byte[] {(byte) 0x91};
+         byte[] touchingTag = new byte[] {0x49, 0x34};
+         send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER], firstSource,
+            touchingValue, touchingTag);
+         await(members, callbackModel, recorders, new int[] {0, 2, 2, 4, 0, 0},
+            "strict multi-region touching-boundary suppression");
+         assertDelivery(members[COMBINED], recorders[COMBINED].interactions.get(3),
+            interactions[COMBINED], parameters[COMBINED], producer, touchingValue, touchingTag,
+            firstSourceDesignators, "combined strict touching-boundary control");
+
+         members[FIRST].setRangeBounds(regions[FIRST][0], firstDimensions[FIRST],
+            new RangeBounds(1, 3));
+         members[FIRST].commitRegionModifications(regionSet(members[FIRST], regions[FIRST]));
+         byte[] overlappingValue = new byte[] {(byte) 0x92};
+         byte[] overlappingTag = new byte[] {0x49, 0x35};
+         send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER], firstSource,
+            overlappingValue, overlappingTag);
+         await(members, callbackModel, recorders, new int[] {0, 3, 2, 5, 0, 0},
+            "strict multi-region interior-overlap delivery");
+         assertDelivery(members[FIRST], recorders[FIRST].interactions.get(2), interactions[FIRST],
+            parameters[FIRST], producer, overlappingValue, overlappingTag, firstSourceDesignators,
+            "first strict interior-overlap interaction");
+         assertDelivery(members[COMBINED], recorders[COMBINED].interactions.get(4),
+            interactions[COMBINED], parameters[COMBINED], producer, overlappingValue,
+            overlappingTag, firstSourceDesignators, "combined strict interior-overlap interaction");
+
+         RegionHandleSet noCommonSubscription = null;
+         try {
+            DimensionHandleSet noCommonDimensions =
+               members[NO_COMMON].getDimensionHandleSetFactory().create();
+            noCommonDimensions.add(secondDimensions[NO_COMMON]);
+            RegionHandle noCommonSubscriptionRegion = members[NO_COMMON].createRegion(noCommonDimensions);
+            regions[NO_COMMON] = new RegionHandle[] {noCommonSubscriptionRegion};
+            members[NO_COMMON].setRangeBounds(noCommonSubscriptionRegion,
+               secondDimensions[NO_COMMON], new RangeBounds(8, 9));
+            noCommonSubscription = regionSet(members[NO_COMMON], regions[NO_COMMON]);
+            members[NO_COMMON].commitRegionModifications(noCommonSubscription);
+            JavaTckSupport.check(members[NO_COMMON].getDimensionHandleSet(noCommonSubscriptionRegion)
+                  .size() == 1
+                  && members[NO_COMMON].getDimensionHandleSet(noCommonSubscriptionRegion)
+                     .contains(secondDimensions[NO_COMMON]),
+               "no-common subscriber region did not contain only Y");
+            members[NO_COMMON].subscribeInteractionClassWithRegions(
+               interactions[NO_COMMON], noCommonSubscription);
+            subscribed[NO_COMMON] = true;
+
+            DimensionHandleSet noCommonSourceDimensions =
+               members[PUBLISHER].getDimensionHandleSetFactory().create();
+            noCommonSourceDimensions.add(firstDimensions[PUBLISHER]);
+            noCommonSource = members[PUBLISHER].createRegion(noCommonSourceDimensions);
+            members[PUBLISHER].setRangeBounds(noCommonSource, firstDimensions[PUBLISHER],
+               new RangeBounds(8, 9));
+            RegionHandleSet noCommonSourceSet = regionSet(members[PUBLISHER], noCommonSource);
+            members[PUBLISHER].commitRegionModifications(noCommonSourceSet);
+            JavaTckSupport.check(members[PUBLISHER].getDimensionHandleSet(noCommonSource).size() == 1
+                  && members[PUBLISHER].getDimensionHandleSet(noCommonSource)
+                     .contains(firstDimensions[PUBLISHER])
+                  && !firstDimensions[PUBLISHER].equals(secondDimensions[NO_COMMON]),
+               "no-common source and subscriber regions unexpectedly shared a dimension");
+            byte[] noCommonValue = new byte[] {(byte) 0x91};
+            byte[] noCommonTag = new byte[] {0x49, 0x34};
+            send(members[PUBLISHER], interactions[PUBLISHER], parameters[PUBLISHER],
+               noCommonSourceSet, noCommonValue, noCommonTag);
+            await(members, callbackModel, recorders, new int[] {0, 3, 2, 5, 1, 0},
+               "no-common-dimension interaction routing");
+         } finally {
+            if (subscribed[NO_COMMON] && noCommonSubscription != null) try {
+               members[NO_COMMON].unsubscribeInteractionClassWithRegions(
+                  interactions[NO_COMMON], noCommonSubscription);
+               subscribed[NO_COMMON] = false;
+            } catch (Exception ignored) { }
+            if (noCommonSource != null) try {
+               members[PUBLISHER].deleteRegion(noCommonSource);
+               noCommonSource = null;
+            } catch (Exception ignored) { }
+            if (regions[NO_COMMON] != null) try {
+               members[NO_COMMON].deleteRegion(regions[NO_COMMON][0]);
+               regions[NO_COMMON] = null;
+            } catch (Exception ignored) { }
+         }
       } finally {
+         if (noCommonSource != null && joined[PUBLISHER]) try {
+            members[PUBLISHER].deleteRegion(noCommonSource);
+         } catch (Exception ignored) { }
          for (int i = FIRST; i < members.length; ++i) {
             if (subscribed[i] && joined[i]) try {
                members[i].unsubscribeInteractionClassWithRegions(interactions[i],
@@ -199,8 +305,8 @@ final class MultiRegionInteractionRoutingTck {
       dimensions.add(first);
       dimensions.add(second);
       RegionHandle region = ambassador.createRegion(dimensions);
-      ambassador.setRangeBounds(region, first, new hla.rti1516_2025.RangeBounds(firstLower, firstUpper));
-      ambassador.setRangeBounds(region, second, new hla.rti1516_2025.RangeBounds(secondLower, secondUpper));
+      ambassador.setRangeBounds(region, first, new RangeBounds(firstLower, firstUpper));
+      ambassador.setRangeBounds(region, second, new RangeBounds(secondLower, secondUpper));
       ambassador.commitRegionModifications(regionSet(ambassador, region));
       return region;
    }
@@ -223,18 +329,42 @@ final class MultiRegionInteractionRoutingTck {
    private static void assertDelivery(RTIambassador receiver, Interaction actual,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
-         RegionHandle[] expectedRegions, String description) throws Exception {
-      Set<RegionHandle> expected = new HashSet<>(Arrays.asList(expectedRegions));
+         List<RegionDesignatorSnapshot> expectedRegions, String description) throws Exception {
+      Set<RegionDesignatorSnapshot> expected = new HashSet<>(expectedRegions);
+      Set<RegionDesignatorSnapshot> actualDesignators = actual.regionDesignators == null
+         ? new HashSet<>() : new HashSet<>(actual.regionDesignators);
       JavaTckSupport.check(actual.interaction.equals(expectedClass)
             && actual.parameters.size() == 1
             && Arrays.equals(expectedValue, actual.parameters.get(expectedParameter))
             && Arrays.equals(expectedTag, actual.tag)
             && expectedProducer.equals(actual.producer)
             && actual.transportation != null
-            && expected.equals(actual.regions),
+            && actual.regions != null && actual.regions.size() == expectedRegions.size()
+            && actual.regionDesignators != null
+            && actual.regionDesignators.size() == expectedRegions.size()
+            && expected.size() == expectedRegions.size()
+            && actualDesignators.size() == actual.regionDesignators.size()
+            && expected.equals(actualDesignators),
          description + " changed interaction payload, producer, or source-region set");
       JavaTckSupport.check(!receiver.getTransportationTypeName(actual.transportation).isEmpty(),
          description + " returned an unresolvable transportation type");
+   }
+
+   private static List<RegionDesignatorSnapshot> snapshotRegionDesignators(
+         RTIambassador ambassador, RegionHandleSet regions) throws Exception {
+      List<RegionDesignatorSnapshot> result = new ArrayList<>();
+      for (RegionHandle region : regions) {
+         Set<String> dimensions = new HashSet<>();
+         Map<String, RangeSnapshot> ranges = new HashMap<>();
+         for (DimensionHandle dimension : ambassador.getDimensionHandleSet(region)) {
+            String name = ambassador.getDimensionName(dimension);
+            RangeBounds bounds = ambassador.getRangeBounds(region, dimension);
+            dimensions.add(name);
+            ranges.put(name, new RangeSnapshot(bounds.lower, bounds.upper));
+         }
+         result.add(new RegionDesignatorSnapshot(dimensions, ranges));
+      }
+      return result;
    }
 
    private static void await(RTIambassador[] members, CallbackModel model, Recorder[] recorders,
@@ -287,8 +417,9 @@ final class MultiRegionInteractionRoutingTck {
       private final TransportationTypeHandle transportation;
       private final FederateHandle producer;
       private final Set<RegionHandle> regions;
+      private final List<RegionDesignatorSnapshot> regionDesignators;
 
-      private Interaction(Object[] arguments) {
+      private Interaction(Object[] arguments, RTIambassador regionInspector) throws Exception {
          interaction = (InteractionClassHandle) arguments[0];
          ParameterHandleValueMap values = (ParameterHandleValueMap) arguments[1];
          values.forEach((handle, value) -> parameters.put(handle, value.clone()));
@@ -297,18 +428,63 @@ final class MultiRegionInteractionRoutingTck {
          producer = (FederateHandle) arguments[4];
          regions = arguments[5] == null ? null
             : new HashSet<>((RegionHandleSet) arguments[5]);
+         regionDesignators = arguments[5] == null ? null
+            : snapshotRegionDesignators(regionInspector, (RegionHandleSet) arguments[5]);
       }
+   }
+
+   private static final class RegionDesignatorSnapshot {
+      private final Set<String> dimensions;
+      private final Map<String, RangeSnapshot> ranges;
+
+      private RegionDesignatorSnapshot(Set<String> dimensions, Map<String, RangeSnapshot> ranges) {
+         this.dimensions = dimensions;
+         this.ranges = ranges;
+      }
+
+      @Override public boolean equals(Object other) {
+         if (!(other instanceof RegionDesignatorSnapshot)) return false;
+         RegionDesignatorSnapshot that = (RegionDesignatorSnapshot) other;
+         return dimensions.equals(that.dimensions) && ranges.equals(that.ranges);
+      }
+
+      @Override public int hashCode() { return Objects.hash(dimensions, ranges); }
+   }
+
+   private static final class RangeSnapshot {
+      private final long lower;
+      private final long upper;
+
+      private RangeSnapshot(long lower, long upper) {
+         this.lower = lower;
+         this.upper = upper;
+      }
+
+      @Override public boolean equals(Object other) {
+         if (!(other instanceof RangeSnapshot)) return false;
+         RangeSnapshot that = (RangeSnapshot) other;
+         return lower == that.lower && upper == that.upper;
+      }
+
+      @Override public int hashCode() { return Objects.hash(lower, upper); }
    }
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private volatile RTIambassador regionInspector;
+
+      private void inspectRegionDesignatorsWith(RTIambassador ambassador) {
+         regionInspector = ambassador;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
             FederateAmbassador.class.getClassLoader(), new Class<?>[] {FederateAmbassador.class},
             (proxy, method, arguments) -> {
                if ("receiveInteraction".equals(method.getName()) && arguments != null
-                     && arguments.length == 6) interactions.add(new Interaction(arguments));
+                     && arguments.length == 6) {
+                  interactions.add(new Interaction(arguments, regionInspector));
+               }
                if (method.getDeclaringClass() == Object.class) {
                   if ("toString".equals(method.getName())) return "Java TCK multi-region callbacks";
                   if ("hashCode".equals(method.getName())) return System.identityHashCode(proxy);

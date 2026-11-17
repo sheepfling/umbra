@@ -8,6 +8,7 @@ import hla.rti1516_2025.FederateHandle;
 import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
 import hla.rti1516_2025.ResignAction;
@@ -15,11 +16,13 @@ import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -56,6 +59,7 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          publisherJoined = true;
          subscriber.joinFederationExecution("java-tck-regional-snapshot-subscriber", federation);
          subscriberJoined = true;
+         subscriberCallbacks.inspectRegionDesignatorsWith(subscriber);
 
          publisherInteraction = publisher.getInteractionClassHandle(interactionName);
          subscriberInteraction = subscriber.getInteractionClassHandle(interactionName);
@@ -80,6 +84,8 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          subscriberRegion = createRegion(subscriber, subscriberFirst, subscriberSecond, 2, 6);
          sourceRegions = regionSet(publisher, sourceRegion);
          subscriberRegions = regionSet(subscriber, subscriberRegion);
+         List<RegionDesignatorSnapshot> sourceDesignators =
+            snapshotRegionDesignators(publisher, sourceRegions);
          subscriber.setConveyRegionDesignatorSetsSwitch(true);
          subscriber.subscribeInteractionClassWithRegions(
             subscriberInteraction, subscriberRegions);
@@ -101,7 +107,7 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          JavaTckSupport.check(subscriberCallbacks.interactions.size() == 1,
             "send-time source-region snapshot delivered a duplicate interaction");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producingFederate, sourceRegion);
+            subscriberInteraction, subscriberParameter, producingFederate, sourceDesignators);
 
          subscriberCallbacks.interactions.clear();
          if (callbackModel == CallbackModel.HLA_IMMEDIATE) {
@@ -122,7 +128,7 @@ final class RegionalInteractionSourceRegionSnapshotTck {
          JavaTckSupport.check(subscriberCallbacks.interactions.size() == 1,
             "restored source region delivered a duplicate interaction");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producingFederate, sourceRegion);
+            subscriberInteraction, subscriberParameter, producingFederate, sourceDesignators);
 
          subscriber.unsubscribeInteractionClassWithRegions(
             subscriberInteraction, subscriberRegions);
@@ -191,6 +197,23 @@ final class RegionalInteractionSourceRegionSnapshotTck {
       return result;
    }
 
+   private static List<RegionDesignatorSnapshot> snapshotRegionDesignators(
+         RTIambassador ambassador, RegionHandleSet regions) throws Exception {
+      List<RegionDesignatorSnapshot> result = new ArrayList<>();
+      for (RegionHandle region : regions) {
+         Set<String> dimensions = new HashSet<>();
+         Map<String, RangeSnapshot> ranges = new HashMap<>();
+         for (DimensionHandle dimension : ambassador.getDimensionHandleSet(region)) {
+            String name = ambassador.getDimensionName(dimension);
+            RangeBounds bounds = ambassador.getRangeBounds(region, dimension);
+            dimensions.add(name);
+            ranges.put(name, new RangeSnapshot(bounds.lower, bounds.upper));
+         }
+         result.add(new RegionDesignatorSnapshot(dimensions, ranges));
+      }
+      return result;
+   }
+
    private static void moveSourceRegion(RTIambassador publisher, RegionHandle sourceRegion,
          DimensionHandle dimension, long lower, long upper) throws Exception {
       publisher.setRangeBounds(
@@ -201,7 +224,8 @@ final class RegionalInteractionSourceRegionSnapshotTck {
 
    private static void assertInteraction(RTIambassador receiver, Interaction interaction,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
-         FederateHandle expectedProducer, RegionHandle expectedSourceRegion) throws Exception {
+         FederateHandle expectedProducer, List<RegionDesignatorSnapshot> expectedSourceRegions)
+         throws Exception {
       JavaTckSupport.check(expectedClass.equals(interaction.interaction)
             && interaction.parameters.size() == 1
             && Arrays.equals(VALUE, interaction.parameters.get(expectedParameter))
@@ -212,9 +236,11 @@ final class RegionalInteractionSourceRegionSnapshotTck {
       JavaTckSupport.check(transportation != null
             && !receiver.getTransportationTypeName(transportation).isEmpty(),
          "regional interaction snapshot returned an unresolvable transportation type");
+      List<RegionDesignatorSnapshot> actualSourceRegions = interaction.regionDesignators;
       JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1
-            && interaction.regions.contains(expectedSourceRegion),
-         "regional interaction did not preserve its send-time source-region designator");
+            && actualSourceRegions != null && actualSourceRegions.size() == 1
+            && expectedSourceRegions.equals(actualSourceRegions),
+         "regional interaction did not preserve its send-time source-region dimensions and bounds");
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
@@ -262,10 +288,52 @@ final class RegionalInteractionSourceRegionSnapshotTck {
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
       private Set<RegionHandle> regions;
+      private List<RegionDesignatorSnapshot> regionDesignators;
+   }
+
+   private static final class RegionDesignatorSnapshot {
+      private final Set<String> dimensions;
+      private final Map<String, RangeSnapshot> ranges;
+
+      private RegionDesignatorSnapshot(Set<String> dimensions, Map<String, RangeSnapshot> ranges) {
+         this.dimensions = dimensions;
+         this.ranges = ranges;
+      }
+
+      @Override public boolean equals(Object other) {
+         if (!(other instanceof RegionDesignatorSnapshot)) return false;
+         RegionDesignatorSnapshot that = (RegionDesignatorSnapshot) other;
+         return dimensions.equals(that.dimensions) && ranges.equals(that.ranges);
+      }
+
+      @Override public int hashCode() { return Objects.hash(dimensions, ranges); }
+   }
+
+   private static final class RangeSnapshot {
+      private final long lower;
+      private final long upper;
+
+      private RangeSnapshot(long lower, long upper) {
+         this.lower = lower;
+         this.upper = upper;
+      }
+
+      @Override public boolean equals(Object other) {
+         if (!(other instanceof RangeSnapshot)) return false;
+         RangeSnapshot that = (RangeSnapshot) other;
+         return lower == that.lower && upper == that.upper;
+      }
+
+      @Override public int hashCode() { return Objects.hash(lower, upper); }
    }
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private volatile RTIambassador regionInspector;
+
+      private void inspectRegionDesignatorsWith(RTIambassador ambassador) {
+         regionInspector = ambassador;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -284,6 +352,10 @@ final class RegionalInteractionSourceRegionSnapshotTck {
                   interaction.producer = (FederateHandle) arguments[4];
                   interaction.regions = arguments[5] == null ? null
                      : new HashSet<>((RegionHandleSet) arguments[5]);
+                  if (arguments[5] != null && regionInspector != null) {
+                     interaction.regionDesignators =
+                        snapshotRegionDesignators(regionInspector, (RegionHandleSet) arguments[5]);
+                  }
                   interactions.add(interaction);
                }
                if (method.getDeclaringClass() == Object.class) {

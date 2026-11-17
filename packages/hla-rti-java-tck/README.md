@@ -5116,9 +5116,16 @@ The opt-in `java-tck.regional-interaction-source-region-snapshot` case queues
 an ordinary regional interaction, mutates its source region to in-range
 disjoint bounds before callback servicing in evoked mode, and verifies delivery
 retains the source-region designator captured at send time. It also confirms
-subsequent disjoint sends are filtered and delivery resumes after restoring overlap. The DDM FOM,
-interaction class, parameter, dimensions, and callback model are adapter
-supplied; provider runtime remains unverified.
+subsequent disjoint sends are filtered and delivery resumes after restoring
+overlap. The callback designator is inspected through the receiver's own
+RTIambassador, comparing dimension names and bounds instead of region handles
+across federates. Its direct mapping matches the paired C++ case:
+requirement-candidate-content-clauses-09-data-distribution-management-page-225-l57-17
+-> IEEE 1516.1-2025 §9.1.7. The DDM FOM, interaction class, parameter,
+dimensions, and callback model are adapter supplied. Focused Umbra JNI runs
+passed under HLA_EVOKED and HLA_IMMEDIATE; results/JUnit are in
+`.build/java-tck-20261117/source-region-snapshot-{evoked,immediate}.{json,xml}`.
+Independent-provider behavior remains unverified.
 
 The opt-in `java-tck.regional-interaction-subscription-filtering` case ports the
 standard regional interaction filter sequence: ordinary delivery, empty
@@ -5268,20 +5275,39 @@ metadata. The adapter supplies a dimensional interaction FOM, interaction,
 parameter, two dimensions, and callback model; provider runtime remains
 unverified.
 
-The opt-in `java-tck.zero-dimensional-regional-interaction` case first checks
-ordinary default-region delivery, then creates and commits a region with no
-dimensions and verifies that an explicit interaction realization using it is
-not delivered to the ordinary subscriber. Its dimensional interaction FOM,
-interaction, parameter, dimensions, and callback model are adapter supplied;
-provider runtime remains unverified.
+The opt-in `java-tck.zero-dimensional-regional-interaction` case checks both
+branches of the paired C++ scenario. With an excluded-dimension interaction
+FOM, it checks an ordinary-send baseline and confirms that an explicit
+zero-dimensional source region does not overlap the default realization. With
+a second FOM whose available Y dimension has default range `[0,5)`, it sends
+with an empty source specification and verifies that a Y `[6,9)` subscription
+gets no callback while Y `[1,4)` receives once. Both FOMs, the interaction,
+parameter, dimensions, provider, and callback model are adapter supplied. Set
+`hla.rti.tck.ddmFom` to the excluded-dimension FOM and
+`hla.rti.tck.zeroDimensionalDefaultRangeFom` to the restricted-default FOM.
+Its two direct mappings are limited to IEEE 1516.1-2025 §9.1.3.1; it does not
+generalize excluded-dimension or default-realization behavior beyond those
+fixtures. Focused local Umbra JNI runs under both callback models passed the
+non-overlap checks but timed out on the expected Y `[1,4)` delivery.
+Results/JUnit are in
+`.build/java-tck-20261117/zero-dimensional-{evoked,immediate}.{json,xml}`;
+independent-provider behavior remains unverified.
 
 The opt-in `java-tck.multi-region-interaction-routing` case sends from two
-disjoint source regions to separate single-region subscribers, a subscriber
-with both regions, and a disjoint subscriber. It verifies union delivery only
-once per send, correct filtering, payload and producer metadata, and the exact
-source-region set in each callback. The adapter supplies the dimensional FOM,
-interaction, parameter, dimensions, and callback model; provider runtime remains
-unverified.
+source regions to separate single-region subscribers, a combined subscriber,
+and a disjoint subscriber. It checks union delivery without duplicate callbacks,
+strict touching-boundary suppression and interior-overlap delivery, and that an
+X-only source does not route to a Y-only subscription under the excluded-
+dimension FOM. For each received callback it snapshots source-region dimensions
+and bounds through that receiver's own RTIambassador, avoiding cross-federate
+region-handle comparisons. Direct mappings are limited to IEEE 1516.1-2025
+§§9.1.3.3 and 9.1.4, including the paired C++ scenario's strict-boundary and
+no-common-dimension evidence. Supply the excluded-dimension FOM through
+`hla.rti.tck.ddmFom`, plus the interaction, parameter, X/Y dimension names,
+provider, and callback model through adapter properties. Focused local Umbra JNI
+runs passed under HLA_EVOKED and HLA_IMMEDIATE. Results/JUnit are in
+`.build/java-tck-20261117/multi-region-{evoked,immediate}.{json,xml}`; independent
+provider behavior remains unverified.
 
 The default-run `java-tck.base-subscription-rejects-derived-only-attribute` case
 uses the adapter known-class FOM to accept valid base and derived attribute

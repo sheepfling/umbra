@@ -1231,15 +1231,26 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
         "RTIambassador.publishInteractionClass",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "DimensionHandleSetFactory.create",
+        "DimensionHandleSet.add",
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RegionHandleSetFactory.create",
+        "RegionHandleSet.add",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeInteractionClassWithRegions",
         "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "ParameterHandleValueMap.put",
         "RTIambassador.sendInteractionWithRegions",
         "RTIambassador.getTransportationTypeName",
         "RTIambassador.unsubscribeInteractionClassWithRegions",
@@ -1247,12 +1258,14 @@
         "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
         "FederateAmbassador.receiveInteraction(receive order with region designators)"
       ],
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-interaction-subscription",
         "cpp-1516.1-ddm-regional-interaction-delivery",
-        "cpp-1516.1-ddm-regional-interaction-filtering"
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l57-17"
       ],
       "contract_refs": [
         "interaction-region-api-contract.json",
@@ -1266,7 +1279,32 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalInteractionSourceRegionSnapshot",
       "parity": "cpp-tck.regional-interaction-source-region-snapshot",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional FOM with the configured interaction class, parameter, and two dimensions, plus an installed IEEE 1516.1-2025 Java provider; runtime verification remains pending."
+      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 interaction FOM with the configured interaction class, parameter, and two dimensions, plus an installed Java 2025 provider. The case remains default-disabled because those DDM inputs are adapter-supplied.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l57-17"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.7"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-225-l57-17",
+          "standard_section": "hla-1516.1-2025:clause-9.1.7"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The paired C++ case selects the same direct mapping: the switch-enabled receiver obtains a region set containing the source region passed to Send Interaction With Regions. The Java mirror verifies one callback designator whose receiver-local dimension names and bounds equal the source-region snapshot at send time, even when evoked callback servicing follows a committed source-region change; subsequent disjoint-send suppression and restored delivery are bounded checks, not general claims about other service families.",
+      "parity_scope_note": "Mirrors cpp-tck.regional-interaction-source-region-snapshot: sends while source and subscriber regions overlap, mutates the source before evoked callback servicing and verifies the callback retains the original source-region dimensions/ranges, suppresses a later send while disjoint, then restores overlap and verifies delivery resumes. Callback designators are compared through receiver-local dimension names and bounds rather than cross-federate RegionHandle equality.",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied dimensional interaction FOM through hla.rti.tck.ddmFom",
+        "interaction class, parameter, X/Y dimension names, and callback model via hla.rti.tck.interactionClass, hla.rti.tck.parameter, hla.rti.tck.dimension, hla.rti.tck.ddmSecondDimension, and hla.rti.tck.callbackModel"
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with Umbra JNI C++ RTI 2025.jni-smoke using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/source-region-snapshot-{evoked,immediate}.{json,xml}. The local-provider runs validate this adapter-backed sequence only; they do not establish independent-provider interoperability or conformance."
     },
     {
       "id": "java-tck.regional-interaction-subscription-filtering",
@@ -2533,7 +2571,7 @@
     {
       "id": "java-tck.zero-dimensional-regional-interaction",
       "category": "regional-interaction-management",
-      "title": "Keep an explicit zero-dimensional interaction realization outside the default region",
+      "title": "Check zero-dimensional interaction non-overlap and FOM-default realization",
       "api_methods": [
         "RTIambassador.connect(callback model supplied by adapter)",
         "RTIambassador.createFederationExecution",
@@ -2544,6 +2582,8 @@
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.publishInteractionClass",
         "RTIambassador.subscribeInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
         "RTIambassador.getParameterHandleValueMapFactory",
         "RTIambassador.sendInteraction",
         "RTIambassador.getTransportationTypeName",
@@ -2551,6 +2591,7 @@
         "RTIambassador.createRegion",
         "RTIambassador.getDimensionHandleSet",
         "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.sendInteractionWithRegions",
         "RTIambassador.deleteRegion",
@@ -2562,9 +2603,30 @@
         "FederateAmbassador.receiveInteraction"
       ],
       "requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3",
         "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7",
         "cpp-1516.1-ddm-zero-dimensional-regional-interaction"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.1"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l11-3",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l23-7",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.1"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The paired C++ TCK case selects these same two direct mappings. The excluded-dimension FOM branch establishes the ordinary-send baseline and that an explicit zero-dimensional source region does not overlap the default realization. The restricted-default FOM branch sends with an empty region specification: a receiver at Y [6,9) gets no callback, while Y [1,4) receives exactly once under the available FOM default Y [0,5). This is bounded receive-order evidence for the configured available dimension and does not establish excluded-dimension behavior for other dimensions or general realization behavior. The cpp-1516.1 identifier is repository provenance only.",
+      "parity_scope_note": "Ports both halves of cpp-tck.zero-dimensional-regional-interaction using separate adapter-supplied FOMs: explicit empty-source non-overlap under the excluded-dimension fixture, then empty-source realization against the restricted Y default [0,5), with non-overlap at Y [6,9) and overlap at Y [1,4).",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -2574,8 +2636,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#zeroDimensionalRegionalInteraction",
       "parity": "cpp-tck.zero-dimensional-regional-interaction",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "excluded-dimension interaction FOM through hla.rti.tck.ddmFom",
+        "restricted-default interaction FOM with available Y default [0,5) through hla.rti.tck.zeroDimensionalDefaultRangeFom",
+        "interaction class, parameter, X/Y dimension names, and callback model via hla.rti.tck.interactionClass, hla.rti.tck.parameter, hla.rti.tck.dimension, hla.rti.tck.ddmSecondDimension, and hla.rti.tck.callbackModel"
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with an interaction class, parameter, two dimensions, and an installed Java 2025 provider; runtime verification remains pending."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified runs failed 1/1 under both HLA_EVOKED and HLA_IMMEDIATE with Umbra JNI C++ RTI 2025.jni-smoke. In both runs, the ordinary baseline, explicit zero-dimensional non-overlap, and restricted-default Y [6,9) no-delivery checks passed; the expected delivery to Y [1,4) timed out. Results/JUnit: .build/java-tck-20261117/zero-dimensional-{evoked,immediate}.{json,xml}. This local-provider result is not interoperability or conformance evidence.",
+      "exclusion": "Requires two adapter-supplied IEEE 1516.1-2025 interaction FOMs: an excluded-dimension fixture and a fixture with available Y default [0,5), plus an installed Java 2025 provider. The focused local-provider runs timed out on the expected Y [1,4) overlap delivery under both callback models, so the case remains default-disabled."
     },
     {
       "id": "java-tck.multi-region-interaction-routing",
@@ -2588,10 +2661,15 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getDimensionHandle",
+        "RTIambassador.getDimensionName",
         "RTIambassador.getAvailableDimensionsForInteractionClass",
         "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getAllowRelaxedDDMSwitch",
         "RTIambassador.publishInteractionClass",
+        "RTIambassador.getDimensionHandleSetFactory",
         "RTIambassador.createRegion",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.getRegionHandleSetFactory",
@@ -2612,7 +2690,12 @@
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-interaction-subscription",
         "cpp-1516.1-ddm-regional-interaction-delivery",
-        "cpp-1516.1-ddm-regional-interaction-filtering"
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l47-15",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l53-17",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l62-19",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l68-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22"
       ],
       "contract_refs": [
         "interaction-region-api-contract.json",
@@ -2622,8 +2705,55 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#multiRegionInteractionRouting",
       "parity": "cpp-tck.multi-region-interaction-routing",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "excluded-dimension interaction FOM through hla.rti.tck.ddmFom, with both configured dimensions available to the interaction class and FOM values excluded",
+        "interaction class, parameter, X/Y dimension names, and callback model via hla.rti.tck.interactionClass, hla.rti.tck.parameter, hla.rti.tck.dimension, hla.rti.tck.ddmSecondDimension, and hla.rti.tck.callbackModel",
+        "Allow Relaxed DDM disabled for the strict boundary checks"
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with an interaction class, parameter, two dimensions, and an installed Java 2025 provider; runtime verification remains pending."
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with Umbra JNI C++ RTI 2025.jni-smoke using ddm-region-realization-excluded-dimensions-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/multi-region-{evoked,immediate}.{json,xml}. The local-provider runs validate this bounded adapter-backed sequence only; they do not establish independent-provider interoperability or conformance.",
+      "exclusion": "Requires an adapter-supplied IEEE 1516.1-2025 interaction FOM whose available X/Y dimensions have excluded FOM values, plus an installed Java 2025 provider. Focused local-provider runs passed, but the case remains default-disabled because it requires those adapter-supplied DDM inputs.",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l47-15",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l53-17",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l62-19",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l68-21",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.3.3",
+        "hla-1516.1-2025:clause-9.1.4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l47-15",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l53-17",
+          "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l62-19",
+          "standard_section": "hla-1516.1-2025:clause-9.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l68-21",
+          "standard_section": "hla-1516.1-2025:clause-9.1.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-221-l71-22",
+          "standard_section": "hla-1516.1-2025:clause-9.1.4"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The paired C++ TCK selects these same five direct mappings. The scenario constructs a two-realization RegionHandleSet for Send Interaction With Regions and uses both one- and two-region sets for Subscribe Interaction Class With Regions. The two-region send reaches the combined receiver because member regions overlap and leaves the disjoint receiver silent, demonstrating the any-pair overlap criterion on this interaction path. With the excluded-dimension FOM, an X-only source region paired with a Y-only subscription region produces no callback. With Allow Relaxed DDM verified disabled, equal-lower-bound ranges overlap, an exact upper/lower touch does not, and a strict interior overlap with distinct lower bounds does. This does not test the relaxed-switch branch, every dimension/range combination, or object-attribute DDM. The cpp-1516.1 identifiers are repository provenance only.",
+      "parity_scope_note": "Ports the paired C++ multi-region sequence: union delivery from two source regions, receiver-side de-duplication for the combined subscriber, disjoint filtering, source-region metadata snapshots through each receiver's own RTIambassador, strict touching-boundary suppression and interior-overlap delivery, and no routing between an X-only source and Y-only subscription under the excluded-dimension FOM."
     },
     {
       "id": "java-tck.regional-send-no-retraction-designator",
