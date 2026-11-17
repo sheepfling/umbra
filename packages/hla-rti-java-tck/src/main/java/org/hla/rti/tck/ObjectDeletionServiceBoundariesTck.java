@@ -23,6 +23,10 @@ final class ObjectDeletionServiceBoundariesTck {
 
    static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, CallbackModel callbackModel) throws Exception {
+      JavaTckSupport.check(
+         RTIambassador.class.getMethod("deleteObjectInstance",
+            ObjectInstanceHandle.class, byte[].class).getReturnType() == void.class,
+         "receive-order Delete Object Instance overload must return void");
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador receiver = factory.getRtiAmbassador();
       Recorder ownerCallbacks = new Recorder();
