@@ -9283,7 +9283,7 @@
         }
       ],
       "mapping_note": "Contract twin for the same bounded public-C++ scenario: the lost federate explicitly selects NO_ACTION as its Automatic Resign Directive; after HLAreportFederateLost, the observer verifies the Federation MOM survivor roster and public membership query, then registers and achieves a one-member federation-wide synchronization point with no failed federates. It also verifies report identity/time and timestamp-6 delivery before TAR(6). This is a selected synchronization-point continuation case, not exhaustive coverage of all synchronized operations or Automatic Resign Directives; it does not prescribe ordering between the receive-order report and TSO callback or claim full clause conformance.",
-      "parity_scope_note": "The Java scenario covers the HLAreportFederateLost callback contract only; C++-specific post-loss synchronization and time-cutoff assertions have no Java provider-runtime claim.",
+      "parity_scope_note": "The Java counterpart mirrors the report identity/time and timestamp-before-grant checks, post-loss MOM roster and membership query, and one-survivor synchronization continuation. Focused Java runtime evidence uses the current Umbra JNI provider and adapter fixture; independent-provider behavior and exhaustive connection-loss criteria are unverified. This C++ contract wrapper shares the primary implementation.",
       "contract_refs": [
         "federate-lost-mom-report-requirements-contract.json",
         "federate-lost-mom-report-api-contract.json",
@@ -9291,7 +9291,7 @@
       ],
       "cpp_test": "src/tck_connection_lifecycle.cpp#scenarioFederateLostMomReportContractPortable",
       "runner_id": "cpp-tck.federate-lost-mom-report-contract",
-      "parity": "cpp-tck.federate-lost-mom-report",
+      "parity": "java-tck.federate-lost-mom-report",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -22399,13 +22399,13 @@
           "standard_section": "hla-1516.1-2025:clause-7.8"
         }
       ],
-      "mapping_note": "Contract twin after the RL-376 source repair. It calls the same scenario implementation as the primary, covering the restored no-release/Request Divestiture Confirmation rules and acquisition grant, denial, and cancellation outcomes; it is not independent behavioral evidence, so its shared assertions must not be counted separately from primary coverage. Fresh direct TCK execution against the installed MinGW shared package passed in HLA_EVOKED and HLA_IMMEDIATE on 2026-11-10. No Java parity, independent-provider behavior, or conformance is claimed.",
+      "mapping_note": "Contract twin after the RL-376 source repair. It calls the same scenario implementation as the primary, covering the restored no-release/Request Divestiture Confirmation rules and acquisition grant, denial, and cancellation outcomes; it is not independent behavioral evidence, so its shared assertions must not be counted separately from primary coverage. Fresh direct TCK execution against the installed MinGW shared package passed in HLA_EVOKED and HLA_IMMEDIATE on 2026-11-10. Java parity is provided by java-tck.ownership-acquisition-while-owner-waits-for-new-owner, which passed both callback models on local Umbra JNI. Independent-provider behavior and conformance are unverified.",
       "contract_refs": [
         "standard-ownership-acquisition-waiting-for-new-owner-contract.json"
       ],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioAcquisitionWhileOwnerWaitsForNewOwnerContract",
       "runner_id": "cpp-tck.ownership-acquisition-while-owner-waits-for-new-owner-contract",
-      "parity": "java-tck.time-regulation-enable-tso-cutoff",
+      "parity": "java-tck.ownership-acquisition-while-owner-waits-for-new-owner",
       "callback_models": [
         "evoked",
         "immediate"
@@ -22558,13 +22558,13 @@
           "standard_section": "hla-1516.1-2025:clause-7.8"
         }
       ],
-      "mapping_note": "Contract twin runs the same sequence and assertions; it is not independent evidence. MinGW installed-package focused CTest and direct JSON runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-disconnect-reconnect-20261021/repeat-acquisition-states-20261022-results.json). No Java parity or conformance claim.",
+      "mapping_note": "Contract twin runs the same sequence and assertions; it is not independent evidence. MinGW installed-package focused CTest and direct JSON runs passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE (out/mgw/cpp-tck-disconnect-reconnect-20261021/repeat-acquisition-states-20261022-results.json). Java parity is provided by java-tck.ownership-repeat-acquisition-pending-preserves-state, which passed both callback models on local Umbra JNI. Independent-provider behavior and conformance are unverified.",
       "contract_refs": [
         "standard-ownership-acquisition-repeat-pending-contract.json"
       ],
       "cpp_test": "src/tck_ownership_acquisition_repeat_pending.cpp#scenarioRepeatAcquisitionWhilePendingContract",
       "runner_id": "cpp-tck.ownership-repeat-acquisition-pending-preserves-state-contract",
-      "parity": "java-tck.acquisition-publication-guard-unavailable",
+      "parity": "java-tck.ownership-repeat-acquisition-pending-preserves-state",
       "callback_models": [
         "evoked",
         "immediate"
@@ -31932,7 +31932,7 @@
       "cpp_test": "src/tck_object_management_scenarios.cpp#scenarioFqrTimestampedObjectDeletionKnownState",
       "runner_id": "cpp-tck.flush-queue-timestamped-object-deletion-known-state",
       "parity": "java-tck.flush-queue-timestamped-object-deletion-known-state",
-      "parity_scope_note": "The exact FQR-delivered timestamped object-deletion known-state requirement is currently covered only by the C++ TCK case.",
+      "parity_scope_note": "The Java counterpart covers the same FQR-delivered timestamped deletion path and verifies ObjectInstanceNotKnown from both object-name and known-class queries. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -50345,13 +50345,13 @@
         }
       ],
       "mapping_note": "The standard-contract wrapper executes the same public cancellation scenario as cpp-tck.negotiated-divestiture-cancellation. It exercises §7.1.2.1 p. 151 l. 114 and l. 120 using the same pending-confirmation, cancel, release-metadata, and unchanged-ownership assertions. HLA_IMMEDIATE may deliver the ordinary release request before cancellation, while HLA_EVOKED delivers it after cancellation; both runs verify the public behavior without claiming independent evidence.",
-      "parity_scope_note": "C++-only standard-contract wrapper; no Java parity or provider-conformance behavior is claimed.",
+      "parity_scope_note": "The Java counterpart checks the same bounded pending state, cancellation, restored release callback and tag, stale-callback absence, and unchanged ownership. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified. This C++ contract wrapper shares the primary implementation.",
       "contract_refs": [
         "standard-negotiated-divestiture-cancellation-contract.json"
       ],
       "cpp_test": "src/main.cpp#scenarioNegotiatedDivestitureCancellationContract",
       "runner_id": "cpp-tck.negotiated-divestiture-cancellation-contract",
-      "parity": "java-tck.callback-controls-ownership-divestiture-confirmation",
+      "parity": "java-tck.negotiated-divestiture-cancellation",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -56443,14 +56443,14 @@
         }
       ],
       "mapping_note": "Contract twin for the bounded §9.1.3.2 checks: p. 220 l. 65-75 uses the receiver's non-default region in Subscribe Object Class Attributes With Regions and verifies that committed overlap changes callback eligibility; this also witnesses l. 113-118, where the explicit regional subscription sets reflection requirements. The same overlap/disjoint callback observations directly witness §9.8 p. 233 l. 42-47, where relevant subscription/update region-set overlap affects subsequent operations. L. 77-81 unsubscribes one exact triple and confirms silence only for that receiver while a still-subscribed positive control receives the next update; l. 86-91 checks empty Subscribe/Unsubscribe region sets separately, with overlapping, disjoint, and restored-overlap updates proving each call leaves the existing subscription unchanged. For l. 72-74, a fresh third receiver has no other subscription and calls active regional Subscribe with an empty region set; it receives neither discovery nor reflection for the checked default-overlapping source region, while two non-empty regional receivers provide positive controls. The invalid TckUnrelatedDimension region must cause InvalidRegionContext while the later valid X/Y subscription still routes updates. This single test maps both source-derived l. 89-95 and l. 89-97 candidate formulations of the same dimension-subset rule, not separate behaviors. The Register Object Instance With Regions arm preserves the exact non-default source-region dimensions and bounds; Unassociate Regions For Updates stops the old source region from controlling updates; and empty region sets for Associate/Unassociate are checked separately with an intervening update after each call, proving the existing association remains effective. The non-empty Associate Regions For Updates setup, other combinations, and conformance remain out of scope.",
-      "parity_scope_note": "C++-only portable contract twin; no Java parity behavior is claimed for this direct candidate mapping.",
+      "parity_scope_note": "The Java counterpart mirrors the bounded regional callback sequence mapped by this C++ primary, including dimension rejection, overlap routing, empty-set no-ops, unassociation, and unsubscribe controls. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified. This C++ contract wrapper shares the primary implementation.",
       "contract_refs": [
         "standard-regional-attribute-update-callback-ddm-recheck-contract.json",
         "standard-regional-attribute-update-callback-ddm-recheck-requirements-contract.json"
       ],
       "cpp_test": "src/tck_region_lifecycle_scenarios.cpp#scenarioRegionalAttributeUpdateCallbackDdmRecheckContract",
       "runner_id": "cpp-tck.regional-attribute-update-callback-ddm-recheck-contract",
-      "parity": "cpp-tck.regional-attribute-update-callback-ddm-recheck",
+      "parity": "java-tck.regional-attribute-update-callback-ddm-recheck",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -60522,7 +60522,7 @@
         "standard-ownership-transfer-regional-update-requirements-contract.json"
       ],
       "mapping_note": "Bounded direct §9.1.3.2 evidence for p. 220 l. 5-13 and l. 26-30, 47-54, and 53-60: before the existing valid registration, the primary and contract reject a committed TckUnrelatedDimension source region with InvalidRegionContext and confirm that dimension is not available to the object class; the existing valid X/Y source-region registration and update remain the positive control. Direct §9.5 evidence for p. 229 l. 17-21: after the original owner loses ownership of an attribute associated with an update region, it reacquires ownership and updates before recreating that association; the receiver gets the update without a source-region designator, demonstrating the association was not restored. Direct §9.6 evidence for p. 230 l. 172-180: the new owner initially updates through the default region after transfer, and the former owner still uses the default region after reacquisition until it explicitly re-associates its original region. Direct §7.1.2.1 p. 151 l. 144 evidence: with the receiver's Attribute Scope Advisory switch enabled, the subscriber observes no Attributes Out Of Scope or Attributes In Scope callback during Divestiture If Wanted or the confirmed Negotiated Attribute Ownership Divestiture. A deliberate region mismatch and restoration then produce exactly one out-of-scope and one in-scope callback as a live-path control. This covers both named transfer services through the public C++ API under both callback models; installed-provider evidence is not an independent-provider conformance claim.",
-      "parity_scope_note": "The direct requirement mapping and execution evidence are C++ only; no Java runtime or parity claim is made for these candidate mappings.",
+      "parity_scope_note": "The Java counterpart mirrors the bounded dimension rejection, transfer and reacquisition update-region behavior, and scope-advisory controls covered by this C++ scenario. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified.",
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioOwnershipTransferRegionalUpdate",
       "runner_id": "cpp-tck.ownership-transfer-regional-update",
       "parity": "java-tck.ownership-transfer-regional-update",
@@ -60628,10 +60628,10 @@
         "standard-ownership-transfer-regional-update-requirements-contract.json"
       ],
       "mapping_note": "The contract wrapper executes the same public scenario as cpp-tck.ownership-transfer-regional-update. In addition to the bounded §9.1.3.2, §9.5, and §9.6 claims described by the primary row, it directly exercises §7.1.2.1 p. 151 l. 144: no scope advisory is delivered during either Divestiture If Wanted or confirmed Negotiated Attribute Ownership Divestiture, while later deliberate disjointness and overlap changes produce the expected out-of-scope and in-scope callbacks. Primary and contract runs are repeated under HLA_EVOKED and HLA_IMMEDIATE; this wrapper is not independent evidence or a provider-conformance claim.",
-      "parity_scope_note": "C++-only portable contract twin; no Java parity behavior is claimed for these direct candidate mappings.",
+      "parity_scope_note": "The Java counterpart mirrors the bounded dimension rejection, transfer and reacquisition update-region behavior, and scope-advisory controls covered by the C++ primary and contract wrapper. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified. The C++ wrapper shares the primary implementation.",
       "cpp_test": "src/portable_tck.cpp#scenarioOwnershipTransferRegionalUpdateContract",
       "runner_id": "cpp-tck.ownership-transfer-regional-update-contract",
-      "parity": "cpp-tck.ownership-transfer-regional-update",
+      "parity": "java-tck.ownership-transfer-regional-update",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -60699,7 +60699,7 @@
         "standard-ownership-transfer-deferred-regional-update-requirements-contract.json"
       ],
       "mapping_note": "Bounded direct §9.1.3.2 evidence for p. 220 l. 32-42 and l. 41-45: a non-owner establishes an update-region association while the current owner remains owner; an update by the current owner still carries its own 1-3 region rather than the pending 6-8 region. Upon ownership acquisition, the new owner's first update uses the deferred 6-8 region without another association call. Other ownership paths and conformance remain out of scope.",
-      "parity_scope_note": "The direct requirement mapping and execution evidence are C++ only; no Java runtime or parity claim is made for these candidate mappings.",
+      "parity_scope_note": "The Java counterpart mirrors the bounded deferred update-region association behavior: the current owner retains its region until transfer, then the new owner uses the deferred region. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified.",
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioOwnershipTransferDeferredRegionalUpdate",
       "runner_id": "cpp-tck.ownership-transfer-deferred-regional-update",
       "parity": "java-tck.ownership-transfer-deferred-regional-update",
@@ -60759,10 +60759,10 @@
         "standard-ownership-transfer-deferred-regional-update-requirements-contract.json"
       ],
       "mapping_note": "Contract twin for the bounded §9.1.3.2 deferred-association checks: the non-owner's association does not retarget current-owner updates, and it becomes the new owner's source region immediately upon ownership acquisition without an additional Associate Regions For Updates call. Other ownership paths and conformance remain out of scope.",
-      "parity_scope_note": "C++-only portable contract twin; no Java parity behavior is claimed for these direct candidate mappings.",
+      "parity_scope_note": "The Java counterpart mirrors the bounded deferred update-region association behavior covered by the C++ primary and contract wrapper. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior and conformance are unverified. The C++ wrapper shares the primary implementation.",
       "cpp_test": "src/tck_ownership_management_scenarios.cpp#scenarioOwnershipTransferDeferredRegionalUpdateContract",
       "runner_id": "cpp-tck.ownership-transfer-deferred-regional-update-contract",
-      "parity": "cpp-tck.ownership-transfer-deferred-regional-update",
+      "parity": "java-tck.ownership-transfer-deferred-regional-update",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -69134,7 +69134,7 @@
         "time-advance-requirements-contract.json",
         "standard-callback-controls-flush-queue-grant-contract.json"
       ],
-      "mapping_note": "The post-FQG public-API probe establishes actual grant time < 8 < optimistic grant time, then verifies that a next Flush Queue Request to 8 throws LogicalTimeAlreadyPassed and leaves the grant count and queried logical time unchanged. This directly maps only the rule that the next advance target must be at least the FQG optimistic logical time, requirement-candidate-content-clauses-07-ownership-management-page-177-l110-35-next-advance -> §8.1.2. The Java parity scenario covers the existing callback-gating behavior, not this new optimistic-time assertion; no broader FQG or conformance claim is made.",
+      "mapping_note": "The post-FQG public-API probe establishes actual grant time < 8 < optimistic grant time, then verifies that a next Flush Queue Request to 8 throws LogicalTimeAlreadyPassed and leaves the grant count and queried logical time unchanged. This directly maps only the rule that the next advance target must be at least the FQG optimistic logical time, requirement-candidate-content-clauses-07-ownership-management-page-177-l110-35-next-advance -> §8.1.2. The Java counterpart also checks this optimistic-time bound: a subsequent Flush Queue Request below the optimistic grant time throws LogicalTimeAlreadyPassed and leaves the grant count and queried logical time unchanged; focused Java runs passed both callback models on local Umbra JNI; no broader FQG or conformance claim is made.",
       "cpp_test": "src/tck_callback_controls_time_transport.cpp#scenarioCallbackControlsFlushQueueGrant",
       "runner_id": "cpp-tck.callback-controls-flush-queue-grant",
       "parity": "java-tck.callback-controls-flush-queue-grant",
@@ -69199,10 +69199,10 @@
       "contract_refs": [
         "standard-callback-controls-flush-queue-grant-contract.json"
       ],
-      "mapping_note": "The post-FQG public-API probe establishes actual grant time < 8 < optimistic grant time, then verifies that a next Flush Queue Request to 8 throws LogicalTimeAlreadyPassed and leaves the grant count and queried logical time unchanged. This directly maps only the rule that the next advance target must be at least the FQG optimistic logical time, requirement-candidate-content-clauses-07-ownership-management-page-177-l110-35-next-advance -> §8.1.2. Java parity covers only the callback-gating baseline; no broader FQG or conformance claim is made.",
+      "mapping_note": "The post-FQG public-API probe establishes actual grant time < 8 < optimistic grant time, then verifies that a next Flush Queue Request to 8 throws LogicalTimeAlreadyPassed and leaves the grant count and queried logical time unchanged. This directly maps only the rule that the next advance target must be at least the FQG optimistic logical time, requirement-candidate-content-clauses-07-ownership-management-page-177-l110-35-next-advance -> §8.1.2. The Java counterpart checks the same optimistic-time bound and unchanged grant/query state; no broader FQG or conformance claim is made.",
       "cpp_test": "src/tck_callback_controls_time_transport.cpp#scenarioCallbackControlsFlushQueueGrantContract",
       "runner_id": "cpp-tck.callback-controls-flush-queue-grant-contract",
-      "parity": "cpp-tck.callback-controls-flush-queue-grant",
+      "parity": "java-tck.callback-controls-flush-queue-grant",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -100695,9 +100695,9 @@
           "standard_section": "hla-1516.1-2025:clause-11.4.2"
         }
       ],
-      "mapping_note": "Contract twin for the bounded two-federate public C++ interaction path: all three specified MOM service interactions are published, sent only during their corresponding save/restore phase, and accepted through completion callbacks. This does not claim broader save/restore persistence, Java parity, interoperability, validation, or conformance.",
-      "parity_scope_note": "C++-only contract twin; no Java parity behavior is claimed.",
-      "parity": "cpp-tck.mom-save-restore-interactions",
+      "mapping_note": "Contract twin for the bounded two-federate public C++ interaction path: all three specified MOM service interactions are published, sent only during their corresponding save/restore phase, and accepted through completion callbacks. This does not claim broader save/restore persistence, interoperability, validation, or conformance.",
+      "parity_scope_note": "The Java counterpart mirrors the same bounded two-federate MOM save/restore interaction sequence and completion callbacks. Focused Java runs passed both callback models on local Umbra JNI; independent-provider behavior, interoperability, and conformance are unverified. This C++ contract wrapper shares the primary implementation.",
+      "parity": "java-tck.mom-save-restore-interactions",
       "contract_refs": [
         "save-control-api-contract.json"
       ],
@@ -113247,7 +113247,7 @@
           "standard_section": "hla-1516.2-2025:clause-4.4.2"
         }
       ],
-      "mapping_note": "Receive-order projection: a derived directed interaction to an object discovered only as its subscribed base class yields exactly one base-class callback with the available base parameter, despite an inapplicable child subscription. The timestamped continuation admits a timestamp-7 child send while NMR(10 epsilon) is pending and verifies the projected TSO callback and metadata before the grant. Existing direct mappings retain the §6.1.9 discovery, §6.14 known-class, §8.10 NMR delivery, and §5.12 receiver-known interaction behavior; the page-175 l. 86 time-stamped-activity sentence maps only to the Clause 8 introduction because the Lab supplies no narrower section. New §4.4.2 p. 46 l. 66 witness: the supplied FOM associates directed interactions with base and derived object classes; public getObjectClassName/getInteractionClassName round-trip their complete paths before directed publication and delivery. This tests those fixture associations, not complete FOM/SOM tables or the recommended highest-class placement. Previous focused MinGW CTest and direct TCK/JUnit passed 4/4 across both callback models (out/mgw/cpp-tck/directed-known-object-class-fallback-20261102.json/.xml); after this assertion change, fresh installed-package CTest passed 2/2 (EVOKED/IMMEDIATE), with a 65,946,539-byte image and 0 DWARF. Java parity covers only receive-order behavior, and Java provider runtime is unverified. No conformance claim.",
+      "mapping_note": "Receive-order projection: a derived directed interaction to an object discovered only as its subscribed base class yields exactly one base-class callback with the available base parameter, despite an inapplicable child subscription. The timestamped continuation admits a timestamp-7 child send while NMR(10 epsilon) is pending and verifies the projected TSO callback and metadata before the grant. Existing direct mappings retain the §6.1.9 discovery, §6.14 known-class, §8.10 NMR delivery, and §5.12 receiver-known interaction behavior; the page-175 l. 86 time-stamped-activity sentence maps only to the Clause 8 introduction because the Lab supplies no narrower section. New §4.4.2 p. 46 l. 66 witness: the supplied FOM associates directed interactions with base and derived object classes; public getObjectClassName/getInteractionClassName round-trip their complete paths before directed publication and delivery. This tests those fixture associations, not complete FOM/SOM tables or the recommended highest-class placement. Previous focused MinGW CTest and direct TCK/JUnit passed 4/4 across both callback models (out/mgw/cpp-tck/directed-known-object-class-fallback-20261102.json/.xml); after this assertion change, fresh installed-package CTest passed 2/2 (EVOKED/IMMEDIATE), with a 65,946,539-byte image and 0 DWARF. The Java counterpart covers both receive-order and timestamped NMR projection, including delivery before the grant. Focused Java runs passed both callback models against local Umbra JNI; independent-provider behavior and conformance are unverified.",
       "native_equivalent_runner_ids": [
         "umbra-cpp-directed-known-class-receive-order-integration"
       ],
@@ -113315,7 +113315,7 @@
           "standard_section": "hla-1516.1-2025:clause-5.12"
         }
       ],
-      "mapping_note": "Runs the same receive-order and timestamped projection assertions as the primary scenario under the alternate callback model, including §5.12 p.102 l.10: the delivered class is available for the target's known base object class and the inapplicable child subscription does not produce a child callback. The page-175 line-86 time-stamped activity/timestamp-assignment statement maps to Clause 8 generally because the pinned Requirements Lab supplies no narrower subsection; page-197 line 20 remains mapped to §8.10 for NMR delivery and grant ordering. The Java parity ID represents the receive-order portion only; the TSO continuation is C++-only. Focused MinGW CTest and direct TCK/JUnit passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE using directed-interaction-class-projection-tck.xml; evidence: out/mgw/cpp-tck/directed-known-object-class-fallback-20261102.json/.xml. This is bounded API evidence, not a conformance claim.",
+      "mapping_note": "Runs the same receive-order and timestamped projection assertions as the primary scenario under the alternate callback model, including §5.12 p.102 l.10: the delivered class is available for the target's known base object class and the inapplicable child subscription does not produce a child callback. The page-175 line-86 time-stamped activity/timestamp-assignment statement maps to Clause 8 generally because the pinned Requirements Lab supplies no narrower subsection; page-197 line 20 remains mapped to §8.10 for NMR delivery and grant ordering. The Java counterpart covers both receive-order projection and the timestamped NMR continuation, including projected callback metadata before the grant. Focused MinGW CTest and direct TCK/JUnit passed 4/4 across HLA_EVOKED/HLA_IMMEDIATE using directed-interaction-class-projection-tck.xml; evidence: out/mgw/cpp-tck/directed-known-object-class-fallback-20261102.json/.xml. This is bounded API evidence, not a conformance claim.",
       "native_equivalent_runner_ids": [
         "umbra-cpp-directed-known-class-receive-order-integration"
       ],
@@ -116073,8 +116073,8 @@
         }
       ],
       "mapping_note": "Contract twin for the bounded public C++ interaction form that omits optional HLAattributeList and verifies the resulting whole-class unsubscribe by absence of later reflection. The sole direct mapping is the pinned §11.4.1 optional-argument candidate; other HLAservice optional parameters and conformance remain out of scope.",
-      "parity_scope_note": "C++-only TCK contract twin; no Java parity behavior is claimed.",
-      "parity": "cpp-tck.mom-service-optional-attribute-list-unsubscribe",
+      "parity_scope_note": "The Java counterpart mirrors this bounded optional HLAattributeList form and confirms the later application reflection is absent. Focused Java runs passed both callback models on local Umbra JNI; other HLAservice interactions, independent-provider behavior, and conformance remain out of scope.",
+      "parity": "java-tck.mom-service-optional-attribute-list-unsubscribe",
       "contract_refs": [
         "standard-mom-service-optional-attribute-list-unsubscribe-api-contract.json",
         "standard-mom-service-optional-attribute-list-unsubscribe-requirements-contract.json"
@@ -116186,8 +116186,8 @@
         }
       ],
       "mapping_note": "Contract twin for bounded public C++ ownership requests against one RTI-owned joined-federate MOM attribute. It asserts the §11.4.1 no-transfer outcome and the observed §11.2.1 RTI-owned state before/after those requests; it does not constrain the service response or claim conformance.",
-      "parity_scope_note": "C++-only TCK contract twin; no Java parity behavior is claimed.",
-      "parity": "cpp-tck.mom-ownership-transfer-prohibition",
+      "parity_scope_note": "The Java counterpart mirrors the bounded ownership queries and no-transfer outcomes for the joined-federate MOM attribute. Focused Java runs passed both callback models on local Umbra JNI; other MOM attributes, independent-provider behavior, and conformance remain out of scope.",
+      "parity": "java-tck.mom-ownership-transfer-prohibition",
       "contract_refs": [
         "standard-mom-ownership-transfer-prohibition-api-contract.json",
         "standard-mom-ownership-transfer-prohibition-requirements-contract.json"
