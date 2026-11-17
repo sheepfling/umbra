@@ -37449,7 +37449,18 @@
         "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit passed with no findings. No Requirements Lab resynchronization was performed.",
         "boundary": "Local JNI and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
       },
-      "next_action": "Next exact case: compare java-tck.custom-transportation-timestamped-regional-interaction-delivery with cpp-tck.custom-transportation-timestamped-regional-interaction-delivery. Verify regional source metadata, timestamped interaction payload/tag/time/order, custom transportation identity, overlap filtering, and delivery boundaries under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
+      "latest_verified_custom_transportation_timestamped_regional_interaction_java_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Verified the Java mirror for the C++ timestamped custom-transportation regional-interaction case. The standard regional path and focused custom-transport probe now inspect receiver-local source-region copies and assert both dimensions and exact bounds instead of comparing region handles across federates.",
+        "scenario_ids": [
+          "java-tck.custom-transportation-timestamped-regional-interaction-delivery",
+          "cpp-tck.custom-transportation-timestamped-regional-interaction-delivery"
+        ],
+        "evidence": "Freshly compiled the Java TCK against the pinned IEEE 1516.1-2025 API JAR. The focused scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the current Umbra JNI provider with fom-model-tck.xml as the adapter DDM FOM, HLAinteger64Time, HLAinteractionRoot.TckTransportRegionalInteraction/RegionalPayload, TckDimensionX/TckDimensionY, and TckBestEffort. Assertions cover timestamped payload/tag/time/order, producer and transportation identity, retraction, overlap filtering, grant order, and receiver-local source bounds. Results/JUnit: .build/java-tck-20261117/custom-regional-interaction-{evoked,immediate}-recheck.{json,xml}. Java result validation is valid with no findings (966 scenarios); C++/Java parity audit reports all 966 Java IDs represented and all links resolve.",
+        "mapping_and_validation": "No requirement mappings changed. The scenario remains default opt-in because the adapter must supply its dimensional FOM, logical-time implementation, interaction/parameter/dimension names, and custom transportation name. No Requirements Lab resynchronization was made.",
+        "boundary": "Local provider and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed. Related --run-unverified probes for timestamped regional subscription replacement (HLA_IMMEDIATE) and regional TAR/NMR (HLA_EVOKED) stopped at earlier delivery assertions before reaching the new region checks; those scenarios remain unsupported and are not claimed as passing."
+      },
+      "next_action": "Next exact case: compare java-tck.custom-transportation-regional-interaction-delivery with cpp-tck.custom-transportation-regional-interaction-delivery. Verify receiver-local source-region metadata, ordinary receive-order payload/tag/transport identity, overlap filtering, and callback delivery under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
       "latest_verified_custom_transportation_timestamped_interaction_java_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Verified the existing Java mirror for the C++ timestamped custom-transportation interaction case. The Java witness checks standard timestamped delivery metadata and now records immediate callbacks through thread-safe state.",

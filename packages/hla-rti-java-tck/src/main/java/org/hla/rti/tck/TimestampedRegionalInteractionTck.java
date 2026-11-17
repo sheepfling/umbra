@@ -134,6 +134,8 @@ final class TimestampedRegionalInteractionTck {
          immediate.setConveyRegionDesignatorSetsSwitch(true);
          constrained.setConveyRegionDesignatorSetsSwitch(true);
          disjoint.setConveyRegionDesignatorSetsSwitch(true);
+         immediateRecorder.inspectRegionDesignatorsWith(immediate);
+         constrainedRecorder.inspectRegionDesignatorsWith(constrained);
          immediate.subscribeInteractionClassWithRegions(immediateInteraction, immediateRegions);
          immediateSubscribed = true;
          constrained.subscribeInteractionClassWithRegions(
@@ -171,7 +173,10 @@ final class TimestampedRegionalInteractionTck {
             "immediate timestamped regional interaction");
          assertInteraction(immediate, immediateRecorder.interactions.get(0),
             immediateInteraction, immediateParameter, producer, firstValue, firstTag,
-            firstTime, OrderType.RECEIVE, firstRetraction.handle, sourceRegion);
+            firstTime, OrderType.RECEIVE, firstRetraction.handle);
+         assertSourceRegionDesignator(immediateRecorder.interactions.get(0),
+            immediateFirst, immediateSecond, 1, 5, 1, 5,
+            "first immediate regional interaction");
          pump(disjoint, callbackModel);
          check(constrainedRecorder.interactions.isEmpty(),
             "constrained regional receiver delivered before its time grant");
@@ -215,7 +220,10 @@ final class TimestampedRegionalInteractionTck {
             "second immediate timestamped regional interaction");
          assertInteraction(immediate, immediateRecorder.interactions.get(1),
             immediateInteraction, immediateParameter, producer, secondValue, secondTag,
-            secondTime, OrderType.RECEIVE, secondRetraction.handle, sourceRegion);
+            secondTime, OrderType.RECEIVE, secondRetraction.handle);
+         assertSourceRegionDesignator(immediateRecorder.interactions.get(1),
+            immediateFirst, immediateSecond, 1, 5, 1, 5,
+            "second immediate regional interaction");
          pump(disjoint, callbackModel);
          check(disjointRecorder.interactions.isEmpty(),
             "disjoint receiver received the second timestamped regional interaction");
@@ -235,7 +243,10 @@ final class TimestampedRegionalInteractionTck {
             "second timestamped regional grants reported the wrong logical times");
          assertInteraction(constrained, constrainedRecorder.interactions.get(0),
             constrainedInteraction, constrainedParameter, producer, secondValue, secondTag,
-            secondTime, OrderType.TIMESTAMP, secondRetraction.handle, sourceRegion);
+            secondTime, OrderType.TIMESTAMP, secondRetraction.handle);
+         assertSourceRegionDesignator(constrainedRecorder.interactions.get(0),
+            constrainedFirst, constrainedSecond, 1, 5, 1, 5,
+            "constrained regional interaction");
          check(constrainedRecorder.callbackOrder.equals(
                Arrays.asList("timeAdvanceGrant", "receiveInteraction", "timeAdvanceGrant")),
             "constrained reflection was not delivered before its matching grant");
@@ -1397,6 +1408,7 @@ final class TimestampedRegionalInteractionTck {
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "subscription replacement did not enable region-designator callbacks");
+         receiverRecorder.inspectRegionDesignatorsWith(receiver);
          receiver.subscribeInteractionClassWithRegions(receiverInteraction, receiverRegionsA);
          subscribed = true; activeSubscription = receiverRegionsA;
 
@@ -1462,8 +1474,9 @@ final class TimestampedRegionalInteractionTck {
             "subscription replacement returned the wrong second-delivery or grant counts");
          Interaction actual = receiverRecorder.interactions.get(0);
          assertInteraction(receiver, actual, receiverInteraction, receiverParameter, producer,
-            secondValue, secondTag, secondTime, OrderType.TIMESTAMP, secondRetraction.handle,
-            sourceRegionB);
+            secondValue, secondTag, secondTime, OrderType.TIMESTAMP, secondRetraction.handle);
+         assertSourceRegionDesignator(actual, receiverFirst, receiverSecond, 2, 3, 2, 3,
+            "subscription-replacement regional interaction");
          check(receiverRecorder.callbackOrder.equals(
                Arrays.asList("receiveInteraction", "timeAdvanceGrant")),
             "replacement interaction was delivered after the receiver grant");
@@ -1509,6 +1522,8 @@ final class TimestampedRegionalInteractionTck {
       RTIambassador nmr = factory.getRtiAmbassador();
       Recorder ownerRecorder = new Recorder(), tarRecorder = new Recorder();
       Recorder nmrRecorder = new Recorder();
+      tarRecorder.inspectRegionDesignatorsWith(tar);
+      nmrRecorder.inspectRegionDesignatorsWith(nmr);
       String federation = "java-tck-regional-tar-nmr-" + UUID.randomUUID();
       boolean ownerConnected = false, tarConnected = false, nmrConnected = false;
       boolean created = false, ownerJoined = false, tarJoined = false, nmrJoined = false;
@@ -1621,9 +1636,13 @@ final class TimestampedRegionalInteractionTck {
          Interaction tarActual = tarRecorder.interactions.get(0);
          Interaction nmrActual = nmrRecorder.interactions.get(0);
          assertInteraction(tar, tarActual, tarInteraction, tarParameter, producer,
-            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle, sourceRegion);
+            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle);
+         assertSourceRegionDesignator(tarActual, tarFirst, tarSecond,
+            1, 5, 1, 5, "regional TAR interaction");
          assertInteraction(nmr, nmrActual, nmrInteraction, nmrParameter, producer,
-            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle, sourceRegion);
+            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle);
+         assertSourceRegionDesignator(nmrActual, nmrFirst, nmrSecond,
+            1, 5, 1, 5, "regional NMR interaction");
          check(tarTarget.equals(tarRecorder.grants.get(0))
                && messageTime.equals(nmrRecorder.grants.get(0))
                && tarRecorder.callbackOrder.equals(
@@ -1875,6 +1894,7 @@ final class TimestampedRegionalInteractionTck {
          receiver.setConveyRegionDesignatorSetsSwitch(true);
          check(receiver.getConveyRegionDesignatorSetsSwitch(),
             "custom-transport regional interaction did not enable region designator callbacks");
+         receiverRecorder.inspectRegionDesignatorsWith(receiver);
          receiver.subscribeInteractionClassWithRegions(receiverInteraction, receiverRegions);
          subscribed = true;
 
@@ -1915,7 +1935,9 @@ final class TimestampedRegionalInteractionTck {
             "custom-transport regional delivery or grants timed out or duplicated");
          Interaction actual = receiverRecorder.interactions.get(0);
          assertInteraction(receiver, actual, receiverInteraction, receiverParameter, producer,
-            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle, sourceRegion);
+            value, tag, messageTime, OrderType.TIMESTAMP, retraction.handle);
+         assertSourceRegionDesignator(actual, receiverFirst, receiverSecond,
+            1, 5, 1, 5, "custom-transport timestamped regional interaction");
          check(transportationName.equals(receiver.getTransportationTypeName(actual.transportation))
                && messageTime.equals(ownerRecorder.grants.get(0))
                && receiverTarget.equals(receiverRecorder.grants.get(0))
@@ -2681,7 +2703,7 @@ final class TimestampedRegionalInteractionTck {
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
          FederateHandle expectedProducer, byte[] expectedValue, byte[] expectedTag,
          LogicalTime<?, ?> expectedTime, OrderType expectedReceivedOrder,
-         MessageRetractionHandle expectedRetraction, RegionHandle expectedRegion)
+         MessageRetractionHandle expectedRetraction)
          throws Exception {
       check(actual.interaction.equals(expectedClass)
             && actual.parameters.size() == 1
@@ -2693,12 +2715,27 @@ final class TimestampedRegionalInteractionTck {
             && actual.receivedOrder == expectedReceivedOrder
             && expectedRetraction.equals(actual.retraction)
             && actual.regions != null && actual.regions.size() == 1
-            && actual.regions.contains(expectedRegion)
             && actual.transportation != null,
          "timestamped regional interaction returned incorrect standard callback metadata");
       check(!receiver.getTransportationTypeName(actual.transportation).isEmpty()
             && actual.time.toString() != null && !actual.time.toString().isEmpty(),
          "timestamped regional interaction returned unresolvable transportation or time metadata");
+   }
+
+   private static void assertSourceRegionDesignator(Interaction actual, DimensionHandle first,
+         DimensionHandle second, long firstLower, long firstUpper, long secondLower,
+         long secondUpper, String description) {
+      check(actual.regionDesignators != null && actual.regionDesignators.size() == 1,
+         description + " omitted its receiver-local source-region copy");
+      RegionDesignatorSnapshot source = actual.regionDesignators.get(0);
+      RangeBounds firstBounds = source.ranges.get(first);
+      RangeBounds secondBounds = source.ranges.get(second);
+      check(source.dimensions.size() == 2 && source.dimensions.contains(first)
+            && source.dimensions.contains(second)
+            && firstBounds != null && firstBounds.lower == firstLower
+            && firstBounds.upper == firstUpper && secondBounds != null
+            && secondBounds.lower == secondLower && secondBounds.upper == secondUpper,
+         description + " returned incorrect source-region dimensions or bounds");
    }
 
    private static void requireRetraction(MessageRetractionReturn value, String description) {
