@@ -1320,8 +1320,8 @@
           "standard_section": "hla-1516.1-2025:clause-9.1.3.3"
         }
       ],
-      "mapping_note": "Direct §9.1.3.3 evidence comes from the subscription path only: Subscribe Interaction Class With Regions rejects a committed region whose dimension is unavailable to the interaction class with InvalidRegionContext; a subsequent valid regional subscription and send confirm no partial subscription was retained. The analogous invalid-send assertion and the handle, fixture, and delivery metadata checks are supplemental. The cpp-1516.1 identifiers are repository-internal provenance only.",
-      "parity_scope_note": "Parity covers atomic rejection of a mixed valid/unavailable region set during regional interaction sends and subscriptions, no partial delivery or subscription after rejection, and valid follow-up delivery with one source-region designator and expected callback metadata.",
+      "mapping_note": "Direct §9.1.3.3 evidence is limited to Subscribe Interaction Class With Regions rejecting a committed region with a dimension unavailable to the interaction class using InvalidRegionContext. This scenario has no post-failure valid-subscription witness and makes no atomicity claim for that single-region failure. The invalid send, empty-set handling, overlap routing, callback metadata, handles, and fixture checks are supplemental. The cpp-1516.1 identifiers are repository-internal provenance only.",
+      "parity_scope_note": "Parity covers an empty regional declaration and empty regional send without creating a route, ordinary/regional declaration independence including repeated regional subscription and ordinary unsubscription, overlap filtering as subscription bounds move and are restored, foreign/uncommitted/incompatible single-region failures, and source-region callback metadata. Java verifies the receiver-local designator dimensions and [1,5] bounds; C++ verifies a single source-region designator. Mixed valid/unavailable send-set atomicity and failed-subscription follow-up belong to java-tck.regional-interaction-region-validation.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -1332,7 +1332,8 @@
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalInteractionSubscriptionFiltering",
       "parity": "cpp-tck.regional-interaction-subscription-filtering",
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with the configured interaction class, parameter, two interaction dimensions, and an unrelated dimension named by hla.rti.tck.ddmUnrelatedDimension, plus an installed Java 2025 provider; runtime verification remains pending."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, TckDimensionX/TckDimensionY, and TckUnrelatedDimension. Results/JUnit: .build/java-tck-20261117/regional-interaction-subscription-filtering-{evoked,immediate}-final.{json,xml}. This local-provider evidence does not claim independent-provider interoperability or conformance.",
+      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with the configured interaction class, parameter, two interaction dimensions, and an unrelated dimension named by hla.rti.tck.ddmUnrelatedDimension, plus an installed Java 2025 provider. Focused local-provider runs passed, but the scenario remains default-disabled because these adapter inputs are provider-specific."
     },
     {
       "id": "java-tck.regional-interaction-region-validation",
@@ -1385,6 +1386,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#regionalInteractionRegionValidation",
       "parity": "cpp-tck.regional-interaction-region-validation",
+      "parity_scope_note": "Parity covers rejection of a send set containing both a valid interaction-context region and an unavailable-dimension region, with no partial callback and a valid follow-up send; and rejection of an invalid single-region subscription with no declaration retained, checked by no delivery before a valid regional subscription and one valid follow-up callback. The subscription path uses only the invalid region; mixed-set subscription atomicity is not asserted by this C++/Java pair.",
       "default_status": "run",
       "promotion": "promoted",
       "adapter_inputs": [

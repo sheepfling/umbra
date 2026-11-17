@@ -10,6 +10,7 @@ import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
@@ -51,6 +52,7 @@ final class RegionalInteractionSubscriptionFilteringTck {
       RegionHandle publisherWrongContextRegion = null;
       RegionHandleSet sourceRegions = null, subscriberRegions = null;
       try {
+         subscriberCallbacks.inspectRegionDesignatorsWith(subscriber);
          publisher.connect(noopFederateAmbassador(), callbackModel);
          publisherConnected = true;
          subscriber.connect(subscriberCallbacks.proxy(), callbackModel);
@@ -102,11 +104,25 @@ final class RegionalInteractionSubscriptionFilteringTck {
             publisher.getParameterHandleValueMapFactory().create(1);
          parameters.put(publisherParameter, VALUE.clone());
 
-         subscriber.subscribeInteractionClass(subscriberInteraction);
-         ordinarySubscribed = true;
          RegionHandleSet emptyRegions = subscriber.getRegionHandleSetFactory().create();
          subscriber.subscribeInteractionClassWithRegions(subscriberInteraction, emptyRegions);
+         subscriberCallbacks.interactions.clear();
+         publisher.sendInteraction(publisherInteraction, parameters, TAG.clone());
+         pumpSeveral(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.interactions.isEmpty(),
+            "an empty regional subscription created an ordinary interaction route");
+
+         subscriberCallbacks.interactions.clear();
+         publisher.sendInteractionWithRegions(
+            publisherInteraction, parameters, publisher.getRegionHandleSetFactory().create(),
+            TAG.clone());
+         pumpSeveral(subscriber, callbackModel);
+         JavaTckSupport.check(subscriberCallbacks.interactions.isEmpty(),
+            "an empty regional subscription received an explicitly empty regional send");
          subscriber.unsubscribeInteractionClassWithRegions(subscriberInteraction, emptyRegions);
+
+         subscriber.subscribeInteractionClass(subscriberInteraction);
+         ordinarySubscribed = true;
          subscriberCallbacks.interactions.clear();
          publisher.sendInteraction(publisherInteraction, parameters, TAG.clone());
          await(subscriber, callbackModel,
@@ -115,7 +131,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
          JavaTckSupport.check(subscriberCallbacks.interactions.size() == 1,
             "ordinary interaction subscription produced a duplicate callback");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producer, sourceRegion, false);
+            subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+            subscriberSecond, false);
 
          subscriberCallbacks.interactions.clear();
          publisher.sendInteractionWithRegions(
@@ -126,6 +143,19 @@ final class RegionalInteractionSubscriptionFilteringTck {
 
          subscriber.subscribeInteractionClassWithRegions(subscriberInteraction, subscriberRegions);
          regionalSubscribed = true;
+         subscriber.subscribeInteractionClassWithRegions(subscriberInteraction, subscriberRegions);
+         subscriberCallbacks.interactions.clear();
+         publisher.sendInteractionWithRegions(
+            publisherInteraction, parameters, sourceRegions, TAG.clone());
+         await(subscriber, callbackModel,
+            () -> subscriberCallbacks.interactions.size() >= 1,
+            "regional interaction after ordinary subscription addition");
+         JavaTckSupport.check(subscriberCallbacks.interactions.size() == 1,
+            "ordinary subscription addition duplicated regional interaction delivery");
+         assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
+            subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+            subscriberSecond, false);
+
          subscriber.unsubscribeInteractionClass(subscriberInteraction);
          ordinarySubscribed = false;
          subscriberCallbacks.interactions.clear();
@@ -133,11 +163,12 @@ final class RegionalInteractionSubscriptionFilteringTck {
             publisherInteraction, parameters, sourceRegions, TAG.clone());
          await(subscriber, callbackModel,
             () -> subscriberCallbacks.interactions.size() >= 1,
-            "explicit regional subscription delivery without source designators");
+            "regional interaction through the explicit subscription");
          JavaTckSupport.check(subscriberCallbacks.interactions.size() == 1,
-            "regional interaction produced a duplicate callback");
+            "removing the ordinary subscription changed regional delivery count");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producer, sourceRegion, false);
+            subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+            subscriberSecond, false);
 
          subscriber.setConveyRegionDesignatorSetsSwitch(true);
          JavaTckSupport.check(subscriber.getConveyRegionDesignatorSetsSwitch(),
@@ -149,7 +180,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
             () -> subscriberCallbacks.interactions.size() >= 1,
             "regional interaction with conveyed source designator");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producer, sourceRegion, true);
+            subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+            subscriberSecond, true);
 
          subscriberCallbacks.interactions.clear();
          publisher.sendInteractionWithRegions(
@@ -164,7 +196,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
                () -> subscriberCallbacks.interactions.size() >= 1,
                "immediate regional interaction before region movement");
             assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-               subscriberInteraction, subscriberParameter, producer, sourceRegion, true);
+               subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+               subscriberSecond, true);
             subscriberCallbacks.interactions.clear();
             moveRegion(subscriber, subscriberRegion, subscriberFirst, subscriberSecond, 7, 9);
             pumpSeveral(subscriber, callbackModel);
@@ -180,7 +213,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
             () -> subscriberCallbacks.interactions.size() >= 1,
             "regional interaction after subscription-region restoration");
          assertInteraction(subscriber, subscriberCallbacks.interactions.get(0),
-            subscriberInteraction, subscriberParameter, producer, sourceRegion, true);
+            subscriberInteraction, subscriberParameter, producer, subscriberFirst,
+            subscriberSecond, true);
 
          InteractionClassHandle publisherInteractionHandle = publisherInteraction;
          InteractionClassHandle subscriberInteractionHandle = subscriberInteraction;
@@ -344,8 +378,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
 
    private static void assertInteraction(RTIambassador receiver, Interaction interaction,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
-         FederateHandle expectedProducer, RegionHandle sourceRegion, boolean expectRegions)
-         throws Exception {
+         FederateHandle expectedProducer, DimensionHandle first, DimensionHandle second,
+         boolean expectRegions) throws Exception {
       JavaTckSupport.check(expectedClass.equals(interaction.interaction)
             && interaction.parameters.size() == 1
             && Arrays.equals(VALUE, interaction.parameters.get(expectedParameter))
@@ -358,12 +392,37 @@ final class RegionalInteractionSubscriptionFilteringTck {
          "regional interaction filtering returned an unresolvable transportation type");
       if (expectRegions) {
          JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1
-               && interaction.regions.contains(sourceRegion),
+               && interaction.regionDesignators != null
+               && interaction.regionDesignators.size() == 1,
             "regional interaction filtering omitted its source-region designator");
+         RegionDesignatorSnapshot source = interaction.regionDesignators.get(0);
+         RangeBounds firstBounds = source.ranges.get(first);
+         RangeBounds secondBounds = source.ranges.get(second);
+         JavaTckSupport.check(source.dimensions.size() == 2
+               && source.dimensions.contains(first) && source.dimensions.contains(second)
+               && firstBounds != null && firstBounds.lower == 1 && firstBounds.upper == 5
+               && secondBounds != null && secondBounds.lower == 1 && secondBounds.upper == 5,
+            "regional interaction filtering returned incorrect source-region dimensions or bounds");
       } else {
          JavaTckSupport.check(interaction.regions == null,
             "regional interaction filtering unexpectedly conveyed a source region");
       }
+   }
+
+   private static List<RegionDesignatorSnapshot> snapshotRegionDesignators(
+         RTIambassador ambassador, RegionHandleSet regions) throws Exception {
+      List<RegionDesignatorSnapshot> result = new java.util.ArrayList<>();
+      if (regions == null) return result;
+      for (RegionHandle region : regions) {
+         Set<DimensionHandle> dimensions =
+            new HashSet<>(ambassador.getDimensionHandleSet(region));
+         Map<DimensionHandle, RangeBounds> ranges = new HashMap<>();
+         for (DimensionHandle dimension : dimensions) {
+            ranges.put(dimension, ambassador.getRangeBounds(region, dimension));
+         }
+         result.add(new RegionDesignatorSnapshot(dimensions, ranges));
+      }
+      return result;
    }
 
    private static void await(RTIambassador ambassador, CallbackModel model,
@@ -411,10 +470,27 @@ final class RegionalInteractionSubscriptionFilteringTck {
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
       private Set<RegionHandle> regions;
+      private List<RegionDesignatorSnapshot> regionDesignators;
+   }
+
+   private static final class RegionDesignatorSnapshot {
+      private final Set<DimensionHandle> dimensions;
+      private final Map<DimensionHandle, RangeBounds> ranges;
+
+      private RegionDesignatorSnapshot(Set<DimensionHandle> dimensions,
+            Map<DimensionHandle, RangeBounds> ranges) {
+         this.dimensions = dimensions;
+         this.ranges = ranges;
+      }
    }
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private volatile RTIambassador regionInspector;
+
+      private void inspectRegionDesignatorsWith(RTIambassador ambassador) {
+         regionInspector = ambassador;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -433,6 +509,8 @@ final class RegionalInteractionSubscriptionFilteringTck {
                   interaction.producer = (FederateHandle) arguments[4];
                   interaction.regions = arguments[5] == null ? null
                      : new HashSet<>((RegionHandleSet) arguments[5]);
+                  interaction.regionDesignators = regionInspector == null ? null
+                     : snapshotRegionDesignators(regionInspector, (RegionHandleSet) arguments[5]);
                   interactions.add(interaction);
                }
                if (method.getDeclaringClass() == Object.class) {
