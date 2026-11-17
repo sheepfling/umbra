@@ -2305,15 +2305,19 @@ whole derived class, and confirms that another registration fails with
 It uses only the standard IEEE 1516.1-2025 Java API; the adapter supplies its
 provider, `fom-model-tck.xml`, endpoint, logical time, callback model, typed
 class/attribute names, and the reliable/best-effort rate attributes. It
-compares object and class handles only within each federate. Twenty-five direct
+compares object and class handles only within each federate. Twenty-seven direct
 mapping pairs now cover bounded witnesses in §§5.1, 5.1.1–5.1.3, 5.2, 5.2.4,
-5.3, 5.3.4, 5.8, 6.1.2, and 6.8;
+5.3, 5.3.4, 5.8, 6.1.2, and 6.8. The two §5.1 child mappings cover class-specific
+attribute availability for update/reflection and exact/base/late discovered-class
+views; this fixture does not exercise DDM regions.
 callback timing/cancellation, duplicate subscriptions, unrelated-class
-filtering, producer metadata, and cleanup remain supplemental. Focused local
-JNI runs passed 1/1 under both callback models; results/JUnit are in
-`.build/java-tck-20261117/object-registration-discovery-unpublish-class-parity-`
-`{evoked,immediate}.{json,xml}`. Independent-provider conformance remains
-unverified.
+filtering, producer metadata, and cleanup remain supplemental. The focused Java case
+passed 1/1 under both callback models; the paired C++ primary/contract gate passed
+4/4. Results/JUnit are in
+`.build/java-tck-20261117/object-registration-discovery-lifecycle-focused-`
+`{evoked,immediate}.{json,xml}` and
+`.build/cpp-tck-java-parity-named-registration/object-registration-discovery-lifecycle.{json,xml}`.
+Independent-provider conformance remains unverified.
 
 The default `java-tck.overlapping-object-class-subscriptions-single-discovery`
 scenario registers a derived-class object while one federate actively subscribes

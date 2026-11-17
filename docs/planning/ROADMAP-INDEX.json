@@ -37927,7 +37927,18 @@
         "mapping_and_validation": "All 12 direct requirement-to-section pairs in the paired C++ row now have Java assertion-backed mappings. Java catalog validation passed for 966 scenario IDs and 268 API surfaces; the C++/Java parity audit reports zero unpaired scenarios and 10 explicit not-applicable dispositions; focused C++ result validation passed.",
         "boundary": "Evidence is limited to the configured P0 FOM and local Umbra JNI/installed-package providers. It does not establish arbitrary-FDD coverage, independent-provider behavior, or conformance."
       },
-      "next_action": "Next exact pair: cpp-tck.object-registration-discovery-lifecycle and java-tck.object-registration-discovery-lifecycle. The paired C++ row has two direct §5.1 child mappings that the Java row does not yet record: requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-attributes and requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-discovery. Compare those requirements with the Java assertions and add each only if directly witnessed; otherwise record a precise non-witness disposition. Then run the focused Java case and paired C++ primary/contract under both callback models.",
+      "latest_verified_java_object_registration_discovery_lifecycle_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Reconciled the paired object-registration lifecycle case. The Java scenario now directly maps both §5.1 child witnesses: the typed FDD hierarchy, published/subscribed attribute subsets, ownership and reflected values bound available attributes; exact/base/late subscriptions expose the registered object through the expected class views. The note limits this to the configured typed FOM and excludes DDM-region claims.",
+        "scenario_ids": [
+          "cpp-tck.object-registration-discovery-lifecycle",
+          "java-tck.object-registration-discovery-lifecycle"
+        ],
+        "evidence": "Java passed 1/1 in HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider. C++ primary and contract passed 4/4 focused CTests and both direct scenarios in both callback models. Artifacts: .build/java-tck-20261117/object-registration-discovery-lifecycle-focused-{evoked,immediate}.{json,xml}; .build/cpp-tck-java-parity-named-registration/object-registration-discovery-lifecycle.{json,xml}.",
+        "mapping_and_validation": "The Java row now has the same 27 direct requirement-to-section pairs as the paired C++ row. Java catalog validation passed for 966 scenario IDs and 268 API surfaces; the C++/Java parity audit reports zero unpaired scenarios and 10 explicit not-applicable dispositions; focused C++ result validation passed.",
+        "boundary": "Evidence is limited to the configured typed FOM and local Umbra JNI/installed-package providers. No DDM regions, arbitrary-FDD coverage, independent-provider behavior, or conformance are established."
+      },
+      "next_action": "Next exact pair: cpp-tck.per-federate-discovered-class and java-tck.per-federate-discovered-class. Reconcile the five shared page-83 requirement IDs because the Java row maps them to §5.1.3 while the C++ row maps them to §5.1.2, and assess the C++ §5.8/§6.1.1 pairs against the Java receiver-local discovery and reflection assertions. Keep cross-member handle equality claims bounded. Run the focused Java case and paired C++ primary/contract under both callback models.",
       "latest_verified_java_regional_interaction_partial_default_range_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared the partial interaction-region realization case with its C++ pair. Java now validates created RegionHandles, verifies the omitted Y FOM default [0,5) both before and after receiver region commit, and covers overlapping delivery, disjoint [6,9) suppression, and the exclusive-upper-bound [5,7) receiver.",

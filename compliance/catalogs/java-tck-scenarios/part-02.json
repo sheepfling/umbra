@@ -2877,8 +2877,10 @@
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
+        "ObjectClassHandle.equals",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "AttributeHandle.equals",
         "RTIambassador.getFederateName",
         "RTIambassador.getAttributeHandleValueMapFactory",
         "RTIambassador.getAttributeHandleSetFactory",
@@ -2892,6 +2894,7 @@
         "RTIambassador.isAttributeOwnedByFederate",
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getObjectInstanceHandle",
+        "ObjectInstanceHandle.equals",
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.deleteObjectInstance",
         "RTIambassador.unpublishObjectClass",
@@ -2925,6 +2928,8 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
         "requirement-candidate-content-clauses-05-declaration-management-page-092-l124-39",
         "requirement-candidate-content-clauses-05-declaration-management-page-092-l130-41",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-discovery",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-attributes",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
         "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
         "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
@@ -2952,6 +2957,8 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
         "requirement-candidate-content-clauses-05-declaration-management-page-092-l124-39",
         "requirement-candidate-content-clauses-05-declaration-management-page-092-l130-41",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-discovery",
+        "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-attributes",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
         "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
         "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
@@ -3056,6 +3063,14 @@
           "standard_section": "hla-1516.1-2025:clause-5.3.4"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-discovery",
+          "standard_section": "hla-1516.1-2025:clause-5.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-081-l44-12-attributes",
+          "standard_section": "hla-1516.1-2025:clause-5.1"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
           "standard_section": "hla-1516.1-2025:clause-5.8"
         },
@@ -3072,8 +3087,8 @@
           "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Direct mappings are limited to assertion-backed portions of the paired C++ witness. The Java case checks registration eligibility for one typed FDD class before publication and after an empty publication, then verifies that nonempty publication permits registration and controls instance ownership; later publication of BestEffortValue adds that attribute to a subsequent rate-object instance (§5.1 page 81 line 44; §5.2 page 90 lines 31, 34, 37, and 82). The rate object owns ReliableValue but not initially unpublished BestEffortValue; after publishing both attributes, it owns both on a later instance. Unpublishing only BestEffortValue removes that instance-attribute ownership, preserves ReliableValue ownership, and makes a later update fail with AttributeNotOwned and no reflection (§5.3 page 91 lines 109, 115, and 130; §5.3.4 page 92 line 130). The Java case also deletes the typed instance, invokes the no-attribute-set whole-class unpublish service, and verifies that later registration fails with ObjectClassNotPublished (§5.3 page 91 lines 103 and 118; §5.3.4 page 92 line 124). After ordinary typed registration it checks ownership of both published attributes (§5.2 page 90 line 58) and that Get Known Object Class Handle returns the registered class (§6.8 page 118 line 22). It checks NameNotFound for one absent FDD class and for a derived-only attribute looked up on its superclass, plus AttributeNotDefined when that derived-only attribute is published or subscribed through the superclass and when it is requested for an object known through the base class (§5.1.1 pages 81–82). Exact-class, base-class, and late-subscription discovery callbacks report the expected object and known class; the base subscriber observes its superclass view (§5.1.2 page 83; §5.1.3 page 84), and an active late subscription discovers an already-registered object (§5.8 page 96). A non-owner update is rejected with AttributeNotOwned and produces no reflection (§5.2 page 90); an ordinary update reflects exactly each exact/base/late receiver’s subscribed attribute (§6.1.2 page 107). These are bounded witnesses for this adapter FOM, not exhaustive class, attribute, or service coverage. Callback timing/cancellation, duplicate-subscription handling, unrelated-class suppression, producer metadata, and cleanup remain supplemental.",
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with packages/hla-rti-cpp-tck/fom/fom-model-tck.xml, including its typed hierarchy and TckRateObject ReliableValue/BestEffortValue attributes. Results/JUnit: .build/java-tck-20261117/object-registration-discovery-unpublish-class-parity-{evoked,immediate}.{json,xml}. Provider evidence is local only; independent-provider interoperability and conformance are not established.",
+      "mapping_note": "Direct mappings are limited to assertion-backed portions of the paired C++ witness. Direct §5.1 p.81 l.44-12-attributes child witness: the typed FDD defines inherited Identity and derived-only DerivedValue; publishing/subscribing those class-local sets, rejecting DerivedValue through the base class, and reflecting only each exact/base/late subscriber's selected value show the bounded attribute availability selected by the FDD hierarchy and DM declarations. The publisher's ownership checks and rejected non-owner update exercise the ownership factor. This fixture does not exercise DDM regions. Direct §5.1 p.81 l.44-12-discovery child witness: the exact subscriber discovers the instance as TckTypedDerivedObject and the base subscriber discovers the same instance as TckTypedObject; a late derived-class subscription discovers the already registered object. These are bounded DM/FDD hierarchy views and do not exercise DDM region overlap. The Java case checks registration eligibility for one typed FDD class before publication and after an empty publication, then verifies that nonempty publication permits registration and controls instance ownership; later publication of BestEffortValue adds that attribute to a subsequent rate-object instance (§5.1 page 81 line 44; §5.2 page 90 lines 31, 34, 37, and 82). The rate object owns ReliableValue but not initially unpublished BestEffortValue; after publishing both attributes, it owns both on a later instance. Unpublishing only BestEffortValue removes that instance-attribute ownership, preserves ReliableValue ownership, and makes a later update fail with AttributeNotOwned and no reflection (§5.3 page 91 lines 109, 115, and 130; §5.3.4 page 92 line 130). The Java case also deletes the typed instance, invokes the no-attribute-set whole-class unpublish service, and verifies that later registration fails with ObjectClassNotPublished (§5.3 page 91 lines 103 and 118; §5.3.4 page 92 line 124). After ordinary typed registration it checks ownership of both published attributes (§5.2 page 90 line 58) and that Get Known Object Class Handle returns the registered class (§6.8 page 118 line 22). It checks NameNotFound for one absent FDD class and for a derived-only attribute looked up on its superclass, plus AttributeNotDefined when that derived-only attribute is published or subscribed through the superclass and when it is requested for an object known through the base class (§5.1.1 pages 81–82). Exact-class, base-class, and late-subscription discovery callbacks report the expected object and known class; the base subscriber observes its superclass view (§5.1.2 page 83; §5.1.3 page 84), and an active late subscription discovers an already-registered object (§5.8 page 96). A non-owner update is rejected with AttributeNotOwned and produces no reflection (§5.2 page 90); an ordinary update reflects exactly each exact/base/late receiver’s subscribed attribute (§6.1.2 page 107). These are bounded witnesses for this adapter FOM, not exhaustive class, attribute, or service coverage. Callback timing/cancellation, duplicate-subscription handling, unrelated-class suppression, producer metadata, and cleanup remain supplemental.",
+      "evidence_note": "Compiled against the pinned IEEE 1516.1-2025 Java API and passed 1/1 focused runs under HLA_EVOKED and HLA_IMMEDIATE against the current-source Umbra JNI provider with fom-model-tck.xml and HLAinteger64Time. Java results/JUnit: .build/java-tck-20261117/object-registration-discovery-lifecycle-focused-{evoked,immediate}.{json,xml}. The paired C++ primary and contract selectors passed all four focused CTests and both direct scenarios under both callback models. C++ results/JUnit: .build/cpp-tck-java-parity-named-registration/object-registration-discovery-lifecycle.{json,xml}. This provider-local evidence does not establish independent-provider behavior or conformance.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",
