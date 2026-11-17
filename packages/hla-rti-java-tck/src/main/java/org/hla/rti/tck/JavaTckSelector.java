@@ -779,6 +779,8 @@ final class JavaTckSelector {
              method = "interactionPublicationSendFence"; break;
           case "java-tck.receive-order-interaction":
              method = "receiveOrderInteraction"; break;
+          case "java-tck.reliable-transport-one-copy-delivery":
+             method = "reliableTransportOneCopyDelivery"; break;
           case "java-tck.interaction-order-classification":
              method = "interactionOrderClassification"; break;
           case "java-tck.custom-transportation-interaction-delivery":

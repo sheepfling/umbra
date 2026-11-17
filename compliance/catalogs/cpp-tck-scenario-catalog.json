@@ -54476,7 +54476,7 @@
       ],
       "cpp_test": "src/tck_reliable_transport_one_copy.cpp#scenarioReliableTransportOneCopyDelivery",
       "runner_id": "cpp-tck.reliable-transport-one-copy-delivery",
-      "parity": "not-applicable: bounded reliable transport behavior witness",
+      "parity": "java-tck.reliable-transport-one-copy-delivery",
       "default_status": "adapter-required",
       "evidence_note": "Fresh MinGW installed-package execution on 2026-11-16 passed 2/2 focused CTests and 2/2 direct runs under HLA_EVOKED and HLA_IMMEDIATE. The receiver observed exactly one callback for each of three distinct receive-order sends and each callback reported HLAreliable. Results/JUnit: .build/cpp-tck-evidence-20261116/reliable-transport-one-copy-delivery.json and .xml. Bounded local-provider evidence only; no loss was injected, best-effort loss is not required, and no independent-provider or conformance claim is made.",
       "promotion": "promoted"

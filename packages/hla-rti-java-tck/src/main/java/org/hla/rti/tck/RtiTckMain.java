@@ -2703,6 +2703,13 @@ public final class RtiTckMain {
                 "java-1516.1-interaction-declaration-and-delivery",
                 "java-1516.1-interaction-parameter-delivery"
              }, false), RtiTckMain::receiveOrderInteraction);
+       run(new Scenario("java-tck.reliable-transport-one-copy-delivery",
+             "deliver each receive-order interaction exactly once using HLAreliable",
+             "transportation-delivery",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution(federateName,federateType,federationName);RTIambassador.getFederateName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandleValueMapFactory;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.publishInteractionClass;RTIambassador.subscribeInteractionClass;RTIambassador.sendInteraction;RTIambassador.evokeCallback;RTIambassador.unsubscribeInteractionClass;RTIambassador.unpublishInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction",
+             new String[] {
+                "requirement-candidate-content-clauses-06-object-management-page-111-l19-4"
+             }, true), RtiTckMain::reliableTransportOneCopyDelivery);
        run(new Scenario("java-tck.interaction-order-classification",
              "classify receive-order and timestamp-order interactions at the same receiver",
              "interaction-order-classification",
@@ -15583,6 +15590,11 @@ public final class RtiTckMain {
    private static void receiveOrderInteraction() throws Exception {
       ReceiveOrderInteractionTck.run(factory(), requireFom(),
          interactionClassName(), parameterName(), callbackModel());
+   }
+
+   private static void reliableTransportOneCopyDelivery() throws Exception {
+      ReliableTransportOneCopyTck.run(factory(), requireFom(),
+         interactionClassName(), callbackModel());
    }
 
    private static void interactionOrderClassification() throws Exception {
