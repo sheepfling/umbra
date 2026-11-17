@@ -15706,7 +15706,8 @@ public final class RtiTckMain {
 
    private static void customTransportationRegionalAttribute() throws Exception {
       RegionalObjectUpdateTck.runCustomTransportation(factory(),
-         requireAdapterFile(DDM_FOM_PROPERTY), customTransportationObjectClassName(),
+         requireAdapterFile(DDM_FOM_PROPERTY), timeImplementation(),
+         customTransportationObjectClassName(),
          customTransportationAttributeName(), requireAdapterValue(DIMENSION_PROPERTY),
          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());

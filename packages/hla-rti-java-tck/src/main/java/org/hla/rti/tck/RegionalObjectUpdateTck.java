@@ -40,19 +40,23 @@ final class RegionalObjectUpdateTck {
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
       run(factory, fom, objectClassName, attributeName, firstDimensionName,
-         secondDimensionName, null, callbackModel);
+         secondDimensionName, null, null, callbackModel);
    }
 
-   static void runCustomTransportation(RtiFactory factory, String fom, String objectClassName,
-         String attributeName, String firstDimensionName, String secondDimensionName,
-         String transportationName, CallbackModel callbackModel) throws Exception {
+   static void runCustomTransportation(RtiFactory factory, String fom, String timeImplementation,
+         String objectClassName, String attributeName, String firstDimensionName,
+         String secondDimensionName, String transportationName, CallbackModel callbackModel)
+         throws Exception {
+      JavaTckSupport.check(timeImplementation != null && !timeImplementation.isEmpty(),
+         "adapter did not supply a logical-time implementation");
       run(factory, fom, objectClassName, attributeName, firstDimensionName,
-         secondDimensionName, transportationName, callbackModel);
+         secondDimensionName, timeImplementation, transportationName, callbackModel);
    }
 
    private static void run(RtiFactory factory, String fom, String objectClassName,
          String attributeName, String firstDimensionName, String secondDimensionName,
-         String expectedTransportationName, CallbackModel callbackModel) throws Exception {
+         String timeImplementation, String expectedTransportationName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador overlap = factory.getRtiAmbassador();
       RTIambassador disjoint = factory.getRtiAmbassador();
@@ -83,7 +87,11 @@ final class RegionalObjectUpdateTck {
          overlapConnected = true;
          disjoint.connect(disjointCallbacks.proxy(), callbackModel);
          disjointConnected = true;
-         owner.createFederationExecution(federation, fom);
+         if (timeImplementation == null) {
+            owner.createFederationExecution(federation, fom);
+         } else {
+            owner.createFederationExecution(federation, fom, timeImplementation);
+         }
          created = true;
          FederateHandle producer = owner.joinFederationExecution("regional-update-owner", federation);
          ownerJoined = true;
