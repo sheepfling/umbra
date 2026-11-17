@@ -1287,6 +1287,10 @@
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeInteractionClassWithRegions",
@@ -2237,7 +2241,10 @@
         "RTIambassador.createRegion",
         "RTIambassador.setRangeBounds",
         "RTIambassador.commitRegionModifications",
+        "RTIambassador.getDimensionHandleSetFactory",
         "RTIambassador.getRegionHandleSetFactory",
+        "RTIambassador.getDimensionHandleSet",
+        "RTIambassador.getRangeBounds",
         "RTIambassador.setConveyRegionDesignatorSetsSwitch",
         "RTIambassador.getConveyRegionDesignatorSetsSwitch",
         "RTIambassador.subscribeInteractionClassWithRegions",
@@ -2256,8 +2263,36 @@
       "requirement_ids": [
         "cpp-1516.1-ddm-regional-interaction-subscription",
         "cpp-1516.1-ddm-regional-interaction-delivery",
-        "cpp-1516.1-ddm-regional-interaction-filtering"
+        "cpp-1516.1-ddm-regional-interaction-filtering",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l56-18",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l62-20"
       ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-08-time-management-page-216-l111-34",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l56-18",
+        "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l62-20"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-9.1.1",
+        "hla-1516.1-2025:clause-9.1.5"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l111-34",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l56-18",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l62-20",
+          "standard_section": "hla-1516.1-2025:clause-9.1.5"
+        }
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "mapping_note": "The official Java API scenario retains one fixed interaction-class/region tuple through active-to-passive-to-active transitions. It directly witnesses §9.1.5 p. 224 l. 56 mode replacement and l. 62 regional passive behavior: the passive route receives while another active route keeps the class relevant, stops when the last active route is removed, and receives again when reactivated. The same source witnesses §9.1.1 realization alternatives for regional subscription and sent interaction. The callback verifies the receiver-local source-region dimensions and [1,5] bounds. It does not cover every regional combination or claim conformance. Repository-internal cpp-1516.1 identifiers are provenance only.",
+      "parity_scope_note": "Matches the paired C++ sequence: both overlapping regional members start active; one changes to passive and keeps receiving while the other active route remains; removing the last active route suppresses delivery to both; an empty active regional call does not revive the passive declaration; and restoring the same regional tuple restores passive delivery without callbacks to the unsubscribed active member. Java checks source-region dimensions and [1,5] bounds through receiver-local callback metadata.",
       "contract_refs": [
         "interaction-region-api-contract.json",
         "interaction-region-requirements-contract.json",
@@ -2267,8 +2302,19 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#passiveRegionalInteractionTransition",
       "parity": "cpp-tck.passive-regional-interaction-transition",
+      "adapter_inputs": [
+        "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
+        "adapter-supplied dimensional DDM FOM via hla.rti.tck.ddmFom",
+        "interaction class, parameter, and two interaction dimension names via adapter properties",
+        "callback model selected by the adapter"
+      ],
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
       "default_status": "unsupported",
-      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with an interaction class, parameter, two dimensions, and an installed Java 2025 provider; runtime verification remains pending."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/passive-regional-interaction-transition-{evoked,immediate}-v1.{json,xml}. This local-provider evidence does not claim independent-provider interoperability or conformance.",
+      "exclusion": "Requires an adapter-supplied dimensional IEEE 1516.1-2025 FOM with an interaction class, parameter, two dimensions, and an installed Java 2025 provider. Focused local-provider runs passed, but the scenario remains default-disabled because these adapter inputs are provider-specific."
     },
     {
       "id": "java-tck.passive-regional-subscription",

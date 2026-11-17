@@ -10,11 +10,13 @@ import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.ParameterHandleValueMap;
 import hla.rti1516_2025.RegionHandle;
 import hla.rti1516_2025.RegionHandleSet;
+import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.ResignAction;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RtiFactory;
 import hla.rti1516_2025.TransportationTypeHandle;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +51,8 @@ final class PassiveRegionalInteractionTransitionTck {
       InteractionClassHandle passiveInteraction = null;
       RegionHandleSet activeRegions = null, passiveRegions = null;
       try {
+         activeCallbacks.inspectRegionDesignatorsWith(active);
+         passiveCallbacks.inspectRegionDesignatorsWith(passive);
          publisher.connect(noopFederateAmbassador(), callbackModel);
          publisherConnected = true;
          active.connect(activeCallbacks.proxy(), callbackModel);
@@ -119,10 +123,10 @@ final class PassiveRegionalInteractionTransitionTck {
                && passiveCallbacks.interactions.size() >= 1,
             "initial delivery to active regional subscribers");
          requireInteraction(active, activeCallbacks.interactions.get(0), activeInteraction,
-            activeParameter, producingFederate, sourceRegion, firstTag,
+            activeParameter, producingFederate, activeFirst, activeSecond, firstTag,
             "active subscriber initial delivery");
          requireInteraction(passive, passiveCallbacks.interactions.get(0), passiveInteraction,
-            passiveParameter, producingFederate, sourceRegion, firstTag,
+            passiveParameter, producingFederate, passiveFirst, passiveSecond, firstTag,
             "passive candidate initial active delivery");
          JavaTckSupport.check(activeCallbacks.interactions.size() == 1
                && passiveCallbacks.interactions.size() == 1,
@@ -141,10 +145,10 @@ final class PassiveRegionalInteractionTransitionTck {
                && passiveCallbacks.interactions.size() >= 1,
             "passive route delivery while another active route remains");
          requireInteraction(active, activeCallbacks.interactions.get(0), activeInteraction,
-            activeParameter, producingFederate, sourceRegion, retainedTag,
+            activeParameter, producingFederate, activeFirst, activeSecond, retainedTag,
             "active route while passive declaration is retained");
          requireInteraction(passive, passiveCallbacks.interactions.get(0), passiveInteraction,
-            passiveParameter, producingFederate, sourceRegion, retainedTag,
+            passiveParameter, producingFederate, passiveFirst, passiveSecond, retainedTag,
             "passive route delivery while active relevance remains");
          JavaTckSupport.check(activeCallbacks.interactions.size() == 1
                && passiveCallbacks.interactions.size() == 1,
@@ -181,7 +185,7 @@ final class PassiveRegionalInteractionTransitionTck {
          JavaTckSupport.check(activeCallbacks.interactions.isEmpty(),
             "unsubscribed active regional receiver received a later interaction");
          requireInteraction(passive, passiveCallbacks.interactions.get(0), passiveInteraction,
-            passiveParameter, producingFederate, sourceRegion, restoredTag,
+            passiveParameter, producingFederate, passiveFirst, passiveSecond, restoredTag,
             "reactivated regional interaction delivery");
          JavaTckSupport.check(passiveCallbacks.interactions.size() == 1,
             "reactivated regional route produced duplicate callbacks");
@@ -268,8 +272,8 @@ final class PassiveRegionalInteractionTransitionTck {
 
    private static void requireInteraction(RTIambassador receiver, Interaction interaction,
          InteractionClassHandle expectedClass, ParameterHandle expectedParameter,
-         FederateHandle expectedProducer, RegionHandle expectedRegion, byte[] expectedTag,
-         String description) throws Exception {
+         FederateHandle expectedProducer, DimensionHandle first, DimensionHandle second,
+         byte[] expectedTag, String description) throws Exception {
       JavaTckSupport.check(expectedClass.equals(interaction.interaction)
             && interaction.parameters.size() == 1
             && Arrays.equals(VALUE, interaction.parameters.get(expectedParameter))
@@ -280,8 +284,32 @@ final class PassiveRegionalInteractionTransitionTck {
             && !receiver.getTransportationTypeName(interaction.transportation).isEmpty(),
          description + " returned an unresolvable transportation handle");
       JavaTckSupport.check(interaction.regions != null && interaction.regions.size() == 1
-            && interaction.regions.contains(expectedRegion),
+            && interaction.regionDesignators != null && interaction.regionDesignators.size() == 1,
          description + " omitted its source-region designator");
+      RegionDesignatorSnapshot source = interaction.regionDesignators.get(0);
+      RangeBounds firstBounds = source.ranges.get(first);
+      RangeBounds secondBounds = source.ranges.get(second);
+      JavaTckSupport.check(source.dimensions.size() == 2
+            && source.dimensions.contains(first) && source.dimensions.contains(second)
+            && firstBounds != null && firstBounds.lower == 1 && firstBounds.upper == 5
+            && secondBounds != null && secondBounds.lower == 1 && secondBounds.upper == 5,
+         description + " returned incorrect source-region dimensions or bounds");
+   }
+
+   private static List<RegionDesignatorSnapshot> snapshotRegionDesignators(
+         RTIambassador ambassador, RegionHandleSet regions) throws Exception {
+      List<RegionDesignatorSnapshot> result = new ArrayList<>();
+      if (regions == null) return result;
+      for (RegionHandle region : regions) {
+         Set<DimensionHandle> dimensions =
+            new HashSet<>(ambassador.getDimensionHandleSet(region));
+         Map<DimensionHandle, RangeBounds> ranges = new HashMap<>();
+         for (DimensionHandle dimension : dimensions) {
+            ranges.put(dimension, ambassador.getRangeBounds(region, dimension));
+         }
+         result.add(new RegionDesignatorSnapshot(dimensions, ranges));
+      }
+      return result;
    }
 
    private static void await(RTIambassador first, RTIambassador second, CallbackModel model,
@@ -334,10 +362,27 @@ final class PassiveRegionalInteractionTransitionTck {
       private TransportationTypeHandle transportation;
       private FederateHandle producer;
       private Set<RegionHandle> regions;
+      private List<RegionDesignatorSnapshot> regionDesignators;
+   }
+
+   private static final class RegionDesignatorSnapshot {
+      private final Set<DimensionHandle> dimensions;
+      private final Map<DimensionHandle, RangeBounds> ranges;
+
+      private RegionDesignatorSnapshot(Set<DimensionHandle> dimensions,
+            Map<DimensionHandle, RangeBounds> ranges) {
+         this.dimensions = dimensions;
+         this.ranges = ranges;
+      }
    }
 
    private static final class Recorder {
       private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private volatile RTIambassador regionInspector;
+
+      private void inspectRegionDesignatorsWith(RTIambassador ambassador) {
+         regionInspector = ambassador;
+      }
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
@@ -356,6 +401,8 @@ final class PassiveRegionalInteractionTransitionTck {
                   interaction.producer = (FederateHandle) arguments[4];
                   interaction.regions = arguments[5] == null ? null
                      : new HashSet<>((RegionHandleSet) arguments[5]);
+                  interaction.regionDesignators = regionInspector == null ? null
+                     : snapshotRegionDesignators(regionInspector, (RegionHandleSet) arguments[5]);
                   interactions.add(interaction);
                }
                if (method.getDeclaringClass() == Object.class) {

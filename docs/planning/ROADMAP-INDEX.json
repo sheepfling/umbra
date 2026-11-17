@@ -37482,7 +37482,23 @@
         "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit passed with no findings. No Requirements Lab resynchronization was made. The case remains default opt-in because it needs adapter-supplied FOM/runtime inputs.",
         "boundary": "Local provider and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
       },
-      "next_action": "Next exact case: compare java-tck.passive-regional-interaction-transition with cpp-tck.passive-regional-interaction-transition. Audit active/passive regional subscription transitions and delivery behavior under both callback models; preserve existing mappings, dispositions, and adapter inputs.",
+      "next_action": "Next exact case: compare java-tck.zero-dimensional-regional-interaction with cpp-tck.zero-dimensional-regional-interaction. Audit excluded-dimension non-overlap and FOM-default realization for empty interaction regions; preserve only the direct mappings already selected by the C++ pair and its fixture-specific limits.",
+      "latest_verified_java_passive_regional_interaction_transition_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Compared java-tck.passive-regional-interaction-transition with the paired C++ TCK case. Java now snapshots conveyed source-region metadata through each receiving federate's RTIambassador and verifies the two dimensions and [1,5] bounds, while preserving the active-to-passive transition, retained passive delivery under another active route, last-active-route suppression, empty-set no-op, and reactivation sequence.",
+        "scenario_ids": [
+          "java-tck.passive-regional-interaction-transition",
+          "cpp-tck.passive-regional-interaction-transition"
+        ],
+        "direct_mappings": [
+          "requirement-candidate-content-clauses-08-time-management-page-216-l111-34 -> IEEE 1516.1-2025 §9.1.1",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l56-18 -> IEEE 1516.1-2025 §9.1.5",
+          "requirement-candidate-content-clauses-09-data-distribution-management-page-224-l62-20 -> IEEE 1516.1-2025 §9.1.5"
+        ],
+        "evidence": "Focused --run-unverified Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the pinned IEEE 1516.1-2025 Java API JAR and Umbra JNI provider, using ddm-tck.xml, HLAinteractionRoot.TckInteraction/Payload, and TckDimensionX/TckDimensionY. Results/JUnit: .build/java-tck-20261117/passive-regional-interaction-transition-{evoked,immediate}-final.{json,xml}.",
+        "mapping_and_validation": "Applied only the three direct requirement-to-subsection mappings already selected by the paired C++ scenario. Internal cpp-1516.1 IDs remain repository provenance. Java catalog/result validation, Java API-method catalog reconciliation, and C++/Java parity audit passed. The repository-wide roadmap/test mapping check retains its baseline failure: portable-cpp-tck-2025 next_test_query points to a requirement absent from the Catch2 plan, with one unlocated C++ source case and actionable=0; this unrelated C++ state was not changed.",
+        "boundary": "Local Umbra JNI and adapter-FOM evidence only; no independent-provider behavior, interoperability, or conformance claim. The scenario remains default opt-in because it requires adapter-supplied DDM inputs."
+      },
       "latest_verified_java_regional_interaction_subscription_filtering_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Compared java-tck.regional-interaction-subscription-filtering with its C++ TCK pair. Java now checks empty regional subscription and empty-send no-route behavior, ordinary/regional declaration independence including repeated regional subscription and ordinary unsubscription, overlap filtering as subscription bounds move and are restored, invalid foreign/uncommitted/incompatible single-region calls, and callback source-region dimensions/bounds through receiver-local metadata.",
