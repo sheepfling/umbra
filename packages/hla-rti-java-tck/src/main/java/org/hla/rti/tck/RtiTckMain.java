@@ -6641,7 +6641,7 @@ public final class RtiTckMain {
        run(new Scenario("java-tck.region-commit-complete-ranges",
              "require bounds for every created region dimension before a commit can create a usable region specification",
              "region-commit-complete-ranges",
-             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.publishObjectClassAttributes;RTIambassador.getDimensionHandleSetFactory;RTIambassador.createRegion;RTIambassador.getDimensionHandleSet;RTIambassador.setRangeBounds;RTIambassador.getRangeBounds;RTIambassador.getRegionHandleSetFactory;RTIambassador.commitRegionModifications;RTIambassador.getAttributeSetRegionSetPairListFactory;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.deleteObjectInstance;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;ObjectClassHandle.encodedLength;RTIambassador.getAttributeHandle;AttributeHandle.encodedLength;RTIambassador.getInteractionClassHandle;InteractionClassHandle.encodedLength;RTIambassador.getParameterHandle;ParameterHandle.encodedLength;RTIambassador.getDimensionHandle;DimensionHandle.encodedLength;DimensionHandle.equals;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.publishObjectClassAttributes;RTIambassador.getDimensionHandleSetFactory;RTIambassador.createRegion;RTIambassador.getDimensionHandleSet;DimensionHandleSet.add/contains/equals;RTIambassador.setRangeBounds;RTIambassador.getRangeBounds;RangeBounds.lower/upper;RTIambassador.getRegionHandleSetFactory;RTIambassador.commitRegionModifications;RTIambassador.getAttributeSetRegionSetPairListFactory;RTIambassador.registerObjectInstanceWithRegions;ObjectInstanceHandle.encodedLength;RTIambassador.deleteObjectInstance;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteRegion;RegionHandle.encodedLength;RTIambassador.resignFederationExecution;ResignAction.NO_ACTION;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
              new String[] {
                 "requirement-candidate-content-clauses-09-data-distribution-management-page-219-l50-16",
                 "requirement-candidate-content-clauses-08-time-management-page-216-l102-31",
@@ -14363,7 +14363,9 @@ public final class RtiTckMain {
     private static void regionCommitCompleteRanges() throws Exception {
        RegionCommitCompleteRangesTck.run(factory(), requireAdapterFile(DDM_FOM_PROPERTY),
           requireAdapterValue(TIME_PROPERTY), requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
-          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(DIMENSION_PROPERTY),
+          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(INTERACTION_CLASS_PROPERTY),
+          requireAdapterValue(PARAMETER_PROPERTY),
+          requireAdapterValue(DIMENSION_PROPERTY),
           requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
     }
 

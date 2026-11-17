@@ -8,8 +8,10 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
+import hla.rti1516_2025.ParameterHandle;
 import hla.rti1516_2025.RTIambassador;
 import hla.rti1516_2025.RangeBounds;
 import hla.rti1516_2025.RegionHandle;
@@ -24,8 +26,9 @@ final class RegionCommitCompleteRangesTck {
    private RegionCommitCompleteRangesTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String firstDimensionName,
-         String secondDimensionName, CallbackModel callbackModel) throws Exception {
+         String objectClassName, String attributeName, String interactionClassName,
+         String parameterName, String firstDimensionName, String secondDimensionName,
+         CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador member = factory.getRtiAmbassador();
       String federation = "java-tck-region-commit-complete-ranges-" + UUID.randomUUID();
@@ -50,11 +53,33 @@ final class RegionCommitCompleteRangesTck {
 
          objectClass = owner.getObjectClassHandle(objectClassName);
          AttributeHandle attribute = owner.getAttributeHandle(objectClass, attributeName);
+         InteractionClassHandle interactionClass =
+            owner.getInteractionClassHandle(interactionClassName);
+         ParameterHandle parameter = owner.getParameterHandle(interactionClass, parameterName);
          DimensionHandle first = owner.getDimensionHandle(firstDimensionName);
          DimensionHandle second = owner.getDimensionHandle(secondDimensionName);
-         DimensionHandleSet available = owner.getAvailableDimensionsForObjectClass(objectClass);
-         JavaTckSupport.check(available.contains(first) && available.contains(second),
-            "adapter object class must expose both configured region dimensions");
+         JavaTckSupport.check(objectClass != null && objectClass.encodedLength() > 0
+               && attribute != null && attribute.encodedLength() > 0
+               && interactionClass != null && interactionClass.encodedLength() > 0
+               && parameter != null && parameter.encodedLength() > 0
+               && first != null && first.encodedLength() > 0
+               && second != null && second.encodedLength() > 0,
+            "DDM handle lookup returned an invalid handle");
+         DimensionHandleSet objectDimensions =
+            owner.getAvailableDimensionsForObjectClass(objectClass);
+         DimensionHandleSet interactionDimensions =
+            owner.getAvailableDimensionsForInteractionClass(interactionClass);
+         JavaTckSupport.check(!first.equals(second),
+            "DDM adapter supplied duplicate dimension names");
+         JavaTckSupport.check(objectDimensions.contains(first) && objectDimensions.contains(second)
+               && interactionDimensions.contains(first) && interactionDimensions.contains(second),
+            "adapter object and interaction classes must expose both configured dimensions");
+         JavaTckSupport.check(firstDimensionName.equals(owner.getDimensionName(first))
+               && secondDimensionName.equals(owner.getDimensionName(second)),
+            "dimension-name lookup returned a different name");
+         JavaTckSupport.check(owner.getDimensionUpperBound(first) >= 4
+               && owner.getDimensionUpperBound(second) >= 4,
+            "adapter-supplied dimensions have insufficient range");
 
          attributes = JavaTckSupport.attributeSet(owner, attribute);
          owner.publishObjectClassAttributes(objectClass, attributes);
