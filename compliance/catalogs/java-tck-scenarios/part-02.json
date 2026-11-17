@@ -2893,6 +2893,8 @@
         "RTIambassador.getKnownObjectClassHandle",
         "RTIambassador.getObjectInstanceHandle",
         "RTIambassador.getObjectInstanceName",
+        "RTIambassador.deleteObjectInstance",
+        "RTIambassador.unpublishObjectClass",
         "RTIambassador.unpublishObjectClassAttributes",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
@@ -2909,12 +2911,20 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1",
         "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l31-6",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l34-7",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l37-8",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l163-46",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l103-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l109-31",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l115-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l118-34",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
+        "requirement-candidate-content-clauses-05-declaration-management-page-092-l124-39",
+        "requirement-candidate-content-clauses-05-declaration-management-page-092-l130-41",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
         "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
         "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
@@ -2928,12 +2938,20 @@
         "requirement-candidate-content-clauses-05-declaration-management-page-082-l5-1",
         "requirement-candidate-content-clauses-05-declaration-management-page-083-l20-6",
         "requirement-candidate-content-clauses-05-declaration-management-page-084-l107-35",
+        "requirement-candidate-content-clauses-05-declaration-management-page-090-l31-6",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l34-7",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l37-8",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l43-10",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l58-15",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l82-23",
         "requirement-candidate-content-clauses-05-declaration-management-page-090-l163-46",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l103-29",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l109-31",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l115-33",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l118-34",
+        "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
+        "requirement-candidate-content-clauses-05-declaration-management-page-092-l124-39",
+        "requirement-candidate-content-clauses-05-declaration-management-page-092-l130-41",
         "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
         "requirement-candidate-content-clauses-06-object-management-page-107-l135-40",
         "requirement-candidate-content-clauses-06-object-management-page-107-l141-42",
@@ -2946,6 +2964,8 @@
         "hla-1516.1-2025:clause-5.1.3",
         "hla-1516.1-2025:clause-5.2",
         "hla-1516.1-2025:clause-5.2.4",
+        "hla-1516.1-2025:clause-5.3",
+        "hla-1516.1-2025:clause-5.3.4",
         "hla-1516.1-2025:clause-5.8",
         "hla-1516.1-2025:clause-6.1.2",
         "hla-1516.1-2025:clause-6.8"
@@ -2980,6 +3000,10 @@
           "standard_section": "hla-1516.1-2025:clause-5.1.3"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l31-6",
+          "standard_section": "hla-1516.1-2025:clause-5.2"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-090-l34-7",
           "standard_section": "hla-1516.1-2025:clause-5.2"
         },
@@ -3004,6 +3028,34 @@
           "standard_section": "hla-1516.1-2025:clause-5.2.4"
         },
         {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l103-29",
+          "standard_section": "hla-1516.1-2025:clause-5.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l109-31",
+          "standard_section": "hla-1516.1-2025:clause-5.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l115-33",
+          "standard_section": "hla-1516.1-2025:clause-5.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l118-34",
+          "standard_section": "hla-1516.1-2025:clause-5.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-091-l130-38",
+          "standard_section": "hla-1516.1-2025:clause-5.3"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-092-l124-39",
+          "standard_section": "hla-1516.1-2025:clause-5.3.4"
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-092-l130-41",
+          "standard_section": "hla-1516.1-2025:clause-5.3.4"
+        },
+        {
           "requirement_id": "requirement-candidate-content-clauses-05-declaration-management-page-096-l57-16",
           "standard_section": "hla-1516.1-2025:clause-5.8"
         },
@@ -3020,8 +3072,8 @@
           "standard_section": "hla-1516.1-2025:clause-6.8"
         }
       ],
-      "mapping_note": "Direct mappings are limited to assertion-backed portions of the paired C++ witness. The Java case checks registration eligibility for one typed FDD class before publication and after an empty publication, followed by successful nonempty publication and registration (§5.1 page 81 line 44; §5.2 page 90 line 82); after registration it checks ownership of both published attributes (§5.2 page 90 line 58) and that Get Known Object Class Handle returns the registered class (§6.8 page 118 line 22). It checks NameNotFound for one absent FDD class and for a derived-only attribute looked up on its superclass, plus AttributeNotDefined when that derived-only attribute is published or subscribed through the superclass and when it is requested for an object known through the base class (§5.1.1 pages 81–82). Exact-class, base-class, and late-subscription discovery callbacks report the expected object and known class; the base subscriber observes its superclass view (§5.1.2 page 83; §5.1.3 page 84), and an active late subscription discovers an already-registered object (§5.8 page 96). A non-owner update is rejected with AttributeNotOwned and produces no reflection (§5.2 page 90); an ordinary update reflects exactly each exact/base/late receiver’s subscribed attribute (§6.1.2 page 107). For the adapter-supplied TckRateObject class, publication of only ReliableValue permits registration, and that instance owns ReliableValue but not BestEffortValue; adding BestEffortValue publication makes both available on a later instance and its discovery reports the configured class (§5.2 page 90 lines 34 and 37). Unpublishing BestEffortValue removes that instance-attribute ownership while preserving ReliableValue, and the later update is rejected with AttributeNotOwned (§5.2.4 page 90 line 163). These are bounded witnesses for this adapter FOM, not exhaustive class, attribute, or service coverage. Callback timing/cancellation, duplicate-subscription handling, unrelated-class suppression, producer metadata, and cleanup remain supplemental.",
-      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with packages/hla-rti-cpp-tck/fom/fom-model-tck.xml, including its typed hierarchy and TckRateObject ReliableValue/BestEffortValue attributes. Results/JUnit: .build/java-tck-20261117/object-registration-discovery-rate-publication-parity-{evoked,immediate}.{json,xml}. Provider evidence is local only; independent-provider interoperability and conformance are not established.",
+      "mapping_note": "Direct mappings are limited to assertion-backed portions of the paired C++ witness. The Java case checks registration eligibility for one typed FDD class before publication and after an empty publication, then verifies that nonempty publication permits registration and controls instance ownership; later publication of BestEffortValue adds that attribute to a subsequent rate-object instance (§5.1 page 81 line 44; §5.2 page 90 lines 31, 34, 37, and 82). The rate object owns ReliableValue but not initially unpublished BestEffortValue; after publishing both attributes, it owns both on a later instance. Unpublishing only BestEffortValue removes that instance-attribute ownership, preserves ReliableValue ownership, and makes a later update fail with AttributeNotOwned and no reflection (§5.3 page 91 lines 109, 115, and 130; §5.3.4 page 92 line 130). The Java case also deletes the typed instance, invokes the no-attribute-set whole-class unpublish service, and verifies that later registration fails with ObjectClassNotPublished (§5.3 page 91 lines 103 and 118; §5.3.4 page 92 line 124). After ordinary typed registration it checks ownership of both published attributes (§5.2 page 90 line 58) and that Get Known Object Class Handle returns the registered class (§6.8 page 118 line 22). It checks NameNotFound for one absent FDD class and for a derived-only attribute looked up on its superclass, plus AttributeNotDefined when that derived-only attribute is published or subscribed through the superclass and when it is requested for an object known through the base class (§5.1.1 pages 81–82). Exact-class, base-class, and late-subscription discovery callbacks report the expected object and known class; the base subscriber observes its superclass view (§5.1.2 page 83; §5.1.3 page 84), and an active late subscription discovers an already-registered object (§5.8 page 96). A non-owner update is rejected with AttributeNotOwned and produces no reflection (§5.2 page 90); an ordinary update reflects exactly each exact/base/late receiver’s subscribed attribute (§6.1.2 page 107). These are bounded witnesses for this adapter FOM, not exhaustive class, attribute, or service coverage. Callback timing/cancellation, duplicate-subscription handling, unrelated-class suppression, producer metadata, and cleanup remain supplemental.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API. Focused local Umbra JNI runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with packages/hla-rti-cpp-tck/fom/fom-model-tck.xml, including its typed hierarchy and TckRateObject ReliableValue/BestEffortValue attributes. Results/JUnit: .build/java-tck-20261117/object-registration-discovery-unpublish-class-parity-{evoked,immediate}.{json,xml}. Provider evidence is local only; independent-provider interoperability and conformance are not established.",
       "contract_refs": [
         "object-instance-registration-api-contract.json",
         "object-instance-registration-requirements-contract.json",

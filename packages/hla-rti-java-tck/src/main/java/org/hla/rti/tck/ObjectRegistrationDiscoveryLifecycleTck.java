@@ -371,6 +371,20 @@ final class ObjectRegistrationDiscoveryLifecycleTck {
             "updating an instance attribute after unpublishing its class attribute");
          JavaTckSupport.check(recorders[UNRELATED].reflections.isEmpty(),
             "an update rejected after attribute unpublication produced a reflection");
+
+         for (int index = 1; index < FEDERATE_COUNT; ++index) {
+            if (joined[index]) {
+               rti[index].resignFederationExecution(ResignAction.NO_ACTION);
+               joined[index] = false;
+            }
+         }
+         rti[PUBLISHER].deleteObjectInstance(object, new byte[0]);
+         rti[PUBLISHER].unpublishObjectClass(derivedClasses[PUBLISHER]);
+         published = false;
+         JavaTckSupport.expectFailure(
+            () -> rti[PUBLISHER].registerObjectInstance(derivedClasses[PUBLISHER]),
+            "ObjectClassNotPublished",
+            "registering the derived object class after whole-class unpublication");
       } finally {
          if (rti[PUBLISHER] != null && joined[PUBLISHER] && published) {
             try {
