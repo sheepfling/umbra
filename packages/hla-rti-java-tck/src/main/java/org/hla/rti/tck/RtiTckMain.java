@@ -15672,9 +15672,8 @@ public final class RtiTckMain {
    private static void customTransportationTimestampedDirectedInteractionAlternateAdvances()
          throws Exception {
       TimestampedDirectedAlternateAdvancesTck.runCustomTransportation(factory(), requireFom(),
-         timeImplementation(), customTransportationObjectClassName(),
-         customTransportationAttributeName(), timestampedDirectedInteractionClassName(),
-         timestampedDirectedParameterName(),
+         timeImplementation(), typedObjectClassName(), typedIntegerAttributeName(),
+         typedInteractionClassName(), typedIntegerParameterName(),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"), callbackModel());
    }
 

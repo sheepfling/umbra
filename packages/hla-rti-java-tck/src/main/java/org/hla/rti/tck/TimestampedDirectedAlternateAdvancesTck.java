@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Exercises timestamped directed delivery through FQR, TARA, and NMRA. */
 final class TimestampedDirectedAlternateAdvancesTck {
@@ -145,7 +146,7 @@ final class TimestampedDirectedAlternateAdvancesTck {
             if (i == 0) flushAttributesSubscribed = true;
             else if (i == 1) taraAttributesSubscribed = true;
             else nmraAttributesSubscribed = true;
-            receivers[i].subscribeObjectClassDirectedInteractions(cls,
+            receivers[i].subscribeObjectClassDirectedInteractionsUniversally(cls,
                JavaTckSupport.interactionSet(receivers[i], receiverInteractions[i]));
             if (i == 0) flushDirectedSubscribed = true;
             else if (i == 1) taraDirectedSubscribed = true;
@@ -428,13 +429,13 @@ final class TimestampedDirectedAlternateAdvancesTck {
    }
 
    private static final class Recorder {
-      private boolean timeRegulationEnabled, timeConstrainedEnabled;
-      private final List<Discovery> discoveries = new ArrayList<>();
-      private final List<Interaction> interactions = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new ArrayList<>();
-      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new ArrayList<>();
-      private final List<String> callbackOrder = new ArrayList<>();
-      private LogicalTime<?, ?> flushQueueGrantTime, flushQueueOptimisticTime;
+      private volatile boolean timeRegulationEnabled, timeConstrainedEnabled;
+      private final List<Discovery> discoveries = new CopyOnWriteArrayList<>();
+      private final List<Interaction> interactions = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> timeAdvanceGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<LogicalTime<?, ?>> flushQueueGrantTimes = new CopyOnWriteArrayList<>();
+      private final List<String> callbackOrder = new CopyOnWriteArrayList<>();
+      private volatile LogicalTime<?, ?> flushQueueGrantTime, flushQueueOptimisticTime;
 
       private FederateAmbassador proxy() {
          return (FederateAmbassador) Proxy.newProxyInstance(
