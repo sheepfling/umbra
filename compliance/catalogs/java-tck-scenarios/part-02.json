@@ -3168,12 +3168,14 @@
     {
       "id": "java-tck.attribute-interaction",
       "category": "interaction-management",
-      "title": "Exercise ordinary attribute and interaction publication, subscription, delivery, and callback control",
+      "title": "Exercise ordinary attribute and interaction routes, including two-attribute reflection",
       "api_methods": [
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
         "RTIambassador.getAttributeHandle",
         "RTIambassador.getAttributeName",
+        "AttributeHandleSetFactory.create",
+        "AttributeHandleSet.add",
         "RTIambassador.getUpdateRateValue",
         "RTIambassador.publishObjectClassAttributes",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -3192,6 +3194,10 @@
         "RTIambassador.subscribeInteractionClassPassively",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.updateAttributeValues",
+        "AttributeHandleValueMapFactory.create",
+        "AttributeHandleValueMap.put",
+        "AttributeHandleValueMap.get",
+        "AttributeHandleValueMap.size",
         "RTIambassador.sendInteraction",
         "RTIambassador.enableCallbacks",
         "RTIambassador.disableCallbacks",
@@ -3285,7 +3291,7 @@
           "standard_section": "hla-1516.1-2025:clause-6.13"
         }
       ],
-      "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3), send to a subscribed interaction recipient and tag (§6.12), and producer identity in Receive Interaction (§6.13). The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence. Java provider runtime remains unvalidated.",
+      "mapping_note": "Direct mappings cover the later object discovery caused by an active attribute subscription (§5.8), ordinary attribute value/tag update (§6.10), reflected value and producing-federate metadata (§6.11.1), active interaction declaration/class/parameter behavior (§5.1.3), send to a subscribed interaction recipient and tag (§6.12), and producer identity in Receive Interaction (§6.13). The Java scenario additionally publishes two distinct SOM-declared attributes and checks both values in the active evoked, active immediate, and passive reflection callbacks; this is supplementary detail within the existing update/reflection mappings, not a separate normative claim. The passive observer's delivery after a separate active declaration establishes relevance is supplemental: the standard's explicit passive-delivery statement has no immutable Lab requirement candidate. Transportation assertions check only that callback handles are valid, not a specific transportation value. Fixture setup, lookup, callback servicing, pre-connect/pre-join errors, invalid-handle errors, and Java callback-control behavior are not separate claims. The linked contract remains experimental public-API evidence, not conformance evidence.",
       "contract_refs": [
         "connection-callback-api-contract.json",
         "object-class-attribute-declaration-api-contract.json",
@@ -3301,7 +3307,8 @@
         "attribute-value-update-response-requirements-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#attributeInteraction",
-      "default_status": "run"
+      "default_status": "run",
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR and passed the focused java-tck.attribute-interaction scenario against the current-source Umbra JNI provider on 2026-11-17. A single federation run checked both distinct SOM-declared attribute values and the update tag in active HLA_EVOKED, active HLA_IMMEDIATE, and passive HLA_EVOKED reflection callbacks. Result: .build/java-tck-20261117/attribute-interaction.results.json. This is local-provider evidence and does not establish independent-provider interoperability or overall conformance."
     },
     {
       "id": "java-tck.attribute-update-service-boundaries",

@@ -2170,7 +2170,7 @@ public final class RtiTckMain {
                "cpp-1516.1-federation-create-join-resign-destroy"
             }, true), RtiTckMain::receiveOrderAttributeUpdate);
       run(new Scenario("java-tck.attribute-interaction", "ordinary attribute and interaction routes", "interaction-management",
-            "getObjectClassHandle;getObjectClassName;getAttributeHandle;getAttributeName;getUpdateRateValue;publishObjectClassAttributes;unpublishObjectClassAttributes;unpublishObjectClass;subscribeObjectClassAttributes;subscribeObjectClassAttributesPassively;unsubscribeObjectClassAttributes;unsubscribeObjectClass;getInteractionClassHandle;getInteractionClassName;getParameterHandle;getParameterName;publishInteractionClass;unpublishInteractionClass;subscribeInteractionClass;subscribeInteractionClassPassively;unsubscribeInteractionClass;updateAttributeValues;reflectAttributeValues;sendInteraction;receiveInteraction;enableCallbacks;disableCallbacks;discoverObjectInstance",
+            "getObjectClassHandle;getObjectClassName;getAttributeHandle;getAttributeName;getUpdateRateValue;publishObjectClassAttributes;unpublishObjectClassAttributes;unpublishObjectClass;subscribeObjectClassAttributes;subscribeObjectClassAttributesPassively;unsubscribeObjectClassAttributes;unsubscribeObjectClass;getInteractionClassHandle;getInteractionClassName;getParameterHandle;getParameterName;publishInteractionClass;unpublishInteractionClass;subscribeInteractionClass;subscribeInteractionClassPassively;unsubscribeInteractionClass;updateAttributeValues;reflectAttributeValues;sendInteraction;receiveInteraction;enableCallbacks;disableCallbacks;discoverObjectInstance;AttributeHandleSetFactory.create;AttributeHandleSet.add;AttributeHandleValueMapFactory.create;AttributeHandleValueMap.put;AttributeHandleValueMap.get;AttributeHandleValueMap.size",
             new String[] {
                "java-1516.1-attribute-update-and-callback-control",
                 "java-1516.1-interaction-declaration-and-delivery"
@@ -14056,8 +14056,8 @@ public final class RtiTckMain {
 
    private static void attributeInteraction() throws Exception {
       AttributeInteractionTck.ordinaryRoutes(factory(), requireFom(), timeImplementation(),
-         objectClassName(), attributeName(), interactionClassName(), parameterName(),
-         updateRateName());
+         objectClassName(), attributeName(), objectClassSecondAttributeName(),
+         interactionClassName(), parameterName(), updateRateName());
    }
 
    private static void declarationPublishBeforeSend() throws Exception {

@@ -31,8 +31,9 @@ final class AttributeInteractionTck {
    }
 
    static void ordinaryRoutes(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String interactionClassName,
-         String parameterName, String updateRateName) throws Exception {
+         String objectClassName, String attributeName, String secondAttributeName,
+         String interactionClassName, String parameterName, String updateRateName)
+         throws Exception {
       RTIambassador disconnected = factory.getRtiAmbassador();
       RTIambassador unjoined = factory.getRtiAmbassador();
       RTIambassador publisher = factory.getRtiAmbassador();
@@ -128,15 +129,23 @@ final class AttributeInteractionTck {
          ObjectClassHandle publisherClass = publisher.getObjectClassHandle(objectClassName);
          AttributeHandle publisherAttribute = publisher.getAttributeHandle(
             publisherClass, attributeName);
+         AttributeHandle publisherSecondAttribute = publisher.getAttributeHandle(
+            publisherClass, secondAttributeName);
          ObjectClassHandle evokedClass = evokedSubscriber.getObjectClassHandle(objectClassName);
          AttributeHandle evokedAttribute = evokedSubscriber.getAttributeHandle(
             evokedClass, attributeName);
+         AttributeHandle evokedSecondAttribute = evokedSubscriber.getAttributeHandle(
+            evokedClass, secondAttributeName);
          ObjectClassHandle immediateClass = immediateSubscriber.getObjectClassHandle(objectClassName);
          AttributeHandle immediateAttribute = immediateSubscriber.getAttributeHandle(
             immediateClass, attributeName);
+         AttributeHandle immediateSecondAttribute = immediateSubscriber.getAttributeHandle(
+            immediateClass, secondAttributeName);
          ObjectClassHandle passiveClass = passiveSubscriber.getObjectClassHandle(objectClassName);
          AttributeHandle passiveAttribute = passiveSubscriber.getAttributeHandle(
             passiveClass, attributeName);
+         AttributeHandle passiveSecondAttribute = passiveSubscriber.getAttributeHandle(
+            passiveClass, secondAttributeName);
 
          InteractionClassHandle publisherInteraction = publisher.getInteractionClassHandle(
             interactionClassName);
@@ -162,8 +171,16 @@ final class AttributeInteractionTck {
             "object-class handles differed between joined federates");
          check(evokedAttribute.equals(publisherAttribute)
                && immediateAttribute.equals(publisherAttribute)
-               && passiveAttribute.equals(publisherAttribute),
-            "attribute handles differed between joined federates");
+               && passiveAttribute.equals(publisherAttribute)
+               && publisherSecondAttribute != null
+               && evokedSecondAttribute != null
+               && immediateSecondAttribute != null
+               && passiveSecondAttribute != null
+               && !publisherSecondAttribute.equals(publisherAttribute)
+               && evokedSecondAttribute.equals(publisherSecondAttribute)
+               && immediateSecondAttribute.equals(publisherSecondAttribute)
+               && passiveSecondAttribute.equals(publisherSecondAttribute),
+            "distinct attribute handles differed between joined federates");
          check(objectClassName.equals(publisher.getObjectClassName(publisherClass)),
             "object-class name did not round-trip through the standard API");
          check(attributeName.equals(publisher.getAttributeName(publisherClass, publisherAttribute)),
@@ -207,15 +224,19 @@ final class AttributeInteractionTck {
          AttributeHandleSet publisherAttributes =
             publisher.getAttributeHandleSetFactory().create();
          publisherAttributes.add(publisherAttribute);
+         publisherAttributes.add(publisherSecondAttribute);
          AttributeHandleSet evokedAttributes =
             evokedSubscriber.getAttributeHandleSetFactory().create();
          evokedAttributes.add(evokedAttribute);
+         evokedAttributes.add(evokedSecondAttribute);
          AttributeHandleSet immediateAttributes =
             immediateSubscriber.getAttributeHandleSetFactory().create();
          immediateAttributes.add(immediateAttribute);
+         immediateAttributes.add(immediateSecondAttribute);
          AttributeHandleSet passiveAttributes =
             passiveSubscriber.getAttributeHandleSetFactory().create();
          passiveAttributes.add(passiveAttribute);
+         passiveAttributes.add(passiveSecondAttribute);
 
          // Publication and active/passive subscription are independent
          // declarations. The named-rate forms are ordinary, non-regional
@@ -267,9 +288,11 @@ final class AttributeInteractionTck {
             "discovery callback did not preserve the registered object class");
 
          AttributeHandleValueMap attributeValues =
-            publisher.getAttributeHandleValueMapFactory().create(1);
+            publisher.getAttributeHandleValueMapFactory().create(2);
          byte[] firstAttributePayload = new byte[] {1, 2, 3, (byte) 0xff};
+         byte[] secondAttributePayload = new byte[] {0x31, 0x32};
          attributeValues.put(publisherAttribute, firstAttributePayload);
+         attributeValues.put(publisherSecondAttribute, secondAttributePayload);
          byte[] firstAttributeTag = new byte[] {9, 8, 7};
          publisher.updateAttributeValues(object, attributeValues, firstAttributeTag);
          drain(evokedSubscriber);
@@ -282,13 +305,36 @@ final class AttributeInteractionTck {
             "passive attribute subscription did not receive active-relevance reflection");
          check(object.equals(evokedRecorder.reflectedObject)
                && evokedRecorder.reflectedValues != null
-               && evokedRecorder.reflectedValues.size() == 1,
+               && evokedRecorder.reflectedValues.size() == 2
+               && evokedRecorder.reflectedValues.containsKey(evokedAttribute)
+               && evokedRecorder.reflectedValues.containsKey(evokedSecondAttribute),
             "evoked reflection callback had the wrong object or attribute count");
          check(Arrays.equals(firstAttributePayload,
                evokedRecorder.reflectedValues.get(evokedAttribute)),
             "evoked reflection payload did not round-trip");
+         check(Arrays.equals(secondAttributePayload,
+               evokedRecorder.reflectedValues.get(evokedSecondAttribute)),
+            "evoked second reflection payload did not round-trip");
          check(Arrays.equals(firstAttributeTag, evokedRecorder.reflectedTag),
             "evoked reflection tag did not round-trip");
+         check(object.equals(immediateRecorder.reflectedObject)
+               && immediateRecorder.reflectedValues != null
+               && immediateRecorder.reflectedValues.size() == 2
+               && Arrays.equals(firstAttributePayload,
+                  immediateRecorder.reflectedValues.get(immediateAttribute))
+               && Arrays.equals(secondAttributePayload,
+                  immediateRecorder.reflectedValues.get(immediateSecondAttribute))
+               && Arrays.equals(firstAttributeTag, immediateRecorder.reflectedTag),
+            "immediate reflection did not preserve both values and the update tag");
+         check(object.equals(passiveRecorder.reflectedObject)
+               && passiveRecorder.reflectedValues != null
+               && passiveRecorder.reflectedValues.size() == 2
+               && Arrays.equals(firstAttributePayload,
+                  passiveRecorder.reflectedValues.get(passiveAttribute))
+               && Arrays.equals(secondAttributePayload,
+                  passiveRecorder.reflectedValues.get(passiveSecondAttribute))
+               && Arrays.equals(firstAttributeTag, passiveRecorder.reflectedTag),
+            "passive reflection did not preserve both values and the update tag");
 
          ParameterHandleValueMap parameterValues =
             publisher.getParameterHandleValueMapFactory().create(1);
