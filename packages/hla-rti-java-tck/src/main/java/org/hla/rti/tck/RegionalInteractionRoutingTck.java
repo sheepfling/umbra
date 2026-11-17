@@ -36,23 +36,26 @@ final class RegionalInteractionRoutingTck {
          String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
          throws Exception {
       runInternal(factory, fom, objectClassName, attributeName, interactionName,
-         parameterName, firstDimensionName, secondDimensionName, null, true, callbackModel);
+         parameterName, firstDimensionName, secondDimensionName, null, null, true, callbackModel);
    }
 
-   static void runCustomTransportation(RtiFactory factory, String fom, String interactionName,
-         String parameterName, String transportationName, String firstDimensionName,
-         String secondDimensionName, CallbackModel callbackModel) throws Exception {
+   static void runCustomTransportation(RtiFactory factory, String fom, String timeImplementation,
+         String interactionName, String parameterName, String transportationName,
+         String firstDimensionName, String secondDimensionName, CallbackModel callbackModel)
+         throws Exception {
       JavaTckSupport.check(transportationName != null && !transportationName.isEmpty(),
          "adapter did not supply a custom transportation name");
+      JavaTckSupport.check(timeImplementation != null && !timeImplementation.isEmpty(),
+         "adapter did not supply a logical-time implementation");
       runInternal(factory, fom, null, null, interactionName, parameterName, firstDimensionName,
-         secondDimensionName, transportationName, false, callbackModel);
+         secondDimensionName, timeImplementation, transportationName, false, callbackModel);
    }
 
    private static void runInternal(RtiFactory factory, String fom, String objectClassName,
          String attributeName, String interactionName, String parameterName,
          String firstDimensionName, String secondDimensionName,
-         String expectedTransportationName, boolean verifyRestrictedDefaultRange,
-         CallbackModel callbackModel) throws Exception {
+         String timeImplementation, String expectedTransportationName,
+         boolean verifyRestrictedDefaultRange, CallbackModel callbackModel) throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
       RTIambassador overlap = factory.getRtiAmbassador();
       RTIambassador disjoint = factory.getRtiAmbassador();
@@ -90,7 +93,11 @@ final class RegionalInteractionRoutingTck {
          overlapConnected = true;
          disjoint.connect(disjointRecorder.proxy(), callbackModel);
          disjointConnected = true;
-         owner.createFederationExecution(federation, fom);
+         if (timeImplementation == null) {
+            owner.createFederationExecution(federation, fom);
+         } else {
+            owner.createFederationExecution(federation, fom, timeImplementation);
+         }
          created = true;
          FederateHandle producer = owner.joinFederationExecution(
             "java-tck-region-owner", federation);

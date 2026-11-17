@@ -37460,7 +37460,18 @@
         "mapping_and_validation": "No requirement mappings changed. The scenario remains default opt-in because the adapter must supply its dimensional FOM, logical-time implementation, interaction/parameter/dimension names, and custom transportation name. No Requirements Lab resynchronization was made.",
         "boundary": "Local provider and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed. Related --run-unverified probes for timestamped regional subscription replacement (HLA_IMMEDIATE) and regional TAR/NMR (HLA_EVOKED) stopped at earlier delivery assertions before reaching the new region checks; those scenarios remain unsupported and are not claimed as passing."
       },
-      "next_action": "Next exact case: compare java-tck.custom-transportation-regional-interaction-delivery with cpp-tck.custom-transportation-regional-interaction-delivery. Verify receiver-local source-region metadata, ordinary receive-order payload/tag/transport identity, overlap filtering, and callback delivery under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
+      "latest_verified_custom_transportation_regional_interaction_java_2026_11_17": {
+        "status": "verified-2026-11-17",
+        "scope": "Fixed the Java custom-transport regional-interaction adapter path to pass its selected logical-time implementation to federation creation, matching the FOM and provider selection. The existing delivery witness covers receiver-local source-region metadata, overlap and disjoint filtering, unsubscribe suppression, and resubscription delivery.",
+        "scenario_ids": [
+          "java-tck.custom-transportation-regional-interaction-delivery",
+          "cpp-tck.custom-transportation-regional-interaction-delivery"
+        ],
+        "evidence": "The first opt-in run showed the two-argument Java Create path selecting HLAfloat64Time against the adapter FOM's HLAinteger64Time declaration. After passing the adapter-selected time implementation through the three-argument Create API, the freshly compiled focused Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against the Umbra JNI provider. Inputs: fom-model-tck.xml, HLAinteger64Time, HLAinteractionRoot.TckTransportRegionalInteraction/RegionalPayload, TckDimensionX/TckDimensionY, and TckBestEffort. Results/JUnit: .build/java-tck-20261117/custom-regional-interaction-routing-{evoked,immediate}-fixed.{json,xml}.",
+        "mapping_and_validation": "No requirement mappings changed. Java result/catalog validation and the C++/Java parity audit are the required checks for this slice; no Requirements Lab resynchronization was made. The case remains default opt-in because it needs adapter-supplied FOM/runtime inputs.",
+        "boundary": "Local provider and adapter-FOM evidence only; independent-provider behavior, interoperability, and conformance are not claimed."
+      },
+      "next_action": "Next exact case: compare java-tck.custom-transportation-regional-attribute-delivery with cpp-tck.custom-transportation-regional-attribute-delivery. Verify custom transportation identity, regional attribute discovery/reflection and source-region metadata, overlap filtering, and update association behavior under both callback models. Preserve adapter-FOM opt-in status and existing mappings.",
       "latest_verified_custom_transportation_timestamped_interaction_java_2026_11_17": {
         "status": "verified-2026-11-17",
         "scope": "Verified the existing Java mirror for the C++ timestamped custom-transportation interaction case. The Java witness checks standard timestamped delivery metadata and now records immediate callbacks through thread-safe state.",

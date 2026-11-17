@@ -15697,8 +15697,8 @@ public final class RtiTckMain {
 
    private static void customTransportationRegionalInteraction() throws Exception {
       RegionalInteractionRoutingTck.runCustomTransportation(factory(),
-         requireAdapterFile(DDM_FOM_PROPERTY), requireAdapterValue(INTERACTION_CLASS_PROPERTY),
-         requireAdapterValue(PARAMETER_PROPERTY),
+         requireAdapterFile(DDM_FOM_PROPERTY), timeImplementation(),
+         requireAdapterValue(INTERACTION_CLASS_PROPERTY), requireAdapterValue(PARAMETER_PROPERTY),
          System.getProperty(CUSTOM_TRANSPORTATION_PROPERTY, "TckBestEffort"),
          requireAdapterValue(DIMENSION_PROPERTY),
          requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY), callbackModel());
