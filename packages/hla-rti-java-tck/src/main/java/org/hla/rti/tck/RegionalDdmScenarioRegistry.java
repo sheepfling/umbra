@@ -7,12 +7,13 @@ final class RegionalDdmScenarioRegistry {
    static void register() {
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.regional-object-attribute-dimension-subset",
-            "reject object-attribute update regions containing dimensions unavailable to the instance attribute",
-            "regional-object-attribute-dimension-subset",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getDimensionHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.getDimensionHandleSetFactory;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.getRegionHandleSetFactory;RTIambassador.commitRegionModifications;RTIambassador.getAttributeSetRegionSetPairListFactory;RTIambassador.registerObjectInstanceWithRegions;RTIambassador.associateRegionsForUpdates;RTIambassador.unassociateRegionsForUpdates;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteObjectInstance;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "Reject update-region specifications containing dimensions unavailable to the instance attribute",
+            "regional-object-management",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionUpperBound;RTIambassador.getAttributeHandleSetFactory;RTIambassador.publishObjectClassAttributes;RTIambassador.getDimensionHandleSetFactory;RTIambassador.createRegion;RTIambassador.setRangeBounds;RTIambassador.getRegionHandleSetFactory;RTIambassador.commitRegionModifications;RTIambassador.getAttributeSetRegionSetPairListFactory;RegionHandle.encodedLength;RTIambassador.registerObjectInstanceWithRegions;ObjectInstanceHandle.encodedLength;RTIambassador.associateRegionsForUpdates;RTIambassador.unassociateRegionsForUpdates;RTIambassador.unpublishObjectClassAttributes;RTIambassador.deleteObjectInstance;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
+               "cpp-1516.1-ddm-regional-object-registration",
                "requirement-candidate-content-clauses-09-data-distribution-management-page-220-l8-2"
-            }, false), RtiTckMain::regionalObjectAttributeDimensionSubset);
+            }, true), RtiTckMain::regionalObjectAttributeDimensionSubset);
       RtiTckMain.run(new RtiTckMain.Scenario(
             "java-tck.regional-object-attribute-dimension-inheritance",
             "preserve FDD dimension associations for base and derived object attributes",

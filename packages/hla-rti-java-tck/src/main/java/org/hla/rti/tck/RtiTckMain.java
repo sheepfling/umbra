@@ -14310,7 +14310,8 @@ public final class RtiTckMain {
     static void regionalObjectAttributeDimensionSubset() throws Exception {
        RegionalObjectAttributeDimensionSubsetTck.run(factory(), requireAdapterFile(DDM_FOM_PROPERTY),
           requireAdapterValue(TIME_PROPERTY), requireAdapterValue(DDM_OBJECT_CLASS_PROPERTY),
-          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(DIMENSION_PROPERTY),
+          requireAdapterValue(DDM_ATTRIBUTE_PROPERTY), requireAdapterValue(INTERACTION_CLASS_PROPERTY),
+          requireAdapterValue(DIMENSION_PROPERTY),
           requireAdapterValue(DDM_SECOND_DIMENSION_PROPERTY),
           requireAdapterValue(DDM_UNRELATED_DIMENSION_PROPERTY), callbackModel());
     }

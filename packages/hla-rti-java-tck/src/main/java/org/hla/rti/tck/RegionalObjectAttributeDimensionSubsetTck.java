@@ -8,6 +8,7 @@ import hla.rti1516_2025.CallbackModel;
 import hla.rti1516_2025.DimensionHandle;
 import hla.rti1516_2025.DimensionHandleSet;
 import hla.rti1516_2025.FederateAmbassador;
+import hla.rti1516_2025.InteractionClassHandle;
 import hla.rti1516_2025.ObjectClassHandle;
 import hla.rti1516_2025.ObjectInstanceHandle;
 import hla.rti1516_2025.RTIambassador;
@@ -24,7 +25,8 @@ final class RegionalObjectAttributeDimensionSubsetTck {
    private RegionalObjectAttributeDimensionSubsetTck() { }
 
    static void run(RtiFactory factory, String fom, String timeImplementation,
-         String objectClassName, String attributeName, String firstDimensionName,
+         String objectClassName, String attributeName, String interactionClassName,
+         String firstDimensionName,
          String secondDimensionName, String unrelatedDimensionName, CallbackModel callbackModel)
          throws Exception {
       RTIambassador owner = factory.getRtiAmbassador();
@@ -57,9 +59,19 @@ final class RegionalObjectAttributeDimensionSubsetTck {
          DimensionHandle second = owner.getDimensionHandle(secondDimensionName);
          DimensionHandle unrelated = owner.getDimensionHandle(unrelatedDimensionName);
          DimensionHandleSet available = owner.getAvailableDimensionsForObjectClass(objectClass);
+         InteractionClassHandle interactionClass =
+            owner.getInteractionClassHandle(interactionClassName);
+         DimensionHandleSet interactionDimensions =
+            owner.getAvailableDimensionsForInteractionClass(interactionClass);
          JavaTckSupport.check(available.contains(first) && available.contains(second)
-               && !available.contains(unrelated),
-            "adapter object class must expose the two configured dimensions and exclude the unrelated one");
+               && !available.contains(unrelated)
+               && interactionDimensions.contains(first) && interactionDimensions.contains(second)
+               && firstDimensionName.equals(owner.getDimensionName(first))
+               && secondDimensionName.equals(owner.getDimensionName(second))
+               && owner.getDimensionUpperBound(first) >= 4
+               && owner.getDimensionUpperBound(second) >= 4
+               && owner.getDimensionUpperBound(unrelated) >= 1,
+            "adapter DDM class dimensions must match their names, availability, and bounds");
 
          attributes = JavaTckSupport.attributeSet(owner, attribute);
          owner.publishObjectClassAttributes(objectClass, attributes);
@@ -139,6 +151,8 @@ final class RegionalObjectAttributeDimensionSubsetTck {
       DimensionHandleSet regionDimensions = ambassador.getDimensionHandleSetFactory().create();
       for (DimensionHandle dimension : dimensions) regionDimensions.add(dimension);
       RegionHandle region = ambassador.createRegion(regionDimensions);
+      JavaTckSupport.check(region != null && region.encodedLength() > 0,
+         "dimension-subset region creation returned an invalid handle");
       for (int index = 0; index < dimensions.length; ++index) {
          ambassador.setRangeBounds(region, dimensions[index],
             new RangeBounds(lowerBounds[index], upperBounds[index]));

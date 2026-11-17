@@ -5712,3 +5712,19 @@ and
 `out/cpp-tck-evidence-20261116/default-region-registration-names-java-parity-20261116.{json,xml}`.
 This is local-provider evidence only; independent-provider behavior and
 conformance are not claimed.
+
+The default-run `java-tck.regional-object-attribute-dimension-subset` case
+checks the adapter's object and interaction dimension names, availability, and
+bounds; rejects registration and later update association when a region includes
+a dimension unavailable to the object attribute; and confirms that registration
+with the available dimensions succeeds. Its only direct mapping is IEEE
+1516.1-2025 §9.1.3.2; fixture and handle-validity checks are supplemental. Java
+passed under HLA_EVOKED and HLA_IMMEDIATE with `ddm-tck.xml`,
+HLAobjectRoot.TckObject/Value, HLAinteractionRoot.TckInteraction,
+TckDimensionX/TckDimensionY, and TckUnrelatedDimension. The paired C++ direct
+scenario passed under both callback models using the existing installed-package
+adapter executable; no CTest entry is registered for this scenario. Results are
+in `out/java-tck/regional-object-attribute-dimension-subset-java-parity-20261116/`
+and `.build/cpp-tck-regional-request-java-parity-20261116-ninja/`. This is
+local-provider/package evidence only; independent-provider behavior and
+conformance are not claimed.
