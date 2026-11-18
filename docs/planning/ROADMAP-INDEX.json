@@ -1035,31 +1035,31 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 548",
+      "as_of": "2026-11-18 increment 549",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 548 inspected Data Element Encoding #005 in GitHub at candidate revision 68217e97d15cfdc4f83a32025fded1be12c8b749. Its three composite lanes and distinct alignment paths render readably while scrolling; hosted rendering for the changed chart is confirmed. The worktree source-link check resolves 4,806/4,806 references; candidate HEAD resolves 4,797/4,806. The selected hosted review sample is 74/515, and completion remains approximately 95% pending source-citation closeout.",
-      "next_concrete_review": "Have source owners publish a reviewed 2025 source/test revision. Reconcile the nine out-of-range line anchors and semantically align the two TCK citations with the Federate-Lost scenario and post-loss update on that exact revision; rerun the 4,806-reference link check and semantic review. Keep 2010 separate and do not edit the Requirements Lab. Continue hosted visual review only for changed or flagged charts.",
-      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with local render and screenshot evidence; hosted hydration is audited for all 515, and increment 548 directly confirms the revised Data Element #005 at candidate HEAD. Seventy-four selected diagrams have hosted visual reviews. The worktree link checker resolves 4,806/4,806; candidate HEAD resolves 4,797/4,806, with nine out-of-range anchors in four files and two TCK semantic targets still requiring reviewed source-owner publication and exact-revision recheck. Nonregional receive-order push remains explicitly source-only. Keep 2010 and Requirements Lab separate.",
+      "latest_increment": "Increment 549 corrected the configured-process Federate-Lost TCK citations after semantic review of the active 2025 source worktree: scenario start #L2389, post-loss reflection assertion #L2768, and survivor-only member-list check #L2778. The worktree link check resolves 4,807/4,807 references; candidate HEAD 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2 resolves 4,797/4,807. Ten moved anchors in four source/test files remain pending reviewed source-owner publication. Completion remains approximately 95%.",
+      "next_concrete_review": "Have source owners publish a reviewed 2025 source/test revision. Recheck all ten moved anchors and the three TCK targets (scenario #L2389, post-loss reflection #L2768, survivor-only member list #L2778) against that exact revision, rerun all 4,807 source-link checks, and verify semantic targets. Keep 2010 and the Requirements Lab separate; continue hosted visual review only for changed or flagged charts.",
+      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with local render and screenshot evidence; hosted hydration is audited for all 515, and 74 selected diagrams have hosted visual reviews. The worktree link checker resolves 4,807/4,807; candidate HEAD 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2 resolves 4,797/4,807, with ten out-of-range anchors in four source/test files. The TCK citations now target the intended scenario and assertions in the active worktree; reviewed source-owner publication and exact-revision recheck remain. Nonregional receive-order push remains explicitly source-only. Keep 2010 and Requirements Lab separate.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 548",
-        "revision": "Candidate worktree based on published candidate HEAD 68217e97d15cfdc4f83a32025fded1be12c8b749 plus active source/test edits; checked 2026-11-18.",
+        "as_of": "2026-11-18 increment 549",
+        "revision": "Candidate worktree based on published candidate HEAD 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2 plus active source/test edits; checked 2026-11-18.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
-        "unique_references": 4806,
-        "resolved": 4806,
+        "unique_references": 4807,
+        "resolved": 4807,
         "unresolved": 0,
-        "note": "The worktree check resolves all 4,806 references. Candidate HEAD has nine out-of-range anchors in four targets; line bounds in the worktree do not establish semantic correctness of the two TCK destinations."
+        "note": "The worktree check resolves all 4,807 references. Candidate HEAD has ten out-of-range anchors in four targets. The three TCK targets now land on the scenario, post-loss reflection assertion, and survivor-only member-list check in the active source worktree; exact-revision verification awaits reviewed source-owner publication."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 548",
-        "revision": "Published candidate HEAD 68217e97d15cfdc4f83a32025fded1be12c8b749; checked 2026-11-18.",
-        "remote_branch_revision": "68217e97d15cfdc4f83a32025fded1be12c8b749",
+        "as_of": "2026-11-18 increment 549",
+        "revision": "Published candidate HEAD 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "remote_branch_revision": "149a5b94f0e3f2ef35666f0d8cd3984df799cbb2",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
-        "unique_references": 4806,
+        "unique_references": 4807,
         "resolved": 4797,
-        "unresolved": 9,
+        "unresolved": 10,
         "affected_targets": [
           "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
           "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
@@ -1069,9 +1069,10 @@
           "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
           "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
-          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
+          "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
         ],
-        "note": "The increment-548 HEAD check finds nine out-of-range anchors in four targets. The two TCK anchors also require semantic verification against the Federate-Lost scenario and post-loss update after publication of the reviewed source/test revision."
+        "note": "The increment-549 candidate HEAD check finds ten out-of-range anchors in four targets. The three TCK citations have been semantically reviewed against the active source worktree; source-owner publication and exact-revision recheck remain."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-18 increment 543",
@@ -1398,6 +1399,27 @@
         "unresolved": 4805,
         "missing_target_files": 702,
         "interpretation": "This branch lacks the cited 2025 source/test paths and is not a viable citation base."
+      },
+      "latest_worktree_semantic_review": {
+        "as_of": "2026-11-18 increment 549",
+        "base_candidate_revision": "149a5b94f0e3f2ef35666f0d8cd3984df799cbb2",
+        "target": "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp",
+        "worktree_revision": "Active source/test edits; not published.",
+        "findings": [
+          {
+            "line": 2389,
+            "meaning": "scenarioFederateLostMomReportPortable function start."
+          },
+          {
+            "line": 2768,
+            "meaning": "post-loss HLAfederatesInFederation reflection assertion."
+          },
+          {
+            "line": 2778,
+            "meaning": "survivor-only federation member-list check."
+          }
+        ],
+        "note": "The former line 2765 was a wait label, not an assertion. The lifecycle guide now links to the two assertion sites. Verify all three locations after reviewed source-owner publication."
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",

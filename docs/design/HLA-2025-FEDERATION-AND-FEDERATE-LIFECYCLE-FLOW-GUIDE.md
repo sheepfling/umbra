@@ -1777,8 +1777,8 @@ callback-order rule.
 The current worktree's [configured-process Federate-Lost scenario](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389)[^worktree-source]
 contains assertions for exact timestamp equality with the loss cutoff,
 TSO-before-grant ordering, post-loss federation-member reflection, and a public
-member-list query showing only the survivor. The [post-loss reflection and
-survivor-roster assertions](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765)[^worktree-source]
+member-list query showing only the survivor. The [post-loss reflection assertion](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768)[^worktree-source]
+and [survivor-only member-list check](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778)[^worktree-source]
 are in the same scenario; it also checks post-loss synchronization with the
 survivor. A saved artifact pair from 2026-11-07 records
 `cpp-tck.federate-lost-mom-report` in

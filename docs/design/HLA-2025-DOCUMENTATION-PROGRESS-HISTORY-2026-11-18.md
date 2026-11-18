@@ -67,3 +67,11 @@ Reviewed Data Element Encoding diagram #005 (line 297) on the published candidat
 The citation check resolves 4,806/4,806 references in the active worktree and 4,797/4,806 at candidate HEAD. Nine line anchors remain out of range in four source/test files, and the two TCK destinations still need semantic alignment to the Federate-Lost scenario and post-loss update on a reviewed 2025 source/test revision. The working completion estimate remains **approximately 95%** pending that source-citation closeout. No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
 
 **Next handoff:** coordinate publication of the reviewed 2025 source/test changes; then reconcile the nine line anchors and two TCK meanings against that exact revision and rerun the source-link and semantic checks. Keep visual reviews targeted to changed or flagged charts.
+
+## Increment 549 — correct TCK citations to assertion sites
+
+Reviewed the current configured-process Federate-Lost scenario in the active 2025 TCK source worktree. `scenarioFederateLostMomReportPortable` begins at line 2389. The guide's former line 2765 pointed to the `waitFor` label, not the assertion. Updated the guide to link the post-loss reflection assertion at line 2768 and the survivor-only member-list check at line 2778. These exact current-worktree sites support the two bounded claims; the source changes remain unpublished and the tests were not rerun.
+
+The 2025 documentation link checker resolves 4,807/4,807 unique references across 42 Markdown files in the worktree. Against candidate HEAD `149a5b94f0e3f2ef35666f0d8cd3984df799cbb2`, it resolves 4,797/4,807; ten moved anchors remain out of range in four source/test files, including the three TCK links. The semantic TCK review is complete for the active worktree, but exact-revision bounds and meaning must be rechecked after source owners publish the reviewed changes. The completion estimate remains **approximately 95%**. No C++ build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+**Next handoff:** after source owners publish the reviewed 2025 source/test revision, rerun all 4,807 link checks and verify the ten moved anchors, especially the scenario/reflection/member-list targets, against that exact revision. Keep further visual review targeted to changed or flagged charts.
