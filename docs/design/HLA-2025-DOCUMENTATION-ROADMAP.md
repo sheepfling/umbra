@@ -5,9 +5,9 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-18 (increment 543)
+## Current finish gates and next handoff — 2026-11-18 (increment 544)
 
-**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 added a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
+**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. There are now 70 selected GitHub visual reviews across all 32 guides. Increment 537 reviewed DSE #003; increment 544 reviewed Save/Restore #023 in GitHub’s expanded Mermaid dialog. The Save/Restore sequence lanes and transitions are legible in the inspected top, middle, and end sections; the tall chart requires vertical scrolling. These are representative samples, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 
@@ -21,7 +21,7 @@ Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEH
 - The current GitHub query found no open pull requests. The [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the refreshed revisions and all nine pending targets. Do not retarget citations to unrelated code to make line checks pass.
 
 1. **Stabilize the source citations.** Have the source owners publish one reviewed 2025 source/test revision and reconcile the two TCK citations to the Federate-Lost scenario and its post-loss update on that same revision. Then rerun all 4,805 checks and verify each target’s meaning there. Do not publish the unreviewed 230-commit local branch as a shortcut.
-2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The DSE #003 review remains one selected hosted sample; full-width hosted layout review is not claimed for all 515 diagrams.
+2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The 70 hosted layout reviews are selected samples; full-width readability is not claimed for all 515 diagrams.
 3. **Close out the handoff.** After source stabilization, refresh the source-dependency and render audits. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
 **Next handoff:** have source owners select and publish a reviewed 2025 source/test revision, reconcile the two TCK targets on it, then recheck all 4,805 references and their meanings. `master` has no cited source targets, and the local feature tip is 230 commits ahead; neither is a safe shortcut. Refresh the dependency audit; refresh the render audit only if diagram bodies change. The qualitative completion estimate remains 95% until this citation closeout is complete.

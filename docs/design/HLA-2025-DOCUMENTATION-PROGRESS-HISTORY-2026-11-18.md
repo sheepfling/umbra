@@ -21,3 +21,11 @@ I checked all 4,805 source references against published `master` at `e1f0f61ab63
 The active worktree still resolves all 4,805 references. The 2025 documentation set remains 32 guides and 515 diagrams; no diagram body changed. No open PR exists. Completion remains approximately 95%; the remaining closeout requires a reviewed, published 2025 source revision with the two TCK targets aligned to the actual Federate-Lost scenario and update. No C++ build, tests, or CI ran. Keep 2010 and Requirements Lab separate.
 
 **Next handoff:** source owners should publish a scoped, reviewed source/test revision that includes the citation targets, reconcile the two TCK links on that revision, and rerun the source-reference and semantic checks. Do not use `master` or import the unreviewed 230-commit local tip.
+
+## Increment 544 — inspect a large Save/Restore chart on GitHub
+
+Reviewed Save/Restore diagram #023 in GitHub’s expanded Mermaid dialog at candidate revision `4fd82dd2424938663dd7e75c14256e1d213f9460`. Its published body hash matches the trimmed-body digest in the visual ledger. The sequence remains legible across the inspected top, middle, and end sections; the dialog’s vertical scrolling is needed to follow the full chart, and no text clipping was observed. This raises the selected hosted visual-review sample to 70 charts across the 32 guides; it is not a full-width review of all 515 diagrams.
+
+No diagram body, citation, or C++ source changed. The citation closeout is unchanged: candidate HEAD still has nine out-of-range source references, and the two TCK anchors require a reviewed source/test revision that publishes the intended Federate-Lost scenario and post-loss update. No build, tests, or CI ran. Keep the 2010 stream and Requirements Lab outside this 2025 documentation work.
+
+**Next handoff:** source owners should publish the scoped 2025 source/test revision; align the two TCK citations on that revision, then rerun the source-reference and semantic checks. The 95% completion estimate remains pending that closeout.
