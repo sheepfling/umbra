@@ -27,10 +27,28 @@ final class ParameterLookupLifecycleTck {
       boolean ownerJoined = false;
       boolean memberJoined = false;
       try {
+         InteractionClassHandle invalidInteractionClass =
+            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
+         ParameterHandle invalidParameter = JavaTckSupport.invalidHandle(ParameterHandle.class);
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterHandle(invalidInteractionClass, inheritedParameterName),
+            "NotConnected", "looking up a parameter before connecting");
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterName(invalidInteractionClass, invalidParameter),
+            "NotConnected", "looking up a parameter name before connecting");
+
          owner.connect(callbacks(), callbackModel);
          ownerConnected = true;
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterHandle(invalidInteractionClass, inheritedParameterName),
+            "FederateNotExecutionMember",
+            "looking up a parameter after connecting but before joining");
+         JavaTckSupport.expectFailure(
+            () -> member.getParameterName(invalidInteractionClass, invalidParameter),
+            "FederateNotExecutionMember",
+            "looking up a parameter name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -47,6 +65,8 @@ final class ParameterLookupLifecycleTck {
             owner.getParameterHandle(derivedInteraction, inheritedParameterName);
          ParameterHandle derivedParameter =
             owner.getParameterHandle(derivedInteraction, derivedParameterName);
+         InteractionClassHandle unissuedInteractionClass =
+            unissuedInteractionClassHandle(owner, derivedInteraction);
          JavaTckSupport.check(baseInteraction != null && derivedInteraction != null
                && baseInherited != null && derivedInherited != null && derivedParameter != null,
             "inherited parameter lookup returned a null class or parameter handle");
@@ -73,6 +93,18 @@ final class ParameterLookupLifecycleTck {
             () -> owner.getParameterName(baseInteraction, derivedParameter),
             "InteractionParameterNotDefined",
             "looking up a derived parameter handle on its base interaction class");
+         JavaTckSupport.expectFailure(
+            () -> owner.getParameterHandle(unissuedInteractionClass, inheritedParameterName),
+            "InvalidInteractionClassHandle",
+            "looking up a parameter from an invalid interaction-class handle");
+         JavaTckSupport.expectFailure(
+            () -> owner.getParameterName(unissuedInteractionClass, baseInherited),
+            "InvalidInteractionClassHandle",
+            "looking up a parameter name from an invalid interaction-class handle");
+         JavaTckSupport.expectFailure(
+            () -> owner.getParameterName(derivedInteraction, invalidParameter),
+            "InvalidParameterHandle",
+            "looking up a parameter name from an invalid parameter handle");
 
          member.joinFederationExecution("java-tck-parameter-lookup-member",
             "java-tck-parameter-lookup-member", federation);
@@ -129,6 +161,17 @@ final class ParameterLookupLifecycleTck {
          if (memberConnected) { try { member.disconnect(); } catch (Exception ignored) { } }
          if (ownerConnected) { try { owner.disconnect(); } catch (Exception ignored) { } }
       }
+   }
+
+   private static InteractionClassHandle unissuedInteractionClassHandle(
+         RTIambassador ambassador, InteractionClassHandle knownHandle) throws Exception {
+      byte[] encoding = JavaTckSupport.encode(knownHandle.encodedLength(), knownHandle::encode);
+      encoding[encoding.length - 1] ^= 0x01;
+      InteractionClassHandle unissued =
+         ambassador.getInteractionClassHandleFactory().decode(encoding, 0);
+      JavaTckSupport.check(!knownHandle.equals(unissued),
+         "derived unissued interaction-class handle equals the known handle");
+      return unissued;
    }
 
    private static FederateAmbassador callbacks() {

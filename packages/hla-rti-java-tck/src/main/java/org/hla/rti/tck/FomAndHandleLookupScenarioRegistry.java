@@ -819,7 +819,7 @@ final class FomAndHandleLookupScenarioRegistry {
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.parameter-lookup-lifecycle",
             "parameter lookup boundaries and inherited interaction-class identity",
             "handle-lookup",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;InteractionClassHandle.equals;ParameterHandle.equals;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getInteractionClassHandle;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getInteractionClassHandleFactory;InteractionClassHandleFactory.decode;InteractionClassHandle.equals;ParameterHandle.equals;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-parameter-lookup",
                "cpp-1516.1-interaction-lookup",

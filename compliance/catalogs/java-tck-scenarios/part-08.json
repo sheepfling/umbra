@@ -4591,6 +4591,8 @@
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
+        "RTIambassador.getInteractionClassHandleFactory",
+        "InteractionClassHandleFactory.decode",
         "InteractionClassHandle.equals",
         "ParameterHandle.equals",
         "RTIambassador.resignFederationExecution",
@@ -4627,8 +4629,8 @@
         }
       ],
       "mapping_classification": "direct-requirement-mapped",
-      "mapping_note": "Direct Java mappings are limited to requirement-candidate-content-clauses-10-support-services-page-254-l26-3 -> IEEE 1516.1-2025 §10.15 for Get Parameter Handle returns and page-254-l143-35 -> §10.16 for Get Parameter Name returns. The owner and joining member resolve the base integer parameter plus the derived class’s inherited integer and derived-only parameter, then verify exact name round-trips and stable handle identity. Both members also check that the derived-only name on the base class raises NameNotFound and that its valid derived handle queried against the base class raises InteractionParameterNotDefined; these exception checks are supplemental. Java exposes no standard default-invalid InteractionClassHandle or ParameterHandle constructor, so the C++ default-invalid handle cases and their pre-Connect/pre-membership exception-precedence checks remain unmirrored; null is not used as a substitute.",
-      "evidence_note": "Verified 2026-11-16: current Java source compiled against the pinned official IEEE 1516.1-2025 API JAR and passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on the matched Nov. 13 Umbra JNI package in out/jnimix, using fom-model-tck.xml and HLAinteger64Time. Each run includes the derived-only name and handle failures through both the owner and joining member. Results and JUnit: out/java-tck/lookup-lifecycle-member-negative-parity-20261116/parameter-{evoked,immediate}-{results.json,junit.xml}. This is local-provider evidence only; no independent-provider interoperability or conformance claim.",
+      "mapping_note": "Direct Java mappings remain limited to requirement-candidate-content-clauses-10-support-services-page-254-l26-3 -> IEEE 1516.1-2025 §10.15 for Get Parameter Handle returns and page-254-l143-35 -> §10.16 for Get Parameter Name returns. The owner and joining member resolve the base integer parameter plus the derived class’s inherited integer and derived-only parameter, then verify exact name round-trips and stable handle identity. Lifecycle and invalid-handle exception checks are supplemental, with no additional direct normative mapping.",
+      "evidence_note": "Verified against the pinned official IEEE 1516.1-2025 Java API JAR and current-source Umbra JNI provider using packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE after adding pre-Connect, pre-membership, invalid interaction-class, and invalid parameter checks. Results/JUnit: .build/java-tck-20261117/parameter-lookup-lifecycle-hla_{evoked,immediate}.{results.json,junit.xml}. These are local-provider results only; no independent-provider interoperability or conformance claim.",
       "contract_refs": [
         "parameter-lookup-api-contract.json",
         "interaction-class-lookup-api-contract.json",
@@ -4637,7 +4639,7 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#parameterLookupLifecycle",
       "parity": "cpp-tck.parameter-lookup-lifecycle",
-      "parity_scope_note": "The Java mirror covers the same bounded base/derived parameter lookup and exact name round-trips in both joined members. It omits C++ default-invalid class/parameter handle inputs and the corresponding pre-Connect/pre-membership error checks because the Java API has no portable default-invalid handle representation.",
+      "parity_scope_note": "The Java mirror now covers the paired C++ pre-Connect NotConnected and connected-before-join FederateNotExecutionMember checks, invalid interaction-class errors for Get Parameter Handle and Get Parameter Name using a factory-decoded unissued handle, and an invalid-parameter Get Parameter Name check using the TCK's public-interface sentinel, in addition to the existing base/derived lookups and cross-member round-trips. The official Java API has no default-invalid handle constructor, so this adds matching service-boundary assertions without claiming representation-identical invalid handles.",
       "default_status": "run",
       "adapter_inputs": [
         "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
