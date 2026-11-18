@@ -7627,14 +7627,14 @@
     "scope_note": "Selected local screenshot review only. Published GitHub Mermaid hydration is verified for 515/515 diagrams; full-width readability of every hosted page is not claimed."
   },
   "latest_focused_github_visual_review": {
-    "as_of": "2026-11-18 increment 545",
-    "diagram_id": "HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md#diagram-007",
-    "source": "docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md",
-    "line": 428,
-    "revision": "3ad7f8a2b019f8818dc63989a280348ac3348795",
+    "as_of": "2026-11-18 increment 546",
+    "diagram_id": "HLA-2025-AUTHORIZATION-FLOW-GUIDE.md#diagram-008",
+    "source": "docs/design/HLA-2025-AUTHORIZATION-FLOW-GUIDE.md",
+    "line": 469,
+    "revision": "1ac6e5a5de697cbfd8a1a8b8e9ceced0eb419b14",
     "view": "GitHub expanded Mermaid dialog",
-    "body_sha256": "30395828ae127edd81f9049cbb33b45d66b0de69ef223883c05e3abbe0d17277",
-    "observation": "The embedded HLA_EVOKED sequence's partial-set and missing-request outcomes are legible in the expanded dialog; vertical scrolling reveals the terminal branches without clipping.",
+    "body_sha256": "42045b85085c29d504a04ee5806a59cb988653340f5faa1a7e27d25cb3b476e3",
+    "observation": "The connection-state nodes and guarded Disconnect branches are legible in the expanded dialog. Vertical scrolling is needed to inspect the full chart; no text clipping was observed in the inspected top and lower sections.",
     "scope_note": "Selected published-layout sample. Hydration covers 515/515 diagrams, but this does not establish full-width readability for every hosted chart."
   }
 }
