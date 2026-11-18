@@ -3121,6 +3121,31 @@
         "RegionHandleSet.add",
         "RTIambassador.commitRegionModifications",
         "RTIambassador.deleteRegion",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAvailableDimensionsForObjectClass",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributesWithRegions",
+        "AttributeSetRegionSetPairListFactory.create",
+        "AttributeRegionAssociation",
+        "RTIambassador.registerObjectInstanceWithRegions",
+        "RTIambassador.updateAttributeValues",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.reflectAttributeValues",
+        "RTIambassador.unassociateRegionsForUpdates",
+        "RTIambassador.unsubscribeObjectClassAttributesWithRegions",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.getInteractionClassHandle",
+        "RTIambassador.getParameterHandle",
+        "RTIambassador.getAvailableDimensionsForInteractionClass",
+        "RTIambassador.publishInteractionClass",
+        "RTIambassador.subscribeInteractionClassWithRegions",
+        "RTIambassador.getParameterHandleValueMapFactory",
+        "ParameterHandleValueMapFactory.create",
+        "RTIambassador.sendInteractionWithRegions",
+        "FederateAmbassador.receiveInteraction",
+        "RTIambassador.unsubscribeInteractionClassWithRegions",
+        "RTIambassador.unpublishInteractionClass",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
@@ -3133,11 +3158,17 @@
         "requirement-candidate-sections-semantic-clauses-5-6-page-093-l22-4",
         "requirement-candidate-content-clauses-08-time-management-page-216-l54-15",
         "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair",
-        "requirement-candidate-content-clauses-08-time-management-page-216-l93-28"
+        "requirement-candidate-content-clauses-08-time-management-page-216-l93-28",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l66-19",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l69-20",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l72-21",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l78-23",
+        "requirement-candidate-sections-semantic-clause-4b-page-055-l49-2"
       ],
       "standard_sections": [
         "hla-1516.2-2025:clause-6.2.7",
-        "hla-1516.1-2025:clause-9.1.1"
+        "hla-1516.1-2025:clause-9.1.1",
+        "hla-1516.2-2025:clause-4"
       ],
       "requirement_mappings": [
         {
@@ -3163,16 +3194,41 @@
           "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l93-28",
           "standard_section": "hla-1516.1-2025:clause-9.1.1",
           "note": "The scenario queries the FOM-supplied [0, upperBound) range before and after commit, then checks that an explicit full-range override preserves it."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l66-19",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "This sentence fragment is claimed only as part of the grouped RL-381 passage for the direct [0,1) versus adjacent [1,2) routing assertions."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l69-20",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "This sentence fragment is claimed only as part of the grouped RL-381 passage for the direct [0,1) versus adjacent [1,2) routing assertions."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l72-21",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "This sentence fragment is claimed only as part of the grouped RL-381 passage for the direct [0,1) versus adjacent [1,2) routing assertions."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l78-23",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "This sentence fragment is claimed only as part of the grouped RL-381 passage for the direct [0,1) versus adjacent [1,2) routing assertions."
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-055-l49-2",
+          "standard_section": "hla-1516.2-2025:clause-4",
+          "note": "The adapter FOM attaches the same dimension to one object attribute and one interaction; Java checks those public lookups and the attribute and interaction routing outcomes."
         }
       ],
-      "mapping_note": "Java checks the FOM §6.2.7 subset (reject [0..101), accept [0..100), and query the positive upperBound 100) and a bounded §9.1.1 region-range witness: a new region reports [0, upperBound) before and after commit, accepts and round-trips [0,1), rejects zero-width [1,1), and preserves an explicit full-range override after commit. Object and interaction routing and other range values from the C++ case are not claimed here. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-default-range-20261021.json; independent-provider conformance is not claimed.",
+      "mapping_note": "Java checks the FOM §6.2.7 subset (reject [0..101), accept [0..100), and query the positive upperBound 100) and a bounded §9.1.1 region-range witness: a new region reports [0, upperBound) before and after commit, accepts and round-trips [0,1), rejects zero-width [1,1), and preserves an explicit full-range override after commit. It then checks object registration/update routing for [0,1) versus the adjacent [1,2) endpoint, and interaction delivery from [0,1) through the FOM-supplied [0, upperBound) receiver range but not to [1,2). The one-object/one-interaction FOM witness is bounded to these paths; the four page-216 sentence fragments are claimed together under RL-381. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-default-range-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": [
         "standard-fom-dimension-default-range-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDefaultRange",
       "parity": "cpp-tck.fom-dimension-default-range",
       "default_status": "run",
-      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused runs using the freshly built current-source Umbra JNI provider passed under HLA_EVOKED and HLA_IMMEDIATE; results/JUnit: out/java-tck/fom-dimension-default-range-current-jni-20261117/hla_{evoked,immediate}.{results.json,junit.xml}. An earlier run with the stale 2026-11-03 JNI bundle failed at Commit Region Modifications and is superseded by the current-source results. The paired installed-package C++ primary/contract passed 4/4 at out/mgw/dimension-default-range-20261021.json; no independent-provider or conformance claim."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. The expanded case, including default range reads before/after commit, explicit interval boundaries, half-open object routing, and default-range interaction delivery, passed using the freshly built current-source Umbra JNI provider under HLA_EVOKED and HLA_IMMEDIATE; results/JUnit: out/java-tck/fom-dimension-default-range-routing-20261117/hla_{evoked,immediate}.{results.json,junit.xml}. An earlier run with the stale 2026-11-03 JNI bundle failed at Commit Region Modifications and is superseded by the current-source results. The paired installed-package C++ primary/contract passed 4/4 at out/mgw/dimension-default-range-20261021.json; no independent-provider or conformance claim."
     },
     {
       "id": "java-tck.fom-synchronization-duplicate-equal",

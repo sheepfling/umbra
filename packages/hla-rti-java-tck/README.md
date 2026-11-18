@@ -1750,11 +1750,13 @@ default range extending beyond its dimension's upper bound and accepts the
 exact boundary through public Create and dimension lookups. It checks the
 FOM-supplied `[0, upperBound)` region range before and after commit, round-trips
 the minimum `[0,1)` interval, rejects `[1,1)`, and recommits an explicit full
-range. The case passed under both callback models with the freshly built
-current-source Umbra JNI provider. An earlier attempt with a stale November 3
-JNI bundle failed at region commit and is superseded by the current-source
-results. Object and interaction routing from the C++ scenario remain outside
-this case.
+range. Its object witness registers in `[0,1)`, then checks discovery and update
+for the overlapping receiver while the adjacent `[1,2)` receiver gets neither.
+Its interaction witness checks delivery from `[0,1)` through the FOM default
+`[0, upperBound)` receiver and no delivery to the adjacent `[1,2)` region. The
+case passed under both callback models with the freshly built current-source
+Umbra JNI provider. An earlier attempt with a stale November 3 JNI bundle failed
+at region commit and is superseded by the current-source results.
 
 The default-run `java-tck.fom-synchronization-duplicate-equal` and
 `java-tck.fom-synchronization-duplicate-note-conflict` cases cover Annex C.5
