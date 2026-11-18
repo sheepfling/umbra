@@ -5,25 +5,25 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-15 (increment 541)
+## Current finish gates and next handoff — 2026-11-18 (increment 542)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 added a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 
-**Citation status rechecked at increment 541:**
+**Citation status rechecked at increment 542:**
 
-- Current published candidate HEAD `5f35d503d225def9dab2f97d46910551bf4439e8` resolves 4,796/4,805 source-line references. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the intervening commits are documentation-only, and the remote candidate branch matches this revision.
-- The candidate worktree resolves all 4,805 references. Increment 541 rechecked the exact cited windows: `serveConnection`, the timeout parser, five Catch2 cases, the Federate-Lost MOM scenario, and its post-loss update. Their source/test edits remain uncommitted.
-- Remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` also resolves 4,796/4,805.
-- Local `feature/initial-work` at `6265bca881f23b995f7eef76f89f9d3af3e90d6f` passes line bounds only. `tck_connection_lifecycle.cpp#L2389` is an automatic delete-then-divest assertion and `#L2765` is a fault-parameter lookup; the Federate-Lost scenario’s post-loss assertion is at `#L2983`. The local branch is 19 commits ahead of its remote and is not a safe citation target.
+- The published candidate source revision `097a5156d5c75fd168c511153f2ba839e9c951f6` resolves 4,796/4,805 source-line references across 42 Markdown files. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the remote candidate branch matched this revision when checked. This increment changes documentation only.
+- The candidate worktree resolves all 4,805 references. Increment 541’s targeted inspection confirmed that all nine cited source/test locations match the described behavior in the worktree; those source/test edits remain uncommitted.
+- Remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` resolves 4,796/4,805 references.
+- Local `feature/initial-work` at `7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d` puts all 4,805 references in range. The host function, timeout-parser branch, and five Catch2 behaviors appear at the intended locations. The two TCK anchors are mismatched: one is an automatic delete-then-divest assertion and the other a fault-parameter lookup; the Federate-Lost scenario and post-loss update are at lines 2607 and 2983. This local branch is 230 commits ahead of its remote and is not a reviewed citation base.
 - The current GitHub query found no open pull requests. The [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the refreshed revisions and all nine pending targets. Do not retarget citations to unrelated code to make line checks pass.
 
-1. **Stabilize the nine source citations.** Have the source owners publish the reviewed 2025 source/test edits on a suitable revision. Then rerun all 4,805 checks and verify each target’s meaning against that exact revision.
+1. **Stabilize the source citations.** Have the source owners publish one reviewed 2025 source/test revision and reconcile the two TCK citations to the Federate-Lost scenario and its post-loss update on that same revision. Then rerun all 4,805 checks and verify each target’s meaning there. Do not publish the unreviewed 230-commit local branch as a shortcut.
 2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The DSE #003 review remains one selected hosted sample; full-width hosted layout review is not claimed for all 515 diagrams.
 3. **Close out the handoff.** After source stabilization, refresh the source-dependency and render audits. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
-**Next handoff:** have source owners publish the reviewed 2025 source/test edits without importing unrelated primary-branch work. Verify the nine line and semantic targets at that revision, then refresh the dependency and render audits. The qualitative completion estimate remains 95% until that citation closeout is complete.
+**Next handoff:** have source owners select and publish a reviewed 2025 source/test revision, reconcile the two TCK targets on it, then recheck all 4,805 references and their meanings. Refresh the dependency audit; refresh the render audit only if diagram bodies change. The qualitative completion estimate remains 95% until this citation closeout is complete.
 
 ## Current baseline
 
