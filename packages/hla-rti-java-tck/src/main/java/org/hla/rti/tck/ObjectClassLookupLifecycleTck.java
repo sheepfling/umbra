@@ -33,9 +33,14 @@ final class ObjectClassLookupLifecycleTck {
       boolean ownerJoined = false;
       boolean extensionJoined = false;
       try {
+         ObjectClassHandle invalidObjectClass =
+            JavaTckSupport.invalidHandle(ObjectClassHandle.class);
          JavaTckSupport.expectFailure(
             () -> observer.getObjectClassHandle(baseObjectName), "NotConnected",
             "looking up an object class before connecting");
+         JavaTckSupport.expectFailure(
+            () -> observer.getObjectClassName(invalidObjectClass), "NotConnected",
+            "looking up an object-class name before connecting");
 
          observer.connect(callbacks(), callbackModel);
          observerConnected = true;
@@ -48,12 +53,19 @@ final class ObjectClassLookupLifecycleTck {
             () -> observer.getObjectClassHandle(baseObjectName),
             "FederateNotExecutionMember",
             "looking up an object class after connecting but before joining");
+         JavaTckSupport.expectFailure(
+            () -> observer.getObjectClassName(invalidObjectClass),
+            "FederateNotExecutionMember",
+            "looking up an object-class name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          owner.joinFederationExecution("java-tck-object-class-lookup-owner", federation);
          ownerJoined = true;
 
+         JavaTckSupport.expectFailure(
+            () -> owner.getObjectClassName(invalidObjectClass),
+            "InvalidObjectClassHandle", "looking up an object-class name from an invalid handle");
          ObjectClassHandle base = owner.getObjectClassHandle(baseObjectName);
          JavaTckSupport.check(base != null
                && base.equals(owner.getObjectClassHandle(baseObjectName))
