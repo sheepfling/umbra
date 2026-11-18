@@ -16,18 +16,31 @@ import java.util.UUID;
 final class DimensionLookupLifecycleTck {
    private DimensionLookupLifecycleTck() { }
 
-   static void run(RtiFactory factory, String fom, String timeImplementation,
+   static void run(RtiFactory factory, String fom, String additionalFom,
+         String timeImplementation,
          String objectClassName, String interactionClassName, String firstDimensionName,
          String secondDimensionName, CallbackModel callbackModel) throws Exception {
+      ForeignHandles foreignHandles = additionalFom == null || additionalFom.trim().isEmpty()
+         ? null : createForeignHandles(factory, fom, additionalFom, timeImplementation,
+            callbackModel);
       RTIambassador lifecycle = factory.getRtiAmbassador();
       boolean lifecycleConnected = false;
       try {
          expectDimensionHandleLifecycleFailure(
             lifecycle, firstDimensionName, "NotConnected", "before connect");
+         if (foreignHandles != null) {
+            expectForeignHandleLifecycleFailures(
+               lifecycle, foreignHandles, "NotConnected", false, "before connect");
+         }
          lifecycle.connect(callbacks(), callbackModel);
          lifecycleConnected = true;
          expectDimensionHandleLifecycleFailure(lifecycle, firstDimensionName,
             "FederateNotExecutionMember", "after connect before join");
+         if (foreignHandles != null) {
+            expectForeignHandleLifecycleFailures(
+               lifecycle, foreignHandles, "FederateNotExecutionMember", true,
+               "after connect before join");
+         }
       } finally {
          if (lifecycleConnected) {
             try { lifecycle.disconnect(); } catch (Exception ignored) { }
@@ -63,6 +76,10 @@ final class DimensionLookupLifecycleTck {
          JavaTckSupport.check(ownerObject != null && memberObject != null
                && ownerInteraction != null && memberInteraction != null,
             "adapter FOM did not provide the requested object and interaction classes");
+         if (foreignHandles != null) {
+            expectForeignHandlesInvalid(owner, foreignHandles, "owner");
+            expectForeignHandlesInvalid(member, foreignHandles, "joining member");
+         }
 
          DimensionHandle ownerFirst = owner.getDimensionHandle(firstDimensionName);
          DimensionHandle ownerSecond = owner.getDimensionHandle(secondDimensionName);
@@ -116,7 +133,8 @@ final class DimensionLookupLifecycleTck {
          owner.resignFederationExecution(ResignAction.NO_ACTION);
          ownerJoined = false;
          expectLifecycleFailuresAfterResignation(
-            owner, firstDimensionName, ownerFirst, ownerObject, ownerInteraction);
+            owner, firstDimensionName, ownerFirst, ownerObject, ownerInteraction,
+            foreignHandles);
          member.resignFederationExecution(ResignAction.NO_ACTION);
          memberJoined = false;
          owner.destroyFederationExecution(federation);
@@ -148,7 +166,8 @@ final class DimensionLookupLifecycleTck {
 
    private static void expectLifecycleFailuresAfterResignation(RTIambassador ambassador,
          String dimension, DimensionHandle validDimension, ObjectClassHandle validObjectClass,
-         InteractionClassHandle validInteractionClass) throws Exception {
+         InteractionClassHandle validInteractionClass, ForeignHandles foreignHandles)
+         throws Exception {
       String exception = "FederateNotExecutionMember";
       String phase = "after resignation";
       expectDimensionHandleLifecycleFailure(ambassador, dimension, exception, phase);
@@ -164,6 +183,134 @@ final class DimensionLookupLifecycleTck {
          () -> ambassador.getAvailableDimensionsForInteractionClass(validInteractionClass),
          exception,
          "looking up interaction-class dimensions " + phase);
+      if (foreignHandles != null) {
+         expectForeignHandleLifecycleFailures(
+            ambassador, foreignHandles, exception, true, phase);
+      }
+   }
+
+   private static void expectForeignHandleLifecycleFailures(
+         RTIambassador ambassador, ForeignHandles handles, String lifecycleException,
+         boolean allowInvalidHandlePrecedence, String phase) throws Exception {
+      expectLifecycleOrInvalid(
+         () -> ambassador.getDimensionName(handles.dimension), lifecycleException,
+         "InvalidDimensionHandle", allowInvalidHandlePrecedence,
+         "looking up a foreign dimension name " + phase);
+      expectLifecycleOrInvalid(
+         () -> ambassador.getDimensionUpperBound(handles.dimension), lifecycleException,
+         "InvalidDimensionHandle", allowInvalidHandlePrecedence,
+         "looking up a foreign dimension upper bound " + phase);
+      expectLifecycleOrInvalid(
+         () -> ambassador.getAvailableDimensionsForObjectClass(handles.objectClass),
+         lifecycleException, "InvalidObjectClassHandle", allowInvalidHandlePrecedence,
+         "looking up foreign object-class dimensions " + phase);
+      expectLifecycleOrInvalid(
+         () -> ambassador.getAvailableDimensionsForInteractionClass(handles.interactionClass),
+         lifecycleException, "InvalidInteractionClassHandle", allowInvalidHandlePrecedence,
+         "looking up foreign interaction-class dimensions " + phase);
+   }
+
+   private static void expectLifecycleOrInvalid(CheckedOperation operation,
+         String lifecycleException, String invalidHandleException,
+         boolean allowInvalidHandlePrecedence, String description) throws Exception {
+      if (allowInvalidHandlePrecedence) {
+         expectFailureEither(operation, lifecycleException, invalidHandleException, description);
+      } else {
+         JavaTckSupport.expectFailure(operation::run, lifecycleException, description);
+      }
+   }
+
+   private static void expectForeignHandlesInvalid(
+         RTIambassador ambassador, ForeignHandles handles, String ambassadorDescription)
+         throws Exception {
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getDimensionName(handles.dimension), "InvalidDimensionHandle",
+         "looking up a foreign dimension name through the " + ambassadorDescription);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getDimensionUpperBound(handles.dimension), "InvalidDimensionHandle",
+         "looking up a foreign dimension upper bound through the " + ambassadorDescription);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getAvailableDimensionsForObjectClass(handles.objectClass),
+         "InvalidObjectClassHandle",
+         "looking up foreign object-class dimensions through the " + ambassadorDescription);
+      JavaTckSupport.expectFailure(
+         () -> ambassador.getAvailableDimensionsForInteractionClass(handles.interactionClass),
+         "InvalidInteractionClassHandle",
+         "looking up foreign interaction-class dimensions through the " + ambassadorDescription);
+   }
+
+   private static void expectFailureEither(CheckedOperation operation,
+         String firstException, String secondException, String description) throws Exception {
+      try {
+         operation.run();
+      } catch (Exception failure) {
+         String actual = failure.getClass().getSimpleName();
+         JavaTckSupport.check(actual.equals(firstException) || actual.equals(secondException),
+            description + " threw " + actual + " instead of " + firstException
+               + " or " + secondException);
+         return;
+      }
+      throw new AssertionError(description + " did not throw " + firstException
+         + " or " + secondException);
+   }
+
+   private static ForeignHandles createForeignHandles(RtiFactory factory, String fom,
+         String additionalFom, String timeImplementation, CallbackModel callbackModel)
+         throws Exception {
+      RTIambassador foreign = factory.getRtiAmbassador();
+      String federation = "java-tck-dimension-lookup-foreign-" + UUID.randomUUID();
+      boolean connected = false;
+      boolean created = false;
+      boolean joined = false;
+      try {
+         foreign.connect(callbacks(), callbackModel);
+         connected = true;
+         foreign.createFederationExecution(
+            federation, new String[] {fom, additionalFom}, timeImplementation);
+         created = true;
+         foreign.joinFederationExecution("java-tck-dimension-lookup-foreign", federation);
+         joined = true;
+         ForeignHandles result = new ForeignHandles(
+            foreign.getDimensionHandle("TckAdditionalDimension"),
+            foreign.getObjectClassHandle("HLAobjectRoot.TckExtensionObject"),
+            foreign.getInteractionClassHandle("HLAinteractionRoot.TckExtensionInteraction"));
+         JavaTckSupport.check(result.dimension != null && result.objectClass != null
+               && result.interactionClass != null,
+            "additional FOM did not provide foreign dimension and class handles");
+         foreign.resignFederationExecution(ResignAction.NO_ACTION);
+         joined = false;
+         foreign.destroyFederationExecution(federation);
+         created = false;
+         return result;
+      } finally {
+         if (joined) {
+            try { foreign.resignFederationExecution(ResignAction.NO_ACTION); }
+            catch (Exception ignored) { }
+         }
+         if (created) {
+            try { foreign.destroyFederationExecution(federation); }
+            catch (Exception ignored) { }
+         }
+         if (connected) { try { foreign.disconnect(); } catch (Exception ignored) { } }
+      }
+   }
+
+   @FunctionalInterface
+   private interface CheckedOperation {
+      void run() throws Exception;
+   }
+
+   private static final class ForeignHandles {
+      private final DimensionHandle dimension;
+      private final ObjectClassHandle objectClass;
+      private final InteractionClassHandle interactionClass;
+
+      private ForeignHandles(DimensionHandle dimension, ObjectClassHandle objectClass,
+            InteractionClassHandle interactionClass) {
+         this.dimension = dimension;
+         this.objectClass = objectClass;
+         this.interactionClass = interactionClass;
+      }
    }
 
    private static FederateAmbassador callbacks() {

@@ -2736,33 +2736,42 @@ checks seven ordered failed lookups for object instances, object classes,
 attributes, and update rates, followed by a successful object-class recovery.
 It verifies the exception classes, Table 5 argument names and types, serials
 0–7, null failure results, status, federate identity, and callback metadata.
-Invalid-handle report text is checked only for quoted form because providers
-format those values differently. Supply the update-rate FOM, object class,
-best-effort attribute, and designator with
+The three unknown-object reports use an API-issued object handle from a separate
+execution and match its quoted public `toString()` value within that Java run;
+the C++ default-invalid handle text is not compared across providers. Synthetic
+invalid object-class and attribute handle text remains a quoted-shape check.
+Supply the update-rate FOM, object class, best-effort attribute, and designator with
 `hla.rti.tck.updateRateFom`, `hla.rti.tck.updateRateObjectClass`,
 `hla.rti.tck.updateRateBestEffortAttribute`, and
 `hla.rti.tck.updateRateDesignator`; focused Umbra JNI runs pass under both
 callback models.
 
 The opt-in `java-tck.service-report-federate-object-class-lookups` scenario
-checks the ordered `GetFederateHandle`, `GetFederateName`,
-`GetObjectClassHandle`, and `GetObjectClassName` reports, including supplied
-and returned Table 5 arguments, serials 0–3, status, federate identity, and
-callback metadata. Configure `fom-model-tck.xml` with
-`HLAobjectRoot.TckTypedObject`, the standard MIM, and `HLAinteger64Time`;
-focused Umbra JNI runs pass under both callback models.
+checks the paired eight-report sequence: four successful federate/object-class
+lookups followed by invalid object-class, unknown object-class, unknown
+federate, and invalid federate failures. For the invalid object-class lookup,
+it uses an API-issued `ObjectClassHandle` for `HLAobjectRoot.TckExtensionObject`
+from a separate execution and matches the report argument to that Java
+handle's `toString()` value. The invalid federate handle remains a synthetic
+proxy checked only for quoted form. Select with `--run-unverified`; configure
+`fom-model-tck.xml` for the subject and `fom-extension-tck.xml` as
+`hla.rti.tck.additionalFom`, plus the standard MIM, `HLAinteger64Time`, and
+`HLAobjectRoot.TckTypedObject`. Focused Umbra JNI runs pass under both callback
+models.
 
 The opt-in `java-tck.service-report-federate-object-class-lookup-failures`
-scenario verifies four failed lookup reports followed by four successful
-federate/object-class lookup recoveries. It checks `NameNotFound`,
-`InvalidFederateHandle`, and `InvalidObjectClassHandle`, the ordered report
-arguments and serials 0–7, status, federate identity, and callback metadata.
-Because the Java API has no public invalid-handle constructor, the test uses
-typed empty handle encodings that the Umbra JNI bridge passes to the RTI as
-default invalid C++ handles. The report's invalid-handle text is checked for
-quoted form without assuming provider-specific formatting. Configure
-`fom-model-tck.xml` with `HLAobjectRoot.TckTypedObject`, the standard MIM, and
-`HLAinteger64Time`; focused Umbra JNI runs pass under both callback models.
+scenario verifies the paired nine-report sequence: four failed lookups,
+four successful federate/object-class recoveries, then a foreign-federation
+`FederateHandleNotKnown` report. For the invalid object-class lookup, it uses
+an API-issued `ObjectClassHandle` for `HLAobjectRoot.TckExtensionObject` from a
+separate execution and matches the report argument to that Java handle's
+`toString()` value. The invalid federate handle remains a synthetic proxy whose
+report text is checked for quoted form only. Select it with
+`--run-unverified`; configure `fom-model-tck.xml`,
+`fom-extension-tck.xml` as `hla.rti.tck.additionalFom`, the standard MIM,
+`HLAinteger64Time`, and `HLAobjectRoot.TckTypedObject`. Focused Umbra JNI runs
+pass under both callback models; this local evidence is not cross-provider
+handle-text equivalence.
 
 The default-run `java-tck.ordinary-multi-attribute-value-update-request-response`
 scenario uses the adapter-supplied multi-attribute FOM and names. It exercises

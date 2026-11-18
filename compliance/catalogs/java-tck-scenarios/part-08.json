@@ -550,6 +550,7 @@
         "FederateHandleFactory.decode",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
+        "ObjectClassHandle.toString",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -593,23 +594,24 @@
           "standard_section": "hla-1516.1-2025:clause-11.5.1"
         }
       ],
-      "mapping_note": "Direct mapping is limited to Table 5 row p.296 r035 under §11.5.1. The Java case checks FederateHandle type 15, name 'Federate handle', and exact quoted handle text as the HLAreturnedArgument for GetFederateHandle and as the supplied argument for GetFederateName. The other successful object-class lookup reports and the four following failure reports are supplemental and add no requirement mapping. Invalid-handle values are checked only for quoted form because their text is provider-specific. This does not claim every handle encoding, all of §11.5.1, or conformance.",
-      "parity_scope_note": "The Java case mirrors the C++ eight-report sequence: four successful federate/object-class lookups, then invalid object-class handle, unknown object-class name, unknown federate name, and invalid federate handle failures. It uses TCK synthetic invalid-handle proxies for the two invalid-handle calls and checks only that reported values are quoted; exact invalid-handle text is provider-specific.",
+      "mapping_note": "Direct mapping is limited to Table 5 row p.296 r035 under §11.5.1. The Java case checks FederateHandle type 15, name 'Federate handle', and exact quoted handle text as the HLAreturnedArgument for GetFederateHandle and as the supplied argument for GetFederateName. The other successful object-class lookup reports and the four following failure reports are supplemental and add no requirement mapping. The invalid ObjectClassHandle argument comes from an API-issued extension class handle in a separate execution and is compared with that Java handle's toString() value within the provider run; the invalid FederateHandle remains a synthetic proxy with a quoted-shape check. No C++ provider-specific handle text equality is claimed. This does not claim every handle encoding, all of §11.5.1, or conformance.",
+      "parity_scope_note": "The Java case mirrors the C++ eight-report sequence: four successful federate/object-class lookups, then invalid object-class handle, unknown object-class name, unknown federate name, and invalid federate handle failures. The invalid ObjectClassHandle input is an API-issued extension-class handle from a separate execution that is absent from the subject execution; its report value matches its Java toString() value. The invalid FederateHandle remains a synthetic proxy checked only for quoted shape. No Java/C++ handle-text equality is claimed.",
       "adapter_inputs": [
         "pinned IEEE 1516.1-2025 Java API JAR and service-loaded RtiFactory",
-        "adapter-supplied model FOM containing the configured object class",
+        "adapter-supplied fom-model-tck.xml for the subject execution and fom-extension-tck.xml as hla.rti.tck.additionalFom for the separate execution",
         "adapter-supplied standard MIM, provider-supported logical-time implementation, and service-report support",
         "callback model selected by the adapter"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportFederateObjectClassLookups",
       "parity": "cpp-tck.service-report-federate-object-class-lookups",
-      "default_status": "run",
-      "evidence_note": "java-tck.service-report-federate-object-class-lookups passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckTypedObject. Each run checks the exact C++ eight-report order: four successful federate/object-class lookup reports followed by InvalidObjectClassHandle, NameNotFound for an unknown class, NameNotFound for an unknown federate, and InvalidFederateHandle. Both runs validate service/type/status, supplied and returned argument types/values, Null returns for failures, serials 0-7, publisher identity, null callback producer, tag, regions, and transportation; invalid-handle text is validated as quoted without provider-specific equality. Java results/JUnit: out/java-tck/service-report-federate-object-class-lookups-java-parity-20261113/{evoked,immediate}-{results.json,junit.xml}. The paired C++ portable scenario rebuilt with current source and passed under both callback models; direct results/JUnit: out/cpp-tck/service-report-federate-object-class-lookups-current-source-20261113/{results.json,junit.xml}. Local-provider evidence only."
+      "exclusion": "Default-disabled; requires fom-extension-tck.xml as hla.rti.tck.additionalFom for the separate execution that supplies an API-issued object-class handle absent from the subject execution. Select with --run-unverified. The invalid FederateHandle still uses a synthetic proxy with a quoted-shape-only assertion.",
+      "default_status": "unsupported",
+      "evidence_note": "java-tck.service-report-federate-object-class-lookups passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE against current-source Umbra JNI using fom-model-tck.xml, fom-extension-tck.xml only for the separate execution that issues HLAobjectRoot.TckExtensionObject, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckTypedObject. Each run checks the exact C++ eight-report order: four successful federate/object-class lookup reports followed by InvalidObjectClassHandle, NameNotFound for an unknown class, NameNotFound for an unknown federate, and InvalidFederateHandle. Both runs validate service/type/status, supplied and returned argument types/values, Null returns for failures, serials 0-7, publisher identity, null callback producer, tag, regions, and transportation. The extension-class report value matches its Java toString() value in the run; synthetic invalid FederateHandle text remains a quoted-shape check. Java results/JUnit: out/java-tck/service-report-federate-object-class-lookups-handle-correlation-20261117/{evoked,immediate}.{results.json,junit.xml}. The paired C++ portable scenario rebuilt with current source and passed under both callback models; direct results/JUnit: out/cpp-tck/service-report-federate-object-class-lookups-current-source-20261113/{results.json,junit.xml}. Local-provider evidence only."
     },
     {
       "id": "java-tck.service-report-federate-object-class-lookup-failures",
       "category": "mom-service-reporting",
-      "title": "Verify ordered MOM failure reports, recovery, and a foreign federate handle lookup",
+      "title": "Verify ordered MOM failures and recovery with foreign execution handles",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -622,6 +624,7 @@
         "FederateHandleFactory.decode",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getObjectClassName",
+        "ObjectClassHandle.toString",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
         "RTIambassador.getParameterHandle",
@@ -667,7 +670,7 @@
         }
       ],
       "mapping_note": "Direct mappings cover only Table 5 p.296 r035 and p.299 r001. The ninth report passes a valid FederateHandle obtained in a separate federation to GetFederateName in the subject federation and requires FederateHandleNotKnown. Its supplied-argument record checks type 15 and the exact quoted handle text; its returned-argument record checks the Null argument as type 34, empty name, and null value. The other eight reports are parity context and do not extend these mappings to all of clause 11.5.1 or clause 10.3.",
-      "parity_scope_note": "The Java mirror verifies the same nine ordered reports as C++: failures at serials 0-3, four successful recovery lookups at 4-7, and a foreign-federation FederateHandleNotKnown failure at 8. Invalid synthetic handles are provider-specific and are checked only for quoted text shape; the valid foreign handle text is checked exactly.",
+      "parity_scope_note": "The Java mirror verifies the same nine ordered reports as C++: failures at serials 0-3, four successful recovery lookups at 4-7, and a foreign-federation FederateHandleNotKnown failure at 8. The invalid ObjectClassHandle input is an API-issued extension-class handle from a separate execution, absent from the subject execution; its report value matches that Java handle's toString() value within the provider run. The invalid FederateHandle remains a synthetic proxy checked only for quoted shape, while the valid foreign FederateHandle text is checked exactly. No Java/C++ handle-text equality is claimed.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -676,8 +679,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportFederateObjectClassLookupFailures",
       "parity": "cpp-tck.service-report-federate-object-class-lookup-failures",
-      "evidence_note": "Matches the paired C++ nine-report sequence: four failed federate/object-class lookups (serials 0-3), four successful recoveries (4-7), and the foreign-federation GetFederateName failure (8). Verifies exception classes, report status, federate identity, callback metadata, Table 5 argument names and types, and the Null returned argument. Synthetic invalid-handle text is checked for quoted form only; the valid foreign handle argument text is exact. Focused current-source Umbra JNI runs passed without --run-unverified against the pinned official Java API JAR with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckTypedObject under HLA_EVOKED and HLA_IMMEDIATE. Results: out/java-tck/service-report-federate-object-class-lookup-failures-java-parity-20261113/{evoked,immediate}-results.json and -junit.xml. The paired current-source C++ direct scenario passed in both callback models using the installed package. Evidence is local JNI/provider evidence only.",
-      "default_status": "run"
+      "evidence_note": "Matches the paired C++ nine-report sequence: four failed federate/object-class lookups (serials 0-3), four successful recoveries (4-7), and the foreign-federation GetFederateName failure (8). Verifies exception classes, report status, federate identity, callback metadata, Table 5 argument names and types, and the Null returned argument. The invalid ObjectClassHandle report argument matches an API-issued extension handle's Java toString() value within this run; synthetic invalid FederateHandle text remains a quoted-shape check. Focused current-source Umbra JNI runs passed with --run-unverified against the pinned official Java API JAR using fom-model-tck.xml for the subject execution and fom-extension-tck.xml only in the separate execution that issues HLAobjectRoot.TckExtensionObject; HLAstandardMIM-2025.xml, HLAinteger64Time, and HLAobjectRoot.TckTypedObject were used under both callback models. Results/JUnit: out/java-tck/service-report-federate-object-class-lookup-failures-handle-correlation-20261117/{evoked,immediate}.{results.json,junit.xml}. The paired current-source C++ direct scenario passed in both callback models using the installed package; existing evidence is recorded in out/cpp-tck/service-report-federate-object-class-lookup-failures-current-source-20261113. Direct mappings remain limited to Table 5 p.296 r035 and p.299 r001; evidence is local JNI/provider evidence only.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied fom-model-tck.xml for the subject execution and fom-extension-tck.xml as hla.rti.tck.additionalFom for the separate execution; standard MIM and HLAinteger64Time",
+        "callback model selected by adapter"
+      ],
+      "exclusion": "Default-disabled; requires fom-extension-tck.xml as hla.rti.tck.additionalFom for the separate execution that supplies an API-issued object-class handle absent from the subject execution. Select with --run-unverified. The invalid FederateHandle still uses a synthetic proxy with a quoted-shape-only assertion.",
+      "default_status": "unsupported"
     },
     {
       "id": "java-tck.service-report-interaction-parameter-lookup-failures",
@@ -691,6 +700,7 @@
         "RTIambassador.setSendServiceReportsToFileSwitch",
         "RTIambassador.getInteractionClassHandle",
         "RTIambassador.getInteractionClassName",
+        "InteractionClassHandle.toString",
         "RTIambassador.getParameterHandle",
         "RTIambassador.getParameterName",
         "RTIambassador.getFederateHandleFactory",
@@ -747,8 +757,8 @@
           "standard_section": "hla-1516.1-2025:clause-11.5.1"
         }
       ],
-      "mapping_note": "Direct mappings cover only Table 5 p.298 r014, p.299 r001, p.299 r007, and p.302 r002. The supplied InteractionClassHandle and ParameterHandle argument records check their type and name; the valid interaction handle text in GetParameterHandle and GetParameterName is exact. Invalid interaction and parameter handles use synthetic Java proxies, so their provider-generated text is checked for quoted form only and is not equated with the C++ default-handle toString text. All four failure reports check the returned Null argument as type 34, empty name, and null value. The type-53 lookup-name arguments and successful recovery check the exact input names; example quotation marks are not claimed as a separate lexical rule. This does not claim broader service-report completeness or complete clause 11.5.1 coverage.",
-      "parity_scope_note": "The Java mirror verifies the same five ordered reports as C++: missing interaction class, invalid interaction-class handle, missing parameter, invalid parameter handle, then successful interaction class recovery (serials 0-4). It checks all exception and report fields, exact valid-handle and lookup-name text, and Null returns. For the two synthetic invalid handle arguments, it checks type, name, and quoted value shape; it does not assert the provider-specific value equals C++ toString text.",
+      "mapping_note": "Direct mappings cover only Table 5 p.298 r014, p.299 r001, p.299 r007, and p.302 r002. The supplied InteractionClassHandle and ParameterHandle argument records check their type and name; the valid interaction handle text in GetParameterHandle and GetParameterName is exact. The InvalidInteractionClassHandle input comes from the extension FOM in a separate execution and is absent from the subject execution; its reported value is compared with the public toString() value of that Java handle within the provider run. The invalid ParameterHandle still uses a synthetic Java proxy and is checked only for quoted form; it is not equated with the C++ default-handle text. All four failure reports check the returned Null argument as type 34, empty name, and null value. The type-53 lookup-name arguments and successful recovery check the exact input names; example quotation marks are not claimed as a separate lexical rule. This does not claim broader service-report completeness or complete clause 11.5.1 coverage.",
+      "parity_scope_note": "The Java mirror verifies the same five ordered reports as C++: missing interaction class, invalid interaction-class handle, missing parameter, invalid parameter handle, then successful interaction class recovery (serials 0-4). It checks all exception and report fields, exact valid-handle and lookup-name text, and Null returns. The InvalidInteractionClassHandle input is an API-issued extension handle absent from the subject execution, and its report text matches its Java toString() value. The InvalidParameterHandle input remains a synthetic proxy checked only for quoted shape. No Java/C++ handle-text equality is claimed.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -756,8 +766,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportInteractionParameterLookupFailures",
       "parity": "cpp-tck.service-report-interaction-parameter-lookup-failures",
-      "evidence_note": "Matches the C++ five-report sequence: missing interaction class, invalid interaction-class handle, missing parameter, invalid parameter handle, then successful interaction-class lookup recovery. Verifies exception classes, Table 5 argument names and types, serials 0-4, status, federate identity, callback metadata, and type-34 Null return values. Valid interaction-handle and lookup-name text is exact; synthetic invalid-handle text is checked only for quoted form because the public Java proxy encoding does not preserve the C++ default-handle text. Focused current-source Umbra JNI runs passed without --run-unverified against the pinned official Java API JAR with fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckTypedInteraction, and IntegerParameter under HLA_EVOKED and HLA_IMMEDIATE. Results: out/java-tck/service-report-interaction-parameter-lookup-failures-java-parity-20261113/{evoked,immediate}-{results.json,junit.xml}. The paired current-source C++ direct scenario passed under both callback models using the installed package; results: out/cpp-tck/service-report-interaction-parameter-lookup-failures-current-source-20261113/{results.json,junit.xml}. Evidence is local JNI/provider evidence only.",
-      "default_status": "run"
+      "evidence_note": "Matches the C++ five-report sequence: missing interaction class, invalid interaction-class handle, missing parameter, invalid parameter handle, then successful interaction-class lookup recovery. Verifies exception classes, Table 5 argument names and types, serials 0-4, status, federate identity, callback metadata, and type-34 Null return values. The extension-only invalid interaction-class handle text is checked against the public toString() value of the API-issued handle; the synthetic invalid parameter handle remains checked for quoted form only, without comparing Java and C++ provider text. Focused current-source Umbra JNI runs passed with --run-unverified against the pinned official Java API JAR; fom-model-tck.xml was supplied for the subject execution and fom-extension-tck.xml only for the separate execution that issued HLAinteractionRoot.TckExtensionInteraction; HLAstandardMIM-2025.xml, HLAinteger64Time, HLAinteractionRoot.TckTypedInteraction, and IntegerParameter were used under both callback models. Results/JUnit: out/java-tck/service-report-lookup-handle-correlation-20261117/interaction-{evoked,immediate}.{results.json,junit.xml}. The paired current-source C++ direct scenario passed under both callback models using the installed package; results: out/cpp-tck/service-report-interaction-parameter-lookup-failures-current-source-20261113/{results.json,junit.xml}. Evidence is local JNI/provider evidence only.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied fom-model-tck.xml, fom-extension-tck.xml, standard MIM, HLAinteger64Time, and typed interaction/parameter names",
+        "callback model selected by adapter"
+      ],
+      "exclusion": "Default-disabled; requires fom-extension-tck.xml as hla.rti.tck.additionalFom for the separate execution that supplies an API-issued interaction handle absent from the subject execution. Select with --run-unverified. The invalid ParameterHandle still uses a synthetic proxy with a quoted-shape-only assertion.",
+      "default_status": "unsupported"
     },
     {
       "id": "java-tck.service-report-object-attribute-update-rate-lookup-failures",
@@ -774,7 +790,10 @@
         "RTIambassador.getObjectInstanceName",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getAttributeHandle",
+        "RTIambassador.getAttributeHandleSetFactory",
         "RTIambassador.getAttributeName",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.registerObjectInstance(unnamed)",
         "RTIambassador.getUpdateRateValue",
         "RTIambassador.getUpdateRateValueForAttribute",
         "RTIambassador.getInteractionClassHandle",
@@ -790,6 +809,8 @@
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect",
+        "AttributeHandleSet.add",
+        "ObjectInstanceHandle.toString",
         "FederateAmbassador.receiveInteraction",
         "HLAunicodeString.decode",
         "HLAinteger16BE.decode",
@@ -820,7 +841,7 @@
         }
       ],
       "mapping_note": "Direct mapping covers only Table 5 p.299 r001. Each of the seven failed lookup reports decodes HLAreturnedArgument and checks the Null argument as type 34, empty argument name, and null value. This is a selected Null returned-argument encoding witness; the service names, supplied arguments, and exception assertions are parity context and do not broaden the mapping to general lookup-failure reporting, other Table 5 rows, or complete clause 11.5.1 coverage.",
-      "parity_scope_note": "The Java mirror verifies the same eight ordered reports as C++: seven failed object-instance, object-class, attribute, or update-rate lookups at serials 0-6, followed by successful object-class recovery at serial 7. Every failure checks the returned Null argument. Java synthetic invalid-handle values are checked for quoted form only; the valid class and attribute handle values are exact.",
+      "parity_scope_note": "The Java mirror verifies the same eight ordered reports as C++: seven failed object-instance, object-class, attribute, or update-rate lookups at serials 0-6, followed by successful object-class recovery at serial 7. Every failure checks the returned Null argument. The three unknown-object report arguments use an API-issued object handle from a separate execution and match its quoted public toString() value within the Java provider run; the C++ default-invalid ObjectInstanceHandle text is not compared across providers. Synthetic invalid ObjectClassHandle and AttributeHandle values remain quoted-shape-only; valid class and attribute handle values are exact.",
       "contract_refs": [
         "mom-service-reporting-requirements-contract.json",
         "federation-execution-api-contract.json",
@@ -828,8 +849,14 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#serviceReportObjectAttributeUpdateRateLookupFailures",
       "parity": "cpp-tck.service-report-object-attribute-update-rate-lookup-failures",
-      "evidence_note": "Matches the C++ eight-report sequence: invalid object-instance lookup, missing instance name, invalid object-instance name lookup, invalid object-class attribute lookup, invalid attribute-name lookup, missing update-rate lookup, invalid-instance update-rate lookup, and successful object-class recovery. Verifies the exception classes, Table 5 argument names and types, serials 0-7, seven type-34 Null failure results, status, federate identity, and callback metadata. Invalid-handle text is checked only for quoted form because its formatting is provider-specific. Focused current-source Umbra JNI runs passed without --run-unverified against the pinned official Java API JAR using fom-model-tck.xml, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, BestEffortValue, and TckSlow under HLA_EVOKED and HLA_IMMEDIATE. Results: out/java-tck/service-report-object-attribute-update-rate-lookup-failures-java-parity-20261113/{evoked,immediate}-{results.json,junit.xml}. The paired current-source C++ direct scenario passed under both callback models using the installed package; results: out/cpp-tck/service-report-object-attribute-update-rate-lookup-failures-current-source-20261113/{results.json,junit.xml}. Direct mapping remains limited to Table 5 p.299 r001; evidence is local JNI/provider only.",
-      "default_status": "run"
+      "evidence_note": "Matches the C++ eight-report sequence: invalid object-instance lookup, missing instance name, invalid object-instance name lookup, invalid object-class attribute lookup, invalid attribute-name lookup, missing update-rate lookup, invalid-instance update-rate lookup, and successful object-class recovery. Verifies the exception classes, Table 5 argument names and types, serials 0-7, seven type-34 Null failure results, status, federate identity, and callback metadata. Three unknown-object report arguments match the API-issued foreign execution ObjectInstanceHandle.toString() value within the Java provider run; synthetic invalid ObjectClassHandle and AttributeHandle values remain quoted-shape checks. Focused current-source Umbra JNI runs passed with --run-unverified against the pinned official Java API JAR using fom-model-tck.xml for both executions, HLAstandardMIM-2025.xml, HLAinteger64Time, HLAobjectRoot.TckRateObject, and BestEffortValue under HLA_EVOKED and HLA_IMMEDIATE. Results/JUnit: out/java-tck/service-report-object-handle-correlation-20261117/{evoked,immediate}.{results.json,junit.xml}. Paired current-source C++ primary and contract runs passed both callback models using the installed package; existing focused results: out/cpp-tck/service-report-object-attribute-update-rate-lookup-failures-current-source-20261113/{results.json,junit.xml}. Direct mapping remains limited to Table 5 p.299 r001; evidence is local JNI/provider only.",
+      "adapter_inputs": [
+        "pinned official IEEE 1516.1-2025 Java API JAR and service-loaded provider",
+        "adapter-supplied update-rate FOM, HLAobjectRoot.TckRateObject, BestEffortValue, standard MIM, and HLAinteger64Time",
+        "callback model selected by adapter"
+      ],
+      "exclusion": "Default-disabled by the Java runner; focused execution requires the adapter-supplied update-rate FOM, object-class name, best-effort attribute name, and --run-unverified.",
+      "default_status": "unsupported"
     },
     {
       "id": "java-tck.service-report-interaction-publication",
@@ -3216,6 +3243,8 @@
         "RTIambassador.retract",
         "RTIambassador.modifyLookahead",
         "MessageRetractionHandle.toString",
+        "ObjectInstanceHandle.toString",
+        "AttributeHandle.toString",
         "RTIambassador.unsubscribeObjectClassAttributes",
         "RTIambassador.unsubscribeInteractionClass",
         "RTIambassador.unpublishObjectClassAttributes",
@@ -3330,7 +3359,7 @@
         }
       ],
       "mapping_note": "Direct mapping covers exactly six Table 5 rows. p295-r006 checks the one-entry AttributeHandleValueMap with the input payload encoded as base64. p298-r016 checks a successful timestamped UpdateAttributeValues call through the joined publisher’s advertised HLAreportServiceFile and requires type 31, the Optional timestamp argument, and the exact LogicalTime.toString() value. p298-r017 checks a successful ModifyLookahead file record with type 32, the Requested lookahead argument, and the exact LogicalTimeInterval.toString() value. p298-r018 checks that the successful timestamped UpdateAttributeValues record returns type 33 with the exact MessageRetractionHandle text derived from the public call’s returned handle. p299-r001 checks that void ModifyLookahead uses a Null returned argument. p303-r001 checks only the file-backed SuppliedArgumentList Array<HLAargument> structure: four argument records are present and each has HLAargumentType, HLAargumentName, and HLAargumentValue fields. It does not claim the p304-r001 continuation or disputed example literals. The callback-route report, reflected timestamped update, and retraction behavior remain supporting case evidence; no other timestamped service families, all Table 5 rows, or general MOM service-report conformance are claimed.",
-      "parity_scope_note": "The Java API exposes ObjectInstanceHandle and AttributeHandle values as opaque handles. The callback report requires absent producing-federate metadata and checks the object-designator and one-entry map shapes plus the exact payload, but does not compare provider-specific handle text with the registered object or attribute. The file and callback routes compare the returned MessageRetractionHandle through its public toString() representation.",
+      "parity_scope_note": "The Java API exposes ObjectInstanceHandle and AttributeHandle values as opaque handles. The callback report requires absent producing-federate metadata and correlates the quoted object designator and one-entry map key with the corresponding public handle's toString() value within that Java provider run, while checking the exact payload. It does not require Java and C++ providers to expose equal handle text. The file and callback routes compare the returned MessageRetractionHandle through its public toString() representation.",
       "callback_models": [
         "evoked",
         "immediate"
@@ -3341,7 +3370,7 @@
         "provider-specific serviceReportDirectory setting through RtiConfiguration.withAdditionalSettings",
         "callback model selected by the adapter"
       ],
-      "evidence_note": "Compiled against the pinned official 2025 Java API JAR with p0-tck.xml, the standard 2025 MIM, HLAinteger64Time, and an adapter-supplied serviceReportDirectory. The current-source JNI provider passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-15. Each callback contained exactly one UpdateAttributeValues report at serial 0, with absent producing-federate metadata; callback arguments and retraction correlation passed, as did the file-backed type-31 timestamp, type-33 returned handle, type-32 lookahead, Null result, and four-record HLAargument structure assertions. The additional GetTimeFactory callback records observed in a 2026-11-03 provider attempt did not reproduce. The paired installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions. Java results are under out/java-tck/service-report-timestamped-attribute-update-20261115/results; C++ results are under out/mgw/cpp-tck-service-report-timestamped-attribute-update-java-port-20261115. This is local-provider evidence, not independent-provider or conformance evidence."
+      "evidence_note": "Compiled against the pinned official 2025 Java API JAR with p0-tck.xml, the standard 2025 MIM, HLAinteger64Time, and an adapter-supplied serviceReportDirectory. The current-source JNI provider passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE on 2026-11-17. Each callback contained exactly one UpdateAttributeValues report at serial 0, with absent producing-federate metadata; the object designator and attribute-map key matched the public handles used by the update, retraction correlation passed, and the file-backed type-31 timestamp, type-33 returned handle, type-32 lookahead, Null result, and four-record HLAargument structure assertions passed. The additional GetTimeFactory callback records observed in a 2026-11-03 provider attempt did not reproduce. The paired installed-package C++ primary and contract passed 4/4 focused CTests and 4/4 direct callback-model executions. Java results are under out/java-tck/service-report-timestamped-attribute-update-java-parity-20261117; C++ results are under out/mgw/cpp-tck-service-report-timestamped-attribute-update-java-port-20261115. This is local-provider evidence, not independent-provider or conformance evidence."
     },
     {
       "id": "java-tck.service-report-timestamped-directed-interaction",
@@ -4655,6 +4684,7 @@
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecution",
+        "RTIambassador.createFederationExecution(foreign base and additional FOM modules)",
         "RTIambassador.joinFederationExecution",
         "RTIambassador.getObjectClassHandle",
         "RTIambassador.getInteractionClassHandle",
@@ -4691,7 +4721,7 @@
       ],
       "mapping_classification": "direct-requirement-mapped",
       "mapping_note": "The sole direct Java mapping is requirement-candidate-content-clauses-10-support-services-page-261-l30-6 -> IEEE 1516.1-2025 §10.25 for Get Dimension Upper Bound returns. RL-442 records the pinned Requirements Lab crosswalk defect that exports this requirement as §10.24.6; the canonical service heading and API declaration place the service at §10.25, and §10.24.6 is not claimed. The owner and joining member verify the exact FDD-declared upper bound 10 for both configured dimensions. Dimension names, handle identity/name round-trips, class-dimension associations, lifecycle behavior, and unknown-name exceptions are supplemental witnesses and add no mappings.",
-      "evidence_note": "Verified 2026-11-15: compiled against out/java-tck/hla-rti1516-2025-api.jar and passed the default focused Java runner 1/1 under HLA_EVOKED and HLA_IMMEDIATE without --run-unverified against provider umbra-jni-current-source-20261114. It used packages/hla-rti-cpp-tck/fom/fom-model-tck.xml and HLAinteger64Time. Results: out/java-tck/dimension-lookup-lifecycle-java-parity-20261115/{evoked-default,immediate-default}.{json,xml}. Provider-neutral traceability exports are out/java-tck/dimension-lookup-lifecycle-java-parity-20261115/{provider-neutral-evoked,provider-neutral-immediate}.json; each reports one pass and zero failures. Runtime evidence is local-provider only and does not claim independent-provider interoperability or conformance.",
+      "evidence_note": "Verified 2026-11-17: focused Java runs passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE both with and without optional fom-extension-tck.xml additional-FOM input. The default runs preserve the existing dimension metadata scenario; the extension-enabled runs exercise API-produced foreign handles for the supplemental invalid-handle boundaries. Runs used the pinned official Java API JAR, current-source Umbra JNI, fom-model-tck.xml, and HLAinteger64Time. Results/JUnit: .build/java-tck-20261117/dimension-lookup-lifecycle-default-hla_{evoked,immediate}.{results.json,junit.xml} and .build/java-tck-20261117/dimension-lookup-lifecycle-hla_{evoked,immediate}.{results.json,junit.xml}. Paired C++ evidence remains current-source installed-package MinGW/Ninja: 2/2 focused CTests and 2/2 direct callback-model runs in .build/cpp-tck-dimension-lookup-member-negative-20261113/results.json and results.xml; scoped promoted-result validation is clean. Local Umbra evidence only, not independent-provider interoperability or conformance.",
       "contract_refs": [
         "dimension-lookup-api-contract.json",
         "dimension-lookup-requirements-contract.json",
@@ -4699,12 +4729,13 @@
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#dimensionLookupLifecycle",
       "parity": "cpp-tck.dimension-lookup-lifecycle",
-      "parity_scope_note": "The Java mirror checks the same configured dimension names, stable handles, exact name round-trips, exact FDD upper bound 10, and object/interaction class associations across the owner and joining member. It preserves pre-Connect/pre-join dimension-name checks and post-resignation checks with valid handles. C++ default-invalid dimension/object-class/interaction-class handles and the related invalid-handle exception-precedence probes are omitted because the standard Java API has no default-invalid handle representation; null is not used as a substitute.",
+      "parity_scope_note": "The Java mirror checks the configured dimension names, stable handles, exact name round-trips, exact FDD upper bound 10, and object/interaction class associations across the owner and joining member. When the optional additional FOM is supplied, it now covers the paired C++ invalid-handle error paths using API-produced handles from a separate execution: TckAdditionalDimension, HLAobjectRoot.TckExtensionObject, and HLAinteractionRoot.TckExtensionInteraction are absent from the target execution, so the owner and member must report InvalidDimensionHandle, InvalidObjectClassHandle, or InvalidInteractionClassHandle. Before connect it requires NotConnected; before join and after resignation it accepts either the lifecycle exception or the invalid-handle exception, matching the C++ non-ordering of simultaneous failures. It does not claim a default-invalid Java handle representation or compare encoded handle bytes. The original valid-handle assertions run without the optional module.",
       "default_status": "run",
       "adapter_inputs": [
         "Pinned IEEE 1516.1-2025 Java API JAR and service-loaded provider",
         "Adapter-supplied fom-model-tck.xml with HLAobjectRoot.TckTransportRegionalObject, HLAinteractionRoot.TckTransportRegionalInteraction, and TckDimensionX/TckDimensionY each declaring upperBound 10",
         "HLAinteger64Time logical-time implementation",
+        "Optional fom-extension-tck.xml additional FOM supplied through hla.rti.tck.additionalFom for foreign-handle error checks",
         "HLA_EVOKED or HLA_IMMEDIATE callback model"
       ]
     },

@@ -40,8 +40,9 @@ final class ServiceReportFederateLookupFailureTck {
 
    private ServiceReportFederateLookupFailureTck() { }
 
-   static void run(RtiFactory factory, String fom, String mim, String objectClassName,
-         String timeImplementation, CallbackModel callbackModel) throws Exception {
+   static void run(RtiFactory factory, String fom, String foreignFom, String mim,
+         String objectClassName, String timeImplementation, CallbackModel callbackModel)
+         throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
       RTIambassador foreignCreator = factory.getRtiAmbassador();
@@ -75,7 +76,7 @@ final class ServiceReportFederateLookupFailureTck {
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
          foreignCreator.createFederationExecutionWithMIM(
-            foreignFederation, new String[] {fom}, mim, timeImplementation);
+            foreignFederation, new String[] {fom, foreignFom}, mim, timeImplementation);
          foreignCreated = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
             subjectName, "java-tck", federation);
@@ -87,6 +88,12 @@ final class ServiceReportFederateLookupFailureTck {
          foreignMemberJoined = true;
          JavaTckSupport.check(foreignFederate != null,
             "foreign federation returned a null federate handle");
+         ObjectClassHandle foreignObjectClass =
+            foreignMember.getObjectClassHandle("HLAobjectRoot.TckExtensionObject");
+         JavaTckSupport.check(foreignObjectClass != null
+               && "HLAobjectRoot.TckExtensionObject".equals(
+                  foreignMember.getObjectClassName(foreignObjectClass)),
+            "foreign extension object-class lookup/name round-trip failed");
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -111,17 +118,17 @@ final class ServiceReportFederateLookupFailureTck {
          observer.subscribeInteractionClass(reportClass);
          reportSubscribed = true;
 
+         JavaTckSupport.expectFailure(() -> subject.getObjectClassName(foreignObjectClass),
+            "InvalidObjectClassHandle", "foreign extension object-class handle is absent locally");
          FederateHandle invalidHandle = JavaTckSupport.invalidHandle(FederateHandle.class);
          subject.setServiceReportingSwitch(true);
          JavaTckSupport.expectFailure(() -> subject.getFederateHandle(missingFederateName),
             "NameNotFound", "reported missing federate-name lookup");
          JavaTckSupport.expectFailure(() -> subject.getFederateName(invalidHandle),
             "InvalidFederateHandle", "reported invalid federate-handle lookup");
-         ObjectClassHandle invalidObjectClass =
-            JavaTckSupport.invalidHandle(ObjectClassHandle.class);
          JavaTckSupport.expectFailure(() -> subject.getObjectClassHandle(missingObjectClassName),
             "NameNotFound", "reported missing object-class lookup");
-         JavaTckSupport.expectFailure(() -> subject.getObjectClassName(invalidObjectClass),
+         JavaTckSupport.expectFailure(() -> subject.getObjectClassName(foreignObjectClass),
             "InvalidObjectClassHandle", "reported invalid object-class-handle lookup");
          FederateHandle federateByName = subject.getFederateHandle(subjectName);
          String federateName = subject.getFederateName(subjectFederate);
@@ -152,7 +159,7 @@ final class ServiceReportFederateLookupFailureTck {
          verifyFailureReport(observer, subjectFederate, recorder.events.get(3), encoder,
             reportClass, reportParameters, reliable, "GetObjectClassName",
             new Argument[] {new Argument(36, "Object class handle",
-               null)},
+               quoted(foreignObjectClass.toString()))},
             "InvalidObjectClassHandle", 3);
          verifySuccessReport(observer, subjectFederate, recorder.events.get(4), encoder,
             reportClass, reportParameters, reliable, "GetFederateHandle",
@@ -220,35 +227,46 @@ final class ServiceReportFederateLookupFailureTck {
       }
    }
 
-   static void runInteractionParameter(RtiFactory factory, String fom, String mim,
-         String interactionName, String parameterName, String timeImplementation,
+   static void runInteractionParameter(RtiFactory factory, String fom, String foreignFom,
+         String mim, String interactionName, String parameterName, String timeImplementation,
          CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String suffix = UUID.randomUUID().toString();
       String federation = "java-tck-service-report-interaction-lookup-failure-" + suffix;
+      String foreignFederation = federation + "-foreign";
       String subjectName = "java-tck-interaction-lookup-failure-subject-" + suffix;
       String observerName = "java-tck-interaction-lookup-failure-observer-" + suffix;
+      String foreignName = "java-tck-interaction-lookup-failure-foreign-" + suffix;
       String missingInteractionName = uniqueName("HLAinteractionRoot.TckMissingInteraction");
       String missingParameterName = uniqueName("TckMissingParameter");
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean foreignConnected = false, foreignCreated = false, foreignJoined = false;
       InteractionClassHandle reportClass = null;
       try {
          subject.connect(emptyCallbacks(), callbackModel);
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(emptyCallbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecutionWithMIM(
+            foreignFederation, new String[] {fom, foreignFom}, mim, timeImplementation);
+         foreignCreated = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
             subjectName, "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution(observerName, "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(foreignName, "java-tck", foreignFederation);
+         foreignJoined = true;
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -275,19 +293,23 @@ final class ServiceReportFederateLookupFailureTck {
 
          InteractionClassHandle interaction = subject.getInteractionClassHandle(interactionName);
          ParameterHandle parameter = subject.getParameterHandle(interaction, parameterName);
+         // The extension-only handles are genuine Java API values, but are absent
+         // from the execution receiving the lookup requests.
+         InteractionClassHandle foreignInteraction =
+            foreign.getInteractionClassHandle("HLAinteractionRoot.TckExtensionInteraction");
          JavaTckSupport.check(interaction != null && parameter != null,
             "adapter-supplied interaction/parameter setup lookup failed");
+         ParameterHandle invalidParameter =
+            JavaTckSupport.invalidHandle(ParameterHandle.class);
+         JavaTckSupport.check(foreignInteraction != null,
+            "foreign execution interaction lookup failed");
          subject.setServiceReportingSwitch(true);
          JavaTckSupport.expectFailure(() -> subject.getInteractionClassHandle(
             missingInteractionName), "NameNotFound", "reported missing interaction lookup");
-         InteractionClassHandle invalidInteraction =
-            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
-         JavaTckSupport.expectFailure(() -> subject.getInteractionClassName(invalidInteraction),
-            "InvalidInteractionClassHandle", "reported invalid interaction handle lookup");
+         JavaTckSupport.expectFailure(() -> subject.getInteractionClassName(foreignInteraction),
+            "InvalidInteractionClassHandle", "reported foreign interaction handle lookup");
          JavaTckSupport.expectFailure(() -> subject.getParameterHandle(interaction,
             missingParameterName), "NameNotFound", "reported missing parameter lookup");
-         ParameterHandle invalidParameter =
-            JavaTckSupport.invalidHandle(ParameterHandle.class);
          JavaTckSupport.expectFailure(() -> subject.getParameterName(interaction, invalidParameter),
             "InvalidParameterHandle", "reported invalid parameter handle lookup");
          InteractionClassHandle interactionByName =
@@ -308,7 +330,8 @@ final class ServiceReportFederateLookupFailureTck {
                quoted(missingInteractionName))}, "NameNotFound", 0);
          verifyFailureReport(observer, subjectFederate, recorder.events.get(1), encoder,
             reportClass, reportParameters, reliable, "GetInteractionClassName",
-            new Argument[] {new Argument(27, "Interaction class handle", null)},
+            new Argument[] {new Argument(27, "Interaction class handle",
+               quoted(foreignInteraction.toString()))},
             "InvalidInteractionClassHandle", 1);
          verifyFailureReport(observer, subjectFederate, recorder.events.get(2), encoder,
             reportClass, reportParameters, reliable, "GetParameterHandle",
@@ -336,6 +359,10 @@ final class ServiceReportFederateLookupFailureTck {
          subjectJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
+         foreign.resignFederationExecution(ResignAction.NO_ACTION);
+         foreignJoined = false;
+         foreign.destroyFederationExecution(foreignFederation);
+         foreignCreated = false;
       } finally {
          if (reportSubscribed && observerJoined && reportClass != null) {
             try { observer.unsubscribeInteractionClass(reportClass); }
@@ -348,8 +375,14 @@ final class ServiceReportFederateLookupFailureTck {
             try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) resign(foreign);
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
+         if (foreignConnected) disconnect(foreign);
       }
    }
 
@@ -358,30 +391,41 @@ final class ServiceReportFederateLookupFailureTck {
          CallbackModel callbackModel) throws Exception {
       RTIambassador subject = factory.getRtiAmbassador();
       RTIambassador observer = factory.getRtiAmbassador();
+      RTIambassador foreign = factory.getRtiAmbassador();
       Recorder recorder = new Recorder();
       EncoderFactory encoder = factory.getEncoderFactory();
       String suffix = UUID.randomUUID().toString();
       String federation = "java-tck-service-report-object-lookup-failure-" + suffix;
+      String foreignFederation = federation + "-foreign";
       String subjectName = "java-tck-object-lookup-failure-subject-" + suffix;
       String observerName = "java-tck-object-lookup-failure-observer-" + suffix;
+      String foreignName = "java-tck-object-lookup-failure-foreign-" + suffix;
       String missingObjectName = uniqueName("TckMissingObjectInstance");
       String missingRateName = uniqueName("TckMissingUpdateRate");
       boolean subjectConnected = false, observerConnected = false, created = false;
       boolean subjectJoined = false, observerJoined = false, reportSubscribed = false;
+      boolean foreignConnected = false, foreignCreated = false, foreignJoined = false;
       InteractionClassHandle reportClass = null;
       try {
          subject.connect(emptyCallbacks(), callbackModel);
          subjectConnected = true;
          observer.connect(recorder.proxy(), callbackModel);
          observerConnected = true;
+         foreign.connect(emptyCallbacks(), callbackModel);
+         foreignConnected = true;
          subject.createFederationExecutionWithMIM(
             federation, new String[] {fom}, mim, timeImplementation);
          created = true;
+         foreign.createFederationExecutionWithMIM(
+            foreignFederation, new String[] {fom}, mim, timeImplementation);
+         foreignCreated = true;
          FederateHandle subjectFederate = subject.joinFederationExecution(
             subjectName, "java-tck", federation);
          subjectJoined = true;
          observer.joinFederationExecution(observerName, "java-tck", federation);
          observerJoined = true;
+         foreign.joinFederationExecution(foreignName, "java-tck", foreignFederation);
+         foreignJoined = true;
 
          reportClass = observer.getInteractionClassHandle(REPORT_CLASS);
          JavaTckSupport.check(reportClass != null
@@ -410,17 +454,27 @@ final class ServiceReportFederateLookupFailureTck {
          AttributeHandle attribute = subject.getAttributeHandle(objectClass, attributeName);
          JavaTckSupport.check(objectClass != null && attribute != null,
             "adapter-supplied object class/attribute setup lookup failed");
-         ObjectInstanceHandle invalidObject =
-            JavaTckSupport.invalidHandle(ObjectInstanceHandle.class);
+         ObjectClassHandle foreignObjectClass = foreign.getObjectClassHandle(objectClassName);
+         JavaTckSupport.check(foreignObjectClass != null,
+            "foreign execution object-class lookup failed");
+         AttributeHandle foreignAttribute =
+            foreign.getAttributeHandle(foreignObjectClass, attributeName);
+         JavaTckSupport.check(foreignAttribute != null,
+            "foreign execution attribute lookup failed");
+         foreign.publishObjectClassAttributes(foreignObjectClass,
+            JavaTckSupport.attributeSet(foreign, foreignAttribute));
+         ObjectInstanceHandle foreignObject = foreign.registerObjectInstance(foreignObjectClass);
+         JavaTckSupport.check(foreignObject != null,
+            "foreign execution object registration returned no handle");
          ObjectClassHandle invalidObjectClass =
             JavaTckSupport.invalidHandle(ObjectClassHandle.class);
          AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
          subject.setServiceReportingSwitch(true);
-         JavaTckSupport.expectFailure(() -> subject.getKnownObjectClassHandle(invalidObject),
+         JavaTckSupport.expectFailure(() -> subject.getKnownObjectClassHandle(foreignObject),
             "ObjectInstanceNotKnown", "reported unknown object-class lookup");
          JavaTckSupport.expectFailure(() -> subject.getObjectInstanceHandle(missingObjectName),
             "ObjectInstanceNotKnown", "reported missing object-instance lookup");
-         JavaTckSupport.expectFailure(() -> subject.getObjectInstanceName(invalidObject),
+         JavaTckSupport.expectFailure(() -> subject.getObjectInstanceName(foreignObject),
             "ObjectInstanceNotKnown", "reported invalid object-name lookup");
          JavaTckSupport.expectFailure(() -> subject.getAttributeHandle(invalidObjectClass,
             attributeName), "InvalidObjectClassHandle", "reported invalid class attribute lookup");
@@ -429,7 +483,7 @@ final class ServiceReportFederateLookupFailureTck {
          JavaTckSupport.expectFailure(() -> subject.getUpdateRateValue(missingRateName),
             "InvalidUpdateRateDesignator", "reported missing update-rate lookup");
          JavaTckSupport.expectFailure(() -> subject.getUpdateRateValueForAttribute(
-            invalidObject, attribute), "ObjectInstanceNotKnown",
+            foreignObject, attribute), "ObjectInstanceNotKnown",
             "reported invalid object update-rate lookup");
          ObjectClassHandle objectClassByName = subject.getObjectClassHandle(objectClassName);
          JavaTckSupport.check(objectClass.equals(objectClassByName),
@@ -445,7 +499,7 @@ final class ServiceReportFederateLookupFailureTck {
          verifyFailureReport(observer, subjectFederate, recorder.events.get(0), encoder,
             reportClass, reportParameters, reliable, "GetKnownObjectClassHandle",
             new Argument[] {new Argument(37, "Object instance handle",
-               null)}, "ObjectInstanceNotKnown", 0);
+               quoted(foreignObject.toString()))}, "ObjectInstanceNotKnown", 0);
          verifyFailureReport(observer, subjectFederate, recorder.events.get(1), encoder,
             reportClass, reportParameters, reliable, "GetObjectInstanceHandle",
             new Argument[] {new Argument(53, "Object instance name",
@@ -453,7 +507,7 @@ final class ServiceReportFederateLookupFailureTck {
          verifyFailureReport(observer, subjectFederate, recorder.events.get(2), encoder,
             reportClass, reportParameters, reliable, "GetObjectInstanceName",
             new Argument[] {new Argument(37, "Object instance handle",
-               null)}, "ObjectInstanceNotKnown", 2);
+               quoted(foreignObject.toString()))}, "ObjectInstanceNotKnown", 2);
          verifyFailureReport(observer, subjectFederate, recorder.events.get(3), encoder,
             reportClass, reportParameters, reliable, "GetAttributeHandle",
             new Argument[] {
@@ -473,7 +527,7 @@ final class ServiceReportFederateLookupFailureTck {
          verifyFailureReport(observer, subjectFederate, recorder.events.get(6), encoder,
             reportClass, reportParameters, reliable, "GetUpdateRateValueForAttribute",
             new Argument[] {
-               new Argument(37, "Object instance handle", null),
+                new Argument(37, "Object instance handle", quoted(foreignObject.toString())),
                new Argument(0, "Attribute handle", quoted(attribute.toString()))
             }, "ObjectInstanceNotKnown", 6);
          verifySuccessReport(observer, subjectFederate, recorder.events.get(7), encoder,
@@ -490,6 +544,10 @@ final class ServiceReportFederateLookupFailureTck {
          subjectJoined = false;
          subject.destroyFederationExecution(federation);
          created = false;
+         foreign.resignFederationExecution(ResignAction.DELETE_OBJECTS);
+         foreignJoined = false;
+         foreign.destroyFederationExecution(foreignFederation);
+         foreignCreated = false;
       } finally {
          if (reportSubscribed && observerJoined && reportClass != null) {
             try { observer.unsubscribeInteractionClass(reportClass); }
@@ -502,8 +560,17 @@ final class ServiceReportFederateLookupFailureTck {
             try { subject.destroyFederationExecution(federation); }
             catch (Exception ignored) { }
          }
+         if (foreignJoined) {
+            try { foreign.resignFederationExecution(ResignAction.DELETE_OBJECTS); }
+            catch (Exception ignored) { }
+         }
+         if (foreignCreated) {
+            try { foreign.destroyFederationExecution(foreignFederation); }
+            catch (Exception ignored) { }
+         }
          if (observerConnected) disconnect(observer);
          if (subjectConnected) disconnect(subject);
+         if (foreignConnected) disconnect(foreign);
       }
    }
 
@@ -594,7 +661,7 @@ final class ServiceReportFederateLookupFailureTck {
       int actualType = ((HLAinteger32BE) record.get(0)).getValue();
       String actualName = ((HLAunicodeString) record.get(1)).getValue();
       String actualValue = ((HLAunicodeString) record.get(2)).getValue();
-      // A null expected value marks provider-specific invalid-handle text.
+      // Null leaves synthetic invalid-handle formatting provider-specific.
       boolean valueMatches = expected.value == null
          ? actualValue.length() >= 2 && actualValue.startsWith("\"")
             && actualValue.endsWith("\"")

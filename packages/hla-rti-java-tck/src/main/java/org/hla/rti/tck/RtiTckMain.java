@@ -8426,7 +8426,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.service-report-federate-object-class-lookups",
             "standard MOM reports for federate and object-class lookup results and failures",
             "mom-service-reporting",
-            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;ObjectClassHandle.toString;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federate-lookup",
@@ -8435,9 +8435,9 @@ public final class RtiTckMain {
                "requirement-candidate-table-5-p296-r035"
             }, false), RtiTckMain::serviceReportFederateObjectClassLookups);
       run(new Scenario("java-tck.service-report-federate-object-class-lookup-failures",
-            "ordered MOM failure reports and recovery, including a foreign federate handle",
+             "ordered MOM failures and recovery with foreign execution handles",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getFederateHandle;RTIambassador.getFederateName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getObjectClassHandle;RTIambassador.getObjectClassName;ObjectClassHandle.toString;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-federate-lookup",
@@ -8449,7 +8449,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.service-report-interaction-parameter-lookup-failures",
             "ordered MOM failure reports and recovery for interaction and parameter lookups",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;InteractionClassHandle.toString;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getFederateHandleFactory;FederateHandleFactory.decode;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-interaction-lookup",
@@ -8463,7 +8463,7 @@ public final class RtiTckMain {
       run(new Scenario("java-tck.service-report-object-attribute-update-rate-lookup-failures",
             "ordered MOM failure reports and recovery for object, attribute, and update-rate lookups",
             "mom-service-reporting",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeName;RTIambassador.getUpdateRateValue;RTIambassador.getUpdateRateValueForAttribute;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateHandleFactory.decode;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.setServiceReportingSwitch;RTIambassador.setSendServiceReportsToFileSwitch;RTIambassador.getKnownObjectClassHandle;RTIambassador.getObjectInstanceHandle;RTIambassador.getObjectInstanceName;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.getAttributeHandleSetFactory;RTIambassador.getAttributeName;RTIambassador.publishObjectClassAttributes;RTIambassador.registerObjectInstance(unnamed);RTIambassador.getUpdateRateValue;RTIambassador.getUpdateRateValueForAttribute;RTIambassador.getInteractionClassHandle;RTIambassador.getInteractionClassName;RTIambassador.getParameterHandle;RTIambassador.getParameterName;RTIambassador.getTransportationTypeHandle;RTIambassador.getTransportationTypeName;RTIambassador.subscribeInteractionClass;RTIambassador.unsubscribeInteractionClass;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;AttributeHandleSet.add;ObjectInstanceHandle.toString;FederateHandleFactory.decode;FederateAmbassador.receiveInteraction;HLAunicodeString.decode;HLAinteger16BE.decode;HLAinteger32BE.decode;HLAboolean.decode;HLAfixedRecord.decode;HLAvariableArray.decode",
             new String[] {
                "cpp-1516.1-mom-service-reporting",
                "cpp-1516.1-object-class-lookup",
@@ -13545,19 +13545,20 @@ public final class RtiTckMain {
    }
 
    private static void serviceReportFederateObjectClassLookups() throws Exception {
-      ServiceReportFederateObjectClassLookupTck.run(factory(), requireFom(), requireMim(),
-         typedObjectClassName(), timeImplementation(), callbackModel());
+      ServiceReportFederateObjectClassLookupTck.run(factory(), requireFom(),
+         requireAdditionalFom(), requireMim(), typedObjectClassName(), timeImplementation(),
+         callbackModel());
    }
 
    private static void serviceReportFederateObjectClassLookupFailures() throws Exception {
-      ServiceReportFederateLookupFailureTck.run(factory(), requireFom(), requireMim(),
-         typedObjectClassName(), timeImplementation(), callbackModel());
+      ServiceReportFederateLookupFailureTck.run(factory(), requireFom(), requireAdditionalFom(),
+         requireMim(), typedObjectClassName(), timeImplementation(), callbackModel());
    }
 
    private static void serviceReportInteractionParameterLookupFailures() throws Exception {
       ServiceReportFederateLookupFailureTck.runInteractionParameter(factory(), requireFom(),
-         requireMim(), typedInteractionClassName(), typedIntegerParameterName(),
-         timeImplementation(), callbackModel());
+         requireAdditionalFom(), requireMim(), typedInteractionClassName(),
+         typedIntegerParameterName(), timeImplementation(), callbackModel());
    }
 
    private static void serviceReportObjectAttributeUpdateRateLookupFailures() throws Exception {
@@ -15271,7 +15272,8 @@ public final class RtiTckMain {
    }
 
    static void dimensionLookupLifecycle() throws Exception {
-      DimensionLookupLifecycleTck.run(factory(), requireFom(), timeImplementation(),
+      DimensionLookupLifecycleTck.run(factory(), requireFom(),
+         System.getProperty(ADDITIONAL_FOM_PROPERTY, ""), timeImplementation(),
          System.getProperty(DIMENSION_LOOKUP_OBJECT_CLASS_PROPERTY,
             "HLAobjectRoot.TckTransportRegionalObject"),
          System.getProperty(DIMENSION_LOOKUP_INTERACTION_CLASS_PROPERTY,

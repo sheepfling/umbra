@@ -262,7 +262,7 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                "timestamped service report omitted standard parameter " + name);
          }
          verifyReport(observer, report, reportParameters, encoder, publisherHandle,
-            payload, tag, timestamp, retraction);
+            object, publisherAttribute, payload, tag, timestamp, retraction);
          observerRecorder.events.clear();
          publisher.setServiceReportingSwitch(false);
 
@@ -403,8 +403,9 @@ final class ServiceReportTimestampedAttributeUpdateTck {
 
    private static void verifyReport(RTIambassador observer, Interaction report,
          Map<String, ParameterHandle> parameters, EncoderFactory encoder,
-         FederateHandle publisher, byte[] payload, byte[] tag, LogicalTime timestamp,
-         MessageRetractionReturn retraction) throws Exception {
+         FederateHandle publisher, ObjectInstanceHandle object, AttributeHandle attribute,
+         byte[] payload, byte[] tag, LogicalTime timestamp, MessageRetractionReturn retraction)
+         throws Exception {
       FederateHandle reportedFederate = observer.getFederateHandleFactory().decode(
          report.parameters.get(parameters.get("HLAfederate")), 0);
       JavaTckSupport.check(publisher.equals(reportedFederate),
@@ -433,10 +434,9 @@ final class ServiceReportTimestampedAttributeUpdateTck {
                ((HLAunicodeString) objectDesignator.get(1)).getValue()),
          "timestamped service report returned the wrong object-designator shape");
       String objectDesignatorValue = ((HLAunicodeString) objectDesignator.get(2)).getValue();
-      JavaTckSupport.check(objectDesignatorValue.length() > 2
-            && objectDesignatorValue.startsWith("\"")
-            && objectDesignatorValue.endsWith("\""),
-         "timestamped service report returned an unquoted object designator");
+      JavaTckSupport.check(quoted(object.toString()).equals(objectDesignatorValue),
+         "timestamped service report returned an object designator that did not match "
+            + "the registered object handle");
 
       HLAfixedRecord attributeMap = supplied.get(1);
       JavaTckSupport.check(attributeMap.size() == 3
@@ -450,8 +450,11 @@ final class ServiceReportTimestampedAttributeUpdateTck {
       boolean oneMapEntry = mapValue.startsWith("{\"")
          && mapValue.endsWith("\":\"" + base64(payload) + "\"}")
          && separator > 2 && separator == mapValue.lastIndexOf(keyValueSeparator);
-      JavaTckSupport.check(oneMapEntry,
-         "timestamped service report returned the wrong map value");
+      String expectedMapValue = "{\"" + attribute.toString() + "\":\""
+         + base64(payload) + "\"}";
+      JavaTckSupport.check(oneMapEntry && expectedMapValue.equals(mapValue),
+         "timestamped service report returned an attribute map that did not match the "
+            + "updated attribute handle and value");
       verifyArgument(supplied.get(2), 60, "User-supplied tag", quoted(base64(tag)));
       verifyArgument(supplied.get(3), 31, "Optional timestamp", quoted(timestamp.toString()));
       HLAfixedRecord returned = encoder.createHLAfixedRecord();

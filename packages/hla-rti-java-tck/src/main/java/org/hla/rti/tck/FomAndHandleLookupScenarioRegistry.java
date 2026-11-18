@@ -832,7 +832,7 @@ final class FomAndHandleLookupScenarioRegistry {
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.dimension-lookup-lifecycle",
             "dimension metadata lookups across connection and federation lifecycle",
             "handle-lookup",
-            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;DimensionHandle.equals;DimensionHandleSet.contains;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.createFederationExecution(foreign base and additional FOM modules);RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getInteractionClassHandle;RTIambassador.getAvailableDimensionsForObjectClass;RTIambassador.getAvailableDimensionsForInteractionClass;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;DimensionHandle.equals;DimensionHandleSet.contains;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
             new String[] {
                "cpp-1516.1-ddm-dimension-metadata",
                "cpp-1516.1-support-lookup-negative-boundaries",

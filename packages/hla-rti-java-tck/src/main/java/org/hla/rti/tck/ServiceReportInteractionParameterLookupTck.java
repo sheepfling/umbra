@@ -170,6 +170,8 @@ final class ServiceReportInteractionParameterLookupTck {
 
          InteractionClassHandle interaction = subject.getInteractionClassHandle(interactionName);
          ParameterHandle parameter = subject.getParameterHandle(interaction, parameterName);
+         ParameterHandle invalidParameter =
+            JavaTckSupport.invalidHandle(ParameterHandle.class);
          InteractionClassHandle unrelatedInteraction = subject.getInteractionClassHandle(
             "HLAinteractionRoot.TckTransportRegionalInteraction");
          ParameterHandle unrelatedParameter = subject.getParameterHandle(
@@ -202,6 +204,9 @@ final class ServiceReportInteractionParameterLookupTck {
          String missingInteractionName = interactionName + "-missing";
          String missingParameterName = parameterName + "-missing";
          JavaTckSupport.expectFailure(
+            () -> subject.getParameterName(interaction, invalidParameter),
+            "InvalidParameterHandle", "reported parameter-name lookup with an invalid handle");
+         JavaTckSupport.expectFailure(
             () -> subject.getParameterHandle(interaction, missingParameterName),
             "NameNotFound", "reported unknown parameter-name lookup");
          JavaTckSupport.expectFailure(
@@ -220,7 +225,7 @@ final class ServiceReportInteractionParameterLookupTck {
             () -> subject.getParameterName(interaction, unrelatedParameter),
             "InteractionParameterNotDefined", "reported parameter defined on another class");
          await(observer, recorder, callbackModel);
-         JavaTckSupport.check(recorder.events.size() == 10,
+         JavaTckSupport.check(recorder.events.size() == 11,
             "interaction/parameter lookups produced an unexpected report count");
 
          verifyReport(observer, subjectFederate, recorder.events.get(0), encoder, reportClass,
@@ -252,39 +257,45 @@ final class ServiceReportInteractionParameterLookupTck {
             3, true, "");
 
          verifyFailureReport(observer, subjectFederate, recorder.events.get(4), encoder,
+            reportClass, reportParameters, reliable, "GetParameterName",
+            new Argument[] {
+               new Argument(27, "Interaction class handle", quoted(interaction.toString())),
+               new Argument(39, "Parameter handle", null)
+            }, "InvalidParameterHandle", 4);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(5), encoder,
             reportClass, reportParameters, reliable, "GetParameterHandle",
             new Argument[] {
                new Argument(27, "Interaction class handle", quoted(interaction.toString())),
                new Argument(53, "Parameter name", quoted(missingParameterName))
-            }, "NameNotFound", 4);
-         verifyFailureReport(observer, subjectFederate, recorder.events.get(5), encoder,
+            }, "NameNotFound", 5);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(6), encoder,
             reportClass, reportParameters, reliable, "GetParameterHandle",
             new Argument[] {
                new Argument(27, "Interaction class handle", quoted(foreignInteraction.toString())),
                new Argument(53, "Parameter name", quoted(parameterName))
-            }, "InvalidInteractionClassHandle", 5);
-         verifyFailureReport(observer, subjectFederate, recorder.events.get(6), encoder,
+            }, "InvalidInteractionClassHandle", 6);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(7), encoder,
             reportClass, reportParameters, reliable, "GetParameterName",
             new Argument[] {
                new Argument(27, "Interaction class handle", quoted(foreignInteraction.toString())),
                new Argument(39, "Parameter handle", quoted(parameter.toString()))
-            }, "InvalidInteractionClassHandle", 6);
-         verifyFailureReport(observer, subjectFederate, recorder.events.get(7), encoder,
+            }, "InvalidInteractionClassHandle", 7);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(8), encoder,
             reportClass, reportParameters, reliable, "GetInteractionClassName",
             new Argument[] {
                new Argument(27, "Interaction class handle", quoted(foreignInteraction.toString()))
-            }, "InvalidInteractionClassHandle", 7);
-         verifyFailureReport(observer, subjectFederate, recorder.events.get(8), encoder,
+            }, "InvalidInteractionClassHandle", 8);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(9), encoder,
             reportClass, reportParameters, reliable, "GetInteractionClassHandle",
             new Argument[] {
                new Argument(53, "Interaction class name", quoted(missingInteractionName))
-            }, "NameNotFound", 8);
-         verifyFailureReport(observer, subjectFederate, recorder.events.get(9), encoder,
+            }, "NameNotFound", 9);
+         verifyFailureReport(observer, subjectFederate, recorder.events.get(10), encoder,
             reportClass, reportParameters, reliable, "GetParameterName",
             new Argument[] {
                new Argument(27, "Interaction class handle", quoted(interaction.toString())),
                new Argument(39, "Parameter handle", quoted(unrelatedParameter.toString()))
-            }, "InteractionParameterNotDefined", 9);
+            }, "InteractionParameterNotDefined", 10);
 
          if (reportFile != null) {
             observer.unsubscribeInteractionClass(reportClass);
@@ -459,10 +470,13 @@ final class ServiceReportInteractionParameterLookupTck {
 
    private static void verifyArgument(HLAfixedRecord record, Argument expected,
          String description) throws Exception {
-      JavaTckSupport.check(record.size() == 3
-            && ((HLAinteger32BE) record.get(0)).getValue() == expected.type
+      JavaTckSupport.check(record.size() == 3,
+         description + " did not contain the three standard argument fields");
+      String value = ((HLAunicodeString) record.get(2)).getValue();
+      JavaTckSupport.check(((HLAinteger32BE) record.get(0)).getValue() == expected.type
             && expected.name.equals(((HLAunicodeString) record.get(1)).getValue())
-            && expected.value.equals(((HLAunicodeString) record.get(2)).getValue()),
+            && (expected.value == null ? value != null && !value.isEmpty()
+               : expected.value.equals(value)),
          description + " had the wrong argument type, name, or value");
    }
 
@@ -478,7 +492,7 @@ final class ServiceReportInteractionParameterLookupTck {
 
    private static void await(RTIambassador observer, Recorder recorder, CallbackModel model)
          throws Exception {
-      await(observer, recorder, model, () -> recorder.events.size() >= 10,
+      await(observer, recorder, model, () -> recorder.events.size() >= 11,
          "interaction/parameter lookup service reports");
    }
 
