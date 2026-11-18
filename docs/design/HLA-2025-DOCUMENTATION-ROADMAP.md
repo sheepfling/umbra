@@ -5,17 +5,18 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-18 (increment 542)
+## Current finish gates and next handoff — 2026-11-18 (increment 543)
 
 **Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. Increment 537 added a selected published-layout review of DSE #003 in GitHub’s expanded Mermaid dialog: its route lanes and outcomes are legible without clipping, though the tall chart requires vertical scrolling. This is a representative sample, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 
-**Citation status rechecked at increment 542:**
+**Citation status rechecked at increment 543:**
 
-- The published candidate source revision `097a5156d5c75fd168c511153f2ba839e9c951f6` resolves 4,796/4,805 source-line references across 42 Markdown files. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the remote candidate branch matched this revision when checked. This increment changes documentation only.
+- The published candidate source revision `6a3523d6cb460fec9b31422ee52dcefcfe403cf4` resolves 4,796/4,805 source-line references across 42 Markdown files. Nine are out of range in four 2025 source/test files. Its source tree is unchanged from source-bearing revision `25b9055f9424fe73a391f758c2a53c3e35f15d0d`; the remote candidate branch matches this revision.
 - The candidate worktree resolves all 4,805 references. Increment 541’s targeted inspection confirmed that all nine cited source/test locations match the described behavior in the worktree; those source/test edits remain uncommitted.
 - Remote `origin/feature/initial-work` at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180` resolves 4,796/4,805 references.
+- Published `origin/master` at `e1f0f61ab6371d978375c26283aa7f6a2b5bdde9` resolves 0/4,805: all 702 referenced target files are absent there. Do not retarget these 2025 citations to `master`.
 - Local `feature/initial-work` at `7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d` puts all 4,805 references in range. The host function, timeout-parser branch, and five Catch2 behaviors appear at the intended locations. The two TCK anchors are mismatched: one is an automatic delete-then-divest assertion and the other a fault-parameter lookup; the Federate-Lost scenario and post-loss update are at lines 2607 and 2983. This local branch is 230 commits ahead of its remote and is not a reviewed citation base.
 - The current GitHub query found no open pull requests. The [source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the refreshed revisions and all nine pending targets. Do not retarget citations to unrelated code to make line checks pass.
 
@@ -23,7 +24,7 @@ Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEH
 2. **Keep evidence limits explicit.** Nonregional receive-order push still lacks focused DSE test evidence. The DSE #003 review remains one selected hosted sample; full-width hosted layout review is not claimed for all 515 diagrams.
 3. **Close out the handoff.** After source stabilization, refresh the source-dependency and render audits. No C++ build, tests, or CI are needed for this documentation closeout. Keep 2010 and the Requirements Lab separate.
 
-**Next handoff:** have source owners select and publish a reviewed 2025 source/test revision, reconcile the two TCK targets on it, then recheck all 4,805 references and their meanings. Refresh the dependency audit; refresh the render audit only if diagram bodies change. The qualitative completion estimate remains 95% until this citation closeout is complete.
+**Next handoff:** have source owners select and publish a reviewed 2025 source/test revision, reconcile the two TCK targets on it, then recheck all 4,805 references and their meanings. `master` has no cited source targets, and the local feature tip is 230 commits ahead; neither is a safe shortcut. Refresh the dependency audit; refresh the render audit only if diagram bodies change. The qualitative completion estimate remains 95% until this citation closeout is complete.
 
 ## Current baseline
 

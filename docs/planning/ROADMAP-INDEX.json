@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 542",
+      "as_of": "2026-11-18 increment 543",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 542 compared the published documentation source revision, remote source branch, and advanced local primary branch. The candidate worktree resolves all 4,805 references; candidate and remote source HEAD resolve 4,796. Local primary 7fbf5c9f puts every line in range and contains seven semantically aligned citation regions, but its two TCK lines identify different behaviors. It is 230 commits ahead of its remote. Completion remains about 95%.",
-      "next_concrete_review": "Have source owners publish a reviewed 2025 source/test revision and reconcile the two TCK citations to the actual Federate-Lost scenario and post-loss update on that same revision. Then rerun all 4,805 path/line checks and verify every cited meaning. Do not use the unpublished 230-commit local primary tip as a citation base. Keep 2010 separate; do not edit the Requirements Lab.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set is published and the recorded revision-aware hosted hydration audit covers all 515. Nine source-line anchors remain out of range at published candidate and remote source HEAD; all nine match the candidate worktree. Local primary contains seven semantically aligned regions but the two TCK targets mismatch their described behavior and the branch is 230 commits ahead of remote. Close out after a reviewed source revision is published and all citations pass line and semantic checks. Nonregional receive-order push lacks focused DSE test evidence; hosted full-width chart review remains sampling-only.",
+      "latest_increment": "Increment 543 checked every published branch. Candidate and remote feature/initial-work source revisions still resolve 4,796/4,805 references. Local primary puts all references in range, with seven semantic regions aligned and two TCK targets mismatched; it is 230 commits ahead. Published master has none of the 4,805 source targets. The worktree resolves all references.",
+      "next_concrete_review": "Have source owners publish a reviewed 2025 source/test revision with the two TCK citations aligned to the Federate-Lost scenario and post-loss update. Rerun all 4,805 path/line checks and verify target meaning on that exact revision. Do not use master, which lacks the cited paths, or the unpublished 230-commit local tip. Keep 2010 separate; do not edit the Requirements Lab.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set is published, with the recorded revision-aware hosted audit covering all 515. Nine citations remain out of range at candidate and remote source HEAD; all resolve in the worktree. Local primary has seven semantically aligned citation regions but two mismatched TCK targets and is 230 commits ahead of remote. Master lacks every cited source target. Close out after a reviewed source revision is published and the full citation set passes line and semantic checks. Nonregional receive-order push evidence and full-width visual review remain bounded gaps.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 542",
-        "revision": "Candidate worktree based on published source revision 097a5156d5c75fd168c511153f2ba839e9c951f6 plus active, uncommitted source/test edits.",
+        "as_of": "2026-11-18 increment 543",
+        "revision": "Candidate worktree based on published source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 plus active, uncommitted source/test edits.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
         "unique_references": 4805,
         "resolved": 4805,
         "unresolved": 0,
-        "note": "The increment-542 worktree checker resolves all 4,805 references across 42 Markdown files. Increment 541's exact-line inspection confirmed all nine target meanings in the worktree; supporting source/test edits remain uncommitted."
+        "note": "The increment-543 worktree check resolves all 4,805 references across 42 Markdown files. Exact semantic windows for all nine worktree citations were verified at increment 541; source/test edits remain uncommitted."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 542",
-        "revision": "Published candidate source revision 097a5156d5c75fd168c511153f2ba839e9c951f6; candidate source files remain identical to source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d.",
-        "remote_branch_revision": "097a5156d5c75fd168c511153f2ba839e9c951f6",
+        "as_of": "2026-11-18 increment 543",
+        "revision": "Published candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4; source files remain identical to source-bearing revision 25b9055f9424fe73a391f758c2a53c3e35f15d0d.",
+        "remote_branch_revision": "6a3523d6cb460fec9b31422ee52dcefcfe403cf4",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4805,
@@ -1071,10 +1071,10 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2765"
         ],
-        "note": "The increment-542 checker finds nine out-of-range anchors in four target files. The remote candidate branch matched this source revision when checked; this increment changes documentation only."
+        "note": "The increment-543 checker finds nine out-of-range anchors in four target files. The remote candidate branch matched this source revision when checked; this checkpoint changes docs only."
       },
       "primary_head_reference_validation": {
-        "as_of": "2026-11-18 increment 542",
+        "as_of": "2026-11-18 increment 543",
         "revision": "Local feature/initial-work HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d; unpublished.",
         "scope": "Candidate documentation source-line references checked against local primary; bounds only.",
         "markdown_files": 42,
@@ -1082,10 +1082,10 @@
         "resolved": 4805,
         "unresolved": 0,
         "commits_ahead_of_remote_initial_work": 230,
-        "scope_note": "Bounds are all in range. Targeted review finds the host function, timeout branch, and five Catch2 behaviors match their intended citation regions. TCK lines 2389 and 2765 do not: they are an automatic delete-then-divest assertion and a fault-parameter lookup; the Federate-Lost scenario is at line 2607 and its post-loss update at line 2983. Do not use this unreviewed local branch as the docs citation target."
+        "scope_note": "All lines are in range. Targeted review finds the host function, timeout branch, and five Catch2 behaviors align with their intended citation regions. TCK lines 2389 and 2765 do not: they identify an automatic delete-then-divest assertion and a fault-parameter lookup. The Federate-Lost scenario is at line 2607 and its post-loss update at line 2983. This unpublished local branch is not a safe citation base."
       },
       "initial_work_reference_validation": {
-        "as_of": "2026-11-18 increment 542",
+        "as_of": "2026-11-18 increment 543",
         "revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180 (origin/feature/initial-work).",
         "scope": "Candidate docs source-line references checked against the remote initial-work revision.",
         "markdown_files": 42,
@@ -1095,8 +1095,8 @@
         "note": "The remote initial-work branch still lacks the same nine active 2025 source/test line ranges."
       },
       "semantic_source_anchor_review": {
-        "as_of": "2026-11-18 increment 542",
-        "revision": "Candidate source revision 097a5156d5c75fd168c511153f2ba839e9c951f6 plus active, uncommitted source/test edits in the candidate worktree.",
+        "as_of": "2026-11-18 increment 543",
+        "revision": "Published candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 plus active, uncommitted source/test edits in the candidate worktree.",
         "anchors_reviewed": 9,
         "result": "All nine worktree targets resolve and exact-line inspection matches the guide descriptions; published-source verification remains open.",
         "checks": [
@@ -1105,7 +1105,7 @@
           "The five Catch2 anchors identify the resume-history, inactive-session purge, reconnect-timeout, heartbeat-recovery, and history-gap cases.",
           "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2765 is the post-loss HLAfederatesInFederation conditional update in the candidate worktree."
         ],
-        "primary_revision_semantic_mismatch": "At local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d, TCK line 2389 is an automatic delete-then-divest assertion and line 2765 a fault-parameter lookup. The Federate-Lost scenario starts at line 2607 and its post-loss update at line 2983. Local primary is unpublished and 230 commits ahead of origin/feature/initial-work.",
+        "primary_revision_semantic_mismatch": "At local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d, TCK line 2389 is an automatic delete-then-divest assertion and line 2765 a fault-parameter lookup. The Federate-Lost scenario starts at line 2607 and its post-loss update is at line 2983. This branch is unpublished and 230 commits ahead of origin/feature/initial-work.",
         "status": "Provisional until a reviewed 2025 source/test revision is published and the two TCK citations are reconciled against it."
       },
       "standard_text_access_check": {
@@ -1361,8 +1361,8 @@
         "diagram_count": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "combined_method": "The recorded audit covers 515 diagrams across all 32 pages. Documentation-only commits through the candidate source revision changed no Mermaid bodies; increment 542 adds only progress prose.",
-        "current_candidate_revision": "097a5156d5c75fd168c511153f2ba839e9c951f6",
+        "combined_method": "The recorded audit covers 515 diagrams across all 32 pages. Documentation-only candidate commits through source revision 6a3523d6 changed no Mermaid bodies; increment 543 adds only prose about source-branch evidence.",
+        "current_candidate_revision": "6a3523d6cb460fec9b31422ee52dcefcfe403cf4",
         "diagram_bodies_changed_since_audited_revision": false,
         "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a"
       },
@@ -1388,6 +1388,16 @@
         "unresolved": 0,
         "commits_ahead_of_remote_initial_work": 18,
         "scope_note": "Not a safe citation target. tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion; #L2765 is a fault-parameter lookup; the Federate-Lost MOM scenario starts at L2607 and its post-loss update is at L2983. The local branch is unpublished and 18 commits ahead of origin/feature/initial-work."
+      },
+      "master_branch_reference_validation": {
+        "as_of": "2026-11-18 increment 543",
+        "revision": "Published origin/master HEAD e1f0f61ab6371d978375c26283aa7f6a2b5bdde9.",
+        "scope": "All 4,805 source-line references across 42 current IEEE 1516.1-2025 Markdown files.",
+        "references_checked": 4805,
+        "resolved": 0,
+        "unresolved": 4805,
+        "missing_target_files": 702,
+        "interpretation": "This branch lacks the cited 2025 source/test paths and is not a viable citation base."
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
