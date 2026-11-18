@@ -5152,10 +5152,18 @@
         "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
         "RTIambassador.attributeOwnershipDivestitureIfWanted",
         "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.confirmDivestiture",
         "RTIambassador.cancelNegotiatedAttributeOwnershipDivestiture",
         "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipReleaseDenied",
         "RTIambassador.cancelAttributeOwnershipAcquisition",
+        "RTIambassador.getObjectInstanceHandleFactory",
+        "ObjectInstanceHandleFactory.decode",
+        "RTIambassador.getAttributeHandleFactory",
+        "AttributeHandleFactory.decode",
         "FederateAmbassador.informAttributeOwnership",
+        "FederateAmbassador.attributeIsNotOwned",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
         "FederateAmbassador.attributeOwnershipAcquisitionNotification",
         "FederateAmbassador.attributeOwnershipUnavailable",
         "FederateAmbassador.confirmAttributeOwnershipAcquisitionCancellation"
@@ -5163,6 +5171,7 @@
       "requirement_ids": [
         "java-1516.1-ownership-management"
       ],
+      "mapping_note": "This aggregate case uses the repository-internal java-1516.1-ownership-management identifier and makes no direct requirement-to-canonical-IEEE-1516.1-2025-section claim. Its paired C++ case likewise carries internal cpp-1516.1-* identifiers; the cross-language link records bounded assertion parity only.",
       "contract_refs": [
         "attribute-ownership-query-api-contract.json",
         "attribute-ownership-query-requirements-contract.json",
@@ -5181,11 +5190,16 @@
         "unconditional-attribute-ownership-divestiture-api-contract.json",
         "unconditional-attribute-ownership-divestiture-requirements-contract.json",
         "ownership-assumption-research-api-contract.json",
-        "ownership-assumption-research-requirements-contract.json"
+        "ownership-assumption-research-requirements-contract.json",
+        "standard-ownership-management-contract.json",
+        "standard-ownership-service-boundaries-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#ownershipManagement",
+      "parity": "cpp-tck.ownership-service-boundaries",
+      "parity_scope_note": "The Java case now mirrors the paired C++ case's NotConnected and FederateNotExecutionMember lifecycle exceptions; unknown-object checks across ownership services; undefined-attribute query/status failures; no-pending and pending If Wanted outcomes; unconditional-divestiture assumption and unowned callbacks; If Available ownership/tag behavior; release denial; and acquisition/divestiture cancellation. Post-join unknown handles are well-formed decoded handles derived from issued encodings. This note records those bounded assertions and does not claim unrelated or provider-independent coverage.",
       "default_status": "run",
-      "exclusion": "Requires a transfer-capable FOM and a provider profile that enables ownership; the Java source uses only standard ownership APIs."
+      "exclusion": "Requires a transfer-capable FOM and a provider profile that enables ownership; the Java source uses only standard ownership APIs.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. With p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject.Value, the current-source Umbra JNI provider, and --run-unverified, the focused Java scenario passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE. Results are in .build/java-tck-20261117/ownership-boundary-hla_{evoked,immediate}.{results.json,junit.xml}. This is local-provider execution evidence only; it does not establish independent-provider behavior, interoperability, or conformance."
     },
     {
       "id": "java-tck.partial-attribute-ownership-transfer",
