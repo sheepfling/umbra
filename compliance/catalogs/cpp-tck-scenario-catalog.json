@@ -47195,7 +47195,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.6"
         }
       ],
-      "mapping_note": "Direct §7.1 p148-l112 is limited to this negotiated path: the owner requests divestiture, the non-owner requests acquisition, and ownership transfers only after the owner confirms; this does not claim every ownership-transfer route. Direct §7.5 p158-l50 witness: after the owner offers negotiated divestiture and a new owner requests both attributes, the current owner receives Request Divestiture Confirmation with the object, full set, and acquisition tag, so it may choose whether to complete the transfer. Direct §7.5 p158-l71 witness: invocation of negotiated divestiture and the later acquisition request do not remove ownership before confirmation. Direct §7.5 p158-l77 witness: one Attribute Ownership Acquisition call for the two qualifying attributes produces exactly one confirmation invocation containing both. Direct §7.5.4 p159-l20 witness: after the owner confirms, it no longer owns either attribute and the requester receives one full-set acquisition notification and owns both. Direct §7.6 p159-l47 and l50 witness: Confirm Divestiture is invoked for the complete offered set, after which the former owner owns neither specified attribute and the requester receives the acquisition notification. Adapter supplies the two-attribute FOM. The contract twin reuses the primary behavior; exact Java callback-coalescing parity, provider independence, and conformance are not claimed.",
+      "mapping_note": "Direct §7.1 p148-l112 is limited to this negotiated path: the owner requests divestiture, the non-owner requests acquisition, and ownership transfers only after the owner confirms; this does not claim every ownership-transfer route. Direct §7.5 p158-l50 witness: after the owner offers negotiated divestiture and a new owner requests both attributes, the current owner receives Request Divestiture Confirmation with the object, full set, and acquisition tag, so it may choose whether to complete the transfer. Direct §7.5 p158-l71 witness: invocation of negotiated divestiture and the later acquisition request do not remove ownership before confirmation. Direct §7.5 p158-l77 witness: one Attribute Ownership Acquisition call for the two qualifying attributes produces exactly one confirmation invocation containing both. Direct §7.5.4 p159-l20 witness: after the owner confirms, it no longer owns either attribute and the requester receives one full-set acquisition notification and owns both. Direct §7.6 p159-l47 and l50 witness: Confirm Divestiture is invoked for the complete offered set, after which the former owner owns neither specified attribute and the requester receives the acquisition notification. Adapter supplies the two-attribute FOM. The contract twin reuses the primary behavior; the exact Java callback-coalescing counterpart passed under both declared callback models against the local JNI provider; independent-provider behavior, interoperability, and conformance remain unverified.",
       "contract_refs": [
         "negotiated-attribute-ownership-divestiture-api-contract.json",
         "negotiated-attribute-ownership-divestiture-requirements-contract.json",
@@ -47204,7 +47204,8 @@
       ],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioNegotiatedDivestitureConfirmationCoalescing",
       "runner_id": "cpp-tck.negotiated-divestiture-confirmation-coalescing",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.negotiated-divestiture-confirmation-coalescing",
+      "parity_scope_note": "The Java counterpart is scoped to the two-attribute negotiated path: one full-set confirmation callback with the acquisition tag, retained ownership before confirmation, and complete transfer after confirmation. Focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; this is not independent-provider interoperability or conformance evidence.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -47275,7 +47276,7 @@
           "standard_section": "hla-1516.1-2025:clause-7.6"
         }
       ],
-      "mapping_note": "Contract twin runs the same public C++ scenario and repeats the §7.1 p148-l112 negotiated transfer path (owner divestiture request and non-owner acquisition request, then owner confirmation and transfer), the full-set confirmation count and metadata, retained pre-confirmation ownership, and post-confirmation transfer assertions. It does not establish every ownership-transfer route and is not independent evidence; adapter supplies the two-attribute FOM.",
+      "mapping_note": "Contract twin runs the same public C++ scenario and repeats the §7.1 p148-l112 negotiated transfer path (owner divestiture request and non-owner acquisition request, then owner confirmation and transfer), the full-set confirmation count and metadata, retained pre-confirmation ownership, and post-confirmation transfer assertions. It does not establish every ownership-transfer route and is not independent evidence; adapter supplies the two-attribute FOM. Exact Java counterpart: java-tck.negotiated-divestiture-confirmation-coalescing. Its focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; these results do not establish independent-provider interoperability or conformance.",
       "contract_refs": [
         "negotiated-attribute-ownership-divestiture-api-contract.json",
         "negotiated-attribute-ownership-divestiture-requirements-contract.json",
@@ -47284,7 +47285,8 @@
       ],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioNegotiatedDivestitureConfirmationCoalescingContract",
       "runner_id": "cpp-tck.negotiated-divestiture-confirmation-coalescing-contract",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.negotiated-divestiture-confirmation-coalescing",
+      "parity_scope_note": "This contract twin runs the primary behavior, and its Java counterpart is java-tck.negotiated-divestiture-confirmation-coalescing. Focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; these results do not establish independent-provider interoperability or conformance.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -47683,13 +47685,14 @@
           "standard_section": "hla-1516.1-2025:clause-7.11"
         }
       ],
-      "mapping_note": "Direct §7.11 p166-l14 and l20 witnesses: a public Attribute Ownership Acquisition call for the specified object and two published attributes causes the current owner to receive Request Attribute Ownership Release with that object and complete attribute set. Direct p166-l20 acquisition-result witness: the release callback occurs only after the acquisition request. Direct p166-l41 witness: after draining both callback queues, exactly one release callback contains both qualifying attributes for that one acquisition call. The owner retains both attributes until unconditional divestiture; the requester then receives one complete acquisition notification. Adapter supplies the two-attribute FOM. The contract twin reuses the primary behavior; Java provider behavior, independent-provider testing, and conformance are not claimed.",
+      "mapping_note": "Direct §7.11 p166-l14 and l20 witnesses: a public Attribute Ownership Acquisition call for the specified object and two published attributes causes the current owner to receive Request Attribute Ownership Release with that object and complete attribute set. Direct p166-l20 acquisition-result witness: the release callback occurs only after the acquisition request. Direct p166-l41 witness: after draining both callback queues, exactly one release callback contains both qualifying attributes for that one acquisition call. The owner retains both attributes until unconditional divestiture; the requester then receives one complete acquisition notification. Adapter supplies the two-attribute FOM. The contract twin reuses the primary behavior; the exact Java counterpart passed under both declared callback models against the local JNI provider; independent-provider behavior, interoperability, and conformance remain unverified.",
       "contract_refs": [
         "standard-callback-controls-ownership-release-request-contract.json"
       ],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioAttributeOwnershipReleaseCoalescing",
       "runner_id": "cpp-tck.attribute-ownership-release-coalescing",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.attribute-ownership-release-coalescing",
+      "parity_scope_note": "The Java counterpart is scoped to the two-attribute acquisition path: one complete release-request callback with the acquisition tag, retained ownership before divestiture, and complete acquisition notification after divestiture. Focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; this is not independent-provider interoperability or conformance evidence.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -47738,13 +47741,14 @@
           "standard_section": "hla-1516.1-2025:clause-7.11"
         }
       ],
-      "mapping_note": "Contract twin repeats the exact public-API acquisition, single complete Request Attribute Ownership Release callback, retained pre-divestiture ownership, and full-set acquisition notification. It shares the primary scenario and is not independent evidence.",
+      "mapping_note": "Contract twin repeats the exact public-API acquisition, single complete Request Attribute Ownership Release callback, retained pre-divestiture ownership, and full-set acquisition notification. It shares the primary scenario and is not independent evidence. Exact Java counterpart: java-tck.attribute-ownership-release-coalescing. Its focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; these results do not establish independent-provider interoperability or conformance.",
       "contract_refs": [
         "standard-callback-controls-ownership-release-request-contract.json"
       ],
       "cpp_test": "src/tck_ownership_assumption_search.cpp#scenarioAttributeOwnershipReleaseCoalescingContract",
       "runner_id": "cpp-tck.attribute-ownership-release-coalescing-contract",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.attribute-ownership-release-coalescing",
+      "parity_scope_note": "This contract twin runs the primary behavior, and its Java counterpart is java-tck.attribute-ownership-release-coalescing. Focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI; these results do not establish independent-provider interoperability or conformance.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

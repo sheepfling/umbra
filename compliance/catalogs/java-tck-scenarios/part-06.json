@@ -5752,6 +5752,91 @@
       "promotion": "promoted"
     },
     {
+      "id": "java-tck.attribute-ownership-release-coalescing",
+      "category": "ownership",
+      "title": "Deliver one complete release-request callback for one multi-attribute acquisition",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l14-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3-acquisition-result",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-166-l14-1",
+          "standard_section": "hla-1516.1-2025:clause-7.11",
+          "note": "One acquisition call naming the object and two published attributes leads to a release request at the current owner."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3",
+          "standard_section": "hla-1516.1-2025:clause-7.11",
+          "note": "The release request contains the object and complete requested attribute set while the current owner retains both attributes."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3-acquisition-result",
+          "standard_section": "hla-1516.1-2025:clause-7.11",
+          "note": "After unconditional divestiture, the requester receives the acquisition notification with the original acquisition tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10",
+          "standard_section": "hla-1516.1-2025:clause-7.11",
+          "note": "After draining both evoked callback queues, the single two-attribute acquisition has produced exactly one full-set release request."
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the four listed §7.11 witnesses: one public acquisition request produces one release callback containing the complete set and acquisition tag; ownership remains with the owner until divestiture; the requester then receives one complete acquisition notification. The two-attribute FOM and callback coalescing assertion are bounded to this path and make no general conformance claim.",
+      "contract_refs": [
+        "standard-callback-controls-ownership-release-request-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipReleaseCoalescing",
+      "parity": "cpp-tck.attribute-ownership-release-coalescing",
+      "default_status": "run",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue. Results/JUnit: .build/java-tck-20261117/attribute-ownership-release-coalescing-evoked.results.json, .build/java-tck-20261117/attribute-ownership-release-coalescing-evoked.junit.xml, and the corresponding -immediate files. These local-provider results do not establish independent-provider behavior, interoperability, or conformance.",
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.11"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "hla.rti.tck.multiAttributeFom with HLAobjectRoot.TckMultiAttributeObject.FirstValue and SecondValue",
+        "provider logical-time implementation and callback model"
+      ],
+      "promotion": "promoted",
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l14-1",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3-acquisition-result",
+        "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10"
+      ],
+      "parity_scope_note": "This Java scenario directly mirrors the C++ primary and contract twin: one acquisition of both attributes yields one full-set release callback with its acquisition tag; ownership stays with the owner until divestiture; the requester receives one complete acquisition notification. Both callback models passed against local JNI. Independent-provider behavior, interoperability, and conformance are unverified."
+    },
+    {
       "id": "java-tck.ownership-transfer-regional-update",
       "category": "ownership-transfer-regional-update",
       "title": "Clear former-owner regional update state at ownership transfer and require explicit reassociation",
@@ -8042,6 +8127,119 @@
       "adapter_inputs": [
         "adapter-supplied FOM defining the configured object class and attribute",
         "logical-time implementation and HLA_EVOKED or HLA_IMMEDIATE callback model"
+      ],
+      "mapping_classification": "direct-requirement-mapped",
+      "promotion": "promoted"
+    },
+    {
+      "id": "java-tck.negotiated-divestiture-confirmation-coalescing",
+      "category": "ownership",
+      "title": "Deliver one full-set confirmation callback for one multi-attribute acquisition",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.negotiatedAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.confirmDivestiture",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestDivestitureConfirmation",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l20-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l47-9",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l50-10"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
+        "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l20-3",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l47-9",
+        "requirement-candidate-content-clauses-07-ownership-management-page-159-l50-10"
+      ],
+      "standard_sections": [
+        "hla-1516.1-2025:clause-7.1",
+        "hla-1516.1-2025:clause-7.5",
+        "hla-1516.1-2025:clause-7.5.4",
+        "hla-1516.1-2025:clause-7.6"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35",
+          "standard_section": "hla-1516.1-2025:clause-7.1",
+          "note": "The owner offers negotiated divestiture and a non-owner requests the two offered attributes; transfer waits for confirmation."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
+          "standard_section": "hla-1516.1-2025:clause-7.5",
+          "note": "The owner receives one confirmation callback with the object, complete attribute set, and acquisition tag."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
+          "standard_section": "hla-1516.1-2025:clause-7.5",
+          "note": "Negotiated offer and acquisition request do not transfer ownership before the owner confirms."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
+          "standard_section": "hla-1516.1-2025:clause-7.5",
+          "note": "One acquisition call for both attributes yields exactly one confirmation callback containing the complete set."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l20-3",
+          "standard_section": "hla-1516.1-2025:clause-7.5.4",
+          "note": "After confirmation, the requester receives one complete acquisition notification and owns both attributes."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l47-9",
+          "standard_section": "hla-1516.1-2025:clause-7.6",
+          "note": "Confirm Divestiture is invoked for the complete offered set before ownership changes."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-07-ownership-management-page-159-l50-10",
+          "standard_section": "hla-1516.1-2025:clause-7.6",
+          "note": "After confirmation, the former owner owns neither offered attribute and the requester owns both."
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to the listed §7.1, §7.5, §7.5.4, and §7.6 witnesses for this negotiated path. The two-attribute callback coalescing check does not claim every ownership transfer route or exhaustive conformance.",
+      "contract_refs": [
+        "negotiated-attribute-ownership-divestiture-api-contract.json",
+        "negotiated-attribute-ownership-divestiture-requirements-contract.json",
+        "negotiated-divestiture-confirmation-flow-api-contract.json",
+        "negotiated-divestiture-confirmation-flow-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#negotiatedDivestitureConfirmationCoalescing",
+      "parity": "cpp-tck.negotiated-divestiture-confirmation-coalescing",
+      "parity_scope_note": "This Java scenario directly mirrors the C++ primary and contract twin: it checks the single full-set confirmation callback, the acquisition tag, retained ownership before confirmation, and complete transfer after confirmation. Both callback models passed against local JNI. Independent-provider behavior, interoperability, and conformance are unverified.",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/ddm-multi-attribute-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckMultiAttributeObject.FirstValue/SecondValue. Results/JUnit: .build/java-tck-20261117/negotiated-divestiture-confirmation-coalescing-evoked.results.json, .build/java-tck-20261117/negotiated-divestiture-confirmation-coalescing-evoked.junit.xml, and the corresponding -immediate files. These local-provider results do not establish independent-provider behavior, interoperability, or conformance.",
+      "default_status": "run",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "hla.rti.tck.multiAttributeFom with HLAobjectRoot.TckMultiAttributeObject.FirstValue and SecondValue",
+        "provider logical-time implementation and callback model"
       ],
       "mapping_classification": "direct-requirement-mapped",
       "promotion": "promoted"

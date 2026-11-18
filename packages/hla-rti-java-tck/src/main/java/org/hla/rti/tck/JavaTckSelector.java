@@ -1697,6 +1697,8 @@ final class JavaTckSelector {
             method = "unconditionalAttributeOwnershipDivestiture"; break;
          case "java-tck.unconditional-divestiture-assumption-coalescing":
             method = "unconditionalDivestitureAssumptionCoalescing"; break;
+         case "java-tck.attribute-ownership-release-coalescing":
+            method = "attributeOwnershipReleaseCoalescing"; break;
          case "java-tck.ownership-acquisition-publication-fence":
             method = "ownershipAcquisitionPublicationFence"; break;
          case "java-tck.acquisition-publication-guard-unavailable":
@@ -1763,6 +1765,8 @@ final class JavaTckSelector {
             method = "negotiatedDivestitureDuplicateRequest"; break;
          case "java-tck.negotiated-divestiture-if-wanted-completion":
             method = "negotiatedDivestitureIfWantedCompletion"; break;
+         case "java-tck.negotiated-divestiture-confirmation-coalescing":
+            method = "negotiatedDivestitureConfirmationCoalescing"; break;
           case "java-tck.negotiated-divestiture-confirmation-flow":
              method = "negotiatedDivestitureConfirmationFlow"; break;
          case "java-tck.negotiated-willing-to-acquire-continuation":

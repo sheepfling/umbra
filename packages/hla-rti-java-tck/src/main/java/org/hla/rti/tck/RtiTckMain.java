@@ -6097,6 +6097,16 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-07-ownership-management-page-157-l103-29"
             }, true),
          RtiTckMain::unconditionalDivestitureAssumptionCoalescing);
+      run(new Scenario("java-tck.attribute-ownership-release-coalescing",
+            "deliver one full-set release-request callback for one multi-attribute acquisition",
+            "ownership",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-166-l14-1",
+               "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3",
+               "requirement-candidate-content-clauses-07-ownership-management-page-166-l20-3-acquisition-result",
+               "requirement-candidate-content-clauses-07-ownership-management-page-166-l41-10"
+            }, true), RtiTckMain::attributeOwnershipReleaseCoalescing);
       run(new Scenario("java-tck.ownership-acquisition-publication-fence",
             "enforce known-class publication, pending acquisition, and exact ownership transfer",
             "ownership",
@@ -6396,6 +6406,19 @@ public final class RtiTckMain {
                "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
                "requirement-candidate-content-clauses-06-object-management-page-122-l112-34"
             }, true), RtiTckMain::negotiatedDivestitureConfirmationFlow);
+      run(new Scenario("java-tck.negotiated-divestiture-confirmation-coalescing",
+            "deliver one full-set confirmation callback for one multi-attribute acquisition",
+            "ownership",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "requirement-candidate-content-clauses-07-ownership-management-page-148-l112-35",
+               "requirement-candidate-content-clauses-07-ownership-management-page-158-l50-10",
+               "requirement-candidate-content-clauses-07-ownership-management-page-158-l71-17",
+               "requirement-candidate-content-clauses-07-ownership-management-page-158-l77-19",
+               "requirement-candidate-content-clauses-07-ownership-management-page-159-l20-3",
+               "requirement-candidate-content-clauses-07-ownership-management-page-159-l47-9",
+               "requirement-candidate-content-clauses-07-ownership-management-page-159-l50-10"
+            }, true), RtiTckMain::negotiatedDivestitureConfirmationCoalescing);
       run(new Scenario("java-tck.negotiated-willing-to-acquire-continuation",
             "continue negotiated divestiture with the next willing-to-acquire candidate after the first candidate cancels",
             "ownership",
@@ -10566,6 +10589,13 @@ public final class RtiTckMain {
          callbackModel());
    }
 
+   private static void attributeOwnershipReleaseCoalescing() throws Exception {
+      AttributeOwnershipReleaseCoalescingTck.run(factory(),
+         requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY), timeImplementation(),
+         multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+         callbackModel());
+   }
+
    private static void ownershipAcquisitionPublicationFence() throws Exception {
       OwnershipAcquisitionPublicationFenceTck.run(factory(),
          requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY),
@@ -10767,6 +10797,13 @@ public final class RtiTckMain {
    private static void negotiatedDivestitureConfirmationFlow() throws Exception {
       NegotiatedDivestitureConfirmationFlowTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void negotiatedDivestitureConfirmationCoalescing() throws Exception {
+      NegotiatedDivestitureConfirmationCoalescingTck.run(factory(),
+         requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY), timeImplementation(),
+         multiAttributeObjectClassName(), multiAttributeFirstName(), multiAttributeSecondName(),
+         callbackModel());
    }
 
    private static void negotiatedWillingToAcquireContinuation() throws Exception {
