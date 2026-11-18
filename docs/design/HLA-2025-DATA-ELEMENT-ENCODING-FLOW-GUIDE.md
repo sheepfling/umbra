@@ -266,14 +266,16 @@ while an element keeps the byte order of its own type.
 
 Alignment is relative to the beginning of the composite, not the absolute
 cursor in a containing byte vector. The containing value aligns the composite
-as one child; inside a fixed record, field offsets are tracked from the record's
-local origin. Fixed and variable arrays pad between elements to the prototype
-element's boundary. A non-empty variable array has one additional prefix rule:
-after its four-octet count, it inserts zero padding to the array boundary
+as one child. A fixed record walks fields in declaration order and pads after
+each non-final field so the *next field* begins at that next field's boundary,
+measured from the record's local origin. Fixed and variable arrays have one
+prototype boundary for every element, so they pad between elements to that
+boundary. A non-empty variable array has an additional prefix rule: after its
+four-octet count, it inserts zero padding to the array boundary
 (`max(4, prototype boundary)`) before the first element. An empty variable array
 ends immediately after the count. Decoding verifies each required padding
 octet is zero. These 2025 implementations do not append inter-element padding
-after the final child.
+after the final field or element.
 
 Here, “octet boundary” and “alignment” describe serialized layout—not C++
 `alignof`, an object's address in memory, native struct padding, or private
@@ -282,8 +284,10 @@ process-frame alignment. Each element reports its encoding boundary through
 For `decodeFrom`, the returned cursor is an index into the shared byte vector,
 but the composite's internal padding pattern is measured from that composite's
 start. A prefix byte therefore changes the returned index, not the shape of
-the nested value. The fixed-record codec maintains a record-local offset, and
-the array codecs use the child encoding length for inter-element padding
+the nested value. The fixed-record codec keeps a record-local offset even when
+decoding begins at a nonzero shared-buffer cursor; it aligns the next field,
+not the field just decoded. The array codecs use the child encoding length for
+inter-element padding
 ([fixed record](../../cpp/src/ieee1516_2025_fixed_record.cpp#L138),
 [fixed array](../../cpp/src/ieee1516_2025_fixed_array.cpp#L177),
 [variable array](../../cpp/src/ieee1516_2025_variable_array.cpp#L210)). This
@@ -292,28 +296,54 @@ rules, not inferred from a matching-looking C++ container or struct.
 
 ```mermaid
 flowchart TD
-  S[Start composite at cursor] --> K{Composite kind}
-  K -->|fixed record| R[Ordered fields]
-  K -->|fixed array| A[Fixed count of prototype-compatible elements]
-  K -->|variable array| C[Read or write signed HLAinteger32BE count]
-  R --> H{Any children?}
-  A --> H
-  H -->|no| F[Return cursor]
-  H -->|yes| V[Delegate first child value bytes]
-  C --> N{Count valid?}
-  N -->|negative or too large| E[Reject]
-  N -->|zero| Z[Return immediately after count]
-  N -->|positive| L[Pad after count to max of 4 and prototype boundary]
-  L --> V
-  V --> P{More children?}
-  P -->|yes| B[Pad to next child boundary;<br/>decode verifies zero octets]
-  B --> V
-  P -->|no| F[Return final cursor;<br/>no padding after final child]
+  S[Enter composite at caller cursor] --> K{Composite kind?}
+  K -->|fixed record| R0
+  K -->|fixed array| A0
+  K -->|variable array| C
+
+  subgraph Record[Fixed record]
+    direction TB
+    R0[Start record-local offset at zero] --> RN{Any fields?}
+    RN -->|yes| R[Encode or decode next field in declaration order]
+    RN -->|no| RE[Return cursor; no padding after final field]
+    R --> RM{More fields?}
+    RM -->|yes| RP[Pad so next field starts on its own boundary;<br/>decode checks zero padding]
+    RP --> R
+    RM -->|no| RE
+  end
+
+  subgraph FixedArray[Fixed array]
+    direction TB
+    A0[Use fixed count and prototype boundary] --> AN{Any elements?}
+    AN -->|yes| A[Encode or decode next element]
+    AN -->|no| AE[Return cursor; no padding after final element]
+    A --> AM{More elements?}
+    AM -->|yes| AP[Pad to prototype boundary;<br/>decode checks zero padding]
+    AP --> A
+    AM -->|no| AE
+  end
+
+  subgraph VariableArray[Variable array]
+    direction TB
+    C[Read or write signed HLAinteger32BE count] --> N{Count valid?}
+    N -->|negative or too large| E[Reject]
+    N -->|zero| Z[Return just after count]
+    N -->|positive| L[Pad after count to max of 4 and prototype boundary;<br/>decode checks zero padding]
+    L --> V[Encode or decode next element]
+    V --> VM{More elements?}
+    VM -->|yes| VP[Pad to prototype boundary;<br/>decode checks zero padding]
+    VP --> V
+    VM -->|no| VE[Return cursor; no padding after final element]
+  end
 ```
 
 This boundary is observable in the [fixed-record codec](../../cpp/src/ieee1516_2025_fixed_record.cpp#L138),
 [fixed-array codec](../../cpp/src/ieee1516_2025_fixed_array.cpp#L177), and
 [variable-array codec](../../cpp/src/ieee1516_2025_variable_array.cpp#L210).
+The [fixed-record vector](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L505)
+checks declaration order, padding for the next field's boundary, a nonzero
+starting cursor, malformed and truncated padding, trailing-data rejection,
+and reversed field order with a different encoded size.
 The [fixed-array test](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L612)
 checks fixed cardinality, record-shaped elements, zero inter-element padding,
 and decoding from a nonzero cursor. The [variable-array test](../../cpp/tests/ieee1516_2025_basic_data_elements_catch2.cpp#L723)

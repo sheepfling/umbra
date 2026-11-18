@@ -1035,21 +1035,21 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 543",
+      "as_of": "2026-11-18 increment 547",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 543 checked every published branch. Candidate and remote feature/initial-work source revisions still resolve 4,796/4,805 references. Local primary puts all references in range, with seven semantic regions aligned and two TCK targets mismatched; it is 230 commits ahead. Published master has none of the 4,805 source targets. The worktree resolves all references.",
-      "next_concrete_review": "Have source owners publish a reviewed 2025 source/test revision with the two TCK citations aligned to the Federate-Lost scenario and post-loss update. Rerun all 4,805 path/line checks and verify target meaning on that exact revision. Do not use master, which lacks the cited paths, or the unpublished 230-commit local tip. Keep 2010 separate; do not edit the Requirements Lab.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set is published, with the recorded revision-aware hosted audit covering all 515. Nine citations remain out of range at candidate and remote source HEAD; all resolve in the worktree. Local primary has seven semantically aligned citation regions but two mismatched TCK targets and is 230 commits ahead of remote. Master lacks every cited source target. Close out after a reviewed source revision is published and the full citation set passes line and semantic checks. Nonregional receive-order push evidence and full-width visual review remain bounded gaps.",
+      "latest_increment": "Increment 547 audited 2025 composite shape and alignment against the fixed-record, fixed-array, variable-array, and variant codecs and existing focused vectors. Data Element Encoding #005 now distinguishes record-local next-field alignment from array prototype-boundary alignment; Mermaid CLI 12.0.0 rendered the revised chart and the local screenshot was reviewed. The worktree link checker resolves 4,806/4,806 references across 42 2025 Markdown files. The revised chart awaits publication and hosted review; the documentation goal remains approximately 95% complete, with source-citation closeout outstanding.",
+      "next_concrete_review": "Publish the docs-only increment and inspect Data Element Encoding #005 on GitHub, then update its hosted hydration/layout evidence. Separately, have source owners publish a reviewed 2025 source/test revision; align the two TCK citations with the Federate-Lost scenario and post-loss update, reconcile the nine moved source anchors, and recheck all 4,806 references and their meanings at that exact revision. Keep 2010 separate and do not edit the Requirements Lab.",
+      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams; all current bodies have local render/screenshot evidence, and the previously published revision has 515/515 hosted hydration. Seventy-three selected diagrams have hosted visual reviews; the revised Data Element #005 awaits hosted review. The worktree link checker resolves 4,806/4,806 references. At published source HEAD, nine existing anchors are out of range and two TCK targets need semantic alignment; the source-owner review/publication and exact-revision recheck remain the final citation gate. Nonregional receive-order push evidence remains explicitly source-only. Keep 2010 and Requirements Lab separate.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 543",
-        "revision": "Candidate worktree based on published source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 plus active, uncommitted source/test edits.",
+        "as_of": "2026-11-18 increment 547",
+        "revision": "Current candidate documentation worktree, based on published candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 plus active source/test edits.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
-        "unique_references": 4805,
-        "resolved": 4805,
+        "unique_references": 4806,
+        "resolved": 4806,
         "unresolved": 0,
-        "note": "The increment-543 worktree check resolves all 4,805 references across 42 Markdown files. Exact semantic windows for all nine worktree citations were verified at increment 541; source/test edits remain uncommitted."
+        "note": "The increment-547 check includes the new fixed-record test citation at line 505. Candidate HEAD reference validation will be refreshed after this documentation increment is published."
       },
       "candidate_head_reference_validation": {
         "as_of": "2026-11-18 increment 543",
