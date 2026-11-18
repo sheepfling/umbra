@@ -1747,10 +1747,14 @@ and standard MIM; independent-provider conformance is not claimed.
 
 The default-run `java-tck.fom-dimension-default-range` case rejects a FOM
 default range extending beyond its dimension's upper bound and accepts the
-exact boundary through public Create and dimension lookups. It passed
-installed-provider evoked and immediate runs with adapter-supplied FOM modules
-and standard MIM. This is the §6.2.7 FOM subset; the C++ case's separate
-§9.1.1 region-boundary assertions are not claimed here.
+exact boundary through public Create and dimension lookups. It checks the
+FOM-supplied `[0, upperBound)` region range before and after commit, round-trips
+the minimum `[0,1)` interval, rejects `[1,1)`, and recommits an explicit full
+range. The case passed under both callback models with the freshly built
+current-source Umbra JNI provider. An earlier attempt with a stale November 3
+JNI bundle failed at region commit and is superseded by the current-source
+results. Object and interaction routing from the C++ scenario remain outside
+this case.
 
 The default-run `java-tck.fom-synchronization-duplicate-equal` and
 `java-tck.fom-synchronization-duplicate-note-conflict` cases cover Annex C.5

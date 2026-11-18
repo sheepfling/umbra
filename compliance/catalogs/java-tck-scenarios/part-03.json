@@ -3099,7 +3099,7 @@
     {
       "id": "java-tck.fom-dimension-default-range",
       "category": "fom-composition",
-      "title": "Reject dimension default ranges beyond upperBound",
+      "title": "Check FOM dimension defaults and public region range boundaries",
       "api_methods": [
         "RTIambassador.connect",
         "RTIambassador.createFederationExecutionWithMIM",
@@ -3107,6 +3107,20 @@
         "RTIambassador.getDimensionHandle",
         "RTIambassador.getDimensionName",
         "RTIambassador.getDimensionUpperBound",
+        "RTIambassador.getDimensionHandleSetFactory",
+        "DimensionHandleSetFactory.create",
+        "DimensionHandleSet.add",
+        "RTIambassador.createRegion",
+        "RegionHandle.encodedLength",
+        "RTIambassador.getRangeBounds",
+        "RTIambassador.setRangeBounds",
+        "RangeBounds.<init>",
+        "RangeBounds.lower/upper",
+        "RTIambassador.getRegionHandleSetFactory",
+        "RegionHandleSetFactory.create",
+        "RegionHandleSet.add",
+        "RTIambassador.commitRegionModifications",
+        "RTIambassador.deleteRegion",
         "RTIambassador.resignFederationExecution",
         "RTIambassador.destroyFederationExecution",
         "RTIambassador.disconnect"
@@ -3115,25 +3129,50 @@
         "cpp-1516.2-fom-composition-and-reference-resolution"
       ],
       "selected_requirements_lab_requirement_ids": [
-        "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5"
+        "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5",
+        "requirement-candidate-sections-semantic-clauses-5-6-page-093-l22-4",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l54-15",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair",
+        "requirement-candidate-content-clauses-08-time-management-page-216-l93-28"
       ],
       "standard_sections": [
-        "hla-1516.2-2025:clause-6.2.7"
+        "hla-1516.2-2025:clause-6.2.7",
+        "hla-1516.1-2025:clause-9.1.1"
       ],
       "requirement_mappings": [
         {
           "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l26-5",
           "standard_section": "hla-1516.2-2025:clause-6.2.7"
+        },
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clauses-5-6-page-093-l22-4",
+          "standard_section": "hla-1516.2-2025:clause-6.2.7",
+          "note": "The selected valid dimension exposes the positive integer upper bound 100 exactly through the public query."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "The Java witness queries the FOM-supplied region interval, round-trips the minimum valid [0,1) interval, and rejects the zero-width [1,1) interval."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l54-15-ordered-pair",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "The Java witness checks lower and upper endpoints in order for [0,1) and [0,upperBound)."
+        },
+        {
+          "requirement_id": "requirement-candidate-content-clauses-08-time-management-page-216-l93-28",
+          "standard_section": "hla-1516.1-2025:clause-9.1.1",
+          "note": "The scenario queries the FOM-supplied [0, upperBound) range before and after commit, then checks that an explicit full-range override preserves it."
         }
       ],
-      "mapping_note": "Standard Java API parity for the FOM §6.2.7 subset: out-of-range [0..101) rejection and exact-boundary [0..100) acceptance with upperBound 100. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-default-range-20261021.json; the C++ primary additionally checks §9.1.1 region bounds, which this Java scenario does not claim. Independent-provider conformance is not claimed.",
+      "mapping_note": "Java checks the FOM §6.2.7 subset (reject [0..101), accept [0..100), and query the positive upperBound 100) and a bounded §9.1.1 region-range witness: a new region reports [0, upperBound) before and after commit, accepts and round-trips [0,1), rejects zero-width [1,1), and preserves an explicit full-range override after commit. Object and interaction routing and other range values from the C++ case are not claimed here. Matching C++ primary and contract cases passed 4/4 at out/mgw/dimension-default-range-20261021.json; independent-provider conformance is not claimed.",
       "contract_refs": [
         "standard-fom-dimension-default-range-contract.json"
       ],
       "java_test": "org.hla.rti.tck.RtiTckMain#fomDimensionDefaultRange",
       "parity": "cpp-tck.fom-dimension-default-range",
       "default_status": "run",
-      "evidence_note": "Installed-provider HLA_EVOKED and HLA_IMMEDIATE default runs passed at out/java-tck/fom-dimension-default-range-{evoked,immediate}-default-20261022.json. Adapter supplies outside and bounded dimension-range FOM modules, standard MIM, logical time, factory, endpoint, and callback model; no independent-provider conformance claim."
+      "evidence_note": "Compiled against the pinned official IEEE 1516.1-2025 Java API JAR. Focused runs using the freshly built current-source Umbra JNI provider passed under HLA_EVOKED and HLA_IMMEDIATE; results/JUnit: out/java-tck/fom-dimension-default-range-current-jni-20261117/hla_{evoked,immediate}.{results.json,junit.xml}. An earlier run with the stale 2026-11-03 JNI bundle failed at Commit Region Modifications and is superseded by the current-source results. The paired installed-package C++ primary/contract passed 4/4 at out/mgw/dimension-default-range-20261021.json; no independent-provider or conformance claim."
     },
     {
       "id": "java-tck.fom-synchronization-duplicate-equal",

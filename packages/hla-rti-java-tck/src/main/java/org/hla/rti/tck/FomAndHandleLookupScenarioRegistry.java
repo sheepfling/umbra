@@ -506,7 +506,7 @@ final class FomAndHandleLookupScenarioRegistry {
             "Validate tag data-type categories and FOM synchronization capability",
             "fom-composition",
             "RTIambassador.connect;RTIambassador.createFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomTagDataTypeCategories);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-inherited-member-names",
             "Preserve inherited member identity and reject inherited attribute or parameter name reuse",
@@ -653,10 +653,10 @@ final class FomAndHandleLookupScenarioRegistry {
             new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
          RtiTckMain::fomPositiveUpdateRate);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-dimension-default-range",
-            "Reject an out-of-bounds dimension default range and accept its exact boundary",
+            "Check FOM dimension defaults and public region range boundaries",
             "fom-composition",
-            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
-            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, true),
+            "RTIambassador.connect;RTIambassador.createFederationExecutionWithMIM;RTIambassador.joinFederationExecution;RTIambassador.getDimensionHandle;RTIambassador.getDimensionName;RTIambassador.getDimensionUpperBound;RTIambassador.getDimensionHandleSetFactory;RTIambassador.createRegion;RTIambassador.getRangeBounds;RTIambassador.setRangeBounds;RTIambassador.getRegionHandleSetFactory;RTIambassador.commitRegionModifications;RTIambassador.deleteRegion;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect",
+            new String[] {"cpp-1516.2-fom-composition-and-reference-resolution"}, false),
          RtiTckMain::fomDimensionDefaultRange);
       RtiTckMain.run(new RtiTckMain.Scenario("java-tck.fom-synchronization-duplicate-equal",
             "Accept identical same-label synchronization declarations",
