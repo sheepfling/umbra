@@ -26,10 +26,28 @@ final class AttributeLookupLifecycleTck {
       boolean ownerJoined = false;
       boolean memberJoined = false;
       try {
+         ObjectClassHandle invalidObjectClass =
+            JavaTckSupport.invalidHandle(ObjectClassHandle.class);
+         AttributeHandle invalidAttribute = JavaTckSupport.invalidHandle(AttributeHandle.class);
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeHandle(invalidObjectClass, inheritedAttributeName),
+            "NotConnected", "looking up an attribute before connecting");
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeName(invalidObjectClass, invalidAttribute),
+            "NotConnected", "looking up an attribute name before connecting");
+
          owner.connect(callbacks(), callbackModel);
          ownerConnected = true;
          member.connect(callbacks(), callbackModel);
          memberConnected = true;
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeHandle(invalidObjectClass, inheritedAttributeName),
+            "FederateNotExecutionMember",
+            "looking up an attribute after connecting but before joining");
+         JavaTckSupport.expectFailure(
+            () -> member.getAttributeName(invalidObjectClass, invalidAttribute),
+            "FederateNotExecutionMember",
+            "looking up an attribute name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
@@ -69,6 +87,18 @@ final class AttributeLookupLifecycleTck {
          JavaTckSupport.expectFailure(
             () -> owner.getAttributeName(baseObject, derivedAttribute), "AttributeNotDefined",
             "looking up a derived attribute handle on its base object class");
+         JavaTckSupport.expectFailure(
+            () -> owner.getAttributeHandle(invalidObjectClass, inheritedAttributeName),
+            "InvalidObjectClassHandle",
+            "looking up an attribute from an invalid object-class handle");
+         JavaTckSupport.expectFailure(
+            () -> owner.getAttributeName(invalidObjectClass, baseInherited),
+            "InvalidObjectClassHandle",
+            "looking up an attribute name from an invalid object-class handle");
+         JavaTckSupport.expectFailure(
+            () -> owner.getAttributeName(derivedObject, invalidAttribute),
+            "InvalidAttributeHandle",
+            "looking up an attribute name from an invalid attribute handle");
 
          member.joinFederationExecution("java-tck-attribute-lookup-member",
             "java-tck-attribute-lookup-member", federation);
