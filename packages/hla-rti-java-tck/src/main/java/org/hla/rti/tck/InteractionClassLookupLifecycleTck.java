@@ -33,9 +33,14 @@ final class InteractionClassLookupLifecycleTck {
       boolean ownerJoined = false;
       boolean extensionJoined = false;
       try {
+         InteractionClassHandle invalidInteractionClass =
+            JavaTckSupport.invalidHandle(InteractionClassHandle.class);
          JavaTckSupport.expectFailure(
             () -> observer.getInteractionClassHandle(baseInteractionName), "NotConnected",
             "looking up an interaction class before connecting");
+         JavaTckSupport.expectFailure(
+            () -> observer.getInteractionClassName(invalidInteractionClass), "NotConnected",
+            "looking up an interaction-class name before connecting");
 
          observer.connect(callbacks(), callbackModel);
          observerConnected = true;
@@ -48,12 +53,20 @@ final class InteractionClassLookupLifecycleTck {
             () -> observer.getInteractionClassHandle(baseInteractionName),
             "FederateNotExecutionMember",
             "looking up an interaction class after connecting but before joining");
+         JavaTckSupport.expectFailure(
+            () -> observer.getInteractionClassName(invalidInteractionClass),
+            "FederateNotExecutionMember",
+            "looking up an interaction-class name after connecting but before joining");
 
          owner.createFederationExecution(federation, fom, timeImplementation);
          created = true;
          owner.joinFederationExecution("java-tck-interaction-lookup-owner", federation);
          ownerJoined = true;
 
+         JavaTckSupport.expectFailure(
+            () -> owner.getInteractionClassName(invalidInteractionClass),
+            "InvalidInteractionClassHandle",
+            "looking up an interaction-class name from an invalid handle");
          InteractionClassHandle base = owner.getInteractionClassHandle(baseInteractionName);
          JavaTckSupport.check(base != null
                && base.equals(owner.getInteractionClassHandle(baseInteractionName))
