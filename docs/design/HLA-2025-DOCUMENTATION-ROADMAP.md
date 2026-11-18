@@ -5,9 +5,9 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-18 (increment 544)
+## Current finish gates and next handoff — 2026-11-18 (increment 545)
 
-**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. There are now 70 selected GitHub visual reviews across all 32 guides. Increment 537 reviewed DSE #003; increment 544 reviewed Save/Restore #023 in GitHub’s expanded Mermaid dialog. The Save/Restore sequence lanes and transitions are legible in the inspected top, middle, and end sections; the tall chart requires vertical scrolling. These are representative samples, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
+**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The 2025 set has 32 guides and 515 diagrams. All diagrams are published and revision-aware GitHub hydration covers 515/515. There are now 71 selected GitHub visual reviews across all 32 guides. Increment 537 reviewed DSE #003, increment 544 reviewed Save/Restore #023, and increment 545 reviewed Order/Transportation #007 in GitHub’s expanded Mermaid dialog. The inspected charts are legible without clipping; the Save/Restore chart requires vertical scrolling to follow its full sequence. These are representative samples, not an all-diagram layout claim. The body-matched visual ledger retains local screenshots for all 515 diagrams.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). The files are 244,539 and 229,965 bytes, respectively, and both passed authenticated GitHub GFM conversion. The index’s three diagrams converted 3/3; the archive is prose-only. Its 2010 notes retain explicit edition labels and do not describe 2025 behavior.
 

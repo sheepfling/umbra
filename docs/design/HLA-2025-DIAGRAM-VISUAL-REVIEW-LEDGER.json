@@ -7627,14 +7627,14 @@
     "scope_note": "Selected local screenshot review only. Published GitHub Mermaid hydration is verified for 515/515 diagrams; full-width readability of every hosted page is not claimed."
   },
   "latest_focused_github_visual_review": {
-    "as_of": "2026-11-18 increment 544",
-    "diagram_id": "HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md#diagram-023",
-    "source": "docs/design/HLA-2025-FEDERATION-SAVE-RESTORE-FLOW-GUIDE.md",
-    "line": 1898,
-    "revision": "4fd82dd2424938663dd7e75c14256e1d213f9460",
+    "as_of": "2026-11-18 increment 545",
+    "diagram_id": "HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md#diagram-007",
+    "source": "docs/design/HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md",
+    "line": 428,
+    "revision": "3ad7f8a2b019f8818dc63989a280348ac3348795",
     "view": "GitHub expanded Mermaid dialog",
-    "body_sha256": "1e65e3c70c5c4c283ec2ba731bc6f59283b5b1727d3542ceeccaea7d0b301251",
-    "observation": "The sequence lanes, save/restore transitions, and terminal retraction checks are legible in the expanded dialog. The tall chart requires vertical scrolling; no text clipping was observed in the inspected top, middle, and end sections.",
+    "body_sha256": "30395828ae127edd81f9049cbb33b45d66b0de69ef223883c05e3abbe0d17277",
+    "observation": "The embedded HLA_EVOKED sequence's partial-set and missing-request outcomes are legible in the expanded dialog; vertical scrolling reveals the terminal branches without clipping.",
     "scope_note": "Selected published-layout sample. Hydration covers 515/515 diagrams, but this does not establish full-width readability for every hosted chart."
   }
 }

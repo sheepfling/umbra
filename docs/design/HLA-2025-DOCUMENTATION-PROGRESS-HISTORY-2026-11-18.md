@@ -29,3 +29,11 @@ Reviewed Save/Restore diagram #023 in GitHub’s expanded Mermaid dialog at cand
 No diagram body, citation, or C++ source changed. The citation closeout is unchanged: candidate HEAD still has nine out-of-range source references, and the two TCK anchors require a reviewed source/test revision that publishes the intended Federate-Lost scenario and post-loss update. No build, tests, or CI ran. Keep the 2010 stream and Requirements Lab outside this 2025 documentation work.
 
 **Next handoff:** source owners should publish the scoped 2025 source/test revision; align the two TCK citations on that revision, then rerun the source-reference and semantic checks. The 95% completion estimate remains pending that closeout.
+
+## Increment 545 — close the pending transportation/divestiture visual review
+
+Reviewed Order/Transportation diagram #007 (`HLA-2025-ORDER-AND-TRANSPORTATION-FLOW-GUIDE.md`, line 428) in the published candidate’s GitHub expanded Mermaid dialog at revision `3ad7f8a2b019f8818dc63989a280348ac3348795`. Its trimmed body hash matches the visual ledger. The embedded `HLA_EVOKED` sequence’s partial-set and missing-request branches are legible; vertical scrolling exposes the terminal outcomes without text clipping. This resolves the backlog’s explicitly pending visual review and raises the selected hosted review sample to 71 charts across 32 guides, not a full-width review of all 515.
+
+The guide and backlog continue to mark the divestiture interleaving as source-derived: no focused 2025 test asserts the partial-set or no-confirmation outcome, and no normative ordering or configured-process parity is inferred. No diagram body, source citation, or C++ source changed. The separate citation closeout remains pending a reviewed 2025 source/test publication; no build, tests, or CI ran. Keep 2010 and Requirements Lab separate.
+
+**Next handoff:** publish the scoped 2025 source/test revision, then reconcile the nine candidate-HEAD line gaps and the two TCK semantic targets against that exact revision. Continue visual review only for concrete changed or flagged charts; do not claim all-chart readability from the selected sample.
