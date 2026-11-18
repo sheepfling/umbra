@@ -6077,6 +6077,14 @@ public final class RtiTckMain {
             "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.isAttributeOwnedByFederate;RTIambassador.deleteObjectInstance;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.attributeOwnershipAcquisitionNotification",
             new String[] {"cpp-1516.1-ownership-management"}, true),
          RtiTckMain::divestitureIfWantedReturnSet);
+      run(new Scenario("java-tck.attribute-ownership-divestiture-if-wanted",
+            "complete a pending one-attribute acquisition through Divestiture If Wanted",
+            "ownership",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.attributeOwnershipAcquisition;RTIambassador.attributeOwnershipDivestitureIfWanted;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisitionIfAvailable;RTIambassador.isAttributeOwnedByFederate;RTIambassador.evokeCallback;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestAttributeOwnershipRelease;FederateAmbassador.requestAttributeOwnershipAssumption;FederateAmbassador.attributeOwnershipAcquisitionNotification",
+            new String[] {
+               "cpp-1516.1-ownership-management",
+               "requirement-candidate-sections-semantic-clause-4b-page-049-l62-7"
+            }, true), RtiTckMain::attributeOwnershipDivestitureIfWanted);
       run(new Scenario("java-tck.unconditional-attribute-ownership-divestiture",
             "resolve regular acquisition, rejected and retried If Available acquisition, and a published candidate through one unconditional divestiture",
             "ownership",
@@ -10573,6 +10581,11 @@ public final class RtiTckMain {
          requireAdapterFile(MULTI_ATTRIBUTE_FOM_PROPERTY), timeImplementation(),
          multiAttributeObjectClassName(), multiAttributeFirstName(),
          multiAttributeSecondName(), callbackModel());
+   }
+
+   private static void attributeOwnershipDivestitureIfWanted() throws Exception {
+      AttributeOwnershipDivestitureIfWantedTck.run(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
    private static void unconditionalAttributeOwnershipDivestiture() throws Exception {

@@ -5583,6 +5583,74 @@
       "evidence_note": "Focused current-source Umbra JNI runs passed 1/1 under HLA_EVOKED and 1/1 under HLA_IMMEDIATE using p0-tck.xml, HLAinteger64Time, HLAobjectRoot.TckObject, Value, and Name. Paired installed-package C++ primary/contract selectors passed 4/4 focused CTests and 4/4 direct executions across both callback models. Evidence: out/java-tck/resign-divests-all-instance-attributes-java-parity-20261116/{evoked-default,immediate-default}.{json,xml}; .build/cpp-tck-evidence-20261116/resign-divests-all-instance-attributes-java-parity-20261116.{json,xml}. Bounded Umbra evidence only; not independent-provider behavior or conformance."
     },
     {
+      "id": "java-tck.attribute-ownership-divestiture-if-wanted",
+      "category": "ownership",
+      "title": "Complete one pending attribute acquisition through Divestiture If Wanted and restore ownership",
+      "api_methods": [
+        "RTIambassador.connect(callback model supplied by adapter)",
+        "RTIambassador.createFederationExecution",
+        "RTIambassador.joinFederationExecution",
+        "RTIambassador.getObjectClassHandle",
+        "RTIambassador.getAttributeHandle",
+        "RTIambassador.publishObjectClassAttributes",
+        "RTIambassador.subscribeObjectClassAttributes",
+        "RTIambassador.registerObjectInstance",
+        "RTIambassador.attributeOwnershipAcquisition",
+        "RTIambassador.attributeOwnershipDivestitureIfWanted",
+        "RTIambassador.unconditionalAttributeOwnershipDivestiture",
+        "RTIambassador.attributeOwnershipAcquisitionIfAvailable",
+        "RTIambassador.isAttributeOwnedByFederate",
+        "RTIambassador.evokeCallback",
+        "RTIambassador.unsubscribeObjectClassAttributes",
+        "RTIambassador.unpublishObjectClassAttributes",
+        "RTIambassador.resignFederationExecution",
+        "RTIambassador.destroyFederationExecution",
+        "RTIambassador.disconnect",
+        "FederateAmbassador.discoverObjectInstance",
+        "FederateAmbassador.requestAttributeOwnershipRelease",
+        "FederateAmbassador.requestAttributeOwnershipAssumption",
+        "FederateAmbassador.attributeOwnershipAcquisitionNotification"
+      ],
+      "requirement_ids": [
+        "cpp-1516.1-ownership-management",
+        "requirement-candidate-sections-semantic-clause-4b-page-049-l62-7"
+      ],
+      "selected_requirements_lab_requirement_ids": [
+        "requirement-candidate-sections-semantic-clause-4b-page-049-l62-7"
+      ],
+      "standard_sections": [
+        "hla-1516.2-2025:clause-4"
+      ],
+      "requirement_mappings": [
+        {
+          "requirement_id": "requirement-candidate-sections-semantic-clause-4b-page-049-l62-7",
+          "standard_section": "hla-1516.2-2025:clause-4",
+          "note": "The adapter FOM declares HLAobjectRoot.TckObject.Value with ownership=DivestAcquire. This fixture-bounded case uses that D/A-both designation; it does not validate other table entries or arbitrary FOMs."
+        }
+      ],
+      "mapping_note": "Direct mapping is limited to IEEE 1516.2-2025 §4 for the adapter FOM’s DivestAcquire designation on HLAobjectRoot.TckObject.Value. Release-request metadata, Divestiture If Wanted return set, tag propagation, and cleanup reacquisition are preserved as bounded scenario behavior, without claiming general D/A table validation or conformance.",
+      "contract_refs": [
+        "attribute-ownership-divestiture-if-wanted-api-contract.json",
+        "attribute-ownership-divestiture-if-wanted-requirements-contract.json"
+      ],
+      "java_test": "org.hla.rti.tck.RtiTckMain#attributeOwnershipDivestitureIfWanted",
+      "parity": "cpp-tck.attribute-ownership-divestiture-if-wanted",
+      "evidence_note": "Built against the pinned official IEEE 1516.1-2025 Java API JAR. Java passed 1/1 under HLA_EVOKED and HLA_IMMEDIATE with the current-source Umbra JNI provider, packages/hla-rti-cpp-tck/fom/p0-tck.xml, HLAinteger64Time, and HLAobjectRoot.TckObject.Value. Results/JUnit: .build/java-tck-20261117/attribute-ownership-divestiture-if-wanted-evoked.results.json, .build/java-tck-20261117/attribute-ownership-divestiture-if-wanted-evoked.junit.xml, and the corresponding -immediate files. These local-provider results do not establish independent-provider behavior, interoperability, or conformance.",
+      "default_status": "run",
+      "promotion": "promoted",
+      "parity_scope_note": "The Java scenario mirrors the bounded C++ primary and contract: a one-attribute ordinary acquisition produces a tagged release callback, ownership stays with the owner until Divestiture If Wanted, the returned set and acquisition callback tag are exact, and cleanup restores ownership. Both callback models passed against local JNI; independent-provider behavior, interoperability, and conformance are unverified.",
+      "callback_models": [
+        "evoked",
+        "immediate"
+      ],
+      "adapter_inputs": [
+        "standard Java API and provider JARs",
+        "adapter-supplied p0-tck.xml with HLAobjectRoot.TckObject.Value and ownership=DivestAcquire",
+        "provider logical-time implementation and callback model"
+      ],
+      "mapping_classification": "direct-requirement-mapped"
+    },
+    {
       "id": "java-tck.unconditional-attribute-ownership-divestiture",
       "category": "ownership",
       "title": "Resolve regular and If Available requests plus a published assumption candidate through unconditional divestiture",

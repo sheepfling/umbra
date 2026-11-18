@@ -1693,6 +1693,8 @@ final class JavaTckSelector {
             method = "divestitureIfWantedMixedAcquirers"; break;
          case "java-tck.divestiture-if-wanted-return-set":
             method = "divestitureIfWantedReturnSet"; break;
+         case "java-tck.attribute-ownership-divestiture-if-wanted":
+            method = "attributeOwnershipDivestitureIfWanted"; break;
          case "java-tck.unconditional-attribute-ownership-divestiture":
             method = "unconditionalAttributeOwnershipDivestiture"; break;
          case "java-tck.unconditional-divestiture-assumption-coalescing":

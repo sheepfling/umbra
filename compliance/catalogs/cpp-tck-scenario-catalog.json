@@ -48085,14 +48085,15 @@
           "standard_section": "hla-1516.2-2025:clause-4"
         }
       ],
-      "mapping_note": "Bounded fixture-driven witness for the D/A 'both' capability only: the adapter's p0-tck.xml declares HLAobjectRoot.TckObject.Value with ownership=DivestAcquire, and this scenario requests acquisition, observes the release request, and completes Divestiture If Wanted while checking the ownership transfer. It does not test divest-only, acquire-only, or neither designations, general D/A table validation, or conformance.",
+      "mapping_note": "Bounded fixture-driven witness for the D/A 'both' capability only: the adapter's p0-tck.xml declares HLAobjectRoot.TckObject.Value with ownership=DivestAcquire, and this scenario requests acquisition, observes the release request, and completes Divestiture If Wanted while checking the ownership transfer. It does not test divest-only, acquire-only, or neither designations, general D/A table validation, or conformance. The exact Java counterpart java-tck.attribute-ownership-divestiture-if-wanted passed under HLA_EVOKED and HLA_IMMEDIATE against local JNI. It mirrors the single-attribute release callback, If Wanted return set and tag, ownership transfer, and cleanup reacquisition; independent-provider behavior, interoperability, and conformance remain unverified.",
       "contract_refs": [
         "attribute-ownership-divestiture-if-wanted-api-contract.json",
         "attribute-ownership-divestiture-if-wanted-requirements-contract.json"
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioAttributeOwnershipDivestitureIfWanted",
       "runner_id": "cpp-tck.attribute-ownership-divestiture-if-wanted",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.attribute-ownership-divestiture-if-wanted",
+      "parity_scope_note": "The Java counterpart is scoped to the single-attribute DivestAcquire fixture: acquisition release metadata, exact If Wanted return set and acquisition tag, ownership before and after transfer, and cleanup reacquisition. Both callback models passed against local JNI; this is not independent-provider interoperability or conformance evidence.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -48116,7 +48117,8 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioAttributeOwnershipDivestitureIfWantedContract",
       "runner_id": "cpp-tck.attribute-ownership-divestiture-if-wanted-contract",
-      "parity": "cpp-tck.attribute-ownership-divestiture-if-wanted",
+      "parity": "java-tck.attribute-ownership-divestiture-if-wanted",
+      "parity_scope_note": "This contract twin executes the primary scenario behavior. Its Java counterpart is java-tck.attribute-ownership-divestiture-if-wanted; focused HLA_EVOKED and HLA_IMMEDIATE runs passed against local JNI, without independent-provider interoperability or conformance claims.",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
