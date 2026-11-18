@@ -46980,7 +46980,7 @@
           "note": "The former owner asserts the reflected object, transferred attribute, exact value, user tag, and producer federate after the new owner updates."
         }
       ],
-      "mapping_note": "The Summary Rule 8 witness covers one negotiated divestiture/acquisition handoff for one attribute, checks that ownership does not change before confirmation, then verifies notification and both members' post-transfer ownership predicates. A new post-transfer assertion has the acquirer update the attribute and the former owner verify the exact reflection payload, tag, and producer identity. This directly demonstrates the new owner's ability to use the transferred attribute through the public API. The added reflection assertion is C++-specific; equivalent Java coverage for that exact post-transfer update is not claimed. It is not exhaustive ownership-transfer or SOM coverage and makes no conformance claim.",
+      "mapping_note": "The Summary Rule 8 witness covers one negotiated divestiture/acquisition handoff for one attribute, checks that ownership does not change before confirmation, then verifies notification and both members' post-transfer ownership predicates. A new post-transfer assertion has the acquirer update the attribute and the former owner verify the exact reflection payload, tag, and producer identity. This directly demonstrates the new owner's ability to use the transferred attribute through the public API. The paired Java scenario java-tck.negotiated-divestiture-confirmation-flow verifies the same post-transfer update and reflected value, tag, and producer identity through the official Java API. It is not exhaustive ownership-transfer or SOM coverage and makes no conformance claim.",
       "contract_refs": [
         "negotiated-divestiture-confirmation-flow-api-contract.json",
         "negotiated-divestiture-confirmation-flow-requirements-contract.json",
@@ -46990,7 +46990,7 @@
       ],
       "cpp_test": "src/tck_negotiated_divestiture_confirmation_flow.cpp#scenarioNegotiatedDivestitureConfirmationFlow",
       "runner_id": "cpp-tck.negotiated-divestiture-confirmation-flow",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.negotiated-divestiture-confirmation-flow",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },
@@ -47015,7 +47015,7 @@
       ],
       "cpp_test": "src/portable_tck.cpp#scenarioNegotiatedDivestitureConfirmationFlowContract",
       "runner_id": "cpp-tck.negotiated-divestiture-confirmation-flow-contract",
-      "parity": "java-tck.ownership",
+      "parity": "java-tck.negotiated-divestiture-confirmation-flow",
       "default_status": "adapter-required",
       "promotion": "promoted"
     },

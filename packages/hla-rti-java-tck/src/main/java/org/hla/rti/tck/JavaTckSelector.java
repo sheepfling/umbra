@@ -1763,6 +1763,8 @@ final class JavaTckSelector {
             method = "negotiatedDivestitureDuplicateRequest"; break;
          case "java-tck.negotiated-divestiture-if-wanted-completion":
             method = "negotiatedDivestitureIfWantedCompletion"; break;
+          case "java-tck.negotiated-divestiture-confirmation-flow":
+             method = "negotiatedDivestitureConfirmationFlow"; break;
          case "java-tck.negotiated-willing-to-acquire-continuation":
             method = "negotiatedWillingToAcquireContinuation"; break;
          case "java-tck.if-available-during-negotiated-divestiture":

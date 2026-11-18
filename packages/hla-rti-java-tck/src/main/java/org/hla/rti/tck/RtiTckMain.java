@@ -6385,6 +6385,17 @@ public final class RtiTckMain {
             new String[] {
                "requirement-candidate-content-clauses-07-ownership-management-page-156-l20-5"
             }, true), RtiTckMain::negotiatedDivestitureIfWantedCompletion);
+      run(new Scenario("java-tck.negotiated-divestiture-confirmation-flow",
+            "complete negotiated attribute transfer and verify the new owner's first update",
+            "ownership",
+            "RTIambassador.connect(callback model supplied by adapter);RTIambassador.createFederationExecution;RTIambassador.joinFederationExecution;RTIambassador.getObjectClassHandle;RTIambassador.getAttributeHandle;RTIambassador.publishObjectClassAttributes;RTIambassador.subscribeObjectClassAttributes;RTIambassador.registerObjectInstance;RTIambassador.negotiatedAttributeOwnershipDivestiture;RTIambassador.attributeOwnershipAcquisition;RTIambassador.confirmDivestiture;RTIambassador.isAttributeOwnedByFederate;RTIambassador.getAttributeHandleValueMapFactory;AttributeHandleValueMapFactory.create;AttributeHandleValueMap.put;RTIambassador.updateAttributeValues;RTIambassador.unconditionalAttributeOwnershipDivestiture;RTIambassador.unsubscribeObjectClassAttributes;RTIambassador.unpublishObjectClassAttributes;RTIambassador.resignFederationExecution;RTIambassador.destroyFederationExecution;RTIambassador.disconnect;FederateAmbassador.discoverObjectInstance;FederateAmbassador.requestDivestitureConfirmation;FederateAmbassador.attributeOwnershipAcquisitionNotification;FederateAmbassador.reflectAttributeValues",
+            new String[] {
+               "cpp-1516.1-object-management",
+               "cpp-1516.1-ownership-management",
+               "cpp-1516.1-federation-create-join-resign-destroy",
+               "requirement-candidate-content-clauses-06-object-management-page-120-l83-22",
+               "requirement-candidate-content-clauses-06-object-management-page-122-l112-34"
+            }, true), RtiTckMain::negotiatedDivestitureConfirmationFlow);
       run(new Scenario("java-tck.negotiated-willing-to-acquire-continuation",
             "continue negotiated divestiture with the next willing-to-acquire candidate after the first candidate cancels",
             "ownership",
@@ -10750,6 +10761,11 @@ public final class RtiTckMain {
 
    private static void negotiatedDivestitureIfWantedCompletion() throws Exception {
       NegotiatedDivestitureIfWantedCompletionTck.run(factory(), requireFom(),
+         timeImplementation(), objectClassName(), attributeName(), callbackModel());
+   }
+
+   private static void negotiatedDivestitureConfirmationFlow() throws Exception {
+      NegotiatedDivestitureConfirmationFlowTck.run(factory(), requireFom(),
          timeImplementation(), objectClassName(), attributeName(), callbackModel());
    }
 
