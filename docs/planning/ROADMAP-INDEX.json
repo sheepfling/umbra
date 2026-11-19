@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 554",
+      "as_of": "2026-11-18 increment 555",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 554 reconciles the active roadmap with the published increment-553 base 144180197eaae3b368406652c204a409bf2ce571. The 2025 set has 32 guides and 515 diagrams; local render/screenshot and revision-aware hosted hydration evidence cover all 515, with 76 selected GitHub visual reviews. Worktree source links resolve 4,807/4,807; the published base resolves 4,797/4,807. No diagram bodies or source code changed.",
+      "latest_increment": "Increment 555 rechecked the current IEEE 1516.1-2025 public text-access route and the source-citation baseline 831fb8c687e7108a3fa399538fa4edc80b81d934. The 2025 set remains 32 guides and 515 diagrams; local render/screenshot and revision-aware hosted hydration evidence cover all 515, with 76 selected GitHub visual reviews. Worktree source links resolve 4,807/4,807; the published baseline resolves 4,797/4,807. The official public download bundle contains API/XML/support files, not the normative standard. No diagram bodies or source code changed.",
       "next_concrete_review": "After source owners publish a reviewed 2025 source/test revision, validate all 4,807 links and the ten moved anchors against that exact revision, including semantic checks for the three Federate-Lost TCK links. Keep 2010 separate and do not edit the Requirements Lab. Continue hosted visual review only for changed or flagged charts.",
-      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with identity-matched local render/screenshot and revision-aware hosted hydration evidence; selected GitHub visual reviews cover 76/515. The worktree checker resolves 4,807/4,807. The published increment-553 base 144180197eaae3b368406652c204a409bf2ce571 resolves 4,797/4,807, with ten out-of-range anchors in four source/test files awaiting reviewed source-owner publication and exact-revision recheck. The nonregional receive-order DSE push and two normative questions remain explicitly bounded. Keep 2010 and the Requirements Lab separate.",
+      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with identity-matched local render/screenshot and revision-aware hosted hydration evidence; selected GitHub visual reviews cover 76/515. The worktree checker resolves 4,807/4,807. Published candidate source baseline 831fb8c687e7108a3fa399538fa4edc80b81d934 resolves 4,797/4,807, with ten out-of-range anchors in four source/test files awaiting reviewed publication and exact-revision recheck. The nonregional receive-order DSE push and two normative questions remain explicitly bounded. Keep 2010 and the Requirements Lab separate.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 554",
-        "revision": "Active documentation worktree based on published candidate source baseline 144180197eaae3b368406652c204a409bf2ce571 plus uncommitted source/test edits; checked 2026-11-18.",
+        "as_of": "2026-11-18 increment 555",
+        "revision": "Active documentation worktree based on published candidate source baseline 831fb8c687e7108a3fa399538fa4edc80b81d934 plus uncommitted source/test edits; checked 2026-11-18.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
         "unique_references": 4807,
         "resolved": 4807,
         "unresolved": 0,
-        "note": "The worktree check resolves all 4,807 references. The published increment-553 base has ten out-of-range anchors in four targets; worktree bounds do not alone establish semantic correctness."
+        "note": "The worktree check resolves all 4,807 references. The published increment-554 baseline has ten out-of-range anchors in four targets; worktree bounds do not alone establish semantic correctness."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 554",
-        "revision": "Published candidate source baseline 144180197eaae3b368406652c204a409bf2ce571; checked 2026-11-18 before this documentation-only increment.",
-        "remote_branch_revision": "144180197eaae3b368406652c204a409bf2ce571",
+        "as_of": "2026-11-18 increment 555",
+        "revision": "Published candidate source baseline 831fb8c687e7108a3fa399538fa4edc80b81d934; checked 2026-11-18 before this documentation-only increment.",
+        "remote_branch_revision": "831fb8c687e7108a3fa399538fa4edc80b81d934",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4807,
@@ -1072,7 +1072,7 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
         ],
-        "note": "The increment-554 base has ten out-of-range anchors in four targets. The guide and source changes in the active worktree identify the intended locations; this record does not treat unpublished source as reviewed evidence."
+        "note": "The increment-555 base has ten out-of-range anchors in four targets. This increment changes documentation only; the intended source locations are not yet published in a reviewed revision."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-18 increment 553",
@@ -1110,7 +1110,7 @@
         "status": "Provisional until source owners publish a reviewed 2025 source/test revision and all ten citations are rechecked there."
       },
       "standard_text_access_check": {
-        "as_of": "2026-11-09 increment 382",
+        "as_of": "2026-11-18 increment 555",
         "official_record": "https://standards.ieee.org/ieee/1516.1/6688/",
         "product_page_options": [
           "Purchase",
@@ -1132,7 +1132,9 @@
           ".xsd": 3
         },
         "normative_document_present": false,
-        "online_recheck": "2026-11-09: the official IEEE 1516.1-2025 product page still lists Purchase and Access via Subscription and does not expose §6.21 prose. The official downloads page describes downloadable files as materials related to the approved standard, which may not themselves be approved; the previously inventoried local archive contains API/XML/support material and no normative standard document."
+        "online_recheck": "2026-11-18: the IEEE 1516.1-2025 product page lists Purchase and Access via Subscription. The Access Standards page describes Reading Room access for select standards, but this check did not establish HLA eligibility. The public download archive contains only a nested API/XML/support bundle with 284 files (44 C++ headers, 230 Java, four XML, three protobuf, three XSD) and no PDF or document-format standard. No full normative text was found in these public routes; keep the Save-time and RAVU questions bounded and unresolved.",
+        "reading_room_eligibility_confirmed": false,
+        "get_catalog_detail_fetch": "The current IEEE GET Program page lists other program categories; its linked IEEE Xplore catalog returned HTTP 418 through this check, so current 1516.1-2025 eligibility was not independently confirmed here."
       },
       "connection_loss_supporting_result": {
         "scenario": "cpp-tck.connection-fault-rti-closed-resume-fails",

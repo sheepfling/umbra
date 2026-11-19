@@ -121,3 +121,14 @@ The 2025 survey contains 32 guides and 515 diagrams. All current diagram bodies 
 No diagram bodies, C++ source, 2010 material, or Requirements Lab files changed. No C++ build, tests, or CI ran. The source citation gate remains the next dependency; retain bounded notes for the nonregional receive-order DSE evidence gap and the two unresolved normative questions, and visually review only changed or flagged charts.
 
 **Next handoff:** after source owners publish the reviewed 2025 source/test revision, validate all 4,807 links and the ten moved anchors against that exact revision. Keep the 2010 stream and Requirements Lab separate.
+
+
+## Increment 555 — recheck the public normative-text route
+
+The published increment-554 candidate is `831fb8c687e7108a3fa399538fa4edc80b81d934`. The 2025 source-link checker resolves 4,807/4,807 references in the active worktree and 4,797/4,807 against that published base; the same ten anchors remain out of range in four source/test files. The candidate source tree since increment 553 changed only documentation, so the citation gap still requires a reviewed source/test publication rather than a documentation retarget.
+
+Rechecked IEEE's 1516.1-2025 product, access, and GET Program pages and downloaded the linked public archive. The outer archive contains one API/XML bundle; its nested archive has 284 files (44 C++ headers, 230 Java files, four XML files, three protobuf files, and three XSDs), with no PDF or document-format standard. The public product page still presents Purchase and Access via Subscription. Reading Room eligibility for this standard remains unverified; the GET page's detailed catalog link did not load in this check. Updated the current roadmap and access handoff to preserve those limits. The Save-at-unreachable-time and RAVU questions remain explicit documentation gaps, with no normative behavior inferred.
+
+The 32-guide/515-diagram set is unchanged; no Mermaid bodies, C++ source, 2010 material, or Requirements Lab files changed. No C++ build, tests, or CI ran. The qualitative completion estimate remains approximately 95%, pending reviewed source publication and exact-revision citation validation.
+
+**Next handoff:** when a reviewed 2025 source/test revision is published, rerun all 4,807 source references and validate the ten target meanings on that exact revision. Keep 2010 and the Requirements Lab separate.

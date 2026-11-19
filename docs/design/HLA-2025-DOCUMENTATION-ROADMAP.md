@@ -5,13 +5,13 @@ clear and durable for readers. The guides lead with HLA concepts; implementation
 and focused-test evidence is included only to explain an observable boundary or
 to show what the current evidence does—and does not—establish.
 
-## Current finish gates and next handoff — 2026-11-18 (increment 554)
+## Current finish gates and next handoff — 2026-11-18 (increment 555)
 
-**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The IEEE 1516.1-2025 set has 32 guides and 515 diagrams. Increment 553 is published on `feature/hla-2025-docs-candidate-20261107` at `144180197eaae3b368406652c204a409bf2ce571`; it reconciled the source-citation and roadmap handoffs. No Mermaid bodies changed in that increment. All 515 current diagram bodies have local render and screenshot evidence. Revision-aware hosted hydration evidence covers all 515 current bodies; 76 selected diagrams have GitHub visual reviews. The current visual sample includes Callback and Service Ordering #019 and TSO Retraction #008 reviewed at `78cc803a`; #008 is tall and narrow but readable while scrolling. This sample does not claim full-width readability for every chart.
+**Overall completion: approximately 95% (working estimate, not a gate-count calculation).** The IEEE 1516.1-2025 set has 32 guides and 515 diagrams. Increment 554 is published on `feature/hla-2025-docs-candidate-20261107` at `831fb8c687e7108a3fa399538fa4edc80b81d934`; it reconciled the active completion status. Increment 555 rechecks the published citation baseline and the public IEEE text-access route. No Mermaid bodies changed. All 515 current diagram bodies have local render and screenshot evidence. Revision-aware hosted hydration evidence covers all 515 current bodies; 76 selected diagrams have GitHub visual reviews. The current visual sample includes Callback and Service Ordering #019 and TSO Retraction #008 reviewed at `78cc803a`; #008 is tall and narrow but readable while scrolling. This sample does not claim full-width readability for every chart.
 
 Increment 538 separated dated reviews from the living [behavior backlog](HLA-BEHAVIOR-FLOW-GUIDES.md) into the [historical archive](HLA-BEHAVIOR-FLOW-GUIDES-HISTORY.md). Those remain the index and dated record; edition labels keep 2010 discussion separate from 2025 behavior.
 
-**Source-link check for increment 554 base `144180197eaae3b368406652c204a409bf2ce571`:** The active worktree resolves 4,807/4,807 unique references across 42 IEEE 1516.1-2025 Markdown files. Published candidate baseline `144180197eaae3b368406652c204a409bf2ce571` resolves 4,797/4,807; ten anchors are out of range across four source/test files: host #L357, `RTI_TIMEOUT_HEART` #L241, five connection/recovery cases (#L520, #L616, #L948, #L1019, #L1127), and the Federate-Lost scenario/roster checks (#L2389, #L2768, #L2778). All ten intended locations are present in the active worktree. The current committed local `feature/initial-work` HEAD `7fbf5c9f` has all 4,807 references in range, but TCK lines #L2389, #L2768, and #L2778 identify different actions there. That local branch is 230 commits ahead of `origin/feature/initial-work`, remains unpublished and unreviewed, and is not a safe citation base. Remote `master` at `e1f0f61a` lacks the cited source files. No open repository PR is available. Do not retarget citations to unrelated code.
+**Source-link check for increment 555 base `831fb8c687e7108a3fa399538fa4edc80b81d934`:** The active worktree resolves 4,807/4,807 unique references across 42 IEEE 1516.1-2025 Markdown files. Published candidate baseline `831fb8c687e7108a3fa399538fa4edc80b81d934` resolves 4,797/4,807; ten anchors are out of range across four source/test files: host #L357, `RTI_TIMEOUT_HEART` #L241, five connection/recovery cases (#L520, #L616, #L948, #L1019, #L1127), and the Federate-Lost scenario/roster checks (#L2389, #L2768, #L2778). All ten intended locations are present in the active worktree. The current committed local `feature/initial-work` HEAD `7fbf5c9f` has all 4,807 references in range, but TCK lines #L2389, #L2768, and #L2778 identify different actions there. That local branch is 230 commits ahead of `origin/feature/initial-work`, remains unpublished and unreviewed, and is not a safe citation base. Remote `master` at `e1f0f61a` lacks the cited source files. No open repository PR is available. Do not retarget citations to unrelated code.
 
 **Historical citation snapshot (increment 543; superseded by the current check above):**
 
@@ -1788,7 +1788,7 @@ sequences, 25 state diagrams), and the selected screenshot queue is 167/0.
 
 The 32-guide survey covers the major 2025 behavior areas currently identified in the backlog, and the thematic reading paths cover all 32 guides. All 515 diagrams have identity-matched local render and screenshot evidence. Revision-aware hosted hydration evidence covers all 515 current diagram bodies, with 76 selected GitHub visual reviews. The previous 91% and unpublished-515-chart statements below belong to dated checkpoints and have been superseded by the finish gate at the top of this roadmap.
 
-The remaining completion gate is source citation closeout. The active worktree resolves 4,807/4,807 references; published candidate HEAD `144180197eaae3b368406652c204a409bf2ce571` resolves 4,797/4,807. Ten anchors in four source/test files need a reviewed source/test publication and exact-revision semantic validation. The local source branch is not a reviewed citation base. No open repository PR is available. Keep the current worktree-source labels until the reviewed revision is published.
+The remaining completion gate is source citation closeout. The active worktree resolves 4,807/4,807 references; published candidate baseline `831fb8c687e7108a3fa399538fa4edc80b81d934` resolves 4,797/4,807. Ten anchors in four source/test files need a reviewed source/test publication and exact-revision semantic validation. The local source branch is not a reviewed citation base. No open repository PR is available. Keep the current worktree-source labels until the reviewed revision is published.
 
 1. **Close source citations after reviewed publication.** Recheck the ten moved anchors and their meanings against the published 2025 source/test revision, then rerun all 4,807 links. Do not retarget citations to unrelated code or publish the unreviewed 230-commit local branch as a shortcut.
 2. **Keep remaining evidence gaps bounded.** The nonregional receive-order DSE push still lacks focused test evidence. The Save-at-unreachable-time and RAVU entitlement/timing questions remain documented normative questions, not unfinished guide coverage.
@@ -1860,6 +1860,18 @@ Increment 443 (2026-11-11) reviewed Callback and Service Ordering diagram #025, 
 These two HLA questions remain unresolved, but their evidence limits and lack
 of normative claims are explicit in the guides. They are documented gaps, not
 unfinished guide tasks.
+
+**Text-access recheck (increment 555, 2026-11-18):** The [IEEE 1516.1-2025
+product page](https://standards.ieee.org/ieee/1516.1/6688/) still offers
+Purchase and Access via Subscription. Its public [downloads bundle](https://standards.ieee.org/wp-content/uploads/2025/08/1516.1-2025_downloads.zip)
+contains a nested API/XML archive with 284 files (44 C++ headers, 230 Java
+files, four XML files, three protobuf files, and three XSDs); it contains no
+PDF or document-format copy of the standard. IEEE's [Access Standards page](https://standards.ieee.org/access-standards/)
+mentions Reading Room access for select standards, but this check did not
+establish that 1516.1-2025 is included. The public [GET Program page](https://standards.ieee.org/products-programs/ieee-get-program/)
+currently lists other program categories; its linked detailed catalog did not
+load in this check, so no eligibility claim is made. No public clause text was
+found to resolve the questions below.
 
 - **Timed Save at an unreachable requested time:** the Save guide traces the
   current request/checkpoint source paths and focused cases. No Save-path
