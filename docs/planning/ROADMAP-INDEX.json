@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 551",
+      "as_of": "2026-11-18 increment 552",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 551 semantically rechecked all ten source references that are out of range on the published 2025 branch. The active worktree locations match their documented purposes: host resume handshake; RTI_TIMEOUT_HEART configuration; five named connection/recovery tests; and the Federate-Lost scenario with its roster assertions. Worktree source links resolve 4,807/4,807; published documentation HEAD 7be780ac6b1f0878015beb8cc31181bd6fef1daa resolves 4,797/4,807 and has the same C++ tree as source baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2. Published host/TCK implementations are materially different; no equivalent targets permit safe retargeting. No reviewed source-owner PR or remote source update is available. Completion remains approximately 95%.",
-      "next_concrete_review": "After source owners publish a reviewed 2025 source/test revision, rerun all 4,807 source-link checks and verify the ten moved anchors and their meanings against that exact revision. Preserve worktree-source labels until then. Keep 2010 and the Requirements Lab separate; continue hosted visual review only for changed or flagged charts.",
-      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with local render and screenshot evidence; hosted hydration is audited for all 515, and 74 selected diagrams have hosted visual reviews. The worktree link checker resolves 4,807/4,807; published documentation HEAD 7be780ac6b1f0878015beb8cc31181bd6fef1daa resolves 4,797/4,807, with ten out-of-range anchors in four source/test files. All ten active-worktree targets have been semantically rechecked. The published host and TCK implementation differs materially, so no safe citation retarget exists. Reviewed source-owner publication and exact-revision recheck remain; no open PR or remote source branch update is available. Nonregional receive-order push remains explicitly source-only. Keep 2010 and Requirements Lab separate.",
+      "latest_increment": "Increment 552 reconciled 515 2025 diagram ledger identities and the four stale backlog topics. All 515 current bodies have matched local render and screenshot evidence; hosted hydration coverage is 515/515 after combining the full hydration audit with the independently verified Data Element Encoding #005 update. The selected GitHub visual sample is 76/515, including Callback and Service Ordering #019 and TSO Retraction #008 at candidate revision 78cc803a. Worktree source links resolve 4,807/4,807; published candidate HEAD resolves 4,797/4,807. Ten moved source/test anchors remain the external closeout gate. Completion remains approximately 95%.",
+      "next_concrete_review": "When source owners publish a reviewed IEEE 1516.1-2025 source/test revision, rerun all 4,807 documentation source-link checks and verify the ten moved anchors and their meanings against that exact revision. Preserve worktree-source labels until then. Keep 2010 and the Requirements Lab separate; continue hosted visual review only for changed or flagged diagrams.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set has current-body local render and screenshot evidence for all 515 diagrams, and hosted hydration evidence covers all 515 current bodies; selected hosted visual reviews cover 76/515. The worktree resolves 4,807/4,807 source references. Published candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97 resolves 4,797/4,807; ten out-of-range anchors remain across four source/test files. Their meanings are confirmed in the active source worktree, but published host/TCK implementations differ materially, so safe retargeting is unavailable. Wait for a reviewed source-owner publication, then recheck all ten anchors and semantics on that exact revision. Normative evidence gaps remain explicitly bounded. Keep 2010 and the Requirements Lab separate.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 551",
-        "revision": "Published documentation HEAD 7be780ac6b1f0878015beb8cc31181bd6fef1daa plus active source/test edits; C++ tree is unchanged from source baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "as_of": "2026-11-18 increment 552",
+        "revision": "Published documentation candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97 plus the active 2025 source/test worktree; source/test baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
         "unique_references": 4807,
         "resolved": 4807,
         "unresolved": 0,
-        "note": "The worktree check resolves all 4,807 references. Published HEAD has ten out-of-range anchors in four targets. All ten locations were semantically inspected in the active source worktree; the published host and TCK implementations are not equivalent targets for the expanded claims."
+        "note": "The worktree check resolves all 4,807 references. Ten targets are out of range on published candidate HEAD; all ten meanings were inspected in the active source/test worktree, and the published host/TCK code has no safe equivalent replacement anchors."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 551",
-        "revision": "Published documentation HEAD 7be780ac6b1f0878015beb8cc31181bd6fef1daa; its C++ tree is unchanged from source baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
-        "remote_branch_revision": "7be780ac6b1f0878015beb8cc31181bd6fef1daa",
+        "as_of": "2026-11-18 increment 552",
+        "revision": "Published candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97; C++ source tree matches baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "remote_branch_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4807,
@@ -1072,7 +1072,7 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
         ],
-        "note": "The increment-551 candidate HEAD check finds ten out-of-range anchors in four targets. All ten target meanings are confirmed in the active worktree; published code does not contain equivalent current behavior at safe replacement anchors. Reviewed source-owner publication and exact-revision recheck remain."
+        "note": "Increment 552 check finds ten out-of-range anchors in four files. Their meanings are confirmed at the active worktree locations; published host/TCK code is materially different, so no safe retarget exists. Reviewed source-owner publication and exact-revision recheck remain."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-18 increment 543",
@@ -1342,7 +1342,7 @@
         "executable_identity": null,
         "interpretation": "Historical scenario-ID results only. The artifact cannot be matched to the current modified source or establish that the delivered-TSO phase ran; do not cite it as evidence for the proposed minimum-time formula."
       },
-      "latest_reader_review": "GitHub visual review, increment 537 (2026-11-15): Delay Subscription Evaluation diagram #003, the process-attribute DSE flowchart at line 350, inspected in the expanded Mermaid dialog at published candidate snapshot 25b9055f9424fe73a391f758c2a53c3e35f15d0d. The receive-order, pre-event, and TSO route lanes, outcomes, and final projection/suppression decision are readable without clipping. The full path requires vertical scrolling. Body SHA-256 31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70 matches the published source and visual ledger. This is one selected layout sample; it does not establish full-width readability for every chart.",
+      "latest_reader_review": "GitHub visual review, increment 552 (2026-11-18), candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97: Callback and Service Ordering #019 (body SHA-256 27e6c160ba9e2dceb7da54c5b60e45ffd8838fd012338136b3b49ae54cb1f3c) is readable across the inspected sequence. TSO Retraction #008 (body SHA-256 4f5b23b4b28453ea47da0e76978d82a61dabb74859ba4cc98cb419a060279b07) renders without clipping; its tall, narrow layout wraps labels, but inspected text remains readable while scrolling. Selected hosted visual reviews: 76/515; this is a sample, not an all-chart readability claim.",
       "supporting_page_gfm_recheck": {
         "as_of": "2026-11-15 increment 540",
         "service": "Authenticated GitHub Markdown API POST /markdown",
@@ -1356,16 +1356,24 @@
         "scope_note": "Both responses were nonempty after the increment-540 source-state refresh. No Mermaid body changed; broader layout remains sampling-only."
       },
       "published_diagram_hydration": {
-        "as_of": "2026-11-15 increment 532",
+        "as_of": "2026-11-18 increment 552 reconciliation",
         "revision": "431152817283718923c06a07e4154ca785e7033a",
         "guide_pages": 32,
         "diagram_count": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "combined_method": "The recorded audit covers 515 diagrams across all 32 pages. Documentation-only candidate commits through source revision 6a3523d6 changed no Mermaid bodies; increment 543 adds only prose about source-branch evidence.",
-        "current_candidate_revision": "6a3523d6cb460fec9b31422ee52dcefcfe403cf4",
-        "diagram_bodies_changed_since_audited_revision": false,
-        "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a"
+        "combined_method": "The full hosted hydration audit covers 515 diagrams across 32 pages at the recorded audited revision. Comparison from the later audited candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 to current candidate HEAD 78cc803a found one changed body: Data Element Encoding #005. That updated body was independently rendered and visually reviewed in GitHub at revision 68217e97d15cfdc4f83a32025fded1be12c8b749 (increment 548); no Mermaid bodies changed between that revision and 78cc803a. Data Element Encoding #006–#009 only have shifted source lines; their body hashes are unchanged. Thus the combined hydration evidence covers all 515 current bodies. The selected hosted visual sample is 76/515 and is not a full readability review.",
+        "current_candidate_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
+        "diagram_bodies_changed_since_audited_revision": true,
+        "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a",
+        "latest_body_delta": {
+          "from_revision": "6a3523d6cb460fec9b31422ee52dcefcfe403cf4",
+          "to_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
+          "changed_body_count": 1,
+          "changed_diagram": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
+          "current_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
+          "hosted_visual_revision": "68217e97d15cfdc4f83a32025fded1be12c8b749"
+        }
       },
       "guide_navigation_audit": {
         "as_of": "2026-11-15 increment 539",
