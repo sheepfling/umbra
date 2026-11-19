@@ -79,8 +79,8 @@
     "note": "The 56 source-target migration reviews remain preserved as historical evidence about cross-revision path and line availability; they do not establish claim support for every guide citation. The increment-316 checker resolves 4,332/4,332 unique relative Markdown source-line references in the worktree, candidate base, and primary source revision."
   },
   "failure_target_details": [],
-  "scope_note": "The root migration values preserve the 2026-11-08 baseline. The current state is recorded in latest_candidate_reference_snapshot (increment 553): 42 IEEE 1516.1-2025 Markdown files and 4,807 unique source-line references; all resolve in the active worktree and 4,797 resolve at the published docs candidate HEAD. Ten anchors in four source/test files await a reviewed publication. These checks establish path/line bounds; semantic target review is recorded separately.",
-  "refresh": "Increment 553 refreshed the source dependency snapshot after docs increment 552. Candidate branch 83fc953873de2ff288ac4dda2190f0b3f4747017 resolves 4,797/4,807 links; the current worktree resolves 4,807/4,807. All ten target meanings are confirmed in the worktree. The local feature/initial-work HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d is 230 commits ahead of origin/feature/initial-work; all links are in range there, but three TCK positions mismatch the documented Federate-Lost behavior. Remote master e1f0f61ab6371d978375c26283aa7f6a2b5bdde9 lacks the cited code targets. No open repository PR exists. Keep unrelated Requirements Lab and source changes out of the docs closeout.",
+  "scope_note": "The root migration values preserve the 2026-11-08 baseline. The current state is recorded in latest_candidate_reference_snapshot (increment 554): 42 IEEE 1516.1-2025 Markdown files and 4,807 unique source-line references; all resolve in the active worktree and 4,797 resolve at the published docs candidate HEAD. Ten anchors in four source/test files await a reviewed publication. These checks establish path/line bounds; semantic target review is recorded separately.",
+  "refresh": "Increment 554 confirms the source-dependency state after documentation-only commit 144180197eaae3b368406652c204a409bf2ce571. Worktree references remain 4,807/4,807; candidate base 144180197eaae3b368406652c204a409bf2ce571 resolves 4,797/4,807 with ten out-of-range anchors. No source paths or diagram bodies changed. Reviewed source/test publication and exact-revision validation remain the closeout gate.",
   "candidate_assembly": {
     "status": "44-path 2025-only documentation candidate published; page-level audit complete, visible Mermaid hydration unverified.",
     "target_base_ref": "origin/feature/initial-work",
@@ -2637,9 +2637,9 @@
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
   },
   "latest_candidate_reference_snapshot": {
-    "as_of": "2026-11-18 increment 553",
+    "as_of": "2026-11-18 increment 554",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
+    "candidate_revision": "144180197eaae3b368406652c204a409bf2ce571",
     "remote_branch_matches_candidate": true,
     "markdown_files": 42,
     "unique_source_line_references": 4807,
@@ -2674,8 +2674,8 @@
         "out_of_range_references": 10,
         "affected_target_files": 4
       },
-      "revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
-      "note": "The increment-553 checker finds ten out-of-range anchors in four files on the published candidate. Their lines and meanings are present in the current worktree."
+      "revision": "144180197eaae3b368406652c204a409bf2ce571",
+      "note": "The increment-554 candidate HEAD still has ten out-of-range anchors in four files. Increment 554 changed only roadmap status prose; cited C++ source/test paths and diagram bodies are unchanged."
     },
     "primary_head": {
       "revision": "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
@@ -2693,7 +2693,7 @@
       "published_revised_bodies": 21,
       "current_diagram_count": 515
     },
-    "interpretation": "At published candidate HEAD 83fc953873de2ff288ac4dda2190f0b3f4747017, 4,797/4,807 references resolve; ten anchors are out of range in four source/test files. All ten intended targets resolve in the current source worktree and their target lines have been checked. The local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d puts all lines in range but its three TCK locations are semantically wrong for the cited Federate-Lost scenario; the current worktree contains the matching scenario and post-loss assertions. The local primary branch is 230 commits ahead of origin/feature/initial-work and remains unpublished/unreviewed. Remote master e1f0f61ab6371d978375c26283aa7f6a2b5bdde9 lacks the cited source files. No open repository PRs were found. Keep worktree labels until a reviewed 2025 source/test revision is published.",
+    "interpretation": "At published candidate HEAD 144180197eaae3b368406652c204a409bf2ce571, 4,797/4,807 references resolve; ten anchors are out of range in four source/test files. All ten intended targets resolve in the current source worktree and their target lines have been checked. The local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d puts all lines in range but its three TCK locations are semantically wrong for the cited Federate-Lost scenario; the current worktree contains the matching scenario and post-loss assertions. The local primary branch is 230 commits ahead of origin/feature/initial-work and remains unpublished/unreviewed. Remote master e1f0f61ab6371d978375c26283aa7f6a2b5bdde9 lacks the cited source files. No open repository PRs were found. Keep worktree labels until a reviewed 2025 source/test revision is published.",
     "remote_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
     "open_pull_requests": 0,
     "initial_work": {

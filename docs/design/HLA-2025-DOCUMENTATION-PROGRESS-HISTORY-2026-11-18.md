@@ -110,3 +110,14 @@ The current worktree resolves all 4,807 source-line references; the published do
 The overall goal remains approximately 95% complete. The finish gate is a reviewed 2025 source/test publication followed by exact-revision line and semantic verification of all ten citations. No C++ build, tests, CI, Requirements Lab changes, or 2010-guide edits were made.
 
 **Next handoff:** when a reviewed 2025 source/test revision is published, recheck the ten anchors and all 4,807 references on that revision; keep current worktree-only labels until then.
+
+
+## Increment 554 — reconcile active completion state
+
+The published increment-553 base is `144180197eaae3b368406652c204a409bf2ce571`. A roadmap audit found an older “Remaining documentation work” section still presenting 91% and describing the 515-chart set as unpublished. Replaced that obsolete active checklist with the current finish gates, and labeled the old baseline and review checkpoints as historical. The behavior-guide index and source-dependency snapshot now use the same current status.
+
+The 2025 survey contains 32 guides and 515 diagrams. All current diagram bodies have local render and screenshot evidence; revision-aware hosted hydration covers 515/515, with selected GitHub visual reviews at 76/515. The source-link checker resolves 4,807/4,807 references in the active worktree. Against the published increment-553 base it resolves 4,797/4,807; ten moved anchors across four source/test files still require a reviewed source publication and exact-revision semantic check. The qualitative completion estimate remains approximately 95%.
+
+No diagram bodies, C++ source, 2010 material, or Requirements Lab files changed. No C++ build, tests, or CI ran. The source citation gate remains the next dependency; retain bounded notes for the nonregional receive-order DSE evidence gap and the two unresolved normative questions, and visually review only changed or flagged charts.
+
+**Next handoff:** after source owners publish the reviewed 2025 source/test revision, validate all 4,807 links and the ten moved anchors against that exact revision. Keep the 2010 stream and Requirements Lab separate.

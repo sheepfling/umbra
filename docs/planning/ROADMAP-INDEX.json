@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 553",
+      "as_of": "2026-11-18 increment 554",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 553 refreshed the current finish gate from the published refs: all 515 current diagrams have local render/screenshot evidence and combined revision-aware hydration evidence; selected GitHub visual reviews total 76. Worktree links resolve 4,807/4,807; published candidate 83fc9538 resolves 4,797/4,807. The local primary 7fbf5c9f resolves all links by bounds, but three TCK anchors are semantically wrong in that committed revision. The local branch is 230 commits ahead of origin/feature/initial-work; master lacks the cited target files; no open PR exists. Completion remains approximately 95%.",
-      "next_concrete_review": "When source owners publish a reviewed IEEE 1516.1-2025 source/test revision, recheck all ten target meanings and line positions against that exact revision, then rerun all 4,807 link checks and refresh the source-dependency audit. Keep current worktree-source labels until then; keep 2010 and the Requirements Lab separate.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate). The 32-guide, 515-diagram 2025 set has current local render/screenshot evidence and combined revision-aware hosted hydration evidence for all current bodies; selected hosted visual reviews cover 76/515. Worktree links resolve 4,807/4,807; published docs candidate 83fc9538 resolves 4,797/4,807, with ten moved anchors across four source/test files. Current worktree targets are correct. Local primary HEAD 7fbf5c9f has all links in range but three TCK targets differ semantically and the branch is 230 commits ahead/unreviewed. Remote master lacks cited targets. No open PR exists. Reviewed source publication and exact-revision citation validation remain.",
+      "latest_increment": "Increment 554 reconciles the active roadmap with the published increment-553 base 144180197eaae3b368406652c204a409bf2ce571. The 2025 set has 32 guides and 515 diagrams; local render/screenshot and revision-aware hosted hydration evidence cover all 515, with 76 selected GitHub visual reviews. Worktree source links resolve 4,807/4,807; the published base resolves 4,797/4,807. No diagram bodies or source code changed.",
+      "next_concrete_review": "After source owners publish a reviewed 2025 source/test revision, validate all 4,807 links and the ten moved anchors against that exact revision, including semantic checks for the three Federate-Lost TCK links. Keep 2010 separate and do not edit the Requirements Lab. Continue hosted visual review only for changed or flagged charts.",
+      "remaining_work": "Approximately 95% complete (working estimate, not a gate count). The 2025 set has 32 guides and 515 diagrams with identity-matched local render/screenshot and revision-aware hosted hydration evidence; selected GitHub visual reviews cover 76/515. The worktree checker resolves 4,807/4,807. The published increment-553 base 144180197eaae3b368406652c204a409bf2ce571 resolves 4,797/4,807, with ten out-of-range anchors in four source/test files awaiting reviewed source-owner publication and exact-revision recheck. The nonregional receive-order DSE push and two normative questions remain explicitly bounded. Keep 2010 and the Requirements Lab separate.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 553",
-        "revision": "Published docs candidate 83fc953873de2ff288ac4dda2190f0b3f4747017 plus active 2025 source/test worktree; source baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "as_of": "2026-11-18 increment 554",
+        "revision": "Active documentation worktree based on published candidate source baseline 144180197eaae3b368406652c204a409bf2ce571 plus uncommitted source/test edits; checked 2026-11-18.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
         "unique_references": 4807,
         "resolved": 4807,
         "unresolved": 0,
-        "note": "The current worktree resolves all 4,807 references. The ten targets are absent/out of range on published candidate HEAD; all ten meanings and exact current-worktree locations have been checked."
+        "note": "The worktree check resolves all 4,807 references. The published increment-553 base has ten out-of-range anchors in four targets; worktree bounds do not alone establish semantic correctness."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 553",
-        "revision": "Published docs candidate HEAD 83fc953873de2ff288ac4dda2190f0b3f4747017; its committed C++ source tree is unchanged from baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
-        "remote_branch_revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
+        "as_of": "2026-11-18 increment 554",
+        "revision": "Published candidate source baseline 144180197eaae3b368406652c204a409bf2ce571; checked 2026-11-18 before this documentation-only increment.",
+        "remote_branch_revision": "144180197eaae3b368406652c204a409bf2ce571",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4807,
@@ -1072,7 +1072,7 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
         ],
-        "note": "Ten anchors are out of range in four files. The cited current behavior is in the active worktree, not this published source tree; no safe replacement anchors are available here."
+        "note": "The increment-554 base has ten out-of-range anchors in four targets. The guide and source changes in the active worktree identify the intended locations; this record does not treat unpublished source as reviewed evidence."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-18 increment 553",
