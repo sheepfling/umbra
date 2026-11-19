@@ -100,3 +100,13 @@ Reconciled six ledger identities: corrected Data Element Encoding #006–#009 so
 The overall working estimate remains approximately 95%. The remaining finish gate is external to this documentation-only increment: publish the reviewed 2025 source/test revision, then recheck the ten moved citation anchors and their meanings against that exact revision. The current worktree resolves 4,807/4,807 source references; published candidate HEAD resolves 4,797/4,807. Normative claims that lack reviewed standard text remain explicitly bounded. No C++ build, tests, CI, Requirements Lab edits, or 2010-guide edits were made.
 
 **Next handoff:** when the reviewed 2025 source/test revision is published, rerun the 4,807 source-link checks and verify all ten anchors and semantics on that exact revision. Keep the 2010 and 2025 streams separate; continue hosted visual review only for changed or flagged charts.
+
+## Increment 553 — refresh source publication and citation handoff
+
+Rechecked the published refs and all ten source targets after increment 552. The docs candidate is published at `83fc953873de2ff288ac4dda2190f0b3f4747017`; `master` remains at `e1f0f61ab6371d978375c26283aa7f6a2b5bdde9`, and `origin/feature/initial-work` remains at `c9c5a9e410539b039cd8bba35b53d0ef2b24d180`. No open repository PR was found. The active local `feature/initial-work` HEAD is `7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d`, 230 commits ahead of its remote; its source changes are not a reviewed citation base. Remote `master` does not contain the cited source targets.
+
+The current worktree resolves all 4,807 source-line references; the published docs candidate resolves 4,797/4,807, with ten out-of-range anchors in four source/test files. All ten intended locations were checked in the current worktree. The local primary HEAD puts all 4,807 links in range, but its TCK lines 2389, 2768, and 2778 refer to automatic resign/fault-parameter/interaction-class code rather than the Federate-Lost scenario and roster assertions. The current worktree places the cited scenario and checks at the intended locations. The roadmap and source-dependency snapshot now record this distinction.
+
+The overall goal remains approximately 95% complete. The finish gate is a reviewed 2025 source/test publication followed by exact-revision line and semantic verification of all ten citations. No C++ build, tests, CI, Requirements Lab changes, or 2010-guide edits were made.
+
+**Next handoff:** when a reviewed 2025 source/test revision is published, recheck the ten anchors and all 4,807 references on that revision; keep current worktree-only labels until then.

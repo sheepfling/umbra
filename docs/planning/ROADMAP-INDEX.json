@@ -1035,26 +1035,26 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-18 increment 552",
+      "as_of": "2026-11-18 increment 553",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 552 reconciled 515 2025 diagram ledger identities and the four stale backlog topics. All 515 current bodies have matched local render and screenshot evidence; hosted hydration coverage is 515/515 after combining the full hydration audit with the independently verified Data Element Encoding #005 update. The selected GitHub visual sample is 76/515, including Callback and Service Ordering #019 and TSO Retraction #008 at candidate revision 78cc803a. Worktree source links resolve 4,807/4,807; published candidate HEAD resolves 4,797/4,807. Ten moved source/test anchors remain the external closeout gate. Completion remains approximately 95%.",
-      "next_concrete_review": "When source owners publish a reviewed IEEE 1516.1-2025 source/test revision, rerun all 4,807 documentation source-link checks and verify the ten moved anchors and their meanings against that exact revision. Preserve worktree-source labels until then. Keep 2010 and the Requirements Lab separate; continue hosted visual review only for changed or flagged diagrams.",
-      "remaining_work": "Approximately 95% complete (qualitative estimate, not a gate count). The 32-guide, 515-diagram 2025 set has current-body local render and screenshot evidence for all 515 diagrams, and hosted hydration evidence covers all 515 current bodies; selected hosted visual reviews cover 76/515. The worktree resolves 4,807/4,807 source references. Published candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97 resolves 4,797/4,807; ten out-of-range anchors remain across four source/test files. Their meanings are confirmed in the active source worktree, but published host/TCK implementations differ materially, so safe retargeting is unavailable. Wait for a reviewed source-owner publication, then recheck all ten anchors and semantics on that exact revision. Normative evidence gaps remain explicitly bounded. Keep 2010 and the Requirements Lab separate.",
+      "latest_increment": "Increment 553 refreshed the current finish gate from the published refs: all 515 current diagrams have local render/screenshot evidence and combined revision-aware hydration evidence; selected GitHub visual reviews total 76. Worktree links resolve 4,807/4,807; published candidate 83fc9538 resolves 4,797/4,807. The local primary 7fbf5c9f resolves all links by bounds, but three TCK anchors are semantically wrong in that committed revision. The local branch is 230 commits ahead of origin/feature/initial-work; master lacks the cited target files; no open PR exists. Completion remains approximately 95%.",
+      "next_concrete_review": "When source owners publish a reviewed IEEE 1516.1-2025 source/test revision, recheck all ten target meanings and line positions against that exact revision, then rerun all 4,807 link checks and refresh the source-dependency audit. Keep current worktree-source labels until then; keep 2010 and the Requirements Lab separate.",
+      "remaining_work": "Approximately 95% complete (qualitative estimate). The 32-guide, 515-diagram 2025 set has current local render/screenshot evidence and combined revision-aware hosted hydration evidence for all current bodies; selected hosted visual reviews cover 76/515. Worktree links resolve 4,807/4,807; published docs candidate 83fc9538 resolves 4,797/4,807, with ten moved anchors across four source/test files. Current worktree targets are correct. Local primary HEAD 7fbf5c9f has all links in range but three TCK targets differ semantically and the branch is 230 commits ahead/unreviewed. Remote master lacks cited targets. No open PR exists. Reviewed source publication and exact-revision citation validation remain.",
       "finish_condition": "The 2025 HLA guides explain standard concepts, state transitions, callbacks, edge cases, and evidence limits; the full 515-diagram set is published with revision-aware hosted hydration evidence; source and normative evidence limits are resolved or explicitly bounded; and 2010 remains separate. Final source-citation closeout requires line and semantic target review after the active source changes are stabilized.",
       "source_reference_validation": {
-        "as_of": "2026-11-18 increment 552",
-        "revision": "Published documentation candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97 plus the active 2025 source/test worktree; source/test baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "as_of": "2026-11-18 increment 553",
+        "revision": "Published docs candidate 83fc953873de2ff288ac4dda2190f0b3f4747017 plus active 2025 source/test worktree; source baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree.",
         "markdown_files": 42,
         "unique_references": 4807,
         "resolved": 4807,
         "unresolved": 0,
-        "note": "The worktree check resolves all 4,807 references. Ten targets are out of range on published candidate HEAD; all ten meanings were inspected in the active source/test worktree, and the published host/TCK code has no safe equivalent replacement anchors."
+        "note": "The current worktree resolves all 4,807 references. The ten targets are absent/out of range on published candidate HEAD; all ten meanings and exact current-worktree locations have been checked."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-18 increment 552",
-        "revision": "Published candidate HEAD 78cc803a3069aae018cd940ab4e521eb24335a97; C++ source tree matches baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
-        "remote_branch_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
+        "as_of": "2026-11-18 increment 553",
+        "revision": "Published docs candidate HEAD 83fc953873de2ff288ac4dda2190f0b3f4747017; its committed C++ source tree is unchanged from baseline 149a5b94f0e3f2ef35666f0d8cd3984df799cbb2; checked 2026-11-18.",
+        "remote_branch_revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against the published candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4807,
@@ -1072,18 +1072,18 @@
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
           "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
         ],
-        "note": "Increment 552 check finds ten out-of-range anchors in four files. Their meanings are confirmed at the active worktree locations; published host/TCK code is materially different, so no safe retarget exists. Reviewed source-owner publication and exact-revision recheck remain."
+        "note": "Ten anchors are out of range in four files. The cited current behavior is in the active worktree, not this published source tree; no safe replacement anchors are available here."
       },
       "primary_head_reference_validation": {
-        "as_of": "2026-11-18 increment 543",
+        "as_of": "2026-11-18 increment 553",
         "revision": "Local feature/initial-work HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d; unpublished.",
-        "scope": "Candidate documentation source-line references checked against local primary; bounds only.",
+        "scope": "Current 2025 documentation source-line references checked against local primary; bounds and targeted semantic review.",
         "markdown_files": 42,
-        "unique_references": 4805,
-        "resolved": 4805,
+        "unique_references": 4807,
+        "resolved": 4807,
         "unresolved": 0,
         "commits_ahead_of_remote_initial_work": 230,
-        "scope_note": "All lines are in range. Targeted review finds the host function, timeout branch, and five Catch2 behaviors align with their intended citation regions. TCK lines 2389 and 2765 do not: they identify an automatic delete-then-divest assertion and a fault-parameter lookup. The Federate-Lost scenario is at line 2607 and its post-loss update at line 2983. This unpublished local branch is not a safe citation base."
+        "scope_note": "All 4,807 lines are in range. The five Catch2 and two runtime targets have the intended code regions, but TCK lines 2389, 2768, and 2778 identify an automatic-resign assertion, fault-parameter validation, and interaction-class lookup rather than the documented Federate-Lost scenario and roster checks. The active worktree contains the intended TCK targets; this unpublished branch is not a safe citation base."
       },
       "initial_work_reference_validation": {
         "as_of": "2026-11-18 increment 543",
@@ -1096,18 +1096,18 @@
         "note": "The remote initial-work branch still lacks the same nine active 2025 source/test line ranges."
       },
       "semantic_source_anchor_review": {
-        "as_of": "2026-11-18 increment 543",
-        "revision": "Published candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 plus active, uncommitted source/test edits in the candidate worktree.",
-        "anchors_reviewed": 9,
-        "result": "All nine worktree targets resolve and exact-line inspection matches the guide descriptions; published-source verification remains open.",
+        "as_of": "2026-11-18 increment 553",
+        "revision": "Published candidate 83fc953873de2ff288ac4dda2190f0b3f4747017 plus active source/test worktree; local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
+        "anchors_reviewed": 10,
+        "result": "All ten current-worktree target lines are present and align with their described function, configuration branch, focused cases, and TCK scenario/assertions. Published candidate lacks the moved targets; local primary HEAD has three TCK targets with different meanings.",
         "checks": [
-          "process_federation_service_host.cpp#L357 begins ProcessFederationServiceHost::serveConnection.",
-          "rti_initialization_data.cpp#L241 selects the RTI_TIMEOUT_HEART configuration branch.",
-          "The five Catch2 anchors identify the resume-history, inactive-session purge, reconnect-timeout, heartbeat-recovery, and history-gap cases.",
-          "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2765 is the post-loss HLAfederatesInFederation conditional update in the candidate worktree."
+          "process_federation_service_host.cpp#L357 is ProcessFederationServiceHost::serveConnection.",
+          "rti_initialization_data.cpp#L241 is the RTI_TIMEOUT_HEART parser branch.",
+          "The five Catch2 anchors name resume-history recovery, inactive-session purge, reconnect timeout, heartbeat timeout, and history-gap cases.",
+          "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2768 checks the post-loss membership projection; #L2778 selects the survivor-only member-list assertion."
         ],
-        "primary_revision_semantic_mismatch": "At local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d, TCK line 2389 is an automatic delete-then-divest assertion and line 2765 a fault-parameter lookup. The Federate-Lost scenario starts at line 2607 and its post-loss update is at line 2983. This branch is unpublished and 230 commits ahead of origin/feature/initial-work.",
-        "status": "Provisional until a reviewed 2025 source/test revision is published and the two TCK citations are reconciled against it."
+        "primary_revision_semantic_mismatch": "At local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d, line 2389 asserts the automatic delete-then-divest directive, line 2768 validates fault parameters, and line 2778 returns an interaction-class name. The active worktree has the intended Federate-Lost scenario and roster checks at those positions. The local branch is unpublished and 230 commits ahead of origin/feature/initial-work.",
+        "status": "Provisional until source owners publish a reviewed 2025 source/test revision and all ten citations are rechecked there."
       },
       "standard_text_access_check": {
         "as_of": "2026-11-09 increment 382",
@@ -1356,14 +1356,14 @@
         "scope_note": "Both responses were nonempty after the increment-540 source-state refresh. No Mermaid body changed; broader layout remains sampling-only."
       },
       "published_diagram_hydration": {
-        "as_of": "2026-11-18 increment 552 reconciliation",
+        "as_of": "2026-11-18 increment 553",
         "revision": "431152817283718923c06a07e4154ca785e7033a",
         "guide_pages": 32,
         "diagram_count": 515,
         "loaded_render_accessibility_documents": 515,
         "page_count_mismatches": 0,
-        "combined_method": "The full hosted hydration audit covers 515 diagrams across 32 pages at the recorded audited revision. Comparison from the later audited candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 to current candidate HEAD 78cc803a found one changed body: Data Element Encoding #005. That updated body was independently rendered and visually reviewed in GitHub at revision 68217e97d15cfdc4f83a32025fded1be12c8b749 (increment 548); no Mermaid bodies changed between that revision and 78cc803a. Data Element Encoding #006–#009 only have shifted source lines; their body hashes are unchanged. Thus the combined hydration evidence covers all 515 current bodies. The selected hosted visual sample is 76/515 and is not a full readability review.",
-        "current_candidate_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
+        "combined_method": "The full hosted hydration audit covers 515 diagrams across 32 pages at the recorded audited revision. Comparison from the later audited candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 to current candidate HEAD 78cc803a found one changed body: Data Element Encoding #005. That updated body was independently rendered and visually reviewed in GitHub at revision 68217e97d15cfdc4f83a32025fded1be12c8b749 (increment 548); no Mermaid bodies changed between that revision and 78cc803a. Data Element Encoding #006–#009 only have shifted source lines; their body hashes are unchanged. Thus the combined hydration evidence covers all 515 current bodies. The selected hosted visual sample is 76/515 and is not a full readability review. No Mermaid bodies changed from candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97 to increment-552 HEAD 83fc953873de2ff288ac4dda2190f0b3f4747017; the increment changed only documentation bookkeeping.",
+        "current_candidate_revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
         "diagram_bodies_changed_since_audited_revision": true,
         "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a",
         "latest_body_delta": {
@@ -1399,14 +1399,14 @@
         "scope_note": "Not a safe citation target. tck_connection_lifecycle.cpp#L2389 is an automatic delete-then-divest assertion; #L2765 is a fault-parameter lookup; the Federate-Lost MOM scenario starts at L2607 and its post-loss update is at L2983. The local branch is unpublished and 18 commits ahead of origin/feature/initial-work."
       },
       "master_branch_reference_validation": {
-        "as_of": "2026-11-18 increment 543",
+        "as_of": "2026-11-18 increment 553",
         "revision": "Published origin/master HEAD e1f0f61ab6371d978375c26283aa7f6a2b5bdde9.",
-        "scope": "All 4,805 source-line references across 42 current IEEE 1516.1-2025 Markdown files.",
-        "references_checked": 4805,
+        "scope": "The ten source/test anchors currently pending publication.",
+        "references_checked": 10,
         "resolved": 0,
-        "unresolved": 4805,
-        "missing_target_files": 702,
-        "interpretation": "This branch lacks the cited 2025 source/test paths and is not a viable citation base."
+        "unresolved": 10,
+        "missing_target_files": 4,
+        "interpretation": "All four target files are absent from master; it is not a viable citation base."
       },
       "latest_worktree_semantic_review": {
         "as_of": "2026-11-18 increment 551",
