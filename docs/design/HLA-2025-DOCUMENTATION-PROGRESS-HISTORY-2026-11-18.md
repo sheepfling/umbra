@@ -83,3 +83,11 @@ After increment 549 was pushed, the documentation candidate branch advanced to `
 The current completion estimate remains **approximately 95%**. The remaining finish gate is publication of a reviewed 2025 source/test revision, followed by line-bound and semantic verification of all ten anchors. No build, tests, or CI ran; keep 2010 and the Requirements Lab separate.
 
 **Next handoff:** once source owners publish the reviewed source/test revision, rerun all 4,807 source links and inspect the ten moved anchors, including the Federate-Lost scenario/reflection/member-list targets, against that exact revision. Continue visual review only for changed or specifically flagged charts.
+
+## Increment 551 — verify all current source-only citation targets
+
+I rechecked the current 2025 source worktree at every moved line target. The host anchor enters the resume handshake; the RID anchor selects `RTI_TIMEOUT_HEART`; the five Catch2 anchors identify host resume, purge, reconnect expiry, heartbeat recovery, and resume-history-gap cases; and the three TCK anchors identify the Federate-Lost scenario, post-loss roster-reflection assertion, and survivor-only member-list check. The references match their guide claims in the active worktree.
+
+The checker still resolves 4,807/4,807 references in the worktree and 4,797/4,807 at published documentation HEAD `7be780ac6b1f0878015beb8cc31181bd6fef1daa` (C++ source baseline `149a5b94f0e3f2ef35666f0d8cd3984df799cbb2`). The published host/TCK implementations do not contain equivalent resume and roster assertions, so retargeting would misstate the evidence. Remote branches and GitHub show no reviewed source-owner publication. Progress remains approximately 95%; no build, tests, or CI ran. Keep 2010 and the Requirements Lab separate.
+
+**Next handoff:** when a reviewed 2025 source/test revision is published, rerun the source-link checker and verify all ten line positions and semantics on that exact revision. Preserve the current worktree-only labels until then.
