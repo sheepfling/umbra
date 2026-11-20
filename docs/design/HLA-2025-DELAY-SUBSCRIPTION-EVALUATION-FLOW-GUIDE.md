@@ -487,6 +487,56 @@ delivery have source-observed recheck points but no focused DSE test in this
 bounded survey. Do not treat the attribute cases as proof of those other
 process routes.
 
+### Concrete follow-on tests for the process gaps
+
+The missing TSO cases can reuse the [process attribute-before-grant fixture](../../cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1114)
+and [process TSO interaction fanout fixture](../../cpp/tests/ieee1516_2025_connection_process_tso_interaction_fanout_catch2.cpp#L461),
+while mirroring the subscription transitions in the embedded [timestamped attribute DSE case](../../cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_attribute_update_catch2.cpp#L3)
+and [timestamped interaction DSE case](../../cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_interaction_catch2.cpp#L3).
+For each service, use a regulating sender and a time-constrained receiver:
+send at time 2 while the receiver has no matching declaration, add the
+declaration before the receiver's TSO delivery boundary, and compare DSE-on
+with DSE-off. For the enabled lane, send a second update while eligible, remove
+the declaration before time 3 delivery, and check that the current projection
+suppresses it. These are proposed test shapes, not existing process evidence
+or new normative rules.
+
+The attribute sequence below follows the source-observed process boundary:
+the queued recipient is re-projected using current attribute and region state
+before the callback event is built, then the receiver crosses its callback
+boundary before completing the matching grant in the cited process fixture
+([dispatch projection](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L161),
+[existing callback/grant case](../../cpp/tests/ieee1516_2025_connection_tso_attribute_before_grant_catch2.cpp#L1114)).
+The proposed DSE mutation itself remains untested.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant S as Regulating sender
+  participant RTI as Configured process RTI
+  participant R as Time-constrained receiver
+  S->>RTI: UpdateAttributeValues(value, timestamp 2)
+  Note over RTI: DSE enabled, retain the joined receiver's candidate in the TSO path
+  R->>RTI: Subscribe to the attribute
+  R->>RTI: TimeAdvanceRequest(2)
+  RTI->>RTI: Re-resolve current attributes and region context at recipient dispatch
+  alt Current projection contains an attribute
+    RTI-->>R: ReflectAttributeValues(timestamp 2)
+    RTI-->>R: TimeAdvanceGrant(2) after callback completion
+  else Current projection is empty
+    RTI->>RTI: Suppress reflection and complete recipient delivery
+    RTI-->>R: Grant after time-management conditions allow
+  end
+```
+
+Keep receive-order process interactions separate from this TSO schedule. Their
+route-only recheck occurs inside the send service before event construction;
+the callback bridge delivers the projected event without another DSE check.
+A test that subscribes only after `SendInteraction` returns would not exercise
+that recheck or establish a callback-time eligibility window. Any focused
+receive-order test needs a deterministic planner-to-event interleave; until
+then, keep that path source-derived.
+
 ## Implementation map and limits
 
 - [2025 FOM parsing of the DSE switch](../../cpp/src/internal/fom/libxml2_fom_composer.cpp#L1799)
