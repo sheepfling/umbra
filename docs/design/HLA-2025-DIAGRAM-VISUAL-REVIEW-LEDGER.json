@@ -18,16 +18,17 @@
       "inventory": 463,
       "identities_enumerated": false
     },
-    "github_page_rendering": "Increment 552 visually reviewed Callback and Service Ordering #019 and TSO Retraction #008 in GitHub expanded Mermaid dialogs at candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97. Both render without clipping; #008 is unusually tall and narrow but remains readable while scrolling. Hosted hydration is audited for the previous published 515/515 snapshot; the current candidate has 516 diagrams and the selected hosted sample is 76/516, with two earlier views stale. Increment 557 changes the DSE #003 body; refresh that published guide and replace its earlier selected review before treating hosted evidence as current for this chart. Callback and Service Ordering #019 also has a corrected local body hash in increment 557; refresh its earlier selected hosted review along with DSE #003 after publication. Increment 558 adds DSE #005, which has local render and screenshot review but awaits hosted review after publication. Refresh DSE #003, DSE #005, and Callback and Service Ordering #019 in the current published branch.",
+    "github_page_rendering": "Increment 559 visually reviewed the GitHub-rendered DSE #003, DSE #005, and Callback and Service Ordering #019 bodies at candidate revision 4c182311788f601d6eb264d909d8e554bc23fafd. Each exposed Mermaid body matches its ledger SHA-256; rendered page captures across the tall charts show readable labels/connectors without internal overlap or clipped content. Two previously selected diagram identities were refreshed and DSE #005 adds one new identity, bringing the selected hosted sample to 77/516. The prior published 515/515 hydration audit remains historical; no full current-revision hydration audit is claimed.",
     "latest_focused_github_visual_review": {
-      "as_of": "2026-11-18 increment 552",
-      "diagram_id": "HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#diagram-008",
-      "source_line": 449,
-      "candidate_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
-      "body_sha256": "4f5b23b4b28453ea47da0e76978d82a61dabb74859ba4cc98cb419a060279b07",
-      "view": "GitHub expanded Mermaid dialog",
-      "observation": "The chart renders without clipping. Its tall layout wraps labels into a narrow column and requires scrolling, but the inspected text remains readable.",
-      "scope_note": "Selected published-layout sample. The same increment also visually reviewed Callback and Service Ordering #019 at this revision. Hydration is audited for all 515 diagrams; the selected hosted visual sample is 76/515, not a claim that every chart has been visually inspected on GitHub."
+      "as_of": "2026-11-20 increment 559",
+      "diagram_id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-005",
+      "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
+      "line": 444,
+      "revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+      "view": "GitHub blob Preview, rendered Mermaid iframe; 1600x1000 viewport reviewed in top/middle/bottom scroll captures.",
+      "body_sha256": "a07e6efb69a7be1125f901ff972ea8a7e9b1e727b4c0f634b6dd97ff66798742",
+      "observation": "The queue/nonqueue split and the in-service versus later-TSO selector checks are legible from top to bottom; no overlap or clipped content. DSE #003 and Callback #019 were also re-reviewed at the same revision, with all three current GitHub Mermaid bodies matching ledger hashes.",
+      "scope_note": "Selected hosted visual sample now covers 77/516 distinct diagram identities. Two prior identities were refreshed; DSE #005 adds one new identity. Previous published hydration evidence remains 515/515 and is not a full hydration audit of this current candidate revision."
     },
     "note": "All 515 current IEEE 1516.1-2025 diagram identities have explicit local screenshot evidence matched to current Mermaid body hashes and source lines. Increment 374 audited the published candidate branch: 508/508 hosted containers hydrated and returned HTTP 200 across 32/32 guide pages, with zero request failures. Increment 380 locally rendered and visually reviewed Save/Restore #043, Callback/Ordering #019, and TSO-Retraction #008. Increment 383 re-rendered and screenshot-reviewed Federation Synchronization #006 after clarifying that registry insertion and announcement-plan preparation precede application callback delivery. Increment 389 compared source identities across the audited pages: 507 of the 508 hosted chart bodies are unchanged in the current worktree, Federation Synchronization #006 is revised, and Save/Restore #043 is added. Callback/Ordering #019 and TSO-Retraction #008 already match the hosted audit. The revised Synchronization chart and added Save/Restore chart have local evidence and still need hosted hydration after publication. The new FOM admission chart (#001) was rendered with Mermaid CLI and screenshot-reviewed locally on 2026-11-09; it has not yet been published for hosted hydration. Increment 413 rendered and screenshot-reviewed Service Invocation Reporting #006 on 2026-11-11; its GFM conversion verified 13/13 containers, while hosted-page hydration remains pending. Increment 413 also re-rendered Callback/Ordering #019 after correcting its stale ledger hash; the current body matches the last hydrated revision and now has a current screenshot review. Increment 415 re-rendered and screenshot-reviewed Data Distribution and Regions #002 after clarifying the valid empty class-dimension result. The updated guide's GFM conversion returned 36/36 containers; hosted-page hydration remains pending. Increment 416 rendered and screenshot-reviewed Service Invocation Reporting #007; the complete guide converted through GitHub GFM with 14/14 Mermaid containers. Hosted hydration remains pending publication. Increment 417 added Service Invocation Reporting #008; Mermaid CLI render and screenshot review confirmed the current chart body. Its full-guide GFM conversion produced 15/15 containers; hosted-page hydration awaits publication. Increment 418 added Service Invocation Reporting #010; Mermaid CLI render and screenshot review confirmed the two-track synchronization report diagram. Its full-guide GFM conversion produced 16/16 containers; hosted-page hydration awaits publication. Increment 420 added and screenshot-reviewed Service Invocation Reporting #008, showing the separate embedded and configured-process missing-class lookup paths. GitHub GFM conversion verified 17/17 guide containers; hosted hydration still awaits publication. Increment 428 re-rendered and screenshot-reviewed Service Invocation Reporting #008 after adding the explicit test-evidence boundary, and re-rendered TSO Retraction #008 after reconciling its stale body hash. Increment 458 freshly rendered and screenshot-reviewed current Callback and Service Ordering #019 and Data Distribution and Regions #006 bodies while reconciling the complete 515-entry ledger. Increment 518 re-rendered and screenshot-reviewed Service Invocation Reporting #009 after making the embedded route, callback-model delivery, and report-writer failure boundary explicit; current body SHA-256 ec058fd866ff95fe8f1cc648dd921e18ae77dac8b55d98d623fffc00a805206c. Increment 519 revised and locally screenshot-reviewed Service Invocation Reporting #010; hosted hydration awaits publication. Increment 520 locally rendered and screenshot-reviewed Service Invocation Reporting #011; the H lane shows test checkpoints, while the R lane shows serial order without asserting cross-lane callback timing. Increment 521 re-rendered and screenshot-reviewed Service Invocation Reporting #012 after separating embedded HLA_EVOKED evidence from untested callback models and adding the tested untimed/timestamped pair. Increment 522 re-rendered and visually reviewed Service Invocation Reporting #013; the corrected state diagram is legible without extra statement nodes or clipping. Increment 523 re-rendered Service Invocation Reporting #014 after reducing the sequence to five participants; the success and failure branches and callback-model note are readable. Increment 524 locally rendered and screenshot-reviewed Service Invocation Reporting #015; the chart shows TSO admission before MOM/file reporting, the file-failure exit without dequeue, and the later grant gate. Increment 524 re-rendered and screenshot-reviewed Callback and Service Ordering #019 after reconciling its current body hash 27e6c160aa36ca0d6656afd96bbac4b7ea9740fd012338136b3b49ae54cb1f3c. Increment 525 screenshot-reviewed current Service Invocation Reporting #016 and #017; the registry-reservation chart and post-commit callback/error sequence are readable. The same audit freshly rendered and reviewed Callback and Service Ordering #019 and TSO Retraction #008 after detecting stale hashes; their current bodies are now recorded. Increment 536 freshly reviewed the current-body screenshot for Delay Subscription Evaluation #003; this is a selected local visual review, not a full-width review of every GitHub page. Increment 537 also inspected the published GitHub expanded-dialog view for Delay Subscription Evaluation #003 at revision 25b9055f; this selected hosted layout review is recorded separately from the 515 local screenshot reviews. Increment 547 re-rendered and screenshot-reviewed Data Element Encoding #005 after separating fixed-record next-field alignment from array prototype-boundary alignment; current body SHA-256 f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329. Increment 552 visually reviewed the current Callback and Service Ordering #019 and TSO Retraction #008 bodies in GitHub at candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97; both were readable without clipping, with #008 notably tall and narrow. The selected hosted visual sample is now 76/515."
   },
@@ -1122,7 +1123,14 @@
       "type": "sequenceDiagram",
       "body_sha256": "27e6c160aa36ca0d6656afd96bbac4b7ea9740fd012338136b3b49ae54cb1f3c",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-20"
+      "screenshot_review": "confirmed-2026-11-20",
+      "github_visual_review": {
+        "status": "confirmed-2026-11-20-increment-559",
+        "revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+        "view": "GitHub blob Preview, rendered Mermaid iframe; 1600x1000 viewport reviewed in top/middle/bottom scroll captures.",
+        "observation": "The three participant lanes and nested HLA_IMMEDIATE active-drainer/re-entry branches remain distinct from the HLA_EVOKED lane. Callback failures, consumed tasks, preserved queued work, and later Evoke are readable across scrolling; no internal overlap or clipped diagram content was observed.",
+        "scope": "Targeted current-body hosted review; refreshes the earlier selected view after reconciling the current body hash. Not a full current-branch hydration audit."
+      }
     },
     {
       "id": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#diagram-020",
@@ -2044,11 +2052,11 @@
       "local_render": "verified-current-body",
       "screenshot_review": "confirmed-2026-11-20",
       "github_visual_review": {
-        "status": "confirmed-2026-11-15-increment-537",
-        "revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
-        "view": "GitHub expanded Mermaid dialog",
-        "observation": "Three route lanes, outcomes, and final projection/suppression decision were legible without clipping; the tall chart requires vertical scrolling to inspect its full path.",
-        "scope": "Selected published-layout review only; not all 515 charts were reviewed at full width."
+        "status": "confirmed-2026-11-20-increment-559",
+        "revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+        "view": "GitHub blob Preview, rendered Mermaid iframe; 1600x1000 viewport reviewed in top/middle/bottom scroll captures.",
+        "observation": "The timestamped versus receive-order split, constrained-recipient TSO path, pull/push receive-order paths, current eligibility decision, suppression/materialization, and callback bridge remain traceable across scrolling. Labels and connectors are readable; no internal overlap or clipped diagram content was observed.",
+        "scope": "Targeted current-body hosted review. This identity had a prior hosted review; this refresh replaces the stale revision/body. Not a full current-branch hydration audit."
       }
     },
     {
@@ -2073,7 +2081,14 @@
       "type": "flowchart",
       "body_sha256": "a07e6efb69a7be1125f901ff972ea8a7e9b1e727b4c0f634b6dd97ff66798742",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-20"
+      "screenshot_review": "confirmed-2026-11-20",
+      "github_visual_review": {
+        "status": "confirmed-2026-11-20-increment-559",
+        "revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+        "view": "GitHub blob Preview, rendered Mermaid iframe; 1600x1000 viewport reviewed in top/middle/bottom scroll captures.",
+        "observation": "The per-recipient TSO-queue split, in-send-service route-only selector check, later queued-TSO selector recheck, and projected/omitted/suppressed outcomes are distinct across scrolling. Labels and connectors are readable; no internal overlap or clipped diagram content was observed.",
+        "scope": "New selected hosted-review identity. This targeted review does not claim all current diagrams were hydrated or visually inspected."
+      }
     },
     {
       "id": "HLA-2025-DIRECTED-INTERACTION-FLOW-GUIDE.md#diagram-001",
@@ -7649,14 +7664,14 @@
     "scope_note": "Selected local render and screenshot review only. The earlier hosted review predates the verified current body hash; refresh the hosted page after publication."
   },
   "latest_focused_github_visual_review": {
-    "as_of": "2026-11-18 increment 552",
-    "diagram_id": "HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#diagram-008",
-    "source": "docs/design/HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md",
-    "line": 449,
-    "revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
-    "view": "GitHub expanded Mermaid dialog",
-    "body_sha256": "4f5b23b4b28453ea47da0e76978d82a61dabb74859ba4cc98cb419a060279b07",
-    "observation": "The chart renders without clipping. Its tall layout wraps labels into a narrow column and requires scrolling, but the inspected text remains readable.",
-    "scope_note": "Selected published-layout sample. The same increment also visually reviewed Callback and Service Ordering #019 at this revision. Hydration is audited for all 515 diagrams; the selected hosted visual sample is 76/515, not a claim that every chart has been visually inspected on GitHub."
+    "as_of": "2026-11-20 increment 559",
+    "diagram_id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-005",
+    "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
+    "line": 444,
+    "revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+    "view": "GitHub blob Preview, rendered Mermaid iframe; 1600x1000 viewport reviewed in top/middle/bottom scroll captures.",
+    "body_sha256": "a07e6efb69a7be1125f901ff972ea8a7e9b1e727b4c0f634b6dd97ff66798742",
+    "observation": "The queue/nonqueue split and the in-service versus later-TSO selector checks are legible from top to bottom; no overlap or clipped content. DSE #003 and Callback #019 were also re-reviewed at the same revision, with all three current GitHub Mermaid bodies matching ledger hashes.",
+    "scope_note": "Selected hosted visual sample now covers 77/516 distinct diagram identities. Two prior identities were refreshed; DSE #005 adds one new identity. Previous published hydration evidence remains 515/515 and is not a full hydration audit of this current candidate revision."
   }
 }
