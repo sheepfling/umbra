@@ -1774,11 +1774,11 @@ object. These links describe checked-in test assertions; this documentation
 review did not rerun them or claim a fresh execution result. They do not
 establish equivalent configured-process runtime behavior or a public
 callback-order rule.
-The current worktree's [configured-process Federate-Lost scenario](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389)[^worktree-source]
+The published source revision's [configured-process Federate-Lost scenario](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2607)[^published-source-revision]
 contains assertions for exact timestamp equality with the loss cutoff,
 TSO-before-grant ordering, post-loss federation-member reflection, and a public
-member-list query showing only the survivor. The [post-loss reflection assertion](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768)[^worktree-source]
-and [survivor-only member-list check](../../packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778)[^worktree-source]
+member-list query showing only the survivor. The [post-loss reflection assertion](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2986)[^published-source-revision]
+and [survivor-only member-list check](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2996)[^published-source-revision]
 are in the same scenario; it also checks post-loss synchronization with the
 survivor. A saved artifact pair from 2026-11-07 records
 `cpp-tck.federate-lost-mom-report` in
@@ -2378,13 +2378,16 @@ the member-list HLA/API request-report map, the configured-process member-list
 sequence, and the production-coordinator stop flow. At that review the guide
 had 17 diagrams. All three selected charts were readable without clipping or
 overlap; the sequence is dense at full-page scale but its participants and
-callback-model branches remain legible. The current guide has 27 diagrams; the
-latest roadmap inventory records local render coverage for all 459 diagrams
-across 32 guides. These are selected visual checks, not whole-guide screenshot
-review or GitHub-renderer verification.
+callback-model branches remain legible. The current guide has 27 diagrams.
+The latest roadmap inventory records identity-matched local render and
+screenshot evidence for all 515 diagrams across 32 guides, plus revision-aware
+hosted hydration for all 515. These counts do not mean every chart received a
+selected hosted visual review or a whole-guide screenshot review.
 Verify exact clause 4.4 wording against the full official standard before
 presenting the implementation flow as normative guidance. A 2010 lifecycle
 survey remains a separate future topic; do not infer it from this 2025 guide.
 Do not edit the HLA Requirements Lab during this Umbra documentation work.
 
-[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) captures an earlier candidate snapshot and does not include every current-worktree citation. Reconcile the current-only references after source changes settle and before publication.
+[^worktree-source]: Citations marked this way rely on the active source/test worktree or have not yet been revalidated at an immutable source revision. Relative link checks establish line bounds at the candidate base, not semantic identity. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) tracks the remaining worktree references.
+
+[^published-source-revision]: These links are immutable permalinks to public commit 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d on feature/initial-work. GitHub search found no associated pull request, and the commit has no status checks. The links identify exact source/test text; they do not claim a fresh test run or normative conformance.

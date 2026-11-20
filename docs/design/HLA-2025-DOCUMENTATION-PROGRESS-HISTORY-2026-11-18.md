@@ -132,3 +132,29 @@ Rechecked IEEE's 1516.1-2025 product, access, and GET Program pages and download
 The 32-guide/515-diagram set is unchanged; no Mermaid bodies, C++ source, 2010 material, or Requirements Lab files changed. No C++ build, tests, or CI ran. The qualitative completion estimate remains approximately 95%, pending reviewed source publication and exact-revision citation validation.
 
 **Next handoff:** when a reviewed 2025 source/test revision is published, rerun all 4,807 source references and validate the ten target meanings on that exact revision. Keep 2010 and the Requirements Lab separate.
+
+## Increment 556 — pin source citations to the published 2025 revision
+
+The feature/initial-work branch is now publicly published at
+7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d. Replaced the ten formerly
+out-of-range source/test links with immutable permalinks to that commit and
+corrected the Federate-Lost TCK anchors to the scenario at line 2607, the
+post-loss membership assertion at line 2986, and survivor-only member-list
+query at line 2996. Targeted inspection also confirmed the host method, timeout
+parser, and five recovery-test locations. The link checker now validates pinned
+GitHub permalinks as well as relative source links; final counts are recorded in
+the roadmap and hosted source-dependency snapshot.
+
+The commit has no associated pull request and no status checks. These citations
+identify the exact source and test assertions; they do not claim a fresh test
+run or standards conformance. Overall documentation progress remains
+approximately **95%**. The remaining bounded items are the nonregional
+receive-order DSE evidence gap and the Save-at-unreachable-time and RAVU §6.21
+normative questions. The 515-diagram set, local evidence, and hosted hydration
+remain unchanged; the selected GitHub visual review sample remains 76/515. No
+C++ build, tests, or CI ran. The 2010 stream and Requirements Lab remain
+untouched.
+
+**Next handoff:** Review the remaining 2025 DSE evidence gap and bounded
+normative questions; preserve exact-revision citation pins, and keep 2010 and
+the Requirements Lab separate.

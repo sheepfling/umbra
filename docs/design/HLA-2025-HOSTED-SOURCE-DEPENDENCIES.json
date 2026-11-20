@@ -79,8 +79,8 @@
     "note": "The 56 source-target migration reviews remain preserved as historical evidence about cross-revision path and line availability; they do not establish claim support for every guide citation. The increment-316 checker resolves 4,332/4,332 unique relative Markdown source-line references in the worktree, candidate base, and primary source revision."
   },
   "failure_target_details": [],
-  "scope_note": "The root migration values preserve the 2026-11-08 baseline. The latest candidate-reference snapshot (increment 555) checks 42 IEEE 1516.1-2025 Markdown files and 4,807 unique source-line references against published candidate base 831fb8c687e7108a3fa399538fa4edc80b81d934: 4,797 resolve there and all resolve in the active worktree. Ten anchors in four source/test files await reviewed publication. These checks establish path/line bounds; semantic target review is recorded separately.",
-  "refresh": "Increment 555 checked published candidate base 831fb8c687e7108a3fa399538fa4edc80b81d934: 4,797/4,807 references resolve; the active worktree resolves 4,807/4,807. The candidate source tree since the prior published baseline changed only documentation; the ten source/test anchors remain unpublished. The public IEEE downloads bundle was rechecked and contains API/XML/support files, not the normative standard. Exact-revision source review remains the closeout gate.",
+  "scope_note": "The increment-556 candidate-reference snapshot checks 4,926 unique path/line/guide references across 42 IEEE 1516.1-2025 Markdown files. All resolve at candidate base 43756d38ae454208d917d352028cdbc397d0adfe, in the active worktree, and against public source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d when relative citations use that ref; immutable links are checked at their own pinned revisions. The ten formerly out-of-range citations are semantically verified and pinned. Path/line checks do not establish test execution or conformance.",
+  "refresh": "Increment 556 checked all 4,926 source-line references with the updated checker, including 129 immutable GitHub permalinks. All references resolve at candidate base 43756d38ae454208d917d352028cdbc397d0adfe, the active worktree, and public source commit 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d. The ten moved source/test anchors are corrected and semantically verified at that exact revision. No pull request or status checks are associated with the source commit. No C++ build, tests, or CI ran.",
   "candidate_assembly": {
     "status": "44-path 2025-only documentation candidate published; page-level audit complete, visible Mermaid hydration unverified.",
     "target_base_ref": "origin/feature/initial-work",
@@ -2637,84 +2637,75 @@
     "method": "Resolved each immutable sheepfling/umbra source permalink in docs/design Markdown against the pinned Git object and checked its target line."
   },
   "latest_candidate_reference_snapshot": {
-    "as_of": "2026-11-18 increment 555",
+    "as_of": "2026-11-20 increment 556",
     "candidate_branch": "feature/hla-2025-docs-candidate-20261107",
-    "candidate_revision": "831fb8c687e7108a3fa399538fa4edc80b81d934",
+    "candidate_revision": "43756d38ae454208d917d352028cdbc397d0adfe",
     "remote_branch_matches_candidate": true,
     "markdown_files": 42,
-    "unique_source_line_references": 4807,
+    "unique_source_line_references": 4926,
     "worktree": {
-      "resolved": 4807,
+      "resolved": 4926,
       "unresolved": 0,
       "source_edits_uncommitted": true,
       "source_tree_matches_last_committed_source": false,
-      "note": "The candidate worktree resolves all 4,807 current 2025 source-line references. The cited source/test changes are present as uncommitted worktree edits; the published candidate commit still resolves 4,797."
+      "note": "The worktree resolves all 4,926 references. Parallel C++/TCK source edits remain unstaged and are excluded from this documentation increment. The ten formerly out-of-range citations now pin to public source commit 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d."
     },
     "candidate_head": {
-      "resolved": 4797,
-      "unresolved": 10,
-      "affected_guides": [
-        "docs/design/HLA-2025-CONNECTION-AND-CONFIGURATION-FLOW-GUIDE.md",
-        "docs/design/HLA-2025-FEDERATION-AND-FEDERATE-LIFECYCLE-FLOW-GUIDE.md"
-      ],
-      "unresolved_targets": [
-        "cpp/src/internal/federation/process_federation_service_host.cpp#L357",
-        "cpp/src/internal/runtime/rti_initialization_data.cpp#L241",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019",
-        "cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127",
-        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2389",
-        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2768",
-        "packages/hla-rti-cpp-tck/src/tck_connection_lifecycle.cpp#L2778"
-      ],
+      "resolved": 4926,
+      "unresolved": 0,
+      "affected_guides": [],
+      "unresolved_targets": [],
       "failure_breakdown": {
         "missing_targets": 0,
-        "out_of_range_references": 10,
-        "affected_target_files": 4
+        "out_of_range_references": 0,
+        "affected_target_files": 0
       },
-      "revision": "831fb8c687e7108a3fa399538fa4edc80b81d934",
-      "note": "The increment-555 base has ten out-of-range anchors in four targets. This documentation-only update does not change the cited source paths; the intended locations are present in the active source worktree but are not treated as reviewed published evidence."
+      "revision": "43756d38ae454208d917d352028cdbc397d0adfe",
+      "note": "The increment-556 check covers 4,926 unique path/line/guide references. All relative references resolve at candidate base 43756d38ae454208d917d352028cdbc397d0adfe; all 129 immutable GitHub links resolve at their exact pinned commits, including ten source/test links pinned to public source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
+      "pinned_references": 129
     },
     "primary_head": {
       "revision": "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
       "candidate_markdown_files_checked": 42,
-      "candidate_references_checked": 4807,
-      "candidate_lines_in_range": 4807,
+      "candidate_references_checked": 4926,
+      "candidate_lines_in_range": 4926,
       "candidate_lines_out_of_range": 0,
       "published_on_candidate_branch": false,
-      "commits_ahead_of_remote_initial_work": 230,
-      "semantic_review_complete": false,
-      "note": "All 4,807 links are in range at the unpublished local feature/initial-work HEAD. Targeted inspection confirms TCK lines 2389, 2768, and 2778 are unrelated to the cited Federate-Lost scenario and roster assertions there; the current worktree has the intended targets. This 230-commit branch is not a reviewed citation base."
+      "commits_ahead_of_remote_initial_work": 0,
+      "semantic_review_complete": true,
+      "note": "The published feature/initial-work branch points to this exact source revision. All 4,926 references resolve when relative links are checked against it and immutable links against their pinned revisions. The ten newly pinned targets match the described host, timeout parser, recovery tests, Federate-Lost scenario, membership reflection, and survivor-only member-list query.",
+      "branch": "feature/initial-work",
+      "published_on_initial_work_branch": true
     },
     "diagram_publication": {
       "published_additions": 7,
       "published_revised_bodies": 21,
       "current_diagram_count": 515
     },
-    "interpretation": "At published candidate source baseline 831fb8c687e7108a3fa399538fa4edc80b81d934, 4,797/4,807 references resolve; ten anchors are out of range in four source/test files. All ten intended targets are present in the current source worktree and were checked in the prior source audit. The local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d puts all lines in range but three TCK positions are semantically wrong for the cited Federate-Lost behavior. That local branch is 230 commits ahead of origin/feature/initial-work and remains unpublished/unreviewed. Remote master e1f0f61ab6371d978375c26283aa7f6a2b5bdde9 lacks the cited source files. No open pull requests were found. Keep worktree labels until a reviewed 2025 source/test revision is published.",
-    "remote_initial_work_revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+    "interpretation": "The increment-556 source-reference check covers 4,926 unique references across 42 IEEE 1516.1-2025 Markdown files; all resolve at the candidate base, worktree, and published feature/initial-work source revision when immutable links are evaluated at their pinned commits. The ten formerly out-of-range citations now pin to 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d. Targeted semantic review confirms the exact function, parser, five recovery tests, Federate-Lost scenario, post-loss membership assertion, and survivor-only member-list query. GitHub has no associated pull request and the commit has no status checks. These links establish source locations, not fresh test execution or normative conformance.",
+    "remote_initial_work_revision": "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
     "open_pull_requests": 0,
     "initial_work": {
-      "revision": "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
-      "resolved": 4796,
-      "unresolved": 9,
-      "references_checked": 4805
+      "revision": "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
+      "resolved": 4926,
+      "unresolved": 0,
+      "references_checked": 4926
     },
     "semantic_target_review": {
-      "as_of": "2026-11-18 increment 553",
-      "revision": "Published candidate 83fc953873de2ff288ac4dda2190f0b3f4747017 plus active source/test worktree; committed local source HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
+      "as_of": "2026-11-20 increment 556",
+      "revision": "Public feature/initial-work commit 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
       "anchors_reviewed": 10,
-      "result": "All ten current-worktree anchors are in range and match their intended host/configuration/test/TCK target roles. The published candidate lacks those ten lines; the local primary HEAD has three in-range but semantically mismatched TCK targets.",
+      "result": "All ten formerly out-of-range links now use immutable permalinks to the published source revision. Line bounds and target meanings were checked against that exact commit.",
       "checks": [
-        "process_federation_service_host.cpp#L357 names ProcessFederationServiceHost::serveConnection.",
+        "process_federation_service_host.cpp#L357 is ProcessFederationServiceHost::serveConnection.",
         "rti_initialization_data.cpp#L241 is the RTI_TIMEOUT_HEART parser branch.",
-        "Five Catch2 anchors identify resume-history recovery, inactive-session purge, reconnect timeout, heartbeat timeout, and history-gap cases.",
-        "tck_connection_lifecycle.cpp#L2389 begins scenarioFederateLostMomReportPortable; #L2768 asserts the post-loss membership projection; #L2778 selects the survivor-only member-list check."
+        "The five Catch2 anchors identify replacement-socket resume at #L520, inactive-session purge at #L616, reconnect timeout at #L948, heartbeat timeout at #L1019, and history-gap rejection at #L1127.",
+        "tck_connection_lifecycle.cpp#L2607 begins scenarioFederateLostMomReportPortable.",
+        "tck_connection_lifecycle.cpp#L2986 asserts the post-loss federation membership projection contains only the observer.",
+        "tck_connection_lifecycle.cpp#L2996 queries the federation member list and expects only the observer."
       ],
-      "primary_revision_semantic_mismatch": "At local primary HEAD 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d, TCK line 2389 is an automatic delete-then-divest directive assertion, line 2768 validates fault parameters, and line 2778 returns an interaction-class name. The current worktree places the Federate-Lost scenario at 2389 and the cited membership checks at 2768 and 2778. The branch is unpublished and 230 commits ahead of origin/feature/initial-work.",
-      "status": "Provisional until a reviewed 2025 source/test revision is published and all ten meanings are checked against that exact revision."
+      "publication_status": "The source commit is public on feature/initial-work. Repository search found no associated pull request, and the commit has no status checks.",
+      "scope_note": "No C++ tests or build were run. The checked test-source locations are citations to assertions, not fresh execution results."
     },
     "source_baseline_revision": "149a5b94f0e3f2ef35666f0d8cd3984df799cbb2",
     "source_tree_unchanged_since_baseline": true,
@@ -2722,7 +2713,16 @@
       "revision": "e1f0f61ab6371d978375c26283aa7f6a2b5bdde9",
       "suitable_2025_citation_base": false,
       "note": "The remote master ref is unchanged at the initial commit and has none of the cited host, runtime configuration, Catch2, or TCK target files; do not retarget citations there."
-    }
+    },
+    "pinned_references": 129,
+    "pinned_source_revisions": [
+      "1fa9fdec8c3ca9e0820c29259321282d579a540a",
+      "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
+      "c9c5a9e410539b039cd8bba35b53d0ef2b24d180",
+      "ffeaa4ddffc3b2a59bfdb9c3b85f13479898be1a"
+    ]
   },
-  "documentation_support_asset_count": 13
+  "documentation_support_asset_count": 13,
+  "remote_initial_work_revision": "7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d",
+  "open_pull_requests": 0
 }

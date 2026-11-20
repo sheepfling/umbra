@@ -502,14 +502,14 @@ recovery-window failure case invokes a ProcessFederationClient failure handler
 directly and does not assert the public ambassador's local callback.
 
 Implementation anchors are the client's [heartbeat and recovery loops](../../cpp/src/internal/federation/process_federation_client.cpp#L377)[^worktree-source],
-the host's [resume and retention paths](../../cpp/src/internal/federation/process_federation_service_host.cpp#L357)[^worktree-source],
-the [RID timeout settings](../../cpp/src/internal/runtime/rti_initialization_data.cpp#L241)[^worktree-source],
+the host's [resume and retention paths](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/src/internal/federation/process_federation_service_host.cpp#L357)[^published-source-revision],
+the [RID timeout settings](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/src/internal/runtime/rti_initialization_data.cpp#L241)[^published-source-revision],
 and the [local adapter ConnectionLost handler](../../cpp/src/internal/runtime/umbra_rti_ambassador_membership_loss.cpp#L104)[^worktree-source].
-Candidate test anchors: [host resume](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520)[^worktree-source],
-[host purge](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616)[^worktree-source],
-[public heartbeat recovery](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019)[^worktree-source],
-[client recovery expiry](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948)[^worktree-source],
-and [history-gap handling](../../cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127)[^worktree-source].
+Published-source test anchors: [host resume](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L520)[^published-source-revision],
+[host purge](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L616)[^published-source-revision],
+[public heartbeat recovery](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1019)[^published-source-revision],
+[client recovery expiry](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L948)[^published-source-revision],
+and [history-gap handling](https://github.com/sheepfling/umbra/blob/7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d/cpp/tests/ieee1516_2025_connection_process_federation_service_host_catch2.cpp#L1127)[^published-source-revision].
 
 ## What Umbra currently demonstrates
 
@@ -643,4 +643,6 @@ separate from the host's later session cleanup. GitHub presentation remains
 unverified; track publication review in the
 [behavior-flow guide backlog](HLA-BEHAVIOR-FLOW-GUIDES.md).
 
-[^worktree-source]: Source/test citations marked in this guide refer to current-worktree changes absent from the hosted base; those files are excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records the exact paths, lines, and status.
+[^worktree-source]: The other source/test citations marked in this guide still refer to current-worktree changes absent from the published documentation candidate base; those files remain excluded from the documentation-only publication path set. The [hosted source-dependency audit](HLA-2025-HOSTED-SOURCE-DEPENDENCIES.json) records their paths, lines, and status.
+
+[^published-source-revision]: These links are immutable permalinks to public commit 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d on feature/initial-work. GitHub search found no associated pull request, and the commit has no status checks. The links identify exact source/test text; they do not claim a fresh test run or normative conformance.

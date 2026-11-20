@@ -14,25 +14,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DESIGN = ROOT / "docs" / "design"
 LINK_PATTERN = re.compile(r"\]\(([^)\s]+)#L([1-9][0-9]*)(?:-[1-9][0-9]*)?(?:\s[^)]*)?\)")
+PINNED_GITHUB_LINK_PATTERN = re.compile(
+    r"https://github\.com/sheepfling/umbra/blob/([0-9a-f]{40})/(.+)"
+)
 
 
 def markdown_sources() -> list[Path]:
     return sorted(DESIGN.glob("HLA-2025-*.md"))
 
 
-def collect_references(sources: list[Path]) -> set[tuple[str, int, str]]:
-    references: set[tuple[str, int, str]] = set()
+def collect_references(sources: list[Path]) -> set[tuple[str, int, str, str | None]]:
+    references: set[tuple[str, int, str, str | None]] = set()
     for source in sources:
         content = source.read_text(encoding="utf-8")
         for target, line_text in LINK_PATTERN.findall(content):
+            pinned_revision: str | None = None
             if "://" in target:
-                continue
-            target_path = (source.parent / target).resolve()
-            try:
-                relative_path = target_path.relative_to(ROOT).as_posix()
-            except ValueError:
-                continue
-            references.add((relative_path, int(line_text), source.name))
+                pinned_link = PINNED_GITHUB_LINK_PATTERN.fullmatch(target)
+                if pinned_link is None:
+                    continue
+                pinned_revision, relative_path = pinned_link.groups()
+            else:
+                target_path = (source.parent / target).resolve()
+                try:
+                    relative_path = target_path.relative_to(ROOT).as_posix()
+                except ValueError:
+                    continue
+            references.add((relative_path, int(line_text), source.name, pinned_revision))
     return references
 
 
@@ -116,41 +124,55 @@ def main() -> int:
         return 2
 
     references = collect_references(sources)
-    target_paths = {path for path, _, _ in references}
+    default_revision = "worktree" if args.worktree else args.ref or "HEAD"
+    targets_by_revision: dict[str, set[str]] = defaultdict(set)
+    for path, _, _, pinned_revision in references:
+        targets_by_revision[pinned_revision or default_revision].add(path)
+
+    line_counts_by_revision: dict[str, dict[str, int | None]] = {}
+    selected_revision = "selected revision"
     try:
-        if args.worktree:
-            revision_name = "worktree"
-            line_counts = worktree_line_counts(target_paths)
-        else:
-            revision_name = args.ref or "HEAD"
-            line_counts = git_tree_line_counts(revision_name, target_paths)
+        for revision, target_paths in targets_by_revision.items():
+            selected_revision = revision
+            if revision == "worktree":
+                line_counts_by_revision[revision] = worktree_line_counts(target_paths)
+            else:
+                line_counts_by_revision[revision] = git_tree_line_counts(revision, target_paths)
     except (OSError, subprocess.CalledProcessError, RuntimeError) as error:
-        selected_revision = locals().get("revision_name", "selected revision")
         print(f"Could not inspect {selected_revision}: {error}", file=sys.stderr)
         return 2
 
-    failures: dict[str, list[tuple[int, str]]] = defaultdict(list)
-    for path, line, source in references:
-        available = line_counts[path]
+    failures: dict[tuple[str, str], list[tuple[int, str]]] = defaultdict(list)
+    for path, line, source, pinned_revision in references:
+        revision = pinned_revision or default_revision
+        available = line_counts_by_revision[revision][path]
         if available is None or line > available:
-            failures[path].append((line, source))
+            failures[(revision, path)].append((line, source))
 
+    pinned_reference_count = sum(pinned_revision is not None for _, _, _, pinned_revision in references)
+    revision_description = default_revision
+    pinned_revisions = sorted(
+        {pinned_revision for _, _, _, pinned_revision in references if pinned_revision is not None}
+    )
+    if pinned_revisions:
+        revision_description += " plus pinned source revision(s) " + ", ".join(pinned_revisions)
     print(
         f"Checked {len(references)} unique path/line/guide references across "
-        f"{len(sources)} IEEE 1516.1-2025 Markdown files against {revision_name}: "
+        f"{len(sources)} IEEE 1516.1-2025 Markdown files against {revision_description} "
+        f"({pinned_reference_count} pinned): "
         f"{len(references) - sum(len(items) for items in failures.values())} resolved, "
         f"{sum(len(items) for items in failures.values())} unresolved in {len(failures)} target files."
     )
-    for path in sorted(failures):
-        available = line_counts[path]
+    for revision, path in sorted(failures):
+        available = line_counts_by_revision[revision][path]
         details = ", ".join(
-            f"L{line} ({source})" for line, source in sorted(failures[path])
+            f"L{line} ({source})" for line, source in sorted(failures[(revision, path)])
         )
         if available is None:
             reason = "target missing"
         else:
             reason = f"target has {available} lines"
-        print(f"  {path}: {reason}; {details}")
+        print(f"  {path} [{revision}]: {reason}; {details}")
     return 1 if failures else 0
 
 
