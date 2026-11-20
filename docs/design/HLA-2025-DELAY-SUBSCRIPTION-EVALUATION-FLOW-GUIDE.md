@@ -9,9 +9,10 @@ actual delivery boundary.
 
 - **Edition:** IEEE 1516.1-2025 behavior only.
 - **Implementation profile/boundary:** the embedded federation registry and the configured process endpoint are both
-  represented. Eight focused DSE source files exercise embedded behavior; a separate process-boundary test covers
-  regional receive-order attribute updates under `HLA_EVOKED` and `HLA_IMMEDIATE`, plus one immediate
-  callback/resignation fence. Other process routes remain source-only unless a focused case is cited.
+  represented. Eight focused DSE test files cover embedded behavior; focused process-boundary cases cover
+  regional receive-order attribute updates in both callback modes and ordinary nonregional receive-order updates in
+  `HLA_EVOKED` (pull) and `HLA_IMMEDIATE` (push), plus one immediate callback/resignation fence. Other process routes
+  remain source-only unless a focused case is cited.
 - **Normative pointer and verification limit:** the DSE planner and focused tests point to IEEE 1516.1-2025 §8.1.8 for
   the actual-delivery evaluation rule. The official
   [IEEE 1516.1-2025 Federate Interface Specification](https://standards.ieee.org/ieee/1516.1/6688/) is normative
@@ -302,74 +303,77 @@ shows request correlation and Push/Pull transport; the [ordinary interaction
 projection sequence](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md#process-ordinary-interactions-snapshot-the-promoted-callback-view)
 shows route-only resolution and the event-time projection snapshot.
 
-Attribute updates expose a distinct process boundary and two receive-order
-recheck timings, plus an important existing-push limitation. In the pre-event
-path, an unprojected route-only candidate is
-re-resolved while the service constructs the event; the lookup receives the
-sent attribute handles and, when supplied, the passel's sent-region handles
-and committed snapshots
+Attribute updates expose distinct process recheck boundaries. In the
+pre-event path, an unprojected route-only candidate is re-resolved while the
+service constructs the event; the lookup receives the sent attribute handles
+and, when supplied, the passel's sent-region handles and committed snapshots
 ([branch selection](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L214),
 [pre-event lookup](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L226)).
-Pull delivery and regional push use `recheckAtReceive`: the event carries the
-available region context and the receiving service re-resolves the attributes
-and overlap before returning the projected event
-([event preparation](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L245),
+For receive-order passels, `recheckAtReceive` is true in pull mode, or in push
+mode when DSE is enabled or sent-region handles are present. Pull rechecks at
+the receive/poll boundary; push uses a readiness marker so the immediate
+callback task rechecks at admission. This includes DSE-enabled ordinary
+nonregional push even though it has no explicit sent-region handles. Regional
+push also rechecks overlap at that boundary, including with DSE disabled. The
+event carries available region context and the receiving service re-resolves
+the attributes and overlap before returning its projection
+([branch and event preparation](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L210),
 [receive-side recheck](../../cpp/src/internal/federation/process_federation_service_receive.cpp#L52)).
-Thus the current source passes regional context in both process receive-order
-lookup paths; the earlier concern that those lookups omitted it is not borne
-out by the code. Do not read those paths as covering every push mode: when
-receive-order push is enabled without sent-region handles,
-`recheckAtReceive` is false and the source says nonregional push remains on its
-existing path pending a separate DSE slice ([branch and scope note](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L210)).
-An unprojected candidate on that path is re-resolved before event construction,
-not at the receiving service boundary. This is source-only; no focused process
-DSE test demonstrates late-subscription admission or suppression for
-nonregional push. The callback bridge then calls `reflectAttributeValues`
-without another DSE projection check
+Push with DSE disabled and no sent-region handles keeps the recipient projection
+selected during event planning; it does not retain a DSE route-only candidate.
+The callback bridge calls `reflectAttributeValues` without another DSE
+projection check
 ([bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L362)).
 Queued process TSO attribute delivery has its own recipient-dispatch recheck
 and also passes the sent-region handles and snapshots
 ([dispatcher](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L16)).
-These remain source observations for process interactions and TSO delivery.
-The regional process attribute path has focused evidence below, but nonregional
-receive-order push does not. Do not extrapolate the regional attribute test to
-other services or push modes, or treat any one process route as proof of
-end-to-end parity. When the process queues a timestamped passel, only recipients
-currently time-constrained enter its TSO queue ([queue predicate and recipient
-set](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L64),
+These process interaction and TSO paths remain source observations unless a
+focused case is cited. When the process queues a timestamped passel, only
+recipients currently time-constrained enter its TSO queue ([queue predicate
+and recipient set](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L64),
 [per-recipient diversion](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L201));
 recipients outside that set fall through the per-recipient event path. A
 route-only candidate on that path is rechecked before event construction
 ([pre-event lookup](../../cpp/src/internal/federation/process_federation_service_attribute_value_updates.cpp#L218)),
-not at the later TSO delivery fence. This timestamped process branch is
-source-only; the focused process DSE case below covers regional receive-order
-updates, not timestamped attribute delivery.
+not at the later TSO delivery fence. Focused process tests below cover regional
+and ordinary nonregional receive-order attribute updates, not timestamped
+attribute delivery. Do not extrapolate those cases to process interactions,
+TSO attributes, other push configurations, or general process parity.
 DSE does not advance time, grant a request, or change the per-recipient
 retraction lifecycle.
 
 ```mermaid
 flowchart TD
-  Candidate["Route-only candidate retained by enabled DSE policy"] --> Lane{"Process attribute path"}
-  Lane -->|Receive-order pull or regional push| Deferred["Keep event and available region context"]
-  Deferred --> Receive["At receive fence or callback-task admission,<br/>re-resolve attributes and regional overlap"]
-  Lane -->|Pre-event: nonregional push or timestamped recipient outside TSO queue| PreEvent["Before event construction, re-resolve<br/>attributes and any supplied region context"]
-  Lane -->|Time-constrained TSO| Queue["Wait for recipient's TSO delivery boundary"]
+  Plan["Process attribute-update recipient plan"] --> Timestamped{"Timestamped passel?"}
+  Timestamped -->|Yes| Constrained{"Receiver time constrained?"}
+  Constrained -->|Yes| Queue["Wait for recipient's TSO delivery boundary"]
   Queue --> TSO["Re-resolve with sent-region handles<br/>and region snapshots"]
+  Constrained -->|No| PreEvent["For a route-only candidate, before event construction,<br/>re-resolve attributes and supplied region context"]
+  Timestamped -->|No, receive-order| PullPush{"Push receive-order events?"}
+  PullPush -->|No, pull| Receive["At receive/poll boundary,<br/>re-resolve attributes and regional overlap"]
+  PullPush -->|Yes, push| PushRecheck{"DSE enabled or<br/>sent-region handles present?"}
+  PushRecheck -->|Yes| Deferred["Keep event and available region context"]
+  Deferred --> ReceivePush["At immediate callback-task admission,<br/>re-resolve attributes and regional overlap"]
+  PushRecheck -->|No| Planned["Use recipient projection selected during planning;<br/>no DSE route-only candidate"]
   Receive --> Projection{"Any sent attribute<br/>currently eligible?"}
+  ReceivePush --> Projection
   PreEvent --> Projection
   TSO --> Projection
   Projection -->|Yes| Event["Materialize event with current<br/>attribute projection"]
   Projection -->|No| Suppress["Suppress this receiver/passel"]
+  Planned --> AlreadyProjected["Deliver with the planned<br/>recipient projection"]
   Event --> Bridge
+  AlreadyProjected --> Bridge
   Bridge["Callback bridge reflects projected attributes"]
 ```
 
 The shared decision is about the current **nonempty attribute projection**,
 not an all-or-nothing match of the original set: a passel can produce a
 reflection for the subset still subscribed and regionally relevant, but is
-suppressed when no sent attribute remains eligible. The three branches have
-different source-observed timing; only the regional receive-order branch has
-the focused process DSE coverage listed below.
+suppressed when no sent attribute remains eligible. The paths have different
+source-observed timing. Focused process evidence covers regional receive-order
+delivery and ordinary nonregional receive-order updates in the two tested
+modes; process interaction and TSO attribute paths remain untested for DSE.
 
 ```mermaid
 sequenceDiagram
@@ -424,15 +428,16 @@ constraints or make non-overlapping regions relevant. See the DDM/regions guide 
 | Timestamped regional attribute update | [Test](../../cpp/tests/ieee1516_2025_delay_subscription_evaluation_timestamped_regional_attribute_catch2.cpp#L3): exercises the same late regional eligibility and later suppression for reflection. |
 | Receive-order directed interaction | [Test](../../cpp/tests/delay_subscription_evaluation_directed_interaction_catch2.cpp#L95): adds a universal selector between send and callback; the enabled case delivers. |
 | Timestamped directed interaction | [Test](../../cpp/tests/delay_subscription_evaluation_timestamped_directed_interaction_catch2.cpp#L129): checks selector evaluation at TSO delivery, including switch-dependent recipient/retraction behavior in this directed-service path. |
-| Process regional receive-order attribute update | [EVOKED process case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L767) checks enabled/disabled late-subscription eligibility at the receive fence and uses the original sent-region snapshot; [IMMEDIATE process case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L795) checks re-evaluation at callback-task admission, including suppression after a receiver-region change. In this fixture, [host setup](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L190) sets `pushReceiveOrderEvents` false for EVOKED (pull) and true for IMMEDIATE (push), as defined by the [service option](../../cpp/src/internal/federation/process_federation_service.hpp#L31). This is test setup, not a general rule equating callback model with HLA delivery mode. Both exercise the configured process endpoint. |
+| Process regional receive-order attribute update | [EVOKED process case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L767) checks enabled/disabled late-subscription eligibility at the receive fence and uses the original sent-region snapshot; [IMMEDIATE process case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L795) checks re-evaluation at callback-task admission, including suppression after a receiver-region change. In this fixture, [host setup](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L190) sets `pushReceiveOrderEvents` false for EVOKED (pull) and true for IMMEDIATE (push), as defined by the [service option](../../cpp/src/internal/federation/process_federation_service.hpp#L80). This is test setup, not a general rule equating callback model with HLA delivery mode. Both exercise the configured process endpoint. |
+| Process ordinary nonregional receive-order attribute update | [IMMEDIATE case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L825) and [EVOKED case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L841) call the shared [nonregional scenario](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L484). Each toggles the receiver's attribute subscription around an update and checks enabled late-subscription delivery against disabled generation-time exclusion. The indexed focused-run records report 1/1 selectors with 32 assertions for each case; this documentation increment did not rerun C++ tests. The IMMEDIATE fixture configures push and the EVOKED fixture configures pull. This is bounded ordinary-attribute process-profile evidence, not timestamped, interaction, or conformance evidence. |
 | Process immediate callback/resignation fence | [Process case](../../cpp/tests/ieee1516_2025_connection_delayed_regional_attribute_update_catch2.cpp#L540): an in-progress reflection holds Resign until callback return; the same ambassador then rejoins with a new member ID. This is one tested callback/Resign schedule, not a general ordering rule. |
 
 The eight named DSE source files above are embedded/development-profile tests.
-The additional process cases cover regional receive-order attribute delivery
-only. The process interaction paths and process TSO attribute delivery have
-source-observed recheck points but no focused DSE test in this bounded survey;
-nonregional receive-order push also lacks focused DSE evidence. Do not treat
-this narrow process test as proof of the remaining process routes.
+The process cases now cover regional and ordinary nonregional receive-order
+attribute delivery. Process interaction paths and process TSO attribute
+delivery have source-observed recheck points but no focused DSE test in this
+bounded survey. Do not treat the attribute cases as proof of those other
+process routes.
 
 ## Implementation map and limits
 

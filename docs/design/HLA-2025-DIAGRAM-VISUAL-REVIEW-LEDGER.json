@@ -1,7 +1,7 @@
 {
   "title": "IEEE 1516.1-2025 Diagram Visual Review Ledger",
   "schema_version": 1,
-  "inventory_date": "2026-11-18",
+  "inventory_date": "2026-11-20",
   "edition_scope": "IEEE 1516.1-2025 guides only; 2010 excluded",
   "current_diagram_count": 515,
   "diagram_types": {
@@ -9,7 +9,7 @@
     "sequenceDiagram": 186,
     "stateDiagram-v2": 25
   },
-  "local_render_status": "All 515 current IEEE 1516.1-2025 Mermaid bodies have identity-matched local Mermaid CLI render evidence and source lines. Increment 428 revised and screenshot-reviewed Service Invocation Reporting #008 to show the separate test-evidence boundary; the same increment re-rendered TSO Retraction #008 after detecting its stale body hash. Increment 456 reconciled the stale Data Distribution and Regions #006 body hash, rendered the current chart with Mermaid CLI 12.0.0, and reviewed the full screenshot. Increment 458 re-parsed all 515 current source fences and reconciled ten shifted Service Invocation Reporting line pointers plus current hashes for Callback and Service Ordering #019 and Data Distribution and Regions #006; both bodies were freshly rendered and screenshot-reviewed. Increment 518 re-rendered and screenshot-reviewed Service Invocation Reporting #009 after making the embedded route, callback-model delivery, and report-writer failure boundary explicit; current body SHA-256 ec058fd866ff95fe8f1cc648dd921e18ae77dac8b55d98d623fffc00a805206c. Increment 519 rendered and screenshot-reviewed Service Invocation Reporting #010 after distinguishing timestamped invalid-logical-time translation from other process rejections and correcting regional handler source anchors; current body SHA-256 83d14896dfd8b106af094a5810fdfc8ff46a41e591d5939dc37373ad7d4a5bd4. Increment 520 revised and screenshot-reviewed Service Invocation Reporting #011 to show the TCK action/wait checkpoints separately from report-serial order and to make the callback/report timing evidence limit explicit; current body SHA-256 2d35a0d8140b58420497171fb5d2969426e10de19d8477477013cdc730f8028e. Increment 521 expanded Service Invocation Reporting #012 to show the two tested directed sends and their per-send report/callback queue pairs; current body SHA-256 9d395ec10440a7062fd9de44b8082d70124cabd8194d564b4fef4613e3ced712. Mermaid CLI 12.0.0 rendering and screenshot review found the sequence legible. Increment 522 rendered and screenshot-reviewed Service Invocation Reporting #013 after clarifying the successful Resign report and append-failure cleanup paths; current body SHA-256 1fe3f180b69e4f541f54f43285c91959f69f93a613d5d5615ee485eea97064af. Increment 523 revised and screenshot-reviewed Service Invocation Reporting #014 to distinguish the successful append path from the failed append and the recipient callback-model boundary; current body SHA-256 3e41811ee1a0df392cd1b7c98e792ff934df23d19d599c7c7880bacb0defedf1. Increment 524 rendered Service Invocation Reporting #015 with Mermaid CLI 12.0.0 after separating TSO admission, report-route selection, and the file-append failure path. Increment 524 reconciled Callback and Service Ordering #019, then rendered and screenshot-reviewed its current embedded Send Interaction callback-failure sequence; body SHA-256 27e6c160aa36ca0d6656afd96bbac4b7ea9740fd012338136b3b49ae54cb1f3c. Increment 525 rendered and screenshot-reviewed Service Invocation Reporting #016 and #017 after clarifying forced-loss serial reservation, resignation commit, writer cleanup, survivor notification, callback-model timing, and deferred append-error handling. Current body SHA-256 values: #016 baa8022cfd72aea255f06364a4133523f8b593f610f2f65d3937b9105919af4e and #017 263559d9625d520c28c2a614cbf8a7100bb0681cee8434fab422097635829c2c. The same full-ledger audit found stale current hashes for Callback and Service Ordering #019 and TSO Retraction #008; both were rendered and screenshot-reviewed, then reconciled. All 515 identities now match their source lines, fence types, Mermaid types, and body hashes. Increment 536 freshly rendered and screenshot-reviewed Delay Subscription Evaluation #003 at line 350 with Mermaid CLI 12.0.0; its three route lanes and outcomes are legible without clipping, and the rendered body matches the recorded SHA-256. Increment 547 revised and rendered Data Element Encoding #005 to distinguish next-field alignment in fixed records from prototype-boundary alignment in arrays; current body SHA-256 f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329. The screenshot was reviewed and all three paths are legible. Increment 552 reconciled four shifted Data Element Encoding source-line pointers (#006 382, #007 426, #008 497, #009 550) and current body hashes for Callback and Service Ordering #019 and TSO Retraction #008; these current bodies already had local render and screenshot evidence.",
+  "local_render_status": "All 515 current IEEE 1516.1-2025 Mermaid bodies have identity-matched local Mermaid CLI render evidence and source lines. Increment 428 revised and screenshot-reviewed Service Invocation Reporting #008 to show the separate test-evidence boundary; the same increment re-rendered TSO Retraction #008 after detecting its stale body hash. Increment 456 reconciled the stale Data Distribution and Regions #006 body hash, rendered the current chart with Mermaid CLI 12.0.0, and reviewed the full screenshot. Increment 458 re-parsed all 515 current source fences and reconciled ten shifted Service Invocation Reporting line pointers plus current hashes for Callback and Service Ordering #019 and Data Distribution and Regions #006; both bodies were freshly rendered and screenshot-reviewed. Increment 518 re-rendered and screenshot-reviewed Service Invocation Reporting #009 after making the embedded route, callback-model delivery, and report-writer failure boundary explicit; current body SHA-256 ec058fd866ff95fe8f1cc648dd921e18ae77dac8b55d98d623fffc00a805206c. Increment 519 rendered and screenshot-reviewed Service Invocation Reporting #010 after distinguishing timestamped invalid-logical-time translation from other process rejections and correcting regional handler source anchors; current body SHA-256 83d14896dfd8b106af094a5810fdfc8ff46a41e591d5939dc37373ad7d4a5bd4. Increment 520 revised and screenshot-reviewed Service Invocation Reporting #011 to show the TCK action/wait checkpoints separately from report-serial order and to make the callback/report timing evidence limit explicit; current body SHA-256 2d35a0d8140b58420497171fb5d2969426e10de19d8477477013cdc730f8028e. Increment 521 expanded Service Invocation Reporting #012 to show the two tested directed sends and their per-send report/callback queue pairs; current body SHA-256 9d395ec10440a7062fd9de44b8082d70124cabd8194d564b4fef4613e3ced712. Mermaid CLI 12.0.0 rendering and screenshot review found the sequence legible. Increment 522 rendered and screenshot-reviewed Service Invocation Reporting #013 after clarifying the successful Resign report and append-failure cleanup paths; current body SHA-256 1fe3f180b69e4f541f54f43285c91959f69f93a613d5d5615ee485eea97064af. Increment 523 revised and screenshot-reviewed Service Invocation Reporting #014 to distinguish the successful append path from the failed append and the recipient callback-model boundary; current body SHA-256 3e41811ee1a0df392cd1b7c98e792ff934df23d19d599c7c7880bacb0defedf1. Increment 524 rendered Service Invocation Reporting #015 with Mermaid CLI 12.0.0 after separating TSO admission, report-route selection, and the file-append failure path. Increment 524 reconciled Callback and Service Ordering #019, then rendered and screenshot-reviewed its current embedded Send Interaction callback-failure sequence; body SHA-256 27e6c160aa36ca0d6656afd96bbac4b7ea9740fd012338136b3b49ae54cb1f3c. Increment 525 rendered and screenshot-reviewed Service Invocation Reporting #016 and #017 after clarifying forced-loss serial reservation, resignation commit, writer cleanup, survivor notification, callback-model timing, and deferred append-error handling. Current body SHA-256 values: #016 baa8022cfd72aea255f06364a4133523f8b593f610f2f65d3937b9105919af4e and #017 263559d9625d520c28c2a614cbf8a7100bb0681cee8434fab422097635829c2c. The same full-ledger audit found stale current hashes for Callback and Service Ordering #019 and TSO Retraction #008; both were rendered and screenshot-reviewed, then reconciled. All 515 identities now match their source lines, fence types, Mermaid types, and body hashes. Increment 536 freshly rendered and screenshot-reviewed Delay Subscription Evaluation #003 at line 350 with Mermaid CLI 12.0.0; its three route lanes and outcomes are legible without clipping, and the rendered body matches the recorded SHA-256. Increment 547 revised and rendered Data Element Encoding #005 to distinguish next-field alignment in fixed records from prototype-boundary alignment in arrays; current body SHA-256 f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329. The screenshot was reviewed and all three paths are legible. Increment 552 reconciled four shifted Data Element Encoding source-line pointers (#006 382, #007 426, #008 497, #009 550) and current body hashes for Callback and Service Ordering #019 and TSO Retraction #008; these current bodies already had local render and screenshot evidence. Increment 557 re-rendered and screenshot-reviewed Delay Subscription Evaluation #003 after correcting the configured-process push recheck branches; the sequential route lanes are readable in a tall layout. Increment 557 also reconciled the shifted DSE #001/#002/#004 source lines and re-rendered/screenshot-reviewed Callback and Service Ordering #019 after correcting a stale body hash.",
   "screenshot_review_status": {
     "confirmed_current_body_reviews": 515,
     "historical_status_unreconciled": 0,
@@ -18,7 +18,7 @@
       "inventory": 463,
       "identities_enumerated": false
     },
-    "github_page_rendering": "Increment 552 visually reviewed Callback and Service Ordering #019 and TSO Retraction #008 in GitHub expanded Mermaid dialogs at candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97. Both render without clipping; #008 is unusually tall and narrow but remains readable while scrolling. Hosted hydration is audited for 515/515 diagrams; selected hosted visual reviews total 76/515.",
+    "github_page_rendering": "Increment 552 visually reviewed Callback and Service Ordering #019 and TSO Retraction #008 in GitHub expanded Mermaid dialogs at candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97. Both render without clipping; #008 is unusually tall and narrow but remains readable while scrolling. Hosted hydration is audited for 515/515 diagrams; selected hosted visual reviews total 76/515. Increment 557 changes the DSE #003 body; refresh that published guide and replace its earlier selected review before treating hosted evidence as current for this chart. Callback and Service Ordering #019 also has a corrected local body hash in increment 557; refresh its earlier selected hosted review along with DSE #003 after publication.",
     "latest_focused_github_visual_review": {
       "as_of": "2026-11-18 increment 552",
       "diagram_id": "HLA-2025-TSO-RETRACTION-FLOW-GUIDE.md#diagram-008",
@@ -1120,9 +1120,9 @@
       "heading": "IEEE 1516.1-2025 Callback and Service Ordering / If an exception escapes a callback task / Embedded `Send Interaction`: accepted effects precede callback failure",
       "fence": "backtick",
       "type": "sequenceDiagram",
-      "body_sha256": "27e6c160aa36ca0d6656afd96bbac4b7ea9740fd012338136b3b49ae54cb1f3c",
+      "body_sha256": "7b3137f918c1784c0cfdc572d5793331119db69c1faf17fe97be341139588a72",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-12"
+      "screenshot_review": "confirmed-2026-11-20"
     },
     {
       "id": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#diagram-020",
@@ -2011,7 +2011,7 @@
     {
       "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-001",
       "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
-      "line": 171,
+      "line": 172,
       "ordinal_in_source": 1,
       "heading": "HLA 1516.1-2025 Delay Subscription Evaluation Flow Guide / Switch lifetime: federation policy, not a per-send option",
       "fence": "backtick",
@@ -2023,7 +2023,7 @@
     {
       "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-002",
       "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
-      "line": 200,
+      "line": 201,
       "ordinal_in_source": 2,
       "heading": "HLA 1516.1-2025 Delay Subscription Evaluation Flow Guide / Recipient state machine",
       "fence": "backtick",
@@ -2035,14 +2035,14 @@
     {
       "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
       "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
-      "line": 350,
+      "line": 345,
       "ordinal_in_source": 3,
       "heading": "HLA 1516.1-2025 Delay Subscription Evaluation Flow Guide / Receive order, TSO, and callback model are separate axes / An interaction's passive gate is recomputed with its active relevance",
       "fence": "backtick",
       "type": "flowchart",
-      "body_sha256": "31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70",
+      "body_sha256": "2e5e95e06993a92ac86f94881befa405952dcdef111710564996711c781c0b36",
       "local_render": "verified-current-body",
-      "screenshot_review": "confirmed-2026-11-15",
+      "screenshot_review": "confirmed-2026-11-20",
       "github_visual_review": {
         "status": "confirmed-2026-11-15-increment-537",
         "revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
@@ -2054,7 +2054,7 @@
     {
       "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-004",
       "source": "docs/design/HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md",
-      "line": 374,
+      "line": 378,
       "ordinal_in_source": 4,
       "heading": "HLA 1516.1-2025 Delay Subscription Evaluation Flow Guide / Receive order, TSO, and callback model are separate axes / An interaction's passive gate is recomputed with its active relevance",
       "fence": "backtick",
@@ -7626,15 +7626,15 @@
     ]
   },
   "latest_focused_visual_review": {
-    "as_of": "2026-11-18 increment 547",
-    "diagram_id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
-    "source": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
-    "line": 297,
+    "as_of": "2026-11-20 increment 557",
+    "diagram_id": "HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md#diagram-019",
+    "source": "docs/design/HLA-2025-CALLBACK-AND-SERVICE-ORDERING-FLOW-GUIDE.md",
+    "line": 1360,
     "renderer": "Mermaid CLI 12.0.0",
-    "body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
-    "screenshot_review": "confirmed-2026-11-18",
-    "observation": "Separate fixed-record, fixed-array, and variable-array lanes are legible. The record lane pads for the next field boundary; array lanes use prototype boundaries. No text clipping was observed.",
-    "scope_note": "Selected local screenshot review only. Published GitHub Mermaid hydration must be rechecked after this body is pushed; full-width readability of every hosted page is not claimed."
+    "body_sha256": "7b3137f918c1784c0cfdc572d5793331119db69c1faf17fe97be341139588a72",
+    "screenshot_review": "confirmed-2026-11-20",
+    "observation": "The nested HLA_IMMEDIATE drain paths, callback exception, consumed task, retained queue, HLA_EVOKED path, and reporting boundary remain readable without clipping in the tall sequence diagram.",
+    "scope_note": "Selected local render and screenshot review only. The earlier hosted review predates the reconciled body hash; refresh the hosted page after publication."
   },
   "latest_focused_github_visual_review": {
     "as_of": "2026-11-18 increment 552",
