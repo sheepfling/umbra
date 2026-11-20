@@ -1035,35 +1035,35 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-20 increment 561",
+      "as_of": "2026-11-20 increment 562",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 561 visually reviewed Data Element Encoding #005 in GitHub Preview at candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. The fixed-record, fixed-array, and variable-array paths rendered through their cursor-return ends without overlap or clipping; the current source body hash matches the ledger. The revision-aware hydration union covers all 516 current diagram identities: baseline 515/515 at 431152817283718923c06a07e4154ca785e7033a, plus one added and two revised bodies checked on GitHub. The selected readability sample is 78/516. The Mermaid fence audit found 516 current bodies and 0 ledger hash mismatches. Documentation links resolve 4,934/4,934 across 42 Markdown pages, including 129 pinned permalinks. No C++ build/tests, 2010, or Requirements Lab edits.",
-      "next_concrete_review": "Obtain authorized IEEE 1516.1-2025 text and cross-check §4.23 plus §§6.21–6.22 and the relevant Update/Reflect receiver rules. Keep the Save-at-unreachable-time trigger and RAVU requester-entitlement question unresolved until that review. Keep configured-process interaction and TSO-attribute DSE test gaps bounded; hand any C++ test/build work to the implementation worker. After any Mermaid-body change, compare current source identities and refresh targeted GitHub hydration/readability evidence. Keep 2010 separate; do not edit the Requirements Lab.",
-      "remaining_work": "Approximately 90% complete (qualitative). The 2025 set has 32 guides and 516 diagrams with local render/screenshot evidence. Revision-aware GitHub hydration covers all 516 current diagrams; the selected hosted readability sample is 78/516, not a full-width review. Source links resolve 4,934/4,934 across 42 Markdown pages, including 129 pinned permalinks. The Save-at-unreachable-time trigger and RAVU-based requester receipt entitlement remain open pending authorized IEEE text. Configured-process interaction and TSO-attribute DSE lack focused DSE tests. No 2010 or Requirements Lab edits.",
+      "latest_increment": "Increment 562 re-read the DSE guide's configured-process paths and evidence table. It keeps send-time interaction projection, later TSO interaction projection, pre-event and receive-order attribute checks, and queued TSO attribute rechecks as distinct source boundaries. Process interaction DSE and process TSO-attribute DSE remain without focused cases; ordinary receive-order attribute tests are not used as evidence for those paths. The 32-guide/516-diagram body inventory matches the visual-review ledger with zero missing, extra, or source/hash mismatches. The documentation-link checker resolves 4,934/4,934 references at the worktree and candidate HEAD, including 129 pinned source permalinks. No C++ build/tests, 2010, or Requirements Lab work.",
+      "next_concrete_review": "Obtain authorized IEEE 1516.1-2025 text to resolve the §4.23 Save-at-unreachable-time trigger and §§6.21–6.22 RAVU requester-entitlement question; until then, keep both explicitly unresolved. Keep configured-process interaction and TSO-attribute DSE test gaps bounded and hand any C++ test/build work to the implementation worker. If Mermaid bodies change, compare identities and ledger hashes and refresh targeted GitHub hydration/readability evidence. Keep 2010 separate and do not edit the Requirements Lab.",
+      "remaining_work": "Approximately 90% complete (qualitative). The 2025 set has 32 guides and 516 diagrams with identity-matched local render/screenshot evidence. Revision-aware GitHub hydration covers all 516 current diagrams; the selected hosted readability sample is 78/516. The 516 diagram bodies match the ledger and 4,934/4,934 documentation references resolve, including 129 pinned permalinks. The Save-at-unreachable-time trigger and RAVU requester-entitlement question remain open pending authorized IEEE text. Configured-process interaction and TSO-attribute DSE still lack focused DSE cases. No 2010 or Requirements Lab edits.",
       "finish_condition": "The IEEE 1516.1-2025 guides explain standard concepts, transitions, callbacks, edge cases, and bounded implementation/test evidence; all current diagrams have identity-matched local render and screenshot evidence, with hosted evidence refreshed for changed bodies; source citations resolve at exact reviewed revisions; and remaining test or normative questions are resolved or explicitly bounded. Keep the 2010 stream separate and do not edit the Requirements Lab.",
       "source_reference_validation": {
-        "as_of": "2026-11-20 increment 561",
-        "revision": "Candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502; published source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d; immutable permalinks checked at pinned revisions.",
-        "scope": "All 2025 Markdown source-line references checked with quality_gates/bin/check_hla_2025_documentation_links.py --worktree, --ref HEAD, and --ref 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
+        "as_of": "2026-11-20 increment 562",
+        "revision": "Candidate source HEAD d3133754cac444af2819cec3c73c3f9ccc11188f; immutable source references checked at their pinned revisions.",
+        "scope": "All current 2025 Markdown source-line references checked with check_hla_2025_documentation_links.py --worktree and --ref HEAD.",
         "markdown_files": 42,
         "unique_references": 4934,
         "pinned_references": 129,
         "resolved": 4934,
         "unresolved": 0,
-        "note": "All 4,934 references resolve in the worktree, candidate HEAD, and published source revision, including 129 immutable permalinks. Citation validation only; no C++ test rerun or conformance claim."
+        "note": "Both worktree and candidate HEAD checks reported zero unresolved references. Citation validation only; no C++ test rerun or conformance claim."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-20 increment 561",
-        "revision": "Candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502; source/test targets checked against this revision.",
-        "remote_branch_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
-        "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against candidate HEAD.",
+        "as_of": "2026-11-20 increment 562",
+        "revision": "Candidate source HEAD d3133754cac444af2819cec3c73c3f9ccc11188f; source/test targets checked at this revision.",
+        "remote_branch_revision": "d3133754cac444af2819cec3c73c3f9ccc11188f",
+        "scope": "All current IEEE 1516.1-2025 Markdown path/line/guide references checked against candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4934,
         "pinned_references": 129,
         "resolved": 4934,
         "unresolved": 0,
         "affected_targets": [],
-        "note": "All 4,934 references resolve at current candidate HEAD and pinned source revisions. This documentation increment did not rerun C++ tests."
+        "note": "All 4,934 references resolve at candidate HEAD, worktree, and pinned revisions. No C++ tests were rerun."
       },
       "primary_head_reference_validation": {
         "as_of": "2026-11-20 increment 561",
@@ -1478,6 +1478,17 @@
         "removed_diagrams": [],
         "current_guide_pages_with_diagrams": 32,
         "current_mermaid_bodies_match_ledger": true
+      },
+      "diagram_ledger_validation": {
+        "as_of": "2026-11-20 increment 562",
+        "candidate_source_revision": "d3133754cac444af2819cec3c73c3f9ccc11188f",
+        "guide_sources": 32,
+        "current_diagrams": 516,
+        "ledger_entries": 516,
+        "missing": 0,
+        "extra": 0,
+        "source_or_body_hash_mismatches": 0,
+        "scope": "2025 guide source identities and complete Mermaid body hashes checked against the visual-review ledger; 2010 excluded."
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
