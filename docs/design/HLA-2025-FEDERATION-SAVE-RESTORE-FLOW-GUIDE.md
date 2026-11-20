@@ -3680,10 +3680,21 @@ path ([untimed request path](../../cpp/src/internal/federation/federation_regist
 When the coordinated admission gate passes, the registry creates the
 `SaveOperation` and clears `pendingTimedSave`
 ([final admission](../../cpp/src/internal/federation/federation_registry_save_control.cpp#L778)).
+The local Requirements Lab compilation's §4.23 transcription lists inability
+to honor a supplied save timestamp, including possible GALT races, as a
+federation-save failure reason. It describes `Federation Saved` as the terminal
+completion notification: members that received `Initiate Federate Save` receive
+it, and the requester may receive it without that initiation callback. A
+separate 2025 LaTeX handoff bundle identifies its recreation as
+non-authoritative and says the licensed source PDF is not included, so this
+narrows the question but does not close the IEEE interpretation.
+
 No current focused case makes T unreachable and then observes a terminal
-callback. The unresolved failure question is therefore left open; the chart
-does not infer an answer from the absence of a local selector. The exact
-normative outcome if T becomes unreachable remains unverified.
+callback. The remaining question is whether and when a pending request whose T
+becomes unreachable must be classified as `SAVE_TIME_CANNOT_BE_HONORED` and
+failed through that terminal path. The chart does not infer this trigger from
+the absence of a local selector; verify it against authorized IEEE text before
+stating the exact normative outcome.
 
 ## What this guide does not claim
 

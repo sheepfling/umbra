@@ -63,21 +63,32 @@ between solicitation and a later value-bearing update. See the
 for the general callback boundary.
 
 The requester is not assumed to be the only possible receiver—or to qualify
-as a receiver merely because it requested values. Publication/ownership,
-receiver relevance, regional criteria, transportation/order, and time
-management are separate service questions. Local focused scenarios do not
-settle whether an explicit request creates direct response entitlement for an
-otherwise ineligible requester; verify the full §6.21 text before making that
-normative claim. Do not conflate that open question with Delay Subscription
-Evaluation: the latter changes when ordinary receiver eligibility is evaluated,
-not whether an earlier RAVU creates a special receiver right. The pinned,
-unmodified API import (see its [provenance note](../../third_party/ieee1516.1-2025/README.md))
+as a receiver merely because it requested values. A local 2025 Requirements
+Lab source compilation provides a provisional reading of §§6.21–6.22: RAVU
+solicits owners, does not solicit unowned instance attributes, and uses a class
+designator to cover registered instances of that class and its subclasses. If
+the requester owns requested attributes, its request acts as an implicit
+Provide for those attributes. The Provide service permits an owner not to send
+values and limits one request to at most one Provide callback per owning
+federate. A separate 2025 LaTeX handoff bundle identifies its recreation as
+non-authoritative and says the licensed source PDF is not included, so this
+transcription is a navigation aid rather than final IEEE evidence.
+
+This narrows, but does not settle, requester receipt entitlement. §§6.21–6.22
+describe provider solicitation; they do not themselves grant the requester a
+direct callback or guarantee delivery of the later update. The remaining
+question is whether a requester that is otherwise ineligible can receive that
+update under the authoritative Update/Reflect recipient rules. Publication and
+ownership, receiver relevance, regional criteria, transportation/order, and
+time management remain separate service questions. Do not conflate this with
+Delay Subscription Evaluation: DSE changes when ordinary receiver eligibility
+is evaluated; it does not establish a special right from an earlier RAVU. The
+pinned, unmodified API import (see its [provenance note](../../third_party/ieee1516.1-2025/README.md))
 contains the §6.21 request signatures and exception lists, not the clause prose
 ([object-instance overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L866),
 [class overload](../../third_party/ieee1516.1-2025/include/RTI/RTIambassador.h#L881)).
-The object-instance and object-class overloads do not list a subscription
-exception; that omission alone does not establish a provider duty to answer or
-a requester's right to observe the later update. The corresponding
+Neither overload lists a subscription exception, but that omission alone does
+not establish provider duty or requester entitlement. The corresponding
 [`provideAttributeValueUpdate` callback declaration](../../third_party/ieee1516.1-2025/include/RTI/FederateAmbassador.h#L347)
 is labeled §6.22 and carries only its interface and `FederateInternalError`
 annotation; it supplies no callback trigger or ordering rule. The
@@ -87,10 +98,11 @@ access to selected standards through its [Standards Reading Room](https://standa
 but its public page does not identify whether 1516.1-2025 is included. The
 current [GET Program list](https://standards.ieee.org/products-programs/ieee-get-program/)
 does not list HLA. The accessible product page does not expose §6.21 wording.
-The local checkout has the API headers, not the normative standard text. Direct
-requester entitlement and normative callback timing therefore remain unresolved
-here; signatures, exception lists, and source behavior are not substitutes for
-the clause. For receiver selection, see the
+The Umbra checkout has the API headers, not normative clause text; the separate
+Requirements Lab compilation is not accepted as authoritative. Direct requester
+entitlement and normative callback timing therefore remain unresolved pending
+authorized IEEE text; signatures, exception lists, local transcriptions, and
+source behavior are not substitutes for the clause. For receiver selection, see the
 [object and interaction information guide](HLA-2025-OBJECT-AND-INTERACTION-INFORMATION-FLOW-GUIDE.md)
 and [DDM and regions guide](HLA-2025-DATA-DISTRIBUTION-AND-REGIONS-FLOW-GUIDE.md).
 For timestamped update ordering, grants, and retraction, see the
