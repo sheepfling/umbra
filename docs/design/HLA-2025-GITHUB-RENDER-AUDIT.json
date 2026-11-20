@@ -9,18 +9,18 @@
     "guides_checked": 32,
     "http_200": 32,
     "http_404": 0,
-    "hosted_diagrams": 515,
-    "rendered": 515,
+    "hosted_diagrams": 516,
+    "rendered": 516,
     "failed": 0,
     "pending": 0,
     "fully_rendered_pages": 32
   },
   "current_worktree": {
-    "head_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
+    "head_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
     "guide_count": 32,
-    "diagram_count": 515,
-    "local_rendered_diagrams": 515,
-    "local_screenshot_reviewed_diagrams": 515,
+    "diagram_count": 516,
+    "local_rendered_diagrams": 516,
+    "local_screenshot_reviewed_diagrams": 516,
     "time_management_guide_lines": 2621,
     "hosted_time_guide_lines": 2621,
     "candidate_matches_hosted": true,
@@ -34,7 +34,8 @@
       "sequence_message_labels_with_semicolon": 0,
       "scope": "Increment-374 static scan of current 2025 sequenceDiagram message lines for semicolons after the first message separator; this supplements hosted and local rendering, not normative review.",
       "message_lines_checked": 2519
-    }
+    },
+    "source_mermaid_hashes_match_ledger": true
   },
   "authenticated_markdown_api_candidate": {
     "checked_at": "2026-11-09 increment 355",
@@ -156,7 +157,7 @@
       "disposition": "The candidate's semicolon repair passes the current 34-page GFM API container check. Visible published-page rendering still needs post-publication inspection."
     }
   ],
-  "scope_note": "Increment 534 verified guide navigation across all 32 current IEEE 1516.1-2025 guide files. Both the living behavior backlog and thematic reading paths now link all 32; all 32 guides contain Mermaid diagrams. The 515-diagram hosted hydration evidence remains valid because no Mermaid bodies changed after diagram revision 431152817283718923c06a07e4154ca785e7033a. Source-link validation at candidate revision 9e1bc4fe remains 4,796/4,805; current worktree and primary HEAD 063e5eae resolve all 4,805.",
+  "scope_note": "Increment 561 reconciles the full 515-diagram hosted hydration baseline at revision 431152817283718923c06a07e4154ca785e7033a with the current candidate delta: one new body and two revised bodies, with no removals. The new and revised bodies have current GitHub render evidence; current Mermaid bodies are unchanged from revision 4c182311788f601d6eb264d909d8e554bc23fafd to candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. This gives revision-aware hydration evidence for all 516 current diagrams across sessions. The selected hosted readability sample is 78/516, not a full-width review of every chart.",
   "guides": [
     {
       "path": "docs/design/HLA-2025-ATTRIBUTE-OWNERSHIP-FLOW-GUIDE.md",
@@ -601,7 +602,7 @@
     "candidate_disposition": "Keep the five current-only test paths and the Requirements Lab plan outside the selected 41 documentation paths. Retain the private socket-resume case only as explicitly bounded prose evidence."
   },
   "candidate_scope_review": {
-    "status": "The documentation candidate branch is at revision 2eac0907917628e7f50b20654233bb97ec994d3a. All 32 current guide pages and 515 diagrams are accounted for by the prior full hydration pass plus increment-532 hydration checks of all five changed pages. The increment-532 closeout commit changed no Mermaid bodies. Current-only source/test changes remain outside this docs revision."
+    "status": "Candidate branch HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. Revision-aware hydration accounts for 516 current diagrams: 515 were hydrated at baseline revision 431152817283718923c06a07e4154ca785e7033a; one new and two revised bodies were checked on current GitHub pages, and a full body comparison confirms no Mermaid changes from revision 4c182311788f601d6eb264d909d8e554bc23fafd to current HEAD."
   },
   "guide_content_coverage_screen": {
     "checked_at": "2026-11-07",
@@ -4152,6 +4153,30 @@
         }
       ],
       "scope_note": "Selected IEEE 1516.1-2025 model-symbol lookup flow. Connection, membership, and symbol existence are separate gates; this does not model federation-name reservation or class-hierarchy lookup. No 2010 behavior or cross-profile parity is inferred."
+    },
+    {
+      "as_of": "2026-11-20 increment 561",
+      "browser": "Microsoft Edge, public GitHub view",
+      "branch": "feature/hla-2025-docs-candidate-20261107",
+      "branch_head_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+      "page": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+      "page_url": "https://github.com/sheepfling/umbra/blob/feature/hla-2025-docs-candidate-20261107/docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#composite-values-shape-cursor-and-alignment",
+      "page_last_file_commit": "68217e97d15cfdc4f83a32025fded1be12c8b749",
+      "sections": [
+        "Composite values: shape, cursor, and alignment"
+      ],
+      "pages_checked": 1,
+      "diagrams_visibly_rendered": 1,
+      "diagrams_opened_in_dialog": 0,
+      "diagram_evidence": [
+        {
+          "id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
+          "fence": "backtick",
+          "source_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
+          "render_observation": "The fixed-record, fixed-array, and variable-array lanes rendered through their final cursor-return paths. Branch labels and connectors remained visible across the scroll captures; no overlap or clipped diagram content was observed. The tall chart requires vertical scrolling, and text is small at the page width."
+        }
+      ],
+      "scope_note": "Targeted hosted readability review only. The distinct identity sample is now 78/516; full revision-aware hydration coverage is recorded separately and is not a full-width readability review."
     }
   ],
   "latest_interactive_full_hydration_recheck": {
@@ -4173,28 +4198,28 @@
     "diagram_content_unchanged_since_audited_revision": true
   },
   "latest_live_browser_sample": {
-    "as_of": "2026-11-12 increment 513",
+    "as_of": "2026-11-20 increment 561",
     "browser": "Microsoft Edge, public GitHub view",
     "branch": "feature/hla-2025-docs-candidate-20261107",
-    "branch_head_revision": "e10fa19a7bf48415e00a14ca7301613a84f637a3",
-    "page": "docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md",
-    "page_url": "https://github.com/sheepfling/umbra/blob/feature/hla-2025-docs-candidate-20261107/docs/design/HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#1-resolve-a-model-symbol-only-in-an-execution-context",
-    "page_last_file_commit": "adafb10c37b6aad8f798e49ca7007abeaaeb66fc",
+    "branch_head_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+    "page": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+    "page_url": "https://github.com/sheepfling/umbra/blob/feature/hla-2025-docs-candidate-20261107/docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#composite-values-shape-cursor-and-alignment",
+    "page_last_file_commit": "68217e97d15cfdc4f83a32025fded1be12c8b749",
     "sections": [
-      "1. Resolve a model symbol only in an execution context"
+      "Composite values: shape, cursor, and alignment"
     ],
     "pages_checked": 1,
     "diagrams_visibly_rendered": 1,
-    "diagrams_opened_in_dialog": 1,
+    "diagrams_opened_in_dialog": 0,
     "diagram_evidence": [
       {
-        "id": "HLA-2025-NAME-AND-HANDLE-RESOLUTION-FLOW-GUIDE.md#diagram-001",
+        "id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
         "fence": "backtick",
-        "remote_body_sha256": "30c27a150a0a003137b58f0d5fcf729db08061e8f2a97ed0019396b5be1c6977",
-        "render_observation": "GitHub's full-width Mermaid dialog showed the complete lookup flow: call the service, check connection, check federation-execution membership, resolve in the joined model, then return a typed handle or enum or the service-specific lookup exception. NotConnected and FederateNotExecutionMember appear on their separate failed gates. The entire chart was visible; labels and connectors were readable without clipping or overlap."
+        "source_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
+        "render_observation": "The fixed-record, fixed-array, and variable-array lanes rendered through their final cursor-return paths. Branch labels and connectors remained visible across the scroll captures; no overlap or clipped diagram content was observed. The tall chart requires vertical scrolling, and text is small at the page width."
       }
     ],
-    "scope_note": "Selected IEEE 1516.1-2025 model-symbol lookup flow. Connection, membership, and symbol existence are separate gates; this does not model federation-name reservation or class-hierarchy lookup. No 2010 behavior or cross-profile parity is inferred."
+    "scope_note": "Targeted hosted readability review only. The distinct identity sample is now 78/516; full revision-aware hydration coverage is recorded separately and is not a full-width readability review."
   },
   "latest_candidate_diagram_delta": {
     "as_of": "2026-11-15 increment 532",
@@ -4871,7 +4896,7 @@
       }
     ]
   },
-  "current_candidate_revision": "25b9055f9424fe73a391f758c2a53c3e35f15d0d",
+  "current_candidate_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
   "latest_increment_533_gfm_recheck": {
     "as_of": "2026-11-15 increment 533",
     "service": "Authenticated GitHub Markdown API POST /markdown",
@@ -5234,5 +5259,70 @@
         "html_nonempty": true
       }
     ]
+  },
+  "latest_increment_561_hosted_visual_review": {
+    "as_of": "2026-11-20 increment 561",
+    "diagram_id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
+    "source": "docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md",
+    "line": 297,
+    "ordinal_in_source": 5,
+    "revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+    "view": "Microsoft Edge, public GitHub blob Preview; inline Mermaid render; 2324x1070 viewport reviewed across top/middle/bottom scroll captures.",
+    "page_url": "https://github.com/sheepfling/umbra/blob/feature/hla-2025-docs-candidate-20261107/docs/design/HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#composite-values-shape-cursor-and-alignment",
+    "page_last_file_commit": "68217e97d15cfdc4f83a32025fded1be12c8b749",
+    "body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
+    "observation": "The fixed-record, fixed-array, and variable-array lanes rendered through their final cursor-return paths. Branch labels and connectors remained visible across the scroll captures; no overlap or clipped diagram content was observed. The tall chart requires vertical scrolling, and text is small at the page width.",
+    "scope_note": "One targeted current-branch render check at candidate HEAD. This adds one distinct identity to the selected hosted readability sample; it is not a 516-chart full-width readability claim."
+  },
+  "latest_increment_561_interactive_full_hydration_recheck": {
+    "as_of": "2026-11-20 increment 561",
+    "browser": "Microsoft Edge, public GitHub view, combined revision-aware evidence",
+    "branch": "feature/hla-2025-docs-candidate-20261107",
+    "branch_head_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+    "guide_pages_checked": 32,
+    "tracked_head_diagrams": 516,
+    "observed_mermaid_output_containers": 516,
+    "loaded_render_accessibility_documents": 516,
+    "page_count_mismatches": 0,
+    "worktree_diagram_fences": 516,
+    "unpublished_new_diagrams": 0,
+    "unpublished_revised_diagram_bodies": 0,
+    "method": "Revision-aware union: the full 515-diagram hydration audit at 431152817283718923c06a07e4154ca785e7033a supplies unchanged-body coverage. A parsed Mermaid-fence comparison from that revision to current candidate HEAD found one added body (Delay Subscription Evaluation #005), two revised bodies (Delay Subscription Evaluation #003 and Data Element Encoding #005), and no removals. GitHub renders for DSE #003, new DSE #005, and Callback/Ordering #019 were visually checked at 4c182311788f601d6eb264d909d8e554bc23fafd; a full source-body comparison found no Mermaid changes from that revision to current HEAD. Data Element Encoding #005 was then visually checked on GitHub at current HEAD. The union covers all 516 current diagram identities across sessions, not in one browser pass.",
+    "scope_note": "All 516 current diagram bodies are covered by revision-aware hosted hydration evidence. The selected readability sample is 78/516; this does not claim a full-width visual audit of every chart.",
+    "current_branch_head_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+    "diagram_content_unchanged_since_audited_revision": false
+  },
+  "latest_increment_561_candidate_diagram_delta": {
+    "as_of": "2026-11-20 increment 561",
+    "baseline_revision": "431152817283718923c06a07e4154ca785e7033a",
+    "current_candidate_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+    "baseline_diagram_count": 515,
+    "current_diagram_count": 516,
+    "added_diagram_count": 1,
+    "revised_body_count": 2,
+    "removed_diagram_count": 0,
+    "unchanged_body_count": 513,
+    "method": "Compared complete Mermaid fence bodies, including blank lines, by guide source and ordinal. Baseline and current files were read from Git revisions; line endings were normalized to LF without trimming body lines. A second full comparison from revision 4c182311788f601d6eb264d909d8e554bc23fafd to current HEAD found no Mermaid-body changes.",
+    "added_diagrams": [
+      {
+        "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-005",
+        "body_sha256": "a07e6efb69a7be1125f901ff972ea8a7e9b1e727b4c0f634b6dd97ff66798742"
+      }
+    ],
+    "revised_diagrams": [
+      {
+        "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
+        "baseline_body_sha256": "31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70",
+        "current_body_sha256": "2e5e95e06993a92ac86f94881befa405952dcdef111710564996711c781c0b36"
+      },
+      {
+        "id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
+        "baseline_body_sha256": "3f5ec001305f2583c66fe7f3bfd2205e46c86e8cdcb72d027aeef94c704cf431",
+        "current_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329"
+      }
+    ],
+    "removed_diagrams": [],
+    "current_guide_pages_with_diagrams": 32,
+    "current_mermaid_bodies_match_ledger": true
   }
 }

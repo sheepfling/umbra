@@ -1035,27 +1035,27 @@
   "documentation_flow_guide_handoff": {
     "status": "active",
     "current_handoff": {
-      "as_of": "2026-11-20 increment 560",
+      "as_of": "2026-11-20 increment 561",
       "supersedes_older_handoff_text": true,
-      "latest_increment": "Increment 560 reviewed a local 2025 Requirements Lab source-compilation PDF and separate LaTeX handoff bundle. The PDF metadata identifies a Requirements Lab compilation; the separate bundle labels its recreation non-authoritative and excludes the licensed source PDF. Their transcribed clauses narrow, but do not close, the §4.23 unreachable-time trigger or §6.21–6.22 RAVU receiver-entitlement question. The guides record this as provisional. The 2025 worktree source-link check resolves 4,934/4,934 references across 42 Markdown pages, including 129 pinned permalinks. No C++ build/tests, 2010, or Requirements Lab edits.",
-      "next_concrete_review": "Obtain an authorized copy of IEEE 1516.1-2025 and cross-check §4.23 plus §§6.21–6.22 and the relevant Update/Reflect receiver rules. Increment 560 reviewed a local Requirements Lab compilation and separate non-authoritative LaTeX handoff; these narrow but cannot settle when an unreachable save time must fail or whether RAVU gives an otherwise ineligible requester receipt rights. Keep both questions open pending authorized text. Keep configured-process interaction and TSO-attribute DSE test gaps bounded; hand any C++ test/build work to the implementation worker. Keep 2010 separate; do not edit the Requirements Lab.",
-      "remaining_work": "Approximately 90% complete (qualitative). The 2025 set has 32 guides and 516 diagrams with local render/screenshot evidence; the historical hosted hydration audit covers 515/515, and increment 559 reviewed 77/516 distinct diagram identities at revision 4c182311788f601d6eb264d909d8e554bc23fafd. Increment 560 refreshed no diagrams. The source-link check resolves 4,934/4,934 references across 42 Markdown pages, including 129 pinned permalinks. The Save-at-unreachable-time trigger and RAVU-based requester receipt entitlement remain open pending authorized IEEE text. Configured-process interaction and TSO-attribute DSE lack focused DSE tests. No 2010 or Requirements Lab edits.",
+      "latest_increment": "Increment 561 visually reviewed Data Element Encoding #005 in GitHub Preview at candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. The fixed-record, fixed-array, and variable-array paths rendered through their cursor-return ends without overlap or clipping; the current source body hash matches the ledger. The revision-aware hydration union covers all 516 current diagram identities: baseline 515/515 at 431152817283718923c06a07e4154ca785e7033a, plus one added and two revised bodies checked on GitHub. The selected readability sample is 78/516. The Mermaid fence audit found 516 current bodies and 0 ledger hash mismatches. Documentation links resolve 4,934/4,934 across 42 Markdown pages, including 129 pinned permalinks. No C++ build/tests, 2010, or Requirements Lab edits.",
+      "next_concrete_review": "Obtain authorized IEEE 1516.1-2025 text and cross-check §4.23 plus §§6.21–6.22 and the relevant Update/Reflect receiver rules. Keep the Save-at-unreachable-time trigger and RAVU requester-entitlement question unresolved until that review. Keep configured-process interaction and TSO-attribute DSE test gaps bounded; hand any C++ test/build work to the implementation worker. After any Mermaid-body change, compare current source identities and refresh targeted GitHub hydration/readability evidence. Keep 2010 separate; do not edit the Requirements Lab.",
+      "remaining_work": "Approximately 90% complete (qualitative). The 2025 set has 32 guides and 516 diagrams with local render/screenshot evidence. Revision-aware GitHub hydration covers all 516 current diagrams; the selected hosted readability sample is 78/516, not a full-width review. Source links resolve 4,934/4,934 across 42 Markdown pages, including 129 pinned permalinks. The Save-at-unreachable-time trigger and RAVU-based requester receipt entitlement remain open pending authorized IEEE text. Configured-process interaction and TSO-attribute DSE lack focused DSE tests. No 2010 or Requirements Lab edits.",
       "finish_condition": "The IEEE 1516.1-2025 guides explain standard concepts, transitions, callbacks, edge cases, and bounded implementation/test evidence; all current diagrams have identity-matched local render and screenshot evidence, with hosted evidence refreshed for changed bodies; source citations resolve at exact reviewed revisions; and remaining test or normative questions are resolved or explicitly bounded. Keep the 2010 stream separate and do not edit the Requirements Lab.",
       "source_reference_validation": {
-        "as_of": "2026-11-20 increment 559",
-        "revision": "Candidate HEAD 4c182311788f601d6eb264d909d8e554bc23fafd; published source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d; immutable permalinks checked at their pinned revisions.",
-        "scope": "All 2025 Markdown source-line references; quality_gates/bin/check_hla_2025_documentation_links.py --worktree, --ref HEAD, and --ref 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
+        "as_of": "2026-11-20 increment 561",
+        "revision": "Candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502; published source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d; immutable permalinks checked at pinned revisions.",
+        "scope": "All 2025 Markdown source-line references checked with quality_gates/bin/check_hla_2025_documentation_links.py --worktree, --ref HEAD, and --ref 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
         "markdown_files": 42,
         "unique_references": 4934,
         "pinned_references": 129,
         "resolved": 4934,
         "unresolved": 0,
-        "note": "All 4,934 references resolve in each check, including 129 immutable source permalinks. Citation validation only; no C++ test rerun or conformance claim."
+        "note": "All 4,934 references resolve in the worktree, candidate HEAD, and published source revision, including 129 immutable permalinks. Citation validation only; no C++ test rerun or conformance claim."
       },
       "candidate_head_reference_validation": {
-        "as_of": "2026-11-20 increment 559",
-        "revision": "Candidate HEAD 4c182311788f601d6eb264d909d8e554bc23fafd; source/test targets checked against this revision.",
-        "remote_branch_revision": "4c182311788f601d6eb264d909d8e554bc23fafd",
+        "as_of": "2026-11-20 increment 561",
+        "revision": "Candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502; source/test targets checked against this revision.",
+        "remote_branch_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
         "scope": "All current IEEE 1516.1-2025 Markdown source-line references checked against candidate HEAD.",
         "markdown_files": 42,
         "unique_references": 4934,
@@ -1063,10 +1063,10 @@
         "resolved": 4934,
         "unresolved": 0,
         "affected_targets": [],
-        "note": "All 4,934 references resolve at candidate HEAD and pinned source revisions. This documentation increment did not rerun C++ tests."
+        "note": "All 4,934 references resolve at current candidate HEAD and pinned source revisions. This documentation increment did not rerun C++ tests."
       },
       "primary_head_reference_validation": {
-        "as_of": "2026-11-20 increment 559",
+        "as_of": "2026-11-20 increment 561",
         "revision": "Published feature/initial-work source revision 7fbf5c9fa275179365fc8bbfe0751c8ce1e4ca7d.",
         "scope": "All current 2025 documentation references, with relative links checked at the published source branch and absolute links checked at their pinned revisions.",
         "markdown_files": 42,
@@ -1336,7 +1336,7 @@
         "executable_identity": null,
         "interpretation": "Historical scenario-ID results only. The artifact cannot be matched to the current modified source or establish that the delivered-TSO phase ran; do not cite it as evidence for the proposed minimum-time formula."
       },
-      "latest_reader_review": "GitHub visual review, increment 552 (2026-11-18), candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97: Callback and Service Ordering #019 (body SHA-256 27e6c160ba9e2dceb7da54c5b60e45ffd8838fd012338136b3b49ae54cb1f3c) is readable across the inspected sequence. TSO Retraction #008 (body SHA-256 4f5b23b4b28453ea47da0e76978d82a61dabb74859ba4cc98cb419a060279b07) renders without clipping; its tall, narrow layout wraps labels, but inspected text remains readable while scrolling. Selected hosted visual reviews: 76/515; this is a sample, not an all-chart readability claim.",
+      "latest_reader_review": "GitHub Preview visual review, increment 561, candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502: Data Element Encoding #005 (body SHA-256 f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329) rendered through all three composite lanes and the final cursor-return paths. Top/middle/bottom scroll captures showed no overlap or clipped content; text is small at the page width, so the chart requires scrolling. The selected hosted visual sample is 78/516; this is not an all-chart readability claim.",
       "supporting_page_gfm_recheck": {
         "as_of": "2026-11-15 increment 540",
         "service": "Authenticated GitHub Markdown API POST /markdown",
@@ -1350,24 +1350,16 @@
         "scope_note": "Both responses were nonempty after the increment-540 source-state refresh. No Mermaid body changed; broader layout remains sampling-only."
       },
       "published_diagram_hydration": {
-        "as_of": "2026-11-18 increment 553",
-        "revision": "431152817283718923c06a07e4154ca785e7033a",
+        "as_of": "2026-11-20 increment 561",
+        "revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+        "baseline_revision": "431152817283718923c06a07e4154ca785e7033a",
         "guide_pages": 32,
-        "diagram_count": 515,
-        "loaded_render_accessibility_documents": 515,
+        "diagram_count": 516,
+        "loaded_render_accessibility_documents": 516,
         "page_count_mismatches": 0,
-        "combined_method": "The full hosted hydration audit covers 515 diagrams across 32 pages at the recorded audited revision. Comparison from the later audited candidate source revision 6a3523d6cb460fec9b31422ee52dcefcfe403cf4 to current candidate HEAD 78cc803a found one changed body: Data Element Encoding #005. That updated body was independently rendered and visually reviewed in GitHub at revision 68217e97d15cfdc4f83a32025fded1be12c8b749 (increment 548); no Mermaid bodies changed between that revision and 78cc803a. Data Element Encoding #006–#009 only have shifted source lines; their body hashes are unchanged. Thus the combined hydration evidence covers all 515 current bodies. The selected hosted visual sample is 76/515 and is not a full readability review. No Mermaid bodies changed from candidate revision 78cc803a3069aae018cd940ab4e521eb24335a97 to increment-552 HEAD 83fc953873de2ff288ac4dda2190f0b3f4747017; the increment changed only documentation bookkeeping.",
-        "current_candidate_revision": "83fc953873de2ff288ac4dda2190f0b3f4747017",
-        "diagram_bodies_changed_since_audited_revision": true,
-        "audited_diagram_revision": "431152817283718923c06a07e4154ca785e7033a",
-        "latest_body_delta": {
-          "from_revision": "6a3523d6cb460fec9b31422ee52dcefcfe403cf4",
-          "to_revision": "78cc803a3069aae018cd940ab4e521eb24335a97",
-          "changed_body_count": 1,
-          "changed_diagram": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
-          "current_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329",
-          "hosted_visual_revision": "68217e97d15cfdc4f83a32025fded1be12c8b749"
-        }
+        "combined_method": "Revision-aware union: the full 515-diagram hydration audit at 431152817283718923c06a07e4154ca785e7033a supplies unchanged-body coverage. A parsed Mermaid-fence comparison from that revision to current candidate HEAD found one added body (Delay Subscription Evaluation #005), two revised bodies (Delay Subscription Evaluation #003 and Data Element Encoding #005), and no removals. GitHub renders for DSE #003, new DSE #005, and Callback/Ordering #019 were visually checked at 4c182311788f601d6eb264d909d8e554bc23fafd; a full source-body comparison found no Mermaid changes from that revision to current HEAD. Data Element Encoding #005 was then visually checked on GitHub at current HEAD. The union covers all 516 current diagram identities across sessions, not in one browser pass.",
+        "selected_hosted_visual_sample": "78/516 distinct chart identities",
+        "scope_note": "All 516 current diagram bodies are covered by revision-aware hosted hydration evidence. The selected readability sample is 78/516; this does not claim a full-width visual audit of every chart."
       },
       "guide_navigation_audit": {
         "as_of": "2026-11-15 increment 539",
@@ -1453,6 +1445,39 @@
             "meaning": "resume history-gap rejection test."
           }
         ]
+      },
+      "revision_aware_diagram_delta": {
+        "as_of": "2026-11-20 increment 561",
+        "baseline_revision": "431152817283718923c06a07e4154ca785e7033a",
+        "current_candidate_revision": "e3e1e37872eee0a71464f2aba3fa6fa88f295502",
+        "baseline_diagram_count": 515,
+        "current_diagram_count": 516,
+        "added_diagram_count": 1,
+        "revised_body_count": 2,
+        "removed_diagram_count": 0,
+        "unchanged_body_count": 513,
+        "method": "Compared complete Mermaid fence bodies, including blank lines, by guide source and ordinal. Baseline and current files were read from Git revisions; line endings were normalized to LF without trimming body lines. A second full comparison from revision 4c182311788f601d6eb264d909d8e554bc23fafd to current HEAD found no Mermaid-body changes.",
+        "added_diagrams": [
+          {
+            "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-005",
+            "body_sha256": "a07e6efb69a7be1125f901ff972ea8a7e9b1e727b4c0f634b6dd97ff66798742"
+          }
+        ],
+        "revised_diagrams": [
+          {
+            "id": "HLA-2025-DELAY-SUBSCRIPTION-EVALUATION-FLOW-GUIDE.md#diagram-003",
+            "baseline_body_sha256": "31391858fc05d3f8619c297aa882533b594899cfac025ff564852e053fc29b70",
+            "current_body_sha256": "2e5e95e06993a92ac86f94881befa405952dcdef111710564996711c781c0b36"
+          },
+          {
+            "id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
+            "baseline_body_sha256": "3f5ec001305f2583c66fe7f3bfd2205e46c86e8cdcb72d027aeef94c704cf431",
+            "current_body_sha256": "f25d8503ba9e2dceb7da54c5b60e45ffd8838fdbe54ba05cc22f29749519a329"
+          }
+        ],
+        "removed_diagrams": [],
+        "current_guide_pages_with_diagrams": 32,
+        "current_mermaid_bodies_match_ledger": true
       }
     },
     "scope_guidance": "For this active documentation pass, work only on IEEE 1516.1-2025. Lead with portable HLA states, events, decisions, and obligations. Use Umbra C++ and existing focused tests as bounded evidence; mark implementation-only behavior and embedded/process differences explicitly. Do not infer cross-profile parity. Prefer existing evidence and avoid builds, test reruns, and CI for documentation work.",
