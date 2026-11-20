@@ -416,6 +416,54 @@ For regional sends, the accepted send also preserves the producer's committed re
 subscription/overlap is considered at delivery. DSE changes receiver eligibility timing; it does not erase DDM
 constraints or make non-overlapping regions relevant. See the DDM/regions guide for region commit and overlap state.
 
+### Configured-process interactions have two projection boundaries
+
+The process profile's receive-order route-only lookup happens inside the send-service invocation, while it is preparing
+the outgoing event. A later callback bridge delivers the projected event; it does not independently re-evaluate DSE
+eligibility. The ordinary and directed service paths first create their recipient plans and then re-resolve route-only
+candidates while preparing the outgoing event
+([ordinary plan](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L405),
+[ordinary send-time recheck](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L514),
+[directed plan](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L701),
+[directed send-time recheck](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L807),
+[ordinary callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L214),
+[directed callback bridge](../../cpp/src/internal/federation/process_federation_callback_bridge.cpp#L184)). This source path does
+not by itself demonstrate a subscription change after `SendInteraction` returns but before callback admission.
+
+A recipient placed in a TSO queue has a later dispatch boundary. Ordinary queued interactions resolve the current
+interaction projection during recipient dispatch; directed queued interactions resolve their current target and
+selector through the timestamped directed-interaction path
+([ordinary TSO dispatch](../../cpp/src/internal/federation/process_federation_service_tso_delivery.cpp#L299),
+[directed TSO dispatch](../../cpp/src/internal/federation/process_federation_service_tso_payload_dispatch.cpp#L88)).
+The queue predicates differ: ordinary interactions require a timestamp, a regulating sender, and timestamp order;
+directed interactions require a timestamp and a regulating sender. In either path, only time-constrained or
+pending-time-constrained recipients are placed on the per-recipient TSO queue
+([ordinary](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L420),
+[directed](../../cpp/src/internal/federation/process_federation_service_interaction_send.cpp#L714)).
+
+```mermaid
+flowchart TD
+  Plan["Process interaction recipient plan"] --> Queued{"This recipient enters its TSO queue?"}
+  Queued -->|No| RouteOnly{"Recipient has only a route candidate?"}
+  RouteOnly -->|No| Projected["Use the planned interaction projection"]
+  RouteOnly -->|Yes| SendCheck["Re-resolve the current selector<br/>inside send service, before event construction"]
+  SendCheck --> SendEligible{"Current selector matches?"}
+  SendEligible -->|Yes| Projected
+  SendEligible -->|No| Omit["Omit this recipient from the event"]
+  Projected --> Event["Create projected event; push frame or pull queue"]
+  Event --> Bridge["Callback bridge delivers the projection<br/>without another DSE selector check"]
+  Queued --> TSO["Retain the timestamped recipient"]
+  TSO --> Dispatch["At later TSO recipient dispatch,<br/>resolve the current interaction selector"]
+  Dispatch --> TsoEligible{"Current selector matches?"}
+  TsoEligible -->|Yes| Callback["Reserve and deliver the interaction callback"]
+  TsoEligible -->|No| Suppress["Suppress callback and complete recipient delivery"]
+```
+
+This diagram is a source observation, not a process-profile DSE test result. The focused process DSE cases cited above
+exercise attribute updates; the bounded survey found no process interaction case that changes a declaration across
+either of these projection boundaries. The embedded interaction tests establish their own later callback/grant
+behavior and do not establish process behavior.
+
 ## Focused test evidence
 
 | Path | Focused evidence and what it establishes |
