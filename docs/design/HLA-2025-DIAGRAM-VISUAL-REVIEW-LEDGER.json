@@ -18,7 +18,7 @@
       "inventory": 463,
       "identities_enumerated": false
     },
-    "github_page_rendering": "Increment 559 checked DSE #003/#005 and Callback/Ordering #019 at 4c182; increment 561 checked Data Element Encoding #005 at current candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. All four inspected bodies render in GitHub. The revision-aware hydration union covers 516/516 current diagrams; selected hosted readability review covers 78/516 distinct identities and is not a full-width audit. Increment 563 adds DSE #006; its hosted rendering is pending publication and review. The selected hosted readability sample remains 78/516 until that review.",
+    "github_page_rendering": "Increment 559 checked DSE #003/#005 and Callback/Ordering #019 at 4c182; increment 561 checked Data Element Encoding #005 at current candidate HEAD e3e1e37872eee0a71464f2aba3fa6fa88f295502. All four inspected bodies render in GitHub. The revision-aware hydration union covers 516/516 current diagrams; selected hosted readability review covers 78/516 distinct identities and is not a full-width audit. Increment 563 adds DSE #006; its hosted rendering is pending publication and review. The selected hosted readability sample remains 78/516 until that review. Increment 564 checked immutable GitHub commit e20e468b5135947064ef47d5ab67c789c18814c6: the 560-line guide and DSE #006 Mermaid source are present, but text extraction shows a Loading placeholder and no rendered image. Source comparison from the last fully hydrated revision e3e1e37872eee0a71464f2aba3fa6fa88f295502 found exactly one addition (DSE #006), no changed or removed bodies. Revision-aware hosted hydration therefore covers 516/517; DSE #006 remains unverified. The selected readability sample is 78/517.",
     "latest_focused_github_visual_review": {
       "as_of": "2026-11-20 increment 561",
       "diagram_id": "HLA-2025-DATA-ELEMENT-ENCODING-FLOW-GUIDE.md#diagram-005",
@@ -33,7 +33,7 @@
       "observation": "The fixed-record, fixed-array, and variable-array lanes rendered through their final cursor-return paths. Branch labels and connectors remained visible across the scroll captures; no overlap or clipped diagram content was observed. The tall chart requires vertical scrolling, and text is small at the page width.",
       "scope_note": "One targeted current-branch render check at candidate HEAD. This adds one distinct identity to the selected hosted readability sample; it is not a 516-chart full-width readability claim."
     },
-    "note": "All 517 current IEEE 1516.1-2025 diagram identities have explicit local screenshot evidence matched to current body hashes and source lines. Hosted hydration evidence currently covers 516/516; DSE #006 awaits publication and hosted review."
+    "note": "All 517 current IEEE 1516.1-2025 diagram identities have explicit local screenshot evidence matched to current hashes and source lines. Revision-aware hosted hydration covers 516/517; the new DSE #006 source is present at commit e20e468b but its rendered image has not been visually verified."
   },
   "entries": [
     {
